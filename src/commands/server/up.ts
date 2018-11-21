@@ -1,5 +1,8 @@
+// tslint:disable:object-curly-spacing
 import { Command, flags } from '@oclif/command'
 import { execSync } from 'child_process'
+import * as execa from 'execa'
+// import { string } from '@oclif/parser/lib/flags'
 
 export default class Up extends Command {
   static description = 'Start Eclipse Che Server'
@@ -23,71 +26,80 @@ export default class Up extends Command {
   async run() {
     const { flags } = this.parse(Up)
     const Listr = require('listr')
+    const notifier = require('node-notifier')
     const tasks = new Listr([
-      {title: 'Verify that minikube is installed', task: () => this.checkIfInstalled('minikube')},
-      {title: 'Verify that helm is installed', task: () => this.checkIfInstalled('helm')},
-      {title: 'Verify that minikube is running', task: () => this.checkMinikubeStatus()},
-      {title: 'Configure the Kubernetes cluster', task: () => this.configureMinikube()},
-      {title: 'Initialize Helm', task: () => this.installHelm(flags)},
-      {title: 'Deploy Eclipse Che server', task: () => this.deployChe(flags)}
+      { title: 'Verify that minikube is installed', task: () => this.checkIfInstalled('minikube') },
+      { title: 'Verify that helm is installed', task: () => this.checkIfInstalled('helm') },
+      { title: 'Wait 10 seconds', task: () => execa('sleep', ['2']) },
+      { title: 'Verify that minikube is running', task: () => this.checkMinikubeStatus() },
+      { title: 'Verify that minikube ingress addon is enabled', task: () => this.checkIfMinikubeIngressAddon() },
+      { title: 'Verify that minikube is running', task: () => this.checkClusterRoleBinding() },
+      { title: 'Verify that minikube is running', task: () => this.checkTillerServiceAccount() },
+      { title: 'Verify that minikube is running', task: () => this.checkTillerServiceAccount() },
+      // {
+      //   title: 'Verify that minikube is running',
+      //   task: () => execa.stdout('minikube', ['status']).then(result: string => {
+      //     if (result !== )
+      //   })
+      // }
+      // { title: 'Configure the Kubernetes cluster', task: () => this.configureMinikube() }
+      // { title: 'Initialize Helm', task: () => this.installHelm(flags) },
+      // { title: 'Deploy Eclipse Che server', task: () => this.deployChe(flags) }
     ])
 
-    tasks.run().catch(err => {
-      this.error(err)
-    })
-    // this.preFlightChecks()
-    // this.configureMinikube()
-    // this.installHelm(flags)
-    // this.deployChe(flags)
-    const notifier = require('node-notifier')
-    // const path = require('path')
-    notifier.notify({
-      title: 'chectl',
-      message: 'Che has been deployed successfully!',
-      // icon: path.join(__dirname, 'che.png')
-    })
-    this.exit(0)
+    tasks.run().then(
+      // this.preFlightChecks()
+      // this.configureMinikube()
+      // this.installHelm(flags)
+      // this.deployChe(flags)
+      // const path = require('path')
+      notifier.notify({
+        title: 'chectl',
+        message: 'Command server:up has completed.',
+        // icon: path.join(__dirname, 'che.png')
+      }))
+    // this.exit(0))
   }
 
-  preFlightChecks() {
-    this.checkPrerequisites()
-    this.checkMinikubeStatus()
-  }
+  // preFlightChecks() {
+  //   this.checkPrerequisites()
+  //   this.checkMinikubeStatus()
+  // }
 
-  checkPrerequisites() {
-    this.checkIfInstalled('minishift')
-    this.checkIfInstalled('helm')
-  }
+  // checkPrerequisites() {
+  //   this.checkIfInstalled('minishift')
+  //   this.checkIfInstalled('helm')
+  // }
 
   checkIfInstalled(commandName: string) {
     let commandExistsSync = require('command-exists').sync
     if (!commandExistsSync(commandName)) {
-      this.error('ERROR: minikube is not installed.', { exit: 1 })
+      throw new Error('ERROR: minikube is not installed.')
     }
-    // this.log(`${commandName} is installed`)
   }
 
   checkMinikubeStatus() {
-    try {
-      const out = execSync('minikube status', { timeout: 10000 })
-      if (!out.includes('Running')) {
-        this.warn('ERROR: command \'minikube status\' reports that minikube is not running')
-        this.error(`stdout: ${out}`, { exit: 1 })
-        process.exit(-1)
-      }
-    } catch (error) {
-      this.error(`${error}`, { exit: 1 })
+    const { stdout } = execa.shellSync('minikube status', { timeout: 10000 })
+    if (!stdout.includes('Running')) {
+      throw new Error('minikube is not running')
     }
-    // this.log('minikube is running')
   }
 
-  configureMinikube() {
-    try {
-      execSync('minikube addons enable ingress', { timeout: 10000 })
-      // this.log('minikube ingress addon enabled successfully')
-    } catch (error) {
-      this.error(`${error}`, { exit: 1 })
+  checkIfMinikubeIngressAddon() {
+    const { stdout } = execa.shellSync('minikube addons list', { timeout: 10000 })
+    if (!stdout.includes('ingress: enabled')) {
+      throw new Error('minikube ingress addon is not enabled')
     }
+  }
+
+  checkClusterRoleBinding() {
+    execa.shellSync('kubectl get clusterrolebinding add-on-cluster-admin', { timeout: 10000 })
+  }
+
+  checkTillerServiceAccount() {
+    execa.shellSync('kubectl get serviceaccounts tiller --namespace kube-system', { timeout: 10000 })
+  }
+
 
     try {
       execSync('kubectl get clusterrolebinding add-on-cluster-admin', { timeout: 10000 })
