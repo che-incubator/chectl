@@ -8,8 +8,10 @@
   },
   "bugs": "https://github.com/l0rd/chectl/issues",
   "dependencies": {
+    "@kubernetes/client-node": "^0.7.1",
     "@oclif/command": "^1",
     "@oclif/config": "^1",
+    "@oclif/parser": "^3.7.0",
     "@oclif/plugin-help": "^2",
     "command-exists": "^1.2.8",
     "execa": "^1.0.0",

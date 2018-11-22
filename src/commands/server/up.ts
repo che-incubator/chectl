@@ -1,21 +1,21 @@
 // tslint:disable:object-curly-spacing
+// import { k8s } from '@kubernetes/client-node'
 import { Command, flags } from '@oclif/command'
-import { execSync } from 'child_process'
+import { string } from '@oclif/parser/lib/flags'
 import * as execa from 'execa'
-// import { string } from '@oclif/parser/lib/flags'
 
 export default class Up extends Command {
   static description = 'Start Eclipse Che Server'
 
   static flags = {
     help: flags.help({ char: 'h' }),
-    chepath: flags.string({
+    chepath: string({
       char: 'p',
       description: 'path to Che local git repository',
       default: '~/github/che',
       env: 'CHE_LOCAL_GIT_REPO'
     }),
-    chenamespace: flags.string({
+    chenamespace: string({
       char: 'n',
       description: 'Kubernetes namespace where Che resources will be deployed',
       default: 'kube-che',
@@ -30,12 +30,18 @@ export default class Up extends Command {
     const tasks = new Listr([
       { title: 'Verify that minikube is installed', task: () => this.checkIfInstalled('minikube') },
       { title: 'Verify that helm is installed', task: () => this.checkIfInstalled('helm') },
-      { title: 'Wait 10 seconds', task: () => execa('sleep', ['2']) },
       { title: 'Verify that minikube is running', task: () => this.checkMinikubeStatus() },
       { title: 'Verify that minikube ingress addon is enabled', task: () => this.checkIfMinikubeIngressAddon() },
-      { title: 'Verify that minikube is running', task: () => this.checkClusterRoleBinding() },
-      { title: 'Verify that minikube is running', task: () => this.checkTillerServiceAccount() },
-      { title: 'Verify that minikube is running', task: () => this.checkTillerServiceAccount() },
+      { title: 'Verify that if ClusterRoleBinding addo-on-cluster-admin exist', task: () => this.checkClusterRoleBinding() },
+      //execSync('kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default', { timeout: 10000 })
+      { title: 'Verify that tiller service account exists', task: () => this.checkTillerServiceAccount() },
+      // execSync('kubectl create serviceaccount tiller --namespace kube-system', { timeout: 10000 })
+      { title: 'Create Tiller RBAC', task: () => this.createTillerRBAC(flags.chepath) },
+      { title: 'Verify that tiller is running', task: () => this.checkTillerService() },
+      //execSync('helm init --service-account tiller', { timeout: 10000 })
+      // { title: 'Deploy Che', task: () => this.deployChe(flags) },
+      { title: 'Verify that Che is running', task: () => this.checkIfCheIsRunning(flags) }
+      //
       // {
       //   title: 'Verify that minikube is running',
       //   task: () => execa.stdout('minikube', ['status']).then(result: string => {
@@ -47,29 +53,22 @@ export default class Up extends Command {
       // { title: 'Deploy Eclipse Che server', task: () => this.deployChe(flags) }
     ])
 
-    tasks.run().then(
-      // this.preFlightChecks()
-      // this.configureMinikube()
-      // this.installHelm(flags)
-      // this.deployChe(flags)
-      // const path = require('path')
-      notifier.notify({
-        title: 'chectl',
-        message: 'Command server:up has completed.',
-        // icon: path.join(__dirname, 'che.png')
-      }))
-    // this.exit(0))
+    await tasks.run()
+    // .then(
+    // this.preFlightChecks()
+    // this.configureMinikube()
+    // this.installHelm(flags)
+    // this.deployChe(flags)
+    // const path = require('path')
+    // icon: path.join(__dirname, 'che.png')
+    // }))
+
+    notifier.notify({
+      title: 'chectl',
+      message: 'Command server:up has completed.',
+      // this.exit(0))
+    })
   }
-
-  // preFlightChecks() {
-  //   this.checkPrerequisites()
-  //   this.checkMinikubeStatus()
-  // }
-
-  // checkPrerequisites() {
-  //   this.checkIfInstalled('minishift')
-  //   this.checkIfInstalled('helm')
-  // }
 
   checkIfInstalled(commandName: string) {
     let commandExistsSync = require('command-exists').sync
@@ -100,53 +99,30 @@ export default class Up extends Command {
     execa.shellSync('kubectl get serviceaccounts tiller --namespace kube-system', { timeout: 10000 })
   }
 
-
-    try {
-      execSync('kubectl get clusterrolebinding add-on-cluster-admin', { timeout: 10000 })
-      // this.log("RoleBinding \'add-on-cluster-admin\' already exists, no need to create it")
-    } catch {
-      try {
-        execSync('kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default', { timeout: 10000 })
-        // this.log("RoleBinding \'add-on-cluster-admin\' created successfully")
-      } catch (error) {
-        this.error(`${error}`, { exit: 1 })
-      }
-    }
+  createTillerRBAC(cheLocalRepoPath: any) {
+    execa.shellSync(`kubectl apply -f ${cheLocalRepoPath}/deploy/kubernetes/helm/che/tiller-rbac.yaml`, { timeout: 10000 })
   }
 
-  async installHelm(flags: any) {
-    try {
-      execSync('kubectl get serviceaccounts tiller --namespace kube-system', { timeout: 10000 })
-      // this.log("Service account \'tiller\' already exists, no need to create it")
-    } catch {
-      try {
-        execSync('kubectl create serviceaccount tiller --namespace kube-system', { timeout: 10000 })
-        // this.log("Service account \'tiller\' created successfully")
-        let wait = ms => new Promise((r, _j) => setTimeout(r, ms))
-        await wait(1000)
-      } catch (error) {
-        this.error(`${error}`, { exit: 1 })
-      }
-    }
+  checkTillerService() {
+    execa.shellSync('kubectl get services tiller-deploy -n kube-system', { timeout: 10000 })
+  }
 
-    try {
-      execSync(`kubectl apply -f ${flags.chepath}/deploy/kubernetes/helm/che/tiller-rbac.yaml`, { timeout: 10000 })
-      // this.log('Tiller RBAC created successfully')
-    } catch (error) {
-      this.error(`${error}`, { exit: 1 })
-    }
+  checkIfChePodIsCreated(flags: flags) {
+    const k8s = require('@kubernetes/client-node')
+    const kc = new k8s.KubeConfig()
+    kc.loadFromDefault()
 
-    try {
-      execSync('kubectl get services tiller-deploy -n kube-system', { timeout: 10000 })
-      // this.log('Tiller service already exists, no need to deploy it')
-    } catch {
-      try {
-        execSync('helm init --service-account tiller', { timeout: 10000 })
-        // this.log('Tiller has been deployed successfully')
-      } catch (error) {
-        this.error(`${error}`, { exit: 1 })
-      }
-    }
+    const k8sApi = kc.makeApiClient(k8s.Core_v1Api)
+
+    k8sApi.listNamespacedPod(flags.chenamespace, undefined, undefined, undefined, undefined, 'app=che')
+      .then(res => {
+        res.body.items.forEach(pod => {
+          console.log(`Pod name: ${pod.metadata.name}`)
+        })
+        // (pod => {
+        //   console.log(`Pod: ${pod.metadata.namespace}/${pod.metadata.name}`)
+        // })
+      }).catch(err => console.error(`Error: ${err.message}`))
   }
 
   deployChe(flags: any) {
@@ -157,13 +133,6 @@ export default class Up extends Command {
                             --set cheImage=eclipse/che-server:nightly \\
                             --set global.cheWorkspacesNamespace=${flags.chenamespace} \\
                             ${flags.chepath}/deploy/kubernetes/helm/che/`
-
-    try {
-      const out = execSync(command, { timeout: 10000 })
-      // this.log("Command 'helm upgrade' executed successfully")
-      // this.log(out.toString('utf8'))
-    } catch (error) {
-      this.error(`${error}`, { exit: 1 })
-    }
+    execa.shellSync(command, { timeout: 10000 })
   }
 }
