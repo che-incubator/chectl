@@ -28,7 +28,7 @@ export default class Up extends Command {
     const Listr = require('listr')
     const notifier = require('node-notifier')
     const tasks = new Listr([
-      { title: 'Verify if minikube is installed', task: (task: any) => { this.checkIfInstalled('minikube'); task.output = 'Done' } },
+      { title: 'Verify if minikube is installed', task: () => this.checkIfInstalled('minikube') },
       { title: 'Verify if helm is installed', task: () => this.checkIfInstalled('helm') },
       { title: 'Verify if minikube is running', task: (ctx: any) => { ctx.minikubeIsRunning = this.isMinikubeRunning(ctx) }},
       { title: 'Start minikube', skip: (ctx: any) => { if (ctx.minikubeIsRunning) { return 'Minikube is already running' } }, task: () => this.startMinikube() },
