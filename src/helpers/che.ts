@@ -25,6 +25,8 @@ export class CheHelper {
   //   return false
   // }
 
+  defaultCheResponseTimeoutMs = 3000
+
   async cheServerPodExist(namespace: string): Promise<boolean> {
     const kc = new KubeConfig()
     kc.loadFromDefault()
@@ -43,7 +45,7 @@ export class CheHelper {
     return found
   }
 
-  async cheURL(namespace: string): Promise<string> {
+  async cheURL(namespace: string | undefined = ''): Promise<string> {
     const protocol = 'http'
     const { stdout } = await execa('kubectl',
       ['get',
@@ -58,11 +60,12 @@ export class CheHelper {
     return `${protocol}://${hostname}`
   }
 
-  async isCheServerReady(namespace: string): Promise<boolean> {
+  async isCheServerReady(namespace: string | undefined = '', responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
     let url = await this.cheURL(namespace)
     let ready = false
+
     try {
-      await axios.get(`${url}/api/system/state`)
+      await axios.get(`${url}/api/system/state`, { timeout: responseTimeoutMs })
       ready = true
     } catch (error) {
       if (error.response) {
@@ -82,8 +85,5 @@ export class CheHelper {
     }
     return ready
   }
-
-  // async cheServerDeploymentExist(namespace: string): Promise<boolean> {
-  // }
 
 }

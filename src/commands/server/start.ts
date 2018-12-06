@@ -4,6 +4,7 @@ import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as execa from 'execa'
 
+import { CheHelper } from '../../helpers/che'
 import { HelmHelper } from '../../helpers/helm'
 import { MinikubeHelper } from '../../helpers/minikube'
 let path = require('path')
@@ -30,6 +31,13 @@ export default class Start extends Command {
       description: 'Path to the templates folder',
       default: `${workingDir}/src/templates`,
       env: 'CHE_TEMPLATES_FOLDER'
+    }),
+    cheboottimeout: string({
+      char: 'o',
+      description: 'Che server bootstrap timeout (in milliseconds)',
+      default: '40000',
+      required: true,
+      env: 'CHE_SERVER_BOOT_TIMEOUT'
     })
   }
 
@@ -37,8 +45,10 @@ export default class Start extends Command {
     const { flags } = this.parse(Start)
     const Listr = require('listr')
     const notifier = require('node-notifier')
+    const bootTimeout = parseInt(flags.cheboottimeout, 10)
     const mh = new MinikubeHelper()
     const helm = new HelmHelper()
+    const che = new CheHelper()
     const tasks = new Listr([
       { title: 'Verify if kubectl is installed', task: () => this.checkIfInstalled('kubectl') },
       { title: 'Verify if minikube is installed', task: () => this.checkIfInstalled('minikube') },
@@ -57,11 +67,11 @@ export default class Start extends Command {
       { title: 'Verify if Tiller service exist', task: async (ctx: any) => { ctx.tillerServiceExist = await helm.tillerServiceExist() } },
       { title: 'Create Tiller Service', skip: (ctx: any) => { if (ctx.tillerServiceExist) { return 'Tiller Service already exist.' } }, task: () => helm.createTillerService() },
       { title: 'Pre-pull Che server image', skip: () => 'Not implemented yet', task: () => {}},
-      { title: 'Verify if Che server is already running', skip: () => 'Not implemented yet', task: () => {}},
-      { title: 'Deploy Che Server', task: () => this.deployChe(flags) },
+      { title: 'Verify if Che server is already running', task: async (ctx: any) => { ctx.isCheRunning = await che.isCheServerReady(flags.chenamespace) }},
+      { title: 'Deploy Che Server', skip: (ctx: any) => { if (ctx.isCheRunning) { return 'Che is already running.' } }, task: () => this.deployChe(flags) },
       { title: 'Waiting for Che Server pod to be created', skip: () => 'Not implemented yet', task: () => {}},
-      { title: 'Waiting for Che Server to start and respond', skip: () => 'Not implemented yet', task: () => {}},
-      { title: 'Retrieving Che Server URL', skip: () => 'Not implemented yet', task: () => {}},
+      { title: 'Waiting for Che Server to start and respond', skip: (ctx: any) => { if (ctx.isCheRunning) { return 'Che is already running.' } }, task: async () => che.isCheServerReady(flags.chenamespace, bootTimeout)},
+      { title: 'Retrieving Che Server URL', task: async (ctx: any, task: any) => { ctx.cheURL = await che.cheURL(flags.chenamespace); task.title = await `${task.title}...${ctx.cheURL}` } },
       { title: 'Open Che Server in browser', skip: () => 'Not implemented yet', task: () => {}},
     ])
 
