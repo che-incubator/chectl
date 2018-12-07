@@ -21,7 +21,7 @@ export default class List extends Command {
   }
 
   async run() {
-    const { flags } = this.parse(Update)
+    const { flags } = this.parse(List)
     const Listr = require('listr')
     const notifier = require('node-notifier')
     const mh = new MinikubeHelper()

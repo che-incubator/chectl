@@ -3,11 +3,13 @@
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as execa from 'execa'
+import * as Listr from 'listr'
+import * as notifier from 'node-notifier'
+import * as path from 'path'
 
 import { CheHelper } from '../../helpers/che'
 import { HelmHelper } from '../../helpers/helm'
 import { MinikubeHelper } from '../../helpers/minikube'
-let path = require('path')
 const workingDir = path.resolve('.')
 export default class Start extends Command {
   static description = 'Start Eclipse Che Server'
@@ -43,8 +45,6 @@ export default class Start extends Command {
 
   async run() {
     const { flags } = this.parse(Start)
-    const Listr = require('listr')
-    const notifier = require('node-notifier')
     const bootTimeout = parseInt(flags.cheboottimeout, 10)
     const mh = new MinikubeHelper()
     const helm = new HelmHelper()

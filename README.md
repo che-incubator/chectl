@@ -19,7 +19,7 @@ $ npm install -g chectl
 $ chectl COMMAND
 running command...
 $ chectl (-v|--version|version)
-chectl/0.0.2 darwin-x64 node-v8.9.1
+chectl/0.0.2 darwin-x64 node-v11.2.0
 $ chectl --help [COMMAND]
 USAGE
   $ chectl COMMAND
@@ -28,28 +28,13 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`chectl hello [FILE]`](#chectl-hello-file)
 * [`chectl help [COMMAND]`](#chectl-help-command)
-
-## `chectl hello [FILE]`
-
-describe the command here
-
-```
-USAGE
-  $ chectl hello [FILE]
-
-OPTIONS
-  -f, --force
-  -h, --help       show CLI help
-  -n, --name=name  name to print
-
-EXAMPLE
-  $ chectl hello
-  hello world from ./src/hello.ts!
-```
-
-_See code: [src/commands/hello.ts](https://github.com/l0rd/chectl/blob/v0.0.2/src/commands/hello.ts)_
+* [`chectl server:start`](#chectl-serverstart)
+* [`chectl server:stop`](#chectl-serverstop)
+* [`chectl server:update`](#chectl-serverupdate)
+* [`chectl workspace:list`](#chectl-workspacelist)
+* [`chectl workspace:start`](#chectl-workspacestart)
+* [`chectl workspace:stop`](#chectl-workspacestop)
 
 ## `chectl help [COMMAND]`
 
@@ -67,4 +52,99 @@ OPTIONS
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.1.4/src/commands/help.ts)_
+
+## `chectl server:start`
+
+Start Eclipse Che Server
+
+```
+USAGE
+  $ chectl server:start
+
+OPTIONS
+  -h, --help                           show CLI help
+  -i, --cheimage=cheimage              [default: eclipse/che-server:nightly] Che server container image
+  -n, --chenamespace=chenamespace      [default: kube-che] Kubernetes namespace where Che resources will be deployed
+  -o, --cheboottimeout=cheboottimeout  (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
+
+  -t, --templates=templates            [default: /Users/mariolet/Github/chectl/src/templates] Path to the templates
+                                       folder
+```
+
+_See code: [src/commands/server/start.ts](https://github.com/l0rd/chectl/blob/v0.0.2/src/commands/server/start.ts)_
+
+## `chectl server:stop`
+
+Stop Eclipse Che Server
+
+```
+USAGE
+  $ chectl server:stop
+
+OPTIONS
+  -h, --help                       show CLI help
+  -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che resources will be deployed
+```
+
+_See code: [src/commands/server/stop.ts](https://github.com/l0rd/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
+
+## `chectl server:update`
+
+Update Eclipse Che Server
+
+```
+USAGE
+  $ chectl server:update
+
+OPTIONS
+  -h, --help                       show CLI help
+  -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che resources will be deployed
+```
+
+_See code: [src/commands/server/update.ts](https://github.com/l0rd/chectl/blob/v0.0.2/src/commands/server/update.ts)_
+
+## `chectl workspace:list`
+
+List Che workspaces
+
+```
+USAGE
+  $ chectl workspace:list
+
+OPTIONS
+  -h, --help                       show CLI help
+  -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che server is deployed
+```
+
+_See code: [src/commands/workspace/list.ts](https://github.com/l0rd/chectl/blob/v0.0.2/src/commands/workspace/list.ts)_
+
+## `chectl workspace:start`
+
+Create and start a Che workspace
+
+```
+USAGE
+  $ chectl workspace:start
+
+OPTIONS
+  -h, --help                       show CLI help
+  -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che server deployed
+```
+
+_See code: [src/commands/workspace/start.ts](https://github.com/l0rd/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
+
+## `chectl workspace:stop`
+
+Stop a running Che workspace
+
+```
+USAGE
+  $ chectl workspace:stop
+
+OPTIONS
+  -h, --help                       show CLI help
+  -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che server is deployed
+```
+
+_See code: [src/commands/workspace/stop.ts](https://github.com/l0rd/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_
 <!-- commandsstop -->

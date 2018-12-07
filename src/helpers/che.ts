@@ -60,7 +60,30 @@ export class CheHelper {
     return `${protocol}://${hostname}`
   }
 
+  async cheNamespaceExist(namespace: string | undefined = '') {
+    const kc = new KubeConfig()
+    kc.loadFromDefault()
+
+    const k8sApi = kc.makeApiClient(Core_v1Api)
+    let found = false
+
+    await k8sApi.listNamespace(namespace)
+      .then(res => {
+        if (res.body.items.length > 0) {
+          found = true
+        } else {
+          found = false
+        }
+      }).catch(err => console.error(`Error: ${err.message}`))
+
+    return found
+  }
+
   async isCheServerReady(namespace: string | undefined = '', responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
+    if (!this.cheNamespaceExist(namespace)) {
+      return false
+    }
+
     let url = await this.cheURL(namespace)
     let ready = false
 

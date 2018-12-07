@@ -13,6 +13,10 @@
     "@oclif/config": "^1",
     "@oclif/parser": "^3.7.0",
     "@oclif/plugin-help": "^2",
+    "@types/listr": "^0.13.0",
+    "@types/node-notifier": "^0.0.28",
+    "@types/request": "^2.48.1",
+    "@types/websocket": "^0.0.40",
     "axios": "^0.18.0",
     "cli-ux": "^4.9.3",
     "command-exists": "^1.2.8",
@@ -59,8 +63,19 @@
   "oclif": {
     "commands": "./lib/commands",
     "bin": "chectl",
+    "macos": {
+      "identifier": "l0rd.chectl"
+    },
     "plugins": [
       "@oclif/plugin-help"
+    ]
+  },
+  "pkg": {
+    "scripts": [
+      "./lib/**/*.js"
+    ],
+    "assets": [
+      "node_modules/node-notifier/vendor/terminal-notifier.app/Contents/MacOS/terminal-notifier"
     ]
   },
   "repository": "l0rd/chectl",

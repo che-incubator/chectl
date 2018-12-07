@@ -8,7 +8,7 @@ import { HelmHelper } from '../../helpers/helm'
 import { MinikubeHelper } from '../../helpers/minikube'
 
 export default class Stop extends Command {
-  static description = 'Start Eclipse Che Server'
+  static description = 'Stop Eclipse Che Server'
 
   static flags = {
     help: flags.help({ char: 'h' }),
