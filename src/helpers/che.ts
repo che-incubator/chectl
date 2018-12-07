@@ -1,9 +1,11 @@
 // tslint:disable:object-curly-spacing
 // tslint:disable-next-line:no-http-string
 
-import { Core_v1Api, KubeConfig } from '@kubernetes/client-node'
+import { Core_v1Api, KubeConfig, V1Namespace } from '@kubernetes/client-node'
 import axios from 'axios'
 import * as execa from 'execa'
+import { isUndefined } from 'util';
+import { IncomingMessage } from 'http';
 
 export class CheHelper {
   // async chePodExist(namespace: string): Promise<boolean> {
@@ -65,29 +67,41 @@ export class CheHelper {
     kc.loadFromDefault()
 
     const k8sApi = kc.makeApiClient(Core_v1Api)
-    let found = false
+    // let found = true
 
-    await k8sApi.listNamespace(namespace)
-      .then(res => {
-        if (res.body.items.length > 0) {
-          found = true
-        } else {
-          found = false
-        }
-      }).catch(err => console.error(`Error: ${err.message}`))
+    // let result: Promise<{
+    //   response: IncomingMessage;
+    //   body: V1Namespace;
+    // }>
 
-    return found
+    // await k8sApi.readNamespace(namespace).then(res => result = res).catch(err => result = err.result)
+    try {
+      await k8sApi.readNamespace(namespace)
+      return true
+    } catch {
+      return false
+    }
+    // if (isUndefined(result)) throw(new Error('readNamespace result is undefined')) else
+    // if (result.response.statusCode === 404) return false
+      // .then(res => {
+      //   if (res.body.items.length > 0) {
+      //     found = true
+      //   } else {
+      //     found = false
+      //   }
+      // }).catch(err => console.error(`Error: ${err.message}`))
+
+    // return found
   }
 
   async isCheServerReady(namespace: string | undefined = '', responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
-    if (!this.cheNamespaceExist(namespace)) {
+    if (! await this.cheNamespaceExist(namespace)) {
       return false
     }
 
-    let url = await this.cheURL(namespace)
     let ready = false
-
     try {
+      let url = await this.cheURL(namespace)
       await axios.get(`${url}/api/system/state`, { timeout: responseTimeoutMs })
       ready = true
     } catch (error) {

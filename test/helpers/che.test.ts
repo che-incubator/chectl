@@ -20,33 +20,43 @@ describe('Che helper', () => {
     //   const res = await ch.cheServerPodExist(namespace)
     //   expect(res).to.equal(true)
     // })
+  // fancy
+  //   .stub(ch, 'cheURL', () => cheURL)
+  //   .nock(cheURL, api => api
+  //     .get('/api/system/state')
+  //     .reply(200))
+  //   .it('detects if Che server is ready', async () => {
+  //     const res = await ch.isCheServerReady(namespace)
+  //     expect(res).to.equal(true)
+  //   })
+  // fancy
+  //   .stub(ch, 'cheURL', () => cheURL)
+  //   .nock(cheURL, api => api
+  //     .get('/api/system/state')
+  //     .delayConnection(1000)
+  //     .reply(200))
+  //   .it('detects if Che server is NOT ready', async () => {
+  //     const res = await ch.isCheServerReady(namespace, 500)
+  //     expect(res).to.equal(false)
+  //   })
+  // fancy
+  //   .stub(ch, 'cheURL', () => cheURL)
+  //   .nock(cheURL, api => api
+  //     .get('/api/system/state')
+  //     .delayConnection(1000)
+  //     .reply(200))
+  //   .it('waits until Che server is ready', async () => {
+  //     const res = await ch.isCheServerReady(namespace, 2000)
+  //     expect(res).to.equal(true)
+  //   })
   fancy
-    .stub(ch, 'cheURL', () => cheURL)
-    .nock(cheURL, api => api
-      .get('/api/system/state')
-      .reply(200))
-    .it('detects if Che server is ready', async () => {
-      const res = await ch.isCheServerReady(namespace)
-      expect(res).to.equal(true)
-    })
-  fancy
-    .stub(ch, 'cheURL', () => cheURL)
-    .nock(cheURL, api => api
-      .get('/api/system/state')
-      .delayConnection(1000)
-      .reply(200))
-    .it('detects if Che server is NOT ready', async () => {
-      const res = await ch.isCheServerReady(namespace, 500)
+    .it('found an existing namespace', async () => {
+      const res = await ch.cheNamespaceExist(namespace)
       expect(res).to.equal(false)
     })
   fancy
-    .stub(ch, 'cheURL', () => cheURL)
-    .nock(cheURL, api => api
-      .get('/api/system/state')
-      .delayConnection(1000)
-      .reply(200))
-    .it('waits until Che server is ready', async () => {
-      const res = await ch.isCheServerReady(namespace, 2000)
+    .it('found an existing namespace', async () => {
+      const res = await ch.cheNamespaceExist('default')
       expect(res).to.equal(true)
     })
 })

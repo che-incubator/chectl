@@ -19,7 +19,7 @@ $ npm install -g chectl
 $ chectl COMMAND
 running command...
 $ chectl (-v|--version|version)
-chectl/0.0.2 darwin-x64 node-v11.2.0
+chectl/0.0.2 linux-x64 node-v8.12.0
 $ chectl --help [COMMAND]
 USAGE
   $ chectl COMMAND
@@ -66,9 +66,7 @@ OPTIONS
   -i, --cheimage=cheimage              [default: eclipse/che-server:nightly] Che server container image
   -n, --chenamespace=chenamespace      [default: kube-che] Kubernetes namespace where Che resources will be deployed
   -o, --cheboottimeout=cheboottimeout  (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
-
-  -t, --templates=templates            [default: /Users/mariolet/Github/chectl/src/templates] Path to the templates
-                                       folder
+  -t, --templates=templates            [default: /home/mario/github/chectl/src/templates] Path to the templates folder
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/l0rd/chectl/blob/v0.0.2/src/commands/server/start.ts)_
