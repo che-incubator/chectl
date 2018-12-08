@@ -2,10 +2,6 @@
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
-import * as execa from 'execa'
-
-import { HelmHelper } from '../../helpers/helm'
-import { MinikubeHelper } from '../../helpers/minikube'
 
 export default class Stop extends Command {
   static description = 'Stop a running Che workspace'
@@ -21,7 +17,7 @@ export default class Stop extends Command {
   }
 
   async run() {
-    const { flags } = this.parse(Stop)
+    // const { flags } = this.parse(Stop)
     const Listr = require('listr')
     const notifier = require('node-notifier')
     const tasks = new Listr([

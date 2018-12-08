@@ -26,6 +26,7 @@ export class CheHelper {
   // }
 
   defaultCheResponseTimeoutMs = 3000
+  kc = new KubeConfig()
 
   async cheServerPodExist(namespace: string): Promise<boolean> {
     const kc = new KubeConfig()
@@ -41,7 +42,7 @@ export class CheHelper {
         } else {
           found = false
         }
-      }).catch(err => console.error(`Error: ${err.message}`))
+      }).catch(err => { throw err })
     return found
   }
 
@@ -61,21 +62,18 @@ export class CheHelper {
   }
 
   async cheNamespaceExist(namespace: string | undefined = '') {
-    const kc = new KubeConfig()
-    kc.loadFromDefault()
-
-    const k8sApi = kc.makeApiClient(Core_v1Api)
-    let found = false
-
+    this.kc.loadFromDefault()
+    const k8sApi = this.kc.makeApiClient(Core_v1Api)
     try {
       let res = await k8sApi.listNamespace(namespace)
-      console.error(`AAAAAAAA: ${res}`)
-      if (res.body.items.length > 0) { found = true }
-    } catch (err) {
-      console.error(`BBBBBBBB: ${err.message}`)
+      if (res.body.items.length > 0) {
+        return true
+      } else {
+        return false
+      }
+    } catch {
+      return false
     }
-
-    return found
   }
 
   async isCheServerReady(namespace: string | undefined, responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {

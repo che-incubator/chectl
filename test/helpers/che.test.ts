@@ -9,7 +9,7 @@ const namespace = 'kube-che'
 const k8sURL = 'https://192.168.64.34:8443'
 const cheURL = 'https://che-kube-che.192.168.64.34.nip.io'
 let ch = new CheHelper()
-let kc = new KubeConfig()
+let kc = ch.kc
 let k8sApi = new Core_v1Api()
 
 describe('Che helper', () => {
@@ -69,15 +69,15 @@ describe('Che helper', () => {
       expect(res).to.equal(true)
     })
   fancy
-    .stub(kc, 'makeApiClient')
+    .stub(kc, 'makeApiClient', () => k8sApi)
     .stub(k8sApi, 'listNamespace', sinon.stub().throws(new Error()))
     .it('founds out that a namespace doesn\'t exist', async () => {
       const res = await ch.cheNamespaceExist(namespace)
       expect(res).to.equal(false)
     })
   fancy
-    .stub(kc, 'makeApiClient', (a: any) => k8sApi)
-    .stub(k8sApi, 'listNamespace', (req: string) => ({ body: ['1', '2'] }))
+    .stub(kc, 'makeApiClient', () => k8sApi)
+    .stub(k8sApi, 'listNamespace', () => ({ response: '', body: { items: ['default'] } }))
     .it('founds out that a namespace does exist', async () => {
       const res = await ch.cheNamespaceExist('default')
       expect(res).to.equal(true)

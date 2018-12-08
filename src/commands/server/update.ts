@@ -2,10 +2,6 @@
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
-import * as execa from 'execa'
-
-import { HelmHelper } from '../../helpers/helm'
-import { MinikubeHelper } from '../../helpers/minikube'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che Server'
@@ -21,11 +17,9 @@ export default class Update extends Command {
   }
 
   async run() {
-    const { flags } = this.parse(Update)
+    // const { flags } = this.parse(Update)
     const Listr = require('listr')
     const notifier = require('node-notifier')
-    const mh = new MinikubeHelper()
-    const helm = new HelmHelper()
     const tasks = new Listr([
       { title: 'Verify if we can access Kubernetes API', skip: this.warn('Not implemented yet') },
       { title: 'Verify if Che is running', skip: this.warn('Not implemented yet') },

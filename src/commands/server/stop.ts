@@ -52,7 +52,7 @@ export default class Stop extends Command {
     }
   }
 
-  async deleteChe(flags: any) {
+  async deleteChe() {
     let command = 'helm delete che --purge'
     await execa.shell(command, { timeout: 10000 })
   }
