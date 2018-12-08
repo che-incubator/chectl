@@ -3,7 +3,7 @@ node_js:
 - node
 cache: yarn
 before_install:
-- npm -i -g pkg
+- npm install -g pkg
 before_deploy:
 - git config --local user.name "Mario Loriedo"
 - git config --local user.email "mario.loriedo@gmail.com"
