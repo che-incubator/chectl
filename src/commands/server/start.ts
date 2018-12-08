@@ -2,7 +2,7 @@
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
-import { cli } from 'cli-ux'
+import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
@@ -51,9 +51,9 @@ export default class Start extends Command {
     const helm = new HelmHelper()
     const che = new CheHelper()
     const tasks = new Listr([
-      { title: 'Verify if kubectl is installed', task: () => this.checkIfInstalled('kubectl') },
-      { title: 'Verify if minikube is installed', task: () => this.checkIfInstalled('minikube') },
-      { title: 'Verify if helm is installed', task: () => this.checkIfInstalled('helm') },
+      { title: 'Verify if kubectl is installed', task: async () => { if (!await commandExists('kubectl')) { this.error('E_REQUISITE_NOT_FOUND') } } },
+      { title: 'Verify if minikube is installed', task: async () => { if (!await this.checkIfInstalled('minikube')) { this.error('E_REQUISITE_NOT_FOUND', {code: 'E_REQUISITE_NOT_FOUND'}) } } },
+      { title: 'Verify if helm is installed', task: async () => { if (!await commandExists('helm')) { this.error('E_REQUISITE_NOT_FOUND') } } },
       { title: 'Verify if minikube is running', task: async (ctx: any) => { ctx.isMinikubeRunning = await mh.isMinikubeRunning() }},
       { title: 'Start minikube', skip: (ctx: any) => { if (ctx.isMinikubeRunning) { return 'Minikube is already running.' } }, task: () => mh.startMinikube() },
       { title: 'Verify minikube memory configuration', skip: () => 'Not implemented yet', task: () => {}},
@@ -74,10 +74,14 @@ export default class Start extends Command {
       { title: 'Waiting for Che Server pod to be created', skip: () => 'Not implemented yet', task: () => {}},
       { title: 'Waiting for Che Server to start and respond', skip: (ctx: any) => { if (ctx.isCheRunning) { return 'Che is already running.' } }, task: async () => che.isCheServerReady(flags.chenamespace, bootTimeout)},
       { title: 'Retrieving Che Server URL', task: async (ctx: any, task: any) => { ctx.cheURL = await che.cheURL(flags.chenamespace); task.title = await `${task.title}...${ctx.cheURL}` } },
-      { title: 'Open Che Server Dashboard in browser', task: async (ctx: any) => { process.platform === 'linux' ? await cli.open(ctx.cheURL, { app: 'xdg-open' }) : await cli.open(ctx.cheURL) }},
+      // { title: 'Open Che Server Dashboard in browser', task: async (ctx: any) => { process.platform === 'linux' ? await cli.open(ctx.cheURL, { app: 'xdg-open' }) : await cli.open(ctx.cheURL) }},
     ])
 
-    let ctx = await tasks.run()
+    try {
+      await tasks.run()
+    } catch (err) {
+      this.error(err)
+    }
 
     notifier.notify({
       title: 'chectl',
@@ -85,10 +89,11 @@ export default class Start extends Command {
     })
   }
 
-  async checkIfInstalled(commandName: string) {
-    let commandExists = require('command-exists')
-    if (!await commandExists(commandName)) {
-      throw new Error(`ERROR: ${commandName} is not installed.`)
+  async checkIfInstalled(commandName: string): Promise<boolean> {
+    try {
+      return await commandExists(commandName)
+    } catch {
+      return false
     }
   }
 

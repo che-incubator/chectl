@@ -1,11 +1,9 @@
 // tslint:disable:object-curly-spacing
 // tslint:disable-next-line:no-http-string
 
-import { Core_v1Api, KubeConfig, V1Namespace } from '@kubernetes/client-node'
+import { Core_v1Api, KubeConfig } from '@kubernetes/client-node'
 import axios from 'axios'
 import * as execa from 'execa'
-import { isUndefined } from 'util';
-import { IncomingMessage } from 'http';
 
 export class CheHelper {
   // async chePodExist(namespace: string): Promise<boolean> {
@@ -67,60 +65,37 @@ export class CheHelper {
     kc.loadFromDefault()
 
     const k8sApi = kc.makeApiClient(Core_v1Api)
-    // let found = true
+    let found = false
 
-    // let result: Promise<{
-    //   response: IncomingMessage;
-    //   body: V1Namespace;
-    // }>
-
-    // await k8sApi.readNamespace(namespace).then(res => result = res).catch(err => result = err.result)
     try {
-      await k8sApi.readNamespace(namespace)
+      let res = await k8sApi.listNamespace(namespace)
+      console.error(`AAAAAAAA: ${res}`)
+      if (res.body.items.length > 0) { found = true }
+    } catch (err) {
+      console.error(`BBBBBBBB: ${err.message}`)
+    }
+
+    return found
+  }
+
+  async isCheServerReady(namespace: string | undefined, responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
+    if (!await this.cheNamespaceExist(namespace)) {
+      return false
+    }
+
+    let url = await this.cheURL(namespace)
+    await axios.interceptors.response.use(response => response, (error: any) => {
+      if (error.config && error.response && (error.response.status === 404 || error.response.status === 305)) {
+        return axios.request(error.config)
+      }
+      return Promise.reject(error)
+    })
+
+    try {
+      await axios.get(`${url}/api/system/state`, { timeout: responseTimeoutMs })
       return true
     } catch {
       return false
     }
-    // if (isUndefined(result)) throw(new Error('readNamespace result is undefined')) else
-    // if (result.response.statusCode === 404) return false
-      // .then(res => {
-      //   if (res.body.items.length > 0) {
-      //     found = true
-      //   } else {
-      //     found = false
-      //   }
-      // }).catch(err => console.error(`Error: ${err.message}`))
-
-    // return found
   }
-
-  async isCheServerReady(namespace: string | undefined = '', responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
-    if (! await this.cheNamespaceExist(namespace)) {
-      return false
-    }
-
-    let ready = false
-    try {
-      let url = await this.cheURL(namespace)
-      await axios.get(`${url}/api/system/state`, { timeout: responseTimeoutMs })
-      ready = true
-    } catch (error) {
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        ready = false
-      } else if (error.request) {
-        // The request was made but no response was received
-        // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-        // http.ClientRequest in node.js
-        ready = false
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        ready = false
-      }
-      ready = false
-    }
-    return ready
-  }
-
 }

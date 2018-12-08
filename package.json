@@ -8,7 +8,7 @@
   },
   "bugs": "https://github.com/l0rd/chectl/issues",
   "dependencies": {
-    "@kubernetes/client-node": "^0.7.1",
+    "@kubernetes/client-node": "^0.7.2",
     "@oclif/command": "^1",
     "@oclif/config": "^1",
     "@oclif/parser": "^3.7.0",
@@ -17,9 +17,12 @@
     "@types/node-notifier": "^0.0.28",
     "@types/request": "^2.48.1",
     "@types/websocket": "^0.0.40",
+    "@types/ws": "^6.0.1",
     "axios": "^0.18.0",
+    "axios-retry": "^3.1.1",
     "cli-ux": "^4.9.3",
     "command-exists": "^1.2.8",
+    "esprima": "^4.0.1",
     "execa": "^1.0.0",
     "fancy-test": "^1.4.1",
     "listr": "^0.14.3",
@@ -72,10 +75,7 @@
   },
   "pkg": {
     "scripts": [
-      "./lib/**/*.js"
-    ],
-    "assets": [
-      "node_modules/node-notifier/vendor/terminal-notifier.app/Contents/MacOS/terminal-notifier"
+      "lib/**/*.js"
     ]
   },
   "repository": "l0rd/chectl",

@@ -5,8 +5,6 @@ import { string } from '@oclif/parser/lib/flags'
 import * as execa from 'execa'
 
 import { CheHelper } from '../../helpers/che'
-import { HelmHelper } from '../../helpers/helm'
-import { MinikubeHelper } from '../../helpers/minikube'
 
 export default class Stop extends Command {
   static description = 'Stop Eclipse Che Server'
