@@ -19,7 +19,6 @@
     "@types/websocket": "^0.0.40",
     "@types/ws": "^6.0.1",
     "axios": "^0.18.0",
-    "axios-retry": "^3.1.1",
     "cli-ux": "^4.9.3",
     "command-exists": "^1.2.8",
     "esprima": "^4.0.1",
