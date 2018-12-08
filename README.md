@@ -19,7 +19,7 @@ $ npm install -g chectl
 $ chectl COMMAND
 running command...
 $ chectl (-v|--version|version)
-chectl/0.0.2 darwin-x64 node-v11.2.0
+chectl/0.0.2 darwin-x64 node-v8.9.1
 $ chectl --help [COMMAND]
 USAGE
   $ chectl COMMAND
@@ -67,7 +67,7 @@ OPTIONS
   -n, --chenamespace=chenamespace      [default: kube-che] Kubernetes namespace where Che resources will be deployed
   -o, --cheboottimeout=cheboottimeout  (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
 
-  -t, --templates=templates            [default: /Users/mariolet/Github/chectl/src/templates] Path to the templates
+  -t, --templates=templates            [default: /Users/mloriedo/github/chectl/src/templates] Path to the templates
                                        folder
 ```
 
