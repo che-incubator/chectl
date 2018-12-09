@@ -61,12 +61,26 @@ describe('Che helper', () => {
       .get('/api/system/state')
       .reply(404)
       .get('/api/system/state')
-      .reply(305)
+      .reply(503)
       .get('/api/system/state')
       .reply(200))
     .it('continues requesting until Che server is ready', async () => {
       const res = await ch.isCheServerReady(namespace, 2000)
       expect(res).to.equal(true)
+    })
+  fancy
+    .stub(ch, 'cheNamespaceExist', () => true)
+    .stub(ch, 'cheURL', () => cheURL)
+    .nock(cheURL, api => api
+      .get('/api/system/state')
+      .reply(404)
+      .get('/api/system/state')
+      .reply(404)
+      .get('/api/system/state')
+      .reply(503))
+    .it('continues requesting but fails if Che server is NOT ready after timeout', async () => {
+      const res = await ch.isCheServerReady(namespace, 2000)
+      expect(res).to.equal(false)
     })
   fancy
     .stub(kc, 'makeApiClient', () => k8sApi)

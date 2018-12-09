@@ -82,8 +82,8 @@ export class CheHelper {
     }
 
     let url = await this.cheURL(namespace)
-    await axios.interceptors.response.use(response => response, (error: any) => {
-      if (error.config && error.response && (error.response.status === 404 || error.response.status === 305)) {
+    await axios.interceptors.response.use(response => response, async (error: any) => {
+      if (error.config && error.response && (error.response.status === 404 || error.response.status === 503)) {
         return axios.request(error.config)
       }
       return Promise.reject(error)

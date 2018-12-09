@@ -4,28 +4,38 @@ chectl
 Eclipse Che CLI
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
-[![Version](https://img.shields.io/npm/v/chectl.svg)](https://npmjs.org/package/chectl)
-[![Downloads/week](https://img.shields.io/npm/dw/chectl.svg)](https://npmjs.org/package/chectl)
-[![License](https://img.shields.io/npm/l/chectl.svg)](https://github.com/l0rd/chectl/blob/master/package.json)
+[![Build Status](https://travis-ci.org/l0rd/chectl.svg?branch=master)](https://travis-ci.org/l0rd/chectl)
+![](https://img.shields.io/david/l0rd/chectl.svg)
 
 <!-- toc -->
+* [Instalation](#instalation)
 * [Usage](#usage)
 * [Commands](#commands)
 <!-- tocstop -->
+# Instalation
+### macOS
+```bash
+curl -sSLO https://github.com/l0rd/chectl/releases/download/latest/chectl-macos \
+  && install chectl-macos /usr/local/bin/chectl
+```
+### Linux
+```bash
+curl -sSLO https://github.com/l0rd/chectl/releases/download/latest/chectl-linux \
+  && install chectl-linux /usr/local/bin/chectl
+```
 # Usage
-<!-- usage -->
 ```sh-session
-$ npm install -g chectl
-$ chectl COMMAND
+$ chectl server:start
 running command...
-$ chectl (-v|--version|version)
-chectl/0.0.2 darwin-x64 node-v8.9.1
+
+$ chectl server:stop
+running command...
+
 $ chectl --help [COMMAND]
 USAGE
   $ chectl COMMAND
 ...
 ```
-<!-- usagestop -->
 # Commands
 <!-- commands -->
 * [`chectl help [COMMAND]`](#chectl-help-command)

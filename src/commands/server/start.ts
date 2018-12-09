@@ -2,6 +2,7 @@
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
+import { cli } from 'cli-ux';
 import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
@@ -72,9 +73,9 @@ export default class Start extends Command {
       { title: 'Verify if Che server is already running', skip: (ctx: any) => { if (!ctx.cheNameSpaceExist) { ctx.isCheRunning = false; return 'Che namespace doesn\'t exist.' } }, task: async (ctx: any) => { ctx.isCheRunning = await che.isCheServerReady(flags.chenamespace) } },
       { title: 'Deploy Che Server', skip: (ctx: any) => { if (ctx.isCheRunning) { return 'Che is already running.' } }, task: () => this.deployChe(flags) },
       { title: 'Waiting for Che Server pod to be created', skip: () => 'Not implemented yet', task: () => {}},
-      { title: 'Waiting for Che Server to start and respond', skip: (ctx: any) => { if (ctx.isCheRunning) { return 'Che is already running.' } }, task: async () => che.isCheServerReady(flags.chenamespace, bootTimeout)},
+      { title: 'Waiting for Che Server to start and respond', skip: (ctx: any) => { if (ctx.isCheRunning) { return 'Che is already running.' } }, task: () => che.isCheServerReady(flags.chenamespace, bootTimeout)},
       { title: 'Retrieving Che Server URL', task: async (ctx: any, task: any) => { ctx.cheURL = await che.cheURL(flags.chenamespace); task.title = await `${task.title}...${ctx.cheURL}` } },
-      // { title: 'Open Che Server Dashboard in browser', task: async (ctx: any) => { process.platform === 'linux' ? await cli.open(ctx.cheURL, { app: 'xdg-open' }) : await cli.open(ctx.cheURL) }},
+      { title: 'Open Che Server Dashboard in browser', task: async (ctx: any) => { process.platform === 'linux' ? await cli.open(ctx.cheURL, { app: 'xdg-open' }) : await cli.open(ctx.cheURL) }},
     ])
 
     try {
