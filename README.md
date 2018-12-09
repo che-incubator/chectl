@@ -65,13 +65,14 @@ _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.1.4
 
 ## `chectl server:start`
 
-Start Eclipse Che Server
+start Eclipse Che Server
 
 ```
 USAGE
   $ chectl server:start
 
 OPTIONS
+  -d, --debug                          Starts chectl in debug mode
   -h, --help                           show CLI help
   -i, --cheimage=cheimage              [default: eclipse/che-server:nightly] Che server container image
   -n, --chenamespace=chenamespace      [default: kube-che] Kubernetes namespace where Che resources will be deployed
@@ -85,7 +86,7 @@ _See code: [src/commands/server/start.ts](https://github.com/l0rd/chectl/blob/v0
 
 ## `chectl server:stop`
 
-Stop Eclipse Che Server
+stop Eclipse Che Server
 
 ```
 USAGE
@@ -100,7 +101,7 @@ _See code: [src/commands/server/stop.ts](https://github.com/l0rd/chectl/blob/v0.
 
 ## `chectl server:update`
 
-Update Eclipse Che Server
+update Eclipse Che Server
 
 ```
 USAGE
@@ -115,7 +116,7 @@ _See code: [src/commands/server/update.ts](https://github.com/l0rd/chectl/blob/v
 
 ## `chectl workspace:list`
 
-List Che workspaces
+list Che workspaces
 
 ```
 USAGE
@@ -130,7 +131,7 @@ _See code: [src/commands/workspace/list.ts](https://github.com/l0rd/chectl/blob/
 
 ## `chectl workspace:start`
 
-Create and start a Che workspace
+create and start a Che workspace
 
 ```
 USAGE
@@ -145,7 +146,7 @@ _See code: [src/commands/workspace/start.ts](https://github.com/l0rd/chectl/blob
 
 ## `chectl workspace:stop`
 
-Stop a running Che workspace
+stop a running Che workspace
 
 ```
 USAGE

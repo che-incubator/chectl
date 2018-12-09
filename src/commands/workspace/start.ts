@@ -4,7 +4,7 @@ import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 
 export default class Start extends Command {
-  static description = 'Create and start a Che workspace'
+  static description = 'create and start a Che workspace'
 
   static flags = {
     help: flags.help({ char: 'h' }),

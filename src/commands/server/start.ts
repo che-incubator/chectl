@@ -2,7 +2,6 @@
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
-import { cli } from 'cli-ux';
 import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
@@ -14,7 +13,7 @@ import { HelmHelper } from '../../helpers/helm'
 import { MinikubeHelper } from '../../helpers/minikube'
 const workingDir = path.resolve('.')
 export default class Start extends Command {
-  static description = 'Start Eclipse Che Server'
+  static description = 'start Eclipse Che Server'
 
   static flags = {
     help: flags.help({ char: 'h' }),
@@ -42,6 +41,11 @@ export default class Start extends Command {
       default: '40000',
       required: true,
       env: 'CHE_SERVER_BOOT_TIMEOUT'
+    }),
+    debug: flags.boolean({
+      char: 'd',
+      description: 'Starts chectl in debug mode',
+      default: false
     })
   }
 
@@ -51,6 +55,7 @@ export default class Start extends Command {
     const mh = new MinikubeHelper()
     const helm = new HelmHelper()
     const che = new CheHelper()
+    const listr_renderer = (flags.debug) ? 'verbose' : 'default'
     const tasks = new Listr([
       { title: 'Verify if kubectl is installed', task: async () => { if (!await commandExists('kubectl')) { this.error('E_REQUISITE_NOT_FOUND') } } },
       { title: 'Verify if minikube is installed', task: async () => { if (!await this.checkIfInstalled('minikube')) { this.error('E_REQUISITE_NOT_FOUND', {code: 'E_REQUISITE_NOT_FOUND'}) } } },
@@ -75,8 +80,10 @@ export default class Start extends Command {
       { title: 'Waiting for Che Server pod to be created', skip: () => 'Not implemented yet', task: () => {}},
       { title: 'Waiting for Che Server to start and respond', skip: (ctx: any) => { if (ctx.isCheRunning) { return 'Che is already running.' } }, task: () => che.isCheServerReady(flags.chenamespace, bootTimeout)},
       { title: 'Retrieving Che Server URL', task: async (ctx: any, task: any) => { ctx.cheURL = await che.cheURL(flags.chenamespace); task.title = await `${task.title}...${ctx.cheURL}` } },
-      { title: 'Open Che Server Dashboard in browser', task: async (ctx: any) => { process.platform === 'linux' ? await cli.open(ctx.cheURL, { app: 'xdg-open' }) : await cli.open(ctx.cheURL) }},
-    ])
+      // { title: 'Open Che Server Dashboard in browser', enable: () => false /* Doesn\'t work when chectl is packaged with zeit/pkg */, task: async (ctx: any) => { process.platform === 'linux' ? await cli.open(ctx.cheURL, { app: 'xdg-open' }) : await cli.open(ctx.cheURL, { app: 'open' }) }}
+    ], {
+      renderer: listr_renderer
+    })
 
     try {
       await tasks.run()

@@ -7,7 +7,7 @@ import * as execa from 'execa'
 import { CheHelper } from '../../helpers/che'
 
 export default class Stop extends Command {
-  static description = 'Stop Eclipse Che Server'
+  static description = 'stop Eclipse Che Server'
 
   static flags = {
     help: flags.help({ char: 'h' }),

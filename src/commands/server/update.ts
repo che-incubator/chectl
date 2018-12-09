@@ -4,7 +4,7 @@ import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 
 export default class Update extends Command {
-  static description = 'Update Eclipse Che Server'
+  static description = 'update Eclipse Che Server'
 
   static flags = {
     help: flags.help({ char: 'h' }),
