@@ -9,7 +9,6 @@ chectl
 
 [![asciicast](https://asciinema.org/a/216201.svg)](https://asciinema.org/a/216201)
 
-[![asciicast](https://asciinema.org/a/216201.svg)](https://asciinema.org/a/216201)
 
 <!-- toc -->
 * [Installation](#installation)
