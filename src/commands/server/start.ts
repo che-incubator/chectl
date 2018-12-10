@@ -93,7 +93,7 @@ export default class Start extends Command {
 
     notifier.notify({
       title: 'chectl',
-      message: 'Command server:start has completed.'
+      message: 'Command server:start has completed successfully.'
     })
   }
 

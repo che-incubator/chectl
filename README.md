@@ -8,11 +8,11 @@ Eclipse Che CLI
 ![](https://img.shields.io/david/l0rd/chectl.svg)
 
 <!-- toc -->
-* [Instalation](#instalation)
+* [Installation](#installation)
 * [Usage](#usage)
 * [Commands](#commands)
 <!-- tocstop -->
-# Instalation
+# Installation
 ### macOS
 ```bash
 curl -sSLO https://github.com/l0rd/chectl/releases/download/latest/chectl-macos \
@@ -138,8 +138,9 @@ USAGE
   $ chectl workspace:start
 
 OPTIONS
+  -f, --devfile=devfile            (required) path to a valid devfile
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che server deployed
+  -n, --chenamespace=chenamespace  [default: kube-che] kubernetes namespace where Che server is deployed
 ```
 
 _See code: [src/commands/workspace/start.ts](https://github.com/l0rd/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_

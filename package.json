@@ -24,6 +24,7 @@
     "esprima": "^4.0.1",
     "execa": "^1.0.0",
     "fancy-test": "^1.4.1",
+    "fs": "^0.0.1-security",
     "listr": "^0.14.3",
     "listr-verbose-renderer": "^0.5.0",
     "nock": "^10.0.2",
@@ -72,10 +73,13 @@
     "plugins": [
       "@oclif/plugin-help"
     ],
-
     "topics": {
-      "server": { "description": "control Che server" },
-      "workspace": { "description": "control Che workspaces" }
+      "server": {
+        "description": "control Che server"
+      },
+      "workspace": {
+        "description": "control Che workspaces"
+      }
     }
   },
   "pkg": {

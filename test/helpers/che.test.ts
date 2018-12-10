@@ -96,4 +96,47 @@ describe('Che helper', () => {
       const res = await ch.cheNamespaceExist('default')
       expect(res).to.equal(true)
     })
+  fancy
+    .stub(ch, 'cheNamespaceExist', () => true)
+    .stub(ch, 'cheURL', () => cheURL)
+    .nock(cheURL, api => api
+      .post('/api/devfile')
+      .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
+    .it('succeds creating a workspace from a valid devfile', async () => {
+      const res = await ch.createWorkspaceFromDevfile(namespace, __dirname + '/requests/devfile.valid')
+      expect(res).to.equal('https://che-kube-che.192.168.64.39.nip.io/che/chectl')
+    })
+  fancy
+    .stub(ch, 'cheNamespaceExist', () => true)
+    .stub(ch, 'cheURL', () => cheURL)
+    .nock(cheURL, api => api
+      .post('/api/devfile')
+      .replyWithFile(400, __dirname + '/replies/create-workspace-from-invalid-devfile.json', {
+        'Content-Type': 'application/json'
+      }))
+    .do(() => ch.createWorkspaceFromDevfile(namespace, __dirname + '/requests/devfile.invalid'))
+    .catch(/E_BAD_DEFILE_FORMAT/)
+    .it('fails creating a workspace from an invalid devfile')
+  fancy
+    .stub(ch, 'cheNamespaceExist', () => true)
+    .stub(ch, 'cheURL', () => cheURL)
+    .do(() => ch.createWorkspaceFromDevfile(namespace, __dirname + '/requests/devfile.inexistent'))
+    .catch(/E_NOT_FOUND_DEFILE/)
+    .it('fails creating a workspace from a non-existing devfile')
+  // fancy
+  //   .stub(ch, 'cheNamespaceExist', () => true)
+  //   .stub(ch, 'cheURL', () => cheURL)
+  //   .nock(cheURL, api => api
+  //     .post('/api/devfile')
+  //     .replyWithFile(400, __dirname + '/replies/create-workspace-from-valid-devfile', { 'Content-Type': 'application/json' }))
+  //   //   .get('/api/system/state')
+  //   //   .reply(404)
+  //   //   .get('/api/system/state')
+  //   //   .reply(404)
+  //   //   .get('/api/system/state')
+  //   //   .reply(503))
+  //   .it('fails creating a workspace from an invalid devfile', async () => {
+  //     const res = await ch.createWorkspaceFromDevfile(namespace, __dirname + '/requests/devfile.valid')
+  //     expect(res).to.equal('http://che-kube-che.192.168.64.39.nip.io/che/chectl')
+  //   })
 })

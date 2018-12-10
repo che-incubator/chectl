@@ -1,0 +1,3 @@
+{
+  "message": "Devfile schema validation failed. Errors: [object has missing required properties ([\"specVersion\"])]"
+}
