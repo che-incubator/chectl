@@ -32,8 +32,7 @@ export class HelmHelper {
   }
 
   async createTillerService() {
-    await execa('helm', ['init', '--service-account', 'tiller'], { timeout: 10000 })
-    await cli.wait(10000)
+    await execa('helm', ['init', '--service-account', 'tiller', '--wait'], { timeout: 20000 })
   }
 
 }
