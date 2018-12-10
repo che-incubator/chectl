@@ -1,6 +1,5 @@
 // tslint:disable:object-curly-spacing
 
-import cli from 'cli-ux'
 import * as execa from 'execa'
 
 export class HelmHelper {
@@ -32,8 +31,7 @@ export class HelmHelper {
   }
 
   async createTillerService() {
-    await execa('helm', ['init', '--service-account', 'tiller'], { timeout: 10000 })
-    await cli.wait(10000)
+    await execa('helm', ['init', '--service-account', 'tiller', '--wait'], { timeout: 20000 })
   }
 
 }
