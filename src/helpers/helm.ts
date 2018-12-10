@@ -1,6 +1,8 @@
 // tslint:disable:object-curly-spacing
 
 import * as execa from 'execa'
+import * as fs from 'fs'
+import * as path from 'path'
 
 export class HelmHelper {
   async tillerRoleBindingExist(): Promise<boolean> {
@@ -22,7 +24,11 @@ export class HelmHelper {
   }
 
   async createTillerRBAC(templatesPath: any) {
-    await execa('kubectl', ['apply', '-f', `${templatesPath}/kubernetes/helm/che/tiller-rbac.yaml`], { timeout: 10000 })
+    const yamlPath = path.join(templatesPath, '/kubernetes/helm/che/tiller-rbac.yaml')
+    const yamlContent = fs.readFileSync(yamlPath, 'utf8')
+    const command = `echo "${yamlContent}" | \\
+                    kubectl apply -f -`
+    await execa.shell(command, { timeout: 10000 })
   }
 
   async tillerServiceExist(): Promise<boolean> {

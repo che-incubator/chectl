@@ -5,13 +5,13 @@ import { string } from '@oclif/parser/lib/flags'
 import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
+import { ncp } from 'ncp'
 import * as notifier from 'node-notifier'
 import * as path from 'path'
 
 import { CheHelper } from '../../helpers/che'
 import { HelmHelper } from '../../helpers/helm'
 import { MinikubeHelper } from '../../helpers/minikube'
-const workingDir = path.resolve('.')
 export default class Start extends Command {
   static description = 'start Eclipse Che Server'
 
@@ -32,7 +32,7 @@ export default class Start extends Command {
     templates: string({
       char: 't',
       description: 'Path to the templates folder',
-      default: `${workingDir}/src/templates`,
+      default: path.join(__dirname, '../../../../chectl/templates'),
       env: 'CHE_TEMPLATES_FOLDER'
     }),
     cheboottimeout: string({
@@ -58,12 +58,12 @@ export default class Start extends Command {
     const listr_renderer = (flags.debug) ? 'verbose' : 'default'
     const tasks = new Listr([
       { title: 'Verify if kubectl is installed', task: async () => { if (!await commandExists('kubectl')) { this.error('E_REQUISITE_NOT_FOUND') } } },
-      { title: 'Verify if minikube is installed', task: async () => { if (!await this.checkIfInstalled('minikube')) { this.error('E_REQUISITE_NOT_FOUND', {code: 'E_REQUISITE_NOT_FOUND'}) } } },
+      { title: 'Verify if minikube is installed', task: async () => { if (!await this.checkIfInstalled('minikube')) { this.error('E_REQUISITE_NOT_FOUND', { code: 'E_REQUISITE_NOT_FOUND' }) } } },
       { title: 'Verify if helm is installed', task: async () => { if (!await commandExists('helm')) { this.error('E_REQUISITE_NOT_FOUND') } } },
-      { title: 'Verify if minikube is running', task: async (ctx: any) => { ctx.isMinikubeRunning = await mh.isMinikubeRunning() }},
+      { title: 'Verify if minikube is running', task: async (ctx: any) => { ctx.isMinikubeRunning = await mh.isMinikubeRunning() } },
       { title: 'Start minikube', skip: (ctx: any) => { if (ctx.isMinikubeRunning) { return 'Minikube is already running.' } }, task: () => mh.startMinikube() },
-      { title: 'Verify minikube memory configuration', skip: () => 'Not implemented yet', task: () => {}},
-      { title: 'Verify kubernetes version', skip: () => 'Not implemented yet', task: () => {}},
+      // { title: 'Verify minikube memory configuration', skip: () => 'Not implemented yet', task: () => {}},
+      // { title: 'Verify kubernetes version', skip: () => 'Not implemented yet', task: () => {}},
       { title: 'Verify if minikube ingress addon is enabled', task: async (ctx: any) => { ctx.isIngressAddonEnabled = await mh.isIngressAddonEnabled() } },
       { title: 'Enable minikube ingress addon', skip: (ctx: any) => { if (ctx.isIngressAddonEnabled) { return 'Ingress addon is already enabled.' } }, task: () => mh.enableIngressAddon() },
       { title: 'Verify if Tiller Role Binding exist', task: async (ctx: any) => { ctx.tillerRoleBindingExist = await helm.tillerRoleBindingExist() } },
@@ -73,12 +73,12 @@ export default class Start extends Command {
       { title: 'Create Tiller RBAC', task: () => helm.createTillerRBAC(flags.templates) },
       { title: 'Verify if Tiller service exist', task: async (ctx: any) => { ctx.tillerServiceExist = await helm.tillerServiceExist() } },
       { title: 'Create Tiller Service', skip: (ctx: any) => { if (ctx.tillerServiceExist) { return 'Tiller Service already exist.' } }, task: () => helm.createTillerService() },
-      { title: 'Pre-pull Che server image', skip: () => 'Not implemented yet', task: () => {}},
+      // { title: 'Pre-pull Che server image', skip: () => 'Not implemented yet', task: () => {}},
       { title: `Verify if namespace ${flags.chenamespace} exist`, task: async (ctx: any) => { ctx.cheNamespaceExist = await che.cheNamespaceExist(flags.chenamespace) } },
       { title: 'Verify if Che server is already running', skip: (ctx: any) => { if (!ctx.cheNameSpaceExist) { ctx.isCheRunning = false; return 'Che namespace doesn\'t exist.' } }, task: async (ctx: any) => { ctx.isCheRunning = await che.isCheServerReady(flags.chenamespace) } },
       { title: 'Deploy Che Server', skip: (ctx: any) => { if (ctx.isCheRunning) { return 'Che is already running.' } }, task: () => this.deployChe(flags) },
-      { title: 'Waiting for Che Server pod to be created', skip: () => 'Not implemented yet', task: () => {}},
-      { title: 'Waiting for Che Server to start and respond', skip: (ctx: any) => { if (ctx.isCheRunning) { return 'Che is already running.' } }, task: () => che.isCheServerReady(flags.chenamespace, bootTimeout)},
+      // { title: 'Waiting for Che Server pod to be created', skip: () => 'Not implemented yet', task: () => {}},
+      { title: 'Waiting for Che Server to start and respond', skip: (ctx: any) => { if (ctx.isCheRunning) { return 'Che is already running.' } }, task: () => che.isCheServerReady(flags.chenamespace, bootTimeout) },
       { title: 'Retrieving Che Server URL', task: async (ctx: any, task: any) => { ctx.cheURL = await che.cheURL(flags.chenamespace); task.title = await `${task.title}...${ctx.cheURL}` } },
       // { title: 'Open Che Server Dashboard in browser', enable: () => false /* Doesn\'t work when chectl is packaged with zeit/pkg */, task: async (ctx: any) => { process.platform === 'linux' ? await cli.open(ctx.cheURL, { app: 'xdg-open' }) : await cli.open(ctx.cheURL, { app: 'open' }) }}
     ], {
@@ -106,13 +106,18 @@ export default class Start extends Command {
   }
 
   async deployChe(flags: any) {
+    const srcDir = path.join(flags.templates, '/kubernetes/helm/che/')
+    const destDir = path.join(this.config.cacheDir, '/templates/kubernetes/helm/che/')
+
+    ncp(srcDir, destDir, {}, (err: Error) => { if (err) { throw err } })
+
     let command = `helm upgrade \\
                             --install che \\
                             --namespace ${flags.chenamespace} \\
                             --set global.ingressDomain=$(minikube ip).nip.io \\
                             --set cheImage=${flags.cheimage} \\
                             --set global.cheWorkspacesNamespace=${flags.chenamespace} \\
-                            ${flags.templates}/kubernetes/helm/che/`
+                            ${destDir}`
     await execa.shell(command, { timeout: 10000 })
   }
 }
