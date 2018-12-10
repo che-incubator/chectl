@@ -5,6 +5,7 @@ import { string } from '@oclif/parser/lib/flags'
 import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
+import { ncp } from 'ncp'
 import * as notifier from 'node-notifier'
 import * as path from 'path'
 
@@ -105,13 +106,18 @@ export default class Start extends Command {
   }
 
   async deployChe(flags: any) {
+    const srcDir = path.join(flags.templates, '/kubernetes/helm/che/')
+    const destDir = path.join(this.config.cacheDir, '/templates/kubernetes/helm/che/')
+
+    ncp(srcDir, destDir, {}, (err: Error) => { if (err) { throw err } })
+
     let command = `helm upgrade \\
                             --install che \\
                             --namespace ${flags.chenamespace} \\
                             --set global.ingressDomain=$(minikube ip).nip.io \\
                             --set cheImage=${flags.cheimage} \\
                             --set global.cheWorkspacesNamespace=${flags.chenamespace} \\
-                            ${flags.templates}/kubernetes/helm/che/`
+                            ${destDir}`
     await execa.shell(command, { timeout: 10000 })
   }
 }

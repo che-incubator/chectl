@@ -7,6 +7,8 @@ Eclipse Che CLI
 [![Build Status](https://travis-ci.org/l0rd/chectl.svg?branch=master)](https://travis-ci.org/l0rd/chectl)
 ![](https://img.shields.io/david/l0rd/chectl.svg)
 
+[![asciicast](https://asciinema.org/a/216201.svg)](https://asciinema.org/a/216201)
+
 <!-- toc -->
 * [Installation](#installation)
 * [Usage](#usage)
