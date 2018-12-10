@@ -1,6 +1,5 @@
 // tslint:disable:object-curly-spacing
 
-import cli from 'cli-ux'
 import * as execa from 'execa'
 
 export class HelmHelper {
