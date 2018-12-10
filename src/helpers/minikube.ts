@@ -9,7 +9,7 @@ export class MinikubeHelper {
   }
 
   async startMinikube() {
-    await execa('minikube', ['start', '--memory=4096', '--cpus=4', '--disk-size=50g'], { timeout: 120000 })
+    await execa('minikube', ['start', '--memory=4096', '--cpus=4', '--disk-size=50g'], { timeout: 180000 })
   }
 
   async isIngressAddonEnabled(): Promise<boolean> {
