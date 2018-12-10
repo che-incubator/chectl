@@ -77,9 +77,7 @@ OPTIONS
   -i, --cheimage=cheimage              [default: eclipse/che-server:nightly] Che server container image
   -n, --chenamespace=chenamespace      [default: kube-che] Kubernetes namespace where Che resources will be deployed
   -o, --cheboottimeout=cheboottimeout  (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
-
-  -t, --templates=templates            [default: /Users/mloriedo/github/chectl/src/templates] Path to the templates
-                                       folder
+  -t, --templates=templates            [default: /Users/mloriedo/github/chectl/templates] Path to the templates folder
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/l0rd/chectl/blob/v0.0.2/src/commands/server/start.ts)_

@@ -87,7 +87,7 @@
       "lib/**/*.js"
     ],
     "assets": [
-      "src/templates/kubernetes/helm/che/**/*"
+      "templates/**/*"
     ]
   },
   "repository": "l0rd/chectl",
