@@ -4,8 +4,8 @@ chectl
 Eclipse Che CLI
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
-[![Build Status](https://travis-ci.org/l0rd/chectl.svg?branch=master)](https://travis-ci.org/l0rd/chectl)
-![](https://img.shields.io/david/l0rd/chectl.svg)
+[![Build Status](https://travis-ci.org/che-incubator/chectl.svg?branch=master)](https://travis-ci.org/che-incubator/chectl)
+![](https://img.shields.io/david/che-incubator/chectl.svg)
 
 [![asciicast](https://asciinema.org/a/216201.svg)](https://asciinema.org/a/216201)
 
@@ -17,12 +17,12 @@ Eclipse Che CLI
 # Installation
 ### macOS
 ```bash
-curl -sSLO https://github.com/l0rd/chectl/releases/download/latest/chectl-macos \
+curl -sSLO https://github.com/che-incubator/chectl/releases/download/latest/chectl-macos \
   && install chectl-macos /usr/local/bin/chectl
 ```
 ### Linux
 ```bash
-curl -sSLO https://github.com/l0rd/chectl/releases/download/latest/chectl-linux \
+curl -sSLO https://github.com/che-incubator/chectl/releases/download/latest/chectl-linux \
   && install chectl-linux /usr/local/bin/chectl
 ```
 # Usage
@@ -82,7 +82,7 @@ OPTIONS
   -t, --templates=templates            [default: /Users/mloriedo/github/chectl/templates] Path to the templates folder
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/l0rd/chectl/blob/v0.0.2/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
 
 ## `chectl server:stop`
 
@@ -97,7 +97,7 @@ OPTIONS
   -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che resources will be deployed
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/l0rd/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
 
 ## `chectl server:update`
 
@@ -112,7 +112,7 @@ OPTIONS
   -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che resources will be deployed
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/l0rd/chectl/blob/v0.0.2/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_
 
 ## `chectl workspace:list`
 
@@ -127,7 +127,7 @@ OPTIONS
   -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che server is deployed
 ```
 
-_See code: [src/commands/workspace/list.ts](https://github.com/l0rd/chectl/blob/v0.0.2/src/commands/workspace/list.ts)_
+_See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/list.ts)_
 
 ## `chectl workspace:start`
 
@@ -143,7 +143,7 @@ OPTIONS
   -n, --chenamespace=chenamespace  [default: kube-che] kubernetes namespace where Che server is deployed
 ```
 
-_See code: [src/commands/workspace/start.ts](https://github.com/l0rd/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
+_See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
 
 ## `chectl workspace:stop`
 
@@ -158,5 +158,5 @@ OPTIONS
   -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che server is deployed
 ```
 
-_See code: [src/commands/workspace/stop.ts](https://github.com/l0rd/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_
+_See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_
 <!-- commandsstop -->

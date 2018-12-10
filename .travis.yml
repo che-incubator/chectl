@@ -22,5 +22,5 @@ deploy:
   - "./bin/chectl-win.exe"
   skip_cleanup: true
   on:
-    repo: l0rd/chectl
+    repo: che-incubator/chectl
     tags: false

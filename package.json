@@ -6,7 +6,7 @@
   "bin": {
     "chectl": "./bin/run"
   },
-  "bugs": "https://github.com/l0rd/chectl/issues",
+  "bugs": "https://github.com/che-incubator/chectl/issues",
   "dependencies": {
     "@kubernetes/client-node": "^0.7.2",
     "@oclif/command": "^1",
@@ -62,7 +62,7 @@
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json"
   ],
-  "homepage": "https://github.com/l0rd/chectl",
+  "homepage": "https://github.com/che-incubator/chectl",
   "keywords": [
     "oclif"
   ],
@@ -72,7 +72,7 @@
     "commands": "./lib/commands",
     "bin": "chectl",
     "macos": {
-      "identifier": "l0rd.chectl"
+      "identifier": "che-incubator.chectl"
     },
     "plugins": [
       "@oclif/plugin-help"
@@ -94,7 +94,7 @@
       "templates/**/*"
     ]
   },
-  "repository": "l0rd/chectl",
+  "repository": "che-incubator/chectl",
   "scripts": {
     "postpack": "rm -f oclif.manifest.json",
     "posttest": "tslint -p test -t stylish",
