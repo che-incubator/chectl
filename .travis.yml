@@ -8,7 +8,7 @@ before_install:
 before_deploy:
 - git config --local user.name "Mario Loriedo"
 - git config --local user.email "mario.loriedo@gmail.com"
-- export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
+- export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')}
 - git tag $TRAVIS_TAG
 - yarn pack
 - pkg . -t node10-linux-x64,node10-macos-x64,node10-win-x64 --out-path ./bin/

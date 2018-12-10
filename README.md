@@ -14,24 +14,23 @@ chectl
 * [Installation](#installation)
 * [Usage](#usage)
 * [Commands](#commands)
+* [Contributing](#contributing)
 <!-- tocstop -->
 # Installation
-### macOS
-```bash
-curl -sSLO https://github.com/che-incubator/chectl/releases/download/latest/chectl-macos \
-  && install chectl-macos /usr/local/bin/chectl
-```
-### Linux
-```bash
-curl -sSLO https://github.com/che-incubator/chectl/releases/download/latest/chectl-linux \
-  && install chectl-linux /usr/local/bin/chectl
-```
+
+Binary downloads of `chectl` can be found on [the Release page](https://github.com/che-incubator/chectl/releases).
+
+Download the `chectl` binary and add it to your PATH.
+
 # Usage
 ```sh-session
 $ chectl server:start
 running command...
 
 $ chectl server:stop
+running command...
+
+$ chectl workspace:start --devfile
 running command...
 
 $ chectl --help [COMMAND]
@@ -161,3 +160,32 @@ OPTIONS
 
 _See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_
 <!-- commandsstop -->
+
+# Contributing
+
+Clone the repository:
+
+```bash
+git clone https://github.com/che-incubator/chectl.git
+cd chectl
+```
+
+Build the source code and run `chectl`:
+
+```bash
+yarn
+./bin/run --help
+```
+
+Run the tests:
+
+```bash
+yarn test
+```
+
+Package the binary
+
+```bash
+yarn pack
+pkg . -t node10-linux-x64,node10-macos-x64,node10-win-x64 --out-path ./bin/
+```
