@@ -27,7 +27,7 @@
     "fs": "^0.0.1-security",
     "listr": "^0.14.3",
     "listr-verbose-renderer": "^0.5.0",
-    "nock": "^10.0.2",
+    "nock": "^10.0.4",
     "node-notifier": "^5.3.0",
     "proxyquire": "^2.1.0",
     "sinon": "^7.1.1",
