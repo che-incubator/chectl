@@ -1,7 +1,7 @@
 chectl
 ======
 
-Eclipse Che CLI
+[Eclipse Che](https://github.com/eclipse/che/) CLI
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Build Status](https://travis-ci.org/l0rd/chectl.svg?branch=master)](https://travis-ci.org/l0rd/chectl)
