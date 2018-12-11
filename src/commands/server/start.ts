@@ -4,6 +4,7 @@ import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as commandExists from 'command-exists'
 import * as execa from 'execa'
+import { mkdirp } from 'fs-extra'
 import * as Listr from 'listr'
 import { ncp } from 'ncp'
 import * as notifier from 'node-notifier'
@@ -109,7 +110,8 @@ export default class Start extends Command {
     const srcDir = path.join(flags.templates, '/kubernetes/helm/che/')
     const destDir = path.join(this.config.cacheDir, '/templates/kubernetes/helm/che/')
 
-    ncp(srcDir, destDir, {}, (err: Error) => { if (err) { throw err } })
+    await mkdirp(destDir)
+    await ncp(srcDir, destDir, {}, (err: Error) => { if (err) { throw err } })
 
     let command = `helm upgrade \\
                             --install che \\
