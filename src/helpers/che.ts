@@ -115,7 +115,8 @@ export class CheHelper {
         // console.log(response.statusText)
         // console.log(response.headers)
         // console.log(response.config)
-        return response.data.links.ide
+        let ideURL = response.data.links.ide
+        return ideURL.replace(/\/\w*\/\w*$/g, '\/dashboard\/#\/ide$&')
       } else {
         throw new Error('E_BAD_RESP_CHE_SERVER')
       }
