@@ -37,9 +37,6 @@ export default class Start extends Command {
 
     try {
       let ctx = await tasks.run()
-      // let data = [{name: 'chectl', ideURL: 'ctx.workspaceIdeURL' }, {name: 'chectl2', ideURL: 'ctx.workspaceIdeURL' }, {name: 'chectl2', ideURL: 'ctx.workspaceIdeURL' }, {name: 'chectl2', ideURL: 'ctx.workspaceIdeURL' }, {name: 'chectl2', ideURL: 'ctx.workspaceIdeURL' }, {name: 'chectl2', ideURL: 'ctx.workspaceIdeURL' }, {name: 'chectl2', ideURL: 'ctx.workspaceIdeURL' }, {name: 'chectl2', ideURL: 'ctx.workspaceIdeURL' }, {name: 'chectl2', ideURL: 'ctx.workspaceIdeURL' }, {name: 'chectl2', ideURL: 'ctx.workspaceIdeURL' }]
-      // let columns = {name: {extended: false}, ideURL: {header: 'IDE URL', extended: false}, }
-      // cli.table(data, columns)
       this.log('\nWorkspace IDE URL:')
       cli.url(ctx.workspaceIdeURL, ctx.workspaceIdeURL)
       this.log('\n')

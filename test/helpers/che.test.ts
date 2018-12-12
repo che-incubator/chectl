@@ -104,7 +104,7 @@ describe('Che helper', () => {
       .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
     .it('succeds creating a workspace from a valid devfile', async () => {
       const res = await ch.createWorkspaceFromDevfile(namespace, __dirname + '/requests/devfile.valid')
-      expect(res).to.equal('https://che-kube-che.192.168.64.39.nip.io/che/chectl')
+      expect(res).to.equal('https://che-kube-che.192.168.64.39.nip.io/dashboard/#/ide/che/chectl')
     })
   fancy
     .stub(ch, 'cheNamespaceExist', () => true)
