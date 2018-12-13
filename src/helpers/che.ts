@@ -66,8 +66,10 @@ export class CheHelper {
     this.kc.loadFromDefault()
     const k8sApi = this.kc.makeApiClient(Core_v1Api)
     try {
-      let res = await k8sApi.listNamespace(namespace)
-      if (res.body.items.length > 0) {
+      let res = await k8sApi.readNamespace(namespace)
+      if (res && res.body &&
+          res.body.metadata && res.body.metadata.name
+          && res.body.metadata.name === namespace) {
         return true
       } else {
         return false

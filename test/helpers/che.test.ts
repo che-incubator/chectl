@@ -84,16 +84,16 @@ describe('Che helper', () => {
     })
   fancy
     .stub(kc, 'makeApiClient', () => k8sApi)
-    .stub(k8sApi, 'listNamespace', sinon.stub().throws(new Error()))
+    .stub(k8sApi, 'readNamespace', sinon.stub().throws(new Error()))
     .it('founds out that a namespace doesn\'t exist', async () => {
       const res = await ch.cheNamespaceExist(namespace)
       expect(res).to.equal(false)
     })
   fancy
     .stub(kc, 'makeApiClient', () => k8sApi)
-    .stub(k8sApi, 'listNamespace', () => ({ response: '', body: { items: ['default'] } }))
+    .stub(k8sApi, 'readNamespace', () => ({ response: '', body: { metadata: { name: `${namespace}` }}}))
     .it('founds out that a namespace does exist', async () => {
-      const res = await ch.cheNamespaceExist('default')
+      const res = await ch.cheNamespaceExist(namespace)
       expect(res).to.equal(true)
     })
   fancy
