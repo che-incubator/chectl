@@ -45,6 +45,13 @@ describe('Che helper', () => {
     })
   fancy
     .stub(ch, 'cheNamespaceExist', () => true)
+    .stub(ch, 'cheURL', () => { throw (new Error('Error from server (NotFound): ingresses.extensions "che-ingress" not found')) })
+    .it('detects if Che is NOT ready when the namespace exist but the ingress doesn t', async () => {
+      const res = await ch.isCheServerReady(namespace)
+      expect(res).to.equal(false)
+    })
+  fancy
+    .stub(ch, 'cheNamespaceExist', () => true)
     .stub(ch, 'cheURL', () => cheURL)
     .nock(cheURL, api => api
       .get('/api/system/state')
@@ -91,7 +98,7 @@ describe('Che helper', () => {
     })
   fancy
     .stub(kc, 'makeApiClient', () => k8sApi)
-    .stub(k8sApi, 'readNamespace', () => ({ response: '', body: { metadata: { name: `${namespace}` }}}))
+    .stub(k8sApi, 'readNamespace', () => ({ response: '', body: { metadata: { name: `${namespace}` } } }))
     .it('founds out that a namespace does exist', async () => {
       const res = await ch.cheNamespaceExist(namespace)
       expect(res).to.equal(true)
