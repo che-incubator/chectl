@@ -164,9 +164,10 @@ USAGE
   $ chectl workspace:start
 
 OPTIONS
-  -f, --devfile=devfile            (required) path to a valid devfile
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  [default: kube-che] kubernetes namespace where Che server is deployed
+  -f, --devfile=devfile                  path to a valid devfile
+  -h, --help                             show CLI help
+  -n, --chenamespace=chenamespace        [default: kube-che] kubernetes namespace where Che server is deployed
+  -w, --workspaceconfig=workspaceconfig  path to a valid workspace configuration json file
 ```
 
 _See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
