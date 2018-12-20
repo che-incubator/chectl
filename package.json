@@ -12,6 +12,7 @@
     "@oclif/command": "^1",
     "@oclif/config": "^1",
     "@oclif/parser": "^3.7.0",
+    "@oclif/plugin-autocomplete": "^0.1.0",
     "@oclif/plugin-help": "^2",
     "@types/fs-extra": "^5.0.4",
     "@types/listr": "^0.13.0",
@@ -76,6 +77,7 @@
       "identifier": "che-incubator.chectl"
     },
     "plugins": [
+      "@oclif/plugin-autocomplete",
       "@oclif/plugin-help"
     ],
     "topics": {

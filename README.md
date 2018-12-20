@@ -42,6 +42,7 @@ USAGE
 ```
 # Commands
 <!-- commands -->
+* [`chectl autocomplete [SHELL]`](#chectl-autocomplete-shell)
 * [`chectl help [COMMAND]`](#chectl-help-command)
 * [`chectl server:start`](#chectl-serverstart)
 * [`chectl server:stop`](#chectl-serverstop)
@@ -49,6 +50,29 @@ USAGE
 * [`chectl workspace:list`](#chectl-workspacelist)
 * [`chectl workspace:start`](#chectl-workspacestart)
 * [`chectl workspace:stop`](#chectl-workspacestop)
+
+## `chectl autocomplete [SHELL]`
+
+display autocomplete installation instructions
+
+```
+USAGE
+  $ chectl autocomplete [SHELL]
+
+ARGUMENTS
+  SHELL  shell type
+
+OPTIONS
+  -r, --refresh-cache  Refresh cache (ignores displaying instructions)
+
+EXAMPLES
+  $ chectl autocomplete
+  $ chectl autocomplete bash
+  $ chectl autocomplete zsh
+  $ chectl autocomplete --refresh-cache
+```
+
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.0/src/commands/autocomplete/index.ts)_
 
 ## `chectl help [COMMAND]`
 
@@ -81,7 +105,9 @@ OPTIONS
   -i, --cheimage=cheimage              [default: eclipse/che-server:nightly] Che server container image
   -n, --chenamespace=chenamespace      [default: kube-che] Kubernetes namespace where Che resources will be deployed
   -o, --cheboottimeout=cheboottimeout  (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
-  -t, --templates=templates            [default: /Users/mloriedo/github/chectl/templates] Path to the templates folder
+
+  -t, --templates=templates            [default: /home/artem/projects/github/azatsarynnyy/chectl/templates] Path to the
+                                       templates folder
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
