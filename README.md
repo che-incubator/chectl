@@ -42,6 +42,7 @@ USAGE
 ```
 # Commands
 <!-- commands -->
+* [`chectl autocomplete [SHELL]`](#chectl-autocomplete-shell)
 * [`chectl help [COMMAND]`](#chectl-help-command)
 * [`chectl server:start`](#chectl-serverstart)
 * [`chectl server:stop`](#chectl-serverstop)
@@ -49,6 +50,29 @@ USAGE
 * [`chectl workspace:list`](#chectl-workspacelist)
 * [`chectl workspace:start`](#chectl-workspacestart)
 * [`chectl workspace:stop`](#chectl-workspacestop)
+
+## `chectl autocomplete [SHELL]`
+
+display autocomplete installation instructions
+
+```
+USAGE
+  $ chectl autocomplete [SHELL]
+
+ARGUMENTS
+  SHELL  shell type
+
+OPTIONS
+  -r, --refresh-cache  Refresh cache (ignores displaying instructions)
+
+EXAMPLES
+  $ chectl autocomplete
+  $ chectl autocomplete bash
+  $ chectl autocomplete zsh
+  $ chectl autocomplete --refresh-cache
+```
+
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.0/src/commands/autocomplete/index.ts)_
 
 ## `chectl help [COMMAND]`
 

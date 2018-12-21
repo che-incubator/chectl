@@ -150,10 +150,28 @@
     debug "^4.1.0"
     semver "^5.6.0"
 
+"@oclif/command@^1.4.31":
+  version "1.5.8"
+  resolved "https://registry.yarnpkg.com/@oclif/command/-/command-1.5.8.tgz#cd09d4f3183123548cb25d1b12b92e41277ac3e9"
+  integrity sha512-+Xuqp7by9jmB+GvR2r450wUXkCpZVdeOXQD0mLSEm3h+Mxhp0NPHuhzXZQvLI0/2fXR+cmJLv1CfpaCYaflL/g==
+  dependencies:
+    "@oclif/errors" "^1.2.2"
+    "@oclif/parser" "^3.7.2"
+    debug "^4.1.0"
+    semver "^5.6.0"
+
 "@oclif/config@^1", "@oclif/config@^1.8.7":
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/@oclif/config/-/config-1.9.0.tgz#f0df483bad3988f24cddd4d85fdc8eafa9eb7ff2"
   integrity sha512-R9HJvS7x4Ff/VFGlg8b7hxFnuC77y7znr1iXwRay4Jhd/EFJyZRT9d9SHzA6TS8lz9vDTW93xOFakT9AXld4Kg==
+  dependencies:
+    debug "^4.1.0"
+    tslib "^1.9.3"
+
+"@oclif/config@^1.6.22":
+  version "1.10.2"
+  resolved "https://registry.yarnpkg.com/@oclif/config/-/config-1.10.2.tgz#7fe1ee81547da2b08c04065064ce2f85239e9d3c"
+  integrity sha512-SWa2ifzb7BFQayPHeIopFvCac5hHTItYKAf0g5tITYcASiAhkw3d6r8O9wuBJo4NuMfhmpGtpjDp0rZpwJ9Q+w==
   dependencies:
     debug "^4.1.0"
     tslib "^1.9.3"
@@ -199,6 +217,29 @@
     "@oclif/linewrap" "^1.0.0"
     chalk "^2.4.1"
     tslib "^1.9.3"
+
+"@oclif/parser@^3.7.2":
+  version "3.7.2"
+  resolved "https://registry.yarnpkg.com/@oclif/parser/-/parser-3.7.2.tgz#b06c73377a1f027f10444109a8a4a6cc31ffd8ba"
+  integrity sha512-ssYXztaf9TuOGCJQOYMg62L1Q4y2lB4wZORWng+Iy0ckP2A6IUnQy97V8YjAJkkohYZOu3Mga8LGfQcf+xdIIw==
+  dependencies:
+    "@oclif/linewrap" "^1.0.0"
+    chalk "^2.4.1"
+    tslib "^1.9.3"
+
+"@oclif/plugin-autocomplete@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-0.1.0.tgz#3e813277deaa5f9fc6a67878a20bd337ee3776ec"
+  integrity sha512-Dz2dGyBoOUcv6/gqr9qaG7KTIkYxILL0MvMVwlhkS0f6UqCsh8fC3adYTr8BeIPQmUqWkACtC7bYp9DyQ8m2Jw==
+  dependencies:
+    "@oclif/command" "^1.4.31"
+    "@oclif/config" "^1.6.22"
+    "@types/fs-extra" "^5.0.2"
+    chalk "^2.4.1"
+    cli-ux "^4.4.0"
+    debug "^3.1.0"
+    fs-extra "^6.0.1"
+    moment "^2.22.1"
 
 "@oclif/plugin-help@^2", "@oclif/plugin-help@^2.1.2":
   version "2.1.4"
@@ -296,15 +337,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/fs-extra@^5.0.4":
+"@types/fs-extra@^5.0.2", "@types/fs-extra@^5.0.4":
   version "5.0.4"
   resolved "https://registry.yarnpkg.com/@types/fs-extra/-/fs-extra-5.0.4.tgz#b971134d162cc0497d221adde3dbb67502225599"
-  dependencies:
-    "@types/node" "*"
-
-"@types/fs-extra@^5.0.4":
-  version "5.0.4"
-  resolved "https://registry.yarnpkg.com/@types/fs-extra/-/fs-extra-5.0.4.tgz#b971134d162cc0497d221adde3dbb67502225599"
+  integrity sha512-DsknoBvD8s+RFfSGjmERJ7ZOP1HI0UZRA3FSI+Zakhrc/Gy26YQsLI+m5V5DHxroHRJqCDLKJp7Hixn8zyaF7g==
   dependencies:
     "@types/node" "*"
 
@@ -328,12 +364,7 @@
 "@types/ncp@^2.0.1":
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@types/ncp/-/ncp-2.0.1.tgz#749432511f6ad747d04e98837b18cca9045567fb"
-  dependencies:
-    "@types/node" "*"
-
-"@types/ncp@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@types/ncp/-/ncp-2.0.1.tgz#749432511f6ad747d04e98837b18cca9045567fb"
+  integrity sha512-TeiJ7uvv/92ugSqZ0v9l0eNXzutlki0aK+R1K5bfA5SYUil46ITlxLW4iNTCf55P4L5weCmaOdtxGeGWvudwPg==
   dependencies:
     "@types/node" "*"
 
@@ -816,7 +847,7 @@ cli-truncate@^0.2.1:
     slice-ansi "0.0.4"
     string-width "^1.0.1"
 
-cli-ux@^4.9.0, cli-ux@^4.9.3:
+cli-ux@^4.4.0, cli-ux@^4.9.0, cli-ux@^4.9.3:
   version "4.9.3"
   resolved "https://registry.yarnpkg.com/cli-ux/-/cli-ux-4.9.3.tgz#4c3e070c1ea23eef010bbdb041192e0661be84ce"
   integrity sha512-/1owvF0SZ5Gn54cgrikJ0QskgTzeg30HGjkmjFoaHDJzAqFpuX1DBpFR8aLvsE1J5s9MgeYRENQK4BFwOag5VA==
@@ -2453,6 +2484,11 @@ module-not-found-error@^1.0.0:
   resolved "https://registry.yarnpkg.com/module-not-found-error/-/module-not-found-error-1.0.1.tgz#cf8b4ff4f29640674d6cdd02b0e3bc523c2bbdc0"
   integrity sha1-z4tP9PKWQGdNbN0CsOO8UjwrvcA=
 
+moment@^2.22.1:
+  version "2.23.0"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.23.0.tgz#759ea491ac97d54bac5ad776996e2a58cc1bc225"
+  integrity sha512-3IE39bHVqFbWWaPOMHZF98Q9c3LDKGTmypMiTM2QygGXXElkFWIH7GxfmlwmY2vwa+wmNsoYZmG2iusf1ZjJoA==
+
 ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
@@ -2483,6 +2519,7 @@ nanomatch@^1.2.9:
 ncp@^2.0.0:
   version "2.0.0"
   resolved "http://registry.npmjs.org/ncp/-/ncp-2.0.0.tgz#195a21d6c46e361d2fb1281ba38b91e9df7bdbb3"
+  integrity sha1-GVoh1sRuNh0vsSgbo4uR6d9727M=
 
 nice-try@^1.0.4:
   version "1.0.5"
