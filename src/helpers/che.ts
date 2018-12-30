@@ -58,7 +58,7 @@ export class CheHelper {
 
     const res = await k8sApi.listNamespacedPod(namespace)
     const pods = res.body.items
-    const wsPods = pods.filter(pod => pod.metadata.labels['che.workspace_id'] !== undefined)
+    const wsPods = pods.filter(pod => pod.metadata.labels['che.workspace_id'])
     if (wsPods.length === 0) {
       throw new Error('No workspace pod is found')
     }
