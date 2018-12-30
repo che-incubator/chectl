@@ -47,6 +47,36 @@ export class CheHelper {
     return found
   }
 
+  /**
+   * Finds a pod where Che workspace is running.
+   * Rejects if no workspace is found for the given workspace ID
+   * or if workspace ID wasn't specified but more than one workspace is found.
+   */
+  async getWorkspacePod(namespace: string, cheWorkspaceId?: string): Promise<string> {
+    this.kc.loadFromDefault()
+    const k8sApi = this.kc.makeApiClient(Core_v1Api)
+
+    const res = await k8sApi.listNamespacedPod(namespace)
+    const pods = res.body.items
+    const wsPods = pods.filter(pod => pod.metadata.labels['che.workspace_id'] !== undefined)
+    if (wsPods.length === 0) {
+      throw new Error('No workspace pod is found')
+    }
+
+    if (cheWorkspaceId) {
+      const wsPod = wsPods.find(p => p.metadata.labels['che.workspace_id'] === cheWorkspaceId)
+      if (wsPod) {
+        return wsPod.metadata.name
+      }
+      throw new Error('Pod is not found for the given workspace ID')
+    } else {
+      if (wsPods.length === 1) {
+        return wsPods[0].metadata.name
+      }
+      throw new Error('More than one pod with running workspace is found. Please, specify Che Workspace ID.')
+    }
+  }
+
   async cheURL(namespace: string | undefined = ''): Promise<string> {
     const protocol = 'http'
     const { stdout } = await execa('kubectl',
