@@ -140,4 +140,11 @@ describe('Che helper', () => {
       const res = await ch.createWorkspaceFromWorkspaceConfig(namespace, __dirname + '/requests/workspaceconfig.valid')
       expect(res).to.equal('https://che-kube-che.192.168.64.39.nip.io/dashboard/#/ide/che/chectl')
     })
+  fancy
+    .it('builds the Dashboard URL of a workspace given the IDE link', async () => {
+      let ideURL = 'https://che-kube-che.192.168.64.40.nip.io/che/name-with-dashes'
+      let dashboardURL = 'https://che-kube-che.192.168.64.40.nip.io/dashboard/#/ide/che/name-with-dashes'
+      let res = await ch.buildDashboardURL(ideURL)
+      expect(res).to.equal(dashboardURL)
+    })
 })

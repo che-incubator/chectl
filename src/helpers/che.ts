@@ -113,7 +113,7 @@ export class CheHelper {
       let response = await axios.post(`${url}/api/devfile`, devfile, {headers: {'Content-Type': 'text/yaml'}})
       if (response && response.data && response.data.links && response.data.links.ide) {
         let ideURL = response.data.links.ide
-        return ideURL.replace(/\/\w*\/\w*$/g, '\/dashboard\/#\/ide$&')
+        return this.buildDashboardURL(ideURL)
       } else {
         throw new Error('E_BAD_RESP_CHE_SERVER')
       }
@@ -150,7 +150,7 @@ export class CheHelper {
       let response = await axios.post(`${url}/api/workspace`, workspaceConfig, {headers: {'Content-Type': 'application/json'}})
       if (response && response.data && response.data.links && response.data.links.ide) {
         let ideURL = response.data.links.ide
-        return ideURL.replace(/\/\w*\/\w*$/g, '\/dashboard\/#\/ide$&')
+        return this.buildDashboardURL(ideURL)
       } else {
         throw new Error('E_BAD_RESP_CHE_SERVER')
       }
@@ -173,6 +173,10 @@ export class CheHelper {
         throw new Error(`E_CHECTL_UNKNOWN_ERROR - Message: ${error.message}`)
       }
     }
+  }
+
+  async buildDashboardURL(ideURL: string): Promise<string> {
+    return ideURL.replace(/\/[^/|.]*\/[^/|.]*$/g, '\/dashboard\/#\/ide$&')
   }
 }
   
