@@ -179,4 +179,3 @@ export class CheHelper {
     return ideURL.replace(/\/[^/|.]*\/[^/|.]*$/g, '\/dashboard\/#\/ide$&')
   }
 }
-  
