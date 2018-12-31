@@ -136,37 +136,25 @@ export class CheHelper {
     }
 
     let devfile
-    let url = await this.cheURL(namespace)
 
     try {
+      let url = await this.cheURL(namespace)
       devfile = fs.readFileSync(devfilePath, 'utf8')
       let response = await axios.post(`${url}/api/devfile`, devfile, {headers: {'Content-Type': 'text/yaml'}})
       if (response && response.data && response.data.links && response.data.links.ide) {
-        // console.log(response.data)
-        // console.log(response.status)
-        // console.log(response.statusText)
-        // console.log(response.headers)
-        // console.log(response.config)
         let ideURL = response.data.links.ide
-        return ideURL.replace(/\/\w*\/\w*$/g, '\/dashboard\/#\/ide$&')
+        return this.buildDashboardURL(ideURL)
       } else {
         throw new Error('E_BAD_RESP_CHE_SERVER')
       }
     } catch (error) {
-      if (!devfile) { throw new Error(`E_NOT_FOUND_DEFILE - ${devfilePath} - ${error.message}`) }
-      if (error.response && error.response.status && error.response.status === 400) {
-        // console.log(error.response.data)
-        // console.log(error.response.status)
-        // console.log(error.response.headers)
-        throw new Error(`E_BAD_DEFILE_FORMAT - Message: ${error.response.data.message}`)
+      if (!devfile) { throw new Error(`E_NOT_FOUND_DEVFILE - ${devfilePath} - ${error.message}`) }
+      if (error.response && error.response.status === 400) {
+        throw new Error(`E_BAD_DEVFILE_FORMAT - Message: ${error.response.data.message}`)
       }
-
       if (error.response) {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
-        // console.log(error.response.data)
-        // console.log(error.response.status)
-        // console.log(error.response.headers)
         throw new Error(`E_CHE_SERVER_UNKNOWN_ERROR - Status: ${error.response.status}`)
       } else if (error.request) {
         // The request was made but no response was received
@@ -178,5 +166,46 @@ export class CheHelper {
         throw new Error(`E_CHECTL_UNKNOWN_ERROR - Message: ${error.message}`)
       }
     }
+  }
+
+  async createWorkspaceFromWorkspaceConfig(namespace: string | undefined, workspaceConfigPath: string | undefined = ''): Promise<string> {
+    if (!await this.cheNamespaceExist(namespace)) {
+      throw new Error('E_BAD_NS')
+    }
+
+    let workspaceConfig
+    try {
+      let url = await this.cheURL(namespace)
+      let workspaceConfig = fs.readFileSync(workspaceConfigPath, 'utf8')
+      let response = await axios.post(`${url}/api/workspace`, workspaceConfig, {headers: {'Content-Type': 'application/json'}})
+      if (response && response.data && response.data.links && response.data.links.ide) {
+        let ideURL = response.data.links.ide
+        return this.buildDashboardURL(ideURL)
+      } else {
+        throw new Error('E_BAD_RESP_CHE_SERVER')
+      }
+    } catch (error) {
+      if (!workspaceConfig) { throw new Error(`E_NOT_FOUND_WORKSPACE_CONFIG_FILE - ${workspaceConfigPath} - ${error.message}`) }
+      if (error.response && error.response.status === 400) {
+        throw new Error(`E_BAD_WORKSPACE_CONFIG_FORMAT - Message: ${error.response.data.message}`)
+      }
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        throw new Error(`E_CHE_SERVER_UNKNOWN_ERROR - Status: ${error.response.status}`)
+      } else if (error.request) {
+        // The request was made but no response was received
+        // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+        // http.ClientRequest in node.js
+        throw new Error(`E_CHE_SERVER_NO_RESPONSE - ${error.message}`)
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        throw new Error(`E_CHECTL_UNKNOWN_ERROR - Message: ${error.message}`)
+      }
+    }
+  }
+
+  async buildDashboardURL(ideURL: string): Promise<string> {
+    return ideURL.replace(/\/[^/|.]*\/[^/|.]*$/g, '\/dashboard\/#\/ide$&')
   }
 }
