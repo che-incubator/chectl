@@ -6,6 +6,7 @@ import { CheHelper } from '../../src/helpers/che'
 
 const sinon = require('sinon')
 const namespace = 'kube-che'
+const workspace = 'workspace-0123'
 const k8sURL = 'https://192.168.64.34:8443'
 const cheURL = 'https://che-kube-che.192.168.64.34.nip.io'
 let ch = new CheHelper()
@@ -146,4 +147,38 @@ describe('Che helper', () => {
   //     const res = await ch.createWorkspaceFromDevfile(namespace, __dirname + '/requests/devfile.valid')
   //     expect(res).to.equal('http://che-kube-che.192.168.64.39.nip.io/che/chectl')
   //   })
+  describe('getWorkspacePod', () => {
+    fancy
+      .stub(kc, 'makeApiClient', () => k8sApi)
+      .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: {name: 'pod-name', labels: {'che.workspace_id': workspace}} }] } }))
+      .it('should return pod name where workspace with the given ID is running', async () => {
+        const pod = await ch.getWorkspacePod(namespace, workspace)
+        expect(pod).to.equal('pod-name')
+      })
+    fancy
+      .stub(kc, 'makeApiClient', () => k8sApi)
+      .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: {name: 'pod-name', labels: {'che.workspace_id': workspace}} }] } }))
+      .it('should detect a pod where single workspace is running', async () => {
+        const pod = await ch.getWorkspacePod(namespace)
+        expect(pod).to.equal('pod-name')
+      })
+    fancy
+      .stub(kc, 'makeApiClient', () => k8sApi)
+      .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [] } }))
+      .do(() => ch.getWorkspacePod(namespace))
+      .catch(/No workspace pod is found/)
+      .it('should fail if no workspace is running')
+    fancy
+      .stub(kc, 'makeApiClient', () => k8sApi)
+      .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: {labels: {'che.workspace_id': `${workspace}1`}} }] } }))
+      .do(() => ch.getWorkspacePod(namespace, workspace))
+      .catch(/Pod is not found for the given workspace ID/)
+      .it('should fail if no workspace is found for the given ID')
+    fancy
+      .stub(kc, 'makeApiClient', () => k8sApi)
+      .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: {labels: {'che.workspace_id': workspace}} }, { metadata: {labels: {'che.workspace_id': `${workspace}1`}} }] } }))
+      .do(() => ch.getWorkspacePod(namespace))
+      .catch(/More than one pod with running workspace is found. Please, specify Che Workspace ID./)
+      .it('should fail if no workspace ID was provided but several workspaces are found')
+  })
 })
