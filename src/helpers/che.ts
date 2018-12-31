@@ -119,7 +119,7 @@ export class CheHelper {
       }
     } catch (error) {
       if (!devfile) { throw new Error(`E_NOT_FOUND_DEVFILE - ${devfilePath} - ${error.message}`) }
-      if (error.response && error.response.status && error.response.status === 400) {
+      if (error.response && error.response.status === 400) {
         throw new Error(`E_BAD_DEVFILE_FORMAT - Message: ${error.response.data.message}`)
       }
       if (error.response) {
@@ -156,7 +156,7 @@ export class CheHelper {
       }
     } catch (error) {
       if (!workspaceConfig) { throw new Error(`E_NOT_FOUND_WORKSPACE_CONFIG_FILE - ${workspaceConfigPath} - ${error.message}`) }
-      if (error.response && error.response.status && error.response.status === 400) {
+      if (error.response && error.response.status === 400) {
         throw new Error(`E_BAD_WORKSPACE_CONFIG_FORMAT - Message: ${error.response.data.message}`)
       }
       if (error.response) {
