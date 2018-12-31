@@ -47,6 +47,7 @@ USAGE
 * [`chectl server:start`](#chectl-serverstart)
 * [`chectl server:stop`](#chectl-serverstop)
 * [`chectl server:update`](#chectl-serverupdate)
+* [`chectl workspace:inject`](#chectl-workspaceinject)
 * [`chectl workspace:list`](#chectl-workspacelist)
 * [`chectl workspace:start`](#chectl-workspacestart)
 * [`chectl workspace:stop`](#chectl-workspacestop)
@@ -139,6 +140,24 @@ OPTIONS
 ```
 
 _See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_
+
+## `chectl workspace:inject`
+
+inject configurations and tokens in a Che Workspace
+
+```
+USAGE
+  $ chectl workspace:inject
+
+OPTIONS
+  -c, --container=container        [default: theia-ide] Target container
+  -h, --help                       show CLI help
+  -k, --kubeconfig                 Inject the local Kubernetes configuration
+  -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che workspace is deployed
+  -w, --workspace=workspace        Target workspace
+```
+
+_See code: [src/commands/workspace/inject.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/inject.ts)_
 
 ## `chectl workspace:list`
 
