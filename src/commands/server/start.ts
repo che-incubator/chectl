@@ -47,6 +47,11 @@ export default class Start extends Command {
       char: 'd',
       description: 'Starts chectl in debug mode',
       default: false
+    }),
+    multiuser: flags.boolean({
+      char: 'm',
+      description: 'Starts che in multi-user mode',
+      default: false
     })
   }
 
@@ -109,9 +114,14 @@ export default class Start extends Command {
   async deployChe(flags: any) {
     const srcDir = path.join(flags.templates, '/kubernetes/helm/che/')
     const destDir = path.join(this.config.cacheDir, '/templates/kubernetes/helm/che/')
+    let multiUserFlag = ''
 
     await mkdirp(destDir)
     await ncp(srcDir, destDir, {}, (err: Error) => { if (err) { throw err } })
+
+    if (flags.multiuser) {
+      multiUserFlag = `-f ${destDir}values/multi-user.yaml`
+    }
 
     let command = `helm upgrade \\
                             --install che \\
@@ -119,7 +129,7 @@ export default class Start extends Command {
                             --set global.ingressDomain=$(minikube ip).nip.io \\
                             --set cheImage=${flags.cheimage} \\
                             --set global.cheWorkspacesNamespace=${flags.chenamespace} \\
-                            ${destDir}`
+                            ${multiUserFlag} ${destDir}`
     await execa.shell(command, { timeout: 10000 })
   }
 }
