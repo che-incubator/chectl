@@ -52,6 +52,11 @@ export default class Start extends Command {
       char: 'm',
       description: 'Starts che in multi-user mode',
       default: false
+    }),
+    tls: flags.boolean({
+      char: 't',
+      description: 'Enable TLS encryption and multi-user mode',
+      default: false
     })
   }
 
@@ -115,6 +120,7 @@ export default class Start extends Command {
     const srcDir = path.join(flags.templates, '/kubernetes/helm/che/')
     const destDir = path.join(this.config.cacheDir, '/templates/kubernetes/helm/che/')
     let multiUserFlag = ''
+    let tlsFlag = ''
 
     await mkdirp(destDir)
     await ncp(srcDir, destDir, {}, (err: Error) => { if (err) { throw err } })
@@ -123,13 +129,19 @@ export default class Start extends Command {
       multiUserFlag = `-f ${destDir}values/multi-user.yaml`
     }
 
+    if (flags.tls) {
+      tlsFlag = `-f ${destDir}values/tls.yaml`
+    }
+
+    await execa.shell(`helm dependencies update ${destDir}`, { timeout: 10000 })
+
     let command = `helm upgrade \\
                             --install che \\
                             --namespace ${flags.chenamespace} \\
                             --set global.ingressDomain=$(minikube ip).nip.io \\
                             --set cheImage=${flags.cheimage} \\
                             --set global.cheWorkspacesNamespace=${flags.chenamespace} \\
-                            ${multiUserFlag} ${destDir}`
+                            ${multiUserFlag} ${tlsFlag} ${destDir}`
     await execa.shell(command, { timeout: 10000 })
   }
 }
