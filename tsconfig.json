@@ -1,6 +1,8 @@
 {
   "$schema": "https://schemastore.azurewebsites.net/schemas/json/tsconfig.json",
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "*": ["types/*"] },
     "declaration": true,
     "importHelpers": true,
     "outDir": "lib",

@@ -8,7 +8,7 @@ import { KubeConfig } from '@kubernetes/client-node'
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 
-import { CheHelper } from '../../helpers/che'
+import { CheHelper } from '../../api/che'
 
 export default class Inject extends Command {
   static description = 'inject configurations and tokens in a Che Workspace'

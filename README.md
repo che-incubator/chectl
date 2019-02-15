@@ -101,17 +101,29 @@ USAGE
   $ chectl server:start
 
 OPTIONS
+  -a, --installer=installer            [default: helm] Installer type. Valid values are "helm" and "operator"
+
+  -b, --domain=domain                  Domain of the Kubernetes/OpenShift cluster (e.g.
+                                       starter-us-east-2.openshiftapps.com or <local-ip>.nip.io)
+
   -d, --debug                          Starts chectl in debug mode
+
   -h, --help                           show CLI help
+
   -i, --cheimage=cheimage              [default: eclipse/che-server:nightly] Che server container image
+
   -m, --multiuser                      Starts che in multi-user mode
+
   -n, --chenamespace=chenamespace      [default: kube-che] Kubernetes namespace where Che resources will be deployed
+
   -o, --cheboottimeout=cheboottimeout  (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
 
-  -t, --templates=templates            [default: /Users/benoitf/git/che-incubator/chectl/templates] Path to the
-                                       templates folder
+  -p, --platform=platform              [default: minikube] Type of Kubernetes platform. Valid values are "minikube",
+                                       "minishift", "docker4mac", "ocp", "oso".
 
-  -t, --tls                            Enable TLS encryption and multi-user mode
+  -s, --tls                            Enable TLS encryption and multi-user mode
+
+  -t, --templates=templates            [default: /Users/mloriedo/github/chectl/templates] Path to the templates folder
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
