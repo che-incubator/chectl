@@ -110,7 +110,7 @@ export default class Start extends Command {
 
   async checkIfInstalled(commandName: string): Promise<boolean> {
     try {
-      return await commandExists(commandName)
+      return !!await commandExists(commandName)
     } catch {
       return false
     }

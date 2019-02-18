@@ -1,15 +1,24 @@
 {
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/tsconfig.json",
   "compilerOptions": {
     "declaration": true,
     "importHelpers": true,
-    "module": "commonjs",
     "outDir": "lib",
     "rootDir": "src",
     "strict": true,
-    "target": "es2017",
-    "composite": true
+    "composite": true,
+    "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "noUnusedLocals": true,
+    "emitDecoratorMetadata": true,
+    "downlevelIteration": true,
+    "noEmitOnError": false,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "es6",
+    "sourceMap": true,
   },
   "include": [
-    "src/**/*", "ambient.d.ts"
+    "src"
   ]
 }
