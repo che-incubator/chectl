@@ -104,9 +104,14 @@ OPTIONS
   -d, --debug                          Starts chectl in debug mode
   -h, --help                           show CLI help
   -i, --cheimage=cheimage              [default: eclipse/che-server:nightly] Che server container image
+  -m, --multiuser                      Starts che in multi-user mode
   -n, --chenamespace=chenamespace      [default: kube-che] Kubernetes namespace where Che resources will be deployed
   -o, --cheboottimeout=cheboottimeout  (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
-  -t, --templates=templates            [default: /Users/mloriedo/github/chectl/templates] Path to the templates folder
+
+  -t, --templates=templates            [default: /Users/benoitf/git/che-incubator/chectl/templates] Path to the
+                                       templates folder
+
+  -t, --tls                            Enable TLS encryption and multi-user mode
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
@@ -150,10 +155,10 @@ USAGE
   $ chectl workspace:inject
 
 OPTIONS
-  -c, --container=container        [default: theia-ide] Target container
+  -c, --container=container        [default: dev] Target container
   -h, --help                       show CLI help
   -k, --kubeconfig                 Inject the local Kubernetes configuration
-  -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che workspace is deployed
+  -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che workspace is running
   -w, --workspace=workspace        Target workspace
 ```
 
