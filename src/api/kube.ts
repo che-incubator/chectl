@@ -1,3 +1,12 @@
+/*********************************************************************
+ * Copyright (c) 2019 Red Hat, Inc.
+ *
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ **********************************************************************/
 // tslint:disable:object-curly-spacing
 
 import { Apps_v1Api, Core_v1Api, Extensions_v1beta1Api, KubeConfig, RbacAuthorization_v1Api, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1Pod, V1PodSpec, V1PodTemplateSpec, V1RoleBinding, V1RoleRef, V1ServiceAccount, V1Subject } from '@kubernetes/client-node'
@@ -16,17 +25,13 @@ export class KubeHelper {
     }
   }
 
-  async serviceAccountExist(name: string | undefined = '', namespace: string | undefined = ''): Promise<boolean> {
+  async serviceAccountExist(name: string | undefined = '', namespace: string | undefined = ''): Promise<boolean | ''> {
     const k8sApi = this.kc.makeApiClient(Core_v1Api)
     try {
       const res = await k8sApi.readNamespacedServiceAccount(name, namespace)
-      if (res && res.body &&
+      return (res && res.body &&
         res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === name) {
-        return true
-      } else {
-        return false
-      }
+        && res.body.metadata.name === name)
     } catch {
       return false
     }
@@ -46,17 +51,13 @@ export class KubeHelper {
     }
   }
 
-  async roleBindingExist(name: string | undefined = '', namespace: string | undefined = '') {
+  async roleBindingExist(name: string | undefined = '', namespace: string | undefined = ''): Promise<boolean | ''> {
     const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
     try {
       const res = await k8sRbacAuthApi.readNamespacedRoleBinding(name, namespace)
-      if (res && res.body &&
+      return (res && res.body &&
         res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === name) {
-        return true
-      } else {
-        return false
-      }
+        && res.body.metadata.name === name)
     } catch {
       return false
     }
@@ -84,17 +85,13 @@ export class KubeHelper {
     }
   }
 
-  async configMapExist(name: string | undefined = '', namespace: string | undefined = '') {
+  async configMapExist(name: string | undefined = '', namespace: string | undefined = ''): Promise<boolean | ''> {
     const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
     try {
       const res = await k8sCoreApi.readNamespacedConfigMap(name, namespace)
-      if (res && res.body &&
+      return (res && res.body &&
         res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === name) {
-        return true
-      } else {
-        return false
-      }
+        && res.body.metadata.name === name)
     } catch {
       return false
     }
@@ -122,23 +119,19 @@ export class KubeHelper {
     }
   }
 
-  async podExist(name: string | undefined = '', namespace: string | undefined = '') {
+  async podExist(name: string | undefined = '', namespace: string | undefined = ''): Promise<boolean | ''> {
     const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
     try {
       const res = await k8sCoreApi.readNamespacedPod(name, namespace)
-      if (res && res.body &&
+      return (res && res.body &&
         res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === name) {
-        return true
-      } else {
-        return false
-      }
+        && res.body.metadata.name === name)
     } catch {
       return false
     }
   }
 
-  async podsExistBySelector(selector: string, namespace: string | undefined = '') {
+  async podsExistBySelector(selector: string, namespace: string | undefined = ''): Promise<boolean> {
     const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
     let res
     try {
@@ -152,11 +145,7 @@ export class KubeHelper {
       throw new Error(`Get pods by selector "${selector}" returned an invalid reponse`)
     }
 
-    if (res.body.items.length === 0) {
-      return false
-    } else {
-      return true
-    }
+    return (res.body.items.length > 0)
   }
 
   async getPodPhase(selector: string, namespace: string | undefined = ''): Promise<string> {
@@ -349,17 +338,13 @@ export class KubeHelper {
     }
   }
 
-  async ingressExist(name: string | undefined = '', namespace: string | undefined = ''): Promise<boolean> {
+  async ingressExist(name: string | undefined = '', namespace: string | undefined = ''): Promise<boolean | ''> {
     const k8sExtensionsApi = this.kc.makeApiClient(Extensions_v1beta1Api)
     try {
       const res = await k8sExtensionsApi.readNamespacedIngress(name, namespace)
-      if (res && res.body &&
+      return (res && res.body &&
         res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === name) {
-        return true
-      } else {
-        return false
-      }
+        && res.body.metadata.name === name)
     } catch {
       return false
     }
