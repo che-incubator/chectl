@@ -20,7 +20,8 @@ declare namespace Listr {
       showSubtasks?: boolean;
       collapse?: boolean;
       clearOutput?: boolean;
-      dateFormat?: boolean | string;      renderer?: "silent" | "default" | "verbose" | ListrRenderer;
+      dateFormat?: boolean | string;
+      renderer?: "silent" | "default" | "verbose" | ListrRenderer;
       nonTTYRenderer?: "silent" | "default" | "verbose" | ListrRenderer;
   }
 

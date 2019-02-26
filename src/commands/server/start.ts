@@ -182,7 +182,7 @@ export default class Start extends Command {
     })
   }
 
-  podStartTasks(selector: string, namespace: string | undefined = ''): Listr {
+  podStartTasks(selector: string, namespace = ''): Listr {
     const kube = new KubeHelper()
     return new Listr([
       {

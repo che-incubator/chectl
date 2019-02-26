@@ -39,7 +39,7 @@ export class OperatorHelper {
           if (exist) {
             task.title = `${task.title}...It already exist.`
           } else {
-            execa.shell(`kubectl create namespace ${flags.chenamespace}`)
+            await execa.shell(`kubectl create namespace ${flags.chenamespace}`)
             task.title = `${task.title}...done.`
           }
         }
@@ -51,7 +51,7 @@ export class OperatorHelper {
           if (exist) {
             task.title = `${task.title}...It already exist.`
           } else {
-            execa.shell(`kubectl create serviceaccount ${this.operatorServiceAccount} -n=${flags.chenamespace}`)
+            await execa.shell(`kubectl create serviceaccount ${this.operatorServiceAccount} -n=${flags.chenamespace}`)
             task.title = `${task.title}...done.`
           }
         }

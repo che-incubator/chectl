@@ -25,7 +25,7 @@ export class KubeHelper {
     }
   }
 
-  async serviceAccountExist(name: string | undefined = '', namespace: string | undefined = ''): Promise<boolean | ''> {
+  async serviceAccountExist(name = '', namespace = ''): Promise<boolean | ''> {
     const k8sApi = this.kc.makeApiClient(Core_v1Api)
     try {
       const res = await k8sApi.readNamespacedServiceAccount(name, namespace)
@@ -37,21 +37,20 @@ export class KubeHelper {
     }
   }
 
-  async createServiceAccount(name: string | undefined = '', namespace: string | undefined = '') {
+  async createServiceAccount(name = '', namespace = '') {
     const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
     let sa = new V1ServiceAccount()
     sa.metadata = new V1ObjectMeta()
     sa.metadata.name = name
     sa.metadata.namespace = namespace
     try {
-      const response = await k8sCoreApi.createNamespacedServiceAccount(namespace, sa)
-      return response
+      return await k8sCoreApi.createNamespacedServiceAccount(namespace, sa)
     } catch (e) {
       throw new Error(e.body.message)
     }
   }
 
-  async roleBindingExist(name: string | undefined = '', namespace: string | undefined = ''): Promise<boolean | ''> {
+  async roleBindingExist(name = '', namespace = ''): Promise<boolean | ''> {
     const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
     try {
       const res = await k8sRbacAuthApi.readNamespacedRoleBinding(name, namespace)
@@ -63,7 +62,7 @@ export class KubeHelper {
     }
   }
 
-  async createAdminRoleBinding(name: string | undefined = '', serviceAccount: string | undefined = '', namespace: string | undefined = '') {
+  async createAdminRoleBinding(name = '', serviceAccount = '', namespace = '') {
     const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
     let rb = new V1RoleBinding()
     rb.metadata = new V1ObjectMeta()
@@ -78,14 +77,13 @@ export class KubeHelper {
     subject.namespace = namespace
     rb.subjects = [subject]
     try {
-      const response = await k8sRbacAuthApi.createNamespacedRoleBinding(namespace, rb)
-      return response
+      return await k8sRbacAuthApi.createNamespacedRoleBinding(namespace, rb)
     } catch (e) {
       throw new Error(e.body.message)
     }
   }
 
-  async configMapExist(name: string | undefined = '', namespace: string | undefined = ''): Promise<boolean | ''> {
+  async configMapExist(name = '', namespace = ''): Promise<boolean | ''> {
     const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
     try {
       const res = await k8sCoreApi.readNamespacedConfigMap(name, namespace)
@@ -97,29 +95,27 @@ export class KubeHelper {
     }
   }
 
-  async createConfigMapFromFile(filePath: string, namespace: string | undefined = '') {
+  async createConfigMapFromFile(filePath: string, namespace = '') {
     const yamlFile = readFileSync(filePath)
     const yamlConfigMap = yaml.safeLoad(yamlFile.toString()) as V1ConfigMap
     const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
     try {
-      const response = await k8sCoreApi.createNamespacedConfigMap(namespace, yamlConfigMap)
-      return response
+      return await k8sCoreApi.createNamespacedConfigMap(namespace, yamlConfigMap)
     } catch (e) {
       throw new Error(e.body.message)
     }
   }
 
-  async patchConfigMap(name: string, patch: any, namespace: string | undefined = '') {
+  async patchConfigMap(name: string, patch: any, namespace = '') {
     const k8sCoreApi = this.kc.makeApiClient(PatchedK8sApi)
     try {
-      const response = await k8sCoreApi.patchNamespacedConfigMap(name, namespace, patch)
-      return response
+      return await k8sCoreApi.patchNamespacedConfigMap(name, namespace, patch)
     } catch (e) {
       throw new Error(e.body.message)
     }
   }
 
-  async podExist(name: string | undefined = '', namespace: string | undefined = ''): Promise<boolean | ''> {
+  async podExist(name = '', namespace = ''): Promise<boolean | ''> {
     const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
     try {
       const res = await k8sCoreApi.readNamespacedPod(name, namespace)
@@ -131,7 +127,7 @@ export class KubeHelper {
     }
   }
 
-  async podsExistBySelector(selector: string, namespace: string | undefined = ''): Promise<boolean> {
+  async podsExistBySelector(selector: string, namespace = ''): Promise<boolean> {
     const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
     let res
     try {
@@ -148,7 +144,7 @@ export class KubeHelper {
     return (res.body.items.length > 0)
   }
 
-  async getPodPhase(selector: string, namespace: string | undefined = ''): Promise<string> {
+  async getPodPhase(selector: string, namespace = ''): Promise<string> {
     const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
     let res
     try {
@@ -173,7 +169,7 @@ export class KubeHelper {
     return res.body.items[0].status.phase
   }
 
-  async getPodReadyConditionStatus(selector: string, namespace: string | undefined = ''): Promise<string> {
+  async getPodReadyConditionStatus(selector: string, namespace = ''): Promise<string> {
     const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
     let res
     try {
@@ -209,7 +205,7 @@ export class KubeHelper {
     throw new Error(`Get pods by selector "${selector}" returned a pod without a status.condition of type "Ready"`)
   }
 
-  async waitForPodPhase(selector: string, targetPhase: string, namespace: string | undefined = '', intervalMs = 500, timeoutMs = 130000) {
+  async waitForPodPhase(selector: string, targetPhase: string, namespace = '', intervalMs = 500, timeoutMs = 130000) {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
       let currentPhase = await this.getPodPhase(selector, namespace)
@@ -221,7 +217,7 @@ export class KubeHelper {
     throw new Error('ERR_TIMEOUT')
   }
 
-  async waitForPodPending(selector: string, namespace: string | undefined = '', intervalMs = 500, timeoutMs = 130000) {
+  async waitForPodPending(selector: string, namespace = '', intervalMs = 500, timeoutMs = 130000) {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
       let podExist = await this.podsExistBySelector(selector, namespace)
@@ -238,7 +234,7 @@ export class KubeHelper {
     throw new Error('ERR_TIMEOUT')
   }
 
-  async waitForPodReady(selector: string, namespace: string | undefined = '', intervalMs = 500, timeoutMs = 130000) {
+  async waitForPodReady(selector: string, namespace = '', intervalMs = 500, timeoutMs = 130000) {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
       let readyStatus = await this.getPodReadyConditionStatus(selector, namespace)
@@ -253,13 +249,12 @@ export class KubeHelper {
     throw new Error('ERR_TIMEOUT')
   }
 
-  async deletePod(name: string, namespace: string | undefined = '') {
+  async deletePod(name: string, namespace = '') {
     this.kc.loadFromDefault()
     const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
     const options = new V1DeleteOptions()
     try {
-      const response = await k8sCoreApi.deleteNamespacedPod(name, namespace, options)
-      return response
+      return await k8sCoreApi.deleteNamespacedPod(name, namespace, options)
     } catch (e) {
       throw new Error(e.body.message)
     }
@@ -296,8 +291,7 @@ export class KubeHelper {
     deployment.spec.template.spec.containers = [opContainer]
 
     try {
-      const response = await k8sAppsApi.createNamespacedDeployment(namespace, deployment)
-      return response
+      return await k8sAppsApi.createNamespacedDeployment(namespace, deployment)
     } catch (e) {
       throw new Error(e.body.message)
     }
@@ -331,14 +325,13 @@ export class KubeHelper {
     pod.spec.containers = [opContainer]
 
     try {
-      const response = await k8sCoreApi.createNamespacedPod(namespace, pod)
-      return response
+      return await k8sCoreApi.createNamespacedPod(namespace, pod)
     } catch (e) {
       throw new Error(e.body.message)
     }
   }
 
-  async ingressExist(name: string | undefined = '', namespace: string | undefined = ''): Promise<boolean | ''> {
+  async ingressExist(name = '', namespace = ''): Promise<boolean | ''> {
     const k8sExtensionsApi = this.kc.makeApiClient(Extensions_v1beta1Api)
     try {
       const res = await k8sExtensionsApi.readNamespacedIngress(name, namespace)
@@ -350,7 +343,7 @@ export class KubeHelper {
     }
   }
 
-  async getIngressHost(name: string | undefined = '', namespace: string | undefined = ''): Promise<string> {
+  async getIngressHost(name = '', namespace = ''): Promise<string> {
     const k8sExtensionsApi = this.kc.makeApiClient(Extensions_v1beta1Api)
     try {
       const res = await k8sExtensionsApi.readNamespacedIngress(name, namespace)

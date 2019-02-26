@@ -69,7 +69,7 @@ export class CheHelper {
     }
   }
 
-  async cheURLByIngress(ingress: string, namespace: string | undefined = ''): Promise<string> {
+  async cheURLByIngress(ingress: string, namespace = ''): Promise<string> {
     const protocol = 'http'
     const { stdout } = await execa('kubectl',
       ['get',
@@ -84,7 +84,7 @@ export class CheHelper {
     return `${protocol}://${hostname}`
   }
 
-  async cheURL(namespace: string | undefined = ''): Promise<string> {
+  async cheURL(namespace = ''): Promise<string> {
     const kube = new KubeHelper()
     const protocol = 'http'
     let hostname = ''
@@ -98,7 +98,7 @@ export class CheHelper {
     return `${protocol}://${hostname}`
   }
 
-  async cheNamespaceExist(namespace: string | undefined = '') {
+  async cheNamespaceExist(namespace = '') {
     this.kc.loadFromDefault()
     const k8sApi = this.kc.makeApiClient(Core_v1Api)
     try {
@@ -115,7 +115,7 @@ export class CheHelper {
     }
   }
 
-  async isCheServerReady(cheURL: string, namespace: string | undefined = '', responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
+  async isCheServerReady(cheURL: string, namespace = '', responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
     if (!await this.cheNamespaceExist(namespace)) {
       return false
     }
@@ -135,7 +135,7 @@ export class CheHelper {
     }
   }
 
-  async createWorkspaceFromDevfile(namespace: string | undefined, devfilePath: string | undefined = ''): Promise<string> {
+  async createWorkspaceFromDevfile(namespace: string | undefined, devfilePath = ''): Promise<string> {
     if (!await this.cheNamespaceExist(namespace)) {
       throw new Error('E_BAD_NS')
     }
@@ -173,7 +173,7 @@ export class CheHelper {
     }
   }
 
-  async createWorkspaceFromWorkspaceConfig(namespace: string | undefined, workspaceConfigPath: string | undefined = ''): Promise<string> {
+  async createWorkspaceFromWorkspaceConfig(namespace: string | undefined, workspaceConfigPath = ''): Promise<string> {
     if (!await this.cheNamespaceExist(namespace)) {
       throw new Error('E_BAD_NS')
     }
