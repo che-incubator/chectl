@@ -11,7 +11,6 @@
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
-import * as execa from 'execa'
 import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
 import * as path from 'path'
@@ -93,37 +92,33 @@ export default class Start extends Command {
     let ingressName = 'che-ingress'
 
     // Platform Checks
-    let platformCheckTasks = new Listr()
+    let platformCheckTasks = new Listr(undefined, {renderer: listr_renderer, collapse: false})
     if (flags.platform === 'minikube') {
-      platformCheckTasks = new Listr([{
+      platformCheckTasks.add({
         title: 'Platform preflight checklist (minikube) ✈️',
-        task: () => minikube.startTasks(this)
-      }], {renderer: listr_renderer, collapse: false})
-      if (!flags.domain) {
-        const { stdout } = await execa.shell('minikube ip')
-        flags.domain = stdout + '.nip.io'
-      }
+        task: () => minikube.startTasks(flags, this)
+      })
     } else {
       this.error(`Platform ${flags.installer} is not supported yet ¯\\_(ツ)_/¯`)
       this.exit()
     }
 
     // Installer
-    let installerTasks = new Listr()
+    let installerTasks = new Listr({renderer: listr_renderer, collapse: false})
     if (flags.installer === 'helm') {
-      installerTasks = new Listr([{
+      installerTasks.add({
         title: 'Running the installer (Helm) 🏎️',
         task: () => helm.startTasks(flags, this)
-      }], {renderer: listr_renderer, collapse: false})
+      })
     } else if (flags.installer === 'operator') {
       // The operator installs Che multiuser only
       flags.multiuser = true
       // The opertor and Helm use 2 distinct ingress names
       ingressName = 'che'
-      installerTasks = new Listr([{
+      installerTasks.add({
         title: 'Running the installer (Operator) 🏎️',
         task: () => operator.startTasks(flags, this)
-      }], {renderer: listr_renderer, collapse: false})
+      })
     } else {
       this.error(`Installer ${flags.installer} is not supported ¯\\_(ツ)_/¯`)
       this.exit()

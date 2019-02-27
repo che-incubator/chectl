@@ -15,7 +15,7 @@ import * as execa from 'execa'
 import * as Listr from 'listr'
 
 export class MinikubeHelper {
-  startTasks(command: Command): Listr {
+  startTasks(flags: any, command: Command): Listr {
     return new Listr([
       {
         title: 'Verify if kubectl is installed',
@@ -60,6 +60,14 @@ export class MinikubeHelper {
         },
         task: () => this.enableIngressAddon()
       },
+      { title: 'Retrieving minikube IP and domain for ingress URLs',
+        enabled: () => flags.domain !== undefined,
+        task: async (_ctx: any, task: any) => {
+          const ip = await this.getMinikubeIP()
+          flags.domain = ip + '.nip.io'
+          task.title = `${task.title}...${flags.domain}.`
+        }
+      },
     ])
   }
 
@@ -79,5 +87,10 @@ export class MinikubeHelper {
 
   async enableIngressAddon() {
     await execa('minikube', ['addons', 'enable', 'ingress'], { timeout: 10000 })
+  }
+
+  async getMinikubeIP(): Promise<string> {
+    const { stdout } = await execa('minikube', ['ip'], { timeout: 10000 })
+    return stdout
   }
 }
