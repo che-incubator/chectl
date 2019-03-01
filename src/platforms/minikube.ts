@@ -19,15 +19,15 @@ export class MinikubeHelper {
     return new Listr([
       {
         title: 'Verify if kubectl is installed',
-        task: async () => {
-          if (!await commandExists('kubectl')) {
+        task: () => {
+          if (!commandExists.sync('kubectl')) {
             command.error('E_REQUISITE_NOT_FOUND')
           }
         }
       },
       { title: 'Verify if minikube is installed',
-        task: async () => {
-          if (!await commandExists('minikube')) {
+        task: () => {
+          if (!commandExists.sync('minikube')) {
             command.error('E_REQUISITE_NOT_FOUND', { code: 'E_REQUISITE_NOT_FOUND' })
           }
         }

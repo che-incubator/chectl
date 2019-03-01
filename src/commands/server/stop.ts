@@ -11,6 +11,7 @@
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
+import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 
 import { CheHelper } from '../../api/che'
@@ -34,7 +35,6 @@ export default class Stop extends Command {
     const notifier = require('node-notifier')
     const che = new CheHelper()
     const tasks = new Listr([
-      // { title: 'Verify if we can access Kubernetes API', skip: () => 'Not implemented yet', task: () => {}},
       {
         title: `Verify if namespace ${flags.chenamespace} exist`,
         task: async () => {
@@ -65,9 +65,8 @@ export default class Stop extends Command {
     })
   }
 
-  async checkIfInstalled(commandName: string) {
-    let commandExists = require('command-exists')
-    if (!await commandExists(commandName)) {
+  checkIfInstalled(commandName: string) {
+    if (!commandExists.sync(commandName)) {
       throw new Error(`ERROR: ${commandName} is not installed.`)
     }
   }

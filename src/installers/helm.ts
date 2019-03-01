@@ -23,7 +23,7 @@ export class HelmHelper {
     return new Listr([
       {
         title: 'Verify if helm is installed',
-        task: async () => { if (!await commandExists('helm')) { command.error('E_REQUISITE_NOT_FOUND') } }
+        task: () => { if (!commandExists.sync('helm')) { command.error('E_REQUISITE_NOT_FOUND') } }
       },
       {
         title: 'Create Tiller Role Binding',
@@ -153,7 +153,7 @@ export class HelmHelper {
     let command = `helm upgrade \\
                             --install che \\
                             --namespace ${flags.chenamespace} \\
-                            --set global.ingressDomain=$(minikube ip).nip.io \\
+                            --set global.ingressDomain=${flags.domain} \\
                             --set cheImage=${flags.cheimage} \\
                             --set global.cheWorkspacesNamespace=${flags.chenamespace} \\
                             ${multiUserFlag} ${tlsFlag} ${destDir}`

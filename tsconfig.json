@@ -18,7 +18,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "target": "es6",
-    "sourceMap": true,
+    "sourceMap": true
   },
   "include": [
     "src"

@@ -217,7 +217,7 @@ export class KubeHelper {
     throw new Error('ERR_TIMEOUT')
   }
 
-  async waitForPodPending(selector: string, namespace = '', intervalMs = 500, timeoutMs = 130000) {
+  async waitForPodPending(selector: string, namespace = '', intervalMs = 500, timeoutMs = 300000) {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
       let podExist = await this.podsExistBySelector(selector, namespace)

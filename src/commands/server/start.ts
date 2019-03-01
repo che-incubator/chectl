@@ -99,7 +99,7 @@ export default class Start extends Command {
         task: () => minikube.startTasks(flags, this)
       })
     } else {
-      this.error(`Platform ${flags.installer} is not supported yet ¯\\_(ツ)_/¯`)
+      this.error(`Platformm ${flags.platform} is not supported yet ¯\\_(ツ)_/¯`)
       this.exit()
     }
 
