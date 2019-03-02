@@ -1,6 +1,8 @@
 {
   "$schema": "https://schemastore.azurewebsites.net/schemas/json/tsconfig.json",
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "*": ["types/*"] },
     "declaration": true,
     "importHelpers": true,
     "outDir": "lib",
@@ -16,7 +18,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "target": "es6",
-    "sourceMap": true,
+    "sourceMap": true
   },
   "include": [
     "src"

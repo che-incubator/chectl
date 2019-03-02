@@ -1,0 +1,12 @@
+{ body: { 
+     kind: 'Status',
+     apiVersion: 'v1',
+     metadata: {},
+     status: 'Failure',
+     message: 'namespaces "che-operator" not found',
+     reason: 'NotFound',
+     details: { name: 'che-operator', kind: 'namespaces'
+    },
+     code: 404
+  }
+}

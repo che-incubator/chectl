@@ -1,70 +1,58 @@
+/*********************************************************************
+ * Copyright (c) 2019 Red Hat, Inc.
+ *
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ **********************************************************************/
 // tslint:disable:object-curly-spacing
-import { Core_v1Api } from '@kubernetes/client-node';
+import { Core_v1Api } from '@kubernetes/client-node'
 import { expect, fancy } from 'fancy-test'
 
-import { CheHelper } from '../../src/helpers/che'
+import { CheHelper } from '../../src/api/che'
 
 const sinon = require('sinon')
 const namespace = 'kube-che'
 const workspace = 'workspace-0123'
-// const k8sURL = 'https://192.168.64.34:8443'
 const cheURL = 'https://che-kube-che.192.168.64.34.nip.io'
 let ch = new CheHelper()
 let kc = ch.kc
 let k8sApi = new Core_v1Api()
 
 describe('Che helper', () => {
-  // fancy
-  // .nock(k8sURL, api => api
-  //   .get(`/api/v1/namespaces/${namespace}/pods?labelSelector=app%3Dche`)
-  //   .replyWithFile(200, __dirname + '/replies/get-pods-che-running.json', { 'Content-Type': 'application/json' }))
-  // .it('detects if Che server pod exist', async () => {
-  //   let ch = new CheHelper()
-  //   const res = await ch.cheServerPodExist(namespace)
-  //   expect(res).to.equal(true)
-  // })
   fancy
     .stub(ch, 'cheNamespaceExist', () => true)
-    .stub(ch, 'cheURL', () => cheURL)
     .nock(cheURL, api => api
       .get('/api/system/state')
       .reply(200))
     .it('detects if Che server is ready', async () => {
-      const res = await ch.isCheServerReady(namespace)
+      const res = await ch.isCheServerReady(cheURL, namespace)
       expect(res).to.equal(true)
     })
   fancy
     .stub(ch, 'cheNamespaceExist', () => true)
-    .stub(ch, 'cheURL', () => cheURL)
     .nock(cheURL, api => api
       .get('/api/system/state')
       .delayConnection(1000)
       .reply(200))
     .it('detects if Che server is NOT ready', async () => {
-      const res = await ch.isCheServerReady(namespace, 500)
+      const res = await ch.isCheServerReady(cheURL, namespace, 500)
       expect(res).to.equal(false)
     })
   fancy
     .stub(ch, 'cheNamespaceExist', () => true)
-    .stub(ch, 'cheURL', () => { throw (new Error('Error from server (NotFound): ingresses.extensions "che-ingress" not found')) })
-    .it('detects if Che is NOT ready when the namespace exist but the ingress doesn t', async () => {
-      const res = await ch.isCheServerReady(namespace)
-      expect(res).to.equal(false)
-    })
-  fancy
-    .stub(ch, 'cheNamespaceExist', () => true)
-    .stub(ch, 'cheURL', () => cheURL)
     .nock(cheURL, api => api
       .get('/api/system/state')
       .delayConnection(1000)
       .reply(200))
     .it('waits until Che server is ready', async () => {
-      const res = await ch.isCheServerReady(namespace, 2000)
+      const res = await ch.isCheServerReady(cheURL, namespace, 2000)
       expect(res).to.equal(true)
     })
   fancy
     .stub(ch, 'cheNamespaceExist', () => true)
-    .stub(ch, 'cheURL', () => cheURL)
     .nock(cheURL, api => api
       .get('/api/system/state')
       .reply(404)
@@ -73,12 +61,11 @@ describe('Che helper', () => {
       .get('/api/system/state')
       .reply(200))
     .it('continues requesting until Che server is ready', async () => {
-      const res = await ch.isCheServerReady(namespace, 2000)
+      const res = await ch.isCheServerReady(cheURL, namespace, 2000)
       expect(res).to.equal(true)
     })
   fancy
     .stub(ch, 'cheNamespaceExist', () => true)
-    .stub(ch, 'cheURL', () => cheURL)
     .nock(cheURL, api => api
       .get('/api/system/state')
       .reply(404)
@@ -87,7 +74,7 @@ describe('Che helper', () => {
       .get('/api/system/state')
       .reply(503))
     .it('continues requesting but fails if Che server is NOT ready after timeout', async () => {
-      const res = await ch.isCheServerReady(namespace, 2000)
+      const res = await ch.isCheServerReady(cheURL, namespace, 2000)
       expect(res).to.equal(false)
     })
   fancy

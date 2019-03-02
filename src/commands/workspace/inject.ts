@@ -1,3 +1,12 @@
+/*********************************************************************
+ * Copyright (c) 2019 Red Hat, Inc.
+ *
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ **********************************************************************/
 // tslint:disable:object-curly-spacing
 
 import * as execa from 'execa'
@@ -8,7 +17,7 @@ import { KubeConfig } from '@kubernetes/client-node'
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 
-import { CheHelper } from '../../helpers/che'
+import { CheHelper } from '../../api/che'
 
 export default class Inject extends Command {
   static description = 'inject configurations and tokens in a Che Workspace'

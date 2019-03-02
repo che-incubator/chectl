@@ -1,10 +1,19 @@
+/*********************************************************************
+ * Copyright (c) 2019 Red Hat, Inc.
+ *
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ **********************************************************************/
 // tslint:disable:object-curly-spacing
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 
-import { CheHelper } from '../../helpers/che'
+import { CheHelper } from '../../api/che'
 
 export default class Start extends Command {
   static description = 'create and start a Che workspace'
@@ -37,9 +46,35 @@ export default class Start extends Command {
     const notifier = require('node-notifier')
     const che = new CheHelper()
     const tasks = new Listr([
-      { title: 'Verify if Che server is running', task: async () => { if (!await che.isCheServerReady(flags.chenamespace)) { this.error(`E_SRV_NOT_RUNNING - Che Server is not running.\nChe Server cannot be found in Kubernetes Namespace "${flags.chenamespace}". Have you already start it?\nFix with: start Che server: chectl server:start\nhttps://github.com/eclipse/che`, { code: 'E_SRV_NOT_RUNNNG'}) } } },
-      { title: `Create workspace from Devfile ${flags.devfile}`, enabled: () => flags.devfile !== undefined, task: async (ctx: any) => { ctx.workspaceIdeURL = await che.createWorkspaceFromDevfile(flags.chenamespace, flags.devfile) } },
-      { title: `Create workspace from Workspace Config ${flags.workspaceconfig}`, enabled: () => flags.workspaceconfig !== undefined, task: async (ctx: any) => { ctx.workspaceIdeURL = await che.createWorkspaceFromWorkspaceConfig(flags.chenamespace, flags.workspaceconfig) } },
+      {
+        title: 'Retrieving Che Server URL',
+        task: async (ctx: any, task: any) => {
+          ctx.cheURL = await che.cheURL(flags.chenamespace)
+          task.title = await `${task.title}...${ctx.cheURL}`
+        }
+      },
+      {
+        title: 'Verify if Che server is running',
+        task: async (ctx: any) => {
+          if (!await che.isCheServerReady(ctx.cheURL, flags.chenamespace)) {
+            this.error(`E_SRV_NOT_RUNNING - Che Server is not running.\nChe Server cannot be found in Kubernetes Namespace "${flags.chenamespace}". Have you already start it?\nFix with: start Che server: chectl server:start\nhttps://github.com/eclipse/che`, { code: 'E_SRV_NOT_RUNNNG'})
+          }
+        }
+      },
+      {
+        title: `Create workspace from Devfile ${flags.devfile}`,
+        enabled: () => flags.devfile !== undefined,
+        task: async (ctx: any) => {
+          ctx.workspaceIdeURL = await che.createWorkspaceFromDevfile(flags.chenamespace, flags.devfile)
+        }
+      },
+      {
+        title: `Create workspace from Workspace Config ${flags.workspaceconfig}`,
+        enabled: () => flags.workspaceconfig !== undefined,
+        task: async (ctx: any) => {
+          ctx.workspaceIdeURL = await che.createWorkspaceFromWorkspaceConfig(flags.chenamespace, flags.workspaceconfig)
+        }
+      },
     ])
 
     try {

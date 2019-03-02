@@ -1,3 +1,12 @@
+/*********************************************************************
+ * Copyright (c) 2019 Red Hat, Inc.
+ *
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ **********************************************************************/
 // tslint:disable:object-curly-spacing
 // tslint:disable-next-line:no-http-string
 
@@ -6,26 +15,9 @@ import axios from 'axios'
 import * as execa from 'execa'
 import * as fs from 'fs'
 
+import { KubeHelper } from '../api/kube'
+
 export class CheHelper {
-  // async chePodExist(namespace: string): Promise<boolean> {
-  //   const kc = new KubeConfig()
-  //   kc.loadFromDefault()
-
-  //   const k8sApi = kc.makeApiClient(Core_v1Api)
-
-  //   await k8sApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, 'app=che')
-  //     .then(res => {
-  //       res.body.items.forEach(pod => {
-  //         console.log(`Pod name: ${pod.metadata.name}`)
-  //         return true
-  //       })
-  //       // (pod => {
-  //       //   console.log(`Pod: ${pod.metadata.namespace}/${pod.metadata.name}`)
-  //       // })
-  //     }).catch(err => console.error(`Error: ${err.message}`))
-  //   return false
-  // }
-
   defaultCheResponseTimeoutMs = 3000
   kc = new KubeConfig()
 
@@ -77,7 +69,7 @@ export class CheHelper {
     }
   }
 
-  async cheURL(namespace: string | undefined = ''): Promise<string> {
+  async cheURLByIngress(ingress: string, namespace = ''): Promise<string> {
     const protocol = 'http'
     const { stdout } = await execa('kubectl',
       ['get',
@@ -86,20 +78,34 @@ export class CheHelper {
         `${namespace}`,
         '-o',
         'jsonpath={.spec.rules[0].host}',
-        'che-ingress'
+        ingress
       ], { timeout: 10000 })
     const hostname = stdout.trim()
     return `${protocol}://${hostname}`
   }
 
-  async cheNamespaceExist(namespace: string | undefined = '') {
+  async cheURL(namespace = ''): Promise<string> {
+    const kube = new KubeHelper()
+    const protocol = 'http'
+    let hostname = ''
+    if (await kube.ingressExist('che', namespace)) {
+      hostname = await kube.getIngressHost('che', namespace)
+    } else if (await kube.ingressExist('che-ingress', namespace)) {
+      hostname = await kube.getIngressHost('che-ingress', namespace)
+    } else {
+      throw new Error('ERR_INGRESS_NO_EXIST')
+    }
+    return `${protocol}://${hostname}`
+  }
+
+  async cheNamespaceExist(namespace = '') {
     this.kc.loadFromDefault()
     const k8sApi = this.kc.makeApiClient(Core_v1Api)
     try {
-      let res = await k8sApi.readNamespace(namespace)
+      const res = await k8sApi.readNamespace(namespace)
       if (res && res.body &&
-          res.body.metadata && res.body.metadata.name
-          && res.body.metadata.name === namespace) {
+        res.body.metadata && res.body.metadata.name
+        && res.body.metadata.name === namespace) {
         return true
       } else {
         return false
@@ -109,7 +115,7 @@ export class CheHelper {
     }
   }
 
-  async isCheServerReady(namespace: string | undefined, responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
+  async isCheServerReady(cheURL: string, namespace = '', responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
     if (!await this.cheNamespaceExist(namespace)) {
       return false
     }
@@ -122,15 +128,14 @@ export class CheHelper {
     })
 
     try {
-      let url = await this.cheURL(namespace)
-      await axios.get(`${url}/api/system/state`, { timeout: responseTimeoutMs })
+      await axios.get(`${cheURL}/api/system/state`, { timeout: responseTimeoutMs })
       return true
     } catch {
       return false
     }
   }
 
-  async createWorkspaceFromDevfile(namespace: string | undefined, devfilePath: string | undefined = ''): Promise<string> {
+  async createWorkspaceFromDevfile(namespace: string | undefined, devfilePath = ''): Promise<string> {
     if (!await this.cheNamespaceExist(namespace)) {
       throw new Error('E_BAD_NS')
     }
@@ -168,7 +173,7 @@ export class CheHelper {
     }
   }
 
-  async createWorkspaceFromWorkspaceConfig(namespace: string | undefined, workspaceConfigPath: string | undefined = ''): Promise<string> {
+  async createWorkspaceFromWorkspaceConfig(namespace: string | undefined, workspaceConfigPath = ''): Promise<string> {
     if (!await this.cheNamespaceExist(namespace)) {
       throw new Error('E_BAD_NS')
     }
