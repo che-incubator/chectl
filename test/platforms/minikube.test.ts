@@ -9,28 +9,24 @@
  **********************************************************************/
 // tslint:disable:object-curly-spacing
 import { expect, fancy } from 'fancy-test'
+import {MinikubeHelper} from '../../src/platforms/minikube';
+import * as execa from 'execa';
 
-const proxyquire = require('proxyquire')
-const sinon = require('sinon')
-
-const execa = sinon.stub()
-const { MinikubeHelper } = proxyquire.noCallThru().load('../../src/helpers/minikube', {
-  execa
-})
+jest.mock('execa');
 
 let mh = new MinikubeHelper()
 
 describe('start', () => {
   fancy
     .it('verifies that minikube is running', async () => {
-      execa.returns({ code: 0, stdout: 'minikube: Running' })
+      (execa as any).mockResolvedValue({ code: 0, stdout: 'minikube: Running' })
       const res = await mh.isMinikubeRunning()
       expect(res).to.equal(true)
     })
 
   fancy
     .it('verifies that minikube is not running', async () => {
-      execa.returns({ code: 1, stdout: 'minikube: Stopped' })
+      (execa as any).mockResolvedValue({ code: 1, stdout: 'minikube: Stopped' })
       const res = await mh.isMinikubeRunning()
       expect(res).to.equal(false)
     })

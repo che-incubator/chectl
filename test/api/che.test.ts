@@ -13,7 +13,6 @@ import { expect, fancy } from 'fancy-test'
 
 import { CheHelper } from '../../src/api/che'
 
-const sinon = require('sinon')
 const namespace = 'kube-che'
 const workspace = 'workspace-0123'
 const cheURL = 'https://che-kube-che.192.168.64.34.nip.io'
@@ -79,7 +78,7 @@ describe('Che helper', () => {
     })
   fancy
     .stub(kc, 'makeApiClient', () => k8sApi)
-    .stub(k8sApi, 'readNamespace', sinon.stub().throws(new Error()))
+    .stub(k8sApi, 'readNamespace', jest.fn().mockImplementation(() => {throw new Error()}))
     .it('founds out that a namespace doesn\'t exist', async () => {
       const res = await ch.cheNamespaceExist(namespace)
       expect(res).to.equal(false)
