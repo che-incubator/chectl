@@ -1,7 +1,7 @@
 os: osx
 language: node_js
 node_js:
-- node
+- lts/*
 cache: yarn
 before_install:
 - npm install -g pkg
