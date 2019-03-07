@@ -123,7 +123,7 @@ OPTIONS
 
   -s, --tls                            Enable TLS encryption and multi-user mode
 
-  -t, --templates=templates            [default: /Users/mloriedo/github/chectl/templates] Path to the templates folder
+  -t, --templates=templates            [default: templates] Path to the templates folder
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_

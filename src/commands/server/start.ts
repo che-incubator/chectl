@@ -11,6 +11,7 @@
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
+import * as fs from 'fs-extra'
 import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
 import * as path from 'path'
@@ -40,7 +41,7 @@ export default class Start extends Command {
     templates: string({
       char: 't',
       description: 'Path to the templates folder',
-      default: path.join(__dirname, '../../../../chectl/templates'),
+      default:  Start.getTemplatesDir(),
       env: 'CHE_TEMPLATES_FOLDER'
     }),
     cheboottimeout: string({
@@ -80,6 +81,19 @@ export default class Start extends Command {
       description: 'Type of Kubernetes platform. Valid values are \"minikube\", \"minishift\", \"docker4mac\", \"ocp\", \"oso\".',
       default: 'minikube'
     })
+
+  }
+
+  static getTemplatesDir(): string {
+    // return local templates folder if present
+    const TEMPLATES = 'templates'
+    const templatesDir = path.resolve(TEMPLATES)
+    const exists = fs.pathExistsSync(templatesDir)
+    if (exists) {
+      return TEMPLATES
+    }
+    // else use the location from modules
+    return path.join(__dirname, '../../../../chectl/templates')
   }
 
   async run() {
