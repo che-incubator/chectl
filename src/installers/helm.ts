@@ -89,39 +89,52 @@ export class HelmHelper {
     ])
   }
 
-  async tillerRoleBindingExist(): Promise<boolean> {
-    const { code } = await execa('kubectl', ['get', 'clusterrolebinding', 'add-on-cluster-admin'], { timeout: 10000, reject: false })
+  async tillerRoleBindingExist(execTimeout= 30000): Promise<boolean> {
+    const { code } = await execa('kubectl', ['get', 'clusterrolebinding', 'add-on-cluster-admin'], { timeout: execTimeout, reject: false })
     if (code === 0) { return true } else { return false }
   }
 
-  async createTillerRoleBinding() {
-    await execa('kubectl', ['create', 'clusterrolebinding', 'add-on-cluster-admin', '--clusterrole=cluster-admin', '--serviceaccount=kube-system:default'], { timeout: 10000})
+  async createTillerRoleBinding(execTimeout= 30000) {
+    await execa('kubectl', ['create', 'clusterrolebinding', 'add-on-cluster-admin', '--clusterrole=cluster-admin', '--serviceaccount=kube-system:default'], { timeout: execTimeout})
   }
 
-  async tillerServiceAccountExist(): Promise<boolean> {
-    const { code } = await execa('kubectl', ['get', 'serviceaccounts', 'tiller', '--namespace', 'kube-system'], { timeout: 10000, reject: false })
+  async tillerServiceAccountExist(execTimeout= 30000): Promise<boolean> {
+    const { code } = await execa('kubectl', ['get', 'serviceaccounts', 'tiller', '--namespace', 'kube-system'], { timeout: execTimeout, reject: false })
     if (code === 0) { return true } else { return false }
   }
 
-  async createTillerServiceAccount() {
-    await execa('kubectl', ['create', 'serviceaccount', 'tiller', '--namespace', 'kube-system'], { timeout: 10000})
+  async createTillerServiceAccount(execTimeout= 120000) {
+    await execa('kubectl', ['create', 'serviceaccount', 'tiller', '--namespace', 'kube-system'], { timeout: execTimeout})
   }
 
-  async createTillerRBAC(templatesPath: any) {
+  async createTillerRBAC(templatesPath: any, execTimeout= 30000) {
     const yamlPath = path.join(templatesPath, '/kubernetes/helm/che/tiller-rbac.yaml')
     const yamlContent = fs.readFileSync(yamlPath, 'utf8')
     const command = `echo "${yamlContent}" | \\
                     kubectl apply -f -`
-    await execa.shell(command, { timeout: 10000 })
+    await execa.shell(command, { timeout: execTimeout })
   }
 
-  async tillerServiceExist(): Promise<boolean> {
-    const { code } = await execa('kubectl', ['get', 'services', 'tiller-deploy', '-n', 'kube-system'], { timeout: 10000, reject: false})
+  async tillerServiceExist(execTimeout= 30000): Promise<boolean> {
+    const { code } = await execa('kubectl', ['get', 'services', 'tiller-deploy', '-n', 'kube-system'], { timeout: execTimeout, reject: false})
     if (code === 0) { return true } else { return false }
   }
 
-  async createTillerService() {
-    await execa('helm', ['init', '--service-account', 'tiller', '--wait'], { timeout: 20000 })
+  async createTillerService(execTimeout= 120000) {
+    const { cmd, code, stderr, stdout, timedOut } =
+                  await execa('helm', ['init', '--service-account', 'tiller', '--wait'], { timeout: execTimeout, reject: false })
+    if (timedOut) {
+      throw new Error(`Command "${cmd}" timed out after ${execTimeout}ms
+stderr: ${stderr}
+stdout: ${stdout}
+error: E_TIMEOUT`)
+    }
+    if (code !== 0) {
+      throw new Error(`Command "${cmd}" failed with return code ${code}
+stderr: ${stderr}
+stdout: ${stdout}
+error: E_COMMAND_FAILED`)
+    }
   }
 
   async prepareCheHelmChart(flags: any, cacheDir: string) {
@@ -131,12 +144,12 @@ export class HelmHelper {
     await ncp(srcDir, destDir, {}, (err: Error) => { if (err) { throw err } })
   }
 
-  async updateCheHelmChartDependencies(cacheDir: string) {
+  async updateCheHelmChartDependencies(cacheDir: string, execTimeout= 120000) {
     const destDir = path.join(cacheDir, '/templates/kubernetes/helm/che/')
-    await execa.shell(`helm dependencies update --skip-refresh ${destDir}`, { timeout: 10000 })
+    await execa.shell(`helm dependencies update --skip-refresh ${destDir}`, { timeout: execTimeout })
   }
 
-  async upgradeCheHelmChart(flags: any, cacheDir: string) {
+  async upgradeCheHelmChart(flags: any, cacheDir: string, execTimeout= 120000) {
     const destDir = path.join(cacheDir, '/templates/kubernetes/helm/che/')
 
     let multiUserFlag = ''
@@ -152,11 +165,12 @@ export class HelmHelper {
 
     let command = `helm upgrade \\
                             --install che \\
+                            --force \\
                             --namespace ${flags.chenamespace} \\
                             --set global.ingressDomain=${flags.domain} \\
                             --set cheImage=${flags.cheimage} \\
                             --set global.cheWorkspacesNamespace=${flags.chenamespace} \\
                             ${multiUserFlag} ${tlsFlag} ${destDir}`
-    await execa.shell(command, { timeout: 10000 })
+    await execa.shell(command, { timeout: execTimeout })
   }
 }
