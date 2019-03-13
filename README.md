@@ -114,12 +114,12 @@ OPTIONS
 
   -m, --multiuser                      Starts che in multi-user mode
 
-  -n, --chenamespace=chenamespace      [default: kube-che] Kubernetes namespace where Che resources will be deployed
+  -n, --chenamespace=chenamespace      [default: che] Kubernetes namespace where Che resources will be deployed
 
   -o, --cheboottimeout=cheboottimeout  (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
 
   -p, --platform=platform              [default: minikube] Type of Kubernetes platform. Valid values are "minikube",
-                                       "minishift", "docker4mac", "ocp", "oso".
+                                       "minishift".
 
   -s, --tls                            Enable TLS encryption and multi-user mode
 
@@ -138,7 +138,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che resources will be deployed
+  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che resources will be deployed
 ```
 
 _See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
@@ -153,7 +153,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che resources will be deployed
+  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che resources will be deployed
 ```
 
 _See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_
@@ -170,7 +170,7 @@ OPTIONS
   -c, --container=container        [default: dev] Target container
   -h, --help                       show CLI help
   -k, --kubeconfig                 Inject the local Kubernetes configuration
-  -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che workspace is running
+  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che workspace is running
   -w, --workspace=workspace        Target workspace
 ```
 
@@ -186,7 +186,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che server is deployed
+  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che server is deployed
 ```
 
 _See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/list.ts)_
@@ -202,7 +202,7 @@ USAGE
 OPTIONS
   -f, --devfile=devfile                  path to a valid devfile
   -h, --help                             show CLI help
-  -n, --chenamespace=chenamespace        [default: kube-che] kubernetes namespace where Che server is deployed
+  -n, --chenamespace=chenamespace        [default: che] kubernetes namespace where Che server is deployed
   -w, --workspaceconfig=workspaceconfig  path to a valid workspace configuration json file
 ```
 
@@ -218,7 +218,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  [default: kube-che] Kubernetes namespace where Che server is deployed
+  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che server is deployed
 ```
 
 _See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_

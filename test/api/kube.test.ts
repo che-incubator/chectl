@@ -12,7 +12,7 @@ import { expect, fancy } from 'fancy-test'
 
 import { KubeHelper } from '../../src/api/kube'
 
-const namespace = 'kube-che'
+const namespace = 'che'
 const kubeClusterURL = 'https://fancy-kube-cluster:8443'
 const kubeContext = `apiVersion: v1
 clusters:
@@ -22,7 +22,7 @@ clusters:
 contexts:
 - context:
     cluster: minikube
-    namespace: kube-che
+    namespace: che
     user: minikube
   name: minikube
 current-context: minikube

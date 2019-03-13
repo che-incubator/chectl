@@ -1,7 +1,7 @@
 {
   "links": {
-    "self": "http://che-kube-che.192.168.64.40.nip.io/api/workspace/workspace1ioy0lx0zg7j0jio",
-    "ide": "http://che-kube-che.192.168.64.40.nip.io/che/inner-loop-buildah"
+    "self": "http://che-che.192.168.64.40.nip.io/api/workspace/workspace1ioy0lx0zg7j0jio",
+    "ide": "http://che-che.192.168.64.40.nip.io/che/inner-loop-buildah"
   },
   "attributes": {
     "created": "1545089353884"

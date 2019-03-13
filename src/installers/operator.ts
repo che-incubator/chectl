@@ -38,8 +38,11 @@ export class OperatorHelper {
           const exist = await che.cheNamespaceExist(flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exist.`
-          } else {
+          } else if (flags.platform === 'minikube') {
             await execa.shell(`kubectl create namespace ${flags.chenamespace}`)
+            task.title = `${task.title}...done.`
+          } else if (flags.platform === 'minishift') {
+            await execa.shell(`oc new-project ${flags.chenamespace}`)
             task.title = `${task.title}...done.`
           }
         }
@@ -50,8 +53,11 @@ export class OperatorHelper {
           const exist = await kube.serviceAccountExist(this.operatorServiceAccount, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exist.`
-          } else {
+          } else if (flags.platform === 'minikube') {
             await execa.shell(`kubectl create serviceaccount ${this.operatorServiceAccount} -n=${flags.chenamespace}`)
+            task.title = `${task.title}...done.`
+          } else if (flags.platform === 'minishift') {
+            await execa.shell(`oc create serviceaccount ${this.operatorServiceAccount} -n=${flags.chenamespace}`)
             task.title = `${task.title}...done.`
           }
         }

@@ -14,9 +14,9 @@
                   "app": "che"
               },
               "name": "che",
-              "namespace": "kube-che",
+              "namespace": "che",
               "resourceVersion": "39518",
-              "selfLink": "/apis/extensions/v1beta1/namespaces/kube-che/deployments/che",
+              "selfLink": "/apis/extensions/v1beta1/namespaces/che/deployments/che",
               "uid": "8371dca9-f33b-11e8-a9ee-f26345eaf352"
           },
           "spec": {

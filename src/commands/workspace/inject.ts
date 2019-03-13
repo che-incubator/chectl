@@ -40,7 +40,7 @@ export default class Inject extends Command {
     chenamespace: string({
       char: 'n',
       description: 'Kubernetes namespace where Che workspace is running',
-      default: 'kube-che',
+      default: 'che',
       env: 'CHE_NAMESPACE'
     }),
   }

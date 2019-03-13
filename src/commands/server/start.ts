@@ -18,9 +18,11 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
+import { OpenShiftHelper } from '../../api/openshift'
 import { HelmHelper } from '../../installers/helm'
 import { OperatorHelper } from '../../installers/operator'
 import { MinikubeHelper } from '../../platforms/minikube'
+import { MinishiftHelper } from '../../platforms/minishift'
 export default class Start extends Command {
   static description = 'start Eclipse Che Server'
 
@@ -29,7 +31,7 @@ export default class Start extends Command {
     chenamespace: string({
       char: 'n',
       description: 'Kubernetes namespace where Che resources will be deployed',
-      default: 'kube-che',
+      default: 'che',
       env: 'CHE_NAMESPACE'
     }),
     cheimage: string({
@@ -78,7 +80,7 @@ export default class Start extends Command {
     }),
     platform: string({
       char: 'p',
-      description: 'Type of Kubernetes platform. Valid values are \"minikube\", \"minishift\", \"docker4mac\", \"ocp\", \"oso\".',
+      description: 'Type of Kubernetes platform. Valid values are \"minikube\", \"minishift\".',
       default: 'minikube'
     })
 
@@ -99,6 +101,7 @@ export default class Start extends Command {
   async run() {
     const { flags } = this.parse(Start)
     const minikube = new MinikubeHelper()
+    const minishift = new MinishiftHelper()
     const helm = new HelmHelper()
     const che = new CheHelper()
     const operator = new OperatorHelper()
@@ -109,8 +112,13 @@ export default class Start extends Command {
     let platformCheckTasks = new Listr(undefined, {renderer: listr_renderer, collapse: false})
     if (flags.platform === 'minikube') {
       platformCheckTasks.add({
-        title: 'Platform preflight checklist (minikube) ✈️',
+        title: '✈️  Minikube preflight checklist',
         task: () => minikube.startTasks(flags, this)
+      })
+    } else if (flags.platform === 'minishift') {
+      platformCheckTasks.add({
+        title: '✈️  Minishift preflight checklist',
+        task: () => minishift.startTasks(flags, this)
       })
     } else {
       this.error(`Platformm ${flags.platform} is not supported yet ¯\\_(ツ)_/¯`)
@@ -121,7 +129,7 @@ export default class Start extends Command {
     let installerTasks = new Listr({renderer: listr_renderer, collapse: false})
     if (flags.installer === 'helm') {
       installerTasks.add({
-        title: 'Running the installer (Helm) 🏎️',
+        title: '🏃‍  Running Helm to install Che',
         task: () => helm.startTasks(flags, this)
       })
     } else if (flags.installer === 'operator') {
@@ -130,7 +138,7 @@ export default class Start extends Command {
       // The opertor and Helm use 2 distinct ingress names
       ingressName = 'che'
       installerTasks.add({
-        title: 'Running the installer (Operator) 🏎️',
+        title: '🏃‍  Running the Che Operator',
         task: () => operator.startTasks(flags, this)
       })
     } else {
@@ -141,7 +149,7 @@ export default class Start extends Command {
     // Post Install Checks
     let cheBootstrapSubTasks = new Listr()
     const cheStartCheckTasks = new Listr([{
-      title: 'Post installation checklist ✅',
+      title: '✅  Post installation checklist',
       task: () => cheBootstrapSubTasks
     }], {
       renderer: listr_renderer,
@@ -167,7 +175,15 @@ export default class Start extends Command {
     cheBootstrapSubTasks.add({
       title: 'Retrieving Che Server URL',
       task: async (ctx: any, task: any) => {
-        ctx.cheURL = await che.cheURLByIngress(ingressName, flags.chenamespace)
+        if (flags.platform === 'minikube') {
+          ctx.cheURL = await che.cheURLByIngress(ingressName, flags.chenamespace)
+        } else if (flags.platform === 'minishift') {
+          const os = new OpenShiftHelper()
+          const hostname = await os.getHostByRouteName(ingressName, flags.chenamespace)
+          const protocol = flags.tls ? 'https' : 'http'
+          ctx.cheURL = `${protocol}//${hostname}`
+        }
+
         task.title = await `${task.title}...${ctx.cheURL}`
       }
     })
