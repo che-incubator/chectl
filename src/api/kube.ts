@@ -205,7 +205,7 @@ export class KubeHelper {
     throw new Error(`Get pods by selector "${selector}" returned a pod without a status.condition of type "Ready"`)
   }
 
-  async waitForPodPhase(selector: string, targetPhase: string, namespace = '', intervalMs = 500, timeoutMs = 130000) {
+  async waitForPodPhase(selector: string, targetPhase: string, namespace = '', intervalMs = 500, timeoutMs = 300000) {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
       let currentPhase = await this.getPodPhase(selector, namespace)

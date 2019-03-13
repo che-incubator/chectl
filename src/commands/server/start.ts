@@ -181,7 +181,7 @@ export default class Start extends Command {
           const os = new OpenShiftHelper()
           const hostname = await os.getHostByRouteName(ingressName, flags.chenamespace)
           const protocol = flags.tls ? 'https' : 'http'
-          ctx.cheURL = `${protocol}//${hostname}`
+          ctx.cheURL = `${protocol}://${hostname}`
         }
 
         task.title = await `${task.title}...${ctx.cheURL}`

@@ -14,7 +14,7 @@ import execa = require('execa')
 export class OpenShiftHelper {
   async getHostByRouteName(routeName: string, namespace = ''): Promise<string> {
     const command = 'oc'
-    const args = ['get', 'route', '--namespace', namespace, '-o', `jsonpath="{range .items[?(.metadata.name=='${routeName}')]}{.spec.host}{end}`]
+    const args = ['get', 'route', '--namespace', namespace, '-o', `jsonpath={range.items[?(.metadata.name=='${routeName}')]}{.spec.host}{end}`]
     const { stdout } = await execa(command, args, { timeout: 10000 })
     return stdout.trim()
   }

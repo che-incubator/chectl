@@ -13,7 +13,7 @@ import { expect, fancy } from 'fancy-test'
 
 import { OpenShiftHelper } from '../../src/api/openshift'
 
-const namespace = 'os-che'
+const namespace = 'che'
 const hostname = `${namespace}.192.168.64.34.nip.io`
 const openshift = new OpenShiftHelper()
 
