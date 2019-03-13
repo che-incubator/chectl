@@ -13,9 +13,9 @@ import { expect, fancy } from 'fancy-test'
 
 import { CheHelper } from '../../src/api/che'
 
-const namespace = 'kube-che'
+const namespace = 'che'
 const workspace = 'workspace-0123'
-const cheURL = 'https://che-kube-che.192.168.64.34.nip.io'
+const cheURL = 'https://che-che.192.168.64.34.nip.io'
 let ch = new CheHelper()
 let kc = ch.kc
 let k8sApi = new Core_v1Api()
@@ -98,7 +98,7 @@ describe('Che helper', () => {
       .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
     .it('succeds creating a workspace from a valid devfile', async () => {
       const res = await ch.createWorkspaceFromDevfile(namespace, __dirname + '/requests/devfile.valid')
-      expect(res).to.equal('https://che-kube-che.192.168.64.39.nip.io/dashboard/#/ide/che/chectl')
+      expect(res).to.equal('https://che-che.192.168.64.39.nip.io/dashboard/#/ide/che/chectl')
     })
   fancy
     .stub(ch, 'cheNamespaceExist', () => true)
@@ -125,12 +125,12 @@ describe('Che helper', () => {
       .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
     .it('succeds creating a workspace from a valid workspaceconfig', async () => {
       const res = await ch.createWorkspaceFromWorkspaceConfig(namespace, __dirname + '/requests/workspaceconfig.valid')
-      expect(res).to.equal('https://che-kube-che.192.168.64.39.nip.io/dashboard/#/ide/che/chectl')
+      expect(res).to.equal('https://che-che.192.168.64.39.nip.io/dashboard/#/ide/che/chectl')
     })
   fancy
     .it('builds the Dashboard URL of a workspace given the IDE link', async () => {
-      let ideURL = 'https://che-kube-che.192.168.64.40.nip.io/che/name-with-dashes'
-      let dashboardURL = 'https://che-kube-che.192.168.64.40.nip.io/dashboard/#/ide/che/name-with-dashes'
+      let ideURL = 'https://che-che.192.168.64.40.nip.io/che/name-with-dashes'
+      let dashboardURL = 'https://che-che.192.168.64.40.nip.io/dashboard/#/ide/che/name-with-dashes'
       let res = await ch.buildDashboardURL(ideURL)
       expect(res).to.equal(dashboardURL)
     })

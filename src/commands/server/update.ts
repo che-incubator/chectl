@@ -20,7 +20,7 @@ export default class Update extends Command {
     chenamespace: string({
       char: 'n',
       description: 'Kubernetes namespace where Che resources will be deployed',
-      default: 'kube-che',
+      default: 'che',
       env: 'CHE_NAMESPACE'
     }),
   }

@@ -12,7 +12,7 @@
           "pod-template-hash": "767d8894b5"
         },
         "name": "che-767d8894b5-7dd6k",
-        "namespace": "kube-che",
+        "namespace": "che",
         "ownerReferences": [
           {
             "apiVersion": "apps/v1",
@@ -24,7 +24,7 @@
           }
         ],
         "resourceVersion": "228602",
-        "selfLink": "/api/v1/namespaces/kube-che/pods/che-767d8894b5-7dd6k",
+        "selfLink": "/api/v1/namespaces/che/pods/che-767d8894b5-7dd6k",
         "uid": "c0550480-358a-11e9-90f7-080027c5f56d"
       },
       "spec": {

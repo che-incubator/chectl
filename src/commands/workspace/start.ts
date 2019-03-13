@@ -23,7 +23,7 @@ export default class Start extends Command {
     chenamespace: string({
       char: 'n',
       description: 'kubernetes namespace where Che server is deployed',
-      default: 'kube-che',
+      default: 'che',
       env: 'CHE_NAMESPACE',
     }),
     devfile: string({

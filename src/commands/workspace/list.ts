@@ -20,7 +20,7 @@ export default class List extends Command {
     chenamespace: string({
       char: 'n',
       description: 'Kubernetes namespace where Che server is deployed',
-      default: 'kube-che',
+      default: 'che',
       env: 'CHE_NAMESPACE'
     }),
   }

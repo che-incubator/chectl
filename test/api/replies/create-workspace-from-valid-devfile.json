@@ -1,7 +1,7 @@
 {
   "links": {
-    "self": "https://che-kube-che.192.168.64.39.nip.io/api/devfile/workspace2m8y4wt8wyfkm6ia",
-    "ide": "https://che-kube-che.192.168.64.39.nip.io/che/chectl"
+    "self": "https://che-che.192.168.64.39.nip.io/api/devfile/workspace2m8y4wt8wyfkm6ia",
+    "ide": "https://che-che.192.168.64.39.nip.io/che/chectl"
   },
   "attributes": {
     "created": "1544394063204"
