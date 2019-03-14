@@ -118,7 +118,7 @@
     "modulePathIgnorePatterns": [
       "<rootDir>/dist"
     ],
-    "testRegex": "/test/(api|platforms)/.*.test.ts",
+    "testRegex": "/test/(api|platforms|installers)/.*.test.ts",
     "testEnvironment": "node",
     "moduleFileExtensions": [
       "ts",

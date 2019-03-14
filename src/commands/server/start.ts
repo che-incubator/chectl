@@ -20,6 +20,7 @@ import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { OpenShiftHelper } from '../../api/openshift'
 import { HelmHelper } from '../../installers/helm'
+import { MinishiftAddonHelper } from '../../installers/minishift-addon'
 import { OperatorHelper } from '../../installers/operator'
 import { MinikubeHelper } from '../../platforms/minikube'
 import { MinishiftHelper } from '../../platforms/minishift'
@@ -70,8 +71,8 @@ export default class Start extends Command {
     }),
     installer: string({
       char: 'a',
-      description: 'Installer type. Valid values are \"helm\" and \"operator\"',
-      default: 'helm'
+      description: 'Installer type. Valid values are \"helm\", \"operator\" and \"minishift-addon\"',
+      default: ''
     }),
     domain: string({
       char: 'b',
@@ -98,13 +99,33 @@ export default class Start extends Command {
     return path.join(__dirname, '../../../../chectl/templates')
   }
 
+  static setPlaformDefaults(flags: any) {
+    if (flags.platform === 'minishift') {
+      if (!flags.multiuser && flags.installer === '') {
+        flags.installer = 'minishift-addon'
+      }
+      if (flags.multiuser && flags.installer === '') {
+        flags.installer = 'operator'
+      }
+    } else if (flags.platform === 'minikube') {
+      if (!flags.multiuser && flags.installer === '') {
+        flags.installer = 'helm'
+      }
+      if (flags.multiuser && flags.installer === '') {
+        flags.installer = 'operator'
+      }
+    }
+  }
+
   async run() {
     const { flags } = this.parse(Start)
+    Start.setPlaformDefaults(flags)
     const minikube = new MinikubeHelper()
     const minishift = new MinishiftHelper()
     const helm = new HelmHelper()
     const che = new CheHelper()
     const operator = new OperatorHelper()
+    const minishiftAddon = new MinishiftAddonHelper()
     const listr_renderer = (flags.debug) ? 'verbose' : 'default'
     let ingressName = 'che-ingress'
 
@@ -135,11 +156,20 @@ export default class Start extends Command {
     } else if (flags.installer === 'operator') {
       // The operator installs Che multiuser only
       flags.multiuser = true
-      // The opertor and Helm use 2 distinct ingress names
+      // Installers use distinct ingress names
       ingressName = 'che'
       installerTasks.add({
         title: '🏃‍  Running the Che Operator',
         task: () => operator.startTasks(flags, this)
+      })
+    } else if (flags.installer === 'minishift-addon') {
+      // minishift-addon supports Che singleuser only
+      flags.multiuser = false
+      // Installers use distinct ingress names
+      ingressName = 'che'
+      installerTasks.add({
+        title: '🏃‍  Running the Che minishift-addon',
+        task: () => minishiftAddon.startTasks(flags)
       })
     } else {
       this.error(`Installer ${flags.installer} is not supported ¯\\_(ツ)_/¯`)
