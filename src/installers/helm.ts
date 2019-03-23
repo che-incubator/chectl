@@ -110,8 +110,7 @@ export class HelmHelper {
   async createTillerRBAC(templatesPath: any, execTimeout= 30000) {
     const yamlPath = path.join(templatesPath, '/kubernetes/helm/che/tiller-rbac.yaml')
     const yamlContent = fs.readFileSync(yamlPath, 'utf8')
-    const command = `echo "${yamlContent}" | \\
-                    kubectl apply -f -`
+    const command = `echo "${yamlContent}" | kubectl apply -f -`
     await execa.shell(command, { timeout: execTimeout })
   }
 
@@ -163,14 +162,7 @@ error: E_COMMAND_FAILED`)
       tlsFlag = `-f ${destDir}values/tls.yaml`
     }
 
-    let command = `helm upgrade \\
-                            --install che \\
-                            --force \\
-                            --namespace ${flags.chenamespace} \\
-                            --set global.ingressDomain=${flags.domain} \\
-                            --set cheImage=${flags.cheimage} \\
-                            --set global.cheWorkspacesNamespace=${flags.chenamespace} \\
-                            ${multiUserFlag} ${tlsFlag} ${destDir}`
+    let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} --set global.ingressDomain=${flags.domain} --set cheImage=${flags.cheimage} --set global.cheWorkspacesNamespace=${flags.chenamespace} ${multiUserFlag} ${tlsFlag} ${destDir}`
     await execa.shell(command, { timeout: execTimeout })
   }
 }
