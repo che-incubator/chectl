@@ -29,7 +29,7 @@ export class MinishiftHelper {
       },
       { title: 'Verify if minishift is installed',
         task: (_ctx: any, task: any) => {
-          if (!commandExists.sync('minikube')) {
+          if (!commandExists.sync('minishift')) {
             command.error('E_REQUISITE_NOT_FOUND', { code: 'E_REQUISITE_NOT_FOUND' })
           } else {
             task.title = `${task.title}...done.`
