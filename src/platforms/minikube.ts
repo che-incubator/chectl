@@ -45,6 +45,22 @@ export class MinikubeHelper {
         },
         task: () => this.startMinikube()
       },
+      { title: 'Verify userland-proxy is disabled',
+        task: async (_ctx: any, task: any) => {
+          const userlandDisabled = await this.isUserLandDisabled()
+          if (!userlandDisabled) {
+            command.error(`E_PLATFORM_NOT_COMPLIANT_USERLAND: userland-proxy=false parameter is required on docker daemon but it was not found.
+            This setting is given when originally starting minikube. (you can then later check by performing command : minikube ssh -- ps auxwwww | grep dockerd
+            It needs to contain --userland-proxy=false
+            Command that needs to be added on top of your start command:
+            $ minikube start <all your existing-options> --docker-opt userland-proxy=false
+            Note: you may have to recreate the minikube installation.
+            `)
+          } else {
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
       // { title: 'Verify minikube memory configuration', skip: () => 'Not implemented yet', task: () => {}},
       // { title: 'Verify kubernetes version', skip: () => 'Not implemented yet', task: () => {}},
       { title: 'Verify if minikube ingress addon is enabled',
@@ -77,7 +93,7 @@ export class MinikubeHelper {
   }
 
   async startMinikube() {
-    await execa('minikube', ['start', '--memory=4096', '--cpus=4', '--disk-size=50g'], { timeout: 180000 })
+    await execa('minikube', ['start', '--memory=4096', '--cpus=4', '--disk-size=50g', '--docker-opt', 'userland-proxy=false'], { timeout: 180000 })
   }
 
   async isIngressAddonEnabled(): Promise<boolean> {
@@ -92,5 +108,14 @@ export class MinikubeHelper {
   async getMinikubeIP(): Promise<string> {
     const { stdout } = await execa('minikube', ['ip'], { timeout: 10000 })
     return stdout
+  }
+
+  /**
+   * Check if userland-proxy=false is set in docker daemon options
+   * if not, return an error
+   */
+  async isUserLandDisabled(): Promise<boolean> {
+    const {stdout} = await execa('minikube', ['ssh', '--', 'ps', 'auxwww', '|', 'grep dockerd'], { timeout: 10000 })
+    return stdout.includes('--userland-proxy=false')
   }
 }
