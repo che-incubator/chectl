@@ -9,7 +9,9 @@ before_deploy:
 - git config --local user.name "Mario Loriedo"
 - git config --local user.email "mario.loriedo@gmail.com"
 - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')}
+- export SHORT_SHA1=$(git rev-parse --short HEAD)
 - git tag $TRAVIS_TAG
+- sed -i sed "s#version\":\ \"\(.*\)\",#version\":\ \"\1-${SHORT_SHA1}\",#g" package.json
 - yarn pack
 - pkg . -t node10-linux-x64,node10-macos-x64,node10-win-x64 --out-path ./bin/
 deploy:
