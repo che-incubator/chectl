@@ -56,7 +56,7 @@ export class MinishiftHelper {
           task.title = `${task.title}...${flags.domain}.`
         }
       },
-    ])
+    ], {renderer: flags['listr-renderer'] as any})
   }
 
   async isMinishiftRunning(): Promise<boolean> {

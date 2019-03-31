@@ -12,10 +12,11 @@
 
 import { Core_v1Api, KubeConfig } from '@kubernetes/client-node'
 import axios from 'axios'
-import * as execa from 'execa'
+import { cli } from 'cli-ux'
 import * as fs from 'fs'
 
 import { KubeHelper } from '../api/kube'
+import { OpenShiftHelper } from '../api/openshift'
 
 export class CheHelper {
   defaultCheResponseTimeoutMs = 3000
@@ -69,33 +70,39 @@ export class CheHelper {
     }
   }
 
-  async cheURLByIngress(ingress: string, namespace = ''): Promise<string> {
-    const protocol = 'http'
-    const { stdout } = await execa('kubectl',
-      ['get',
-        'ingress',
-        '-n',
-        `${namespace}`,
-        '-o',
-        'jsonpath={.spec.rules[0].host}',
-        ingress
-      ], { timeout: 10000 })
-    const hostname = stdout.trim()
-    return `${protocol}://${hostname}`
-  }
-
   async cheURL(namespace = ''): Promise<string> {
     const kube = new KubeHelper()
-    const protocol = 'http'
-    let hostname = ''
-    if (await kube.ingressExist('che', namespace)) {
-      hostname = await kube.getIngressHost('che', namespace)
-    } else if (await kube.ingressExist('che-ingress', namespace)) {
-      hostname = await kube.getIngressHost('che-ingress', namespace)
+    if (await kube.isOpenShift()) {
+      return this.cheOpenShiftURL(namespace)
     } else {
-      throw new Error('ERR_INGRESS_NO_EXIST')
+      return this.cheK8sURL(namespace)
     }
-    return `${protocol}://${hostname}`
+  }
+
+  async cheK8sURL(namespace = ''): Promise<string> {
+    const kube = new KubeHelper()
+    const ingress_names = ['che', 'che-ingress']
+    for (const ingress_name of ingress_names) {
+      if (await kube.ingressExist(ingress_name, namespace)) {
+        const protocol = await kube.getIngressProtocol(ingress_name, namespace)
+        const hostname = await kube.getIngressHost(ingress_name, namespace)
+        return `${protocol}://${hostname}`
+      }
+    }
+    throw new Error(`ERR_INGRESS_NO_EXIST - No ingress ${ingress_names} in namespace ${namespace}`)
+  }
+
+  async cheOpenShiftURL(namespace = ''): Promise<string> {
+    const oc = new OpenShiftHelper()
+    const route_names = ['che', 'che-host']
+    for (const route_name of route_names) {
+      if (await oc.routeExist(route_name, namespace)) {
+        const protocol = await oc.getRouteProtocol(route_name, namespace)
+        const hostname = await oc.getRouteHost(route_name, namespace)
+        return `${protocol}://${hostname}`
+      }
+    }
+    throw new Error(`ERR_ROUTE_NO_EXIST - No route ${route_names} in namespace ${namespace}`)
   }
 
   async cheNamespaceExist(namespace = '') {
@@ -115,12 +122,56 @@ export class CheHelper {
     }
   }
 
+  async getCheServerStatus(cheURL: string, responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<string> {
+    const endpoint = `${cheURL}/api/system/state`
+    let response = null
+    try {
+      response = await axios.get(endpoint, { timeout: responseTimeoutMs })
+    } catch (error) {
+      throw this.getCheApiError(error, endpoint)
+    }
+    if (!response || response.status !== 200 || !response.data || !response.data.status) {
+      throw new Error('E_BAD_RESP_CHE_API')
+    }
+    return response.data.status
+  }
+
+  async startShutdown(cheURL: string, accessToken = '', responseTimeoutMs = this.defaultCheResponseTimeoutMs) {
+    const endpoint = `${cheURL}/api/system/stop?shutdown=true`
+    const headers = accessToken ? {Authorization: `${accessToken}`} : null
+    let response = null
+    try {
+      response = await axios.post(endpoint, null, { headers, timeout: responseTimeoutMs })
+    } catch (error) {
+      if (error.response && error.response.status === 409) {
+        return
+      } else {
+        throw this.getCheApiError(error, endpoint)
+      }
+    }
+    if (!response || response.status !== 204) {
+      throw new Error('E_BAD_RESP_CHE_API')
+    }
+  }
+
+  async waitUntilReadyToShutdown(cheURL: string, intervalMs = 500, timeoutMs = 60000) {
+    const iterations = timeoutMs / intervalMs
+    for (let index = 0; index < iterations; index++) {
+      let status = await this.getCheServerStatus(cheURL)
+      if (status === 'READY_TO_SHUTDOWN') {
+        return
+      }
+      await cli.wait(intervalMs)
+    }
+    throw new Error('ERR_TIMEOUT')
+  }
+
   async isCheServerReady(cheURL: string, namespace = '', responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
     if (!await this.cheNamespaceExist(namespace)) {
       return false
     }
 
-    await axios.interceptors.response.use(response => response, async (error: any) => {
+    const id = await axios.interceptors.response.use(response => response, async (error: any) => {
       if (error.config && error.response && (error.response.status === 404 || error.response.status === 503)) {
         return axios.request(error.config)
       }
@@ -129,8 +180,10 @@ export class CheHelper {
 
     try {
       await axios.get(`${cheURL}/api/system/state`, { timeout: responseTimeoutMs })
+      await axios.interceptors.response.eject(id)
       return true
     } catch {
+      await axios.interceptors.response.eject(id)
       return false
     }
   }
@@ -139,78 +192,96 @@ export class CheHelper {
     if (!await this.cheNamespaceExist(namespace)) {
       throw new Error('E_BAD_NS')
     }
-
+    let url = await this.cheURL(namespace)
+    let endpoint = `${url}/api/devfile`
     let devfile
-
+    let response
     try {
-      let url = await this.cheURL(namespace)
       devfile = fs.readFileSync(devfilePath, 'utf8')
-      let response = await axios.post(`${url}/api/devfile`, devfile, {headers: {'Content-Type': 'text/yaml'}})
-      if (response && response.data && response.data.links && response.data.links.ide) {
-        let ideURL = response.data.links.ide
-        return this.buildDashboardURL(ideURL)
-      } else {
-        throw new Error('E_BAD_RESP_CHE_SERVER')
-      }
+      response = await axios.post(endpoint, devfile, {headers: {'Content-Type': 'text/yaml'}})
     } catch (error) {
       if (!devfile) { throw new Error(`E_NOT_FOUND_DEVFILE - ${devfilePath} - ${error.message}`) }
       if (error.response && error.response.status === 400) {
         throw new Error(`E_BAD_DEVFILE_FORMAT - Message: ${error.response.data.message}`)
       }
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        throw new Error(`E_CHE_SERVER_UNKNOWN_ERROR - Status: ${error.response.status}`)
-      } else if (error.request) {
-        // The request was made but no response was received
-        // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-        // http.ClientRequest in node.js
-        throw new Error(`E_CHE_SERVER_NO_RESPONSE - ${error.message}`)
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        throw new Error(`E_CHECTL_UNKNOWN_ERROR - Message: ${error.message}`)
-      }
+      throw this.getCheApiError(error, endpoint)
     }
+    if (response && response.data && response.data.links && response.data.links.ide) {
+      let ideURL = response.data.links.ide
+      return this.buildDashboardURL(ideURL)
+    } else {
+      throw new Error('E_BAD_RESP_CHE_SERVER')
+    }
+
   }
 
   async createWorkspaceFromWorkspaceConfig(namespace: string | undefined, workspaceConfigPath = ''): Promise<string> {
     if (!await this.cheNamespaceExist(namespace)) {
       throw new Error('E_BAD_NS')
     }
-
+    let url = await this.cheURL(namespace)
+    let endpoint = `${url}/api/workspace`
     let workspaceConfig
+    let response
     try {
-      let url = await this.cheURL(namespace)
       let workspaceConfig = fs.readFileSync(workspaceConfigPath, 'utf8')
-      let response = await axios.post(`${url}/api/workspace`, workspaceConfig, {headers: {'Content-Type': 'application/json'}})
-      if (response && response.data && response.data.links && response.data.links.ide) {
-        let ideURL = response.data.links.ide
-        return this.buildDashboardURL(ideURL)
-      } else {
-        throw new Error('E_BAD_RESP_CHE_SERVER')
-      }
+      response = await axios.post(endpoint, workspaceConfig, {headers: {'Content-Type': 'application/json'}})
     } catch (error) {
       if (!workspaceConfig) { throw new Error(`E_NOT_FOUND_WORKSPACE_CONFIG_FILE - ${workspaceConfigPath} - ${error.message}`) }
       if (error.response && error.response.status === 400) {
         throw new Error(`E_BAD_WORKSPACE_CONFIG_FORMAT - Message: ${error.response.data.message}`)
       }
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        throw new Error(`E_CHE_SERVER_UNKNOWN_ERROR - Status: ${error.response.status}`)
-      } else if (error.request) {
-        // The request was made but no response was received
-        // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-        // http.ClientRequest in node.js
-        throw new Error(`E_CHE_SERVER_NO_RESPONSE - ${error.message}`)
+      throw this.getCheApiError(error, endpoint)
+    }
+    if (response && response.data && response.data.links && response.data.links.ide) {
+      let ideURL = response.data.links.ide
+      return this.buildDashboardURL(ideURL)
+    } else {
+      throw new Error('E_BAD_RESP_CHE_SERVER')
+    }
+  }
+
+  async isAuthenticationEnabled(cheURL: string, responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
+    const endpoint = `${cheURL}/api/keycloak/settings`
+    let response = null
+    try {
+      response = await axios.get(endpoint, { timeout: responseTimeoutMs })
+    } catch (error) {
+      if (error.response && (error.response.status === 404 || error.response.status === 503)) {
+        return false
       } else {
-        // Something happened in setting up the request that triggered an Error
-        throw new Error(`E_CHECTL_UNKNOWN_ERROR - Message: ${error.message}`)
+        throw this.getCheApiError(error, endpoint)
       }
     }
+    if (!response || response.status !== 200 || !response.data) {
+      throw new Error('E_BAD_RESP_CHE_API')
+    }
+    return true
   }
 
   async buildDashboardURL(ideURL: string): Promise<string> {
     return ideURL.replace(/\/[^/|.]*\/[^/|.]*$/g, '\/dashboard\/#\/ide$&')
+  }
+
+  private getCheApiError(error: any, endpoint: string): Error {
+    if (error.response && error.response.status === 403) {
+      return new Error(`E_CHE_API_FORBIDDEN - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data.message)}`)
+    }
+    if (error.response && error.response.status === 401) {
+      return new Error(`E_CHE_API_UNAUTHORIZED - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
+    }
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      return new Error(`E_CHE_API_UNKNOWN_ERROR - Endpoint: ${endpoint} -Status: ${error.response.status}`)
+    } else if (error.request) {
+      // The request was made but no response was received
+      // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+      // http.ClientRequest in node.js
+      return new Error(`E_CHE_API_NO_RESPONSE - Endpoint: ${endpoint} - Error message: ${error.message}`)
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      return new Error(`E_CHECTL_UNKNOWN_ERROR - Endpoint: ${endpoint} - Message: ${error.message}`)
+    }
   }
 }

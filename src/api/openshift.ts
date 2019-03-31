@@ -12,10 +12,48 @@
 import execa = require('execa')
 
 export class OpenShiftHelper {
-  async getHostByRouteName(routeName: string, namespace = ''): Promise<string> {
+  async getRouteHost(name: string, namespace = ''): Promise<string> {
     const command = 'oc'
-    const args = ['get', 'route', '--namespace', namespace, '-o', `jsonpath={range.items[?(.metadata.name=='${routeName}')]}{.spec.host}{end}`]
-    const { stdout } = await execa(command, args, { timeout: 10000 })
+    const args = ['get', 'route', '--namespace', namespace, '-o', `jsonpath={range.items[?(.metadata.name=='${name}')]}{.spec.host}{end}`]
+    const { stdout } = await execa(command, args, { timeout: 60000 })
     return stdout.trim()
+  }
+  async getRouteProtocol(name: string, namespace = ''): Promise<string> {
+    const command = 'oc'
+    const args = ['get', 'route', '--namespace', namespace, '-o', `jsonpath={range.items[?(.metadata.name=='${name}')]}{.spec.tls.termination}{end}`]
+    const { stdout } = await execa(command, args, { timeout: 60000 })
+    const termination = stdout.trim()
+    if (termination && termination.includes('edge') || termination.includes('passthrough') || termination.includes('reencrypt')) {
+      return 'https'
+    } else {
+      return 'http'
+    }
+  }
+  async routeExist(name: string, namespace = ''): Promise<boolean> {
+    const command = 'oc'
+    const args = ['get', 'route', '--namespace', namespace, '-o', `jsonpath={range.items[?(.metadata.name=='${name}')]}{.metadata.name}{end}`]
+    const { stdout } = await execa(command, args, { timeout: 60000 })
+    return stdout.trim().includes(name)
+  }
+  async deleteAllRoutes(namespace = '') {
+    const command = 'oc'
+    const args = ['delete', 'route', '--all', '--namespace', namespace]
+    await execa(command, args, { timeout: 60000 })
+  }
+  async deploymentConfigExist(name = '', namespace = ''): Promise<boolean> {
+    const command = 'oc'
+    const args = ['get', 'deploymentconfig', '--namespace', namespace, '-o', `jsonpath={range.items[?(.metadata.name=='${name}')]}{.metadata.name}{end}`]
+    const { stdout } = await execa(command, args, { timeout: 60000 })
+    return stdout.trim().includes(name)
+  }
+  async scaleDeploymentConfig(name = '', namespace = '', replicas: number) {
+    const command = 'oc'
+    const args = ['scale', 'deploymentconfig', '--namespace', namespace, name, `--replicas=${replicas}`]
+    await execa(command, args, { timeout: 60000 })
+  }
+  async deleteAllDeploymentConfigs(namespace = '') {
+    const command = 'oc'
+    const args = ['delete', 'deploymentconfig', '--all', '--namespace', namespace]
+    await execa(command, args, { timeout: 60000 })
   }
 }

@@ -99,4 +99,11 @@ describe('Kube API helper', () => {
       const timeout = 1000
       await kube.waitForPodReady(selector, namespace, interval, timeout)
     })
+  fancy
+    .nock(kubeClusterURL, api => api
+      .get('/healthz')
+      .reply(200, 'ok'))
+    .it('verifies that kuber API is ok', async () => {
+      await kube.checkKubeApi()
+    })
 })

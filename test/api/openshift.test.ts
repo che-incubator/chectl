@@ -24,7 +24,7 @@ describe('OpenShift API helper', () => {
     .it('retrieves the hostname of a route', async () => {
       (execa as any).mockResolvedValue({ code: 0, stdout: hostname })
       const routeName = 'che'
-      const res = await openshift.getHostByRouteName(routeName, namespace)
+      const res = await openshift.getRouteHost(routeName, namespace)
       expect(res).to.equal(hostname)
     })
 })

@@ -44,6 +44,7 @@ USAGE
 <!-- commands -->
 * [`chectl autocomplete [SHELL]`](#chectl-autocomplete-shell)
 * [`chectl help [COMMAND]`](#chectl-help-command)
+* [`chectl server:delete`](#chectl-serverdelete)
 * [`chectl server:start`](#chectl-serverstart)
 * [`chectl server:stop`](#chectl-serverstop)
 * [`chectl server:update`](#chectl-serverupdate)
@@ -92,6 +93,22 @@ OPTIONS
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.1.4/src/commands/help.ts)_
 
+## `chectl server:delete`
+
+delete any Che related resource: Kubernetes/OpenShift/Helm
+
+```
+USAGE
+  $ chectl server:delete
+
+OPTIONS
+  -h, --help                       show CLI help
+  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che was deployed
+  --listr-renderer=listr-renderer  [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
+```
+
+_See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/delete.ts)_
+
 ## `chectl server:start`
 
 start Eclipse Che Server
@@ -105,8 +122,6 @@ OPTIONS
 
   -b, --domain=domain                  Domain of the Kubernetes/OpenShift cluster (e.g.
                                        starter-us-east-2.openshiftapps.com or <local-ip>.nip.io)
-
-  -d, --debug                          Starts chectl in debug mode
 
   -h, --help                           show CLI help
 
@@ -124,6 +139,8 @@ OPTIONS
   -s, --tls                            Enable TLS encryption and multi-user mode
 
   -t, --templates=templates            [default: templates] Path to the templates folder
+
+  --listr-renderer=listr-renderer      [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
@@ -137,8 +154,12 @@ USAGE
   $ chectl server:stop
 
 OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che resources will be deployed
+  -h, --help                         show CLI help
+  -n, --chenamespace=chenamespace    [default: che] Kubernetes namespace where Che resources will be deployed
+  --access-token=access-token        Che OIDC Access Token
+  --che-selector=che-selector        [default: app=che] Selector for Che Server resources
+  --deployment-name=deployment-name  [default: che] Che deployment name
+  --listr-renderer=listr-renderer    [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
 ```
 
 _See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
@@ -154,6 +175,7 @@ USAGE
 OPTIONS
   -h, --help                       show CLI help
   -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che resources will be deployed
+  --listr-renderer=listr-renderer  [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
 ```
 
 _See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_
@@ -172,6 +194,7 @@ OPTIONS
   -k, --kubeconfig                 Inject the local Kubernetes configuration
   -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che workspace is running
   -w, --workspace=workspace        Target workspace
+  --listr-renderer=listr-renderer  [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
 ```
 
 _See code: [src/commands/workspace/inject.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/inject.ts)_
@@ -187,6 +210,7 @@ USAGE
 OPTIONS
   -h, --help                       show CLI help
   -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che server is deployed
+  --listr-renderer=listr-renderer  [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
 ```
 
 _See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/list.ts)_
@@ -204,6 +228,7 @@ OPTIONS
   -h, --help                             show CLI help
   -n, --chenamespace=chenamespace        [default: che] kubernetes namespace where Che server is deployed
   -w, --workspaceconfig=workspaceconfig  path to a valid workspace configuration json file
+  --listr-renderer=listr-renderer        [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
 ```
 
 _See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
@@ -219,6 +244,7 @@ USAGE
 OPTIONS
   -h, --help                       show CLI help
   -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che server is deployed
+  --listr-renderer=listr-renderer  [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
 ```
 
 _See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_

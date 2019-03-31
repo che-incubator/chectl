@@ -23,10 +23,14 @@ export default class Update extends Command {
       default: 'che',
       env: 'CHE_NAMESPACE'
     }),
+    'listr-renderer': string({
+      description: 'Listr renderer. Can be \'default\', \'silent\' or \'verbose\'',
+      default: 'default'
+    }),
   }
 
   async run() {
-    // const { flags } = this.parse(Update)
+    const { flags } = this.parse(Update)
     const Listr = require('listr')
     const notifier = require('node-notifier')
     const tasks = new Listr([
@@ -36,7 +40,7 @@ export default class Update extends Command {
       { title: 'Waiting for the new Che Server pod to be created', skip: this.warn('Not implemented yet')},
       { title: 'Waiting for the new Che Server to start', skip: this.warn('Not implemented yet')},
       { title: 'Retrieving Che Server URL', skip: this.warn('Not implemented yet')},
-    ])
+    ], {renderer: flags['listr-renderer'] as any})
 
     await tasks.run()
 

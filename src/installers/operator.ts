@@ -132,7 +132,7 @@ export class OperatorHelper {
           task.title = `${task.title}...done.`
         }
       },
-    ])
+    ], {renderer: flags['listr-renderer'] as any})
   }
 
   async copyCheOperatorResources(templatesDir: string, cacheDir: string): Promise<string> {

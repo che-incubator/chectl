@@ -43,6 +43,10 @@ export default class Inject extends Command {
       default: 'che',
       env: 'CHE_NAMESPACE'
     }),
+    'listr-renderer': string({
+      description: 'Listr renderer. Can be \'default\', \'silent\' or \'verbose\'',
+      default: 'default'
+    }),
   }
 
   async run() {
@@ -85,7 +89,7 @@ export default class Inject extends Command {
             task.skip('kubeconfig already exists in the target container')
           }
         }).catch(e => this.error(e.message)) },
-    ])
+    ], {renderer: flags['listr-renderer'] as any})
 
     try {
       await tasks.run()

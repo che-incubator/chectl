@@ -9,11 +9,12 @@
  **********************************************************************/
 // tslint:disable:object-curly-spacing
 
-import { Apps_v1Api, Core_v1Api, Extensions_v1beta1Api, KubeConfig, RbacAuthorization_v1Api, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1Pod, V1PodSpec, V1PodTemplateSpec, V1RoleBinding, V1RoleRef, V1ServiceAccount, V1Subject } from '@kubernetes/client-node'
+import { ApisApi, Apps_v1Api, Core_v1Api, Extensions_v1beta1Api, KubeConfig, RbacAuthorization_v1Api, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1Pod, V1PodSpec, V1PodTemplateSpec, V1RoleBinding, V1RoleRef, V1ServiceAccount, V1Subject } from '@kubernetes/client-node'
+import axios from 'axios'
 import { cli } from 'cli-ux'
 import { readFileSync } from 'fs'
+import https = require('https')
 import * as yaml from 'js-yaml'
-
 export class KubeHelper {
   kc = new KubeConfig()
 
@@ -22,6 +23,22 @@ export class KubeHelper {
       this.kc.loadFromDefault()
     } else {
       this.kc.loadFromString(context)
+    }
+  }
+
+  async deleteAllServices(namespace = '') {
+    const k8sApi = this.kc.makeApiClient(Core_v1Api)
+    try {
+      const res = await k8sApi.listNamespacedService(namespace, 'true')
+      if (res && res.response && res.response.statusCode === 200) {
+        const serviceList = res.body
+        const options = new V1DeleteOptions()
+        await serviceList.items.forEach(async service => {
+          await k8sApi.deleteNamespacedService(service.metadata.name, namespace, options)
+        })
+      }
+    } catch (e) {
+      throw new Error(e.body.message)
     }
   }
 
@@ -45,6 +62,16 @@ export class KubeHelper {
     sa.metadata.namespace = namespace
     try {
       return await k8sCoreApi.createNamespacedServiceAccount(namespace, sa)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
+  async deleteServiceAccount(name = '', namespace = '') {
+    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    try {
+      const options = new V1DeleteOptions()
+      await k8sCoreApi.deleteNamespacedServiceAccount(name, namespace, options)
     } catch (e) {
       throw new Error(e.body.message)
     }
@@ -83,6 +110,16 @@ export class KubeHelper {
     }
   }
 
+  async deleteRoleBinding(name = '', namespace = '') {
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    try {
+      const options = new V1DeleteOptions()
+      return await k8sRbacAuthApi.deleteNamespacedRoleBinding(name, namespace, options)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
   async configMapExist(name = '', namespace = ''): Promise<boolean | ''> {
     const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
     try {
@@ -110,6 +147,16 @@ export class KubeHelper {
     const k8sCoreApi = this.kc.makeApiClient(PatchedK8sApi)
     try {
       return await k8sCoreApi.patchNamespacedConfigMap(name, namespace, patch)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
+  async deleteConfigMap(name: string, namespace = '') {
+    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    try {
+      const options = new V1DeleteOptions()
+      await k8sCoreApi.deleteNamespacedConfigMap(name, namespace, options)
     } catch (e) {
       throw new Error(e.body.message)
     }
@@ -249,6 +296,21 @@ export class KubeHelper {
     throw new Error('ERR_TIMEOUT')
   }
 
+  async waitUntilPodIsDeleted(selector: string, namespace = '', intervalMs = 500, timeoutMs = 130000) {
+    const iterations = timeoutMs / intervalMs
+    for (let index = 0; index < iterations; index++) {
+      let readyStatus = await this.getPodReadyConditionStatus(selector, namespace)
+      if (readyStatus === 'False') {
+        return
+      }
+      if (readyStatus !== 'True') {
+        throw new Error(`ERR_BAD_READY_STATUS: ${readyStatus} (True or False expected) `)
+      }
+      await cli.wait(intervalMs)
+    }
+    throw new Error('ERR_TIMEOUT')
+  }
+
   async deletePod(name: string, namespace = '') {
     this.kc.loadFromDefault()
     const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
@@ -257,6 +319,79 @@ export class KubeHelper {
       return await k8sCoreApi.deleteNamespacedPod(name, namespace, options)
     } catch (e) {
       throw new Error(e.body.message)
+    }
+  }
+
+  async deploymentExist(name = '', namespace = ''): Promise<boolean> {
+    const k8sApi = this.kc.makeApiClient(Apps_v1Api)
+    try {
+      const res = await k8sApi.readNamespacedDeployment(name, namespace)
+      return ((res && res.body &&
+        res.body.metadata && res.body.metadata.name
+        && res.body.metadata.name === name) as boolean)
+    } catch {
+      return false
+    }
+  }
+
+  async isDeploymentPaused(name = '', namespace = ''): Promise<boolean> {
+    const k8sApi = this.kc.makeApiClient(Apps_v1Api)
+    try {
+      const res = await k8sApi.readNamespacedDeployment(name, namespace)
+      if (!res || !res.body || !res.body.spec) {
+        throw new Error('E_BAD_DEPLOY_RESPONSE')
+      }
+      return res.body.spec.paused
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
+  async pauseDeployment(name = '', namespace = '') {
+    const k8sApi = this.kc.makeApiClient(PatchedK8sAppsApi)
+    try {
+      const patch = {
+        spec: {
+          paused: true
+        }
+      }
+      await k8sApi.patchNamespacedDeployment(name, namespace, patch)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
+  async resumeDeployment(name = '', namespace = '') {
+    const k8sApi = this.kc.makeApiClient(PatchedK8sAppsApi)
+    try {
+      const patch = {
+        spec: {
+          paused: false
+        }
+      }
+      await k8sApi.patchNamespacedDeployment(name, namespace, patch)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
+  async scaleDeployment(name = '', namespace = '', replicas: number) {
+    const k8sAppsApi = this.kc.makeApiClient(PatchedK8sAppsApi)
+    const patch = {
+      spec: {
+        replicas
+      }
+    }
+    let res
+    try {
+      res = await k8sAppsApi.patchNamespacedDeploymentScale(name, namespace, patch)
+    } catch (e) {
+      if (e.body && e.body.message) throw new Error(e.body.message)
+      else throw new Error(e)
+    }
+
+    if (!res || !res.body) {
+      throw new Error('Patch deployment scale returned an invalid reponse')
     }
   }
 
@@ -292,6 +427,15 @@ export class KubeHelper {
 
     try {
       return await k8sAppsApi.createNamespacedDeployment(namespace, deployment)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
+  async deleteAllDeployments(namespace = '') {
+    const k8sAppsApi = this.kc.makeApiClient(Apps_v1Api)
+    try {
+      await k8sAppsApi.deleteCollectionNamespacedDeployment(namespace)
     } catch (e) {
       throw new Error(e.body.message)
     }
@@ -343,6 +487,74 @@ export class KubeHelper {
     }
   }
 
+  async deleteAllIngresses(namespace = '') {
+    const k8sExtensionsApi = this.kc.makeApiClient(Extensions_v1beta1Api)
+    try {
+      await k8sExtensionsApi.deleteCollectionNamespacedIngress(namespace)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
+  async checkKubeApi() {
+    const currentCluster = this.kc.getCurrentCluster()
+    if (!currentCluster) {
+      throw new Error('Failed to get current Kubernetes cluster: returned null')
+    }
+    const agent = new https.Agent({
+      rejectUnauthorized: false
+    })
+    let endpoint = ''
+    try {
+      endpoint = `${currentCluster.server}/healthz`
+      let response = await axios.get(`${endpoint}`, { httpsAgent: agent })
+      if (!response || response.status !== 200 || response.data !== 'ok') {
+        throw new Error('E_BAD_RESP_K8S_API')
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 403) {
+        throw new Error(`E_K8S_API_FORBIDDEN - Message: ${error.response.data.message}`)
+      }
+      if (error.response && error.response.status === 401) {
+        throw new Error(`E_K8S_API_UNAUTHORIZED - Message: ${error.response.data.message}`)
+      }
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        throw new Error(`E_K8S_API_UNKNOWN_ERROR - Status: ${error.response.status}`)
+      } else if (error.request) {
+        // The request was made but no response was received
+        // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+        // http.ClientRequest in node.js
+        throw new Error(`E_K8S_API_NO_RESPONSE - Endpoint: ${endpoint} - Error message: ${error.message}`)
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        throw new Error(`E_CHECTL_UNKNOWN_ERROR - Message: ${error.message}`)
+      }
+    }
+  }
+
+  async isOpenShift(): Promise<boolean> {
+    const k8sApiApi = this.kc.makeApiClient(ApisApi)
+    let res
+    try {
+      res = await k8sApiApi.getAPIVersions()
+    } catch (e) {
+      if (e.body && e.body.message) throw new Error(e.body.message)
+      else throw new Error(e)
+    }
+    if (!res || !res.body) {
+      throw new Error('Get API versions returned an invalid reponse')
+    }
+    const v1APIGroupList = res.body
+    for (const v1APIGroup of v1APIGroupList.groups) {
+      if (v1APIGroup.name === 'apps.openshift.io') {
+        return true
+      }
+    }
+    return false
+  }
+
   async getIngressHost(name = '', namespace = ''): Promise<string> {
     const k8sExtensionsApi = this.kc.makeApiClient(Extensions_v1beta1Api)
     try {
@@ -359,6 +571,47 @@ export class KubeHelper {
       else throw new Error(e)
     }
   }
+
+  async getIngressProtocol(name = '', namespace = ''): Promise<string> {
+    const k8sExtensionsApi = this.kc.makeApiClient(Extensions_v1beta1Api)
+    try {
+      const res = await k8sExtensionsApi.readNamespacedIngress(name, namespace)
+      if (!res || !res.body || !res.body.spec) {
+        throw new Error('ERR_INGRESS_NO_HOST')
+      }
+      if (res.body.spec.tls && res.body.spec.tls.length > 0) {
+        return 'https'
+      } else {
+        return 'http'
+      }
+    } catch (e) {
+      if (e.body && e.body.message) throw new Error(e.body.message)
+      else throw new Error(e)
+    }
+  }
+
+  async persistentVolumeClaimExist(name = '', namespace = ''): Promise<boolean | ''> {
+    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    try {
+      const res = await k8sCoreApi.readNamespacedPersistentVolumeClaim(name, namespace)
+      return (res && res.body &&
+        res.body.metadata && res.body.metadata.name
+        && res.body.metadata.name === name)
+    } catch {
+      return false
+    }
+  }
+
+  async deletePersistentVolumeClaim(name = '', namespace = '') {
+    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    try {
+      const options = new V1DeleteOptions()
+      await k8sCoreApi.deleteNamespacedPersistentVolumeClaim(name, namespace, options)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
 }
 
 class PatchedK8sApi extends Core_v1Api {
@@ -369,6 +622,29 @@ class PatchedK8sApi extends Core_v1Api {
       ...this.defaultHeaders,
     }
     const returnValue = super.patchNamespacedConfigMap.apply(this, args)
+    this.defaultHeaders = oldDefaultHeaders
+    return returnValue
+  }
+}
+
+class PatchedK8sAppsApi extends Apps_v1Api {
+  patchNamespacedDeployment(...args: any) {
+    const oldDefaultHeaders = this.defaultHeaders
+    this.defaultHeaders = {
+      'Content-Type': 'application/strategic-merge-patch+json',
+      ...this.defaultHeaders,
+    }
+    const returnValue = super.patchNamespacedDeployment.apply(this, args)
+    this.defaultHeaders = oldDefaultHeaders
+    return returnValue
+  }
+  patchNamespacedDeploymentScale(...args: any) {
+    const oldDefaultHeaders = this.defaultHeaders
+    this.defaultHeaders = {
+      'Content-Type': 'application/strategic-merge-patch+json',
+      ...this.defaultHeaders,
+    }
+    const returnValue = super.patchNamespacedDeploymentScale.apply(this, args)
     this.defaultHeaders = oldDefaultHeaders
     return returnValue
   }
