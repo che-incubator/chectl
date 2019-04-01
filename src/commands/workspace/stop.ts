@@ -23,10 +23,14 @@ export default class Stop extends Command {
       default: 'che',
       env: 'CHE_NAMESPACE'
     }),
+    'listr-renderer': string({
+      description: 'Listr renderer. Can be \'default\', \'silent\' or \'verbose\'',
+      default: 'default'
+    }),
   }
 
   async run() {
-    // const { flags } = this.parse(Stop)
+    const { flags } = this.parse(Stop)
     const Listr = require('listr')
     const notifier = require('node-notifier')
     const tasks = new Listr([
@@ -35,7 +39,7 @@ export default class Stop extends Command {
       { title: 'Verify if the workspaces is running', skip: () => 'Not implemented yet', task: () => {}},
       { title: 'Stop the workspace', skip: () => 'Not implemented yet', task: () => {}},
       { title: 'Waiting for the workspace resources to be deleted', skip: () => 'Not implemented yet', task: () => {}},
-    ])
+    ], {renderer: flags['listr-renderer'] as any})
 
     await tasks.run()
 

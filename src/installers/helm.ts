@@ -86,7 +86,7 @@ export class HelmHelper {
           task.title = `${task.title}...done.`
         }
       },
-    ])
+    ], {renderer: flags['listr-renderer'] as any})
   }
 
   async tillerRoleBindingExist(execTimeout= 30000): Promise<boolean> {
@@ -165,4 +165,9 @@ error: E_COMMAND_FAILED`)
     let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} --set global.ingressDomain=${flags.domain} --set cheImage=${flags.cheimage} --set global.cheWorkspacesNamespace=${flags.chenamespace} ${multiUserFlag} ${tlsFlag} ${destDir}`
     await execa.shell(command, { timeout: execTimeout })
   }
+
+  async purgeHelmChart(name: string, execTimeout= 30000) {
+    await execa('helm', ['delete', name, '--purge'], { timeout: execTimeout, reject: false})
+  }
+
 }

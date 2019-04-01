@@ -84,7 +84,7 @@ export class MinikubeHelper {
           task.title = `${task.title}...${flags.domain}.`
         }
       },
-    ])
+    ], {renderer: flags['listr-renderer'] as any})
   }
 
   async isMinikubeRunning(): Promise<boolean> {

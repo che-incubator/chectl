@@ -23,17 +23,21 @@ export default class List extends Command {
       default: 'che',
       env: 'CHE_NAMESPACE'
     }),
+    'listr-renderer': string({
+      description: 'Listr renderer. Can be \'default\', \'silent\' or \'verbose\'',
+      default: 'default'
+    }),
   }
 
   async run() {
-    // const { flags } = this.parse(List)
+    const { flags } = this.parse(List)
     const Listr = require('listr')
     const notifier = require('node-notifier')
     const tasks = new Listr([
       { title: 'Verify if we can access Kubernetes API', skip: this.warn('Not implemented yet') },
       { title: 'Verify if Che is running', skip: this.warn('Not implemented yet') },
       { title: 'Get Workspaces', skip: this.warn('Not implemented yet') },
-    ])
+    ], {renderer: flags['listr-renderer'] as any})
 
     // Use https://github.com/oclif/cli-ux/tree/supertable#clitable to dispalay:
     //  - workspace id

@@ -38,7 +38,7 @@ export class MinishiftAddonHelper {
           task.title = `${task.title}...done.`
         }
       }
-    ])
+    ], {renderer: flags['listr-renderer'] as any})
   }
 
   async applyAddon(flags: any, execTimeout= 120000) {
@@ -69,4 +69,10 @@ stdout: ${stdout}
 error: E_COMMAND_FAILED`)
     }
   }
+
+  async removeAddon(execTimeout= 120000) {
+    let args = ['addon', 'remove', 'che']
+    await execa('minishift', args, { timeout: execTimeout, reject: false })
+  }
+
 }

@@ -38,6 +38,10 @@ export default class Start extends Command {
       env: 'WORKSPACE_CONFIG_JSON_PATH',
       required: false,
     }),
+    'listr-renderer': string({
+      description: 'Listr renderer. Can be \'default\', \'silent\' or \'verbose\'',
+      default: 'default'
+    }),
   }
 
   async run() {
@@ -75,7 +79,7 @@ export default class Start extends Command {
           ctx.workspaceIdeURL = await che.createWorkspaceFromWorkspaceConfig(flags.chenamespace, flags.workspaceconfig)
         }
       },
-    ])
+    ], {renderer: flags['listr-renderer'] as any})
 
     try {
       let ctx = await tasks.run()

@@ -18,7 +18,6 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { OpenShiftHelper } from '../../api/openshift'
 import { HelmHelper } from '../../installers/helm'
 import { MinishiftAddonHelper } from '../../installers/minishift-addon'
 import { OperatorHelper } from '../../installers/operator'
@@ -54,10 +53,9 @@ export default class Start extends Command {
       required: true,
       env: 'CHE_SERVER_BOOT_TIMEOUT'
     }),
-    debug: flags.boolean({
-      char: 'd',
-      description: 'Starts chectl in debug mode',
-      default: false
+    'listr-renderer': string({
+      description: 'Listr renderer. Can be \'default\', \'silent\' or \'verbose\'',
+      default: 'default'
     }),
     multiuser: flags.boolean({
       char: 'm',
@@ -126,11 +124,9 @@ export default class Start extends Command {
     const che = new CheHelper()
     const operator = new OperatorHelper()
     const minishiftAddon = new MinishiftAddonHelper()
-    const listr_renderer = (flags.debug) ? 'verbose' : 'default'
-    let ingressName = 'che-ingress'
 
     // Platform Checks
-    let platformCheckTasks = new Listr(undefined, {renderer: listr_renderer, collapse: false})
+    let platformCheckTasks = new Listr(undefined, {renderer: flags['listr-renderer'] as any, collapse: false})
     if (flags.platform === 'minikube') {
       platformCheckTasks.add({
         title: '✈️  Minikube preflight checklist',
@@ -147,7 +143,7 @@ export default class Start extends Command {
     }
 
     // Installer
-    let installerTasks = new Listr({renderer: listr_renderer, collapse: false})
+    let installerTasks = new Listr({renderer: flags['listr-renderer'] as any, collapse: false})
     if (flags.installer === 'helm') {
       installerTasks.add({
         title: '🏃‍  Running Helm to install Che',
@@ -157,7 +153,6 @@ export default class Start extends Command {
       // The operator installs Che multiuser only
       flags.multiuser = true
       // Installers use distinct ingress names
-      ingressName = 'che'
       installerTasks.add({
         title: '🏃‍  Running the Che Operator',
         task: () => operator.startTasks(flags, this)
@@ -166,7 +161,6 @@ export default class Start extends Command {
       // minishift-addon supports Che singleuser only
       flags.multiuser = false
       // Installers use distinct ingress names
-      ingressName = 'che'
       installerTasks.add({
         title: '🏃‍  Running the Che minishift-addon',
         task: () => minishiftAddon.startTasks(flags)
@@ -182,7 +176,7 @@ export default class Start extends Command {
       title: '✅  Post installation checklist',
       task: () => cheBootstrapSubTasks
     }], {
-      renderer: listr_renderer,
+      renderer: flags['listr-renderer'] as any,
       collapse: false
     })
 
@@ -205,15 +199,7 @@ export default class Start extends Command {
     cheBootstrapSubTasks.add({
       title: 'Retrieving Che Server URL',
       task: async (ctx: any, task: any) => {
-        if (flags.platform === 'minikube') {
-          ctx.cheURL = await che.cheURLByIngress(ingressName, flags.chenamespace)
-        } else if (flags.platform === 'minishift') {
-          const os = new OpenShiftHelper()
-          const hostname = await os.getHostByRouteName(ingressName, flags.chenamespace)
-          const protocol = flags.tls ? 'https' : 'http'
-          ctx.cheURL = `${protocol}://${hostname}`
-        }
-
+        ctx.cheURL = await che.cheURL(flags.chenamespace)
         task.title = await `${task.title}...${ctx.cheURL}`
       }
     })
@@ -227,6 +213,7 @@ export default class Start extends Command {
       await platformCheckTasks.run()
       await installerTasks.run()
       await cheStartCheckTasks.run()
+      this.log('Command server:start has completed successfully.')
     } catch (err) {
       this.error(err)
     }
@@ -235,6 +222,8 @@ export default class Start extends Command {
       title: 'chectl',
       message: 'Command server:start has completed successfully.'
     })
+
+    this.exit(0)
   }
 
   podStartTasks(selector: string, namespace = ''): Listr {
