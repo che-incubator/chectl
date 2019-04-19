@@ -189,11 +189,17 @@ USAGE
   $ chectl workspace:inject
 
 OPTIONS
-  -c, --container=container        [default: dev] Target container
+  -c, --container=container        Target container. If not specified, configuration files will be injected in all
+                                   containers of a Che Workspace pod
+
   -h, --help                       show CLI help
+
   -k, --kubeconfig                 Inject the local Kubernetes configuration
+
   -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che workspace is running
-  -w, --workspace=workspace        Target workspace
+
+  -w, --workspace=workspace        Target workspace. Can be omitted if only one Workspace is running
+
   --listr-renderer=listr-renderer  [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
 ```
 

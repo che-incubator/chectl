@@ -70,6 +70,31 @@ export class CheHelper {
     }
   }
 
+  async getWorkspacePodContainers(namespace: string, cheWorkspaceId?: string): Promise<string[]> {
+    this.kc.loadFromDefault()
+    const k8sApi = this.kc.makeApiClient(Core_v1Api)
+
+    const res = await k8sApi.listNamespacedPod(namespace)
+    const pods = res.body.items
+    const wsPods = pods.filter(pod => pod.metadata.labels['che.workspace_id'])
+    if (wsPods.length === 0) {
+      throw new Error('No workspace pod is found')
+    }
+
+    if (cheWorkspaceId) {
+      const wsPod = wsPods.find(p => p.metadata.labels['che.workspace_id'] === cheWorkspaceId)
+      if (wsPod) {
+        return wsPod.spec.containers.map(c => c.name)
+      }
+      throw new Error('Pod is not found for the given workspace ID')
+    } else {
+      if (wsPods.length === 1) {
+        return wsPods[0].spec.containers.map(c => c.name)
+      }
+      throw new Error('More than one pod with running workspace is found. Please, specify Che Workspace ID.')
+    }
+  }
+
   async cheURL(namespace = ''): Promise<string> {
     const kube = new KubeHelper()
     if (await kube.isOpenShift()) {
