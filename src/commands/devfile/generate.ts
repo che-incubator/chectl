@@ -11,6 +11,7 @@
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
+import * as yaml from 'js-yaml'
 
 import { KubeHelper } from '../../api/kube'
 
@@ -125,7 +126,7 @@ export default class Generate extends Command {
       }
     }
 
-    this.log(JSON.stringify(devfile, undefined, 2))
+    this.log(yaml.safeDump(devfile))
 
     notifier.notify({
       title: 'chectl',
