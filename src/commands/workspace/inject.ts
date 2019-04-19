@@ -106,6 +106,11 @@ export default class Inject extends Command {
     const tasks = new Listr({exitOnError: false, concurrent: true})
     const containers = container ? [container] : await che.getWorkspacePodContainers(chenamespace!, workspace!)
     for (const cont of containers) {
+      // che-machine-exec container is very limited for a security reason.
+      // We cannot copy file into it.
+      if (cont === 'che-machine-exec') {
+        continue
+      }
       tasks.add({
         title: `injecting kubeconfig into container ${cont}`,
         task: async (ctx: any, task: any) => {
