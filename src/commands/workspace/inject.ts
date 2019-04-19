@@ -87,7 +87,7 @@ export default class Inject extends Command {
         },
         task: () => this.injectKubeconfigTasks(flags.chenamespace!, flags.workspace!, flags.container)
       },
-    ], {renderer: flags['listr-renderer'] as any})
+    ], {renderer: flags['listr-renderer'] as any, collapse: false})
 
     try {
       await tasks.run()
@@ -103,22 +103,34 @@ export default class Inject extends Command {
 
   async injectKubeconfigTasks(chenamespace: string, workspace: string, container?: string): Promise<Listr> {
     const che = new CheHelper()
-    const tasks = new Listr({exitOnError: false, collapse: false, concurrent: true})
+    const tasks = new Listr({exitOnError: false, concurrent: true})
     const containers = container ? [container] : await che.getWorkspacePodContainers(chenamespace!, workspace!)
     for (const cont of containers) {
       tasks.add({
         title: `injecting kubeconfig into container ${cont}`,
         task: async (ctx: any, task: any) => {
           try {
-            await this.injectKubeconfig(chenamespace!, ctx.pod, cont)
-            task.title = `${task.title}...done.`
+            if (await this.canInject(chenamespace, ctx.pod, cont)) {
+              await this.injectKubeconfig(chenamespace!, ctx.pod, cont)
+              task.title = `${task.title}...done.`
+            } else {
+              task.skip('the container doesn\'t support file injection')
+            }
           } catch (error) {
-            this.error(error)
+            task.skip(error.message)
           }
         }
       })
     }
     return tasks
+  }
+
+  /**
+   * Tests whether a file can be injected into the specified container.
+   */
+  async canInject(namespace: string, pod: string, container: string): Promise<boolean> {
+    const { code } = await execa.shell(`kubectl exec ${pod} -n ${namespace} -c ${container} -- tar --version `, { timeout: 10000, reject: false })
+    if (code === 0) { return true } else { return false }
   }
 
   /**
