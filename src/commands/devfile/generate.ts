@@ -9,24 +9,25 @@
  **********************************************************************/
 // tslint:disable:object-curly-spacing
 
+import { V1Deployment, V1DeploymentSpec, V1ObjectMeta, V1PodTemplateSpec, V1Service, V1ServicePort, V1ServiceSpec } from '@kubernetes/client-node'
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as yaml from 'js-yaml'
 
+import { Devfile, DevfileComponent, TheEndpointName } from '../../api/devfile'
 import { KubeHelper } from '../../api/kube'
 
-import { Devfile, DevfileComponent, TheEndpointName } from '../../api/devfile'
-
+const kube = new KubeHelper()
 const stringLitArray = <L extends string>(arr: L[]) => arr
 const languages = stringLitArray(['java', 'typescript', 'go', 'python', 'c#'])
 export type Language = (typeof languages)[number]
 
 const LanguagesComponents = new Map<Language, DevfileComponent>([
-  ['java', {type: TheEndpointName.ChePlugin, name: 'java-ls', id: 'org.eclipse.che.vscode-redhat.java:0.38.0'}],
-  ['typescript', {type: TheEndpointName.ChePlugin, name: 'typescript-ls', id: 'ms-vscode.typescript:1.30.2'}],
-  ['go', {type: TheEndpointName.ChePlugin, name: 'go-ls', id: 'ms-vscode.go:0.9.2'}],
-  ['python', {type: TheEndpointName.ChePlugin, name: 'python-ls', id: 'ms-python.python:2019.2.5433'}],
-  ['c#', {type: TheEndpointName.ChePlugin, name: 'csharp-ls', id: 'che-omnisharp-plugin:0.0.1'}],
+  ['java', {type: TheEndpointName.ChePlugin, alias: 'java-ls', id: 'org.eclipse.che.vscode-redhat.java:0.38.0'}],
+  ['typescript', {type: TheEndpointName.ChePlugin, alias: 'typescript-ls', id: 'ms-vscode.typescript:1.30.2'}],
+  ['go', {type: TheEndpointName.ChePlugin, alias: 'go-ls', id: 'ms-vscode.go:0.9.2'}],
+  ['python', {type: TheEndpointName.ChePlugin, alias: 'python-ls', id: 'ms-python.python:2019.2.5433'}],
+  ['c#', {type: TheEndpointName.ChePlugin, alias: 'csharp-ls', id: 'che-omnisharp-plugin:0.0.1'}],
 ])
 
 export default class Generate extends Command {
@@ -70,18 +71,35 @@ export default class Generate extends Command {
   async run() {
     const { flags } = this.parse(Generate)
     const notifier = require('node-notifier')
-    const kube = new KubeHelper()
     let devfile: Devfile = {
       specVersion: '0.0.1',
       name: 'chectl-generated'
     }
 
     if (flags.selector !== undefined) {
-      let k8sDeploy = await kube.getDeploymentsBySelector(flags.selector, flags.namespace)
+      let k8sList = {
+        kind: 'List',
+        apiVersion: 'v1',
+        metadata: {
+          name: `${flags.selector}`
+        },
+        items: new Array<any>()
+      }
+
+      const deployments = await this.getDeploymentsBySelector(flags.selector, flags.namespace)
+      const services = await this.getServicesBySelector(flags.selector, flags.namespace)
+
+      deployments.forEach((element: any) => {
+        k8sList.items.push(element)
+      })
+      services.forEach((element: any) => {
+        k8sList.items.push(element)
+      })
+
       const component: DevfileComponent = {
         type: TheEndpointName.Kubernetes,
-        name: k8sDeploy.metadata.selfLink,
-        referenceContent: `${JSON.stringify(k8sDeploy)}`
+        alias: `${flags.selector}`,
+        referenceContent: `${yaml.safeDump(k8sList)}`
       }
       if (devfile.components) {
         devfile.components.push(component)
@@ -132,9 +150,54 @@ export default class Generate extends Command {
       title: 'chectl',
       message: 'Command devfile:generate has completed successfully.'
     })
+
+    this.exit(0)
   }
 
   private getPluginsByLanguage(language: Language): DevfileComponent | undefined {
     return LanguagesComponents.get(language)
+  }
+
+  private async getDeploymentsBySelector(labelSelector: string, namespace = ''): Promise<Array<V1Deployment>> {
+    let items = new Array<V1Deployment>()
+
+    const k8sDeployList = await kube.getDeploymentsBySelector(labelSelector, namespace)
+    k8sDeployList.items.forEach(async item => {
+      let deployment = new V1Deployment()
+      deployment.apiVersion = 'apps/v1'
+      deployment.kind = 'Deployment'
+      deployment.spec = new V1DeploymentSpec()
+      deployment.spec.template = new V1PodTemplateSpec()
+      deployment.spec.template.spec = item.spec.template.spec
+      await items.push(deployment)
+    })
+
+    return items
+  }
+
+  private async getServicesBySelector(labelSelector: string, namespace = ''): Promise<Array<V1Service>> {
+    let items = new Array<V1Service>()
+
+    const k8sServicesList = await kube.getServicesBySelector(labelSelector, namespace)
+    k8sServicesList.items.forEach(async item => {
+      let service = new V1Service()
+      service.kind = 'Service'
+      service.apiVersion = 'v1'
+      service.metadata = new V1ObjectMeta()
+      service.metadata.labels = item.metadata.labels
+      service.metadata.name = item.metadata.name
+      service.spec = new V1ServiceSpec()
+      service.spec.type = item.spec.type
+      service.spec.selector = item.spec.selector
+      service.spec.ports = new Array<V1ServicePort>()
+      item.spec.ports.forEach(port => {
+        let svcPort = new V1ServicePort()
+        svcPort.port = port.port
+        service.spec.ports.push(svcPort)
+      })
+      await items.push(service)
+    })
+
+    return items
   }
 }

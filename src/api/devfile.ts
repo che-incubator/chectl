@@ -100,9 +100,9 @@ export interface DevfileComponent {
    */
   mountSources?: boolean
   /**
-   * Describes the name of the component. Should be unique per components set.
+   * Describes the alias of the component. Should be unique per components set.
    */
-  name: string
+  alias: string
   /**
    * Describes absolute or devfile-relative location of Kubernetes list yaml file. Applicable
    * only for 'kubernetes' and 'openshift' type components
