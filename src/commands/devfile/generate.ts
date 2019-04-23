@@ -9,7 +9,7 @@
  **********************************************************************/
 // tslint:disable:object-curly-spacing
 
-import { V1Deployment, V1DeploymentSpec, V1ObjectMeta, V1PodTemplateSpec, V1Service, V1ServicePort, V1ServiceSpec, V1beta1Ingress, V1beta1IngressSpec, V1PersistentVolumeClaim, V1PersistentVolumeClaimSpec } from '@kubernetes/client-node'
+import { V1beta1Ingress, V1Deployment, V1DeploymentSpec, V1ObjectMeta, V1PersistentVolumeClaim, V1PersistentVolumeClaimSpec, V1PodTemplateSpec, V1Service, V1ServicePort, V1ServiceSpec } from '@kubernetes/client-node'
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as yaml from 'js-yaml'
@@ -216,7 +216,7 @@ export default class Generate extends Command {
     k8sIngressesList.items.forEach(async item => {
       let ingress = new V1beta1Ingress()
       ingress.kind = 'Ingress'
-      ingress.apiVersion = 'extv1beta'
+      ingress.apiVersion = 'extensions/v1beta1'
       ingress.metadata = new V1ObjectMeta()
       ingress.metadata.labels = item.metadata.labels
       ingress.metadata.name = item.metadata.name
@@ -233,8 +233,8 @@ export default class Generate extends Command {
     const k8sPVCsList = await kube.getPersistentVolumeClaimsBySelector(labelSelector, namespace)
     k8sPVCsList.items.forEach(async item => {
       let pvc = new V1PersistentVolumeClaim()
-      pvc.kind = 'Ingress'
-      pvc.apiVersion = 'extv1beta'
+      pvc.kind = 'PersistentVolumeClaim'
+      pvc.apiVersion = 'v1'
       pvc.metadata = new V1ObjectMeta()
       pvc.metadata.labels = item.metadata.labels
       pvc.metadata.name = item.metadata.name

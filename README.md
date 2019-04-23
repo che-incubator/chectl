@@ -43,6 +43,7 @@ USAGE
 # Commands
 <!-- commands -->
 * [`chectl autocomplete [SHELL]`](#chectl-autocomplete-shell)
+* [`chectl devfile:generate`](#chectl-devfilegenerate)
 * [`chectl help [COMMAND]`](#chectl-help-command)
 * [`chectl server:delete`](#chectl-serverdelete)
 * [`chectl server:start`](#chectl-serverstart)
@@ -75,6 +76,32 @@ EXAMPLES
 ```
 
 _See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.0/src/commands/autocomplete/index.ts)_
+
+## `chectl devfile:generate`
+
+generate and print a devfile to stdout given some Kubernetes resources and other Che workspaces features (project, language-support, commands etc...)
+
+```
+USAGE
+  $ chectl devfile:generate
+
+OPTIONS
+  -h, --help             show CLI help
+  --command=command      command to include in the workspace
+
+  --language=language    add support for a particular language. Currently supported languages:
+                         java,typescript,go,python,c#
+
+  --namespace=namespace  Kubernetes namespace where the resources are defined
+
+  --plugin=plugin        Che plugin to include in the workspace
+
+  --project=project      source code project to include in the workspace
+
+  --selector=selector    label selector to filter the Kubernetes resources
+```
+
+_See code: [src/commands/devfile/generate.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/devfile/generate.ts)_
 
 ## `chectl help [COMMAND]`
 
