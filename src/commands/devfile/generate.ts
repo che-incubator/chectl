@@ -9,7 +9,7 @@
  **********************************************************************/
 // tslint:disable:object-curly-spacing
 
-import { V1Deployment, V1DeploymentSpec, V1ObjectMeta, V1PodTemplateSpec, V1Service, V1ServicePort, V1ServiceSpec } from '@kubernetes/client-node'
+import { V1Deployment, V1DeploymentSpec, V1ObjectMeta, V1PodTemplateSpec, V1Service, V1ServicePort, V1ServiceSpec, V1beta1Ingress, V1beta1IngressSpec, V1PersistentVolumeClaim, V1PersistentVolumeClaimSpec } from '@kubernetes/client-node'
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as yaml from 'js-yaml'
@@ -88,11 +88,19 @@ export default class Generate extends Command {
 
       const deployments = await this.getDeploymentsBySelector(flags.selector, flags.namespace)
       const services = await this.getServicesBySelector(flags.selector, flags.namespace)
+      const ingresses = await this.getIngressesBySelector(flags.selector, flags.namespace)
+      const pvcs = await this.getPersistentVolumeClaimsBySelector(flags.selector, flags.namespace)
 
       deployments.forEach((element: any) => {
         k8sList.items.push(element)
       })
       services.forEach((element: any) => {
+        k8sList.items.push(element)
+      })
+      ingresses.forEach((element: any) => {
+        k8sList.items.push(element)
+      })
+      pvcs.forEach((element: any) => {
         k8sList.items.push(element)
       })
 
@@ -196,6 +204,44 @@ export default class Generate extends Command {
         service.spec.ports.push(svcPort)
       })
       await items.push(service)
+    })
+
+    return items
+  }
+
+  private async getIngressesBySelector(labelSelector: string, namespace = ''): Promise<Array<V1beta1Ingress>> {
+    let items = new Array<V1beta1Ingress>()
+
+    const k8sIngressesList = await kube.getIngressesBySelector(labelSelector, namespace)
+    k8sIngressesList.items.forEach(async item => {
+      let ingress = new V1beta1Ingress()
+      ingress.kind = 'Ingress'
+      ingress.apiVersion = 'extv1beta'
+      ingress.metadata = new V1ObjectMeta()
+      ingress.metadata.labels = item.metadata.labels
+      ingress.metadata.name = item.metadata.name
+      ingress.spec = item.spec
+      await items.push(ingress)
+    })
+
+    return items
+  }
+
+  private async getPersistentVolumeClaimsBySelector(labelSelector: string, namespace = ''): Promise<Array<V1PersistentVolumeClaim>> {
+    let items = new Array<V1PersistentVolumeClaim>()
+
+    const k8sPVCsList = await kube.getPersistentVolumeClaimsBySelector(labelSelector, namespace)
+    k8sPVCsList.items.forEach(async item => {
+      let pvc = new V1PersistentVolumeClaim()
+      pvc.kind = 'Ingress'
+      pvc.apiVersion = 'extv1beta'
+      pvc.metadata = new V1ObjectMeta()
+      pvc.metadata.labels = item.metadata.labels
+      pvc.metadata.name = item.metadata.name
+      pvc.spec = new V1PersistentVolumeClaimSpec()
+      pvc.spec.accessModes = item.spec.accessModes
+      pvc.spec.resources = item.spec.resources
+      await items.push(pvc)
     })
 
     return items
