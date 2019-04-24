@@ -6,11 +6,10 @@ projects:
       type: git
       location: 'https://github.com/che-incubator/chectl.git'
 components:
-  - name: theia-ide
+  - alias: theia-ide
     type: cheEditor
     id: org.eclipse.che.editor.theia:1.0.0
-  - name: exec-plugin
-    type: chePlugin
+  - type: chePlugin
     id: che-machine-exec-plugin:0.0.1
 commands:
   - name: build
