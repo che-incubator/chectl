@@ -88,6 +88,7 @@ USAGE
 OPTIONS
   -h, --help             show CLI help
   --command=command      command to include in the workspace
+  --git-repo=git-repo    source code git repository to include in the workspace
 
   --language=language    add support for a particular language. Currently supported languages:
                          java,typescript,go,python,c#
@@ -95,8 +96,6 @@ OPTIONS
   --namespace=namespace  Kubernetes namespace where the resources are defined
 
   --plugin=plugin        Che plugin to include in the workspace
-
-  --project=project      source code project to include in the workspace
 
   --selector=selector    label selector to filter the Kubernetes resources
 ```

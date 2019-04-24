@@ -1,14 +1,18 @@
 # PR#84 TODO
 
 - [x] Return List
-- [ ] Better type check
-- [ ] Find a better way to generate devfile
 - [x] Support
   - [x] deployment
   - [x] services
   - [x] pvc
   - [x] ingress
   - [ ] config maps
+- [x] Investigate minishift issue
+- [x] Add `deployment.spec.template.metadata` metadata name and labels can be useful and should be added
+- [x] projects should be before components
+- [x] fix projects flag
+- [ ] Better type check
+- [ ] Find a better way to generate devfile
 - [ ] complete devfile/generate.test.ts
   - [ ] make `nock` work
   - [ ] parse yam. output and verifies, for each kind, items num and fields that shoudl exist and those that should not
@@ -26,7 +30,7 @@ kubens prod
 # kubectl apply -f https://k8s.io/examples/application/guestbook/frontend-deployment.yaml
 # kubectl apply -f https://k8s.io/examples/application/guestbook/frontend-service.yaml
 # minikube service frontend --url
-kubectl apply -f https://raw.githubusercontent.com/sleshchenko/NodeJS-Sample-App/dockerCon/k8s.yaml
+kubectl apply -f https://raw.githubusercontent.com/sleshchenko/NodeJS-Sample-App/dockerCon/deploy_k8s.yaml
 
 # Run chectl
 # chectl devfile:generate \
@@ -37,7 +41,7 @@ kubectl apply -f https://raw.githubusercontent.com/sleshchenko/NodeJS-Sample-App
 chectl devfile:generate \
            --selector="app.kubernetes.io/name=employee-manager" \
            --language=typescript \
-           --project='{"name": "nodejs-sample-app", "source": "https://github.com/sleshchenko/NodeJS-Sample-App.git"}'
+           --git-repo='https://github.com/sleshchenko/NodeJS-Sample-App.git'
 
 # Or run the test
 yarn test --coverage=false --testRegex=/test/commands/devfile/generate.test.ts

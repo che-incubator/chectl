@@ -14,7 +14,7 @@ import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as yaml from 'js-yaml'
 
-import { Devfile, DevfileComponent, TheEndpointName } from '../../api/devfile'
+import { Devfile, DevfileComponent, DevfileProject, ProjectSource, TheEndpointName } from '../../api/devfile'
 import { KubeHelper } from '../../api/kube'
 
 const kube = new KubeHelper()
@@ -56,9 +56,9 @@ export default class Generate extends Command {
       env: 'CHE_PLUGIN',
       required: false,
     }),
-    project: string({
-      description: 'source code project to include in the workspace',
-      env: 'PROJECT',
+    'git-repo': string({
+      description: 'source code git repository to include in the workspace',
+      env: 'GIT_REPO',
       required: false,
     }),
     command: string({
@@ -74,6 +74,24 @@ export default class Generate extends Command {
     let devfile: Devfile = {
       specVersion: '0.0.1',
       name: 'chectl-generated'
+    }
+
+    if (flags['git-repo'] !== undefined) {
+      const repo: ProjectSource = {
+        type: 'git',
+        location: flags['git-repo']
+      }
+
+      const project: DevfileProject = {
+        source: repo,
+        name: flags['git-repo'].split('/').pop() || 'git-project'
+      }
+
+      if (devfile.projects) {
+        devfile.projects.push(project)
+      } else {
+        devfile.projects = [project]
+      }
     }
 
     if (flags.selector !== undefined) {
@@ -113,14 +131,6 @@ export default class Generate extends Command {
         devfile.components.push(component)
       } else {
         devfile.components = [component]
-      }
-    }
-
-    if (flags.project !== undefined) {
-      if (devfile.projects) {
-        devfile.projects.push(JSON.parse(flags.project))
-      } else {
-        devfile.projects = [JSON.parse(flags.project)]
       }
     }
 
@@ -174,8 +184,15 @@ export default class Generate extends Command {
       let deployment = new V1Deployment()
       deployment.apiVersion = 'apps/v1'
       deployment.kind = 'Deployment'
+      deployment.metadata = new V1ObjectMeta()
+      deployment.metadata.labels = {...item.metadata.labels}
+      deployment.metadata.name = item.metadata.name
       deployment.spec = new V1DeploymentSpec()
+      deployment.spec.selector = item.spec.selector
       deployment.spec.template = new V1PodTemplateSpec()
+      deployment.spec.template.metadata = new V1ObjectMeta()
+      deployment.spec.template.metadata.labels = {...item.spec.template.metadata.labels}
+      deployment.spec.template.metadata.name = item.spec.template.metadata.name
       deployment.spec.template.spec = item.spec.template.spec
       await items.push(deployment)
     })
@@ -192,7 +209,7 @@ export default class Generate extends Command {
       service.kind = 'Service'
       service.apiVersion = 'v1'
       service.metadata = new V1ObjectMeta()
-      service.metadata.labels = item.metadata.labels
+      service.metadata.labels = {...item.metadata.labels}
       service.metadata.name = item.metadata.name
       service.spec = new V1ServiceSpec()
       service.spec.type = item.spec.type
@@ -218,7 +235,7 @@ export default class Generate extends Command {
       ingress.kind = 'Ingress'
       ingress.apiVersion = 'extensions/v1beta1'
       ingress.metadata = new V1ObjectMeta()
-      ingress.metadata.labels = item.metadata.labels
+      ingress.metadata.labels = {...item.metadata.labels}
       ingress.metadata.name = item.metadata.name
       ingress.spec = item.spec
       await items.push(ingress)
@@ -236,7 +253,7 @@ export default class Generate extends Command {
       pvc.kind = 'PersistentVolumeClaim'
       pvc.apiVersion = 'v1'
       pvc.metadata = new V1ObjectMeta()
-      pvc.metadata.labels = item.metadata.labels
+      pvc.metadata.labels = {...item.metadata.labels}
       pvc.metadata.name = item.metadata.name
       pvc.spec = new V1PersistentVolumeClaimSpec()
       pvc.spec.accessModes = item.spec.accessModes
