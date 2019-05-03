@@ -8,9 +8,9 @@ projects:
 components:
   - alias: theia-ide
     type: cheEditor
-    id: org.eclipse.che.editor.theia:1.0.0
+    id: eclipse/che-theia/1.0.0
   - type: chePlugin
-    id: che-machine-exec-plugin:0.0.1
+    id: eclipse/che-machine-exec-plugin/0.0.1
 commands:
   - name: build
     actions:

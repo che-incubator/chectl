@@ -36,7 +36,7 @@ data:
   CHE_OPENSHIFT_OAUTH: ""
   # OpenShift API endpoint URL. Required only when OPENSHIFT_OAUTH is true. Auto detected
   CHE_OPENSHIFT_API_URL: ""
-  # Plugin registry URL. Defaults to https://che-plugin-registry.openshift.io
+  # Plugin registry URL. Defaults to https://che-plugin-registry.openshift.io/v2
   CHE_WORKSPACE_PLUGIN__REGISTRY__URL: ""
   # Ask for password update at first login as Che admin user. Defaults to true, i.e. you will be asked to update password
   CHE_UPDATE_CHE_ADMIN_PASSWORD: ""

@@ -88,9 +88,9 @@
   "defaultEnv": "default",
   "name": "inner-loop-buildah",
   "attributes": {
-    "editor": "org.eclipse.che.editor.theia:1.0.0",
-    "plugins": "che-machine-exec-plugin:0.0.1",
-    "sidecar.theia-ide.memory_limit": "512Mi"
+    "editor": "eclipse/che-theia/1.0.0",
+    "plugins": "eclipse/che-machine-exec-plugin/0.0.1",
+    "sidecar.eclipse/che-theia.memory_limit": "512Mi"
   },
   "links": []
 }

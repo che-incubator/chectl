@@ -56,9 +56,9 @@
     ],
     "name": "inner-loop-buildah",
     "attributes": {
-      "editor": "org.eclipse.che.editor.theia:1.0.0",
-      "sidecar.theia-ide.memory_limit": "512Mi",
-      "plugins": "che-machine-exec-plugin:0.0.1"
+      "editor": "eclipse/che-theia/1.0.0",
+      "sidecar.eclipse/che-theia.memory_limit": "512Mi",
+      "plugins": "eclipse/che-machine-exec-plugin/0.0.1"
     },
     "commands": [
       {

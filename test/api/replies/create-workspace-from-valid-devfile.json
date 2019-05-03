@@ -29,16 +29,16 @@
     ],
     "name": "chectl",
     "attributes": {
-      "editor": "org.eclipse.che.editor.theia:1.0.0",
-      "plugins": "che-machine-exec-plugin:0.0.1",
-      "toolsAliases": "org.eclipse.che.editor.theia:1.0.0=theia-ide,che-machine-exec-plugin:0.0.1=exec-plugin"
+      "editor": "eclipse/che-theia/1.0.0",
+      "plugins": "eclipse/che-machine-exec-plugin/0.0.1",
+      "toolsAliases": "eclipse/che-theia/1.0.0=theia-ide,eclipse/che-machine-exec-plugin/0.0.1=exec-plugin"
     },
     "commands": [
       {
         "commandLine": "yarn",
         "name": "build:theia-ide",
         "attributes": {
-          "pluginId": "org.eclipse.che.editor.theia:1.0.0",
+          "pluginId": "eclipse/che-theia/1.0.0",
           "workingDir": "/projects/chectl"
         },
         "type": "exec"
@@ -47,7 +47,7 @@
         "commandLine": "yarn test",
         "name": "test:theia-ide",
         "attributes": {
-          "pluginId": "org.eclipse.che.editor.theia:1.0.0",
+          "pluginId": "eclipse/che-theia/1.0.0",
           "workingDir": "/projects/chectl"
         },
         "type": "exec"
