@@ -48,6 +48,11 @@ export default class Generate extends Command {
       env: 'WSNAME',
       required: false,
     }),
+    dockerImage: string({
+      description: 'dockerImage component to include to the workspace',
+      env: 'DOCKERIMAGE',
+      required: false,
+    }),
     namespace: string({
       description: 'Kubernetes namespace where the resources are defined',
       default: '',
@@ -112,6 +117,23 @@ export default class Generate extends Command {
         devfile.projects.push(project)
       } else {
         devfile.projects = [project]
+      }
+    }
+
+    if (flags.dockerImage !== undefined) {
+      const component: DevfileComponent = {
+        alias: `${flags.dockerImage.replace(/\//g, '-')}`,
+        type: TheEndpointName.Dockerimage,
+        image: `${flags.dockerImage}`,
+        memoryLimit: '512M',
+        mountSources: true,
+        command: ['tail'],
+        args: ['-f', '/dev/null']
+      }
+      if (devfile.components) {
+        devfile.components.push(component)
+      } else {
+        devfile.components = [component]
       }
     }
 
