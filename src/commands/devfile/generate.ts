@@ -14,7 +14,7 @@ import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as yaml from 'js-yaml'
 
-import { Devfile, DevfileComponent, DevfileProject, ProjectSource, TheEndpointName } from '../../api/devfile'
+import { Devfile, DevfileComponent, DevfileProject, ProjectSource, TheEndpointName, DevfileCommand } from '../../api/devfile'
 import { KubeHelper } from '../../api/kube'
 
 const kube = new KubeHelper()
@@ -185,14 +185,6 @@ export default class Generate extends Command {
       }
     }
 
-    if (flags.command !== undefined) {
-      if (devfile.commands) {
-        devfile.commands.push(JSON.parse(flags.command))
-      } else {
-        devfile.commands = [JSON.parse(flags.command)]
-      }
-    }
-
     if (flags.language !== undefined) {
       if (languages.indexOf(flags.language as any) === -1) {
         this.error(`Language ${flags.language} is not supported. Supported languages are ${languages}`)
@@ -214,6 +206,31 @@ export default class Generate extends Command {
         devfile.components.push(components)
       } else if (components) {
         devfile.components = [components]
+      }
+    }
+
+    if (flags.command !== undefined && devfile.components && devfile.components.length > 0) {
+      let workdir: string = '/projects/';
+      if (devfile.projects && devfile.projects.length > 0) {
+        workdir += devfile.projects[0].name;
+      };
+
+      const command: DevfileCommand = {
+        name: `${flags.command}`,
+        actions: [
+          {
+            type: 'exec',
+            command: `${flags.command}`,
+            component: `${devfile.components[0].alias}`,
+            workdir: workdir
+          }
+        ]
+      }
+
+      if (devfile.commands) {
+        devfile.commands.push(command)
+      } else {
+        devfile.commands = [command]
       }
     }
 
