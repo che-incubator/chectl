@@ -22,7 +22,7 @@ Binary downloads of `chectl` can be found on [the Release page](https://github.c
 
 Download the `chectl` binary and add it to your PATH.
 
-Currently `chectl` requires [minikube](https://github.com/kubernetes/minikube#installation) and [helm](https://github.com/helm/helm#install) to be locally installed.
+Currently `chectl` requires [minikube](https://github.com/kubernetes/minikube#installation) launched with _--docker-opt userland-proxy=false_ option and [helm](https://github.com/helm/helm#install) to be locally installed.
 
 # Usage
 ```sh-session
