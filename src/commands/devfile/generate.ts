@@ -35,6 +35,12 @@ export default class Generate extends Command {
 
   static flags = {
     help: flags.help({ char: 'h' }),
+    name: string({
+      description: 'Workspace name',
+      default: '',
+      env: 'WSNAME',
+      required: false,
+    }),
     namespace: string({
       description: 'Kubernetes namespace where the resources are defined',
       default: '',
@@ -71,9 +77,12 @@ export default class Generate extends Command {
   async run() {
     const { flags } = this.parse(Generate)
     const notifier = require('node-notifier')
+
+    let name = flags.name || 'chectl-generated';
+
     let devfile: Devfile = {
       specVersion: '0.0.1',
-      name: 'chectl-generated'
+      name: name
     }
 
     if (flags['git-repo'] !== undefined) {
