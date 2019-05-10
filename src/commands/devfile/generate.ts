@@ -21,6 +21,8 @@ const kube = new KubeHelper()
 const stringLitArray = <L extends string>(arr: L[]) => arr
 const languages = stringLitArray(['java', 'typescript', 'go', 'python', 'c#'])
 export type Language = (typeof languages)[number]
+const editors = stringLitArray(['theia-next', 'theia-1.0.0'])
+export type Editor = (typeof editors)[number]
 
 const LanguagesComponents = new Map<Language, DevfileComponent>([
   ['java', {type: TheEndpointName.ChePlugin, alias: 'java-ls', id: 'org.eclipse.che.vscode-redhat.java:0.38.0'}],
@@ -28,6 +30,11 @@ const LanguagesComponents = new Map<Language, DevfileComponent>([
   ['go', {type: TheEndpointName.ChePlugin, alias: 'go-ls', id: 'ms-vscode.go:0.9.2'}],
   ['python', {type: TheEndpointName.ChePlugin, alias: 'python-ls', id: 'ms-python.python:2019.2.5433'}],
   ['c#', {type: TheEndpointName.ChePlugin, alias: 'csharp-ls', id: 'che-omnisharp-plugin:0.0.1'}],
+])
+
+const EditorComponents = new Map<Editor, DevfileComponent>([
+  ['theia-next', { type: TheEndpointName.CheEditor, alias: 'theia-editor', id: 'eclipse/che-theia/next' }],
+  ['theia-1.0.0', { type: TheEndpointName.CheEditor, alias: 'theia-editor', id: 'eclipse/che-theia/1.0.0' }]
 ])
 
 export default class Generate extends Command {
@@ -45,6 +52,11 @@ export default class Generate extends Command {
       description: 'Kubernetes namespace where the resources are defined',
       default: '',
       env: 'NAMESPACE',
+      required: false,
+    }),
+    editor: string({
+      description: `Editor to choose.  Currently supported languages: ${editors}`,
+      env: 'EDITOR',
       required: false,
     }),
     selector: string({
@@ -164,6 +176,18 @@ export default class Generate extends Command {
         this.error(`Language ${flags.language} is not supported. Supported languages are ${languages}`)
       }
       const components = this.getPluginsByLanguage(flags.language as Language)
+      if (devfile.components && components) {
+        devfile.components.push(components)
+      } else if (components) {
+        devfile.components = [components]
+      }
+    }
+
+    if (flags.editor !== undefined) {
+      if (editors.indexOf(flags.editor as any) === -1) {
+        this.error(`Editor ${flags.editor} is not supported. Supported editors are ${editors}`)
+      }
+      const components = EditorComponents.get(flags.editor as Editor)
       if (devfile.components && components) {
         devfile.components.push(components)
       } else if (components) {
