@@ -25,11 +25,11 @@ const editors = stringLitArray(['theia-next', 'theia-1.0.0'])
 export type Editor = (typeof editors)[number]
 
 const LanguagesComponents = new Map<Language, DevfileComponent>([
-  ['java', {type: TheEndpointName.ChePlugin, alias: 'java-ls', id: 'org.eclipse.che.vscode-redhat.java:0.38.0'}],
-  ['typescript', {type: TheEndpointName.ChePlugin, alias: 'typescript-ls', id: 'ms-vscode.typescript:1.30.2'}],
-  ['go', {type: TheEndpointName.ChePlugin, alias: 'go-ls', id: 'ms-vscode.go:0.9.2'}],
-  ['python', {type: TheEndpointName.ChePlugin, alias: 'python-ls', id: 'ms-python.python:2019.2.5433'}],
-  ['c#', {type: TheEndpointName.ChePlugin, alias: 'csharp-ls', id: 'che-omnisharp-plugin:0.0.1'}],
+  ['java', {type: TheEndpointName.ChePlugin, alias: 'java-ls', id: 'redhat/java/0.38.0'}],
+  ['typescript', {type: TheEndpointName.ChePlugin, alias: 'typescript-ls', id: 'che-incubator/typescript/1.30.2'}],
+  ['go', {type: TheEndpointName.ChePlugin, alias: 'go-ls', id: 'ms-vscode/go/0.9.2'}],
+  ['python', {type: TheEndpointName.ChePlugin, alias: 'python-ls', id: 'ms-python/python/2019.2.5433'}],
+  ['c#', {type: TheEndpointName.ChePlugin, alias: 'csharp-ls', id: 'redhat-developer/che-omnisharp-plugin/0.0.1'}],
 ])
 
 const EditorComponents = new Map<Editor, DevfileComponent>([
