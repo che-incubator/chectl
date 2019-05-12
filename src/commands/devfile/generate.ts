@@ -60,7 +60,7 @@ export default class Generate extends Command {
       required: false,
     }),
     editor: string({
-      description: `Editor to choose.  Currently supported languages: ${editors}`,
+      description: `Editor to choose. Currently supported editors: ${editors}`,
       env: 'EDITOR',
       required: false,
     }),
@@ -70,7 +70,7 @@ export default class Generate extends Command {
       required: false,
     }),
     language: string({
-      description: `add support for a particular language. Currently supported languages: ${languages}`,
+      description: `Add support for a particular language. Currently supported languages: ${languages}`,
       env: 'LANGUAGE_SUPPORT',
       required: false,
     }),
@@ -80,12 +80,12 @@ export default class Generate extends Command {
       required: false,
     }),
     'git-repo': string({
-      description: 'source code git repository to include in the workspace',
+      description: 'Source code git repository to include in the workspace',
       env: 'GIT_REPO',
       required: false,
     }),
     command: string({
-      description: 'command to include in the workspace',
+      description: 'Command to include in the workspace',
       env: 'COMMAND',
       required: false,
     }),

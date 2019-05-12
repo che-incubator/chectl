@@ -86,18 +86,22 @@ USAGE
   $ chectl devfile:generate
 
 OPTIONS
-  -h, --help             show CLI help
-  --command=command      command to include in the workspace
-  --git-repo=git-repo    source code git repository to include in the workspace
+  -h, --help                 show CLI help
+  --command=command          Command to include in the workspace
+  --dockerImage=dockerImage  dockerImage component to include to the workspace
+  --editor=editor            Editor to choose. Currently supported editors: theia-next,theia-1.0.0
+  --git-repo=git-repo        Source code git repository to include in the workspace
 
-  --language=language    add support for a particular language. Currently supported languages:
-                         java,typescript,go,python,c#
+  --language=language        Add support for a particular language. Currently supported languages:
+                             java,typescript,go,python,c#
 
-  --namespace=namespace  Kubernetes namespace where the resources are defined
+  --name=name                Workspace name
 
-  --plugin=plugin        Che plugin to include in the workspace
+  --namespace=namespace      Kubernetes namespace where the resources are defined
 
-  --selector=selector    label selector to filter the Kubernetes resources
+  --plugin=plugin            Che plugin to include in the workspace
+
+  --selector=selector        label selector to filter the Kubernetes resources
 ```
 
 _See code: [src/commands/devfile/generate.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/devfile/generate.ts)_
