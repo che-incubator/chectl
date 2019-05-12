@@ -122,7 +122,7 @@ export default class Generate extends Command {
 
     if (flags.dockerImage !== undefined) {
       const component: DevfileComponent = {
-        alias: `${flags.dockerImage.replace(/\//g, '-')}`,
+        alias: `${flags.dockerImage.replace(/[\.\/]/g, '-').substring(0, 20)}`,
         type: TheEndpointName.Dockerimage,
         image: `${flags.dockerImage}`,
         memoryLimit: '512M',
