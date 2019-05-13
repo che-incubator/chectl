@@ -145,7 +145,7 @@ error: E_COMMAND_FAILED`)
 
   async updateCheHelmChartDependencies(cacheDir: string, execTimeout= 120000) {
     const destDir = path.join(cacheDir, '/templates/kubernetes/helm/che/')
-    await execa.shell(`helm dependencies update --skip-refresh ${destDir}`, { timeout: execTimeout })
+    await execa('helm', ['dependencies', 'update', '--skip-refresh', destDir], { timeout: execTimeout, reject: false})
   }
 
   async upgradeCheHelmChart(flags: any, cacheDir: string, execTimeout= 120000) {
@@ -162,8 +162,18 @@ error: E_COMMAND_FAILED`)
       tlsFlag = `-f ${destDir}values/tls.yaml`
     }
 
-    let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} --set global.ingressDomain=${flags.domain} --set cheImage=${flags.cheimage} --set global.cheWorkspacesNamespace=${flags.chenamespace} ${multiUserFlag} ${tlsFlag} ${destDir}`
-    await execa.shell(command, { timeout: execTimeout })
+    await execa('helm',
+      ['upgrade',
+        '--install', 'che',
+        '--force',
+        '--namespace', flags.chenamespace,
+        '--set', `global.ingressDomain=${flags.domain}`,
+        '--set', `cheImage=${flags.cheimage}`,
+        '--set', `global.cheWorkspacesNamespace=${flags.chenamespace}`,
+        multiUserFlag,
+        tlsFlag,
+        destDir],
+      { timeout: execTimeout, reject: false})
   }
 
   async purgeHelmChart(name: string, execTimeout= 30000) {
