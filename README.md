@@ -88,8 +88,8 @@ USAGE
 OPTIONS
   -h, --help                 show CLI help
   --command=command          Command to include in the workspace
-  --dockerImage=dockerImage  dockerImage component to include to the workspace
-  --editor=editor            Editor to choose. Currently supported editors: theia-next,theia-1.0.0
+  --dockerimage=dockerimage  dockerimage component to include in the Devfile
+  --editor=editor            Specify the Che editor component. Currently supported editors: theia-next,theia-1.0.0
   --git-repo=git-repo        Source code git repository to include in the workspace
 
   --language=language        Add support for a particular language. Currently supported languages:
@@ -99,7 +99,9 @@ OPTIONS
 
   --namespace=namespace      Kubernetes namespace where the resources are defined
 
-  --plugin=plugin            Che plugin to include in the workspace
+  --plugin=plugin            Che plugin to include in the workspace. The format is JSON. For example this is a valid Che
+                             Plugin specification: {"type": "TheEndpointName.ChePlugin", "alias": "java-ls", "id":
+                             "redhat/java/0.38.0"}
 
   --selector=selector        label selector to filter the Kubernetes resources
 ```
@@ -121,7 +123,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.1.6/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.1.4/src/commands/help.ts)_
 
 ## `chectl server:delete`
 

@@ -14,7 +14,7 @@ import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as yaml from 'js-yaml'
 
-import { Devfile, DevfileComponent, DevfileProject, ProjectSource, TheEndpointName, DevfileCommand } from '../../api/devfile'
+import { Devfile, DevfileCommand, DevfileComponent, DevfileProject, ProjectSource, TheEndpointName } from '../../api/devfile'
 import { KubeHelper } from '../../api/kube'
 
 const kube = new KubeHelper()
@@ -48,8 +48,8 @@ export default class Generate extends Command {
       env: 'WSNAME',
       required: false,
     }),
-    dockerImage: string({
-      description: 'dockerImage component to include to the workspace',
+    dockerimage: string({
+      description: 'dockerimage component to include in the Devfile',
       env: 'DOCKERIMAGE',
       required: false,
     }),
@@ -60,7 +60,7 @@ export default class Generate extends Command {
       required: false,
     }),
     editor: string({
-      description: `Editor to choose. Currently supported editors: ${editors}`,
+      description: `Specify the Che editor component. Currently supported editors: ${editors}`,
       env: 'EDITOR',
       required: false,
     }),
@@ -75,7 +75,7 @@ export default class Generate extends Command {
       required: false,
     }),
     plugin: string({
-      description: 'Che plugin to include in the workspace',
+      description: 'Che plugin to include in the workspace. The format is JSON. For example this is a valid Che Plugin specification: {"type": "TheEndpointName.ChePlugin", "alias": "java-ls", "id": "redhat/java/0.38.0"}',
       env: 'CHE_PLUGIN',
       required: false,
     }),
@@ -95,11 +95,11 @@ export default class Generate extends Command {
     const { flags } = this.parse(Generate)
     const notifier = require('node-notifier')
 
-    let name = flags.name || 'chectl-generated';
+    let name = flags.name || 'chectl-generated'
 
     let devfile: Devfile = {
       specVersion: '0.0.1',
-      name: name
+      name
     }
 
     if (flags['git-repo'] !== undefined) {
@@ -120,11 +120,11 @@ export default class Generate extends Command {
       }
     }
 
-    if (flags.dockerImage !== undefined) {
+    if (flags.dockerimage !== undefined) {
       const component: DevfileComponent = {
-        alias: `${flags.dockerImage.replace(/[\.\/]/g, '-').substring(0, 20)}`,
+        alias: `${flags.dockerimage.replace(/[\.\/]/g, '-').substring(0, 20)}`,
         type: TheEndpointName.Dockerimage,
-        image: `${flags.dockerImage}`,
+        image: `${flags.dockerimage}`,
         memoryLimit: '512M',
         mountSources: true,
         command: ['tail'],
@@ -210,10 +210,10 @@ export default class Generate extends Command {
     }
 
     if (flags.command !== undefined && devfile.components && devfile.components.length > 0) {
-      let workdir: string = '/projects/';
+      let workdir = '/projects/'
       if (devfile.projects && devfile.projects.length > 0) {
-        workdir += devfile.projects[0].name;
-      };
+        workdir += devfile.projects[0].name
+      }
 
       const command: DevfileCommand = {
         name: `${flags.command}`,
@@ -222,7 +222,7 @@ export default class Generate extends Command {
             type: 'exec',
             command: `${flags.command}`,
             component: `${devfile.components[0].alias}`,
-            workdir: workdir
+            workdir
           }
         ]
       }
