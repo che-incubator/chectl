@@ -103,7 +103,8 @@ OPTIONS
                              Plugin specification: {"type": "TheEndpointName.ChePlugin", "alias": "java-ls", "id":
                              "redhat/java/0.38.0"}
 
-  --selector=selector        label selector to filter the Kubernetes resources
+  --selector=selector        label selector to filter the Kubernetes resources. For example
+                             --selector="app.kubernetes.io/name=employee-manager"
 ```
 
 _See code: [src/commands/devfile/generate.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/devfile/generate.ts)_

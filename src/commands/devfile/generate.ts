@@ -65,7 +65,7 @@ export default class Generate extends Command {
       required: false,
     }),
     selector: string({
-      description: 'label selector to filter the Kubernetes resources',
+      description: 'label selector to filter the Kubernetes resources. For example --selector="app.kubernetes.io/name=employee-manager"',
       env: 'SELECTOR',
       required: false,
     }),
