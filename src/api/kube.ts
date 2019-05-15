@@ -9,7 +9,7 @@
  **********************************************************************/
 // tslint:disable:object-curly-spacing
 
-import { ApisApi, Apps_v1Api, Core_v1Api, Extensions_v1beta1Api, KubeConfig, RbacAuthorization_v1Api, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1Pod, V1PodSpec, V1PodTemplateSpec, V1RoleBinding, V1RoleRef, V1ServiceAccount, V1Subject } from '@kubernetes/client-node'
+import { ApisApi, Apps_v1Api, Core_v1Api, Extensions_v1beta1Api, KubeConfig, RbacAuthorization_v1Api, V1beta1IngressList, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodSpec, V1PodTemplateSpec, V1RoleBinding, V1RoleRef, V1ServiceAccount, V1ServiceList, V1Subject} from '@kubernetes/client-node'
 import axios from 'axios'
 import { cli } from 'cli-ux'
 import { readFileSync } from 'fs'
@@ -40,6 +40,20 @@ export class KubeHelper {
     } catch (e) {
       throw new Error(e.body.message)
     }
+  }
+
+  async getServicesBySelector(labelSelector = '', namespace = ''): Promise<V1ServiceList> {
+    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    try {
+      const res = await k8sCoreApi.listNamespacedService(namespace, 'true', undefined, undefined, true, labelSelector)
+      if (res && res.body) {
+        return res.body
+      }
+    } catch (e) {
+      if (e.body && e.body.message) throw new Error(e.body.message)
+      else throw new Error(e)
+    }
+    throw new Error('ERR_LIST_SERVICES')
   }
 
   async serviceAccountExist(name = '', namespace = ''): Promise<boolean | ''> {
@@ -441,6 +455,20 @@ export class KubeHelper {
     }
   }
 
+  async getDeploymentsBySelector(labelSelector = '', namespace = ''): Promise<V1DeploymentList> {
+    const k8sAppsApi = this.kc.makeApiClient(Apps_v1Api)
+    try {
+      const res = await k8sAppsApi.listNamespacedDeployment(namespace, 'true', undefined, undefined, true, labelSelector)
+      if (res && res.body) {
+        return res.body
+      }
+    } catch (e) {
+      if (e.body && e.body.message) throw new Error(e.body.message)
+      else throw new Error(e)
+    }
+    throw new Error('ERR_LIST_NAMESPACES')
+  }
+
   async createPod(name: string,
                   image: string,
                   serviceAccount: string,
@@ -590,6 +618,20 @@ export class KubeHelper {
     }
   }
 
+  async getIngressesBySelector(labelSelector = '', namespace = ''): Promise<V1beta1IngressList> {
+    const k8sV1Beta = this.kc.makeApiClient(Extensions_v1beta1Api)
+    try {
+      const res = await k8sV1Beta.listNamespacedIngress(namespace, 'true', undefined, undefined, true, labelSelector)
+      if (res && res.body) {
+        return res.body
+      }
+    } catch (e) {
+      if (e.body && e.body.message) throw new Error(e.body.message)
+      else throw new Error(e)
+    }
+    throw new Error('ERR_LIST_INGRESSES')
+  }
+
   async persistentVolumeClaimExist(name = '', namespace = ''): Promise<boolean | ''> {
     const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
     try {
@@ -612,6 +654,19 @@ export class KubeHelper {
     }
   }
 
+  async getPersistentVolumeClaimsBySelector(labelSelector = '', namespace = ''): Promise<V1PersistentVolumeClaimList> {
+    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    try {
+      const res = await k8sCoreApi.listNamespacedPersistentVolumeClaim(namespace, 'true', undefined, undefined, true, labelSelector)
+      if (res && res.body) {
+        return res.body
+      }
+    } catch (e) {
+      if (e.body && e.body.message) throw new Error(e.body.message)
+      else throw new Error(e)
+    }
+    throw new Error('ERR_LIST_PVCS')
+  }
 }
 
 class PatchedK8sApi extends Core_v1Api {

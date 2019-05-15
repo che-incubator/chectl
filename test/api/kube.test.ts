@@ -106,4 +106,13 @@ describe('Kube API helper', () => {
     .it('verifies that kuber API is ok', async () => {
       await kube.checkKubeApi()
     })
+  fancy
+    .nock(kubeClusterURL, api => api
+      .get(`/apis/apps/v1/namespaces/${namespace}/deployments?pretty=true&includeUninitialized=true&labelSelector=app%3Dguestbook`)
+      .replyWithFile(200, __dirname + '/replies/get-deployment-by-selector.json', { 'Content-Type': 'application/json' }))
+    .it('retrieves deployments by a selector', async () => {
+      const selector = 'app=guestbook'
+      const res = await kube.getDeploymentsBySelector(selector, namespace)
+      expect(res.items.length).to.equal(1)
+    })
 })
