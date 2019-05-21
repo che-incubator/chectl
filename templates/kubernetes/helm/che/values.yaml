@@ -42,6 +42,7 @@ global:
     useCertManager: true
     useStaging: true
     secretName: che-tls
+    email: user@example.com
   gitHubClientID: ""
   gitHubClientSecret: ""
   pvcClaim: "1Gi"
