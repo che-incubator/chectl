@@ -232,8 +232,19 @@ export default class Start extends Command {
       {
         title: 'scheduling',
         task: async (_ctx: any, task: any) => {
-          await kube.waitForPodPending(selector, namespace)
-          task.title = `${task.title}...done.`
+          let phase
+          const title = task.title
+          try {
+            phase = await kube.getPodPhase(selector, namespace)
+          } catch (_err) {
+            // not able to grab current phase
+            this.debug(_err)
+          }
+          // wait only if not yet running
+          if (phase !== 'Running') {
+            await kube.waitForPodPending(selector, namespace)
+          }
+          task.title = `${title}...done.`
         }
       },
       {
