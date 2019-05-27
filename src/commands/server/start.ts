@@ -23,6 +23,8 @@ import { MinishiftAddonHelper } from '../../installers/minishift-addon'
 import { OperatorHelper } from '../../installers/operator'
 import { MinikubeHelper } from '../../platforms/minikube'
 import { MinishiftHelper } from '../../platforms/minishift'
+
+let kube: KubeHelper
 export default class Start extends Command {
   static description = 'start Eclipse Che Server'
 
@@ -52,6 +54,14 @@ export default class Start extends Command {
       default: '40000',
       required: true,
       env: 'CHE_SERVER_BOOT_TIMEOUT'
+    }),
+    k8spodwaittimeout: string({
+      description: 'Waiting time for Pod Wait Timeout Kubernetes (in milliseconds)',
+      default: '300000'
+    }),
+    k8spodreadytimeout: string({
+      description: 'Waiting time for Pod Ready Kubernetes (in milliseconds)',
+      default: '130000'
     }),
     'listr-renderer': string({
       description: 'Listr renderer. Can be \'default\', \'silent\' or \'verbose\'',
@@ -117,6 +127,7 @@ export default class Start extends Command {
 
   async run() {
     const { flags } = this.parse(Start)
+    kube = new KubeHelper(flags)
     Start.setPlaformDefaults(flags)
     const minikube = new MinikubeHelper()
     const minishift = new MinishiftHelper()
@@ -234,7 +245,6 @@ export default class Start extends Command {
   }
 
   podStartTasks(selector: string, namespace = ''): Listr {
-    const kube = new KubeHelper()
     return new Listr([
       {
         title: 'scheduling',

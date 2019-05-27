@@ -31,7 +31,7 @@ preferences: {}
 users:
 - name: minikube`
 
-const kube = new KubeHelper(kubeContext)
+const kube = new KubeHelper(undefined, kubeContext)
 
 describe('Kube API helper', () => {
   fancy

@@ -38,7 +38,7 @@ export default class Delete extends Command {
     const { flags } = this.parse(Delete)
     const Listr = require('listr')
     const notifier = require('node-notifier')
-    const kh = new KubeHelper()
+    const kh = new KubeHelper(flags)
     const oh = new OpenShiftHelper()
     const helm = new HelmHelper()
     const msAddon = new MinishiftAddonHelper()

@@ -16,8 +16,7 @@ import * as yaml from 'js-yaml'
 
 import { Devfile, DevfileCommand, DevfileComponent, DevfileProject, ProjectSource, TheEndpointName } from '../../api/devfile'
 import { KubeHelper } from '../../api/kube'
-
-const kube = new KubeHelper()
+let kube: KubeHelper
 const stringLitArray = <L extends string>(arr: L[]) => arr
 const languages = stringLitArray(['java', 'typescript', 'go', 'python', 'c#'])
 export type Language = (typeof languages)[number]
@@ -93,6 +92,7 @@ export default class Generate extends Command {
 
   async run() {
     const { flags } = this.parse(Generate)
+    kube = new KubeHelper(flags)
     const notifier = require('node-notifier')
 
     let name = flags.name || 'chectl-generated'

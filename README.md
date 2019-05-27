@@ -151,29 +151,34 @@ USAGE
   $ chectl server:start
 
 OPTIONS
-  -a, --installer=installer            Installer type. Valid values are "helm", "operator" and "minishift-addon"
+  -a, --installer=installer                Installer type. Valid values are "helm", "operator" and "minishift-addon"
 
-  -b, --domain=domain                  Domain of the Kubernetes/OpenShift cluster (e.g.
-                                       starter-us-east-2.openshiftapps.com or <local-ip>.nip.io)
+  -b, --domain=domain                      Domain of the Kubernetes/OpenShift cluster (e.g.
+                                           starter-us-east-2.openshiftapps.com or <local-ip>.nip.io)
 
-  -h, --help                           show CLI help
+  -h, --help                               show CLI help
 
-  -i, --cheimage=cheimage              [default: eclipse/che-server:nightly] Che server container image
+  -i, --cheimage=cheimage                  [default: eclipse/che-server:nightly] Che server container image
 
-  -m, --multiuser                      Starts che in multi-user mode
+  -m, --multiuser                          Starts che in multi-user mode
 
-  -n, --chenamespace=chenamespace      [default: che] Kubernetes namespace where Che resources will be deployed
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che resources will be deployed
 
-  -o, --cheboottimeout=cheboottimeout  (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
+  -o, --cheboottimeout=cheboottimeout      (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
 
-  -p, --platform=platform              [default: minikube] Type of Kubernetes platform. Valid values are "minikube",
-                                       "minishift".
+  -p, --platform=platform                  [default: minikube] Type of Kubernetes platform. Valid values are "minikube",
+                                           "minishift".
 
-  -s, --tls                            Enable TLS encryption and multi-user mode
+  -s, --tls                                Enable TLS encryption and multi-user mode
 
-  -t, --templates=templates            [default: templates] Path to the templates folder
+  -t, --templates=templates                [default: templates] Path to the templates folder
 
-  --listr-renderer=listr-renderer      [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
+  --k8spodreadytimeout=k8spodreadytimeout  [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
+
+  --k8spodwaittimeout=k8spodwaittimeout    [default: 300000] Waiting time for Pod Wait Timeout Kubernetes (in
+                                           milliseconds)
+
+  --listr-renderer=listr-renderer          [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
