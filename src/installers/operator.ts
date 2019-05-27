@@ -30,7 +30,7 @@ export class OperatorHelper {
 
   startTasks(flags: any, command: Command): Listr {
     const che = new CheHelper()
-    const kube = new KubeHelper()
+    const kube = new KubeHelper(flags)
     return new Listr([
       {
         title: `Create Namespace (${flags.chenamespace})`,

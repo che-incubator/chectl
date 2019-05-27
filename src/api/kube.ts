@@ -18,11 +18,24 @@ import * as yaml from 'js-yaml'
 export class KubeHelper {
   kc = new KubeConfig()
 
-  constructor(context?: string) {
+  podWaitTimeout: number
+  podReadyTimeout: number
+
+  constructor(flags?: any, context?: string) {
     if (!context) {
       this.kc.loadFromDefault()
     } else {
       this.kc.loadFromString(context)
+    }
+    if (flags && flags.k8spodwaittimeout) {
+      this.podWaitTimeout = parseInt(flags.k8spodwaittimeout, 10)
+    } else {
+      this.podWaitTimeout = 300000
+    }
+    if (flags && flags.k8spodreadytimeout) {
+      this.podReadyTimeout = parseInt(flags.k8spodreadytimeout, 10)
+    } else {
+      this.podReadyTimeout = 130000
     }
   }
 
@@ -266,7 +279,7 @@ export class KubeHelper {
     throw new Error(`Get pods by selector "${selector}" returned a pod without a status.condition of type "Ready"`)
   }
 
-  async waitForPodPhase(selector: string, targetPhase: string, namespace = '', intervalMs = 500, timeoutMs = 300000) {
+  async waitForPodPhase(selector: string, targetPhase: string, namespace = '', intervalMs = 500, timeoutMs = this.podWaitTimeout) {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
       let currentPhase = await this.getPodPhase(selector, namespace)
@@ -275,10 +288,10 @@ export class KubeHelper {
       }
       await cli.wait(intervalMs)
     }
-    throw new Error('ERR_TIMEOUT')
+    throw new Error(`ERR_TIMEOUT: Timeout set to pod wait timeout ${this.podWaitTimeout}`)
   }
 
-  async waitForPodPending(selector: string, namespace = '', intervalMs = 500, timeoutMs = 300000) {
+  async waitForPodPending(selector: string, namespace = '', intervalMs = 500, timeoutMs = this.podWaitTimeout) {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
       let podExist = await this.podsExistBySelector(selector, namespace)
@@ -292,10 +305,10 @@ export class KubeHelper {
       }
       await cli.wait(intervalMs)
     }
-    throw new Error('ERR_TIMEOUT')
+    throw new Error(`ERR_TIMEOUT: Timeout set to pod wait timeout ${this.podWaitTimeout}`)
   }
 
-  async waitForPodReady(selector: string, namespace = '', intervalMs = 500, timeoutMs = 130000) {
+  async waitForPodReady(selector: string, namespace = '', intervalMs = 500, timeoutMs = this.podReadyTimeout) {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
       let readyStatus = await this.getPodReadyConditionStatus(selector, namespace)
@@ -307,10 +320,10 @@ export class KubeHelper {
       }
       await cli.wait(intervalMs)
     }
-    throw new Error('ERR_TIMEOUT')
+    throw new Error(`ERR_TIMEOUT: Timeout set to pod ready timeout ${this.podReadyTimeout}`)
   }
 
-  async waitUntilPodIsDeleted(selector: string, namespace = '', intervalMs = 500, timeoutMs = 130000) {
+  async waitUntilPodIsDeleted(selector: string, namespace = '', intervalMs = 500, timeoutMs = this.podReadyTimeout) {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
       let readyStatus = await this.getPodReadyConditionStatus(selector, namespace)
@@ -322,7 +335,7 @@ export class KubeHelper {
       }
       await cli.wait(intervalMs)
     }
-    throw new Error('ERR_TIMEOUT')
+    throw new Error(`ERR_TIMEOUT: Timeout set to pod ready timeout ${this.podReadyTimeout}`)
   }
 
   async deletePod(name: string, namespace = '') {
