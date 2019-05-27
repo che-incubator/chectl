@@ -170,7 +170,7 @@ export default class Start extends Command {
       // Installers use distinct ingress names
       installerTasks.add({
         title: '🏃‍  Running the Che minishift-addon',
-        task: () => minishiftAddon.startTasks(flags)
+        task: () => minishiftAddon.startTasks(flags, this)
       })
     } else {
       this.error(`Installer ${flags.installer} is not supported ¯\\_(ツ)_/¯`)
