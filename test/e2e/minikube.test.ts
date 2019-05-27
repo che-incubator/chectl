@@ -15,7 +15,7 @@ jest.setTimeout(600000)
 /*
 ## Before
 PROFILE=chectl-e2e-tests
-minikube start --memory=8192 --docker-opt userland-proxy=false -p ${PROFILE}
+minikube start --memory=8192 -p ${PROFILE}
 minikube profile ${PROFILE}
 
 yarn test --coverage=false --testRegex=/test/e2e/minikube.test.ts
