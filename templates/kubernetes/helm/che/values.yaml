@@ -42,6 +42,7 @@ global:
     useCertManager: true
     useStaging: true
     secretName: che-tls
+    useSelfSignedCerts: false
     email: user@example.com
   gitHubClientID: ""
   gitHubClientSecret: ""
@@ -52,12 +53,19 @@ global:
   # if `cheWorkspacesNamespace` is configured then service account with configured name will be created by helm chart during deploying Che
   # if `cheWorkspacesNamespace` is empty then Che Server creates new namespace for each workspace and ensures that configured SA exists there
   cheWorkspaceServiceAccount: "che-workspace"
+  # If set, Che will bind the specified cluster role to the workspace service account when creating a workspace.
+  cheWorkspaceClusterRole: ""
   workspaceIdleTimeout: "-1"
   log:
     loggerConfig: ""
     appenderName: "plaintext"
   tracingEnabled: false
   metricsEnabled: false
+  # Run Che and Che workspaces as the same non-root user
+  securityContext:
+    runAsUser: 1724
+    fsGroup: 1724
+  postgresDebugLogs: false
 
 prometheus:
   alertmanager:
