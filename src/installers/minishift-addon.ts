@@ -9,8 +9,11 @@
  **********************************************************************/
 // tslint:disable:object-curly-spacing
 
+import Command from '@oclif/command'
 import * as execa from 'execa'
 import * as Listr from 'listr'
+
+import { OpenShiftHelper } from '../api/openshift'
 
 export class MinishiftAddonHelper {
   static getImageRepository(image: string): string {
@@ -29,8 +32,25 @@ export class MinishiftAddonHelper {
     }
   }
 
-  startTasks(flags: any): Listr {
+  startTasks(flags: any, command: Command): Listr {
     return new Listr([
+      {
+        title: 'Check logged',
+        task: async (_ctx: any, task: any) => {
+          await this.checkLogged(flags)
+          task.title = `${task.title}...done.`
+        }
+      },
+      {
+        title: 'Check che addon is available',
+        task: async (_ctx: any, task: any) => {
+          const available = await this.checkAddonIsThere()
+          if (!available) {
+            command.error('The minishift che addon is not part of the current minishift installation. Please install the addon first. Note: che addon is now part of latest minishift.')
+          }
+          task.title = `${task.title}...done.`
+        }
+      },
       {
         title: 'Apply Che addon',
         task: async (_ctx: any, task: any) => {
@@ -39,6 +59,22 @@ export class MinishiftAddonHelper {
         }
       }
     ], {renderer: flags['listr-renderer'] as any})
+  }
+
+  async checkLogged(command: Command) {
+    const openshiftHelper = new OpenShiftHelper()
+    const ok = await openshiftHelper.status()
+    if (!ok) {
+      command.error('Not logged with OC tool. Please log-in with oc login command')
+    }
+  }
+
+  async checkAddonIsThere() {
+    let args = ['addon', 'list']
+    const { stdout} = await execa('minishift',
+                                     args,
+                                     {reject: false })
+    return stdout && stdout.includes('- che')
   }
 
   async applyAddon(flags: any, execTimeout= 120000) {
