@@ -125,6 +125,13 @@ export default class Start extends Command {
     const operator = new OperatorHelper()
     const minishiftAddon = new MinishiftAddonHelper()
 
+    // matrix checks
+    if (flags.platform === 'minikube' && flags.installer && flags.installer === 'minishift-addon') {
+      this.error(`🛑 Current platform is ${flags.platform }. Minishift addon is only available on top of Minishift platform.`)
+    } else if (flags.platform === 'minishift' && flags.installer && flags.installer === 'helm') {
+      this.error(`🛑 Current platform is ${flags.platform }. Helm installer is only available on top of Minikube platform.`)
+    }
+
     // Platform Checks
     let platformCheckTasks = new Listr(undefined, {renderer: flags['listr-renderer'] as any, collapse: false})
     if (flags.platform === 'minikube') {
