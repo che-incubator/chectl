@@ -9,8 +9,11 @@
  **********************************************************************/
 // tslint:disable:object-curly-spacing
 import { expect, fancy } from 'fancy-test'
+import * as execa from 'execa'
 
 import {MinishiftAddonHelper} from '../../src/installers/minishift-addon'
+
+jest.mock('execa')
 
 describe('Minishift addon helper', () => {
   fancy
@@ -41,4 +44,21 @@ describe('Minishift addon helper', () => {
       expect(tag).to.equal('latest')
     })
 
-})
+    fancy
+    .it('check grab Version 1.34', async () => {
+      const minishiftVersionOutput = 'minishift v1.34.0+f5db7cb';
+      (execa as any).mockResolvedValue({ code: 0, stdout: minishiftVersionOutput })
+      const version = await MinishiftAddonHelper.grabVersion();
+      expect(version).to.equal(134)
+    })
+
+    fancy
+    .it('check grab Version 1.33', async () => {
+      const minishiftVersionOutput = 'minishift v1.33.0+ba29431';
+      (execa as any).mockResolvedValue({ code: 0, stdout: minishiftVersionOutput })
+      const version = await MinishiftAddonHelper.grabVersion();
+      expect(version).to.equal(133)
+    })
+
+
+  })
