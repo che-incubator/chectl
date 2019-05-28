@@ -32,12 +32,34 @@ export class MinishiftAddonHelper {
     }
   }
 
+  static async grabVersion(): Promise<number> {
+    let args = ['version']
+    const { stdout} = await execa('minishift',
+                                     args,
+                                     {reject: false })
+    if (stdout) {
+      return parseInt(stdout.replace(/\D/g, '').substring(0, 3), 10)
+    }
+    return -1
+
+  }
+
   startTasks(flags: any, command: Command): Listr {
     return new Listr([
       {
+        title: 'Check minishift version',
+        task: async (_ctx: any, task: any) => {
+          const version = await MinishiftAddonHelper.grabVersion()
+          if (version < 133) {
+            command.error('The minishift che addon is requiring minishift version >= 1.33.0. Please update your minishift installation with "minishift update" command.')
+          }
+          task.title = `${task.title}...done.`
+        }
+      },
+      {
         title: 'Check logged',
         task: async (_ctx: any, task: any) => {
-          await this.checkLogged(flags)
+          await this.checkLogged(command)
           task.title = `${task.title}...done.`
         }
       },
