@@ -49,6 +49,9 @@ export default class Start extends Command {
     const Listr = require('listr')
     const notifier = require('node-notifier')
     const che = new CheHelper()
+    if (!flags.devfile || !flags.workspaceconfig) {
+      this.error('workspace:start command is expecting a devfile or workspace configuration parameter.')
+    }
     const tasks = new Listr([
       {
         title: 'Retrieving Che Server URL',
