@@ -28,7 +28,7 @@ export default class Start extends Command {
     }),
     devfile: string({
       char: 'f',
-      description: 'path to a valid devfile',
+      description: 'path or URL to a valid devfile',
       env: 'DEVFILE_PATH',
       required: false,
     }),

@@ -124,7 +124,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.1.4/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.1.6/src/commands/help.ts)_
 
 ## `chectl server:delete`
 
@@ -268,7 +268,7 @@ USAGE
   $ chectl workspace:start
 
 OPTIONS
-  -f, --devfile=devfile                  path to a valid devfile
+  -f, --devfile=devfile                  path or URL to a valid devfile
   -h, --help                             show CLI help
   -n, --chenamespace=chenamespace        [default: che] kubernetes namespace where Che server is deployed
   -w, --workspaceconfig=workspaceconfig  path to a valid workspace configuration json file

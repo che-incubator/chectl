@@ -16,6 +16,7 @@ import { CheHelper } from '../../src/api/che'
 const namespace = 'che'
 const workspace = 'workspace-0123'
 const cheURL = 'https://che-che.192.168.64.34.nip.io'
+const devfileServerURL = 'https://devfile-server'
 let ch = new CheHelper()
 let kc = ch.kc
 let k8sApi = new Core_v1Api()
@@ -122,6 +123,28 @@ describe('Che helper', () => {
       .do(() => ch.createWorkspaceFromDevfile(namespace, __dirname + '/requests/devfile.inexistent'))
       .catch(/E_NOT_FOUND_DEVFILE/)
       .it('fails creating a workspace from a non-existing devfile')
+    fancy
+      .stub(ch, 'cheNamespaceExist', () => true)
+      .stub(ch, 'cheURL', () => cheURL)
+      .nock(devfileServerURL, api => api
+        .get('/devfile.yaml')
+        .replyWithFile(200, __dirname + '/requests/devfile.valid', { 'Content-Type': 'text/plain; charset=utf-8' }))
+      .nock(cheURL, api => api
+        .post('/api/devfile')
+        .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
+      .it('succeeds creating a workspace from a remote devfile', async () => {
+        const res = await ch.createWorkspaceFromDevfile(namespace, devfileServerURL + '/devfile.yaml')
+        expect(res).to.equal('https://che-che.192.168.64.39.nip.io/dashboard/#/ide/che/chectl')
+      })
+    fancy
+      .stub(ch, 'cheNamespaceExist', () => true)
+      .stub(ch, 'cheURL', () => cheURL)
+      .nock(devfileServerURL, api => api
+        .get('/devfile.yaml')
+        .reply(404, '404 - Not Found'))
+      .do(() => ch.createWorkspaceFromDevfile(namespace, devfileServerURL + '/devfile.yaml'))
+      .catch(/E_NOT_FOUND_DEVFILE/)
+      .it('fails creating a workspace from a non-existing remote devfile')
   })
   describe('createWorkspaceFromWorkspaceConfig', () => {
     fancy
