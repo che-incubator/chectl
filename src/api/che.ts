@@ -222,7 +222,7 @@ export class CheHelper {
     let devfile
     let response
     try {
-      devfile = fs.readFileSync(devfilePath, 'utf8')
+      devfile = await this.parseDevfile(devfilePath)
       response = await axios.post(endpoint, devfile, {headers: {'Content-Type': 'text/yaml'}})
     } catch (error) {
       if (!devfile) { throw new Error(`E_NOT_FOUND_DEVFILE - ${devfilePath} - ${error.message}`) }
@@ -237,7 +237,15 @@ export class CheHelper {
     } else {
       throw new Error('E_BAD_RESP_CHE_SERVER')
     }
+  }
 
+  async parseDevfile(devfilePath = ''): Promise<string> {
+    if (devfilePath.startsWith('http')) {
+      const response = await axios.get(devfilePath)
+      return response.data
+    } else {
+      return fs.readFileSync(devfilePath, 'utf8')
+    }
   }
 
   async createWorkspaceFromWorkspaceConfig(namespace: string | undefined, workspaceConfigPath = ''): Promise<string> {

@@ -28,7 +28,7 @@ export default class Start extends Command {
     }),
     devfile: string({
       char: 'f',
-      description: 'path to a valid devfile',
+      description: 'path or URL to a valid devfile',
       env: 'DEVFILE_PATH',
       required: false,
     }),
@@ -49,7 +49,7 @@ export default class Start extends Command {
     const Listr = require('listr')
     const notifier = require('node-notifier')
     const che = new CheHelper()
-    if (!flags.devfile || !flags.workspaceconfig) {
+    if (!flags.devfile && !flags.workspaceconfig) {
       this.error('workspace:start command is expecting a devfile or workspace configuration parameter.')
     }
     const tasks = new Listr([
