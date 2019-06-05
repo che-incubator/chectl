@@ -15,7 +15,7 @@
     "@oclif/plugin-autocomplete": "^0.1.1",
     "@oclif/plugin-help": "^2",
     "@types/command-exists": "^1.2.0",
-    "@types/fs-extra": "^5.0.4",
+    "@types/fs-extra": "^7.0.0",
     "@types/ncp": "^2.0.1",
     "@types/node-notifier": "^0.0.28",
     "@types/request": "^2.48.1",
