@@ -37,7 +37,7 @@ timeout(180) {
 		}
 		catch (Exception e) {
 			echo "[ERROR] npm failed: ${e}"
-			archiveArtifacts fingerprint: false, artifacts:"**/*.log, **/*logs/**"
+			archiveArtifacts fingerprint: false, artifacts:"/home/hudson/.npm/_logs/*-debug.log, **/*.log, **/*logs/**, **/*.tar.gz"
 		}
 
 		// TODO remove this in favour of oclif
