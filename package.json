@@ -12,7 +12,7 @@
     "@oclif/command": "^1",
     "@oclif/config": "^1",
     "@oclif/parser": "^3.7.0",
-    "@oclif/plugin-autocomplete": "^0.1.0",
+    "@oclif/plugin-autocomplete": "^0.1.1",
     "@oclif/plugin-help": "^2",
     "@types/command-exists": "^1.2.0",
     "@types/fs-extra": "^5.0.4",
