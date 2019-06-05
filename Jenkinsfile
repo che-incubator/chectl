@@ -8,7 +8,7 @@
 def installNPM(){
 	def nodeHome = tool 'nodejs-10.15.3'
 	env.PATH="${env.PATH}:${nodeHome}/bin"
-	sh "npm install -g yarn pkg"
+	sh "npm install -g yarn pkg cpx rimraf"
 	sh "npm version"
 }
 
