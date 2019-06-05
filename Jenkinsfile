@@ -31,7 +31,15 @@ timeout(180) {
 		SHA_CTL = sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short=4 HEAD").trim()
 		sh "cd ${CTL_path}/ && sed -i -e 's#version\": \"\\(.*\\)\",#version\": \"\\1-'${SHA_CTL}'\",#' package.json"
 		sh "cd ${CTL_path}/ && grep -v oclif package.json | grep -e version"
-		sh "cd ${CTL_path}/ && npm install --verbose && yarn pack --verbose"
+
+		try {
+			sh "cd ${CTL_path}/ && npm install --verbose && yarn pack --verbose"
+		}
+		catch (exc) {
+			echo "npm failed!"
+			archiveArtifacts fingerprint: false, artifacts:"**/*.log, **/*logs/**"
+			throw
+		}
 
 		// TODO remove this in favour of oclif
 		//sh "cd ${CTL_path}/ && pkg . -t node10-linux-x64,node10-macos-x64,node10-win-x64 --options max_old_space_size=1024 --out-path ./bin/ && ls -la ./bin/"
