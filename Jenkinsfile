@@ -37,7 +37,8 @@ timeout(180) {
 		}
 		catch (Exception e) {
 			echo "[ERROR] npm failed: ${e}"
-			archiveArtifacts fingerprint: false, artifacts:"/home/hudson/.npm/_logs/*-debug.log, **/*.log, **/*logs/**, **/*.tar.gz"
+			sh "echo `ls /home/hudson/.npm/_logs/ | grep debug.log | sort -V | tail -1`"
+			sh "cat `ls /home/hudson/.npm/_logs/ | grep debug.log | sort -V | tail -1`"
 		}
 
 		// TODO remove this in favour of oclif
