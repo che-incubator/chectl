@@ -35,10 +35,9 @@ timeout(180) {
 		try {
 			sh "cd ${CTL_path}/ && npm install --verbose && yarn pack --verbose"
 		}
-		catch (exc) {
-			echo "npm failed!"
+		catch (Exception e) {
+			echo "[ERROR] npm failed: ${e}"
 			archiveArtifacts fingerprint: false, artifacts:"**/*.log, **/*logs/**"
-			throw
 		}
 
 		// TODO remove this in favour of oclif
@@ -68,5 +67,8 @@ timeout(180) {
 EOF
 		done
 		'''
+
+		archiveArtifacts fingerprint: false, artifacts:"**/*.log, **/*logs/**, **/*.tar.gz"
+
 	}
 }
