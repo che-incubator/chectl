@@ -2,7 +2,8 @@
 
 // PARAMETERS for this pipeline:
 // branchToBuildCTL = refs/tags/20190401211444 or master
-// DESTINATION = user@host_or_ip:/path/to/che-incubator/chectl/
+// DESTINATION = user@host_or_ip:/path/to/che-incubator/chectl
+// BASE_URL = http://host_or_ip/path/to/che-incubator/chectl
 
 def installNPM(){
 	def nodeHome = tool 'nodejs-10.9.0'
@@ -45,6 +46,18 @@ timeout(180) {
 		//sh "cd ${CTL_path}/ && ls -laR ./bin/ && rsync -arzq --protocol=28 ./bin/chectl-* --delete ${DESTINATION}/bin/"
 
 		unstash 'stashDist'
-		sh "cd ${CTL_path}/ && find ./dist/ -name \"*.tar*\" && rsync -arzq --protocol=28 ./dist/channels/${SHA_CTL}/* ${DESTINATION}/dist/"
+		sh '''#!/bin/bash -xe
+		cd ${CTL_path}/ && find ./dist/ -name \"*.tar*\" && rsync -arzq --protocol=28 ./dist/channels/${SHA_CTL}/* ${DESTINATION}/dist/
+
+		for platform in darwin-x64 linux-x64 linux-arm; do
+			cat << EOF > /tmp/${platform}
+{
+"version" : "${SHA_CTL}",
+"channel": "stable",
+"gz" : "${BASE_URL}/dist/chectl-v${SHA_CTL}/chectl-v${SHA_CTL}-${platform}.tar.gz"
+}
+EOF
+		done
+		'''
 	}
 }
