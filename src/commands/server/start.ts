@@ -21,6 +21,7 @@ import { KubeHelper } from '../../api/kube'
 import { HelmHelper } from '../../installers/helm'
 import { MinishiftAddonHelper } from '../../installers/minishift-addon'
 import { OperatorHelper } from '../../installers/operator'
+import { MicroK8sHelper } from '../../platforms/microk8s'
 import { MinikubeHelper } from '../../platforms/minikube'
 import { MinishiftHelper } from '../../platforms/minishift'
 
@@ -89,7 +90,7 @@ export default class Start extends Command {
     }),
     platform: string({
       char: 'p',
-      description: 'Type of Kubernetes platform. Valid values are \"minikube\", \"minishift\".',
+      description: 'Type of Kubernetes platform. Valid values are \"minikube\", \"minishift\", \"microk8s\".',
       default: 'minikube'
     })
 
@@ -130,6 +131,7 @@ export default class Start extends Command {
     kube = new KubeHelper(flags)
     Start.setPlaformDefaults(flags)
     const minikube = new MinikubeHelper()
+    const microk8s = new MicroK8sHelper()
     const minishift = new MinishiftHelper()
     const helm = new HelmHelper()
     const che = new CheHelper()
@@ -137,7 +139,8 @@ export default class Start extends Command {
     const minishiftAddon = new MinishiftAddonHelper()
 
     // matrix checks
-    if (flags.platform === 'minikube' && flags.installer && flags.installer === 'minishift-addon') {
+    const k8sctx = flags.platform === 'minikube' || flags.platform === 'microk8s'
+    if (k8sctx && flags.installer && flags.installer === 'minishift-addon') {
       this.error(`🛑 Current platform is ${flags.platform }. Minishift addon is only available on top of Minishift platform.`)
     } else if (flags.platform === 'minishift' && flags.installer && flags.installer === 'helm') {
       this.error(`🛑 Current platform is ${flags.platform }. Helm installer is only available on top of Minikube platform.`)
@@ -154,6 +157,11 @@ export default class Start extends Command {
       platformCheckTasks.add({
         title: '✈️  Minishift preflight checklist',
         task: () => minishift.startTasks(flags, this)
+      })
+    } else if (flags.platform === 'microk8s') {
+      platformCheckTasks.add({
+        title: '✈️  MicroK8s preflight checklist',
+        task: () => microk8s.startTasks(flags, this)
       })
     } else {
       this.error(`Platformm ${flags.platform} is not supported yet ¯\\_(ツ)_/¯`)
