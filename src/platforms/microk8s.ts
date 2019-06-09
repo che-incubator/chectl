@@ -79,7 +79,8 @@ export class MicroK8sHelper {
       { title: 'Retrieving microk8s IP and domain for ingress URLs',
         enabled: () => flags.domain !== undefined,
         task: async (_ctx: any, task: any) => {
-          flags.domain = '127.0.0.1.nip.io'
+          const ip = await this.getMicroK8sIP()
+          flags.domain = ip + '.nip.io'
           task.title = `${task.title}...${flags.domain}.`
         }
       },
@@ -109,5 +110,11 @@ export class MicroK8sHelper {
 
   async enableStorageAddon() {
     await execa('microk8s.enable', ['storage'], { timeout: 10000 })
+  }
+
+  async getMicroK8sIP(): Promise<string> {
+    const { stdout } = await execa('microk8s.config', { timeout: 10000 })
+    const regMatch = /server:\s*https?:\/\/([\d.]+)/.exec(stdout)
+    return regMatch ? regMatch[1] : ''
   }
 }
