@@ -351,11 +351,11 @@
     semver "^5.6.0"
 
 "@oclif/config@^1", "@oclif/config@^1.6.22", "@oclif/config@^1.8.7":
-  version "1.10.2"
-  resolved "https://registry.yarnpkg.com/@oclif/config/-/config-1.10.2.tgz#7fe1ee81547da2b08c04065064ce2f85239e9d3c"
-  integrity sha512-SWa2ifzb7BFQayPHeIopFvCac5hHTItYKAf0g5tITYcASiAhkw3d6r8O9wuBJo4NuMfhmpGtpjDp0rZpwJ9Q+w==
+  version "1.13.0"
+  resolved "https://registry.yarnpkg.com/@oclif/config/-/config-1.13.0.tgz#fc2bd82a9cb30a73faf7d2aa5ae937c719492bd1"
+  integrity sha512-ttb4l85q7SBx+WlUJY4A9eXLgv4i7hGDNGaXnY9fDKrYD7PBMwNOQ3Ssn2YT2yARAjyOxVE/5LfcwhQGq4kzqg==
   dependencies:
-    debug "^4.1.0"
+    debug "^4.1.1"
     tslib "^1.9.3"
 
 "@oclif/dev-cli@^1":
