@@ -11,7 +11,7 @@
     "@kubernetes/client-node": "^0.7.2",
     "@oclif/command": "^1",
     "@oclif/config": "^1",
-    "@oclif/parser": "^3.7.0",
+    "@oclif/parser": "^3.8.1",
     "@oclif/plugin-autocomplete": "^0.1.1",
     "@oclif/plugin-help": "^2",
     "@types/command-exists": "^1.2.0",
