@@ -14,6 +14,7 @@
     "@oclif/parser": "^3.8.1",
     "@oclif/plugin-autocomplete": "^0.1.1",
     "@oclif/plugin-help": "^2",
+    "@oclif/plugin-update": "^1.3.9",
     "@types/command-exists": "^1.2.0",
     "@types/fs-extra": "^7.0.0",
     "@types/ncp": "^2.0.1",
@@ -79,7 +80,8 @@
     },
     "plugins": [
       "@oclif/plugin-autocomplete",
-      "@oclif/plugin-help"
+      "@oclif/plugin-help",
+      "@oclif/plugin-update"
     ],
     "topics": {
       "server": {
@@ -87,6 +89,23 @@
       },
       "workspace": {
         "description": "control Che workspaces"
+      }
+    },
+    "update": {
+      "s3": {
+        "host": "https://download.jboss.org/jbosstools/che-incubator/chectl/dist",
+        "templates": {
+          "target": {
+            "unversioned": "<%- bin %>-v<%- version %>/<%- bin %>-v<%- version %>-<%- platform %>-<%- arch %><%- ext %>",
+            "versioned": "<%- bin %>-v<%- version %>/<%- bin %>-v<%- version %>-<%- platform %>-<%- arch %><%- ext %>",
+            "manifest": "<%- platform %>-<%- arch %>"
+          },
+          "vanilla": {
+            "unversioned": "<%- bin %>-v<%- version %>/<%- bin %>-v<%- version %>-<%- platform %>-<%- arch %><%- ext %>",
+            "versioned": "<%- bin %>-v<%- version %>/<%- bin %>-v<%- version %>-<%- platform %>-<%- arch %><%- ext %>",
+            "manifest": "<%- platform %>-<%- arch %>"
+          }
+        }
       }
     }
   },
