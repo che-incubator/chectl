@@ -98,8 +98,10 @@ export default class Generate extends Command {
     let name = flags.name || 'chectl-generated'
 
     let devfile: Devfile = {
-      specVersion: '0.0.1',
-      name
+      apiVersion: '1.0.0',
+      metadata: {
+        name
+      }
     }
 
     if (flags['git-repo'] !== undefined) {
