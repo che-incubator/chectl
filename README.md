@@ -285,6 +285,9 @@ OPTIONS
   -n, --chenamespace=chenamespace        [default: che] kubernetes namespace where Che server is deployed
   -w, --workspaceconfig=workspaceconfig  path to a valid workspace configuration json file
   --listr-renderer=listr-renderer        [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
+
+  --name=name                            workspace name: overrides the workspace name to use instead of the one defined
+                                         in the devfile. Works only for devfile
 ```
 
 _See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
