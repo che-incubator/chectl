@@ -14,9 +14,12 @@ import { Core_v1Api, KubeConfig } from '@kubernetes/client-node'
 import axios from 'axios'
 import { cli } from 'cli-ux'
 import * as fs from 'fs'
+import * as yaml from 'js-yaml'
 
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
+
+import { Devfile } from './devfile'
 
 export class CheHelper {
   defaultCheResponseTimeoutMs = 3000
@@ -213,7 +216,7 @@ export class CheHelper {
     }
   }
 
-  async createWorkspaceFromDevfile(namespace: string | undefined, devfilePath = ''): Promise<string> {
+  async createWorkspaceFromDevfile(namespace: string | undefined, devfilePath = '', workspaceName: string | undefined): Promise<string> {
     if (!await this.cheNamespaceExist(namespace)) {
       throw new Error('E_BAD_NS')
     }
@@ -223,6 +226,11 @@ export class CheHelper {
     let response
     try {
       devfile = await this.parseDevfile(devfilePath)
+      if (workspaceName) {
+        let json: Devfile = yaml.load(devfile)
+        json.metadata.name = workspaceName
+        devfile = yaml.dump(json)
+      }
       response = await axios.post(endpoint, devfile, {headers: {'Content-Type': 'text/yaml'}})
     } catch (error) {
       if (!devfile) { throw new Error(`E_NOT_FOUND_DEVFILE - ${devfilePath} - ${error.message}`) }

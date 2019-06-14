@@ -38,6 +38,10 @@ export default class Start extends Command {
       env: 'WORKSPACE_CONFIG_JSON_PATH',
       required: false,
     }),
+    name: string({
+      description: 'workspace name: overrides the workspace name to use instead of the one defined in the devfile. Works only for devfile',
+      required: false,
+    }),
     'listr-renderer': string({
       description: 'Listr renderer. Can be \'default\', \'silent\' or \'verbose\'',
       default: 'default'
@@ -72,7 +76,7 @@ export default class Start extends Command {
         title: `Create workspace from Devfile ${flags.devfile}`,
         enabled: () => flags.devfile !== undefined,
         task: async (ctx: any) => {
-          ctx.workspaceIdeURL = await che.createWorkspaceFromDevfile(flags.chenamespace, flags.devfile)
+          ctx.workspaceIdeURL = await che.createWorkspaceFromDevfile(flags.chenamespace, flags.devfile, flags.name)
         }
       },
       {
