@@ -75,7 +75,7 @@ EXAMPLES
   $ chectl autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.0/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.1/src/commands/autocomplete/index.ts)_
 
 ## `chectl devfile:generate`
 
@@ -124,7 +124,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.1.6/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.0/src/commands/help.ts)_
 
 ## `chectl server:delete`
 
@@ -167,7 +167,7 @@ OPTIONS
   -o, --cheboottimeout=cheboottimeout      (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
 
   -p, --platform=platform                  [default: minikube] Type of Kubernetes platform. Valid values are "minikube",
-                                           "minishift".
+                                           "minishift", "k8s", "openshift".
 
   -s, --tls                                Enable TLS encryption and multi-user mode
 

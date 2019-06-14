@@ -69,6 +69,18 @@ export class KubeHelper {
     throw new Error('ERR_LIST_SERVICES')
   }
 
+  async waitForService(selector: string, namespace = '', intervalMs = 500, timeoutMs = 30000) {
+    const iterations = timeoutMs / intervalMs
+    for (let index = 0; index < iterations; index++) {
+      let currentServices = await this.getServicesBySelector(selector, namespace)
+      if (currentServices && currentServices.items.length > 0) {
+        return
+      }
+      await cli.wait(intervalMs)
+    }
+    throw new Error(`ERR_TIMEOUT: Timeout set to waiting for service ${timeoutMs}`)
+  }
+
   async serviceAccountExist(name = '', namespace = ''): Promise<boolean | ''> {
     const k8sApi = this.kc.makeApiClient(Core_v1Api)
     try {
@@ -535,6 +547,10 @@ export class KubeHelper {
     } catch (e) {
       throw new Error(e.body.message)
     }
+  }
+
+  async currentContext(): Promise<string> {
+    return this.kc.getCurrentContext()
   }
 
   async checkKubeApi() {
