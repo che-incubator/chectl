@@ -14,11 +14,12 @@ import { Core_v1Api, KubeConfig } from '@kubernetes/client-node'
 import axios from 'axios'
 import { cli } from 'cli-ux'
 import * as fs from 'fs'
+import * as yaml from 'js-yaml'
 
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
+
 import { Devfile } from './devfile'
-import * as yaml from 'js-yaml'
 
 export class CheHelper {
   defaultCheResponseTimeoutMs = 3000
@@ -228,7 +229,7 @@ export class CheHelper {
       if (workspaceName) {
         let json: Devfile = yaml.load(devfile)
         json.metadata.name = workspaceName
-        devfile = yaml.dump(json);
+        devfile = yaml.dump(json)
       }
       response = await axios.post(endpoint, devfile, {headers: {'Content-Type': 'text/yaml'}})
     } catch (error) {
