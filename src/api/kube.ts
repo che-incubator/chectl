@@ -504,6 +504,17 @@ export class KubeHelper {
     }
   }
 
+  async createDeploymentFromFile(filePath: string, namespace = '') {
+    const yamlFile = readFileSync(filePath)
+    const yamlDeployment = yaml.safeLoad(yamlFile.toString()) as V1Deployment
+    const k8sAppsApi = this.kc.makeApiClient(Apps_v1Api)
+    try {
+      return await k8sAppsApi.createNamespacedDeployment(namespace, yamlDeployment)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
   async deleteAllDeployments(namespace = '') {
     const k8sAppsApi = this.kc.makeApiClient(Apps_v1Api)
     try {
