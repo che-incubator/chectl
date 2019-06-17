@@ -1,0 +1,53 @@
+#
+#  Copyright (c) 2012-2019 Red Hat, Inc.
+#    This program and the accompanying materials are made
+#    available under the terms of the Eclipse Public License 2.0
+#    which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+#  SPDX-License-Identifier: EPL-2.0
+#
+#  Contributors:
+#    Red Hat, Inc. - initial API and implementation
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: che-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: che-operator
+  template:
+    metadata:
+      labels:
+        name: che-operator
+    spec:
+      serviceAccountName: che-operator
+      containers:
+        - name: che-operator
+          image: eivantsov/operator
+          ports:
+          - containerPort: 60000
+            name: metrics
+          command:
+          - che-operator
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            exec:
+              command:
+                - stat
+                - /tmp/operator-sdk-ready
+            initialDelaySeconds: 4
+            periodSeconds: 10
+            failureThreshold: 1
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "che-operator"

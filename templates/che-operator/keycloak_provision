@@ -1,0 +1,34 @@
+$script config credentials --server http://0.0.0.0:8080/auth \
+                                        --realm master \
+                                        --user $keycloakAdminUserName \
+                                        --password $keycloakAdminPassword \
+&& $script update realms/master -s sslRequired=none \
+&& $script get realms/$keycloakRealm; \
+if [ $? -eq 0 ]; then echo "Realm exists"; exit 0; fi \
+&& $script create realms  -s realm='$keycloakRealm' \
+                                        -s displayName='$realmDisplayName' \
+                                        -s enabled=true \
+                                        -s sslRequired=none \
+                                        -s registrationAllowed=true \
+                                        -s resetPasswordAllowed=true \
+                                        -s loginTheme=$keycloakTheme \
+                                        -s accountTheme=$keycloakTheme \
+                                        -s adminTheme=$keycloakTheme \
+                                        -s emailTheme=$keycloakTheme \
+&& $script create clients -r '$keycloakRealm' \
+                                        -s clientId=$keycloakClientId \
+                                        -s id=$keycloakClientId \
+                                        -s 'webOrigins=["http://$cheHost", "https://$cheHost"]' \
+                                        -s 'redirectUris=["http://$cheHost/*", "https://$cheHost/*"]' \
+                                        -s 'directAccessGrantsEnabled'=true \
+                                        -s publicClient=true \
+&& $script create users   -s username=admin \
+                                        -s email=\"admin@admin.com\" \
+                                        -s enabled=true -r '$keycloakRealm' \
+                                        -s 'requiredActions=[$requiredActions]' \
+&& $script set-password   -r '$keycloakRealm' --username admin \
+                                        --new-password admin \
+&& $script add-roles      -r '$keycloakRealm' \
+                                        --uusername admin \
+                                        --cclientid broker \
+                                        --rolename read-token

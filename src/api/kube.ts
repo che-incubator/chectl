@@ -9,7 +9,7 @@
  **********************************************************************/
 // tslint:disable:object-curly-spacing
 
-import { ApisApi, Apps_v1Api, Core_v1Api, Extensions_v1beta1Api, KubeConfig, RbacAuthorization_v1Api, V1beta1IngressList, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodSpec, V1PodTemplateSpec, V1RoleBinding, V1RoleRef, V1ServiceAccount, V1ServiceList, V1Subject} from '@kubernetes/client-node'
+import { ApisApi, Apps_v1Api, Core_v1Api, Extensions_v1beta1Api, KubeConfig, RbacAuthorization_v1Api, V1beta1IngressList, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1ServiceAccount, V1ServiceList, V1Subject, Apiextensions_v1beta1Api, V1beta1CustomResourceDefinition} from '@kubernetes/client-node'
 import axios from 'axios'
 import { cli } from 'cli-ux'
 import { readFileSync } from 'fs'
@@ -116,6 +116,28 @@ export class KubeHelper {
     }
   }
 
+  async createServiceAccountFromFile(filePath: string, namespace = '') {
+    const yamlFile = readFileSync(filePath)
+    const yamlServiceAccount = yaml.safeLoad(yamlFile.toString()) as V1ServiceAccount
+    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    try {
+      return await k8sCoreApi.createNamespacedServiceAccount(namespace, yamlServiceAccount)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
+  async createRoleFromFile(filePath: string, namespace = '') {
+    const yamlFile = readFileSync(filePath)
+    const yamlRole = yaml.safeLoad(yamlFile.toString()) as V1Role
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    try {
+      return await k8sRbacAuthApi.createNamespacedRole(namespace, yamlRole)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
   async roleBindingExist(name = '', namespace = ''): Promise<boolean | ''> {
     const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
     try {
@@ -144,6 +166,17 @@ export class KubeHelper {
     rb.subjects = [subject]
     try {
       return await k8sRbacAuthApi.createNamespacedRoleBinding(namespace, rb)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
+  async createRoleBindingFromFile(filePath: string, namespace = '') {
+    const yamlFile = readFileSync(filePath)
+    const yamlRoleBinding = yaml.safeLoad(yamlFile.toString()) as V1RoleBinding
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    try {
+      return await k8sRbacAuthApi.createNamespacedRoleBinding(namespace, yamlRoleBinding)
     } catch (e) {
       throw new Error(e.body.message)
     }
@@ -546,6 +579,29 @@ export class KubeHelper {
       await k8sExtensionsApi.deleteCollectionNamespacedIngress(namespace)
     } catch (e) {
       throw new Error(e.body.message)
+    }
+  }
+
+  async createCrdFromFile(filePath: string) {
+    const yamlFile = readFileSync(filePath)
+    const yamlCrd = yaml.safeLoad(yamlFile.toString()) as V1beta1CustomResourceDefinition
+    const k8sApiextensionsApi = this.kc.makeApiClient(Apiextensions_v1beta1Api)
+    try {
+      return await k8sApiextensionsApi.createCustomResourceDefinition(yamlCrd)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
+  async crdExist(name = ''): Promise<boolean | ''> {
+    const k8sApiextensionsApi = this.kc.makeApiClient(Apiextensions_v1beta1Api)
+    try {
+      const res = await k8sApiextensionsApi.readCustomResourceDefinition(name)
+      return (res && res.body &&
+        res.body.metadata && res.body.metadata.name
+        && res.body.metadata.name === name)
+    } catch {
+      return false
     }
   }
 
