@@ -22,6 +22,23 @@ Binary downloads of `chectl` can be found on [the Release page](https://github.c
 
 Download the `chectl` binary and add it to your PATH.
 
+If you're using macOS, here is how to install chectl binary with curl on macOS :
+
+1) Download the latest release :
+```
+$ curl -LO <URL of the latest release that you can find following previous link ( select the tag : chectl-macos )> 
+```
+
+2) Rename the file
+```
+$ mv chectl-macos /usr/local/bin/chectl
+```
+
+3) Make the chectl binary executable
+```
+$ chmod +x /usr/local/bin/chectl
+```
+
 Currently `chectl` requires [minikube](https://github.com/kubernetes/minikube#installation) and [helm](https://github.com/helm/helm#install) to be locally installed.
 
 # Usage
