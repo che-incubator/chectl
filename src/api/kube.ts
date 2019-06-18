@@ -9,7 +9,7 @@
  **********************************************************************/
 // tslint:disable:object-curly-spacing
 
-import { ApisApi, Apps_v1Api, Core_v1Api, Extensions_v1beta1Api, KubeConfig, RbacAuthorization_v1Api, V1beta1IngressList, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1ServiceAccount, V1ServiceList, V1Subject, Apiextensions_v1beta1Api, V1beta1CustomResourceDefinition} from '@kubernetes/client-node'
+import { Apiextensions_v1beta1Api, ApisApi, Apps_v1Api, Core_v1Api, Custom_objectsApi, Extensions_v1beta1Api, KubeConfig, RbacAuthorization_v1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1ServiceAccount, V1ServiceList, V1Subject} from '@kubernetes/client-node'
 import axios from 'axios'
 import { cli } from 'cli-ux'
 import { readFileSync } from 'fs'
@@ -127,12 +127,34 @@ export class KubeHelper {
     }
   }
 
+  async roleExist(name = '', namespace = ''): Promise<boolean | ''> {
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    try {
+      const res = await k8sRbacAuthApi.readNamespacedRole(name, namespace)
+      return (res && res.body &&
+        res.body.metadata && res.body.metadata.name
+        && res.body.metadata.name === name)
+    } catch {
+      return false
+    }
+  }
+
   async createRoleFromFile(filePath: string, namespace = '') {
     const yamlFile = readFileSync(filePath)
     const yamlRole = yaml.safeLoad(yamlFile.toString()) as V1Role
     const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
     try {
       return await k8sRbacAuthApi.createNamespacedRole(namespace, yamlRole)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
+  async deleteRole(name = '', namespace = '') {
+    const k8sCoreApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    try {
+      const options = new V1DeleteOptions()
+      await k8sCoreApi.deleteNamespacedRole(name, namespace, options)
     } catch (e) {
       throw new Error(e.body.message)
     }
@@ -613,6 +635,49 @@ export class KubeHelper {
         && res.body.metadata.name === name)
     } catch {
       return false
+    }
+  }
+
+  async deleteCrd(name = '') {
+    const k8sApiextensionsApi = this.kc.makeApiClient(Apiextensions_v1beta1Api)
+    try {
+      const options = new V1DeleteOptions()
+      await k8sApiextensionsApi.deleteCustomResourceDefinition(name, options)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
+  async createCheClusterFromFile(filePath: string, namespace = '') {
+    const yamlFile = readFileSync(filePath)
+    const yamlCr = yaml.safeLoad(yamlFile.toString())
+    const customObjectsApi = this.kc.makeApiClient(Custom_objectsApi)
+    try {
+      return await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', yamlCr)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
+  async cheClusterExist(name = '', namespace = ''): Promise<boolean | ''> {
+    const customObjectsApi = this.kc.makeApiClient(Custom_objectsApi)
+    try {
+      const res = await customObjectsApi.getNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name)
+      return (res && res.body &&
+        res.body.metadata && res.body.metadata.name
+        && res.body.metadata.name === name)
+    } catch {
+      return false
+    }
+  }
+
+  async deleteCheCluster(name = '', namespace = '') {
+    const customObjectsApi = this.kc.makeApiClient(Custom_objectsApi)
+    try {
+      const options = new V1DeleteOptions()
+      await customObjectsApi.deleteNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name, options)
+    } catch (e) {
+      throw new Error(e.body.message)
     }
   }
 

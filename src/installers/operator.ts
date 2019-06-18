@@ -36,7 +36,6 @@ export class OperatorHelper {
         title: 'Copying operator resources',
         task: async (_ctx: any, task: any) => {
           this.resourcesPath = await this.copyCheOperatorResources(flags.templates, command.config.cacheDir)
-          await cli.wait(1000) //wait 1s to be sure that the file get flushed
           task.title = `${task.title}...done.`
         }
       },
@@ -71,7 +70,7 @@ export class OperatorHelper {
       {
         title: `Create Role ${this.operatorRole} in namespace ${flags.chenamespace}`,
         task: async (_ctx: any, task: any) => {
-          const exist = await kube.roleBindingExist(this.operatorRoleBinding, flags.chenamespace)
+          const exist = await kube.roleExist(this.operatorRole, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exist.`
           } else {
@@ -115,7 +114,7 @@ export class OperatorHelper {
         }
       },
       {
-        title: `Create Operator Deployment ${this.operatorName} in namespace ${flags.chenamespace}`,
+        title: `Create deployment ${this.operatorName} in namespace ${flags.chenamespace}`,
         task: async (_ctx: any, task: any) => {
           const exist = await kube.deploymentExist(this.operatorName, flags.chenamespace)
           if (exist) {

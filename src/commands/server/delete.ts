@@ -109,6 +109,15 @@ export default class Delete extends Command {
         }
       },
       {
+        title: 'Delete role che-operator',
+        task: async (_ctx: any, task: any) => {
+          if (await kh.roleExist('che-operator', flags.chenamespace)) {
+            await kh.deleteRole('che-operator', flags.chenamespace)
+          }
+          task.title = await `${task.title}...OK`
+        }
+      },
+      {
         title: 'Delete rolebindings che, che-operator, che-workspace-exec and che-workspace-view',
         task: async (_ctx: any, task: any) => {
           if (await kh.roleBindingExist('che', flags.chenamespace)) {
@@ -155,6 +164,25 @@ export default class Delete extends Command {
         task: async (_ctx: any, task: any) => {
           if (await kh.podExist('che-operator', flags.chenamespace)) {
             await kh.deletePod('che-operator', flags.chenamespace)
+          }
+          task.title = await `${task.title}...OK`
+        }
+      },
+      {
+        title: 'Delete the CR eclipse-che of type checlusters.org.eclipse.che',
+        task: async (_ctx: any, task: any) => {
+          if (await kh.crdExist('checlusters.org.eclipse.che') &&
+              await kh.cheClusterExist('eclipse-che', flags.chenamespace)) {
+            await kh.deleteCheCluster('eclipse-che', flags.chenamespace)
+          }
+          task.title = await `${task.title}...OK`
+        }
+      },
+      {
+        title: 'Delete CRD checlusters.org.eclipse.che',
+        task: async (_ctx: any, task: any) => {
+          if (await kh.crdExist('checlusters.org.eclipse.che')) {
+            await kh.deleteCrd('checlusters.org.eclipse.che')
           }
           task.title = await `${task.title}...OK`
         }
