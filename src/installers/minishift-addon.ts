@@ -106,6 +106,8 @@ export class MinishiftAddonHelper {
     args = args.concat(['--addon-env', `NAMESPACE=${flags.chenamespace}`])
     args = args.concat(['--addon-env', `CHE_IMAGE_REPO=${imageRepo}`])
     args = args.concat(['--addon-env', `CHE_IMAGE_TAG=${imageTag}`])
+    args = args.concat(['--addon-env', `CHE_WORKSPACE_DEVFILE__REGISTRY__URL=${flags['devfile-registry']}`])
+    args = args.concat(['--addon-env', `CHE_WORKSPACE_PLUGIN__REGISTRY__URL=${flags['plugin-registry']}`])
     args = args.concat(['che'])
     const { cmd,
             code,

@@ -25,7 +25,7 @@
     "axios": "^0.19.0",
     "cli-ux": "^5.2.1",
     "command-exists": "^1.2.8",
-    "eclipse-che": "git://github.com/eclipse/che#9976bb0",
+    "eclipse-che": "git://github.com/eclipse/che#master",
     "esprima": "^4.0.1",
     "execa": "^1.0.0",
     "fancy-test": "^1.4.1",

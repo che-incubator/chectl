@@ -191,12 +191,18 @@ OPTIONS
 
   -t, --templates=templates                [default: templates] Path to the templates folder
 
+  --devfile-registry=devfile-registry      [default: https://che-devfile-registry.openshift.io/] The URL of the Devfile
+                                           registry.
+
   --k8spodreadytimeout=k8spodreadytimeout  [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
 
   --k8spodwaittimeout=k8spodwaittimeout    [default: 300000] Waiting time for Pod Wait Timeout Kubernetes (in
                                            milliseconds)
 
   --listr-renderer=listr-renderer          [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
+
+  --plugin-registry=plugin-registry        [default: https://che-plugin-registry.openshift.io/v3] The URL of the plugin
+                                           registry.
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
