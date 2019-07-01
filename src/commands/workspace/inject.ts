@@ -9,14 +9,13 @@
  **********************************************************************/
 // tslint:disable:object-curly-spacing
 
+import { KubeConfig } from '@kubernetes/client-node'
+import { Command, flags } from '@oclif/command'
+import { string } from '@oclif/parser/lib/flags'
 import * as execa from 'execa'
 import * as Listr from 'listr'
 import * as os from 'os'
 import * as path from 'path'
-
-import { KubeConfig } from '@kubernetes/client-node'
-import { Command, flags } from '@oclif/command'
-import { string } from '@oclif/parser/lib/flags'
 
 import { CheHelper } from '../../api/che'
 

@@ -4,8 +4,10 @@ node_js:
 - lts/*
 cache: yarn
 before_install:
-- npm install -g pkg
+- npm install -g pkg@4.3.8
 before_deploy:
+- brew update
+- brew install p7zip
 - git config --local user.name "Mario Loriedo"
 - git config --local user.email "mario.loriedo@gmail.com"
 - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')}
@@ -14,11 +16,14 @@ before_deploy:
 - sed -i sed "s#version\":\ \"\(.*\)\",#version\":\ \"\1-${SHORT_SHA1}\",#g" package.json
 - yarn pack
 - pkg . -t node10-linux-x64,node10-macos-x64,node10-win-x64 --options max_old_space_size=1024 --out-path ./bin/
+- npx oclif-dev pack
 deploy:
   provider: releases
   api_key:
     secure: eTiUIxetw+W54y7TIb3qttWPn0WFjotRamkzuILhzkWJOS21XpHJQNd/xi+fiS0q0bYaVBlnGR/z1xrJNPwjvygG6OMu7eIiDS7oHEXeH9i3WexmYlXesvuxVDVPieKMqfsctCNPP5dZim4aesRQ69kl64NE7ODLpu1DFdPwupjZOFl9VdjP0JdvdAWBrvRE/xe/bfJPfZb0DaLjXN6Cuf4Fh/r27U9avMFFFYMSkNInw2zqSos5yjDIgsTVd2ZEPrp7x0DWfQBmPrY7y7grRevLsZQI+J0e0yDpookb4VyGtI6dj53B3aO+PZ9nu852HWxrYHoYauzvdQOzsHqf/Q48a8yWHoBpcsA3iv4co264iETHBzfZDpuctatfX3xfKub3bD89cgt000vNhb/ynBvEtTsQkyccE5ZRJq9q53zemvdjNuVZeqrNyqWdgUYhOnNzAk69Nsv2dlPoY9kfCV63TC8r3Emq7PsTRF72D9KheLuMhObNRyg7SUD1BDqsESslOYx8KU9ifcWKyTd5GTrMSggNHSH7uctKzd3avSbWpetBkfxkEujOhLTnPnQEnq/yUqIWl3cK0uL6kKukkEz2/ycRvb8b760GnOxC0OJBxKENt/FDGW3+ydSWmhiH9plEhV68EJVGExrj+HMy73NLE3QlsngwPqFCogHBlvc=
+  file_glob: true
   file:
+  - "dist/chectl-v*/chectl-*.gz"
   - "./bin/chectl-linux"
   - "./bin/chectl-macos"
   - "./bin/chectl-win.exe"

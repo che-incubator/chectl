@@ -22,8 +22,11 @@ import { HelmHelper } from '../../installers/helm'
 import { MinishiftAddonHelper } from '../../installers/minishift-addon'
 import { OperatorHelper } from '../../installers/operator'
 import { MicroK8sHelper } from '../../platforms/microk8s'
+import { DockerDesktopHelper } from '../../platforms/docker-desktop'
+import { K8sHelper } from '../../platforms/k8s'
 import { MinikubeHelper } from '../../platforms/minikube'
 import { MinishiftHelper } from '../../platforms/minishift'
+import { OpenshiftHelper } from '../../platforms/openshift'
 
 let kube: KubeHelper
 export default class Start extends Command {
@@ -90,10 +93,9 @@ export default class Start extends Command {
     }),
     platform: string({
       char: 'p',
-      description: 'Type of Kubernetes platform. Valid values are \"minikube\", \"minishift\", \"microk8s\".',
+      description: 'Type of Kubernetes platform. Valid values are \"minikube\", \"minishift\", \"k8s\", \"openshift\", \"microk8s\".',
       default: 'minikube'
     })
-
   }
 
   static getTemplatesDir(): string {
@@ -123,6 +125,18 @@ export default class Start extends Command {
       if (flags.multiuser && flags.installer === '') {
         flags.installer = 'operator'
       }
+    } else if (flags.platform === 'openshift') {
+      if (flags.installer === '') {
+        flags.installer = 'operator'
+      }
+    } else if (flags.platform === 'k8s') {
+      if (flags.installer === '') {
+        flags.installer = 'helm'
+      }
+    } else if (flags.platform === 'docker-desktop') {
+      if (flags.installer === '') {
+        flags.installer = 'helm'
+      }
     }
   }
 
@@ -133,17 +147,25 @@ export default class Start extends Command {
     const minikube = new MinikubeHelper()
     const microk8s = new MicroK8sHelper()
     const minishift = new MinishiftHelper()
+    const openshift = new OpenshiftHelper()
+    const k8s = new K8sHelper()
+    const dockerDesktop = new DockerDesktopHelper()
     const helm = new HelmHelper()
     const che = new CheHelper()
     const operator = new OperatorHelper()
     const minishiftAddon = new MinishiftAddonHelper()
 
     // matrix checks
-    const k8sctx = flags.platform === 'minikube' || flags.platform === 'microk8s'
-    if (k8sctx && flags.installer && flags.installer === 'minishift-addon') {
-      this.error(`🛑 Current platform is ${flags.platform }. Minishift addon is only available on top of Minishift platform.`)
-    } else if (flags.platform === 'minishift' && flags.installer && flags.installer === 'helm') {
-      this.error(`🛑 Current platform is ${flags.platform }. Helm installer is only available on top of Minikube platform.`)
+    if (flags.installer) {
+      if (flags.installer === 'minishift-addon') {
+        if (flags.platform !== 'minishift') {
+          this.error(`🛑 Current platform is ${flags.platform}. Minishift addon is only available on top of Minishift platform.`)
+        }
+      } else if (flags.installer === 'helm') {
+        if (flags.platform !== 'k8s' && flags.platform !== 'minikube' && flags.platform !== 'microk8s' && flags.platform !== 'docker-desktop') {
+          this.error(`🛑 Current platform is ${flags.platform}. Helm installer is only available on top of Kubernetes flavor platform (including Minikube, Docker Desktop).`)
+        }
+      }
     }
 
     // Platform Checks
@@ -162,6 +184,21 @@ export default class Start extends Command {
       platformCheckTasks.add({
         title: '✈️  MicroK8s preflight checklist',
         task: () => microk8s.startTasks(flags, this)
+      })
+    } else if (flags.platform === 'openshift') {
+      platformCheckTasks.add({
+        title: '✈️  Openshift preflight checklist',
+        task: () => openshift.startTasks(flags, this)
+      })
+    } else if (flags.platform === 'k8s') {
+      platformCheckTasks.add({
+        title: '✈️  Kubernetes preflight checklist',
+        task: () => k8s.startTasks(flags, this)
+      })
+    } else if (flags.platform === 'docker-desktop') {
+      platformCheckTasks.add({
+        title: '✈️  Docker Desktop preflight checklist',
+        task: () => dockerDesktop.startTasks(flags, this)
       })
     } else {
       this.error(`Platformm ${flags.platform} is not supported yet ¯\\_(ツ)_/¯`)

@@ -12,15 +12,22 @@ export interface Devfile {
    * Description of the workspace components, such as editor and plugins
    */
   components?: DevfileComponent[]
+
   /**
-   * The name of the devfile. Workspaces created from devfile, will inherit this name
+   * Metadata of the devfile
    */
-  name: string
+  metadata: {
+    /**
+     * The name of the devfile. Workspaces created from devfile, will inherit this name
+     */
+    name: string
+  },
+
   /**
    * Description of the projects, containing names and sources locations
    */
   projects?: DevfileProject[]
-  specVersion: string
+  apiVersion: string
 }
 
 export interface DevfileCommand {

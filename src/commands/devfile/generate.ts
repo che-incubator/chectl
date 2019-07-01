@@ -24,11 +24,11 @@ const editors = stringLitArray(['theia-next', 'theia-1.0.0'])
 export type Editor = (typeof editors)[number]
 
 const LanguagesComponents = new Map<Language, DevfileComponent>([
-  ['java', {type: TheEndpointName.ChePlugin, alias: 'java-ls', id: 'redhat/java/0.38.0'}],
-  ['typescript', {type: TheEndpointName.ChePlugin, alias: 'typescript-ls', id: 'che-incubator/typescript/1.30.2'}],
-  ['go', {type: TheEndpointName.ChePlugin, alias: 'go-ls', id: 'ms-vscode/go/0.9.2'}],
-  ['python', {type: TheEndpointName.ChePlugin, alias: 'python-ls', id: 'ms-python/python/2019.2.5433'}],
-  ['c#', {type: TheEndpointName.ChePlugin, alias: 'csharp-ls', id: 'redhat-developer/che-omnisharp-plugin/0.0.1'}],
+  ['java', {type: TheEndpointName.ChePlugin, alias: 'java-ls', id: 'redhat/java/latest'}],
+  ['typescript', {type: TheEndpointName.ChePlugin, alias: 'typescript-ls', id: 'che-incubator/typescript/latest'}],
+  ['go', {type: TheEndpointName.ChePlugin, alias: 'go-ls', id: 'ms-vscode/go/latest'}],
+  ['python', {type: TheEndpointName.ChePlugin, alias: 'python-ls', id: 'ms-python/python/latest'}],
+  ['c#', {type: TheEndpointName.ChePlugin, alias: 'csharp-ls', id: 'redhat-developer/che-omnisharp-plugin/latest'}],
 ])
 
 const EditorComponents = new Map<Editor, DevfileComponent>([
@@ -98,8 +98,10 @@ export default class Generate extends Command {
     let name = flags.name || 'chectl-generated'
 
     let devfile: Devfile = {
-      specVersion: '0.0.1',
-      name
+      apiVersion: '1.0.0',
+      metadata: {
+        name
+      }
     }
 
     if (flags['git-repo'] !== undefined) {
@@ -122,7 +124,7 @@ export default class Generate extends Command {
 
     if (flags.dockerimage !== undefined) {
       const component: DevfileComponent = {
-        alias: `${flags.dockerimage.replace(/[\.\/]/g, '-').substring(0, 20)}`,
+        alias: `${flags.dockerimage.replace(/[\.\/:]/g, '-').substring(0, 20)}`,
         type: TheEndpointName.Dockerimage,
         image: `${flags.dockerimage}`,
         memoryLimit: '512M',

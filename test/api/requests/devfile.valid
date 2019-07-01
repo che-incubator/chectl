@@ -1,5 +1,6 @@
-specVersion: 0.0.1
-name: chectl
+apiVersion: 1.0.0
+metadata:
+  name: chectl
 projects:
   - name: chectl
     source:

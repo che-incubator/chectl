@@ -1,26 +1,49 @@
-specVersion: 0.0.1
-name: chectl
+apiVersion: 1.0.0
+
+metadata:
+  name: chectl
+
 projects:
+
   - name: chectl
     source:
       type: git
       location: 'https://github.com/che-incubator/chectl.git'
+
 components:
-  - alias: theia-ide
-    type: cheEditor
-    id: eclipse/che-theia/1.0.0
-  - type: chePlugin
-    id: eclipse/che-machine-exec-plugin/0.0.1
+
+  - alias: git
+    type: dockerimage
+    image: sunix/git-devtools
+    mountSources: true
+    memoryLimit: 256M
+
+  - alias: dev
+    type: dockerimage
+    image: eclipse/che-theia-dev:next
+    mountSources: true
+    memoryLimit: 1G
+
+  - id: redhat/vscode-yaml/latest
+    type: chePlugin
+
+  - id: che-incubator/typescript/latest
+    type: chePlugin
+    memoryLimit: 1G
+
 commands:
-  - name: build
+
+  - name: yarn
     actions:
       - type: exec
-        component: theia-ide
+        component: dev
         command: yarn
         workdir: /projects/chectl
-  - name: test
+
+  - name: yarn test
     actions:
       - type: exec
-        component: theia-ide
+        component: dev
         command: yarn test
         workdir: /projects/chectl
+

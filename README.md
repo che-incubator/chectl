@@ -22,6 +22,23 @@ Binary downloads of `chectl` can be found on [the Release page](https://github.c
 
 Download the `chectl` binary and add it to your PATH.
 
+If you're using macOS, here is how to install chectl binary with curl on macOS :
+
+1) Download the latest release :
+```
+$ curl -LO <URL of the latest release that you can find following previous link ( select the tag : chectl-macos )> 
+```
+
+2) Rename the file
+```
+$ mv chectl-macos /usr/local/bin/chectl
+```
+
+3) Make the chectl binary executable
+```
+$ chmod +x /usr/local/bin/chectl
+```
+
 Currently `chectl` requires [minikube](https://github.com/kubernetes/minikube#installation) and [helm](https://github.com/helm/helm#install) to be locally installed.
 
 # Usage
@@ -49,6 +66,7 @@ USAGE
 * [`chectl server:start`](#chectl-serverstart)
 * [`chectl server:stop`](#chectl-serverstop)
 * [`chectl server:update`](#chectl-serverupdate)
+* [`chectl update [CHANNEL]`](#chectl-update-channel)
 * [`chectl workspace:inject`](#chectl-workspaceinject)
 * [`chectl workspace:list`](#chectl-workspacelist)
 * [`chectl workspace:start`](#chectl-workspacestart)
@@ -75,7 +93,7 @@ EXAMPLES
   $ chectl autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.0/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.1/src/commands/autocomplete/index.ts)_
 
 ## `chectl devfile:generate`
 
@@ -124,7 +142,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.1.6/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.0/src/commands/help.ts)_
 
 ## `chectl server:delete`
 
@@ -167,7 +185,7 @@ OPTIONS
   -o, --cheboottimeout=cheboottimeout      (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
 
   -p, --platform=platform                  [default: minikube] Type of Kubernetes platform. Valid values are "minikube",
-                                           "minishift".
+                                           "minishift", "k8s", "openshift".
 
   -s, --tls                                Enable TLS encryption and multi-user mode
 
@@ -217,6 +235,17 @@ OPTIONS
 ```
 
 _See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_
+
+## `chectl update [CHANNEL]`
+
+update the chectl CLI
+
+```
+USAGE
+  $ chectl update [CHANNEL]
+```
+
+_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.3.9/src/commands/update.ts)_
 
 ## `chectl workspace:inject`
 
@@ -273,6 +302,9 @@ OPTIONS
   -n, --chenamespace=chenamespace        [default: che] kubernetes namespace where Che server is deployed
   -w, --workspaceconfig=workspaceconfig  path to a valid workspace configuration json file
   --listr-renderer=listr-renderer        [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
+
+  --name=name                            workspace name: overrides the workspace name to use instead of the one defined
+                                         in the devfile. Works only for devfile
 ```
 
 _See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
