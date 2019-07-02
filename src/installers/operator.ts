@@ -94,7 +94,9 @@ export class OperatorHelper {
         task: async (_ctx: any, task: any) => {
           const patch = { data: {
             CHE_INFRA_KUBERNETES_INGRESS_DOMAIN : flags.domain,
-            CHE_OPENSHIFT_API_URL: '' }
+            CHE_OPENSHIFT_API_URL: '',
+            CHE_IMAGE: flags.cheimage
+          }
           }
           await kube.patchConfigMap(this.operatorConfigMap, patch, flags.chenamespace)
           task.title = `${task.title}...done.`
