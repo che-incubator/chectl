@@ -95,8 +95,8 @@ export class OperatorHelper {
           const patch = { data: {
             CHE_INFRA_KUBERNETES_INGRESS_DOMAIN : flags.domain,
             CHE_OPENSHIFT_API_URL: '',
-            CHE_WORKSPACE_PLUGIN__REGISTRY__URL: flags['plugin-registry'],
-            CHE_WORKSPACE_DEVFILE__REGISTRY__URL: flags['devfile-registry'] }
+            CHE_WORKSPACE_PLUGIN__REGISTRY__URL: flags['plugin-registry-url'],
+            CHE_WORKSPACE_DEVFILE__REGISTRY__URL: flags['devfile-registry-url'] }
           }
           await kube.patchConfigMap(this.operatorConfigMap, patch, flags.chenamespace)
           task.title = `${task.title}...done.`

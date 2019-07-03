@@ -51,12 +51,12 @@ export default class Start extends Command {
       default:  Start.getTemplatesDir(),
       env: 'CHE_TEMPLATES_FOLDER'
     }),
-    'devfile-registry': string({
+    'devfile-registry-url': string({
       description: 'The URL of the Devfile registry.',
       default: 'https://che-devfile-registry.openshift.io/',
       env: 'CHE_WORKSPACE_DEVFILE__REGISTRY__URL'
     }),
-    'plugin-registry': string({
+    'plugin-registry-url': string({
       description: 'The URL of the plugin registry.',
       default: 'https://che-plugin-registry.openshift.io/v3',
       env: 'CHE_WORKSPACE_PLUGIN__REGISTRY__URL'
