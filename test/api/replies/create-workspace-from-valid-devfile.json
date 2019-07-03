@@ -1,6 +1,6 @@
 {
   "links": {
-    "self": "https://che-che.192.168.64.39.nip.io/api/devfile/workspace2m8y4wt8wyfkm6ia",
+    "self": "https://che-che.192.168.64.39.nip.io/api/workspace/devfile/workspace2m8y4wt8wyfkm6ia",
     "ide": "https://che-che.192.168.64.39.nip.io/che/chectl"
   },
   "attributes": {

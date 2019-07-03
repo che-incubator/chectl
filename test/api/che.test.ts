@@ -17,6 +17,7 @@ const namespace = 'che'
 const workspace = 'workspace-0123'
 const cheURL = 'https://che-che.192.168.64.34.nip.io'
 const devfileServerURL = 'https://devfile-server'
+const devfileEndpoint = '/api/workspace/devfile'
 let ch = new CheHelper()
 let kc = ch.kc
 let k8sApi = new Core_v1Api()
@@ -100,7 +101,7 @@ describe('Che helper', () => {
       .stub(ch, 'cheNamespaceExist', () => true)
       .stub(ch, 'cheURL', () => cheURL)
       .nock(cheURL, api => api
-        .post('/api/devfile')
+        .post(devfileEndpoint)
         .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
       .it('succeds creating a workspace from a valid devfile', async () => {
         const res = await ch.createWorkspaceFromDevfile(namespace, __dirname + '/requests/devfile.valid', undefined)
@@ -110,7 +111,7 @@ describe('Che helper', () => {
       .stub(ch, 'cheNamespaceExist', () => true)
       .stub(ch, 'cheURL', () => cheURL)
       .nock(cheURL, api => api
-        .post('/api/devfile')
+        .post(devfileEndpoint)
         .replyWithFile(400, __dirname + '/replies/create-workspace-from-invalid-devfile.json', {
           'Content-Type': 'application/json'
         }))
@@ -130,7 +131,7 @@ describe('Che helper', () => {
         .get('/devfile.yaml')
         .replyWithFile(200, __dirname + '/requests/devfile.valid', { 'Content-Type': 'text/plain; charset=utf-8' }))
       .nock(cheURL, api => api
-        .post('/api/devfile')
+        .post(devfileEndpoint)
         .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
       .it('succeeds creating a workspace from a remote devfile', async () => {
         const res = await ch.createWorkspaceFromDevfile(namespace, devfileServerURL + '/devfile.yaml', undefined)
