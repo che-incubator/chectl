@@ -163,7 +163,28 @@ error: E_COMMAND_FAILED`)
     }
 
     let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} --set global.ingressDomain=${flags.domain} --set cheImage=${flags.cheimage} --set global.cheWorkspacesNamespace=${flags.chenamespace} ${multiUserFlag} ${tlsFlag} ${destDir}`
-    await execa.shell(command, { timeout: execTimeout })
+    let {code} = await execa.shell(command, { timeout: execTimeout, reject: false })
+    // if process failed, check the following
+    // if revision=1, purge and retry command else rollback
+    if (code !== 0) {
+      // get revision
+      const {stdout} = await execa.shell(`helm history ${flags.chenamespace} --output json`, { timeout: execTimeout })
+      let jsonOutput
+      try {
+        jsonOutput = JSON.parse(stdout)
+      } catch (err) {
+        throw new Error('Unable to grab helm history:' + err)
+      }
+      const revision = jsonOutput[0].revision
+      if (jsonOutput.length > 0 && revision === '1') {
+        await this.purgeHelmChart(flags.chenamespace)
+      } else {
+        await execa('helm', ['rollback', flags.chenamespace, revision], { timeout: execTimeout })
+
+      }
+      await execa.shell(command, { timeout: execTimeout })
+
+    }
   }
 
   async purgeHelmChart(name: string, execTimeout= 30000) {
