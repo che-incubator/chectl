@@ -186,7 +186,7 @@ OPTIONS
                                                milliseconds)
 
   -p, --platform=platform                      [default: minikube] Type of Kubernetes platform. Valid values are
-                                               "minikube", "minishift", "k8s", "openshift".
+                                               "minikube", "minishift", "k8s", "openshift", "microk8s".
 
   -s, --tls                                    Enable TLS encryption and multi-user mode
 
