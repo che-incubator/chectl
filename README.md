@@ -185,7 +185,7 @@ OPTIONS
   -o, --cheboottimeout=cheboottimeout      (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
 
   -p, --platform=platform                  [default: minikube] Type of Kubernetes platform. Valid values are "minikube",
-                                           "minishift", "k8s", "openshift".
+                                           "minishift", "k8s", "openshift", "microk8s".
 
   -s, --tls                                Enable TLS encryption and multi-user mode
 
