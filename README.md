@@ -9,6 +9,14 @@ chectl
 
 [![asciicast](https://asciinema.org/a/216201.svg)](https://asciinema.org/a/216201)
 
+## Report issues
+
+Issues are tracked on the main Eclipse Che Repository: https://github.com/eclipse/che/issues
+
+[![New questions](https://img.shields.io/badge/New-question-blue.svg?style=flat-curved)](https://github.com/eclipse/che/issues/new?labels=area/chectl,kind/question)
+[![New bug](https://img.shields.io/badge/New-bug-red.svg?style=flat-curved)](https://github.com/eclipse/che/issues/new?labels=area/chectl,kind/bug)
+
+## Table Of Contents
 
 <!-- toc -->
 * [Installation](#installation)
