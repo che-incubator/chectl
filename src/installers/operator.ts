@@ -22,7 +22,9 @@ import { KubeHelper } from '../api/kube'
 export class OperatorHelper {
   operatorServiceAccount = 'che-operator'
   operatorRole = 'che-operator'
+  operatorClusterRole = 'che-operator'
   operatorRoleBinding = 'che-operator'
+  operatorClusterRoleBinding = 'che-operator'
   operatorCrd = 'checlusters.org.eclipse.che'
   operatorName = 'che-operator'
   operatorCheCluster = 'eclipse-che'
@@ -84,6 +86,23 @@ export class OperatorHelper {
         }
       },
       {
+        title: `Create ClusterRole ${this.operatorClusterRole}`,
+        enabled: flags['os-oauth'],
+        task: async (_ctx: any, task: any) => {
+          const exist = await kube.clusterRoleExist(this.operatorClusterRole)
+          if (exist) {
+            task.title = `${task.title}...It already exist.`
+          } else {
+            const yamlFilePath = this.resourcesPath + 'cluster_role.yaml'
+            const statusCode = await kube.createClusterRoleFromFile(yamlFilePath)
+            if (statusCode === 403) {
+              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
+            }
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
+      {
         title: `Create RoleBinding ${this.operatorRoleBinding} in namespace ${flags.chenamespace}`,
         task: async (_ctx: any, task: any) => {
           const exist = await kube.roleBindingExist(this.operatorRoleBinding, flags.chenamespace)
@@ -92,6 +111,19 @@ export class OperatorHelper {
           } else {
             const yamlFilePath = this.resourcesPath + 'role_binding.yaml'
             await kube.createRoleBindingFromFile(yamlFilePath, flags.chenamespace)
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
+      {
+        title: `Create ClusterRoleBinding ${this.operatorClusterRoleBinding}`,
+        enabled: flags['os-oauth'],
+        task: async (_ctx: any, task: any) => {
+          const exist = await kube.clusterRoleBindingExist(this.operatorRoleBinding)
+          if (exist) {
+            task.title = `${task.title}...It already exist.`
+          } else {
+            await kube.createClusterRoleBinding(this.operatorClusterRoleBinding, this.operatorServiceAccount, this.operatorClusterRole, flags.chenamespace)
             task.title = `${task.title}...done.`
           }
         }

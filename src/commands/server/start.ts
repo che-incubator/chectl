@@ -95,6 +95,11 @@ export default class Start extends Command {
       char: 'p',
       description: 'Type of Kubernetes platform. Valid values are \"minikube\", \"minishift\", \"k8s\", \"openshift\", \"microk8s\".',
       default: 'minikube'
+    }),
+    'os-oauth': flags.boolean({
+      char: 'h',
+      description: 'enable use of OpenShift credentials to log into Che',
+      default: false
     })
   }
 

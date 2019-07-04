@@ -9,7 +9,7 @@
  **********************************************************************/
 // tslint:disable:object-curly-spacing
 
-import { Apiextensions_v1beta1Api, ApisApi, Apps_v1Api, Core_v1Api, Custom_objectsApi, Extensions_v1beta1Api, KubeConfig, RbacAuthorization_v1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1ServiceAccount, V1ServiceList, V1Subject} from '@kubernetes/client-node'
+import { Apiextensions_v1beta1Api, ApisApi, Apps_v1Api, Core_v1Api, Custom_objectsApi, Extensions_v1beta1Api, KubeConfig, RbacAuthorization_v1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1ServiceAccount, V1ServiceList, V1Subject} from '@kubernetes/client-node'
 import axios from 'axios'
 import { cli } from 'cli-ux'
 import { readFileSync } from 'fs'
@@ -139,12 +139,40 @@ export class KubeHelper {
     }
   }
 
+  async clusterRoleExist(name = ''): Promise<boolean | ''> {
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    try {
+      const res = await k8sRbacAuthApi.readClusterRole(name)
+      return (res && res.body &&
+        res.body.metadata && res.body.metadata.name
+        && res.body.metadata.name === name)
+    } catch {
+      return false
+    }
+  }
+
   async createRoleFromFile(filePath: string, namespace = '') {
     const yamlFile = readFileSync(filePath)
     const yamlRole = yaml.safeLoad(yamlFile.toString()) as V1Role
     const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
     try {
       const res = await k8sRbacAuthApi.createNamespacedRole(namespace, yamlRole)
+      return res.response.statusCode
+    } catch (e) {
+      if (e.response && e.response.statusCode && e.response.statusCode === 403) {
+        return e.response.statusCode
+      } else {
+        throw new Error(e.response.statusCode + e.body.message)
+      }
+    }
+  }
+
+  async createClusterRoleFromFile(filePath: string) {
+    const yamlFile = readFileSync(filePath)
+    const yamlRole = yaml.safeLoad(yamlFile.toString()) as V1ClusterRole
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    try {
+      const res = await k8sRbacAuthApi.createClusterRole(yamlRole)
       return res.response.statusCode
     } catch (e) {
       if (e.response && e.response.statusCode && e.response.statusCode === 403) {
@@ -165,10 +193,32 @@ export class KubeHelper {
     }
   }
 
+  async deleteClusterRole(name = '') {
+    const k8sCoreApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    try {
+      const options = new V1DeleteOptions()
+      await k8sCoreApi.deleteClusterRole(name, options)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
   async roleBindingExist(name = '', namespace = ''): Promise<boolean | ''> {
     const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
     try {
       const res = await k8sRbacAuthApi.readNamespacedRoleBinding(name, namespace)
+      return (res && res.body &&
+        res.body.metadata && res.body.metadata.name
+        && res.body.metadata.name === name)
+    } catch {
+      return false
+    }
+  }
+
+  async clusterRoleBindingExist(name = ''): Promise<boolean | ''> {
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    try {
+      const res = await k8sRbacAuthApi.readClusterRoleBinding(name)
       return (res && res.body &&
         res.body.metadata && res.body.metadata.name
         && res.body.metadata.name === name)
@@ -209,11 +259,48 @@ export class KubeHelper {
     }
   }
 
+  async createClusterRoleBinding(name: string, saName: string, saNamespace = '', roleName = '') {
+    const clusterRoleBinding = {
+      apiVersion: 'rbac.authorization.k8s.io/v1',
+      metadata: {
+        name: `${name}`
+      },
+      subjects: [
+        {
+          kind: 'ServiceAccount',
+          name: `${saName}`,
+          namespace: `${saNamespace}`
+        }
+      ],
+      roleRef: {
+        kind: 'ClusterRole',
+        name: `${roleName}`,
+        apiGroup: 'rbac.authorization.k8s.io'
+      }
+    } as V1ClusterRoleBinding
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    try {
+      return await k8sRbacAuthApi.createClusterRoleBinding(clusterRoleBinding)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
   async deleteRoleBinding(name = '', namespace = '') {
     const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
     try {
       const options = new V1DeleteOptions()
       return await k8sRbacAuthApi.deleteNamespacedRoleBinding(name, namespace, options)
+    } catch (e) {
+      throw new Error(e.body.message)
+    }
+  }
+
+  async deleteClusterRoleBinding(name = '') {
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    try {
+      const options = new V1DeleteOptions()
+      return await k8sRbacAuthApi.deleteClusterRoleBinding(name, options)
     } catch (e) {
       throw new Error(e.body.message)
     }

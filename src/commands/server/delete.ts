@@ -118,6 +118,15 @@ export default class Delete extends Command {
         }
       },
       {
+        title: 'Delete cluster role che-operator',
+        task: async (_ctx: any, task: any) => {
+          if (await kh.clusterRoleExist('che-operator')) {
+            await kh.deleteClusterRole('che-operator')
+          }
+          task.title = await `${task.title}...OK`
+        }
+      },
+      {
         title: 'Delete rolebindings che, che-operator, che-workspace-exec and che-workspace-view',
         task: async (_ctx: any, task: any) => {
           if (await kh.roleBindingExist('che', flags.chenamespace)) {
@@ -131,6 +140,15 @@ export default class Delete extends Command {
           }
           if (await kh.roleBindingExist('che-workspace-view', flags.chenamespace)) {
             await kh.deleteRoleBinding('che-workspace-view', flags.chenamespace)
+          }
+          task.title = await `${task.title}...OK`
+        }
+      },
+      {
+        title: 'Delete cluster role binding che-operator',
+        task: async (_ctx: any, task: any) => {
+          if (await kh.clusterRoleBindingExist('che-operator')) {
+            await kh.deleteClusterRoleBinding('che-operator')
           }
           task.title = await `${task.title}...OK`
         }
