@@ -75,7 +75,10 @@ export class OperatorHelper {
             task.title = `${task.title}...It already exist.`
           } else {
             const yamlFilePath = this.resourcesPath + 'role.yaml'
-            await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
+            const statusCode = await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
+            if (statusCode === 403) {
+              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
+            }
             task.title = `${task.title}...done.`
           }
         }
@@ -134,7 +137,7 @@ export class OperatorHelper {
             task.title = `${task.title}...It already exist.`
           } else {
             const yamlFilePath = this.resourcesPath + 'crds/org_v1_che_cr.yaml'
-            await kube.createCheClusterFromFile(yamlFilePath, flags.chenamespace)
+            await kube.createCheClusterFromFile(yamlFilePath, flags.chenamespace, flags.cheimage)
             task.title = `${task.title}...done.`
           }
         }

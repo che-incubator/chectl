@@ -144,9 +144,14 @@ export class KubeHelper {
     const yamlRole = yaml.safeLoad(yamlFile.toString()) as V1Role
     const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
     try {
-      return await k8sRbacAuthApi.createNamespacedRole(namespace, yamlRole)
+      const res = await k8sRbacAuthApi.createNamespacedRole(namespace, yamlRole)
+      return res.response.statusCode
     } catch (e) {
-      throw new Error(e.body.message)
+      if (e.response && e.response.statusCode && e.response.statusCode === 403) {
+        return e.response.statusCode
+      } else {
+        throw new Error(e.response.statusCode + e.body.message)
+      }
     }
   }
 
@@ -648,9 +653,12 @@ export class KubeHelper {
     }
   }
 
-  async createCheClusterFromFile(filePath: string, namespace = '') {
+  async createCheClusterFromFile(filePath: string, namespace = '', cheImage = '') {
     const yamlFile = readFileSync(filePath)
-    const yamlCr = yaml.safeLoad(yamlFile.toString())
+    let yamlCr = yaml.safeLoad(yamlFile.toString())
+    const imageAndTag = cheImage.split(':', 2)
+    yamlCr.spec.server.cheImage = imageAndTag[0]
+    yamlCr.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
     const customObjectsApi = this.kc.makeApiClient(Custom_objectsApi)
     try {
       return await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', yamlCr)
