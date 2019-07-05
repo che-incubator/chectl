@@ -97,9 +97,12 @@ export default class Start extends Command {
       default: 'minikube'
     }),
     'os-oauth': flags.boolean({
-      char: 'h',
       description: 'enable use of OpenShift credentials to log into Che',
       default: false
+    }),
+    'che-operator-image': string({
+      description: 'enable use of OpenShift credentials to log into Che',
+      default: 'quay.io/eclipse-che/che-operator:nightly'
     })
   }
 

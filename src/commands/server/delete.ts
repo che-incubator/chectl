@@ -10,6 +10,7 @@
 // tslint:disable:object-curly-spacing
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
+import { cli } from 'cli-ux'
 import * as commandExists from 'command-exists'
 
 import { KubeHelper } from '../../api/kube'
@@ -56,6 +57,28 @@ export default class Delete extends Command {
           } catch (error) {
             this.error(`Failed to connect to Kubernetes API. ${error.message}`)
           }
+        }
+      },
+      {
+        title: 'Delete the CR eclipse-che of type checlusters.org.eclipse.che',
+        task: async (_ctx: any, task: any) => {
+          if (await kh.crdExist('checlusters.org.eclipse.che') &&
+            await kh.cheClusterExist('eclipse-che', flags.chenamespace)) {
+            await kh.deleteCheCluster('eclipse-che', flags.chenamespace)
+            await cli.wait(2000) //wait a couple of secs for the finalizers to be executed
+            task.title = await `${task.title}...OK`
+          } else {
+            task.title = await `${task.title}...CR not found`
+          }
+        }
+      },
+      {
+        title: 'Delete CRD checlusters.org.eclipse.che',
+        task: async (_ctx: any, task: any) => {
+          if (await kh.crdExist('checlusters.org.eclipse.che')) {
+            await kh.deleteCrd('checlusters.org.eclipse.che')
+          }
+          task.title = await `${task.title}...OK`
         }
       },
       {
@@ -173,34 +196,6 @@ export default class Delete extends Command {
         task: async (_ctx: any, task: any) => {
           if (await kh.persistentVolumeClaimExist('che-operator', flags.chenamespace)) {
             await kh.deletePersistentVolumeClaim('postgres-data', flags.chenamespace)
-          }
-          task.title = await `${task.title}...OK`
-        }
-      },
-      {
-        title: 'Delete pod che-operator',
-        task: async (_ctx: any, task: any) => {
-          if (await kh.podExist('che-operator', flags.chenamespace)) {
-            await kh.deletePod('che-operator', flags.chenamespace)
-          }
-          task.title = await `${task.title}...OK`
-        }
-      },
-      {
-        title: 'Delete the CR eclipse-che of type checlusters.org.eclipse.che',
-        task: async (_ctx: any, task: any) => {
-          if (await kh.crdExist('checlusters.org.eclipse.che') &&
-              await kh.cheClusterExist('eclipse-che', flags.chenamespace)) {
-            await kh.deleteCheCluster('eclipse-che', flags.chenamespace)
-          }
-          task.title = await `${task.title}...OK`
-        }
-      },
-      {
-        title: 'Delete CRD checlusters.org.eclipse.che',
-        task: async (_ctx: any, task: any) => {
-          if (await kh.crdExist('checlusters.org.eclipse.che')) {
-            await kh.deleteCrd('checlusters.org.eclipse.che')
           }
           task.title = await `${task.title}...OK`
         }

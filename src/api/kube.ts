@@ -618,9 +618,12 @@ export class KubeHelper {
     }
   }
 
-  async createDeploymentFromFile(filePath: string, namespace = '') {
+  async createDeploymentFromFile(filePath: string, namespace = '', containerImage = '', containerIndex = 0) {
     const yamlFile = readFileSync(filePath)
     const yamlDeployment = yaml.safeLoad(yamlFile.toString()) as V1Deployment
+    if (containerImage) {
+      yamlDeployment.spec.template.spec.containers[containerIndex].image = containerImage
+    }
     const k8sAppsApi = this.kc.makeApiClient(Apps_v1Api)
     try {
       return await k8sAppsApi.createNamespacedDeployment(namespace, yamlDeployment)
@@ -740,15 +743,18 @@ export class KubeHelper {
     }
   }
 
-  async createCheClusterFromFile(filePath: string, namespace = '', cheImage = '') {
+  async createCheClusterFromFile(filePath: string, flags: any) {
     const yamlFile = readFileSync(filePath)
     let yamlCr = yaml.safeLoad(yamlFile.toString())
+    const cheImage = flags.cheimage
+    const cheNamespace = flags.chenamespace
     const imageAndTag = cheImage.split(':', 2)
     yamlCr.spec.server.cheImage = imageAndTag[0]
     yamlCr.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
+    yamlCr.spec.auth.openShiftoAuth = flags['os-oauth']
     const customObjectsApi = this.kc.makeApiClient(Custom_objectsApi)
     try {
-      return await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', yamlCr)
+      return await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', cheNamespace, 'checlusters', yamlCr)
     } catch (e) {
       throw new Error(e.body.message)
     }

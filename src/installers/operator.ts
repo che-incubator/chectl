@@ -87,7 +87,7 @@ export class OperatorHelper {
       },
       {
         title: `Create ClusterRole ${this.operatorClusterRole}`,
-        enabled: flags['os-oauth'],
+        enabled: () => flags['os-oauth'],
         task: async (_ctx: any, task: any) => {
           const exist = await kube.clusterRoleExist(this.operatorClusterRole)
           if (exist) {
@@ -117,13 +117,13 @@ export class OperatorHelper {
       },
       {
         title: `Create ClusterRoleBinding ${this.operatorClusterRoleBinding}`,
-        enabled: flags['os-oauth'],
+        enabled: () => flags['os-oauth'],
         task: async (_ctx: any, task: any) => {
           const exist = await kube.clusterRoleBindingExist(this.operatorRoleBinding)
           if (exist) {
             task.title = `${task.title}...It already exist.`
           } else {
-            await kube.createClusterRoleBinding(this.operatorClusterRoleBinding, this.operatorServiceAccount, this.operatorClusterRole, flags.chenamespace)
+            await kube.createClusterRoleBinding(this.operatorClusterRoleBinding, this.operatorServiceAccount, flags.chenamespace, this.operatorClusterRole)
             task.title = `${task.title}...done.`
           }
         }
@@ -156,7 +156,7 @@ export class OperatorHelper {
             task.title = `${task.title}...It already exist.`
           } else {
             const yamlFilePath = this.resourcesPath + 'operator.yaml'
-            await kube.createDeploymentFromFile(yamlFilePath, flags.chenamespace)
+            await kube.createDeploymentFromFile(yamlFilePath, flags.chenamespace, flags['che-operator-image'])
             task.title = `${task.title}...done.`
           }
         }
@@ -169,7 +169,7 @@ export class OperatorHelper {
             task.title = `${task.title}...It already exist.`
           } else {
             const yamlFilePath = this.resourcesPath + 'crds/org_v1_che_cr.yaml'
-            await kube.createCheClusterFromFile(yamlFilePath, flags.chenamespace, flags.cheimage)
+            await kube.createCheClusterFromFile(yamlFilePath, flags)
             task.title = `${task.title}...done.`
           }
         }
