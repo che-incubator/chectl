@@ -452,10 +452,12 @@ export class KubeHelper {
 
   async waitForPodPending(selector: string, namespace = '', intervalMs = 500, timeoutMs = this.podWaitTimeout) {
     const iterations = timeoutMs / intervalMs
+    let podExist
+    let currentPhase
     for (let index = 0; index < iterations; index++) {
-      let podExist = await this.podsExistBySelector(selector, namespace)
+      podExist = await this.podsExistBySelector(selector, namespace)
       if (podExist) {
-        let currentPhase = await this.getPodPhase(selector, namespace)
+        currentPhase = await this.getPodPhase(selector, namespace)
         if (currentPhase === 'Pending') {
           return
         } else {
@@ -464,7 +466,7 @@ export class KubeHelper {
       }
       await cli.wait(intervalMs)
     }
-    throw new Error(`ERR_TIMEOUT: Timeout set to pod wait timeout ${this.podWaitTimeout}`)
+    throw new Error(`ERR_TIMEOUT: Timeout set to pod wait timeout ${this.podWaitTimeout}. podExist: ${podExist}, currentPhase: ${currentPhase}`)
   }
 
   async waitForPodReady(selector: string, namespace = '', intervalMs = 500, timeoutMs = this.podReadyTimeout) {
@@ -752,6 +754,9 @@ export class KubeHelper {
     yamlCr.spec.server.cheImage = imageAndTag[0]
     yamlCr.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
     yamlCr.spec.auth.openShiftoAuth = flags['os-oauth']
+    yamlCr.spec.server.tlsSupport = flags.tls
+    yamlCr.spec.server.selfSignedCert = flags['self-signed-cert']
+    yamlCr.spec.k8s.ingressDomain = flags.domain
     const customObjectsApi = this.kc.makeApiClient(Custom_objectsApi)
     try {
       return await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', cheNamespace, 'checlusters', yamlCr)

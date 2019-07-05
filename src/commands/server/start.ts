@@ -81,6 +81,10 @@ export default class Start extends Command {
       description: 'Enable TLS encryption and multi-user mode',
       default: false
     }),
+    'self-signed-cert': flags.boolean({
+      description: 'Authorize usage of self signed certificates for encryption',
+      default: false
+    }),
     installer: string({
       char: 'a',
       description: 'Installer type. Valid values are \"helm\", \"operator\" and \"minishift-addon\"',
@@ -97,13 +101,17 @@ export default class Start extends Command {
       default: 'minikube'
     }),
     'os-oauth': flags.boolean({
-      description: 'enable use of OpenShift credentials to log into Che',
+      description: 'Enable use of OpenShift credentials to log into Che',
       default: false
     }),
     'che-operator-image': string({
-      description: 'enable use of OpenShift credentials to log into Che',
+      description: 'Container image of the operator. This parameter is used only when the installer is the operator',
       default: 'quay.io/eclipse-che/che-operator:nightly'
-    })
+    }),
+    'che-operator-cr-yaml': string({
+      description: 'Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer is the operator.',
+      default: ''
+    }),
   }
 
   static getTemplatesDir(): string {
@@ -172,6 +180,14 @@ export default class Start extends Command {
       } else if (flags.installer === 'helm') {
         if (flags.platform !== 'k8s' && flags.platform !== 'minikube' && flags.platform !== 'microk8s' && flags.platform !== 'docker-desktop') {
           this.error(`🛑 Current platform is ${flags.platform}. Helm installer is only available on top of Kubernetes flavor platform (including Minikube, Docker Desktop).`)
+        }
+      }
+      if (flags['os-oauth']) {
+        if (flags.platform !== 'openshift' && flags.platform !== 'minishift') {
+          this.error(`You requested to enable OpenShift OAuth but the platform doesn\'t seem to be OpenShift. Platform is ${flags.platform}.`)
+        }
+        if (flags.installer !== 'operator') {
+          this.error(`You requested to enable OpenShift OAuth but that's only possible when using the operator as installer. The current installer is ${flags.installer}. To use the operator add parameter "--installer operator".`)
         }
       }
     }
@@ -309,7 +325,7 @@ export default class Start extends Command {
     if (installer === 'operator') {
       return 'app=che,component=keycloak'
     } else {
-      return 'app=postgres'
+      return 'app=keycloak'
     }
   }
 
@@ -317,7 +333,7 @@ export default class Start extends Command {
     if (installer === 'operator') {
       return 'app=che,component=che'
     } else {
-      return 'app=postgres'
+      return 'app=che'
     }
   }
 
