@@ -81,18 +81,18 @@ export default class Delete extends Command {
         }
       },
       {
+        title: 'Delete all deployments',
+        task: async (_ctx: any, task: any) => {
+          await kh.deleteAllDeployments(flags.chenamespace)
+          task.title = await `${task.title}...OK`
+        }
+      },
+      {
         title: 'Delete CRD checlusters.org.eclipse.che',
         task: async (_ctx: any, task: any) => {
           if (await kh.crdExist('checlusters.org.eclipse.che')) {
             await kh.deleteCrd('checlusters.org.eclipse.che')
           }
-          task.title = await `${task.title}...OK`
-        }
-      },
-      {
-        title: 'Delete all deployments',
-        task: async (_ctx: any, task: any) => {
-          await kh.deleteAllDeployments(flags.chenamespace)
           task.title = await `${task.title}...OK`
         }
       },
