@@ -791,18 +791,74 @@ export class KubeHelper {
     return this.kc.getCurrentContext()
   }
 
+  /**
+   * Retrieve the default token from the default serviceAccount.
+   */
+  async getDefaultServiceAccountToken(): Promise<string> {
+    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    let res
+    try {
+      res = await k8sCoreApi.listNamespacedServiceAccount('default')
+    } catch (e) {
+      if (e.body && e.body.message) throw new Error(e.body.message)
+      else throw new Error(e)
+    }
+    if (!res || !res.body) {
+      throw new Error('Unable to get default service account')
+    }
+    const v1ServiceAccountList = res.body
+    let secretName
+    if (v1ServiceAccountList.items && v1ServiceAccountList.items.length > 0) {
+      for (let v1ServiceAccount of v1ServiceAccountList.items) {
+        if (v1ServiceAccount.metadata.name === 'default') {
+          secretName = v1ServiceAccount.secrets[0].name
+        }
+      }
+    }
+    if (!secretName) {
+      throw new Error('Unable to get default service account secret')
+    }
+
+    // now get the matching secrets
+    try {
+      res = await k8sCoreApi.listNamespacedSecret('default')
+    } catch (e) {
+      if (e.body && e.body.message) throw new Error(e.body.message)
+      else throw new Error(e)
+    }
+    if (!res || !res.body) {
+      throw new Error('Unable to get default service account')
+    }
+    const v1SecretList = res.body
+    let encodedToken
+    if (v1SecretList.items && v1SecretList.items.length > 0) {
+      for (let v1Secret of v1SecretList.items) {
+        if (v1Secret.metadata.name === secretName && v1Secret.type === 'kubernetes.io/service-account-token') {
+          encodedToken = v1Secret.data.token
+        }
+      }
+    }
+    if (!encodedToken) {
+      throw new Error('Unable to grab default service account token')
+    }
+    // decode the token
+    return Buffer.from(encodedToken, 'base64').toString()
+  }
+
   async checkKubeApi() {
     const currentCluster = this.kc.getCurrentCluster()
     if (!currentCluster) {
       throw new Error('Failed to get current Kubernetes cluster: returned null')
     }
+    const token = await this.getDefaultServiceAccountToken()
+
     const agent = new https.Agent({
       rejectUnauthorized: false
     })
     let endpoint = ''
     try {
       endpoint = `${currentCluster.server}/healthz`
-      let response = await axios.get(`${endpoint}`, { httpsAgent: agent })
+      let response = await axios.get(`${endpoint}`, { httpsAgent: agent, headers: { Authorization: 'bearer ' + token } })
       if (!response || response.status !== 200 || response.data !== 'ok') {
         throw new Error('E_BAD_RESP_K8S_API')
       }
