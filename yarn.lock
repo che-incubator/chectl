@@ -1715,9 +1715,13 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
-"eclipse-che@git://github.com/eclipse/che#9976bb0":
+"eclipse-che-operator@git://github.com/eclipse/che-operator#master":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che#9976bb050f988eca0dd62d25dae3109b22c63787"
+  resolved "git://github.com/eclipse/che-operator#d545e8b18035d568a240fe8b86e1fb194fe2c588"
+
+"eclipse-che@git://github.com/eclipse/che#master":
+  version "0.0.0"
+  resolved "git://github.com/eclipse/che#283a21ca4d6f905be73334f6b3a415d2bf14abc9"
 
 elegant-spinner@^1.0.1:
   version "1.0.1"
