@@ -246,7 +246,7 @@ export default class Start extends Command {
         task: () => dockerDesktop.startTasks(flags, this)
       })
     } else {
-      this.error(`Platformm ${flags.platform} is not supported yet ¯\\_(ツ)_/¯`)
+      this.error(`Platform ${flags.platform} is not supported yet ¯\\_(ツ)_/¯`)
       this.exit()
     }
 
