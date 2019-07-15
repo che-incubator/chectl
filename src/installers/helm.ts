@@ -170,17 +170,20 @@ error: E_COMMAND_FAILED`)
 
     let multiUserFlag = ''
     let tlsFlag = ''
+    let setOptions = ''
 
     if (flags.multiuser) {
       multiUserFlag = `-f ${destDir}values/multi-user.yaml`
     }
 
     if (flags.tls) {
+      setOptions = `--set global.cheDomain=${flags.domain}`
       tlsFlag = `-f ${destDir}values/tls.yaml`
     }
 
-    let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} --set global.ingressDomain=${flags.domain} --set cheImage=${flags.cheimage} --set global.cheWorkspacesNamespace=${flags.chenamespace} ${multiUserFlag} ${tlsFlag} ${destDir}`
-    let {code} = await execa.shell(command, { timeout: execTimeout, reject: false })
+    let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} --set global.ingressDomain=${flags.domain} ${setOptions} --set cheImage=${flags.cheimage} --set global.cheWorkspacesNamespace=${flags.chenamespace} ${multiUserFlag} ${tlsFlag} ${destDir}`
+
+    let {code, stderr} = await execa.shell(command, { timeout: execTimeout, reject: false })
     // if process failed, check the following
     // if revision=1, purge and retry command else rollback
     if (code !== 0) {
