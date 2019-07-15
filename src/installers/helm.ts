@@ -185,7 +185,11 @@ error: E_COMMAND_FAILED`)
     // if revision=1, purge and retry command else rollback
     if (code !== 0) {
       // get revision
-      const {stdout} = await execa.shell(`helm history ${flags.chenamespace} --output json`, { timeout: execTimeout })
+
+      const {code, stdout} = await execa.shell(`helm history ${flags.chenamespace} --output json`, { timeout: execTimeout, reject: false })
+      if (code !== 0) {
+        throw new Error(`Unable to execute helm command ${command} / ${stderr}`)
+      }
       let jsonOutput
       try {
         jsonOutput = JSON.parse(stdout)
