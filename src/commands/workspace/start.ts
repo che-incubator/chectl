@@ -42,10 +42,20 @@ export default class Start extends Command {
       description: 'workspace name: overrides the workspace name to use instead of the one defined in the devfile. Works only for devfile',
       required: false,
     }),
+    'access-token': string({
+      description: 'Che OIDC Access Token',
+      env: 'CHE_ACCESS_TOKEN'
+    }),
     'listr-renderer': string({
       description: 'Listr renderer. Can be \'default\', \'silent\' or \'verbose\'',
       default: 'default'
     }),
+  }
+
+  async checkToken(flags: any, ctx: any) {
+    if (ctx.isAuthEnabled && !flags['access-token']) {
+      this.error('E_AUTH_REQUIRED - Che authentication is enabled and an access token need to be provided (flag --access-token).')
+    }
   }
 
   async run() {
@@ -66,24 +76,30 @@ export default class Start extends Command {
       },
       {
         title: 'Verify if Che server is running',
-        task: async (ctx: any) => {
+        task: async (ctx: any, task: any) => {
           if (!await che.isCheServerReady(ctx.cheURL, flags.chenamespace)) {
             this.error(`E_SRV_NOT_RUNNING - Che Server is not running.\nChe Server cannot be found in Kubernetes Namespace "${flags.chenamespace}". Have you already start it?\nFix with: start Che server: chectl server:start\nhttps://github.com/eclipse/che`, { code: 'E_SRV_NOT_RUNNNG'})
           }
+          const status = await che.getCheServerStatus(ctx.cheURL)
+          ctx.isAuthEnabled = await che.isAuthenticationEnabled(ctx.cheURL)
+          const auth = ctx.isAuthEnabled ? '(auth enabled)' : '(auth disabled)'
+          task.title = await `${task.title}...${status} ${auth}`
         }
       },
       {
         title: `Create workspace from Devfile ${flags.devfile}`,
         enabled: () => flags.devfile !== undefined,
         task: async (ctx: any) => {
-          ctx.workspaceIdeURL = await che.createWorkspaceFromDevfile(flags.chenamespace, flags.devfile, flags.name)
+          await this.checkToken(flags, ctx)
+          ctx.workspaceIdeURL = await che.createWorkspaceFromDevfile(flags.chenamespace, flags.devfile, flags.name, flags['access-token'])
         }
       },
       {
         title: `Create workspace from Workspace Config ${flags.workspaceconfig}`,
         enabled: () => flags.workspaceconfig !== undefined,
         task: async (ctx: any) => {
-          ctx.workspaceIdeURL = await che.createWorkspaceFromWorkspaceConfig(flags.chenamespace, flags.workspaceconfig)
+          await this.checkToken(flags, ctx)
+          ctx.workspaceIdeURL = await che.createWorkspaceFromWorkspaceConfig(flags.chenamespace, flags.workspaceconfig, flags['access-token'])
         }
       },
     ], {renderer: flags['listr-renderer'] as any})
