@@ -216,7 +216,7 @@ export class CheHelper {
     }
   }
 
-  async createWorkspaceFromDevfile(namespace: string | undefined, devfilePath = '', workspaceName: string | undefined): Promise<string> {
+  async createWorkspaceFromDevfile(namespace: string | undefined, devfilePath = '', workspaceName: string | undefined, accessToken = ''): Promise<string> {
     if (!await this.cheNamespaceExist(namespace)) {
       throw new Error('E_BAD_NS')
     }
@@ -224,6 +224,11 @@ export class CheHelper {
     let endpoint = `${url}/api/workspace/devfile`
     let devfile
     let response
+    const headers: any = {'Content-Type': 'text/yaml'}
+    if (accessToken && accessToken.length > 0) {
+      headers.Authorization = `${accessToken}`
+    }
+
     try {
       devfile = await this.parseDevfile(devfilePath)
       if (workspaceName) {
@@ -231,7 +236,7 @@ export class CheHelper {
         json.metadata.name = workspaceName
         devfile = yaml.dump(json)
       }
-      response = await axios.post(endpoint, devfile, {headers: {'Content-Type': 'text/yaml'}})
+      response = await axios.post(endpoint, devfile, {headers})
     } catch (error) {
       if (!devfile) { throw new Error(`E_NOT_FOUND_DEVFILE - ${devfilePath} - ${error.message}`) }
       if (error.response && error.response.status === 400) {
@@ -256,7 +261,7 @@ export class CheHelper {
     }
   }
 
-  async createWorkspaceFromWorkspaceConfig(namespace: string | undefined, workspaceConfigPath = ''): Promise<string> {
+  async createWorkspaceFromWorkspaceConfig(namespace: string | undefined, workspaceConfigPath = '', accessToken = ''): Promise<string> {
     if (!await this.cheNamespaceExist(namespace)) {
       throw new Error('E_BAD_NS')
     }
@@ -264,9 +269,14 @@ export class CheHelper {
     let endpoint = `${url}/api/workspace`
     let workspaceConfig
     let response
+    const headers: any = {'Content-Type': 'application/json'}
+    if (accessToken && accessToken.length > 0) {
+      headers.Authorization = `${accessToken}`
+    }
+
     try {
       let workspaceConfig = fs.readFileSync(workspaceConfigPath, 'utf8')
-      response = await axios.post(endpoint, workspaceConfig, {headers: {'Content-Type': 'application/json'}})
+      response = await axios.post(endpoint, workspaceConfig, {headers})
     } catch (error) {
       if (!workspaceConfig) { throw new Error(`E_NOT_FOUND_WORKSPACE_CONFIG_FILE - ${workspaceConfigPath} - ${error.message}`) }
       if (error.response && error.response.status === 400) {
