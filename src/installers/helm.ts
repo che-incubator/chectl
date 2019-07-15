@@ -18,12 +18,29 @@ import * as Listr from 'listr'
 import { ncp } from 'ncp'
 import * as path from 'path'
 
+import { KubeHelper } from '../api/kube'
+
 export class HelmHelper {
   startTasks(flags: any, command: Command): Listr {
     return new Listr([
       {
         title: 'Verify if helm is installed',
         task: () => { if (!commandExists.sync('helm')) { command.error('E_REQUISITE_NOT_FOUND') } }
+      },
+      {
+        title: 'Check for TLS prerequisites',
+        // Check only if TLS is enabled
+        enabled: () => {
+          return flags.tls
+        },
+        task: async (_ctx: any, task: any) => {
+          const kh = new KubeHelper()
+          const exists = await kh.secretExist('che-tls')
+          if (!exists) {
+            throw new Error('TLS option is enabled but che-tls secret does not exist in default namespace. Example on how to create the secret: kubectl create secret generic che-tls --from-literal=ACME_EMAIL=my@email-address.com')
+          }
+          task.title = `${task.title} che-tls secret exist.`
+        }
       },
       {
         title: 'Create Tiller Role Binding',
