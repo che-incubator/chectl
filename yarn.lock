@@ -1717,11 +1717,11 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-operator@git://github.com/eclipse/che-operator#master":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che-operator#d545e8b18035d568a240fe8b86e1fb194fe2c588"
+  resolved "git://github.com/eclipse/che-operator#6f463e0e1cb88cad396c6f4c61271e92729933dc"
 
 "eclipse-che@git://github.com/eclipse/che#master":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che#283a21ca4d6f905be73334f6b3a415d2bf14abc9"
+  resolved "git://github.com/eclipse/che#9cddc3efdc8ae9d1f4de0c0c42dfd14e5fd365df"
 
 elegant-spinner@^1.0.1:
   version "1.0.1"
