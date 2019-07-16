@@ -26,6 +26,7 @@
     "cli-ux": "^5.2.1",
     "command-exists": "^1.2.8",
     "eclipse-che": "git://github.com/eclipse/che#master",
+    "eclipse-che-operator": "git://github.com/eclipse/che-operator#master",
     "esprima": "^4.0.1",
     "execa": "^1.0.0",
     "fancy-test": "^1.4.1",
@@ -118,7 +119,9 @@
   },
   "repository": "che-incubator/chectl",
   "scripts": {
-    "postinstall": "rimraf templates/kubernetes && cpx 'node_modules/eclipse-che/deploy/kubernetes/**' 'templates/kubernetes'",
+    "postinstall-helm": "rimraf templates/kubernetes && cpx 'node_modules/eclipse-che/deploy/kubernetes/**' 'templates/kubernetes'",
+    "postinstall-operator": "rimraf templates/che-operator && cpx 'node_modules/eclipse-che-operator/deploy/**' 'templates/che-operator'",
+    "postinstall": "npm run -s postinstall-helm & npm run -s postinstall-operator",
     "postpack": "rm -f oclif.manifest.json",
     "posttest": "tslint -p test -t stylish",
     "tslint-fix": "tslint --fix -p test -t stylish",

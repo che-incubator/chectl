@@ -221,7 +221,7 @@ export class CheHelper {
       throw new Error('E_BAD_NS')
     }
     let url = await this.cheURL(namespace)
-    let endpoint = `${url}/api/devfile`
+    let endpoint = `${url}/api/workspace/devfile`
     let devfile
     let response
     try {

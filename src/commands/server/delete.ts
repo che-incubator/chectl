@@ -10,6 +10,7 @@
 // tslint:disable:object-curly-spacing
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
+import { cli } from 'cli-ux'
 import * as commandExists from 'command-exists'
 
 import { KubeHelper } from '../../api/kube'
@@ -59,10 +60,16 @@ export default class Delete extends Command {
         }
       },
       {
-        title: 'Delete all deployments',
+        title: 'Delete the CR eclipse-che of type checlusters.org.eclipse.che',
         task: async (_ctx: any, task: any) => {
-          await kh.deleteAllDeployments(flags.chenamespace)
-          task.title = await `${task.title}...OK`
+          if (await kh.crdExist('checlusters.org.eclipse.che') &&
+            await kh.cheClusterExist('eclipse-che', flags.chenamespace)) {
+            await kh.deleteCheCluster('eclipse-che', flags.chenamespace)
+            await cli.wait(2000) //wait a couple of secs for the finalizers to be executed
+            task.title = await `${task.title}...OK`
+          } else {
+            task.title = await `${task.title}...CR not found`
+          }
         }
       },
       {
@@ -70,6 +77,22 @@ export default class Delete extends Command {
         enabled: (ctx: any) => ctx.isOpenShift,
         task: async (_ctx: any, task: any) => {
           await oh.deleteAllDeploymentConfigs(flags.chenamespace)
+          task.title = await `${task.title}...OK`
+        }
+      },
+      {
+        title: 'Delete all deployments',
+        task: async (_ctx: any, task: any) => {
+          await kh.deleteAllDeployments(flags.chenamespace)
+          task.title = await `${task.title}...OK`
+        }
+      },
+      {
+        title: 'Delete CRD checlusters.org.eclipse.che',
+        task: async (_ctx: any, task: any) => {
+          if (await kh.crdExist('checlusters.org.eclipse.che')) {
+            await kh.deleteCrd('checlusters.org.eclipse.che')
+          }
           task.title = await `${task.title}...OK`
         }
       },
@@ -109,6 +132,24 @@ export default class Delete extends Command {
         }
       },
       {
+        title: 'Delete role che-operator',
+        task: async (_ctx: any, task: any) => {
+          if (await kh.roleExist('che-operator', flags.chenamespace)) {
+            await kh.deleteRole('che-operator', flags.chenamespace)
+          }
+          task.title = await `${task.title}...OK`
+        }
+      },
+      {
+        title: 'Delete cluster role che-operator',
+        task: async (_ctx: any, task: any) => {
+          if (await kh.clusterRoleExist('che-operator')) {
+            await kh.deleteClusterRole('che-operator')
+          }
+          task.title = await `${task.title}...OK`
+        }
+      },
+      {
         title: 'Delete rolebindings che, che-operator, che-workspace-exec and che-workspace-view',
         task: async (_ctx: any, task: any) => {
           if (await kh.roleBindingExist('che', flags.chenamespace)) {
@@ -122,6 +163,15 @@ export default class Delete extends Command {
           }
           if (await kh.roleBindingExist('che-workspace-view', flags.chenamespace)) {
             await kh.deleteRoleBinding('che-workspace-view', flags.chenamespace)
+          }
+          task.title = await `${task.title}...OK`
+        }
+      },
+      {
+        title: 'Delete cluster role binding che-operator',
+        task: async (_ctx: any, task: any) => {
+          if (await kh.clusterRoleBindingExist('che-operator')) {
+            await kh.deleteClusterRoleBinding('che-operator')
           }
           task.title = await `${task.title}...OK`
         }
@@ -146,15 +196,6 @@ export default class Delete extends Command {
         task: async (_ctx: any, task: any) => {
           if (await kh.persistentVolumeClaimExist('che-operator', flags.chenamespace)) {
             await kh.deletePersistentVolumeClaim('postgres-data', flags.chenamespace)
-          }
-          task.title = await `${task.title}...OK`
-        }
-      },
-      {
-        title: 'Delete pod che-operator',
-        task: async (_ctx: any, task: any) => {
-          if (await kh.podExist('che-operator', flags.chenamespace)) {
-            await kh.deletePod('che-operator', flags.chenamespace)
           }
           task.title = await `${task.title}...OK`
         }

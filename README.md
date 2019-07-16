@@ -9,6 +9,14 @@ chectl
 
 [![asciicast](https://asciinema.org/a/216201.svg)](https://asciinema.org/a/216201)
 
+## Report issues
+
+Issues are tracked on the main Eclipse Che Repository: https://github.com/eclipse/che/issues
+
+[![New questions](https://img.shields.io/badge/New-question-blue.svg?style=flat-curved)](https://github.com/eclipse/che/issues/new?labels=area/chectl,kind/question)
+[![New bug](https://img.shields.io/badge/New-bug-red.svg?style=flat-curved)](https://github.com/eclipse/che/issues/new?labels=area/chectl,kind/bug)
+
+## Table Of Contents
 
 <!-- toc -->
 * [Installation](#installation)
@@ -192,6 +200,13 @@ OPTIONS
 
   -t, --templates=templates                    [default: templates] Path to the templates folder
 
+  --che-operator-cr-yaml=che-operator-cr-yaml  Path to a yaml file that defines a CheCluster used by the operator. This
+                                               parameter is used only when the installer is the operator.
+
+  --che-operator-image=che-operator-image      [default: quay.io/eclipse-che/che-operator:nightly] Container image of
+                                               the operator. This parameter is used only when the installer is the
+                                               operator
+
   --devfile-registry-url=devfile-registry-url  [default: https://che-devfile-registry.openshift.io/] The URL of the
                                                Devfile registry.
 
@@ -203,8 +218,12 @@ OPTIONS
   --listr-renderer=listr-renderer              [default: default] Listr renderer. Can be 'default', 'silent' or
                                                'verbose'
 
+  --os-oauth                                   Enable use of OpenShift credentials to log into Che
+
   --plugin-registry-url=plugin-registry-url    [default: https://che-plugin-registry.openshift.io/v3] The URL of the
                                                plugin registry.
+
+  --self-signed-cert                           Authorize usage of self signed certificates for encryption
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
