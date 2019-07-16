@@ -121,7 +121,8 @@
   "scripts": {
     "postinstall-helm": "rimraf templates/kubernetes && cpx 'node_modules/eclipse-che/deploy/kubernetes/**' 'templates/kubernetes'",
     "postinstall-operator": "rimraf templates/che-operator && cpx 'node_modules/eclipse-che-operator/deploy/**' 'templates/che-operator'",
-    "postinstall": "npm run -s postinstall-helm & npm run -s postinstall-operator",
+    "postinstall-repositories": "yarn upgrade eclipse-che eclipse-che-operator",
+    "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-helm && npm run -s postinstall-operator",
     "postpack": "rm -f oclif.manifest.json",
     "posttest": "tslint -p test -t stylish",
     "tslint-fix": "tslint --fix -p test -t stylish",
