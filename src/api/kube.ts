@@ -957,6 +957,22 @@ export class KubeHelper {
     throw new Error('ERR_LIST_INGRESSES')
   }
 
+  async secretExist(name = '', namespace = 'default'): Promise<boolean> {
+    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+
+   // now get the matching secrets
+    try {
+      const res = await k8sCoreApi.readNamespacedSecret(name, namespace)
+      if (res && res.body && res.body.metadata && res.body.metadata.name) {
+        return res.body.metadata.name === name
+      } else {
+        return false
+      }
+    } catch {
+      return false
+    }
+  }
+
   async persistentVolumeClaimExist(name = '', namespace = ''): Promise<boolean | ''> {
     const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
     try {

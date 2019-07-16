@@ -280,17 +280,17 @@ export default class Start extends Command {
     if (flags.multiuser) {
       cheBootstrapSubTasks.add({
         title: 'PostgreSQL pod bootstrap',
-        task: () => this.podStartTasks(this.getPostgresSelector(flags.installer), flags.chenamespace)
+        task: () => this.podStartTasks(this.getPostgresSelector(), flags.chenamespace)
       })
       cheBootstrapSubTasks.add({
         title: 'Keycloak pod bootstrap',
-        task: () => this.podStartTasks(this.getKeycloakSelector(flags.installer), flags.chenamespace)
+        task: () => this.podStartTasks(this.getKeycloakSelector(), flags.chenamespace)
       })
     }
 
     cheBootstrapSubTasks.add({
       title: 'Che pod bootstrap',
-      task: () => this.podStartTasks(this.getCheServerSelector(flags.installer), flags.chenamespace)
+      task: () => this.podStartTasks(this.getCheServerSelector(), flags.chenamespace)
     })
 
     cheBootstrapSubTasks.add({
@@ -323,28 +323,16 @@ export default class Start extends Command {
     this.exit(0)
   }
 
-  getPostgresSelector(installer: any): string {
-    if (installer === 'operator') {
-      return 'app=che,component=postgres'
-    } else {
-      return 'app=postgres'
-    }
+  getPostgresSelector(): string {
+    return 'app=che,component=postgres'
   }
 
-  getKeycloakSelector(installer: any): string {
-    if (installer === 'operator') {
-      return 'app=che,component=keycloak'
-    } else {
-      return 'app=keycloak'
-    }
+  getKeycloakSelector(): string {
+    return 'app=che,component=keycloak'
   }
 
-  getCheServerSelector(installer: any): string {
-    if (installer === 'operator') {
-      return 'app=che,component=che'
-    } else {
-      return 'app=che'
-    }
+  getCheServerSelector(): string {
+    return 'app=che,component=che'
   }
 
   podStartTasks(selector: string, namespace = ''): Listr {

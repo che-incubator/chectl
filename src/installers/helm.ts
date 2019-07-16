@@ -18,12 +18,29 @@ import * as Listr from 'listr'
 import { ncp } from 'ncp'
 import * as path from 'path'
 
+import { KubeHelper } from '../api/kube'
+
 export class HelmHelper {
   startTasks(flags: any, command: Command): Listr {
     return new Listr([
       {
         title: 'Verify if helm is installed',
         task: () => { if (!commandExists.sync('helm')) { command.error('E_REQUISITE_NOT_FOUND') } }
+      },
+      {
+        title: 'Check for TLS prerequisites',
+        // Check only if TLS is enabled
+        enabled: () => {
+          return flags.tls
+        },
+        task: async (_ctx: any, task: any) => {
+          const kh = new KubeHelper()
+          const exists = await kh.secretExist('che-tls')
+          if (!exists) {
+            throw new Error('TLS option is enabled but che-tls secret does not exist in default namespace. Example on how to create the secret: kubectl create secret generic che-tls --from-literal=ACME_EMAIL=my@email-address.com')
+          }
+          task.title = `${task.title} che-tls secret exist.`
+        }
       },
       {
         title: 'Create Tiller Role Binding',
@@ -153,22 +170,29 @@ error: E_COMMAND_FAILED`)
 
     let multiUserFlag = ''
     let tlsFlag = ''
+    let setOptions = ''
 
     if (flags.multiuser) {
       multiUserFlag = `-f ${destDir}values/multi-user.yaml`
     }
 
     if (flags.tls) {
+      setOptions = `--set global.cheDomain=${flags.domain}`
       tlsFlag = `-f ${destDir}values/tls.yaml`
     }
 
-    let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} --set global.ingressDomain=${flags.domain} --set cheImage=${flags.cheimage} --set global.cheWorkspacesNamespace=${flags.chenamespace} --set che.workspace.devfileRegistryUrl=${flags['devfile-registry-url']} --set che.workspace.pluginRegistryUrl=${flags['plugin-registry-url']} ${multiUserFlag} ${tlsFlag} ${destDir}`
-    let {code} = await execa.shell(command, { timeout: execTimeout, reject: false })
+    let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} --set global.ingressDomain=${flags.domain} ${setOptions} --set cheImage=${flags.cheimage} --set global.cheWorkspacesNamespace=${flags.chenamespace} --set che.workspace.devfileRegistryUrl=${flags['devfile-registry-url']} --set che.workspace.pluginRegistryUrl=${flags['plugin-registry-url']} ${multiUserFlag} ${tlsFlag} ${destDir}`
+
+    let {code, stderr} = await execa.shell(command, { timeout: execTimeout, reject: false })
     // if process failed, check the following
     // if revision=1, purge and retry command else rollback
     if (code !== 0) {
       // get revision
-      const {stdout} = await execa.shell(`helm history ${flags.chenamespace} --output json`, { timeout: execTimeout })
+
+      const {code, stdout} = await execa.shell(`helm history ${flags.chenamespace} --output json`, { timeout: execTimeout, reject: false })
+      if (code !== 0) {
+        throw new Error(`Unable to execute helm command ${command} / ${stderr}`)
+      }
       let jsonOutput
       try {
         jsonOutput = JSON.parse(stdout)
