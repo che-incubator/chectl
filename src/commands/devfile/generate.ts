@@ -129,8 +129,7 @@ export default class Generate extends Command {
         image: `${flags.dockerimage}`,
         memoryLimit: '512M',
         mountSources: true,
-        command: ['tail'],
-        args: ['-f', '/dev/null']
+        args: ['sleep', 'infinity']
       }
       if (devfile.components) {
         devfile.components.push(component)
