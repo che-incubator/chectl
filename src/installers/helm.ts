@@ -28,18 +28,23 @@ export class HelmHelper {
         task: () => { if (!commandExists.sync('helm')) { command.error('E_REQUISITE_NOT_FOUND') } }
       },
       {
-        title: 'Check for TLS prerequisites',
+        title: 'Check for TLS secret prerequisites',
         // Check only if TLS is enabled
         enabled: () => {
           return flags.tls
         },
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const kh = new KubeHelper()
           const exists = await kh.secretExist('che-tls')
           if (!exists) {
             throw new Error('TLS option is enabled but che-tls secret does not exist in default namespace. Example on how to create the secret: kubectl create secret generic che-tls --from-literal=ACME_EMAIL=my@email-address.com')
           }
-          task.title = `${task.title} che-tls secret exist.`
+          const tlsEmail = await kh.getSecret('che-tls')
+          if (tlsEmail === undefined) {
+            throw new Error('TLS option is enabled and che-tls secret is defined but there is no ACME_EMAIL field on this secret. Example on how to create the secret: kubectl create secret generic che-tls --from-literal=ACME_EMAIL=my@email-address.com')
+          }
+          ctx.tlsEmail = tlsEmail
+          task.title = `${task.title}...che-tls secret found.`
         }
       },
       {
@@ -98,8 +103,8 @@ export class HelmHelper {
       },
       {
         title: 'Deploying Che Helm Chart',
-        task: async (_ctx: any, task: any) => {
-          await this.upgradeCheHelmChart(flags, command.config.cacheDir)
+        task: async (ctx: any, task: any) => {
+          await this.upgradeCheHelmChart(ctx, flags, command.config.cacheDir)
           task.title = `${task.title}...done.`
         }
       },
@@ -165,7 +170,7 @@ error: E_COMMAND_FAILED`)
     await execa.shell(`helm dependencies update --skip-refresh ${destDir}`, { timeout: execTimeout })
   }
 
-  async upgradeCheHelmChart(flags: any, cacheDir: string, execTimeout= 120000) {
+  async upgradeCheHelmChart(ctx: any, flags: any, cacheDir: string, execTimeout= 120000) {
     const destDir = path.join(cacheDir, '/templates/kubernetes/helm/che/')
 
     let multiUserFlag = ''
@@ -177,7 +182,7 @@ error: E_COMMAND_FAILED`)
     }
 
     if (flags.tls) {
-      setOptions = `--set global.cheDomain=${flags.domain}`
+      setOptions = `--set global.cheDomain=${flags.domain} --set global.tls.email='${ctx.tlsEmail}'`
       tlsFlag = `-f ${destDir}values/tls.yaml`
     }
 
