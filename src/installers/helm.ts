@@ -181,7 +181,7 @@ error: E_COMMAND_FAILED`)
       tlsFlag = `-f ${destDir}values/tls.yaml`
     }
 
-    let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} --set global.ingressDomain=${flags.domain} ${setOptions} --set cheImage=${flags.cheimage} --set global.cheWorkspacesNamespace=${flags.chenamespace} ${multiUserFlag} ${tlsFlag} ${destDir}`
+    let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} --set global.ingressDomain=${flags.domain} ${setOptions} --set cheImage=${flags.cheimage} --set global.cheWorkspacesNamespace=${flags.chenamespace} --set che.workspace.devfileRegistryUrl=${flags['devfile-registry-url']} --set che.workspace.pluginRegistryUrl=${flags['plugin-registry-url']} ${multiUserFlag} ${tlsFlag} ${destDir}`
 
     let {code, stderr} = await execa.shell(command, { timeout: execTimeout, reject: false })
     // if process failed, check the following

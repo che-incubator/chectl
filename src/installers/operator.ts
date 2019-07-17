@@ -173,7 +173,7 @@ export class OperatorHelper {
             task.title = `${task.title}...done.`
           }
         }
-      },
+      }
     ], { renderer: flags['listr-renderer'] as any })
   }
 

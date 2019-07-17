@@ -207,6 +207,9 @@ OPTIONS
                                                the operator. This parameter is used only when the installer is the
                                                operator
 
+  --devfile-registry-url=devfile-registry-url  [default: https://che-devfile-registry.openshift.io/] The URL of the
+                                               Devfile registry.
+
   --k8spodreadytimeout=k8spodreadytimeout      [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
 
   --k8spodwaittimeout=k8spodwaittimeout        [default: 300000] Waiting time for Pod Wait Timeout Kubernetes (in
@@ -216,6 +219,9 @@ OPTIONS
                                                'verbose'
 
   --os-oauth                                   Enable use of OpenShift credentials to log into Che
+
+  --plugin-registry-url=plugin-registry-url    [default: https://che-plugin-registry.openshift.io/v3] The URL of the
+                                               plugin registry.
 
   --self-signed-cert                           Authorize usage of self signed certificates for encryption
 ```
