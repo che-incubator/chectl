@@ -973,6 +973,24 @@ export class KubeHelper {
     }
   }
 
+  async getSecret(name = '', namespace = 'default'): Promise<string | undefined> {
+    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+
+    // now get the matching secrets
+    try {
+      const res = await k8sCoreApi.readNamespacedSecret(name, namespace)
+      if (res && res.body && res.body.metadata && res.body.metadata.name && res.body.data && res.body.data.ACME_EMAIL) {
+        if (res.body.metadata.name === name) {
+          return Buffer.from(res.body.data.ACME_EMAIL, 'base64').toString()
+        }
+      } else {
+        return
+      }
+    } catch {
+      return
+    }
+  }
+
   async persistentVolumeClaimExist(name = '', namespace = ''): Promise<boolean | ''> {
     const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
     try {
