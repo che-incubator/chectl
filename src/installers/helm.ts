@@ -48,6 +48,26 @@ export class HelmHelper {
         }
       },
       {
+        title: 'Check for cert-manager',
+        // Check only if TLS is enabled
+        enabled: () => {
+          return flags.tls
+        },
+        task: async (_ctx: any, task: any) => {
+          const kh = new KubeHelper()
+          const exists = await kh.apiVersionExist('certmanager.k8s.io')
+          if (!exists) {
+            throw new Error(`TLS option is enabled but cert-manager API has not been found. Cert Manager is probably not installed. Example on how to install it:
+            $ kubectl create namespace cert-manager
+            $ kubectl label namespace cert-manager certmanager.k8s.io/disable-validation=true
+            $ kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v0.8.1/cert-manager.yaml --validate=false
+
+            Please install cert-manager.`)
+          }
+          task.title = `${task.title}...done`
+        }
+      },
+      {
         title: 'Create Tiller Role Binding',
         task: async (_ctx: any, task: any) => {
           const roleBindingExist = await this.tillerRoleBindingExist()
