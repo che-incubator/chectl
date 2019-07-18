@@ -73,12 +73,12 @@ USAGE
 * [`chectl server:delete`](#chectl-serverdelete)
 * [`chectl server:start`](#chectl-serverstart)
 * [`chectl server:stop`](#chectl-serverstop)
-* [`chectl server:update`](#chectl-serverupdate)
+* [`chectl server:update`](#chectl-serverupdate-not-implemented-yet) (Not implemented yet)
 * [`chectl update [CHANNEL]`](#chectl-update-channel)
 * [`chectl workspace:inject`](#chectl-workspaceinject)
-* [`chectl workspace:list`](#chectl-workspacelist)
+* [`chectl workspace:list`](#chectl-workspacelist-not-implemented-yet) (Not implemented yet)
 * [`chectl workspace:start`](#chectl-workspacestart)
-* [`chectl workspace:stop`](#chectl-workspacestop)
+* [`chectl workspace:stop`](#chectl-workspacestop-not-implemented-yet) (Not implemented yet)
 
 ## `chectl autocomplete [SHELL]`
 
@@ -247,7 +247,7 @@ OPTIONS
 
 _See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
 
-## `chectl server:update`
+## `chectl server:update` (Not implemented yet)
 
 update Eclipse Che Server
 
@@ -299,7 +299,7 @@ OPTIONS
 
 _See code: [src/commands/workspace/inject.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/inject.ts)_
 
-## `chectl workspace:list`
+## `chectl workspace:list` (Not implemented yet)
 
 list Che workspaces
 
@@ -336,7 +336,7 @@ OPTIONS
 
 _See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
 
-## `chectl workspace:stop`
+## `chectl workspace:stop` (Not implemented yet)
 
 stop a running Che workspace
 
