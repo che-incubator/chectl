@@ -195,18 +195,30 @@ error: E_COMMAND_FAILED`)
 
     let multiUserFlag = ''
     let tlsFlag = ''
-    let setOptions = ''
+    let setOptions = []
 
     if (flags.multiuser) {
       multiUserFlag = `-f ${destDir}values/multi-user.yaml`
     }
 
     if (flags.tls) {
-      setOptions = `--set global.cheDomain=${flags.domain} --set global.tls.email='${ctx.tlsEmail}'`
+      setOptions.push(`--set global.cheDomain=${flags.domain} --set global.tls.email='${ctx.tlsEmail}'`)
       tlsFlag = `-f ${destDir}values/tls.yaml`
     }
 
-    let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} --set global.ingressDomain=${flags.domain} ${setOptions} --set cheImage=${flags.cheimage} --set global.cheWorkspacesNamespace=${flags.chenamespace} --set che.workspace.devfileRegistryUrl=${flags['devfile-registry-url']} --set che.workspace.pluginRegistryUrl=${flags['plugin-registry-url']} ${multiUserFlag} ${tlsFlag} ${destDir}`
+    if (flags['plugin-registry-url']) {
+      setOptions.push(`--set che.workspace.pluginRegistryUrl=${flags['plugin-registry-url']} --set chePluginRegistry.deploy=false`)
+    }
+
+    if (flags['devfile-registry-url']) {
+      setOptions.push(`--set che.workspace.devfileRegistryUrl=${flags['devfile-registry-url']} --set cheDevfileRegistry.deploy=false`)
+    }
+
+    setOptions.push(`--set global.ingressDomain=${flags.domain}`)
+    setOptions.push(`--set cheImage=${flags.cheimage}`)
+    setOptions.push(`--set global.cheWorkspacesNamespace=${flags.chenamespace}`)
+
+    let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} ${setOptions.join(' ')} ${multiUserFlag} ${tlsFlag} ${destDir}`
 
     let {code, stderr} = await execa.shell(command, { timeout: execTimeout, reject: false })
     // if process failed, check the following
