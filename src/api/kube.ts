@@ -757,8 +757,14 @@ export class KubeHelper {
     yamlCr.spec.server.tlsSupport = flags.tls
     yamlCr.spec.server.selfSignedCert = flags['self-signed-cert']
     yamlCr.spec.k8s.ingressDomain = flags.domain
-    yamlCr.spec.server.pluginRegistryUrl = flags['plugin-registry-url']
-    yamlCr.spec.server.devfileRegistryUrl = flags['devfile-registry-url']
+    let pluginRegistryUrl = flags['plugin-registry-url']
+    if (pluginRegistryUrl) {
+      yamlCr.spec.server.pluginRegistryUrl = pluginRegistryUrl
+    }
+    let devfileRegistryUrl = flags['devfile-registry-url']
+    if (devfileRegistryUrl) {
+      yamlCr.spec.server.devfileRegistryUrl = devfileRegistryUrl
+    }
     const customObjectsApi = this.kc.makeApiClient(Custom_objectsApi)
     try {
       return await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', cheNamespace, 'checlusters', yamlCr)
