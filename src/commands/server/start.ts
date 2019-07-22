@@ -21,6 +21,7 @@ import { KubeHelper } from '../../api/kube'
 import { HelmHelper } from '../../installers/helm'
 import { MinishiftAddonHelper } from '../../installers/minishift-addon'
 import { OperatorHelper } from '../../installers/operator'
+import { CRCHelper } from '../../platforms/crc'
 import { DockerDesktopHelper } from '../../platforms/docker-desktop'
 import { K8sHelper } from '../../platforms/k8s'
 import { MicroK8sHelper } from '../../platforms/microk8s'
@@ -107,7 +108,7 @@ export default class Start extends Command {
     }),
     platform: string({
       char: 'p',
-      description: 'Type of Kubernetes platform. Valid values are \"minikube\", \"minishift\", \"k8s\", \"openshift\", \"microk8s\".',
+      description: 'Type of Kubernetes platform. Valid values are \"minikube\", \"minishift\", \"k8s (for kubernetes)\", \"openshift\", \"crc (for CodeReady Containers)\", \"microk8s\".',
       default: 'minikube'
     }),
     'os-oauth': flags.boolean({
@@ -163,6 +164,10 @@ export default class Start extends Command {
       if (flags.installer === '') {
         flags.installer = 'helm'
       }
+    } else if (flags.platform === 'crc') {
+      if (flags.installer === '') {
+        flags.installer = 'operator'
+      }
     }
   }
 
@@ -176,6 +181,7 @@ export default class Start extends Command {
     const openshift = new OpenshiftHelper()
     const k8s = new K8sHelper()
     const dockerDesktop = new DockerDesktopHelper()
+    const crc = new CRCHelper()
     const helm = new HelmHelper()
     const che = new CheHelper()
     const operator = new OperatorHelper()
@@ -218,6 +224,11 @@ export default class Start extends Command {
       platformCheckTasks.add({
         title: '✈️  MicroK8s preflight checklist',
         task: () => microk8s.startTasks(flags, this)
+      })
+    } else if (flags.platform === 'crc') {
+      platformCheckTasks.add({
+        title: '✈️  CodeReady Containers preflight checklist',
+        task: () => crc.startTasks(flags, this)
       })
     } else if (flags.platform === 'openshift') {
       platformCheckTasks.add({
