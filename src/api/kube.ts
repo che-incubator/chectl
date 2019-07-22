@@ -769,6 +769,11 @@ export class KubeHelper {
       if (devfileRegistryUrl) {
         yamlCr.spec.server.devfileRegistryUrl = devfileRegistryUrl
       }
+      const tagExp = /:[^:]*$/
+      const newTag = ':' + yamlCr.spec.server.cheImageTag
+      yamlCr.spec.auth.identityProviderImage = yamlCr.spec.auth.identityProviderImage.replace(tagExp, newTag)
+      yamlCr.spec.server.pluginRegistryImage = yamlCr.spec.server.pluginRegistryImage.replace(tagExp, newTag)
+      yamlCr.spec.server.devfileRegistryImage = yamlCr.spec.server.devfileRegistryImage.replace(tagExp, newTag)
     }
     const customObjectsApi = this.kc.makeApiClient(Custom_objectsApi)
     try {
