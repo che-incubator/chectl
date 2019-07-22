@@ -34,7 +34,7 @@ export default class Stop extends Command {
     }),
     'che-selector': string({
       description: 'Selector for Che Server resources',
-      default: 'app=che',
+      default: 'app=che,component=che',
       env: 'CHE_SELECTOR'
     }),
     'access-token': string({
@@ -87,6 +87,8 @@ export default class Stop extends Command {
             // helm chart and Che operator use a deployment
             ctx.foundKeycloakDeployment = await kh.deploymentExist('keycloak', flags.chenamespace)
             ctx.foundPostgresDeployment = await kh.deploymentExist('postgres', flags.chenamespace)
+            ctx.foundDevfileRegistryDeployment = await kh.deploymentExist('devfile-registry', flags.chenamespace)
+            ctx.foundPluginRegistryDeployment = await kh.deploymentExist('plugin-registry', flags.chenamespace)
             if (ctx.foundKeycloakDeployment && ctx.foundPostgresDeployment) {
               task.title = await `${task.title}...it does (as well as keycloak and postgres)`
             } else {
@@ -170,7 +172,7 @@ Che server is not ready yet. Try again in a few seconds.`
         title: 'Wait until Che pod is deleted',
         enabled: (ctx: any) => !ctx.isAlreadyStopped && !ctx.isNotReadyYet,
         task: async (_ctx: any, task: any) => {
-          await kh.waitUntilPodIsDeleted('app=che', flags.chenamespace)
+          await kh.waitUntilPodIsDeleted('app=che,component=che', flags.chenamespace)
           task.title = `${task.title}...done.`
         }
       },
@@ -219,6 +221,54 @@ Che server is not ready yet. Try again in a few seconds.`
         enabled: (ctx: any) => !ctx.isAlreadyStopped && !ctx.isNotReadyYet && ctx.foundKeycloakDeployment,
         task: async (_ctx: any, task: any) => {
           await kh.waitUntilPodIsDeleted('app=postgres', flags.chenamespace)
+          task.title = `${task.title}...done.`
+        }
+      },
+      {
+        title: 'Scale  \"devfile registry\"  deployment to zero',
+        enabled: (ctx: any) => ctx.foundDevfileRegistryDeployment,
+        task: async (ctx: any, task: any) => {
+          try {
+            if (ctx.deploymentConfigExist) {
+              await oc.scaleDeploymentConfig('devfile-registry', flags.chenamespace, 0)
+            } else {
+              await kh.scaleDeployment('devfile-registry', flags.chenamespace, 0)
+            }
+            task.title = await `${task.title}...done`
+          } catch (error) {
+            this.error(`E_SCALE_DEPLOY_FAIL - Failed to scale devfile-registry deployment. ${error.message}`)
+          }
+        }
+      },
+      {
+        title: 'Wait until Devfile registry pod is deleted',
+        enabled: (ctx: any) => ctx.foundDevfileRegistryDeployment,
+        task: async (_ctx: any, task: any) => {
+          await kh.waitUntilPodIsDeleted('app=che,component=devfile-registry', flags.chenamespace)
+          task.title = `${task.title}...done.`
+        }
+      },
+      {
+        title: 'Scale  \"plugin registry\"  deployment to zero',
+        enabled: (ctx: any) => ctx.foundPluginRegistryDeployment,
+        task: async (ctx: any, task: any) => {
+          try {
+            if (ctx.deploymentConfigExist) {
+              await oc.scaleDeploymentConfig('plugin-registry', flags.chenamespace, 0)
+            } else {
+              await kh.scaleDeployment('plugin-registry', flags.chenamespace, 0)
+            }
+            task.title = await `${task.title}...done`
+          } catch (error) {
+            this.error(`E_SCALE_DEPLOY_FAIL - Failed to scale plugin-registry deployment. ${error.message}`)
+          }
+        }
+      },
+      {
+        title: 'Wait until Plugin registry pod is deleted',
+        enabled: (ctx: any) => ctx.foundPluginRegistryDeployment,
+        task: async (_ctx: any, task: any) => {
+          await kh.waitUntilPodIsDeleted('app=che,component=plugin-registry', flags.chenamespace)
           task.title = `${task.title}...done.`
         }
       },
