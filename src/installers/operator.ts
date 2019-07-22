@@ -168,7 +168,7 @@ export class OperatorHelper {
             task.title = `${task.title}...It already exist.`
           } else {
             const yamlFilePath = flags['che-operator-cr-yaml'] === '' ? this.resourcesPath + 'crds/org_v1_che_cr.yaml' : flags['che-operator-cr-yaml']
-            await kube.createCheClusterFromFile(yamlFilePath, flags)
+            await kube.createCheClusterFromFile(yamlFilePath, flags, flags['che-operator-cr-yaml'] === '')
             task.title = `${task.title}...done.`
           }
         }

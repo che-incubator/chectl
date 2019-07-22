@@ -745,25 +745,30 @@ export class KubeHelper {
     }
   }
 
-  async createCheClusterFromFile(filePath: string, flags: any) {
+  async createCheClusterFromFile(filePath: string, flags: any, useDefaultCR: boolean) {
     const yamlFile = readFileSync(filePath)
     let yamlCr = yaml.safeLoad(yamlFile.toString())
-    const cheImage = flags.cheimage
     const cheNamespace = flags.chenamespace
-    const imageAndTag = cheImage.split(':', 2)
-    yamlCr.spec.server.cheImage = imageAndTag[0]
-    yamlCr.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
-    yamlCr.spec.auth.openShiftoAuth = flags['os-oauth']
-    yamlCr.spec.server.tlsSupport = flags.tls
-    yamlCr.spec.server.selfSignedCert = flags['self-signed-cert']
-    yamlCr.spec.k8s.ingressDomain = flags.domain
-    let pluginRegistryUrl = flags['plugin-registry-url']
-    if (pluginRegistryUrl) {
-      yamlCr.spec.server.pluginRegistryUrl = pluginRegistryUrl
-    }
-    let devfileRegistryUrl = flags['devfile-registry-url']
-    if (devfileRegistryUrl) {
-      yamlCr.spec.server.devfileRegistryUrl = devfileRegistryUrl
+    if (useDefaultCR) {
+      // If we don't use an explicitely provided CheCluster CR,
+      // then let's modify the default example CR with values
+      // derived from the other parameters
+      const cheImage = flags.cheimage
+      const imageAndTag = cheImage.split(':', 2)
+      yamlCr.spec.server.cheImage = imageAndTag[0]
+      yamlCr.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
+      yamlCr.spec.auth.openShiftoAuth = flags['os-oauth']
+      yamlCr.spec.server.tlsSupport = flags.tls
+      yamlCr.spec.server.selfSignedCert = flags['self-signed-cert']
+      yamlCr.spec.k8s.ingressDomain = flags.domain
+      let pluginRegistryUrl = flags['plugin-registry-url']
+      if (pluginRegistryUrl) {
+        yamlCr.spec.server.pluginRegistryUrl = pluginRegistryUrl
+      }
+      let devfileRegistryUrl = flags['devfile-registry-url']
+      if (devfileRegistryUrl) {
+        yamlCr.spec.server.devfileRegistryUrl = devfileRegistryUrl
+      }
     }
     const customObjectsApi = this.kc.makeApiClient(Custom_objectsApi)
     try {
