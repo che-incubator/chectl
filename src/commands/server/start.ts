@@ -286,6 +286,20 @@ export default class Start extends Command {
       })
     }
 
+    if (!flags['devfile-registry-url']) {
+      cheBootstrapSubTasks.add({
+        title: 'Devfile registry pod bootstrap',
+        task: () => this.podStartTasks(this.getDevfileRegistrySelector(), flags.chenamespace)
+      })
+    }
+
+    if (!flags['plugin-registry-url']) {
+      cheBootstrapSubTasks.add({
+        title: 'Plugin registry pod bootstrap',
+        task: () => this.podStartTasks(this.getPluginRegistrySelector(), flags.chenamespace)
+      })
+    }
+
     cheBootstrapSubTasks.add({
       title: 'Che pod bootstrap',
       task: () => this.podStartTasks(this.getCheServerSelector(), flags.chenamespace)
@@ -327,6 +341,14 @@ export default class Start extends Command {
 
   getKeycloakSelector(): string {
     return 'app=che,component=keycloak'
+  }
+
+  getDevfileRegistrySelector(): string {
+    return 'app=che,component=devfile-registry'
+  }
+
+  getPluginRegistrySelector(): string {
+    return 'app=che,component=plugin-registry'
   }
 
   getCheServerSelector(): string {
