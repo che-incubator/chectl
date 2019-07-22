@@ -155,8 +155,7 @@ export class OperatorHelper {
           if (exist) {
             task.title = `${task.title}...It already exist.`
           } else {
-            const yamlFilePath = flags['che-operator-cr-yaml'] === '' ? this.resourcesPath + 'operator.yaml' : flags['che-operator-cr-yaml']
-            await kube.createDeploymentFromFile(yamlFilePath, flags.chenamespace, flags['che-operator-image'])
+            await kube.createDeploymentFromFile(this.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
             task.title = `${task.title}...done.`
           }
         }
@@ -168,7 +167,7 @@ export class OperatorHelper {
           if (exist) {
             task.title = `${task.title}...It already exist.`
           } else {
-            const yamlFilePath = this.resourcesPath + 'crds/org_v1_che_cr.yaml'
+            const yamlFilePath = flags['che-operator-cr-yaml'] === '' ? this.resourcesPath + 'crds/org_v1_che_cr.yaml' : flags['che-operator-cr-yaml']
             await kube.createCheClusterFromFile(yamlFilePath, flags)
             task.title = `${task.title}...done.`
           }
