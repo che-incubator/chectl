@@ -114,7 +114,7 @@ export default class Start extends Command {
     }),
     'che-operator-image': string({
       description: 'Container image of the operator. This parameter is used only when the installer is the operator',
-      default: 'quay.io/eclipse-che/che-operator:nightly'
+      default: 'quay.io/eclipse/che-operator:nightly'
     }),
     'che-operator-cr-yaml': string({
       description: 'Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer is the operator.',
