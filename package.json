@@ -126,7 +126,7 @@
     "postpack": "rm -f oclif.manifest.json",
     "posttest": "tslint -p test -t stylish",
     "tslint-fix": "tslint --fix -p test -t stylish",
-    "prepack": "rm -rf lib && tsc -b && oclif-dev manifest && oclif-dev readme",
+    "prepack": "rm -rf lib && rm -rf tsconfig.tsbuildinfo && tsc -b && oclif-dev manifest && oclif-dev readme",
     "test": "jest",
     "test-watch": "jest --watchAll",
     "version": "oclif-dev readme && git add README.md"
