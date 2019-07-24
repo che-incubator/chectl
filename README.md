@@ -203,12 +203,10 @@ OPTIONS
   --che-operator-cr-yaml=che-operator-cr-yaml  Path to a yaml file that defines a CheCluster used by the operator. This
                                                parameter is used only when the installer is the operator.
 
-  --che-operator-image=che-operator-image      [default: quay.io/eclipse-che/che-operator:nightly] Container image of
-                                               the operator. This parameter is used only when the installer is the
-                                               operator
+  --che-operator-image=che-operator-image      [default: quay.io/eclipse/che-operator:nightly] Container image of the
+                                               operator. This parameter is used only when the installer is the operator
 
-  --devfile-registry-url=devfile-registry-url  [default: https://che-devfile-registry.openshift.io/] The URL of the
-                                               Devfile registry.
+  --devfile-registry-url=devfile-registry-url  The URL of the external Devfile registry.
 
   --k8spodreadytimeout=k8spodreadytimeout      [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
 
@@ -220,8 +218,7 @@ OPTIONS
 
   --os-oauth                                   Enable use of OpenShift credentials to log into Che
 
-  --plugin-registry-url=plugin-registry-url    [default: https://che-plugin-registry.openshift.io/v3] The URL of the
-                                               plugin registry.
+  --plugin-registry-url=plugin-registry-url    The URL of the external plugin registry.
 
   --self-signed-cert                           Authorize usage of self signed certificates for encryption
 ```
@@ -240,7 +237,7 @@ OPTIONS
   -h, --help                         show CLI help
   -n, --chenamespace=chenamespace    [default: che] Kubernetes namespace where Che resources will be deployed
   --access-token=access-token        Che OIDC Access Token
-  --che-selector=che-selector        [default: app=che] Selector for Che Server resources
+  --che-selector=che-selector        [default: app=che,component=che] Selector for Che Server resources
   --deployment-name=deployment-name  [default: che] Che deployment name
   --listr-renderer=listr-renderer    [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
 ```
@@ -328,6 +325,7 @@ OPTIONS
   -h, --help                             show CLI help
   -n, --chenamespace=chenamespace        [default: che] kubernetes namespace where Che server is deployed
   -w, --workspaceconfig=workspaceconfig  path to a valid workspace configuration json file
+  --access-token=access-token            Che OIDC Access Token
   --listr-renderer=listr-renderer        [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
 
   --name=name                            workspace name: overrides the workspace name to use instead of the one defined
