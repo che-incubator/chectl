@@ -15,7 +15,8 @@ before_deploy:
 - git tag $TRAVIS_TAG
 - sed -i sed "s#version\":\ \"\(.*\)\",#version\":\ \"\1-${SHORT_SHA1}\",#g" package.json
 - yarn pack
-- pkg . -t node10-linux-x64,node10-macos-x64,node10-win-x64 --options max_old_space_size=1024 --out-path ./bin/
+- mkdir ${TRAVIS_BUILD_DIR}/packages
+- pkg . -t node10-linux-x64,node10-macos-x64,node10-win-x64 --options max_old_space_size=1024 --out-path ${TRAVIS_BUILD_DIR}/packages/
 - npx oclif-dev pack
 deploy:
   provider: releases
@@ -24,9 +25,7 @@ deploy:
   file_glob: true
   file:
   - "dist/chectl-v*/chectl-*.gz"
-  - "./bin/chectl-linux"
-  - "./bin/chectl-macos"
-  - "./bin/chectl-win.exe"
+  - "${TRAVIS_BUILD_DIR}/packages/chectl-*"
   skip_cleanup: true
   on:
     repo: che-incubator/chectl
