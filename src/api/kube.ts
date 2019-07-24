@@ -764,10 +764,12 @@ export class KubeHelper {
       let pluginRegistryUrl = flags['plugin-registry-url']
       if (pluginRegistryUrl) {
         yamlCr.spec.server.pluginRegistryUrl = pluginRegistryUrl
+        yamlCr.spec.server.externalPluginRegistry = true
       }
       let devfileRegistryUrl = flags['devfile-registry-url']
       if (devfileRegistryUrl) {
         yamlCr.spec.server.devfileRegistryUrl = devfileRegistryUrl
+        yamlCr.spec.server.externalDevfileRegistry = true
       }
       const tagExp = /:[^:]*$/
       const newTag = `:${yamlCr.spec.server.cheImageTag}`
