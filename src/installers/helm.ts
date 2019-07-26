@@ -33,38 +33,13 @@ export class HelmHelper {
         enabled: () => {
           return flags.tls
         },
-        task: async (ctx: any, task: any) => {
-          const kh = new KubeHelper()
-          const exists = await kh.secretExist('che-tls')
-          if (!exists) {
-            throw new Error('TLS option is enabled but che-tls secret does not exist in default namespace. Example on how to create the secret: kubectl create secret generic che-tls --from-literal=ACME_EMAIL=my@email-address.com')
-          }
-          const tlsEmail = await kh.getSecret('che-tls')
-          if (tlsEmail === undefined) {
-            throw new Error('TLS option is enabled and che-tls secret is defined but there is no ACME_EMAIL field on this secret. Example on how to create the secret: kubectl create secret generic che-tls --from-literal=ACME_EMAIL=my@email-address.com')
-          }
-          ctx.tlsEmail = tlsEmail
-          task.title = `${task.title}...che-tls secret found.`
-        }
-      },
-      {
-        title: 'Check for cert-manager',
-        // Check only if TLS is enabled
-        enabled: () => {
-          return flags.tls
-        },
         task: async (_ctx: any, task: any) => {
           const kh = new KubeHelper()
-          const exists = await kh.apiVersionExist('certmanager.k8s.io')
+          const exists = await kh.secretExist('che-tls', `${flags.chenamespace}`)
           if (!exists) {
-            throw new Error(`TLS option is enabled but cert-manager API has not been found. Cert Manager is probably not installed. Example on how to install it:
-            $ kubectl create namespace cert-manager
-            $ kubectl label namespace cert-manager certmanager.k8s.io/disable-validation=true
-            $ kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v0.8.1/cert-manager.yaml --validate=false
-
-            Please install cert-manager.`)
+            throw new Error(`TLS option is enabled but che-tls secret does not exist in '${flags.chenamespace}' namespace. Example on how to create the secret with TLS: kubectl create secret tls che-tls --namespace=che --key=privkey.pem --cert=fullchain.pem`)
           }
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...che-tls secret found.`
         }
       },
       {
@@ -190,7 +165,7 @@ error: E_COMMAND_FAILED`)
     await execa.shell(`helm dependencies update --skip-refresh ${destDir}`, { timeout: execTimeout })
   }
 
-  async upgradeCheHelmChart(ctx: any, flags: any, cacheDir: string, execTimeout= 120000) {
+  async upgradeCheHelmChart(_ctx: any, flags: any, cacheDir: string, execTimeout= 120000) {
     const destDir = path.join(cacheDir, '/templates/kubernetes/helm/che/')
 
     let multiUserFlag = ''
@@ -202,7 +177,7 @@ error: E_COMMAND_FAILED`)
     }
 
     if (flags.tls) {
-      setOptions.push(`--set global.cheDomain=${flags.domain} --set global.tls.email='${ctx.tlsEmail}'`)
+      setOptions.push(`--set global.cheDomain=${flags.domain}`)
       tlsFlag = `-f ${destDir}values/tls.yaml`
     }
 

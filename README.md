@@ -196,7 +196,10 @@ OPTIONS
   -p, --platform=platform                      [default: minikube] Type of Kubernetes platform. Valid values are
                                                "minikube", "minishift", "k8s", "openshift", "microk8s".
 
-  -s, --tls                                    Enable TLS encryption and multi-user mode
+  -s, --tls                                    Enable TLS encryption. Note that `che-tls` with TLS certificate must be
+                                               created in the configured namespace.
+
+  --self-signed-cert                           Authorize usage of self signed certificates for encryption.
 
   -t, --templates=templates                    [default: templates] Path to the templates folder
 
@@ -219,8 +222,6 @@ OPTIONS
   --os-oauth                                   Enable use of OpenShift credentials to log into Che
 
   --plugin-registry-url=plugin-registry-url    The URL of the external plugin registry.
-
-  --self-signed-cert                           Authorize usage of self signed certificates for encryption
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
