@@ -37,7 +37,7 @@ export class HelmHelper {
           const kh = new KubeHelper()
           const exists = await kh.secretExist('che-tls', `${flags.chenamespace}`)
           if (!exists) {
-            throw new Error(`TLS option is enabled but che-tls secret does not exist in '${flags.chenamespace}' namespace. Example on how to create the secret with TLS: kubectl create secret tls che-tls --namespace=che --key=privkey.pem --cert=fullchain.pem`)
+            throw new Error(`TLS option is enabled but che-tls secret does not exist in '${flags.chenamespace}' namespace. Example on how to create the secret with TLS: kubectl create secret tls che-tls --namespace='${flags.chenamespace}' --key=privkey.pem --cert=fullchain.pem`)
           }
           task.title = `${task.title}...che-tls secret found.`
         }
