@@ -86,7 +86,7 @@ export default class Start extends Command {
     }),
     tls: flags.boolean({
       char: 's',
-      description: 'Enable TLS encryption and multi-user mode',
+      description: 'Enable TLS encryption. Note that `che-tls` with TLS certificate must be created in the configured namespace.',
       default: false
     }),
     'self-signed-cert': flags.boolean({
