@@ -61,7 +61,7 @@ export class MinikubeHelper {
         task: () => this.enableIngressAddon()
       },
       { title: 'Retrieving minikube IP and domain for ingress URLs',
-        enabled: () => flags.domain !== undefined,
+        enabled: () => !flags.domain,
         task: async (_ctx: any, task: any) => {
           const ip = await this.getMinikubeIP()
           flags.domain = ip + '.nip.io'

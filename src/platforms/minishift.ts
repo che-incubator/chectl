@@ -49,7 +49,7 @@ export class MinishiftHelper {
       // { title: 'Verify minishift memory configuration', skip: () => 'Not implemented yet', task: () => {}},
       // { title: 'Verify kubernetes version', skip: () => 'Not implemented yet', task: () => {}},
       { title: 'Retrieving minishift IP and domain for routes URLs',
-        enabled: () => flags.domain !== undefined,
+        enabled: () => !flags.domain,
         task: async (_ctx: any, task: any) => {
           const ip = await this.getMinishiftIP()
           flags.domain = ip + '.nip.io'
