@@ -210,8 +210,10 @@ OPTIONS
   -p, --platform=platform                      [default: minikube] Type of Kubernetes platform. Valid values are
                                                "minikube", "minishift", "k8s", "openshift", "microk8s".
 
-  -s, --tls                                    Enable TLS encryption. Note that `che-tls` secret with TLS certificate must be
+  -s, --tls                                    Enable TLS encryption.
+                                               Note that for kubernetes `che-tls` with TLS certificate must be
                                                created in the configured namespace.
+                                               For OpenShift, router will use default cluster certificates.
 
   --self-signed-cert                           Authorize usage of self signed certificates for encryption.
                                                Note that `self-signed-cert` secret with CA certificate must be

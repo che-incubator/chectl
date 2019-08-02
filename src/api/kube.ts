@@ -760,6 +760,9 @@ export class KubeHelper {
       yamlCr.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
       yamlCr.spec.auth.openShiftoAuth = flags['os-oauth']
       yamlCr.spec.server.tlsSupport = flags.tls
+      if (flags.tls) {
+        yamlCr.spec.k8s.tlsSecretName = 'che-tls'
+      }
       yamlCr.spec.server.selfSignedCert = flags['self-signed-cert']
       yamlCr.spec.k8s.ingressDomain = flags.domain
       let pluginRegistryUrl = flags['plugin-registry-url']
