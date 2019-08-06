@@ -302,7 +302,7 @@ export default class Start extends Command {
 
     cheBootstrapSubTasks.add({
       title: 'Che pod bootstrap',
-      task: () => this.podStartTasks(this.getCheServerSelector(), flags.chenamespace)
+      task: () => this.podStartTasks(this.getCheServerSelector(flags), flags.chenamespace)
     })
 
     cheBootstrapSubTasks.add({
@@ -351,8 +351,12 @@ export default class Start extends Command {
     return 'app=che,component=plugin-registry'
   }
 
-  getCheServerSelector(): string {
-    return 'app=che,component=che'
+  getCheServerSelector(flags: any): string {
+    if (flags.installer === 'minishift-addon') {
+      return 'app=che'
+    } else {
+      return 'app=che,component=che'
+    }
   }
 
   podStartTasks(selector: string, namespace = ''): Listr {
