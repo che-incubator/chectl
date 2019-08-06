@@ -286,14 +286,14 @@ export default class Start extends Command {
       })
     }
 
-    if (!flags['devfile-registry-url']) {
+    if (!flags['devfile-registry-url'] && flags.installer !== 'minishift-addon') {
       cheBootstrapSubTasks.add({
         title: 'Devfile registry pod bootstrap',
         task: () => this.podStartTasks(this.getDevfileRegistrySelector(), flags.chenamespace)
       })
     }
 
-    if (!flags['plugin-registry-url']) {
+    if (!flags['plugin-registry-url'] && flags.installer !== 'minishift-addon') {
       cheBootstrapSubTasks.add({
         title: 'Plugin registry pod bootstrap',
         task: () => this.podStartTasks(this.getPluginRegistrySelector(), flags.chenamespace)
