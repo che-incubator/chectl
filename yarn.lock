@@ -1715,13 +1715,17 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
+"eclipse-che-minishift@git://github.com/minishift/minishift#master":
+  version "0.0.0"
+  resolved "git://github.com/minishift/minishift#c2ff9cb6d7ac70b2eb4fa2c66d3593989b107600"
+
 "eclipse-che-operator@git://github.com/eclipse/che-operator#master":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che-operator#6f463e0e1cb88cad396c6f4c61271e92729933dc"
+  resolved "git://github.com/eclipse/che-operator#952be135dc88639adbf19126219c73bf6b13356a"
 
 "eclipse-che@git://github.com/eclipse/che#master":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che#9cddc3efdc8ae9d1f4de0c0c42dfd14e5fd365df"
+  resolved "git://github.com/eclipse/che#1af529cc4bf1ad9cbad6ad9b527bf8a27d3fe7b9"
 
 elegant-spinner@^1.0.1:
   version "1.0.1"

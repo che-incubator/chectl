@@ -11,7 +11,10 @@
 
 import Command from '@oclif/command'
 import * as execa from 'execa'
+import { mkdirp } from 'fs-extra'
 import * as Listr from 'listr'
+import { ncp } from 'ncp'
+import * as path from 'path'
 
 import { OpenShiftHelper } from '../api/openshift'
 
@@ -44,6 +47,8 @@ export class MinishiftAddonHelper {
 
   }
 
+  resourcesPath = ''
+
   startTasks(flags: any, command: Command): Listr {
     return new Listr([
       {
@@ -64,12 +69,16 @@ export class MinishiftAddonHelper {
         }
       },
       {
+        title: 'Copying addon resources',
+        task: async (_ctx: any, task: any) => {
+          this.resourcesPath = await this.copyResources(flags.templates, command.config.cacheDir)
+          task.title = `${task.title}...done.`
+        }
+      },
+      {
         title: 'Check che addon is available',
         task: async (_ctx: any, task: any) => {
-          const available = await this.checkAddonIsThere()
-          if (!available) {
-            command.error('The minishift che addon is not part of the current minishift installation. Please install the addon first. Note: che addon is now part of latest minishift.')
-          }
+          await this.installAddonIfMissing()
           task.title = `${task.title}...done.`
         }
       },
@@ -91,12 +100,20 @@ export class MinishiftAddonHelper {
     }
   }
 
-  async checkAddonIsThere() {
+  async installAddonIfMissing() {
     let args = ['addon', 'list']
     const { stdout} = await execa('minishift',
                                      args,
                                      {reject: false })
-    return stdout && stdout.includes('- che')
+    if (stdout && stdout.includes('- che')) {
+      // needs to delete before installing
+      await this.uninstallAddon()
+    }
+
+    // now install
+    const addonDir = path.join(this.resourcesPath, 'che')
+    await this.installAddon(addonDir)
+
   }
 
   async applyAddon(flags: any, execTimeout= 120000) {
@@ -133,6 +150,24 @@ error: E_COMMAND_FAILED`)
   async removeAddon(execTimeout= 120000) {
     let args = ['addon', 'remove', 'che']
     await execa('minishift', args, { timeout: execTimeout, reject: false })
+  }
+
+  async installAddon(directory: string, execTimeout= 120000) {
+    let args = ['addon', 'install', directory]
+    await execa('minishift', args, { timeout: execTimeout})
+  }
+
+  async uninstallAddon(execTimeout= 120000) {
+    let args = ['addon', 'uninstall', 'che']
+    await execa('minishift', args, { timeout: execTimeout})
+  }
+
+  async copyResources(templatesDir: string, cacheDir: string): Promise<string> {
+    const srcDir = path.join(templatesDir, '/minishift-addon/')
+    const destDir = path.join(cacheDir, '/templates/minishift-addon/')
+    await mkdirp(destDir)
+    await ncp(srcDir, destDir, {}, (err: Error) => { if (err) { throw err } })
+    return destDir
   }
 
 }
