@@ -1,0 +1,26 @@
+---
+layout: null
+---
+
+{% comment %}
+Filter all releases in descending order and matching 'next' channel
+{% endcomment %}
+
+{%- assign releases = site.github.releases | where: "draft", false | where_exp:"item", "item.name contains 'next'" | sort: "created_at" | reverse -%}
+
+{%- assign lastRelease = releases[0] -%}
+{%- assign fileNameFilter = page.platform | append: '.tar.gz' -%}
+
+{%- for asset in lastRelease.assets -%}
+  {%- if asset.name contains fileNameFilter -%}{%- assign gzLink = asset.browser_download_url -%}{%- endif -%}
+{%- endfor -%}
+{
+  "version": "{{lastRelease.name}}",
+  "channel": "next",
+  "baseDir": "chectl",
+  "gz": "{{gzLink}}",
+  "node": {
+    "compatible": ">=8.0.0",
+    "recommended": "10.15.3"
+  }
+}

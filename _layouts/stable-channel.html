@@ -1,0 +1,33 @@
+---
+layout: null
+---
+{%- comment -%}
+Filter all releases in descending order and matching 'next' channel
+{%- endcomment -%}
+
+{%- assign releases = site.github.releases | where: "draft", false | sort: "created_at" | reverse -%}
+{%- assign stableRls = "" | split: ',' -%}
+
+{%- for gitRelease in releases -%}
+  {%- if gitRelease.name contains "next" or gitRelease.name == '' or  gitRelease.name == nil -%}
+  {%- else -%}
+    {%- assign stableRls = stableRls | push: gitRelease -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{%- assign lastRelease = stableRls[0] -%}
+{%- assign fileNameFilter = page.platform | append: '.tar.gz' -%}
+
+{%- for asset in lastRelease.assets -%}
+  {%- if asset.name contains fileNameFilter -%}{% assign gzLink = asset.browser_download_url %}{%- endif -%}
+{%- endfor -%}
+{
+  "version": "{{lastRelease.name}}",
+  "channel": "stable",
+  "baseDir": "chectl",
+  "gz": "{{gzLink}}",
+  "node": {
+    "compatible": ">=8.0.0",
+    "recommended": "10.15.3"
+  }
+}
