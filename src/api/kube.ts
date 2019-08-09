@@ -9,7 +9,7 @@
  **********************************************************************/
 // tslint:disable:object-curly-spacing
 
-import { Apiextensions_v1beta1Api, ApisApi, Apps_v1Api, Core_v1Api, Custom_objectsApi, Extensions_v1beta1Api, KubeConfig, RbacAuthorization_v1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
+import { Apiextensions_v1beta1Api, ApisApi, Apps_v1Api, Core_v1Api, Custom_objectsApi, Extensions_v1beta1Api, KubeConfig, RbacAuthorization_v1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1ServiceAccount, V1ServiceList, V1Subject, V1Secret } from '@kubernetes/client-node'
 import axios from 'axios'
 import { cli } from 'cli-ux'
 import { readFileSync } from 'fs'
@@ -991,32 +991,14 @@ export class KubeHelper {
     }
   }
 
-  async secretExist(name = '', namespace = 'default'): Promise<boolean> {
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
-
-   // now get the matching secrets
-    try {
-      const res = await k8sCoreApi.readNamespacedSecret(name, namespace)
-      if (res && res.body && res.body.metadata && res.body.metadata.name) {
-        return res.body.metadata.name === name
-      } else {
-        return false
-      }
-    } catch {
-      return false
-    }
-  }
-
-  async getSecret(name = '', namespace = 'default'): Promise<string | undefined> {
+  async getSecret(name = '', namespace = 'default'): Promise<V1Secret | undefined> {
     const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
 
     // now get the matching secrets
     try {
       const res = await k8sCoreApi.readNamespacedSecret(name, namespace)
-      if (res && res.body && res.body.metadata && res.body.metadata.name && res.body.data && res.body.data.ACME_EMAIL) {
-        if (res.body.metadata.name === name) {
-          return Buffer.from(res.body.data.ACME_EMAIL, 'base64').toString()
-        }
+      if (res && res.body && res.body) {
+        return res.body;
       } else {
         return
       }
