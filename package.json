@@ -93,17 +93,17 @@
     },
     "update": {
       "s3": {
-        "host": "https://download.jboss.org/jbosstools/che-incubator/chectl/dist",
+        "host": "https://che-incubator.github.io/chectl/",
         "templates": {
           "target": {
-            "unversioned": "<%- bin %>-v<%- version %>/<%- bin %>-v<%- version %>-<%- platform %>-<%- arch %><%- ext %>",
-            "versioned": "<%- bin %>-v<%- version %>/<%- bin %>-v<%- version %>-<%- platform %>-<%- arch %><%- ext %>",
-            "manifest": "<%- platform %>-<%- arch %>"
+            "unversioned": "<%- 'channels/' + channel + '/' %><%- bin %>-<%- platform %>-<%- arch %><%- ext %>",
+            "versioned": "<%- 'channels/' + channel + '/' %>/<%- bin %>-v<%- version %>-<%- platform %>-<%- arch %><%- ext %>",
+            "manifest": "<%- 'channels/' + channel + '/' %><%- platform %>-<%- arch %>"
           },
           "vanilla": {
-            "unversioned": "<%- bin %>-v<%- version %>/<%- bin %>-v<%- version %>-<%- platform %>-<%- arch %><%- ext %>",
-            "versioned": "<%- bin %>-v<%- version %>/<%- bin %>-v<%- version %>-<%- platform %>-<%- arch %><%- ext %>",
-            "manifest": "<%- platform %>-<%- arch %>"
+            "unversioned": "<%- 'channels/' + channel + '/' %><%- bin %>-<%- platform %>-<%- arch %><%- ext %>",
+            "versioned": "<%- 'channels/' + channel + '/' %>/<%- bin %>-v<%- version %>-<%- platform %>-<%- arch %><%- ext %>",
+            "manifest": "<%- 'channels/' + channel + '/' %><%- platform %>-<%- arch %>"
           }
         }
       }
