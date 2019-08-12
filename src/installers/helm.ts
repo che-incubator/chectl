@@ -41,7 +41,7 @@ export class HelmHelper {
             throw new Error(`TLS option is enabled but che-tls secret does not exist in '${flags.chenamespace}' namespace. Example on how to create the secret with TLS: kubectl create secret tls che-tls --namespace='${flags.chenamespace}' --key=privkey.pem --cert=fullchain.pem`)
           }
 
-          if (!tlsSecret.data["tls.crt"] || !tlsSecret.data["tls.key"]) {
+          if (!tlsSecret.data['tls.crt'] || !tlsSecret.data['tls.key']) {
             throw new Error(`'che-tls' secret is found but 'tls.crt' or 'tls.key' entry is missing. Example on how to create the secret with self-signed CA certificate: kubectl create secret tls che-tls --namespace='${flags.chenamespace}' --key=privkey.pem --cert=fullchain.pem`)
           }
 
@@ -62,7 +62,7 @@ export class HelmHelper {
             throw new Error(`Self-signed-cert option is enabled but 'self-signed-cert' secret does not exist in '${flags.chenamespace}' namespace. Example on how to create the secret with self-signed CA certificate: kubectl create secret tls self-signed-cert --namespace='${flags.chenamespace}' --from-file=ca.crt`)
           }
 
-          if (!selfSignedCertSecret.data["ca.crt"]) {
+          if (!selfSignedCertSecret.data['ca.crt']) {
             throw new Error(`'self-signed-cert' secret is found but 'ca.crt' entry is missing. Example on how to create the secret with self-signed CA certificate: kubectl create secret tls che-tls --namespace='${flags.chenamespace}' --key=privkey.pem --cert=fullchain.pem`)
           }
 
