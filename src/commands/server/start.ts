@@ -86,11 +86,11 @@ export default class Start extends Command {
     }),
     tls: flags.boolean({
       char: 's',
-      description: 'Enable TLS encryption. Note that `che-tls` with TLS certificate must be created in the configured namespace.',
+      description: 'Enable TLS encryption. Note that `che-tls` secret with TLS certificate must be created in the configured namespace.',
       default: false
     }),
     'self-signed-cert': flags.boolean({
-      description: 'Authorize usage of self signed certificates for encryption',
+      description: 'Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate must be created in the configured namespace.',
       default: false
     }),
     installer: string({
