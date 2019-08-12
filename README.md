@@ -26,28 +26,30 @@ Issues are tracked on the main Eclipse Che Repository: https://github.com/eclips
 <!-- tocstop -->
 # Installation
 
-Binary downloads of `chectl` can be found on [the Release page](https://github.com/che-incubator/chectl/releases).
+There are two channels of `chectl`: `stable` and `next`
 
-Download the `chectl` binary and add it to your PATH.
+Stable is for all tagged versions of Eclipse Che. Next is updated after each commit/Pull Request being merged in master branch.
 
-If you're using macOS, here is how to install chectl binary with curl on macOS :
+If you're using linux or macOS, here is how to install chectl by using one single command:
 
-1) Download the latest release :
+- For `stable` channel:
 ```
-$ curl -LO <URL of the latest release that you can find following previous link ( select the tag : chectl-macos )> 
-```
-
-2) Rename the file
-```
-$ mv chectl-macos /usr/local/bin/chectl
+$ bash <(curl -sL  https://www.eclipse.org/che/chectl/)
 ```
 
-3) Make the chectl binary executable
+- For `next` channel:
 ```
-$ chmod +x /usr/local/bin/chectl
+$ bash <(curl -sL  https://www.eclipse.org/che/chectl/) --channel=next
 ```
 
-Currently `chectl` requires [minikube](https://github.com/kubernetes/minikube#installation) and [helm](https://github.com/helm/helm#install) to be locally installed.
+Assemblies of chectl are available at [https://github.com/che-incubator/chectl/releases](https://github.com/che-incubator/chectl/releases)
+
+Manual install:
+
+1) Download a .tgz file based on your Operating System / Arch 
+2) Unpack the assembly
+3) move `chectl` folder into a folder like `$HOME/chectl`
+4) add `$HOME/chectl/bin` to `$PATH``
 
 # Usage
 ```sh-session
