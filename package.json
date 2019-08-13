@@ -98,12 +98,12 @@
         "templates": {
           "target": {
             "unversioned": "<%- 'channels/' + channel + '/' %><%- bin %>-<%- platform %>-<%- arch %><%- ext %>",
-            "versioned": "<%- 'channels/' + channel + '/' %>/<%- bin %>-v<%- version %>-<%- platform %>-<%- arch %><%- ext %>",
+            "versioned": "<%- 'channels/' + channel + '/' %>/<%- bin %>-<%- platform %>-<%- arch %><%- ext %>",
             "manifest": "<%- 'channels/' + channel + '/' %><%- platform %>-<%- arch %>"
           },
           "vanilla": {
             "unversioned": "<%- 'channels/' + channel + '/' %><%- bin %>-<%- platform %>-<%- arch %><%- ext %>",
-            "versioned": "<%- 'channels/' + channel + '/' %>/<%- bin %>-v<%- version %>-<%- platform %>-<%- arch %><%- ext %>",
+            "versioned": "<%- 'channels/' + channel + '/' %>/<%- bin %>-<%- platform %>-<%- arch %><%- ext %>",
             "manifest": "<%- 'channels/' + channel + '/' %><%- platform %>-<%- arch %>"
           }
         }
