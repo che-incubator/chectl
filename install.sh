@@ -88,7 +88,7 @@ get_arch() {
 }
 
 get_channel() {
-  DEFAULT_CHANNEL="next"
+  DEFAULT_CHANNEL="stable"
   CHANNEL=${CHANNEL:-${DEFAULT_CHANNEL}}
   
   if [ ! "${CHANNEL}" == "stable" ]  && [ ! "${CHANNEL}" == "next" ]; then

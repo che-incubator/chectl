@@ -13,7 +13,7 @@
 
 # Default channel if missing
 If ([string]::IsNullOrEmpty($CHANNEL)) {
-  $CHANNEL = 'next'
+  $CHANNEL = 'stable'
 }
 
 # Check channels
