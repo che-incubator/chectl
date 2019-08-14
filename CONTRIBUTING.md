@@ -20,15 +20,9 @@ $ chectl workspace:start -f https://raw.githubusercontent.com/che-incubator/chec
 
 > See more about [devfile](https://redhat-developer.github.io/devfile)
 
-After starting the workspace Theia will clone sources of `chectl` to `/projects/chectl` directory. Sources will be accessible in `theia-dev` and `dev` containers.
+After starting the workspace Theia will clone sources of `chectl` to `/projects/chectl` directory.
 
-#### 'theia-dev' container
-
-This container is used only for running Theia editor and does not take part in the following flow.
-
-#### 'dev' container
-
-`chectl` is written in TypeScript. For that this container has preinstalled software to be able to build, test and launch `chectl`.
+`chectl` is written in TypeScript. For its development there is a dedicated `dev` container which has preinstalled software for comfortable development. That allows the developer to build, test and launch `chectl` inside the container.
 
 You workspace is initialized with a list of commands described in the [devfile](devfile.yaml) in `commands` section. Those command allow you to:
 - build
@@ -105,8 +99,7 @@ To create a workspsace run `Create Workspace` command from `My Workspace`. The c
 > See more about [clbin](https://clbin.com/)
 
 ## Package binaries
-
-For packaging binaries we use https://github.com/oclif/dev-cli. It generates packaged for Linux, Windows and MacOS operation systems and puts the result in `dist/channels/stable` directory.
+For packaging binaries, [oclif](https://github.com/oclif/dev-cli) is used. It generates packages for Linux, Windows and MacOS operation systems and puts the result in `dist/channels/stable` directory.
 To start packaging just run `Package Binaries` commands from `My Workspace`. It will run the following in `/projects/chectl` directory.
 
 ```bash
