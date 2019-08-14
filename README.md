@@ -370,10 +370,5 @@ _See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/che
 
 # Contributing
 
-Clone the repository:
-
-```bash
-git clone https://github.com/che-incubator/chectl.git
-cd chectl
-```
+Contributing to chectl is covered in [CONTRIBUTING.md](https://github.com/che-inccubator/chectl/blob/master/CONTRIBUTING.md)
 

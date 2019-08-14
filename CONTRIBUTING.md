@@ -9,6 +9,7 @@ The development flow includes:
 - [create workspace](#create-workspace)
 - [package binaries](#package-binaries)
 - [push changes, provide pull request](#push-changes-provide-pull-request)
+- [make release](#make-release)
 
 ## Create workspace, clone sources
 
@@ -130,3 +131,18 @@ $ git commit -s -m 'feat(hello): This is my first commit message'
 - Unit tests with Travis-CI. It will ensure that `yarn test` command is passing.
 
 All these checks are mandatory in order to have the Pull Request merged.
+
+## Make Release
+
+Create 7.0.0 version
+
+```bash
+$ ./make-release.sh 7.0.0
+```
+
+To run the script with docker env
+```bash
+$ ./run-script-in-docker.sh make-release.sh 7.0.0
+```
+
+Commit the changes of the script and then, push release branch by overriding current remote release branch

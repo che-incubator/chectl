@@ -72,7 +72,7 @@ run() {
   git checkout -b release
   
   # add VERSION file to commit
-  git add VERSION src package.json
+  git add VERSION src package.json yarn.lock
 }
 
 init "$@"
