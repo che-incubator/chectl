@@ -172,7 +172,9 @@ _See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chec
 
 ## `chectl server:start`
 
-start Eclipse Che Server
+start Eclipse Che Server.
+
+Currently `chectl` requires [minikube](https://github.com/kubernetes/minikube#installation) and [minishift](https://github.com/minishift/minishift) launched with _--docker-opt userland-proxy=false_ option.
 
 ```
 USAGE

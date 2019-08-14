@@ -46,6 +46,22 @@ export class MinishiftHelper {
           }
         }
       },
+      { title: 'Verify userland-proxy is disabled',
+        task: async (_ctx: any, task: any) => {
+          const userlandDisabled = await this.isUserLandDisabled()
+          if (!userlandDisabled) {
+            command.error(`E_PLATFORM_NOT_COMPLIANT_USERLAND: userland-proxy=false parameter is required on docker daemon but it was not found.
+            This setting is given when originally starting minishift. (you can then later check by performing command : minishift ssh -- ps auxwwww | grep dockerd
+            It needs to contain --userland-proxy=false
+            Command that needs to be added on top of your start command:
+            $ minishift start <all your existing-options> --docker-opt userland-proxy=false
+            Note: you may have to recreate the minishift installation.
+            `)
+          } else {
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
       // { title: 'Verify minishift memory configuration', skip: () => 'Not implemented yet', task: () => {}},
       // { title: 'Verify kubernetes version', skip: () => 'Not implemented yet', task: () => {}},
       { title: 'Retrieving minishift IP and domain for routes URLs',
@@ -75,4 +91,12 @@ export class MinishiftHelper {
     return stdout
   }
 
+  /**
+   * Check if userland-proxy=false is set in docker daemon options
+   * if not, return an error
+   */
+  async isUserLandDisabled(): Promise<boolean> {
+    const {stdout} = await execa('minishift', ['ssh', '--', 'ps', 'auxwww', '|', 'grep dockerd'], { timeout: 10000 })
+    return stdout.includes('--userland-proxy=false')
+  }
 }
