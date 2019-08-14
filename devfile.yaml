@@ -1,7 +1,7 @@
 apiVersion: 1.0.0
 
 metadata:
-  name: chectl
+  name: chectl-dev
 
 projects:
 
@@ -12,17 +12,11 @@ projects:
 
 components:
 
-  - alias: git
-    type: dockerimage
-    image: sunix/git-devtools
-    mountSources: true
-    memoryLimit: 256M
-
   - alias: dev
     type: dockerimage
     image: eclipse/che-theia-dev:next
     mountSources: true
-    memoryLimit: 1G
+    memoryLimit: 3G
 
   - id: redhat/vscode-yaml/latest
     type: chePlugin
@@ -33,17 +27,65 @@ components:
 
 commands:
 
-  - name: yarn
+  - name: Build
     actions:
       - type: exec
         component: dev
-        command: yarn
+        command: >
+                 yarn
         workdir: /projects/chectl
 
-  - name: yarn test
+  - name: Test
     actions:
       - type: exec
         component: dev
-        command: yarn test
+        command: >
+                 yarn test
         workdir: /projects/chectl
 
+  - name: Run
+    actions:
+      - type: exec
+        component: dev
+        command: >
+                 ./run --help
+        workdir: /projects/chectl/bin
+
+  - name: Generate Devfile
+    actions:
+      - type: exec
+        component: dev
+        command: >
+                 ./run devfile:generate \
+                     --name=chectl-test \
+                     --language=typescript \
+                     --dockerimage=eclipse/che-theia-dev:next \
+                     --git-repo=https://github.com/che-incubator/chectl.git \
+                     --command="yarn" > /projects/sample.devfile;
+                  cat /projects/sample.devfile
+        workdir: /projects/chectl/bin
+
+  - name: Create Workspace
+    actions:
+      - type: exec
+        component: dev
+        command: >
+                 cat /projects/sample.devfile | curl -F 'clbin=<-' https://clbin.com > /projects/clbin;
+                 uri=$(cat /projects/clbin); ./run workspace:start -f=$uri
+        workdir: /projects/chectl/bin
+
+  - name: Package Binaries
+    actions:
+      - type: exec
+        component: dev
+        command: >
+                 yarn pack-binaries
+        workdir: /projects/chectl
+
+  - name: Format Sources
+    actions:
+      - type: exec
+        component: dev
+        command: >
+                 yarn format
+        workdir: /projects/chectl

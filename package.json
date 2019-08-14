@@ -56,7 +56,8 @@
     "ts-jest": "^24.0.2",
     "ts-node": "^8",
     "tslint": "^5",
-    "typescript": "^3.5"
+    "typescript": "^3.5",
+    "typescript-formatter": "7.2.2"
   },
   "engines": {
     "node": ">=8.0.0"
@@ -130,9 +131,11 @@
     "posttest": "tslint -p test -t stylish",
     "tslint-fix": "tslint --fix -p test -t stylish",
     "prepack": "rm -rf lib && rm -rf tsconfig.tsbuildinfo && tsc -b && oclif-dev manifest && oclif-dev readme",
+    "pack-binaries": "oclif-dev pack",
     "test": "jest",
     "test-watch": "jest --watchAll",
-    "version": "oclif-dev readme && git add README.md"
+    "version": "oclif-dev readme && git add README.md",
+    "format": "tsfmt -r --useTsfmt tsfmt.json"
   },
   "types": "lib/index.d.ts",
   "jest": {
