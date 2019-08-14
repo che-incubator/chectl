@@ -30,6 +30,18 @@ There are two channels of `chectl`: `stable` and `next`
 
 Stable is for all tagged versions of Eclipse Che. Next is updated after each commit/Pull Request being merged in master branch.
 
+If you're using Windows x64, here is how to install chectl by using one single PowerShell command:
+
+- For `stable` channel:
+```
+C:\Users> Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://www.eclipse.org/che/chectl/win/'))
+```
+
+- For `next` channel:
+```
+C:\Users> $CHANNEL="next"; Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://www.eclipse.org/che/chectl/win/'))
+```
+
 If you're using linux or macOS, here is how to install chectl by using one single command:
 
 - For `stable` channel:
