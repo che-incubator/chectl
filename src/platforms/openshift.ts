@@ -37,15 +37,6 @@ export class OpenshiftHelper {
           }
         }
       },
-      // Should automatically compute route if missing
-      { title: 'Verify domain is set',
-        task: (_ctx: any, task: any) => {
-          if (flags.domain === undefined || flags.domain === '') {
-            command.error('E_MISSING_ARGUMENT: the domain parameter needs to be defined.')
-          }
-          task.title = `${task.title}...set to ${flags.domain}.`
-        }
-      },
     ], {renderer: flags['listr-renderer'] as any})
   }
 

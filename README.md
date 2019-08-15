@@ -193,8 +193,8 @@ USAGE
 OPTIONS
   -a, --installer=installer                    Installer type. Valid values are "helm", "operator" and "minishift-addon"
 
-  -b, --domain=domain                          Domain of the Kubernetes/OpenShift cluster (e.g.
-                                               starter-us-east-2.openshiftapps.com or <local-ip>.nip.io)
+  -b, --domain=domain                          Domain of the Kubernetes cluster (e.g.
+                                               example.k8s-cluster.com or <local-ip>.nip.io)
 
   -h, --help                                   show CLI help
 

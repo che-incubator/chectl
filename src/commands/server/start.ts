@@ -100,7 +100,7 @@ export default class Start extends Command {
     }),
     domain: string({
       char: 'b',
-      description: 'Domain of the Kubernetes/OpenShift cluster (e.g. starter-us-east-2.openshiftapps.com or <local-ip>.nip.io)',
+      description: 'Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)',
       default: ''
     }),
     platform: string({
