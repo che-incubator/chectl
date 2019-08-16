@@ -37,10 +37,10 @@ export default class Update extends Command {
       { title: 'Verify if we can access Kubernetes API', skip: this.warn('Not implemented yet') },
       { title: 'Verify if Che is running', skip: this.warn('Not implemented yet') },
       { title: 'Rolling out Che Server', skip: this.warn('Not implemented yet') },
-      { title: 'Waiting for the new Che Server pod to be created', skip: this.warn('Not implemented yet')},
-      { title: 'Waiting for the new Che Server to start', skip: this.warn('Not implemented yet')},
-      { title: 'Retrieving Che Server URL', skip: this.warn('Not implemented yet')},
-    ], {renderer: flags['listr-renderer'] as any})
+      { title: 'Waiting for the new Che Server pod to be created', skip: this.warn('Not implemented yet') },
+      { title: 'Waiting for the new Che Server to start', skip: this.warn('Not implemented yet') },
+      { title: 'Retrieving Che Server URL', skip: this.warn('Not implemented yet') },
+    ], { renderer: flags['listr-renderer'] as any })
 
     await tasks.run()
 

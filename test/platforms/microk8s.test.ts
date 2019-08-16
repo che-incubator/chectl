@@ -9,7 +9,7 @@
  **********************************************************************/
 // tslint:disable:object-curly-spacing
 import { expect, fancy } from 'fancy-test'
-import {MicroK8sHelper} from '../../src/platforms/microk8s';
+import { MicroK8sHelper } from '../../src/platforms/microk8s';
 import * as execa from 'execa';
 
 jest.mock('execa');
@@ -24,23 +24,23 @@ describe('start', () => {
       expect(res).to.equal(true)
     })
 
-    fancy
+  fancy
     .it('verifies that microk8s is not running', async () => {
       (execa as any).mockResolvedValue({ code: 1 })
       const res = await mh.isMicroK8sRunning()
       expect(res).to.equal(false)
     })
 
-    fancy
-      .it('obtains the ip', async () => {
-        const output = `apiVersion: v1
+  fancy
+    .it('obtains the ip', async () => {
+      const output = `apiVersion: v1
         clusters:
         - cluster:
             server: http://127.0.0.1:8080
           name: microk8s-cluster`;
 
-        (execa as any).mockResolvedValue({ code: 0, stdout: output })
-        const res = await mh.getMicroK8sIP()
-        expect(res).to.equal('127.0.0.1')
-      })
+      (execa as any).mockResolvedValue({ code: 0, stdout: output })
+      const res = await mh.getMicroK8sIP()
+      expect(res).to.equal('127.0.0.1')
+    })
 })

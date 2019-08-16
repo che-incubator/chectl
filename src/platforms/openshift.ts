@@ -27,7 +27,8 @@ export class OpenshiftHelper {
           }
         }
       },
-      { title: 'Verify if openshift is running',
+      {
+        title: 'Verify if openshift is running',
         task: async (_ctx: any, task: any) => {
           const openshiftIsRunning = await this.isOpenshiftRunning()
           if (!openshiftIsRunning) {
@@ -37,7 +38,7 @@ export class OpenshiftHelper {
           }
         }
       },
-    ], {renderer: flags['listr-renderer'] as any})
+    ], { renderer: flags['listr-renderer'] as any })
   }
 
   async isOpenshiftRunning(): Promise<boolean> {

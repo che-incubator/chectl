@@ -37,7 +37,7 @@ export default class List extends Command {
       { title: 'Verify if we can access Kubernetes API', skip: this.warn('Not implemented yet') },
       { title: 'Verify if Che is running', skip: this.warn('Not implemented yet') },
       { title: 'Get Workspaces', skip: this.warn('Not implemented yet') },
-    ], {renderer: flags['listr-renderer'] as any})
+    ], { renderer: flags['listr-renderer'] as any })
 
     // Use https://github.com/oclif/cli-ux/tree/supertable#clitable to dispalay:
     //  - workspace id

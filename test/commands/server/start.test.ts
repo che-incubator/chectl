@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-import {expect, test} from '@oclif/test'
+import { expect, test } from '@oclif/test'
 
 describe('start', () => {
   test

@@ -24,11 +24,11 @@ const editors = stringLitArray(['theia-next', 'theia-1.0.0'])
 export type Editor = (typeof editors)[number]
 
 const LanguagesComponents = new Map<Language, DevfileComponent>([
-  ['java', {type: TheEndpointName.ChePlugin, alias: 'java-ls', id: 'redhat/java/latest'}],
-  ['typescript', {type: TheEndpointName.ChePlugin, alias: 'typescript-ls', id: 'che-incubator/typescript/latest'}],
-  ['go', {type: TheEndpointName.ChePlugin, alias: 'go-ls', id: 'ms-vscode/go/latest'}],
-  ['python', {type: TheEndpointName.ChePlugin, alias: 'python-ls', id: 'ms-python/python/latest'}],
-  ['c#', {type: TheEndpointName.ChePlugin, alias: 'csharp-ls', id: 'redhat-developer/che-omnisharp-plugin/latest'}],
+  ['java', { type: TheEndpointName.ChePlugin, alias: 'java-ls', id: 'redhat/java/latest' }],
+  ['typescript', { type: TheEndpointName.ChePlugin, alias: 'typescript-ls', id: 'che-incubator/typescript/latest' }],
+  ['go', { type: TheEndpointName.ChePlugin, alias: 'go-ls', id: 'ms-vscode/go/latest' }],
+  ['python', { type: TheEndpointName.ChePlugin, alias: 'python-ls', id: 'ms-python/python/latest' }],
+  ['c#', { type: TheEndpointName.ChePlugin, alias: 'csharp-ls', id: 'redhat-developer/che-omnisharp-plugin/latest' }],
 ])
 
 const EditorComponents = new Map<Editor, DevfileComponent>([
@@ -259,13 +259,13 @@ export default class Generate extends Command {
       deployment.apiVersion = 'apps/v1'
       deployment.kind = 'Deployment'
       deployment.metadata = new V1ObjectMeta()
-      deployment.metadata.labels = {...item.metadata.labels}
+      deployment.metadata.labels = { ...item.metadata.labels }
       deployment.metadata.name = item.metadata.name
       deployment.spec = new V1DeploymentSpec()
       deployment.spec.selector = item.spec.selector
       deployment.spec.template = new V1PodTemplateSpec()
       deployment.spec.template.metadata = new V1ObjectMeta()
-      deployment.spec.template.metadata.labels = {...item.spec.template.metadata.labels}
+      deployment.spec.template.metadata.labels = { ...item.spec.template.metadata.labels }
       deployment.spec.template.metadata.name = item.spec.template.metadata.name
       deployment.spec.template.spec = item.spec.template.spec
       await items.push(deployment)
@@ -283,7 +283,7 @@ export default class Generate extends Command {
       service.kind = 'Service'
       service.apiVersion = 'v1'
       service.metadata = new V1ObjectMeta()
-      service.metadata.labels = {...item.metadata.labels}
+      service.metadata.labels = { ...item.metadata.labels }
       service.metadata.name = item.metadata.name
       service.spec = new V1ServiceSpec()
       service.spec.type = item.spec.type
@@ -309,7 +309,7 @@ export default class Generate extends Command {
       ingress.kind = 'Ingress'
       ingress.apiVersion = 'extensions/v1beta1'
       ingress.metadata = new V1ObjectMeta()
-      ingress.metadata.labels = {...item.metadata.labels}
+      ingress.metadata.labels = { ...item.metadata.labels }
       ingress.metadata.name = item.metadata.name
       ingress.spec = item.spec
       await items.push(ingress)
@@ -327,7 +327,7 @@ export default class Generate extends Command {
       pvc.kind = 'PersistentVolumeClaim'
       pvc.apiVersion = 'v1'
       pvc.metadata = new V1ObjectMeta()
-      pvc.metadata.labels = {...item.metadata.labels}
+      pvc.metadata.labels = { ...item.metadata.labels }
       pvc.metadata.name = item.metadata.name
       pvc.spec = new V1PersistentVolumeClaimSpec()
       pvc.spec.accessModes = item.spec.accessModes

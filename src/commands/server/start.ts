@@ -49,7 +49,7 @@ export default class Start extends Command {
     templates: string({
       char: 't',
       description: 'Path to the templates folder',
-      default:  Start.getTemplatesDir(),
+      default: Start.getTemplatesDir(),
       env: 'CHE_TEMPLATES_FOLDER'
     }),
     'devfile-registry-url': string({
@@ -201,7 +201,7 @@ export default class Start extends Command {
     }
 
     // Platform Checks
-    let platformCheckTasks = new Listr(undefined, {renderer: flags['listr-renderer'] as any, collapse: false})
+    let platformCheckTasks = new Listr(undefined, { renderer: flags['listr-renderer'] as any, collapse: false })
     if (flags.platform === 'minikube') {
       platformCheckTasks.add({
         title: '✈️  Minikube preflight checklist',
@@ -238,7 +238,7 @@ export default class Start extends Command {
     }
 
     // Installer
-    let installerTasks = new Listr({renderer: flags['listr-renderer'] as any, collapse: false})
+    let installerTasks = new Listr({ renderer: flags['listr-renderer'] as any, collapse: false })
     if (flags.installer === 'helm') {
       installerTasks.add({
         title: '🏃‍  Running Helm to install Che',
@@ -270,10 +270,12 @@ export default class Start extends Command {
     const cheStartCheckTasks = new Listr([{
       title: '✅  Post installation checklist',
       task: () => cheBootstrapSubTasks
-    }], {
-      renderer: flags['listr-renderer'] as any,
-      collapse: false
-    })
+    }],
+      {
+        renderer: flags['listr-renderer'] as any,
+        collapse: false
+      }
+    )
 
     if (flags.multiuser) {
       cheBootstrapSubTasks.add({

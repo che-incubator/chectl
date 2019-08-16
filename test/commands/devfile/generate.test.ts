@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 // tslint:disable:object-curly-spacing
-import {expect, test} from '@oclif/test'
+import { expect, test } from '@oclif/test'
 
 // const namespace = 'che'
 // const kubeClusterURL = 'https://fancy-kube-cluster:8443'

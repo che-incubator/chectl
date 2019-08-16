@@ -95,7 +95,7 @@ export default class Stop extends Command {
               task.title = await `${task.title}...it does`
             }
           } else {
-            this.error(`E_BAD_DEPLOY - Deployment and DeploymentConfig do not exist.\nNeither a Deployment nor a DeploymentConfig named "${flags['deployment-name']}" exist in namespace \"${flags.chenamespace}\", Che Server cannot be stopped.\nFix with: verify the namespace where Che is running (oc get projects)\nhttps://github.com/eclipse/che`, {code: 'E_BAD_DEPLOY'})
+            this.error(`E_BAD_DEPLOY - Deployment and DeploymentConfig do not exist.\nNeither a Deployment nor a DeploymentConfig named "${flags['deployment-name']}" exist in namespace \"${flags.chenamespace}\", Che Server cannot be stopped.\nFix with: verify the namespace where Che is running (oc get projects)\nhttps://github.com/eclipse/che`, { code: 'E_BAD_DEPLOY' })
           }
         }
       },
@@ -104,14 +104,12 @@ export default class Stop extends Command {
         task: async (ctx: any, task: any) => {
           const cheServerPodExist = await kh.podsExistBySelector(flags['che-selector'] as string, flags.chenamespace)
           if (!cheServerPodExist) {
-            task.title = `${task.title}...It doesn't.
-Che server was already stopped.`
+            task.title = `${task.title}...It doesn't.\nChe server was already stopped.`
             ctx.isAlreadyStopped = true
           } else {
             const cheServerPodReadyStatus = await kh.getPodReadyConditionStatus(flags['che-selector'] as string, flags.chenamespace)
             if (cheServerPodReadyStatus !== 'True') {
-              task.title = `${task.title}...It doesn't.
-Che server is not ready yet. Try again in a few seconds.`
+              task.title = `${task.title}...It doesn't.\nChe server is not ready yet. Try again in a few seconds.`
               ctx.isNotReadyYet = true
             } else {
               task.title = `${task.title}...done.`
@@ -272,7 +270,7 @@ Che server is not ready yet. Try again in a few seconds.`
           task.title = `${task.title}...done.`
         }
       },
-    ], {renderer: flags['listr-renderer'] as any})
+    ], { renderer: flags['listr-renderer'] as any })
 
     try {
       await tasks.run()

@@ -25,19 +25,22 @@ export class MicroK8sHelper {
           }
         }
       },
-      { title: 'Verify if microk8s is installed',
+      {
+        title: 'Verify if microk8s is installed',
         task: () => {
           if (!commandExists.sync('microk8s.status')) {
             command.error('E_REQUISITE_NOT_FOUND', { code: 'E_REQUISITE_NOT_FOUND' })
           }
         }
       },
-      { title: 'Verify if microk8s is running',
+      {
+        title: 'Verify if microk8s is running',
         task: async (ctx: any) => {
           ctx.isMicroK8sRunning = await this.isMicroK8sRunning()
         }
       },
-      { title: 'Start microk8s',
+      {
+        title: 'Start microk8s',
         skip: (ctx: any) => {
           if (ctx.isMicroK8sRunning) {
             return 'MicroK8s is already running.'
@@ -51,12 +54,14 @@ export class MicroK8sHelper {
       },
       // { title: 'Verify microk8s memory configuration', skip: () => 'Not implemented yet', task: () => {}},
       // { title: 'Verify kubernetes version', skip: () => 'Not implemented yet', task: () => {}},
-      { title: 'Verify if microk8s ingress and storage addons is enabled',
+      {
+        title: 'Verify if microk8s ingress and storage addons is enabled',
         task: async (ctx: any) => {
           ctx.enabledAddons = await this.enabledAddons()
         }
       },
-      { title: 'Enable microk8s ingress addon',
+      {
+        title: 'Enable microk8s ingress addon',
         skip: (ctx: any) => {
           if (ctx.enabledAddons.ingress) {
             return 'Ingress addon is already enabled.'
@@ -64,7 +69,8 @@ export class MicroK8sHelper {
         },
         task: () => this.enableIngressAddon()
       },
-      { title: 'Enable microk8s storage addon',
+      {
+        title: 'Enable microk8s storage addon',
         skip: (ctx: any) => {
           if (ctx.enabledAddons.storage) {
             return 'Storage addon is already enabled.'
@@ -76,7 +82,8 @@ export class MicroK8sHelper {
           return command.error('The storage addon hasn\'t been enabled in microk8s', { code: 'E_REQUISITE_NOT_FOUND' })
         }
       },
-      { title: 'Retrieving microk8s IP and domain for ingress URLs',
+      {
+        title: 'Retrieving microk8s IP and domain for ingress URLs',
         enabled: () => !flags.domain,
         task: async (_ctx: any, task: any) => {
           const ip = await this.getMicroK8sIP()
@@ -84,7 +91,7 @@ export class MicroK8sHelper {
           task.title = `${task.title}...${flags.domain}.`
         }
       },
-    ], {renderer: flags['listr-renderer'] as any})
+    ], { renderer: flags['listr-renderer'] as any })
   }
 
   async isMicroK8sRunning(): Promise<boolean> {

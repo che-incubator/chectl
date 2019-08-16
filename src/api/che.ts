@@ -166,7 +166,7 @@ export class CheHelper {
 
   async startShutdown(cheURL: string, accessToken = '', responseTimeoutMs = this.defaultCheResponseTimeoutMs) {
     const endpoint = `${cheURL}/api/system/stop?shutdown=true`
-    const headers = accessToken ? {Authorization: `${accessToken}`} : null
+    const headers = accessToken ? { Authorization: `${accessToken}` } : null
     let response = null
     try {
       response = await axios.post(endpoint, null, { headers, timeout: responseTimeoutMs })
@@ -224,7 +224,7 @@ export class CheHelper {
     let endpoint = `${url}/api/workspace/devfile`
     let devfile
     let response
-    const headers: any = {'Content-Type': 'text/yaml'}
+    const headers: any = { 'Content-Type': 'text/yaml' }
     if (accessToken && accessToken.length > 0) {
       headers.Authorization = `${accessToken}`
     }
@@ -236,7 +236,7 @@ export class CheHelper {
         json.metadata.name = workspaceName
         devfile = yaml.dump(json)
       }
-      response = await axios.post(endpoint, devfile, {headers})
+      response = await axios.post(endpoint, devfile, { headers })
     } catch (error) {
       if (!devfile) { throw new Error(`E_NOT_FOUND_DEVFILE - ${devfilePath} - ${error.message}`) }
       if (error.response && error.response.status === 400) {
@@ -269,14 +269,14 @@ export class CheHelper {
     let endpoint = `${url}/api/workspace`
     let workspaceConfig
     let response
-    const headers: any = {'Content-Type': 'application/json'}
+    const headers: any = { 'Content-Type': 'application/json' }
     if (accessToken && accessToken.length > 0) {
       headers.Authorization = `${accessToken}`
     }
 
     try {
       let workspaceConfig = fs.readFileSync(workspaceConfigPath, 'utf8')
-      response = await axios.post(endpoint, workspaceConfig, {headers})
+      response = await axios.post(endpoint, workspaceConfig, { headers })
     } catch (error) {
       if (!workspaceConfig) { throw new Error(`E_NOT_FOUND_WORKSPACE_CONFIG_FILE - ${workspaceConfigPath} - ${error.message}`) }
       if (error.response && error.response.status === 400) {

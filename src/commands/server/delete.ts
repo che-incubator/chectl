@@ -224,7 +224,7 @@ export default class Delete extends Command {
           }
         }
       },
-    ], {renderer: flags['listr-renderer'] as any})
+    ], { renderer: flags['listr-renderer'] as any })
 
     await tasks.run()
 

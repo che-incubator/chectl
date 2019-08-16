@@ -11,7 +11,7 @@
 import { expect, fancy } from 'fancy-test'
 import * as execa from 'execa'
 
-import {MinishiftAddonHelper} from '../../src/installers/minishift-addon'
+import { MinishiftAddonHelper } from '../../src/installers/minishift-addon'
 
 jest.mock('execa')
 
@@ -44,7 +44,7 @@ describe('Minishift addon helper', () => {
       expect(tag).to.equal('latest')
     })
 
-    fancy
+  fancy
     .it('check grab Version 1.34', async () => {
       const minishiftVersionOutput = 'minishift v1.34.0+f5db7cb';
       (execa as any).mockResolvedValue({ code: 0, stdout: minishiftVersionOutput })
@@ -52,7 +52,7 @@ describe('Minishift addon helper', () => {
       expect(version).to.equal(134)
     })
 
-    fancy
+  fancy
     .it('check grab Version 1.33', async () => {
       const minishiftVersionOutput = 'minishift v1.33.0+ba29431';
       (execa as any).mockResolvedValue({ code: 0, stdout: minishiftVersionOutput })
@@ -61,4 +61,4 @@ describe('Minishift addon helper', () => {
     })
 
 
-  })
+})
