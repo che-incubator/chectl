@@ -317,7 +317,7 @@ export default class Start extends Command {
 
     cheBootstrapSubTasks.add({
       title: 'Che status check',
-      task: async ctx => che.isCheServerReady(ctx.cheURL, flags.chenamespace)
+      task: async ctx => che.isCheServerReady(ctx.cheURL)
     })
 
     try {
