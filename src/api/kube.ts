@@ -416,7 +416,12 @@ export class KubeHelper {
       throw new Error(`Get pods by selector "${selector}" returned an invalid response`)
     }
 
-    if (res.body.items.length !== 1) {
+    if (res.body.items.length < 1) {
+      // No pods found by the specified selector. So, it's not ready.
+      return 'False'
+    }
+
+    if (res.body.items.length > 1) {
       throw new Error(`Get pods by selector "${selector}" returned ${res.body.items.length} pods (1 was expected)`)
     }
 
