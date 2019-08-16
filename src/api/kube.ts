@@ -371,7 +371,7 @@ export class KubeHelper {
     }
 
     if (!res || !res.body || !res.body.items) {
-      throw new Error(`Get pods by selector "${selector}" returned an invalid reponse`)
+      throw new Error(`Get pods by selector "${selector}" returned an invalid response`)
     }
 
     return (res.body.items.length > 0)
@@ -388,7 +388,7 @@ export class KubeHelper {
     }
 
     if (!res || !res.body || !res.body.items) {
-      throw new Error(`Get pods by selector "${selector}" returned an invalid reponse`)
+      throw new Error(`Get pods by selector "${selector}" returned an invalid response`)
     }
 
     if (res.body.items.length !== 1) {
@@ -413,7 +413,7 @@ export class KubeHelper {
     }
 
     if (!res || !res.body || !res.body.items) {
-      throw new Error(`Get pods by selector "${selector}" returned an invalid reponse`)
+      throw new Error(`Get pods by selector "${selector}" returned an invalid response`)
     }
 
     if (res.body.items.length !== 1) {
@@ -579,7 +579,7 @@ export class KubeHelper {
     }
 
     if (!res || !res.body) {
-      throw new Error('Patch deployment scale returned an invalid reponse')
+      throw new Error('Patch deployment scale returned an invalid response')
     }
   }
 
@@ -915,7 +915,7 @@ export class KubeHelper {
       else throw new Error(e)
     }
     if (!res || !res.body) {
-      throw new Error('Get API versions returned an invalid reponse')
+      throw new Error('Get API versions returned an invalid response')
     }
     const v1APIGroupList = res.body
     for (const v1APIGroup of v1APIGroupList.groups) {
