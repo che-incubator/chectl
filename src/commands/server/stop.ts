@@ -202,7 +202,7 @@ Che server is not ready yet. Try again in a few seconds.`
       },
       {
         title: 'Scale  \"postgres\"  deployment to zero',
-        enabled: (ctx: any) => !ctx.isAlreadyStopped && !ctx.isNotReadyYet && ctx.foundKeycloakDeployment,
+        enabled: (ctx: any) => !ctx.isAlreadyStopped && !ctx.isNotReadyYet && ctx.foundPostgresDeployment,
         task: async (ctx: any, task: any) => {
           try {
             if (ctx.deploymentConfigExist) {
@@ -218,7 +218,7 @@ Che server is not ready yet. Try again in a few seconds.`
       },
       {
         title: 'Wait until Postgres pod is deleted',
-        enabled: (ctx: any) => !ctx.isAlreadyStopped && !ctx.isNotReadyYet && ctx.foundKeycloakDeployment,
+        enabled: (ctx: any) => !ctx.isAlreadyStopped && !ctx.isNotReadyYet && ctx.foundPostgresDeployment,
         task: async (_ctx: any, task: any) => {
           await kh.waitUntilPodIsDeleted('app=postgres', flags.chenamespace)
           task.title = `${task.title}...done.`
