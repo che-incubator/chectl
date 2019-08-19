@@ -151,7 +151,7 @@ export default class Stop extends Command {
         }
       },
       {
-        title: `Scale  \"${flags['deployment-name']}\"  deployment to zero`,
+        title: `Scale \"${flags['deployment-name']}\" deployment to zero`,
         enabled: (ctx: any) => !ctx.isAlreadyStopped && !ctx.isNotReadyYet,
         task: async (ctx: any, task: any) => {
           try {
@@ -175,7 +175,7 @@ export default class Stop extends Command {
         }
       },
       {
-        title: 'Scale  \"keycloak\"  deployment to zero',
+        title: 'Scale \"keycloak\" deployment to zero',
         enabled: (ctx: any) => !ctx.isAlreadyStopped && !ctx.isNotReadyYet && ctx.foundKeycloakDeployment,
         task: async (ctx: any, task: any) => {
           try {
@@ -199,7 +199,7 @@ export default class Stop extends Command {
         }
       },
       {
-        title: 'Scale  \"postgres\"  deployment to zero',
+        title: 'Scale \"postgres\" deployment to zero',
         enabled: (ctx: any) => !ctx.isAlreadyStopped && !ctx.isNotReadyYet && ctx.foundPostgresDeployment,
         task: async (ctx: any, task: any) => {
           try {
@@ -223,7 +223,7 @@ export default class Stop extends Command {
         }
       },
       {
-        title: 'Scale  \"devfile registry\"  deployment to zero',
+        title: 'Scale \"devfile registry\" deployment to zero',
         enabled: (ctx: any) => ctx.foundDevfileRegistryDeployment,
         task: async (ctx: any, task: any) => {
           try {
@@ -247,7 +247,7 @@ export default class Stop extends Command {
         }
       },
       {
-        title: 'Scale  \"plugin registry\"  deployment to zero',
+        title: 'Scale \"plugin registry\" deployment to zero',
         enabled: (ctx: any) => ctx.foundPluginRegistryDeployment,
         task: async (ctx: any, task: any) => {
           try {
