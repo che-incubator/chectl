@@ -74,7 +74,7 @@ export class HelmHelper {
         task: async (_ctx: any, task: any) => {
           const roleBindingExist = await this.tillerRoleBindingExist()
           if (roleBindingExist) {
-            task.title = `${task.title}...it already exist.`
+            task.title = `${task.title}...it already exists.`
           } else {
             await this.createTillerRoleBinding()
             task.title = `${task.title}...done.`
@@ -86,7 +86,7 @@ export class HelmHelper {
         task: async (_ctx: any, task: any) => {
           const tillerServiceAccountExist = await this.tillerServiceAccountExist()
           if (tillerServiceAccountExist) {
-            task.title = `${task.title}...it already exist.`
+            task.title = `${task.title}...it already exists.`
           } else {
             await this.createTillerServiceAccount()
             task.title = `${task.title}...done.`
@@ -102,7 +102,7 @@ export class HelmHelper {
         task: async (_ctx: any, task: any) => {
           const tillerServiceExist = await this.tillerServiceExist()
           if (tillerServiceExist) {
-            task.title = `${task.title}...it already exist.`
+            task.title = `${task.title}...it already exists.`
           } else {
             await this.createTillerService()
             task.title = `${task.title}...done.`

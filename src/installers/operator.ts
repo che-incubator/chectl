@@ -46,7 +46,7 @@ export class OperatorHelper {
         task: async (_ctx: any, task: any) => {
           const exist = await che.cheNamespaceExist(flags.chenamespace)
           if (exist) {
-            task.title = `${task.title}...It already exist.`
+            task.title = `${task.title}...It already exists.`
           } else if (flags.platform === 'minikube' || flags.platform === 'k8s' || flags.platform === 'microk8s') {
             await execa.shell(`kubectl create namespace ${flags.chenamespace}`)
             task.title = `${task.title}...done.`
@@ -61,7 +61,7 @@ export class OperatorHelper {
         task: async (_ctx: any, task: any) => {
           const exist = await kube.serviceAccountExist(this.operatorServiceAccount, flags.chenamespace)
           if (exist) {
-            task.title = `${task.title}...It already exist.`
+            task.title = `${task.title}...It already exists.`
           } else {
             const yamlFilePath = this.resourcesPath + 'service_account.yaml'
             await kube.createServiceAccountFromFile(yamlFilePath, flags.chenamespace)
@@ -74,7 +74,7 @@ export class OperatorHelper {
         task: async (_ctx: any, task: any) => {
           const exist = await kube.roleExist(this.operatorRole, flags.chenamespace)
           if (exist) {
-            task.title = `${task.title}...It already exist.`
+            task.title = `${task.title}...It already exists.`
           } else {
             const yamlFilePath = this.resourcesPath + 'role.yaml'
             const statusCode = await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
@@ -91,7 +91,7 @@ export class OperatorHelper {
         task: async (_ctx: any, task: any) => {
           const exist = await kube.clusterRoleExist(this.operatorClusterRole)
           if (exist) {
-            task.title = `${task.title}...It already exist.`
+            task.title = `${task.title}...It already exists.`
           } else {
             const yamlFilePath = this.resourcesPath + 'cluster_role.yaml'
             const statusCode = await kube.createClusterRoleFromFile(yamlFilePath)
@@ -107,7 +107,7 @@ export class OperatorHelper {
         task: async (_ctx: any, task: any) => {
           const exist = await kube.roleBindingExist(this.operatorRoleBinding, flags.chenamespace)
           if (exist) {
-            task.title = `${task.title}...It already exist.`
+            task.title = `${task.title}...It already exists.`
           } else {
             const yamlFilePath = this.resourcesPath + 'role_binding.yaml'
             await kube.createRoleBindingFromFile(yamlFilePath, flags.chenamespace)
@@ -121,7 +121,7 @@ export class OperatorHelper {
         task: async (_ctx: any, task: any) => {
           const exist = await kube.clusterRoleBindingExist(this.operatorRoleBinding)
           if (exist) {
-            task.title = `${task.title}...It already exist.`
+            task.title = `${task.title}...It already exists.`
           } else {
             await kube.createClusterRoleBinding(this.operatorClusterRoleBinding, this.operatorServiceAccount, flags.chenamespace, this.operatorClusterRole)
             task.title = `${task.title}...done.`
@@ -133,7 +133,7 @@ export class OperatorHelper {
         task: async (_ctx: any, task: any) => {
           const exist = await kube.crdExist(this.operatorCrd)
           if (exist) {
-            task.title = `${task.title}...It already exist.`
+            task.title = `${task.title}...It already exists.`
           } else {
             const yamlFilePath = this.resourcesPath + 'crds/org_v1_che_crd.yaml'
             await kube.createCrdFromFile(yamlFilePath)
@@ -153,7 +153,7 @@ export class OperatorHelper {
         task: async (_ctx: any, task: any) => {
           const exist = await kube.deploymentExist(this.operatorName, flags.chenamespace)
           if (exist) {
-            task.title = `${task.title}...It already exist.`
+            task.title = `${task.title}...It already exists.`
           } else {
             await kube.createDeploymentFromFile(this.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
             task.title = `${task.title}...done.`
@@ -165,7 +165,7 @@ export class OperatorHelper {
         task: async (_ctx: any, task: any) => {
           const exist = await kube.cheClusterExist(this.operatorCheCluster, flags.chenamespace)
           if (exist) {
-            task.title = `${task.title}...It already exist.`
+            task.title = `${task.title}...It already exists.`
           } else {
             const yamlFilePath = flags['che-operator-cr-yaml'] === '' ? this.resourcesPath + 'crds/org_v1_che_cr.yaml' : flags['che-operator-cr-yaml']
             await kube.createCheClusterFromFile(yamlFilePath, flags, flags['che-operator-cr-yaml'] === '')
