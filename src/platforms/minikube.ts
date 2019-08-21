@@ -25,19 +25,22 @@ export class MinikubeHelper {
           }
         }
       },
-      { title: 'Verify if minikube is installed',
+      {
+        title: 'Verify if minikube is installed',
         task: () => {
           if (!commandExists.sync('minikube')) {
             command.error('E_REQUISITE_NOT_FOUND', { code: 'E_REQUISITE_NOT_FOUND' })
           }
         }
       },
-      { title: 'Verify if minikube is running',
+      {
+        title: 'Verify if minikube is running',
         task: async (ctx: any) => {
           ctx.isMinikubeRunning = await this.isMinikubeRunning()
         }
       },
-      { title: 'Start minikube',
+      {
+        title: 'Start minikube',
         skip: (ctx: any) => {
           if (ctx.isMinikubeRunning) {
             return 'Minikube is already running.'
@@ -47,12 +50,14 @@ export class MinikubeHelper {
       },
       // { title: 'Verify minikube memory configuration', skip: () => 'Not implemented yet', task: () => {}},
       // { title: 'Verify kubernetes version', skip: () => 'Not implemented yet', task: () => {}},
-      { title: 'Verify if minikube ingress addon is enabled',
+      {
+        title: 'Verify if minikube ingress addon is enabled',
         task: async (ctx: any) => {
           ctx.isIngressAddonEnabled = await this.isIngressAddonEnabled()
         }
       },
-      { title: 'Enable minikube ingress addon',
+      {
+        title: 'Enable minikube ingress addon',
         skip: (ctx: any) => {
           if (ctx.isIngressAddonEnabled) {
             return 'Ingress addon is already enabled.'
@@ -60,7 +65,8 @@ export class MinikubeHelper {
         },
         task: () => this.enableIngressAddon()
       },
-      { title: 'Retrieving minikube IP and domain for ingress URLs',
+      {
+        title: 'Retrieving minikube IP and domain for ingress URLs',
         enabled: () => !flags.domain,
         task: async (_ctx: any, task: any) => {
           const ip = await this.getMinikubeIP()
@@ -68,7 +74,7 @@ export class MinikubeHelper {
           task.title = `${task.title}...${flags.domain}.`
         }
       },
-    ], {renderer: flags['listr-renderer'] as any})
+    ], { renderer: flags['listr-renderer'] as any })
   }
 
   async isMinikubeRunning(): Promise<boolean> {

@@ -20,41 +20,81 @@ const devfileServerURL = 'https://devfile-server'
 const devfileEndpoint = '/api/workspace/devfile'
 let ch = new CheHelper()
 let kc = ch.kc
+let kube = ch.kube
+let oc = ch.oc
 let k8sApi = new Core_v1Api()
 
+
 describe('Che helper', () => {
-  describe('isCheServerReady', () => {
+  describe('cheURL', () => {
     fancy
       .stub(ch, 'cheNamespaceExist', () => true)
+      .stub(kube, "isOpenShift", () => false)
+      .stub(kube, "ingressExist", () => true)
+      .stub(kube, "getIngressProtocol", () => "https")
+      .stub(kube, "getIngressHost", () => "example.org")
+      .it('computes Che URL on K8s', async () => {
+        const cheURL = await ch.cheURL('che-namespace')
+        expect(cheURL).to.equals("https://example.org")
+      })
+    fancy
+      .stub(ch, 'cheNamespaceExist', () => true)
+      .stub(kube, "isOpenShift", () => false)
+      .stub(kube, "ingressExist", () => false)
+      .do(() => ch.cheURL('che-namespace'))
+      .catch(err => expect(err.message).to.match(/ERR_INGRESS_NO_EXIST/))
+      .it('fails fetching che URL when ingress does not exist')
+    fancy
+      .stub(ch, 'cheNamespaceExist', () => true)
+      .stub(kube, "isOpenShift", () => true)
+      .stub(oc, "routeExist", () => true)
+      .stub(oc, "getRouteProtocol", () => "https")
+      .stub(oc, "getRouteHost", () => "example.org")
+      .it('computes Che URL on OpenShift', async () => {
+        const cheURL = await ch.cheURL('che-namespace')
+        expect(cheURL).to.equals("https://example.org")
+      })
+    fancy
+      .stub(ch, 'cheNamespaceExist', () => true)
+      .stub(kube, "isOpenShift", () => true)
+      .stub(oc, "routeExist", () => false)
+      .do(() => ch.cheURL('che-namespace'))
+      .catch(/ERR_ROUTE_NO_EXIST/)
+      .it('fails fetching che URL when route does not exist')
+    fancy
+      .stub(ch, 'cheNamespaceExist', () => false)
+      .do(() => ch.cheURL('che-namespace'))
+      .catch(err => expect(err.message).to.match(/ERR_NAMESPACE_NO_EXIST/))
+      .it('fails fetching che URL when namespace does not exist')
+  })
+  describe('isCheServerReady', () => {
+    fancy
       .nock(cheURL, api => api
         .get('/api/system/state')
         .reply(200))
       .it('detects if Che server is ready', async () => {
-        const res = await ch.isCheServerReady(cheURL, namespace)
+        const res = await ch.isCheServerReady(cheURL)
         expect(res).to.equal(true)
       })
     fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
       .nock(cheURL, api => api
         .get('/api/system/state')
         .delayConnection(1000)
         .reply(200))
       .it('detects if Che server is NOT ready', async () => {
-        const res = await ch.isCheServerReady(cheURL, namespace, 500)
+        const res = await ch.isCheServerReady(cheURL, 500)
         expect(res).to.equal(false)
       })
     fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
       .nock(cheURL, api => api
         .get('/api/system/state')
         .delayConnection(1000)
         .reply(200))
       .it('waits until Che server is ready', async () => {
-        const res = await ch.isCheServerReady(cheURL, namespace, 2000)
+        const res = await ch.isCheServerReady(cheURL, 2000)
         expect(res).to.equal(true)
       })
     fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
       .nock(cheURL, api => api
         .get('/api/system/state')
         .reply(404)
@@ -63,11 +103,10 @@ describe('Che helper', () => {
         .get('/api/system/state')
         .reply(200))
       .it('continues requesting until Che server is ready', async () => {
-        const res = await ch.isCheServerReady(cheURL, namespace, 2000)
+        const res = await ch.isCheServerReady(cheURL, 2000)
         expect(res).to.equal(true)
       })
     fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
       .nock(cheURL, api => api
         .get('/api/system/state')
         .reply(404)
@@ -76,7 +115,7 @@ describe('Che helper', () => {
         .get('/api/system/state')
         .reply(503))
       .it('continues requesting but fails if Che server is NOT ready after timeout', async () => {
-        const res = await ch.isCheServerReady(cheURL, namespace, 20)
+        const res = await ch.isCheServerReady(cheURL, 20)
         expect(res).to.equal(false)
       })
   })

@@ -11,7 +11,7 @@
 import * as execa from 'execa'
 import { expect, fancy } from 'fancy-test'
 
-import {MinishiftHelper} from '../../src/platforms/minishift'
+import { MinishiftHelper } from '../../src/platforms/minishift'
 
 jest.mock('execa')
 

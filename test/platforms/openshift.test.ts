@@ -11,7 +11,7 @@
 import * as execa from 'execa'
 import { expect, fancy } from 'fancy-test'
 
-import {OpenshiftHelper} from '../../src/platforms/openshift'
+import { OpenshiftHelper } from '../../src/platforms/openshift'
 
 jest.mock('execa')
 

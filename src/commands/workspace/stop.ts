@@ -34,12 +34,12 @@ export default class Stop extends Command {
     const Listr = require('listr')
     const notifier = require('node-notifier')
     const tasks = new Listr([
-      { title: 'Verify if we can access Kubernetes API', skip: () => 'Not implemented yet', task: () => {}},
-      { title: 'Verify if Che is responding', skip: () => 'Not implemented yet', task: () => {}},
-      { title: 'Verify if the workspaces is running', skip: () => 'Not implemented yet', task: () => {}},
-      { title: 'Stop the workspace', skip: () => 'Not implemented yet', task: () => {}},
-      { title: 'Waiting for the workspace resources to be deleted', skip: () => 'Not implemented yet', task: () => {}},
-    ], {renderer: flags['listr-renderer'] as any})
+      { title: 'Verify if we can access Kubernetes API', skip: () => 'Not implemented yet', task: () => { } },
+      { title: 'Verify if Che is responding', skip: () => 'Not implemented yet', task: () => { } },
+      { title: 'Verify if the workspaces is running', skip: () => 'Not implemented yet', task: () => { } },
+      { title: 'Stop the workspace', skip: () => 'Not implemented yet', task: () => { } },
+      { title: 'Waiting for the workspace resources to be deleted', skip: () => 'Not implemented yet', task: () => { } },
+    ], { renderer: flags['listr-renderer'] as any })
 
     await tasks.run()
 

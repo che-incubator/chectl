@@ -58,7 +58,7 @@ export default class Inject extends Command {
         title: `Verify if namespace ${flags.chenamespace} exists`,
         task: async () => {
           if (!await che.cheNamespaceExist(flags.chenamespace)) {
-            this.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist. The configuration cannot be injected.\nFix with: verify the namespace where Che workspace is running (kubectl get --all-namespaces deployment | grep workspace)`, {code: 'EBADNS'})
+            this.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist. The configuration cannot be injected.\nFix with: verify the namespace where Che workspace is running (kubectl get --all-namespaces deployment | grep workspace)`, { code: 'EBADNS' })
           }
         }
       },
@@ -86,7 +86,7 @@ export default class Inject extends Command {
         },
         task: () => this.injectKubeconfigTasks(flags.chenamespace!, flags.workspace!, flags.container)
       },
-    ], {renderer: flags['listr-renderer'] as any, collapse: false})
+    ], { renderer: flags['listr-renderer'] as any, collapse: false })
 
     try {
       await tasks.run()
@@ -102,7 +102,7 @@ export default class Inject extends Command {
 
   async injectKubeconfigTasks(chenamespace: string, workspace: string, container?: string): Promise<Listr> {
     const che = new CheHelper()
-    const tasks = new Listr({exitOnError: false, concurrent: true})
+    const tasks = new Listr({ exitOnError: false, concurrent: true })
     const containers = container ? [container] : await che.getWorkspacePodContainers(chenamespace!, workspace!)
     for (const cont of containers) {
       // che-machine-exec container is very limited for a security reason.

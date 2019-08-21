@@ -95,7 +95,7 @@ export default class Stop extends Command {
               task.title = await `${task.title}...it does`
             }
           } else {
-            this.error(`E_BAD_DEPLOY - Deployment and DeploymentConfig do not exist.\nNeither a Deployment nor a DeploymentConfig named "${flags['deployment-name']}" exist in namespace \"${flags.chenamespace}\", Che Server cannot be stopped.\nFix with: verify the namespace where Che is running (oc get projects)\nhttps://github.com/eclipse/che`, {code: 'E_BAD_DEPLOY'})
+            this.error(`E_BAD_DEPLOY - Deployment and DeploymentConfig do not exist.\nNeither a Deployment nor a DeploymentConfig named "${flags['deployment-name']}" exist in namespace \"${flags.chenamespace}\", Che Server cannot be stopped.\nFix with: verify the namespace where Che is running (oc get projects)\nhttps://github.com/eclipse/che`, { code: 'E_BAD_DEPLOY' })
           }
         }
       },
@@ -104,14 +104,12 @@ export default class Stop extends Command {
         task: async (ctx: any, task: any) => {
           const cheServerPodExist = await kh.podsExistBySelector(flags['che-selector'] as string, flags.chenamespace)
           if (!cheServerPodExist) {
-            task.title = `${task.title}...It doesn't.
-Che server was already stopped.`
+            task.title = `${task.title}...It doesn't.\nChe server was already stopped.`
             ctx.isAlreadyStopped = true
           } else {
             const cheServerPodReadyStatus = await kh.getPodReadyConditionStatus(flags['che-selector'] as string, flags.chenamespace)
             if (cheServerPodReadyStatus !== 'True') {
-              task.title = `${task.title}...It doesn't.
-Che server is not ready yet. Try again in a few seconds.`
+              task.title = `${task.title}...It doesn't.\nChe server is not ready yet. Try again in a few seconds.`
               ctx.isNotReadyYet = true
             } else {
               task.title = `${task.title}...done.`
@@ -153,7 +151,7 @@ Che server is not ready yet. Try again in a few seconds.`
         }
       },
       {
-        title: `Scale  \"${flags['deployment-name']}\"  deployment to zero`,
+        title: `Scale \"${flags['deployment-name']}\" deployment to zero`,
         enabled: (ctx: any) => !ctx.isAlreadyStopped && !ctx.isNotReadyYet,
         task: async (ctx: any, task: any) => {
           try {
@@ -177,7 +175,7 @@ Che server is not ready yet. Try again in a few seconds.`
         }
       },
       {
-        title: 'Scale  \"keycloak\"  deployment to zero',
+        title: 'Scale \"keycloak\" deployment to zero',
         enabled: (ctx: any) => !ctx.isAlreadyStopped && !ctx.isNotReadyYet && ctx.foundKeycloakDeployment,
         task: async (ctx: any, task: any) => {
           try {
@@ -201,8 +199,8 @@ Che server is not ready yet. Try again in a few seconds.`
         }
       },
       {
-        title: 'Scale  \"postgres\"  deployment to zero',
-        enabled: (ctx: any) => !ctx.isAlreadyStopped && !ctx.isNotReadyYet && ctx.foundKeycloakDeployment,
+        title: 'Scale \"postgres\" deployment to zero',
+        enabled: (ctx: any) => !ctx.isAlreadyStopped && !ctx.isNotReadyYet && ctx.foundPostgresDeployment,
         task: async (ctx: any, task: any) => {
           try {
             if (ctx.deploymentConfigExist) {
@@ -218,14 +216,14 @@ Che server is not ready yet. Try again in a few seconds.`
       },
       {
         title: 'Wait until Postgres pod is deleted',
-        enabled: (ctx: any) => !ctx.isAlreadyStopped && !ctx.isNotReadyYet && ctx.foundKeycloakDeployment,
+        enabled: (ctx: any) => !ctx.isAlreadyStopped && !ctx.isNotReadyYet && ctx.foundPostgresDeployment,
         task: async (_ctx: any, task: any) => {
           await kh.waitUntilPodIsDeleted('app=postgres', flags.chenamespace)
           task.title = `${task.title}...done.`
         }
       },
       {
-        title: 'Scale  \"devfile registry\"  deployment to zero',
+        title: 'Scale \"devfile registry\" deployment to zero',
         enabled: (ctx: any) => ctx.foundDevfileRegistryDeployment,
         task: async (ctx: any, task: any) => {
           try {
@@ -249,7 +247,7 @@ Che server is not ready yet. Try again in a few seconds.`
         }
       },
       {
-        title: 'Scale  \"plugin registry\"  deployment to zero',
+        title: 'Scale \"plugin registry\" deployment to zero',
         enabled: (ctx: any) => ctx.foundPluginRegistryDeployment,
         task: async (ctx: any, task: any) => {
           try {
@@ -272,7 +270,7 @@ Che server is not ready yet. Try again in a few seconds.`
           task.title = `${task.title}...done.`
         }
       },
-    ], {renderer: flags['listr-renderer'] as any})
+    ], { renderer: flags['listr-renderer'] as any })
 
     try {
       await tasks.run()

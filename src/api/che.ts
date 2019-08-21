@@ -24,6 +24,8 @@ import { Devfile } from './devfile'
 export class CheHelper {
   defaultCheResponseTimeoutMs = 3000
   kc = new KubeConfig()
+  kube = new KubeHelper()
+  oc = new OpenShiftHelper()
 
   async cheServerPodExist(namespace: string): Promise<boolean> {
     const kc = new KubeConfig()
@@ -99,8 +101,11 @@ export class CheHelper {
   }
 
   async cheURL(namespace = ''): Promise<string> {
-    const kube = new KubeHelper()
-    if (await kube.isOpenShift()) {
+    if (!await this.cheNamespaceExist(namespace)) {
+      throw new Error(`ERR_NAMESPACE_NO_EXIST - No namespace ${namespace} is found`)
+    }
+
+    if (await this.kube.isOpenShift()) {
       return this.cheOpenShiftURL(namespace)
     } else {
       return this.cheK8sURL(namespace)
@@ -108,12 +113,11 @@ export class CheHelper {
   }
 
   async cheK8sURL(namespace = ''): Promise<string> {
-    const kube = new KubeHelper()
     const ingress_names = ['che', 'che-ingress']
     for (const ingress_name of ingress_names) {
-      if (await kube.ingressExist(ingress_name, namespace)) {
-        const protocol = await kube.getIngressProtocol(ingress_name, namespace)
-        const hostname = await kube.getIngressHost(ingress_name, namespace)
+      if (await this.kube.ingressExist(ingress_name, namespace)) {
+        const protocol = await this.kube.getIngressProtocol(ingress_name, namespace)
+        const hostname = await this.kube.getIngressHost(ingress_name, namespace)
         return `${protocol}://${hostname}`
       }
     }
@@ -121,12 +125,11 @@ export class CheHelper {
   }
 
   async cheOpenShiftURL(namespace = ''): Promise<string> {
-    const oc = new OpenShiftHelper()
     const route_names = ['che', 'che-host']
     for (const route_name of route_names) {
-      if (await oc.routeExist(route_name, namespace)) {
-        const protocol = await oc.getRouteProtocol(route_name, namespace)
-        const hostname = await oc.getRouteHost(route_name, namespace)
+      if (await this.oc.routeExist(route_name, namespace)) {
+        const protocol = await this.oc.getRouteProtocol(route_name, namespace)
+        const hostname = await this.oc.getRouteHost(route_name, namespace)
         return `${protocol}://${hostname}`
       }
     }
@@ -166,7 +169,7 @@ export class CheHelper {
 
   async startShutdown(cheURL: string, accessToken = '', responseTimeoutMs = this.defaultCheResponseTimeoutMs) {
     const endpoint = `${cheURL}/api/system/stop?shutdown=true`
-    const headers = accessToken ? {Authorization: `${accessToken}`} : null
+    const headers = accessToken ? { Authorization: `${accessToken}` } : null
     let response = null
     try {
       response = await axios.post(endpoint, null, { headers, timeout: responseTimeoutMs })
@@ -194,11 +197,7 @@ export class CheHelper {
     throw new Error('ERR_TIMEOUT')
   }
 
-  async isCheServerReady(cheURL: string, namespace = '', responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
-    if (!await this.cheNamespaceExist(namespace)) {
-      return false
-    }
-
+  async isCheServerReady(cheURL: string, responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
     const id = await axios.interceptors.response.use(response => response, async (error: any) => {
       if (error.config && error.response && (error.response.status === 404 || error.response.status === 503)) {
         return axios.request(error.config)
@@ -224,7 +223,7 @@ export class CheHelper {
     let endpoint = `${url}/api/workspace/devfile`
     let devfile
     let response
-    const headers: any = {'Content-Type': 'text/yaml'}
+    const headers: any = { 'Content-Type': 'text/yaml' }
     if (accessToken && accessToken.length > 0) {
       headers.Authorization = `${accessToken}`
     }
@@ -236,7 +235,7 @@ export class CheHelper {
         json.metadata.name = workspaceName
         devfile = yaml.dump(json)
       }
-      response = await axios.post(endpoint, devfile, {headers})
+      response = await axios.post(endpoint, devfile, { headers })
     } catch (error) {
       if (!devfile) { throw new Error(`E_NOT_FOUND_DEVFILE - ${devfilePath} - ${error.message}`) }
       if (error.response && error.response.status === 400) {
@@ -269,14 +268,14 @@ export class CheHelper {
     let endpoint = `${url}/api/workspace`
     let workspaceConfig
     let response
-    const headers: any = {'Content-Type': 'application/json'}
+    const headers: any = { 'Content-Type': 'application/json' }
     if (accessToken && accessToken.length > 0) {
       headers.Authorization = `${accessToken}`
     }
 
     try {
       let workspaceConfig = fs.readFileSync(workspaceConfigPath, 'utf8')
-      response = await axios.post(endpoint, workspaceConfig, {headers})
+      response = await axios.post(endpoint, workspaceConfig, { headers })
     } catch (error) {
       if (!workspaceConfig) { throw new Error(`E_NOT_FOUND_WORKSPACE_CONFIG_FILE - ${workspaceConfigPath} - ${error.message}`) }
       if (error.response && error.response.status === 400) {

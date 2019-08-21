@@ -9,36 +9,36 @@ import * as stream from "stream"
 
 declare namespace Listr {
   interface ListrRenderer {
-      nonTTY: boolean;
-      render(): void;
-      end(): void;
+    nonTTY: boolean;
+    render(): void;
+    end(): void;
   }
 
   interface ListrOptions {
-      concurrent?: boolean | number;
-      exitOnError?: boolean;
-      showSubtasks?: boolean;
-      collapse?: boolean;
-      clearOutput?: boolean;
-      dateFormat?: boolean | string;
-      renderer?: "silent" | "default" | "verbose" | ListrRenderer;
-      nonTTYRenderer?: "silent" | "default" | "verbose" | ListrRenderer;
+    concurrent?: boolean | number;
+    exitOnError?: boolean;
+    showSubtasks?: boolean;
+    collapse?: boolean;
+    clearOutput?: boolean;
+    dateFormat?: boolean | string;
+    renderer?: "silent" | "default" | "verbose" | ListrRenderer;
+    nonTTYRenderer?: "silent" | "default" | "verbose" | ListrRenderer;
   }
 
   interface ListrTask {
-      title: string;
-      output?: string;
-      task: (ctx: any, task: ListrTaskWrapper) => void | string | Promise<any> | stream.Readable | Listr;
-      skip?: (ctx: any, task: ListrTaskWrapper) => boolean | Promise<boolean> | string | void;
-      enabled?: (ctx: any, task: ListrTaskWrapper) => boolean | Promise<boolean>;
+    title: string;
+    output?: string;
+    task: (ctx: any, task: ListrTaskWrapper) => void | string | Promise<any> | stream.Readable | Listr;
+    skip?: (ctx: any, task: ListrTaskWrapper) => boolean | Promise<boolean> | string | void;
+    enabled?: (ctx: any, task: ListrTaskWrapper) => boolean | Promise<boolean>;
   }
 
   interface ListrTaskWrapper {
-      title: string;
-      output: any;
-      report(error: Error): void;
-      skip(message: string): void;
-      run(ctx?: any): Promise<any>;
+    title: string;
+    output: any;
+    report(error: Error): void;
+    skip(message: string): void;
+    run(ctx?: any): Promise<any>;
   }
 }
 

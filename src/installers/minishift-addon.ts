@@ -37,9 +37,9 @@ export class MinishiftAddonHelper {
 
   static async grabVersion(): Promise<number> {
     let args = ['version']
-    const { stdout} = await execa('minishift',
-                                     args,
-                                     {reject: false })
+    const { stdout } = await execa('minishift',
+      args,
+      { reject: false })
     if (stdout) {
       return parseInt(stdout.replace(/\D/g, '').substring(0, 3), 10)
     }
@@ -89,7 +89,7 @@ export class MinishiftAddonHelper {
           task.title = `${task.title}...done.`
         }
       }
-    ], {renderer: flags['listr-renderer'] as any})
+    ], { renderer: flags['listr-renderer'] as any })
   }
 
   async checkLogged(command: Command) {
@@ -102,9 +102,9 @@ export class MinishiftAddonHelper {
 
   async installAddonIfMissing() {
     let args = ['addon', 'list']
-    const { stdout} = await execa('minishift',
-                                     args,
-                                     {reject: false })
+    const { stdout } = await execa('minishift',
+      args,
+      { reject: false })
     if (stdout && stdout.includes('- che')) {
       // needs to delete before installing
       await this.uninstallAddon()
@@ -116,7 +116,7 @@ export class MinishiftAddonHelper {
 
   }
 
-  async applyAddon(flags: any, execTimeout= 120000) {
+  async applyAddon(flags: any, execTimeout = 120000) {
     let args = ['addon', 'apply']
     const imageRepo = MinishiftAddonHelper.getImageRepository(flags.cheimage)
     const imageTag = MinishiftAddonHelper.getImageTag(flags.cheimage)
@@ -131,12 +131,12 @@ export class MinishiftAddonHelper {
     }
     args = args.concat(['che'])
     const { cmd,
-            code,
-            stderr,
-            stdout,
-            timedOut } = await execa('minishift',
-                                     args,
-                                     { timeout: execTimeout, reject: false })
+      code,
+      stderr,
+      stdout,
+      timedOut } = await execa('minishift',
+        args,
+        { timeout: execTimeout, reject: false })
     if (timedOut) {
       throw new Error(`Command "${cmd}" timed out after ${execTimeout}ms
 stderr: ${stderr}
@@ -151,19 +151,19 @@ error: E_COMMAND_FAILED`)
     }
   }
 
-  async removeAddon(execTimeout= 120000) {
+  async removeAddon(execTimeout = 120000) {
     let args = ['addon', 'remove', 'che']
     await execa('minishift', args, { timeout: execTimeout, reject: false })
   }
 
-  async installAddon(directory: string, execTimeout= 120000) {
+  async installAddon(directory: string, execTimeout = 120000) {
     let args = ['addon', 'install', directory]
-    await execa('minishift', args, { timeout: execTimeout})
+    await execa('minishift', args, { timeout: execTimeout })
   }
 
-  async uninstallAddon(execTimeout= 120000) {
+  async uninstallAddon(execTimeout = 120000) {
     let args = ['addon', 'uninstall', 'che']
-    await execa('minishift', args, { timeout: execTimeout})
+    await execa('minishift', args, { timeout: execTimeout })
   }
 
   async copyResources(templatesDir: string, cacheDir: string): Promise<string> {

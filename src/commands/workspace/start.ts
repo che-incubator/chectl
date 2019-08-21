@@ -77,8 +77,8 @@ export default class Start extends Command {
       {
         title: 'Verify if Che server is running',
         task: async (ctx: any, task: any) => {
-          if (!await che.isCheServerReady(ctx.cheURL, flags.chenamespace)) {
-            this.error(`E_SRV_NOT_RUNNING - Che Server is not running.\nChe Server cannot be found in Kubernetes Namespace "${flags.chenamespace}". Have you already start it?\nFix with: start Che server: chectl server:start\nhttps://github.com/eclipse/che`, { code: 'E_SRV_NOT_RUNNNG'})
+          if (!await che.isCheServerReady(ctx.cheURL)) {
+            this.error(`E_SRV_NOT_RUNNING - Che Server is not available by ${ctx.cheURL}`, { code: 'E_SRV_NOT_RUNNNG' })
           }
           const status = await che.getCheServerStatus(ctx.cheURL)
           ctx.isAuthEnabled = await che.isAuthenticationEnabled(ctx.cheURL)
@@ -102,7 +102,7 @@ export default class Start extends Command {
           ctx.workspaceIdeURL = await che.createWorkspaceFromWorkspaceConfig(flags.chenamespace, flags.workspaceconfig, flags['access-token'])
         }
       },
-    ], {renderer: flags['listr-renderer'] as any})
+    ], { renderer: flags['listr-renderer'] as any })
 
     try {
       let ctx = await tasks.run()

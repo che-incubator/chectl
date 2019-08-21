@@ -27,7 +27,8 @@ export class MinishiftHelper {
           }
         }
       },
-      { title: 'Verify if minishift is installed',
+      {
+        title: 'Verify if minishift is installed',
         task: (_ctx: any, task: any) => {
           if (!commandExists.sync('minishift')) {
             command.error('E_REQUISITE_NOT_FOUND', { code: 'E_REQUISITE_NOT_FOUND' })
@@ -36,7 +37,8 @@ export class MinishiftHelper {
           }
         }
       },
-      { title: 'Verify if minishift is running',
+      {
+        title: 'Verify if minishift is running',
         task: async (_ctx: any, task: any) => {
           const minishiftIsRunning = await this.isMinishiftRunning()
           if (!minishiftIsRunning) {
@@ -48,14 +50,14 @@ export class MinishiftHelper {
       },
       // { title: 'Verify minishift memory configuration', skip: () => 'Not implemented yet', task: () => {}},
       // { title: 'Verify kubernetes version', skip: () => 'Not implemented yet', task: () => {}},
-    ], {renderer: flags['listr-renderer'] as any})
+    ], { renderer: flags['listr-renderer'] as any })
   }
 
   async isMinishiftRunning(): Promise<boolean> {
     const { code, stdout } = await execa('minishift', ['status'], { timeout: 60000, reject: false })
     if (code === 0 &&
-        stdout.includes('Minishift:  Running') &&
-        stdout.includes('OpenShift:  Running')) {
+      stdout.includes('Minishift:  Running') &&
+      stdout.includes('OpenShift:  Running')) {
       return true
     } else {
       return false
