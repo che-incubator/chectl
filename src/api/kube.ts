@@ -51,7 +51,7 @@ export class KubeHelper {
         })
       }
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -63,8 +63,7 @@ export class KubeHelper {
         return res.body
       }
     } catch (e) {
-      if (e.body && e.body.message) throw new Error(e.body.message)
-      else throw new Error(e)
+      throw this.wrapK8sClientError(e)
     }
     throw new Error('ERR_LIST_SERVICES')
   }
@@ -102,7 +101,7 @@ export class KubeHelper {
     try {
       return await k8sCoreApi.createNamespacedServiceAccount(namespace, sa)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -112,7 +111,7 @@ export class KubeHelper {
       const options = new V1DeleteOptions()
       await k8sCoreApi.deleteNamespacedServiceAccount(name, namespace, options)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -123,7 +122,7 @@ export class KubeHelper {
     try {
       return await k8sCoreApi.createNamespacedServiceAccount(namespace, yamlServiceAccount)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -162,7 +161,8 @@ export class KubeHelper {
       if (e.response && e.response.statusCode && e.response.statusCode === 403) {
         return e.response.statusCode
       } else {
-        throw new Error(e.response.statusCode + e.body.message)
+        if (e.body && e.body.message) throw new Error(e.body.message)
+        else throw new Error(e)
       }
     }
   }
@@ -178,7 +178,8 @@ export class KubeHelper {
       if (e.response && e.response.statusCode && e.response.statusCode === 403) {
         return e.response.statusCode
       } else {
-        throw new Error(e.response.statusCode + e.body.message)
+        if (e.body && e.body.message) throw new Error(e.body.message)
+        else throw new Error(e)
       }
     }
   }
@@ -189,7 +190,7 @@ export class KubeHelper {
       const options = new V1DeleteOptions()
       await k8sCoreApi.deleteNamespacedRole(name, namespace, options)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -199,7 +200,7 @@ export class KubeHelper {
       const options = new V1DeleteOptions()
       await k8sCoreApi.deleteClusterRole(name, options)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -244,7 +245,7 @@ export class KubeHelper {
     try {
       return await k8sRbacAuthApi.createNamespacedRoleBinding(namespace, rb)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -255,7 +256,7 @@ export class KubeHelper {
     try {
       return await k8sRbacAuthApi.createNamespacedRoleBinding(namespace, yamlRoleBinding)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -282,7 +283,7 @@ export class KubeHelper {
     try {
       return await k8sRbacAuthApi.createClusterRoleBinding(clusterRoleBinding)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -292,7 +293,7 @@ export class KubeHelper {
       const options = new V1DeleteOptions()
       return await k8sRbacAuthApi.deleteNamespacedRoleBinding(name, namespace, options)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -302,7 +303,7 @@ export class KubeHelper {
       const options = new V1DeleteOptions()
       return await k8sRbacAuthApi.deleteClusterRoleBinding(name, options)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -325,7 +326,7 @@ export class KubeHelper {
     try {
       return await k8sCoreApi.createNamespacedConfigMap(namespace, yamlConfigMap)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -334,7 +335,7 @@ export class KubeHelper {
     try {
       return await k8sCoreApi.patchNamespacedConfigMap(name, namespace, patch)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -344,7 +345,7 @@ export class KubeHelper {
       const options = new V1DeleteOptions()
       await k8sCoreApi.deleteNamespacedConfigMap(name, namespace, options)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -366,8 +367,7 @@ export class KubeHelper {
     try {
       res = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, true, selector)
     } catch (e) {
-      if (e.body && e.body.message) throw new Error(e.body.message)
-      else throw new Error(e)
+      throw this.wrapK8sClientError(e)
     }
 
     if (!res || !res.body || !res.body.items) {
@@ -383,8 +383,7 @@ export class KubeHelper {
     try {
       res = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, true, selector)
     } catch (e) {
-      if (e.body && e.body.message) throw new Error(e.body.message)
-      else throw new Error(e)
+      throw this.wrapK8sClientError(e)
     }
 
     if (!res || !res.body || !res.body.items) {
@@ -408,8 +407,7 @@ export class KubeHelper {
     try {
       res = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, true, selector)
     } catch (e) {
-      if (e.body && e.body.message) throw new Error(e.body.message)
-      else throw new Error(e)
+      throw this.wrapK8sClientError(e)
     }
 
     if (!res || !res.body || !res.body.items) {
@@ -511,7 +509,7 @@ export class KubeHelper {
     try {
       return await k8sCoreApi.deleteNamespacedPod(name, namespace, options)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -536,7 +534,7 @@ export class KubeHelper {
       }
       return res.body.spec.paused
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -550,7 +548,7 @@ export class KubeHelper {
       }
       await k8sApi.patchNamespacedDeployment(name, namespace, patch)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -564,7 +562,7 @@ export class KubeHelper {
       }
       await k8sApi.patchNamespacedDeployment(name, namespace, patch)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -579,8 +577,7 @@ export class KubeHelper {
     try {
       res = await k8sAppsApi.patchNamespacedDeploymentScale(name, namespace, patch)
     } catch (e) {
-      if (e.body && e.body.message) throw new Error(e.body.message)
-      else throw new Error(e)
+      throw this.wrapK8sClientError(e)
     }
 
     if (!res || !res.body) {
@@ -621,7 +618,7 @@ export class KubeHelper {
     try {
       return await k8sAppsApi.createNamespacedDeployment(namespace, deployment)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -635,7 +632,7 @@ export class KubeHelper {
     try {
       return await k8sAppsApi.createNamespacedDeployment(namespace, yamlDeployment)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -644,7 +641,7 @@ export class KubeHelper {
     try {
       await k8sAppsApi.deleteCollectionNamespacedDeployment(namespace)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -656,8 +653,7 @@ export class KubeHelper {
         return res.body
       }
     } catch (e) {
-      if (e.body && e.body.message) throw new Error(e.body.message)
-      else throw new Error(e)
+      throw this.wrapK8sClientError(e)
     }
     throw new Error('ERR_LIST_NAMESPACES')
   }
@@ -692,7 +688,7 @@ export class KubeHelper {
     try {
       return await k8sCoreApi.createNamespacedPod(namespace, pod)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -713,7 +709,7 @@ export class KubeHelper {
     try {
       await k8sExtensionsApi.deleteCollectionNamespacedIngress(namespace)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -724,7 +720,7 @@ export class KubeHelper {
     try {
       return await k8sApiextensionsApi.createCustomResourceDefinition(yamlCrd)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -746,7 +742,7 @@ export class KubeHelper {
       const options = new V1DeleteOptions()
       await k8sApiextensionsApi.deleteCustomResourceDefinition(name, options)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -786,7 +782,7 @@ export class KubeHelper {
     try {
       return await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', cheNamespace, 'checlusters', yamlCr)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -808,7 +804,7 @@ export class KubeHelper {
       const options = new V1DeleteOptions()
       await customObjectsApi.deleteNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name, options)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -825,8 +821,7 @@ export class KubeHelper {
     try {
       res = await k8sCoreApi.listNamespacedServiceAccount('default')
     } catch (e) {
-      if (e.body && e.body.message) throw new Error(e.body.message)
-      else throw new Error(e)
+      throw this.wrapK8sClientError(e)
     }
     if (!res || !res.body) {
       throw new Error('Unable to get default service account')
@@ -848,8 +843,7 @@ export class KubeHelper {
     try {
       res = await k8sCoreApi.listNamespacedSecret('default')
     } catch (e) {
-      if (e.body && e.body.message) throw new Error(e.body.message)
-      else throw new Error(e)
+      throw this.wrapK8sClientError(e)
     }
     if (!res || !res.body) {
       throw new Error('Unable to get default service account')
@@ -916,8 +910,7 @@ export class KubeHelper {
     try {
       res = await k8sApiApi.getAPIVersions()
     } catch (e) {
-      if (e.body && e.body.message) throw new Error(e.body.message)
-      else throw new Error(e)
+      throw this.wrapK8sClientError(e)
     }
     if (!res || !res.body) {
       throw new Error('Get API versions returned an invalid response')
@@ -943,8 +936,7 @@ export class KubeHelper {
       }
       throw new Error('ERR_INGRESS_NO_HOST')
     } catch (e) {
-      if (e.body && e.body.message) throw new Error(e.body.message)
-      else throw new Error(e)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -961,8 +953,7 @@ export class KubeHelper {
         return 'http'
       }
     } catch (e) {
-      if (e.body && e.body.message) throw new Error(e.body.message)
-      else throw new Error(e)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -974,8 +965,7 @@ export class KubeHelper {
         return res.body
       }
     } catch (e) {
-      if (e.body && e.body.message) throw new Error(e.body.message)
-      else throw new Error(e)
+      throw this.wrapK8sClientError(e)
     }
     throw new Error('ERR_LIST_INGRESSES')
   }
@@ -1030,7 +1020,7 @@ export class KubeHelper {
       const options = new V1DeleteOptions()
       await k8sCoreApi.deleteNamespacedPersistentVolumeClaim(name, namespace, options)
     } catch (e) {
-      throw new Error(e.body.message)
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -1042,10 +1032,20 @@ export class KubeHelper {
         return res.body
       }
     } catch (e) {
-      if (e.body && e.body.message) throw new Error(e.body.message)
-      else throw new Error(e)
+      throw this.wrapK8sClientError(e)
     }
     throw new Error('ERR_LIST_PVCS')
+  }
+
+  /**
+   * Checks if message is present and returns error with it
+   * or returns error with the specified error if message is not found.
+   *
+   * @param e k8s error to wrap
+   */
+  private wrapK8sClientError(e: any): Error {
+    if (e.body && e.body.message) return new Error(e.body.message)
+    else return new Error(e)
   }
 }
 
