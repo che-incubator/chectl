@@ -350,12 +350,14 @@
     tslib "^1"
 
 "@oclif/command@^1", "@oclif/command@^1.4.31", "@oclif/command@^1.5.1", "@oclif/command@^1.5.12", "@oclif/command@^1.5.13", "@oclif/command@^1.5.4":
-  version "1.5.14"
-  resolved "https://registry.yarnpkg.com/@oclif/command/-/command-1.5.14.tgz#cdf6013134abfb5630783f27e78436096ce3ed88"
-  integrity sha512-R9gat0yUjamDVd4trvFgjlx2XYuMz1nM0uEBFP6nR1zOQAwJ3E1zqYbsVlCMWiUDGjU1hYmudmK7IjAxDUoqDw==
+  version "1.5.18"
+  resolved "https://registry.yarnpkg.com/@oclif/command/-/command-1.5.18.tgz#57125b501fafa155ad280bf8dc9f36a911c44f11"
+  integrity sha512-sfLb5UUCwyQ0w9LyQ1/3DUuD/RWnPZk6uvcK5P7pqD65WgRJaOPCqzuNZyb56kPsj6FftRp1UudApNKd7U0KBQ==
   dependencies:
+    "@oclif/config" "^1"
     "@oclif/errors" "^1.2.2"
-    "@oclif/parser" "^3.7.3"
+    "@oclif/parser" "^3.8.3"
+    "@oclif/plugin-help" "^2"
     debug "^4.1.1"
     semver "^5.6.0"
 
@@ -401,7 +403,7 @@
   resolved "https://registry.yarnpkg.com/@oclif/linewrap/-/linewrap-1.0.0.tgz#aedcb64b479d4db7be24196384897b5000901d91"
   integrity sha512-Ups2dShK52xXa8w6iBWLgcjPJWjais6KPJQq3gQ/88AY6BXoTX+MIGFPrWQO1KLMiQfoTpcLnUwloN4brrVUHw==
 
-"@oclif/parser@^3.7.3", "@oclif/parser@^3.8.4":
+"@oclif/parser@^3.8.3", "@oclif/parser@^3.8.4":
   version "3.8.4"
   resolved "https://registry.yarnpkg.com/@oclif/parser/-/parser-3.8.4.tgz#1a90fc770a42792e574fb896325618aebbe8c9e4"
   integrity sha512-cyP1at3l42kQHZtqDS3KfTeyMvxITGwXwH1qk9ktBYvqgMp5h4vHT+cOD74ld3RqJUOZY/+Zi9lb4Tbza3BtuA==
