@@ -372,5 +372,5 @@ _See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/che
 
 # Contributing
 
-Contributing to chectl is covered in [CONTRIBUTING.md](https://github.com/che-inccubator/chectl/blob/master/CONTRIBUTING.md)
+Contributing to chectl is covered in [CONTRIBUTING.md](https://github.com/che-incubator/chectl/blob/master/CONTRIBUTING.md)
 
