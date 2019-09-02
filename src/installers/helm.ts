@@ -59,7 +59,7 @@ export class HelmHelper {
           const selfSignedCertSecret = await kh.getSecret('self-signed-cert', `${flags.chenamespace}`)
 
           if (!selfSignedCertSecret) {
-            throw new Error(`Self-signed-cert option is enabled but 'self-signed-cert' secret does not exist in '${flags.chenamespace}' namespace. Example on how to create the secret with self-signed CA certificate: kubectl create secret tls self-signed-cert --namespace='${flags.chenamespace}' --from-file=ca.crt`)
+            throw new Error(`Self-signed-cert option is enabled but 'self-signed-cert' secret does not exist in '${flags.chenamespace}' namespace. Example on how to create the secret with self-signed CA certificate: kubectl create secret generic self-signed-cert --namespace='${flags.chenamespace}' --from-file=ca.crt`)
           }
 
           if (!selfSignedCertSecret.data['ca.crt']) {
