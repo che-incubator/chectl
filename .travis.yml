@@ -15,8 +15,9 @@ before_deploy:
   if [ "$TRAVIS_BRANCH" = master ]; then
     echo "Branch is master branch..."
     CURRENT_DAY=$(date +'%Y%m%d')
+    SHORT_SHA1=$(git rev-parse --short HEAD)
     export CHECTL_VERSION=0.0.$CURRENT_DAY-next
-    export GITHUB_RELEASE_NAME=$CHECTL_VERSION
+    export GITHUB_RELEASE_NAME=0.0.$CURRENT_DAY-next.$SHORT_SHA1
   fi;
 - |
   if [ "$TRAVIS_BRANCH" = release ]; then
