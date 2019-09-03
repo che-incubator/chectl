@@ -115,7 +115,7 @@ EXAMPLES
   $ chectl autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.1/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.3/src/commands/autocomplete/index.ts)_
 
 ## `chectl devfile:generate`
 
@@ -164,7 +164,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.0/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.1/src/commands/help.ts)_
 
 ## `chectl server:delete`
 
@@ -193,8 +193,8 @@ USAGE
 OPTIONS
   -a, --installer=installer                    Installer type. Valid values are "helm", "operator" and "minishift-addon"
 
-  -b, --domain=domain                          Domain of the Kubernetes cluster (e.g.
-                                               example.k8s-cluster.com or <local-ip>.nip.io)
+  -b, --domain=domain                          Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or
+                                               <local-ip>.nip.io)
 
   -h, --help                                   show CLI help
 
@@ -208,16 +208,14 @@ OPTIONS
                                                milliseconds)
 
   -p, --platform=platform                      Type of Kubernetes platform. Valid values are "minikube", "minishift",
-                                               "k8s", "openshift", "microk8s".
+                                               "k8s (for kubernetes)", "openshift", "crc (for CodeReady Containers)",
+                                               "microk8s".
 
   -s, --tls                                    Enable TLS encryption.
-                                               Note that for kubernetes `che-tls` with TLS certificate must be
-                                               created in the configured namespace.
-                                               For OpenShift, router will use default cluster certificates.
-
-  --self-signed-cert                           Authorize usage of self signed certificates for encryption.
-                                               Note that `self-signed-cert` secret with CA certificate must be
-                                               created in the configured namespace.
+                                               Note that for kubernetes 'che-tls' with TLS
+                                               certificate must be created in the configured namespace.
+                                               For OpenShift, router will use default cluster
+                                               certificates.
 
   -t, --templates=templates                    [default: templates] Path to the templates folder
 
@@ -240,6 +238,10 @@ OPTIONS
   --os-oauth                                   Enable use of OpenShift credentials to log into Che
 
   --plugin-registry-url=plugin-registry-url    The URL of the external plugin registry.
+
+  --self-signed-cert                           Authorize usage of self signed certificates for encryption. Note that
+                                               `self-signed-cert` secret with CA certificate must be created in the
+                                               configured namespace.
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
@@ -373,4 +375,3 @@ _See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/che
 # Contributing
 
 Contributing to chectl is covered in [CONTRIBUTING.md](https://github.com/che-incubator/chectl/blob/master/CONTRIBUTING.md)
-
