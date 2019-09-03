@@ -29,7 +29,8 @@ before_deploy:
     sed -i sed "s#version\":\ \"\(.*\)\",#version\":\ \"$CHECTL_VERSION\",#g" package.json
     git tag $TRAVIS_TAG
     npx oclif-dev pack
-    mkdir gh-pages
+    git clone https://github.com/che-incubator/chectl -b gh-pages --single-branch gh-pages
+    rm -rf gh-pages/.git
     echo $(date +%s) > gh-pages/update
     env
   fi
