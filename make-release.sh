@@ -20,7 +20,7 @@ init() {
 
 check() {
   if [ $# -eq 0 ]; then
-    printf "%bError: %bNo script provided. Command is $ make-release.sh <version>\n" "${RED}" "${NC}"
+    printf "%bError: %bNo version provided. Command is $ make-release.sh <version>\n" "${RED}" "${NC}"
     exit 1
   fi
 }
@@ -33,6 +33,7 @@ apply_sed() {
     sed -i "$1" "$2"
   fi
 }
+
 run() {
   # use master branch
   git checkout master
@@ -64,9 +65,6 @@ run() {
   # now replace package.json dependencies
   apply_sed "s;github.com/eclipse/che#\(.*\)\",;github.com/eclipse/che#${VERSION}\",;g" package.json
   apply_sed "s;github.com/eclipse/che-operator#\(.*\)\",;github.com/eclipse/che-operator#${VERSION}\",;g" package.json
-  
-  # update yarn.lock
-  #yarn install
   
   # move into the release branch
   git checkout -b release
