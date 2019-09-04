@@ -87,7 +87,6 @@ export class OperatorHelper {
       },
       {
         title: `Create ClusterRole ${this.operatorClusterRole}`,
-        enabled: () => flags['os-oauth'],
         task: async (_ctx: any, task: any) => {
           const exist = await kube.clusterRoleExist(this.operatorClusterRole)
           if (exist) {
@@ -117,7 +116,6 @@ export class OperatorHelper {
       },
       {
         title: `Create ClusterRoleBinding ${this.operatorClusterRoleBinding}`,
-        enabled: () => flags['os-oauth'],
         task: async (_ctx: any, task: any) => {
           const exist = await kube.clusterRoleBindingExist(this.operatorRoleBinding)
           if (exist) {
