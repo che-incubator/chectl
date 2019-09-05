@@ -42,8 +42,8 @@ export class OpenshiftHelper {
   }
 
   async isOpenshiftRunning(): Promise<boolean> {
-    const { code } = await execa('oc', ['status'], { timeout: 60000, reject: false })
-    return code === 0
+    const { exitCode } = await execa('oc', ['status'], { timeout: 60000, reject: false })
+    return exitCode === 0
   }
 
 }

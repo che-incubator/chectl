@@ -130,21 +130,21 @@ export class MinishiftAddonHelper {
       args = args.concat(['--addon-env', `CHE_WORKSPACE_PLUGIN__REGISTRY__URL=${flags['plugin-registry-url']}`])
     }
     args = args.concat(['che'])
-    const { cmd,
-      code,
+    const { command,
+      exitCode,
       stderr,
       stdout,
       timedOut } = await execa('minishift',
         args,
         { timeout: execTimeout, reject: false })
     if (timedOut) {
-      throw new Error(`Command "${cmd}" timed out after ${execTimeout}ms
+      throw new Error(`Command "${command}" timed out after ${execTimeout}ms
 stderr: ${stderr}
 stdout: ${stdout}
 error: E_TIMEOUT`)
     }
-    if (code !== 0) {
-      throw new Error(`Command "${cmd}" failed with return code ${code}
+    if (exitCode !== 0) {
+      throw new Error(`Command "${command}" failed with return code ${exitCode}
 stderr: ${stderr}
 stdout: ${stdout}
 error: E_COMMAND_FAILED`)

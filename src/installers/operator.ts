@@ -48,10 +48,10 @@ export class OperatorHelper {
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else if (flags.platform === 'minikube' || flags.platform === 'k8s' || flags.platform === 'microk8s') {
-            await execa.shell(`kubectl create namespace ${flags.chenamespace}`)
+            await execa(`kubectl create namespace ${flags.chenamespace}`, {shell: true})
             task.title = `${task.title}...done.`
           } else if (flags.platform === 'minishift' || flags.platform === 'openshift') {
-            await execa.shell(`oc new-project ${flags.chenamespace}`)
+            await execa(`oc new-project ${flags.chenamespace}`, {shell: true})
             task.title = `${task.title}...done.`
           }
         }

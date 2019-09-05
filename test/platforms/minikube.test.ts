@@ -19,14 +19,14 @@ let mh = new MinikubeHelper()
 describe('start', () => {
   fancy
     .it('verifies that minikube is running', async () => {
-      (execa as any).mockResolvedValue({ code: 0, stdout: 'minikube: Running' })
+      (execa as any).mockResolvedValue({ exitCode: 0, stdout: 'minikube: Running' })
       const res = await mh.isMinikubeRunning()
       expect(res).to.equal(true)
     })
 
   fancy
     .it('verifies that minikube is not running', async () => {
-      (execa as any).mockResolvedValue({ code: 1, stdout: 'minikube: Stopped' })
+      (execa as any).mockResolvedValue({ exitCode: 1, stdout: 'minikube: Stopped' })
       const res = await mh.isMinikubeRunning()
       expect(res).to.equal(false)
     })

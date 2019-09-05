@@ -134,8 +134,8 @@ export class HelmHelper {
   }
 
   async tillerRoleBindingExist(execTimeout = 30000): Promise<boolean> {
-    const { code } = await execa('kubectl', ['get', 'clusterrolebinding', 'add-on-cluster-admin'], { timeout: execTimeout, reject: false })
-    if (code === 0) { return true } else { return false }
+    const { exitCode } = await execa('kubectl', ['get', 'clusterrolebinding', 'add-on-cluster-admin'], { timeout: execTimeout, reject: false })
+    if (exitCode === 0) { return true } else { return false }
   }
 
   async createTillerRoleBinding(execTimeout = 30000) {
@@ -143,8 +143,8 @@ export class HelmHelper {
   }
 
   async tillerServiceAccountExist(execTimeout = 30000): Promise<boolean> {
-    const { code } = await execa('kubectl', ['get', 'serviceaccounts', 'tiller', '--namespace', 'kube-system'], { timeout: execTimeout, reject: false })
-    if (code === 0) { return true } else { return false }
+    const { exitCode } = await execa('kubectl', ['get', 'serviceaccounts', 'tiller', '--namespace', 'kube-system'], { timeout: execTimeout, reject: false })
+    if (exitCode === 0) { return true } else { return false }
   }
 
   async createTillerServiceAccount(execTimeout = 120000) {
@@ -155,25 +155,25 @@ export class HelmHelper {
     const yamlPath = path.join(templatesPath, '/kubernetes/helm/che/tiller-rbac.yaml')
     const yamlContent = fs.readFileSync(yamlPath, 'utf8')
     const command = `echo "${yamlContent}" | kubectl apply -f -`
-    await execa.shell(command, { timeout: execTimeout })
+    await execa(command, { timeout: execTimeout, shell: true })
   }
 
   async tillerServiceExist(execTimeout = 30000): Promise<boolean> {
-    const { code } = await execa('kubectl', ['get', 'services', 'tiller-deploy', '-n', 'kube-system'], { timeout: execTimeout, reject: false })
-    if (code === 0) { return true } else { return false }
+    const { exitCode } = await execa('kubectl', ['get', 'services', 'tiller-deploy', '-n', 'kube-system'], { timeout: execTimeout, reject: false })
+    if (exitCode === 0) { return true } else { return false }
   }
 
   async createTillerService(execTimeout = 120000) {
-    const { cmd, code, stderr, stdout, timedOut } =
+    const { command, exitCode, stderr, stdout, timedOut } =
       await execa('helm', ['init', '--service-account', 'tiller', '--wait'], { timeout: execTimeout, reject: false })
     if (timedOut) {
-      throw new Error(`Command "${cmd}" timed out after ${execTimeout}ms
+      throw new Error(`Command "${command}" timed out after ${execTimeout}ms
 stderr: ${stderr}
 stdout: ${stdout}
 error: E_TIMEOUT`)
     }
-    if (code !== 0) {
-      throw new Error(`Command "${cmd}" failed with return code ${code}
+    if (exitCode !== 0) {
+      throw new Error(`Command "${command}" failed with return code ${exitCode}
 stderr: ${stderr}
 stdout: ${stdout}
 error: E_COMMAND_FAILED`)
@@ -189,7 +189,7 @@ error: E_COMMAND_FAILED`)
 
   async updateCheHelmChartDependencies(cacheDir: string, execTimeout = 120000) {
     const destDir = path.join(cacheDir, '/templates/kubernetes/helm/che/')
-    await execa.shell(`helm dependencies update --skip-refresh ${destDir}`, { timeout: execTimeout })
+    await execa(`helm dependencies update --skip-refresh ${destDir}`, { timeout: execTimeout, shell: true })
   }
 
   async upgradeCheHelmChart(_ctx: any, flags: any, cacheDir: string, execTimeout = 120000) {
@@ -226,14 +226,14 @@ error: E_COMMAND_FAILED`)
 
     let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} ${setOptions.join(' ')} ${multiUserFlag} ${tlsFlag} ${destDir}`
 
-    let { code, stderr } = await execa.shell(command, { timeout: execTimeout, reject: false })
+    let { exitCode, stderr } = await execa(command, { timeout: execTimeout, reject: false, shell: true })
     // if process failed, check the following
     // if revision=1, purge and retry command else rollback
-    if (code !== 0) {
+    if (exitCode !== 0) {
       // get revision
 
-      const { code, stdout } = await execa.shell(`helm history ${flags.chenamespace} --output json`, { timeout: execTimeout, reject: false })
-      if (code !== 0) {
+      const { exitCode, stdout } = await execa(`helm history ${flags.chenamespace} --output json`, { timeout: execTimeout, reject: false, shell: true })
+      if (exitCode !== 0) {
         throw new Error(`Unable to execute helm command ${command} / ${stderr}`)
       }
       let jsonOutput
@@ -249,7 +249,7 @@ error: E_COMMAND_FAILED`)
         await execa('helm', ['rollback', flags.chenamespace, revision], { timeout: execTimeout })
 
       }
-      await execa.shell(command, { timeout: execTimeout })
+      await execa(command, { timeout: execTimeout, shell: true })
 
     }
   }

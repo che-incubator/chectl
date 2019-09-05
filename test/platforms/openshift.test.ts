@@ -37,7 +37,7 @@ describe('start', () => {
       
       3 infos identified, use 'oc status --suggest' to see details.`;
 
-      (execa as any).mockResolvedValue({ code: 0, stdout: status })
+      (execa as any).mockResolvedValue({ exitCode: 0, stdout: status })
       const res = await openshift.isOpenshiftRunning()
       expect(res).to.equal(true)
     })
@@ -47,7 +47,7 @@ describe('start', () => {
       const status = `Error from server (Forbidden): projects.project.openshift.io "che" is forbidden: User "system:anonymous" cannot get projects.project.openshift.io in the namespace "che": no RBAC policy matched
       `;
 
-      (execa as any).mockResolvedValue({ code: 1, stdout: status })
+      (execa as any).mockResolvedValue({ exitCode: 1, stdout: status })
       const res = await openshift.isOpenshiftRunning()
       expect(res).to.equal(false)
     })

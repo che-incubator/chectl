@@ -26,7 +26,7 @@ describe('start', () => {
       Cache Usage:     9.912GB
       Cache Directory: /Users/benoitf/.crc/cache`;
 
-      (execa as any).mockResolvedValue({ code: 0, stdout: status })
+      (execa as any).mockResolvedValue({ exitCode: 0, stdout: status })
       const res = await crc.isCRCRunning()
       expect(res).to.equal(true)
     })
@@ -39,7 +39,7 @@ describe('start', () => {
       Cache Usage:     9.912GB
       Cache Directory: /Users/benoitf/.crc/cache`;
 
-      (execa as any).mockResolvedValue({ code: 0, stdout: status })
+      (execa as any).mockResolvedValue({ exitCode: 0, stdout: status })
       const res = await crc.isCRCRunning()
       expect(res).to.equal(false)
     })

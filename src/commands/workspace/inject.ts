@@ -133,8 +133,8 @@ export default class Inject extends Command {
    * Tests whether a file can be injected into the specified container.
    */
   async canInject(namespace: string, pod: string, container: string): Promise<boolean> {
-    const { code } = await execa.shell(`kubectl exec ${pod} -n ${namespace} -c ${container} -- tar --version `, { timeout: 10000, reject: false })
-    if (code === 0) { return true } else { return false }
+    const { exitCode } = await execa(`kubectl exec ${pod} -n ${namespace} -c ${container} -- tar --version `, { timeout: 10000, reject: false, shell: true })
+    if (exitCode === 0) { return true } else { return false }
   }
 
   /**
@@ -142,13 +142,13 @@ export default class Inject extends Command {
    * If returns, it means injection was completed successfully. If throws an error, injection failed
    */
   async injectKubeconfig(cheNamespace: string, workspacePod: string, container: string): Promise<void> {
-    const { stdout } = await execa.shell(`kubectl exec ${workspacePod} -n ${cheNamespace} -c ${container} env | grep ^HOME=`, { timeout: 10000 })
+    const { stdout } = await execa(`kubectl exec ${workspacePod} -n ${cheNamespace} -c ${container} env | grep ^HOME=`, { timeout: 10000, shell: true })
     const containerHomeDir = stdout.split('=')[1]
 
     if (await this.fileExists(cheNamespace, workspacePod, container, `${containerHomeDir}/.kube/config`)) {
       throw new Error('kubeconfig already exists in the target container')
     }
-    await execa.shell(`kubectl exec ${workspacePod} -n ${cheNamespace} -c ${container} -- mkdir ${containerHomeDir}/.kube -p`, { timeout: 10000 })
+    await execa(`kubectl exec ${workspacePod} -n ${cheNamespace} -c ${container} -- mkdir ${containerHomeDir}/.kube -p`, { timeout: 10000, shell: true })
 
     const kc = new KubeConfig()
     kc.loadFromDefault()
@@ -169,8 +169,8 @@ export default class Inject extends Command {
   }
 
   async fileExists(namespace: string, pod: string, container: string, file: string): Promise<boolean> {
-    const { code } = await execa.shell(`kubectl exec ${pod} -n ${namespace} -c ${container} -- test -e ${file}`, { timeout: 10000, reject: false })
-    if (code === 0) { return true } else { return false }
+    const { exitCode } = await execa(`kubectl exec ${pod} -n ${namespace} -c ${container} -- test -e ${file}`, { timeout: 10000, reject: false, shell: true })
+    if (exitCode === 0) { return true } else { return false }
   }
 
   async containerExists(namespace: string, pod: string, container: string): Promise<boolean> {
