@@ -28,7 +28,7 @@ Issues are tracked on the main Eclipse Che Repository: https://github.com/eclips
 
 There are two channels of `chectl`: `stable` and `next`
 
-Stable is for all tagged versions of Eclipse Che. Next is updated after each commit/Pull Request being merged in master branch.
+Stable is for all tagged versions of Eclipse Che. Next is updated after each commit/Pull Request being merged in master branch of the [Chectl repository](https://github.com/che-incubator/chectl).
 
 If you're using Windows x64, here is how to install chectl by using one single PowerShell command:
 
