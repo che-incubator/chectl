@@ -15,8 +15,8 @@ export class OpenShiftHelper {
   async status(): Promise<boolean> {
     const command = 'oc'
     const args = ['status']
-    const { code } = await execa(command, args, { timeout: 60000, reject: false })
-    if (code === 0) { return true } else { return false }
+    const { exitCode } = await execa(command, args, { timeout: 60000, reject: false })
+    if (exitCode === 0) { return true } else { return false }
   }
   async getRouteHost(name: string, namespace = ''): Promise<string> {
     const command = 'oc'

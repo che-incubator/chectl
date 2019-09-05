@@ -54,8 +54,8 @@ export class MinishiftHelper {
   }
 
   async isMinishiftRunning(): Promise<boolean> {
-    const { code, stdout } = await execa('minishift', ['status'], { timeout: 60000, reject: false })
-    if (code === 0 &&
+    const { exitCode, stdout } = await execa('minishift', ['status'], { timeout: 60000, reject: false })
+    if (exitCode === 0 &&
       stdout.includes('Minishift:  Running') &&
       stdout.includes('OpenShift:  Running')) {
       return true

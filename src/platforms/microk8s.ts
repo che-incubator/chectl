@@ -95,8 +95,8 @@ export class MicroK8sHelper {
   }
 
   async isMicroK8sRunning(): Promise<boolean> {
-    const { code } = await execa('microk8s.status', { timeout: 1000, reject: false })
-    if (code === 0) { return true } else { return false }
+    const { exitCode } = await execa('microk8s.status', { timeout: 1000, reject: false })
+    if (exitCode === 0) { return true } else { return false }
   }
 
   async startMicroK8s() {

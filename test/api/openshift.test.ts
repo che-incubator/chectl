@@ -22,7 +22,7 @@ jest.mock('execa')
 describe('OpenShift API helper', () => {
   fancy
     .it('retrieves the hostname of a route', async () => {
-      (execa as any).mockResolvedValue({ code: 0, stdout: hostname })
+      (execa as any).mockResolvedValue({ exitCode: 0, stdout: hostname })
       const routeName = 'che'
       const res = await openshift.getRouteHost(routeName, namespace)
       expect(res).to.equal(hostname)

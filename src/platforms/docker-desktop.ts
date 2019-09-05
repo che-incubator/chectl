@@ -102,11 +102,11 @@ export class DockerDesktopHelper {
 
     // mandatory part
     const mandatoryCommand = `kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/${sha1}/deploy/static/mandatory.yaml`
-    await execa.shell(mandatoryCommand, { timeout: execTimeout })
+    await execa(mandatoryCommand, { timeout: execTimeout, shell: true })
 
     // mandatory part
     const genericCommand = `kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/${sha1}/deploy/static/provider/cloud-generic.yaml`
-    await execa.shell(genericCommand, { timeout: execTimeout })
+    await execa(genericCommand, { timeout: execTimeout, shell: true })
   }
 
   grabIps(): string[] {

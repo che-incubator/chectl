@@ -19,14 +19,14 @@ let mh = new MicroK8sHelper()
 describe('start', () => {
   fancy
     .it('verifies that microk8s is running', async () => {
-      (execa as any).mockResolvedValue({ code: 0 })
+      (execa as any).mockResolvedValue({ exitCode: 0 })
       const res = await mh.isMicroK8sRunning()
       expect(res).to.equal(true)
     })
 
   fancy
     .it('verifies that microk8s is not running', async () => {
-      (execa as any).mockResolvedValue({ code: 1 })
+      (execa as any).mockResolvedValue({ exitCode: 1 })
       const res = await mh.isMicroK8sRunning()
       expect(res).to.equal(false)
     })
@@ -39,7 +39,7 @@ describe('start', () => {
             server: http://127.0.0.1:8080
           name: microk8s-cluster`;
 
-      (execa as any).mockResolvedValue({ code: 0, stdout: output })
+      (execa as any).mockResolvedValue({ exitCode: 0, stdout: output })
       const res = await mh.getMicroK8sIP()
       expect(res).to.equal('127.0.0.1')
     })

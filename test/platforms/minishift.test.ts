@@ -26,7 +26,7 @@ OpenShift:  Running (openshift v3.11.0+d0c29df-98)
 DiskUsage:  7% of 48G (Mounted On: /mnt/vda1)
 CacheUsage: 490.8 MB (used by oc binary, ISO or cached images)`;
 
-      (execa as any).mockResolvedValue({ code: 0, stdout: status })
+      (execa as any).mockResolvedValue({ exitCode: 0, stdout: status })
       const res = await ms.isMinishiftRunning()
       expect(res).to.equal(true)
     })
@@ -39,7 +39,7 @@ OpenShift:  Stopped
 DiskUsage:  1% of 19G (Mounted On: /mnt/vda1)
 CacheUsage: 490.8 MB (used by oc binary, ISO or cached images)`;
 
-      (execa as any).mockResolvedValue({ code: 0, stdout: status })
+      (execa as any).mockResolvedValue({ exitCode: 0, stdout: status })
       const res = await ms.isMinishiftRunning()
       expect(res).to.equal(false)
     })
@@ -52,14 +52,14 @@ OpenShift:  Stopped
 DiskUsage:  1% of 19G (Mounted On: /mnt/vda1)
 CacheUsage: 490.8 MB (used by oc binary, ISO or cached images)`;
 
-      (execa as any).mockResolvedValue({ code: 0, stdout: status })
+      (execa as any).mockResolvedValue({ exitCode: 0, stdout: status })
       const res = await ms.isMinishiftRunning()
       expect(res).to.equal(false)
     })
 
   fancy
     .it('confirms that minikube is not running when it doesn\'t exist', async () => {
-      (execa as any).mockResolvedValue({ code: 0, stdout: 'Does Not Exist' })
+      (execa as any).mockResolvedValue({ exitCode: 0, stdout: 'Does Not Exist' })
       const res = await ms.isMinishiftRunning()
       expect(res).to.equal(false)
     })
