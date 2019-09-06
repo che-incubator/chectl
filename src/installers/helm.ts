@@ -12,7 +12,7 @@ import { Command } from '@oclif/command'
 import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as fs from 'fs'
-import { mkdirp } from 'fs-extra'
+import { mkdirp, remove } from 'fs-extra'
 import * as Listr from 'listr'
 import { ncp } from 'ncp'
 import * as path from 'path'
@@ -182,6 +182,7 @@ error: E_COMMAND_FAILED`)
   async prepareCheHelmChart(flags: any, cacheDir: string) {
     const srcDir = path.join(flags.templates, '/kubernetes/helm/che/')
     const destDir = path.join(cacheDir, '/templates/kubernetes/helm/che/')
+    await remove(destDir)
     await mkdirp(destDir)
     await ncp(srcDir, destDir, {}, (err: Error) => { if (err) { throw err } })
   }

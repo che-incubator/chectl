@@ -10,7 +10,7 @@
 import { Command } from '@oclif/command'
 import { cli } from 'cli-ux'
 import * as execa from 'execa'
-import { mkdirp } from 'fs-extra'
+import { mkdirp, remove } from 'fs-extra'
 import * as Listr from 'listr'
 import { ncp } from 'ncp'
 import * as path from 'path'
@@ -176,6 +176,7 @@ export class OperatorHelper {
   async copyCheOperatorResources(templatesDir: string, cacheDir: string): Promise<string> {
     const srcDir = path.join(templatesDir, '/che-operator/')
     const destDir = path.join(cacheDir, '/templates/che-operator/')
+    await remove(destDir)
     await mkdirp(destDir)
     await ncp(srcDir, destDir, {}, (err: Error) => { if (err) { throw err } })
     return destDir
