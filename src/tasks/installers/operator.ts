@@ -15,10 +15,10 @@ import * as Listr from 'listr'
 import { ncp } from 'ncp'
 import * as path from 'path'
 
-import { CheHelper } from '../api/che'
-import { KubeHelper } from '../api/kube'
+import { CheHelper } from '../../api/che'
+import { KubeHelper } from '../../api/kube'
 
-export class OperatorHelper {
+export class OperatorTasks {
   operatorServiceAccount = 'che-operator'
   operatorRole = 'che-operator'
   operatorClusterRole = 'che-operator'
@@ -29,8 +29,11 @@ export class OperatorHelper {
   operatorCheCluster = 'eclipse-che'
   resourcesPath = ''
 
+  /**
+   * Returns tasks list which perform preflight platform checks.
+   */
   startTasks(flags: any, command: Command): Listr {
-    const che = new CheHelper()
+    const che = new CheHelper(flags)
     const kube = new KubeHelper(flags)
     return new Listr([
       {
@@ -159,11 +162,20 @@ export class OperatorHelper {
       },
       {
         title: `Create Che Cluster ${this.operatorCheCluster} in namespace ${flags.chenamespace}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.cheClusterExist(this.operatorCheCluster, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
+            // Che Operator supports only Multi-User Che
+            ctx.isCheDeployed = true
+            ctx.isPostgresDeployed = true
+            ctx.isKeycloakDeployed = true
+
+            // plugin and devfile registry will be deployed only when external ones are not configured
+            ctx.isPluginRegistryDeployed = !(flags['plugin-registry-url'] as boolean)
+            ctx.isDevfileRegistryDeployed = !(flags['devfile-registry-url'] as boolean)
+
             const yamlFilePath = flags['che-operator-cr-yaml'] === '' ? this.resourcesPath + 'crds/org_v1_che_cr.yaml' : flags['che-operator-cr-yaml']
             await kube.createCheClusterFromFile(yamlFilePath, flags, flags['che-operator-cr-yaml'] === '')
             task.title = `${task.title}...done.`
@@ -171,6 +183,96 @@ export class OperatorHelper {
         }
       }
     ], { renderer: flags['listr-renderer'] as any })
+  }
+
+  /**
+   * Returns list of tasks which remove che operator related resources
+   */
+  deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+    let kh = new KubeHelper(flags)
+    return [{
+      title: 'Delete the CR eclipse-che of type checlusters.org.eclipse.che',
+      task: async (_ctx: any, task: any) => {
+        if (await kh.crdExist('checlusters.org.eclipse.che') &&
+          await kh.cheClusterExist('eclipse-che', flags.chenamespace)) {
+          await kh.deleteCheCluster('eclipse-che', flags.chenamespace)
+          await cli.wait(2000) //wait a couple of secs for the finalizers to be executed
+          task.title = await `${task.title}...OK`
+        } else {
+          task.title = await `${task.title}...CR not found`
+        }
+      }
+    },
+    {
+      title: 'Delete CRD checlusters.org.eclipse.che',
+      task: async (_ctx: any, task: any) => {
+        if (await kh.crdExist('checlusters.org.eclipse.che')) {
+          await kh.deleteCrd('checlusters.org.eclipse.che')
+        }
+        task.title = await `${task.title}...OK`
+      }
+    },
+    {
+      title: 'Delete role che-operator',
+      task: async (_ctx: any, task: any) => {
+        if (await kh.roleExist('che-operator', flags.chenamespace)) {
+          await kh.deleteRole('che-operator', flags.chenamespace)
+        }
+        task.title = await `${task.title}...OK`
+      }
+    },
+    {
+      title: 'Delete cluster role binding che-operator',
+      task: async (_ctx: any, task: any) => {
+        if (await kh.clusterRoleBindingExist('che-operator')) {
+          await kh.deleteClusterRoleBinding('che-operator')
+        }
+        task.title = await `${task.title}...OK`
+      }
+    },
+    {
+      title: 'Delete cluster role che-operator',
+      task: async (_ctx: any, task: any) => {
+        if (await kh.clusterRoleExist('che-operator')) {
+          await kh.deleteClusterRole('che-operator')
+        }
+        task.title = await `${task.title}...OK`
+      }
+    },
+    {
+      title: 'Delete rolebinding che-operator',
+      task: async (_ctx: any, task: any) => {
+        if (await kh.roleBindingExist('che', flags.chenamespace)) {
+          await kh.deleteRoleBinding('che', flags.chenamespace)
+        }
+        if (await kh.roleBindingExist('che-workspace-exec', flags.chenamespace)) {
+          await kh.deleteRoleBinding('che-workspace-exec', flags.chenamespace)
+        }
+        if (await kh.roleBindingExist('che-workspace-view', flags.chenamespace)) {
+          await kh.deleteRoleBinding('che-workspace-view', flags.chenamespace)
+        }
+        task.title = await `${task.title}...OK`
+      }
+    },
+    {
+      title: 'Delete service accounts che-operator',
+      task: async (_ctx: any, task: any) => {
+        if (await kh.roleBindingExist('che-operator', flags.chenamespace)) {
+          await kh.deleteServiceAccount('che-operator', flags.chenamespace)
+        }
+        task.title = await `${task.title}...OK`
+      }
+    },
+    {
+      title: 'Delete PVC che-operator',
+      task: async (_ctx: any, task: any) => {
+        if (await kh.persistentVolumeClaimExist('che-operator', flags.chenamespace)) {
+          await kh.deletePersistentVolumeClaim('che-operator', flags.chenamespace)
+        }
+        task.title = await `${task.title}...OK`
+      }
+    },
+    ]
   }
 
   async copyCheOperatorResources(templatesDir: string, cacheDir: string): Promise<string> {

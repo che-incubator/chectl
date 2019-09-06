@@ -9,51 +9,27 @@
  **********************************************************************/
 
 import Command from '@oclif/command'
+import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import { mkdirp, remove } from 'fs-extra'
 import * as Listr from 'listr'
 import { ncp } from 'ncp'
 import * as path from 'path'
 
-import { OpenShiftHelper } from '../api/openshift'
+import { OpenShiftHelper } from '../../api/openshift'
 
-export class MinishiftAddonHelper {
-  static getImageRepository(image: string): string {
-    if (image.includes(':')) {
-      return image.split(':')[0]
-    } else {
-      return image
-    }
-  }
-
-  static getImageTag(image: string) {
-    if (image.includes(':')) {
-      return image.split(':')[1]
-    } else {
-      return 'latest'
-    }
-  }
-
-  static async grabVersion(): Promise<number> {
-    let args = ['version']
-    const { stdout } = await execa('minishift',
-      args,
-      { reject: false })
-    if (stdout) {
-      return parseInt(stdout.replace(/\D/g, '').substring(0, 3), 10)
-    }
-    return -1
-
-  }
-
-  resourcesPath = ''
-
+export class MinishiftAddonTasks {
+  /**
+   * Returns list of tasks which perform preflight platform checks.
+   */
   startTasks(flags: any, command: Command): Listr {
+    let resourcesPath = ''
+
     return new Listr([
       {
         title: 'Check minishift version',
         task: async (_ctx: any, task: any) => {
-          const version = await MinishiftAddonHelper.grabVersion()
+          const version = await this.grabVersion()
           if (version < 133) {
             command.error('The minishift che addon is requiring minishift version >= 1.33.0. Please update your minishift installation with "minishift update" command.')
           }
@@ -70,14 +46,14 @@ export class MinishiftAddonHelper {
       {
         title: 'Copying addon resources',
         task: async (_ctx: any, task: any) => {
-          this.resourcesPath = await this.copyResources(flags.templates, command.config.cacheDir)
+          resourcesPath = await this.copyResources(flags.templates, command.config.cacheDir)
           task.title = `${task.title}...done.`
         }
       },
       {
         title: 'Check che addon is available',
         task: async (_ctx: any, task: any) => {
-          await this.installAddonIfMissing()
+          await this.installAddonIfMissing(resourcesPath)
           task.title = `${task.title}...done.`
         }
       },
@@ -91,7 +67,59 @@ export class MinishiftAddonHelper {
     ], { renderer: flags['listr-renderer'] as any })
   }
 
-  async checkLogged(command: Command) {
+  /**
+   * Returns list of tasks which perform removing of addon if minishift is found.
+   */
+  deleteTasks(_flags: any): ReadonlyArray<Listr.ListrTask> {
+    return [{
+      title: 'Remove Che minishift addon',
+      enabled: (ctx: any) => ctx.isOpenShift,
+      task: async (_ctx: any, task: any) => {
+        if (!commandExists.sync('minishift')) {
+          task.title = await `${task.title}...OK (minishift not found)`
+        } else {
+          await this.removeAddon()
+          task.title = await `${task.title}...OK`
+        }
+      }
+    }
+    ]
+  }
+
+  async removeAddon(execTimeout = 120000) {
+    let args = ['addon', 'remove', 'che']
+    await execa('minishift', args, { timeout: execTimeout, reject: false })
+  }
+
+  getImageRepository(image: string): string {
+    if (image.includes(':')) {
+      return image.split(':')[0]
+    } else {
+      return image
+    }
+  }
+
+  getImageTag(image: string) {
+    if (image.includes(':')) {
+      return image.split(':')[1]
+    } else {
+      return 'latest'
+    }
+  }
+
+  async grabVersion(): Promise<number> {
+    let args = ['version']
+    const { stdout } = await execa('minishift',
+      args,
+      { reject: false })
+    if (stdout) {
+      return parseInt(stdout.replace(/\D/g, '').substring(0, 3), 10)
+    }
+    return -1
+
+  }
+
+  private async checkLogged(command: Command) {
     const openshiftHelper = new OpenShiftHelper()
     const ok = await openshiftHelper.status()
     if (!ok) {
@@ -99,7 +127,7 @@ export class MinishiftAddonHelper {
     }
   }
 
-  async installAddonIfMissing() {
+  private async installAddonIfMissing(resourcesPath: string) {
     let args = ['addon', 'list']
     const { stdout } = await execa('minishift',
       args,
@@ -110,15 +138,15 @@ export class MinishiftAddonHelper {
     }
 
     // now install
-    const addonDir = path.join(this.resourcesPath, 'che')
+    const addonDir = path.join(resourcesPath, 'che')
     await this.installAddon(addonDir)
 
   }
 
-  async applyAddon(flags: any, execTimeout = 120000) {
+  private async applyAddon(flags: any, execTimeout = 120000) {
     let args = ['addon', 'apply']
-    const imageRepo = MinishiftAddonHelper.getImageRepository(flags.cheimage)
-    const imageTag = MinishiftAddonHelper.getImageTag(flags.cheimage)
+    const imageRepo = this.getImageRepository(flags.cheimage)
+    const imageTag = this.getImageTag(flags.cheimage)
     args = args.concat(['--addon-env', `NAMESPACE=${flags.chenamespace}`])
     args = args.concat(['--addon-env', `CHE_IMAGE_REPO=${imageRepo}`])
     args = args.concat(['--addon-env', `CHE_IMAGE_TAG=${imageTag}`])
@@ -150,22 +178,17 @@ error: E_COMMAND_FAILED`)
     }
   }
 
-  async removeAddon(execTimeout = 120000) {
-    let args = ['addon', 'remove', 'che']
-    await execa('minishift', args, { timeout: execTimeout, reject: false })
-  }
-
-  async installAddon(directory: string, execTimeout = 120000) {
+  private async installAddon(directory: string, execTimeout = 120000) {
     let args = ['addon', 'install', directory]
     await execa('minishift', args, { timeout: execTimeout })
   }
 
-  async uninstallAddon(execTimeout = 120000) {
+  private async uninstallAddon(execTimeout = 120000) {
     let args = ['addon', 'uninstall', 'che']
     await execa('minishift', args, { timeout: execTimeout })
   }
 
-  async copyResources(templatesDir: string, cacheDir: string): Promise<string> {
+  private async copyResources(templatesDir: string, cacheDir: string): Promise<string> {
     const srcDir = path.join(templatesDir, '/minishift-addon/')
     const destDir = path.join(cacheDir, '/templates/minishift-addon/')
     await remove(destDir)

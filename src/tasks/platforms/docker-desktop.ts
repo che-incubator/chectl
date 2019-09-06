@@ -14,15 +14,18 @@ import * as execa from 'execa'
 import * as Listr from 'listr'
 import * as os from 'os'
 
-import { KubeHelper } from '../api/kube'
+import { KubeHelper } from '../../api/kube'
 
-export class DockerDesktopHelper {
+export class DockerDesktopTasks {
   private readonly kh: KubeHelper
 
-  constructor() {
-    this.kh = new KubeHelper()
+  constructor(flags: any) {
+    this.kh = new KubeHelper(flags)
   }
 
+  /**
+   * Returns tasks list which perform preflight platform checks.
+   */
   startTasks(flags: any, command: Command): Listr {
     return new Listr([
       {

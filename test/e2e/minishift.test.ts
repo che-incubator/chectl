@@ -13,9 +13,11 @@ jest.setTimeout(600000)
 
 /*
 ## Before
+# Note that VM Driver value should be set accordanly to your platform
+VM_DRIVER=xhyve && \
 PROFILE=chectl-e2e-tests && \
 minishift profile set ${PROFILE} && \
-minishift start --memory=8GB --cpus=4 --disk-size=50g --vm-driver=xhyve  --network-nameserver 8.8.8.8 --profile ${PROFILE}
+minishift start --memory=8GB --cpus=4 --disk-size=50g --vm-driver=${VM_DRIVER}  --network-nameserver 8.8.8.8 --profile ${PROFILE}
 
 yarn test --coverage=false --testRegex=/test/e2e/minishift.test.ts
 

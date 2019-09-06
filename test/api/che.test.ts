@@ -17,46 +17,45 @@ const workspace = 'workspace-0123'
 const cheURL = 'https://che-che.192.168.64.34.nip.io'
 const devfileServerURL = 'https://devfile-server'
 const devfileEndpoint = '/api/workspace/devfile'
-let ch = new CheHelper()
+let ch = new CheHelper({})
 let kc = ch.kc
 let kube = ch.kube
 let oc = ch.oc
 let k8sApi = new Core_v1Api()
 
-
 describe('Che helper', () => {
   describe('cheURL', () => {
     fancy
       .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(kube, "isOpenShift", () => false)
-      .stub(kube, "ingressExist", () => true)
-      .stub(kube, "getIngressProtocol", () => "https")
-      .stub(kube, "getIngressHost", () => "example.org")
+      .stub(kube, 'isOpenShift', () => false)
+      .stub(kube, 'ingressExist', () => true)
+      .stub(kube, 'getIngressProtocol', () => 'https')
+      .stub(kube, 'getIngressHost', () => 'example.org')
       .it('computes Che URL on K8s', async () => {
         const cheURL = await ch.cheURL('che-namespace')
-        expect(cheURL).to.equals("https://example.org")
+        expect(cheURL).to.equals('https://example.org')
       })
     fancy
       .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(kube, "isOpenShift", () => false)
-      .stub(kube, "ingressExist", () => false)
+      .stub(kube, 'isOpenShift', () => false)
+      .stub(kube, 'ingressExist', () => false)
       .do(() => ch.cheURL('che-namespace'))
       .catch(err => expect(err.message).to.match(/ERR_INGRESS_NO_EXIST/))
       .it('fails fetching che URL when ingress does not exist')
     fancy
       .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(kube, "isOpenShift", () => true)
-      .stub(oc, "routeExist", () => true)
-      .stub(oc, "getRouteProtocol", () => "https")
-      .stub(oc, "getRouteHost", () => "example.org")
+      .stub(kube, 'isOpenShift', () => true)
+      .stub(oc, 'routeExist', () => true)
+      .stub(oc, 'getRouteProtocol', () => 'https')
+      .stub(oc, 'getRouteHost', () => 'example.org')
       .it('computes Che URL on OpenShift', async () => {
         const cheURL = await ch.cheURL('che-namespace')
-        expect(cheURL).to.equals("https://example.org")
+        expect(cheURL).to.equals('https://example.org')
       })
     fancy
       .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(kube, "isOpenShift", () => true)
-      .stub(oc, "routeExist", () => false)
+      .stub(kube, 'isOpenShift', () => true)
+      .stub(oc, 'routeExist', () => false)
       .do(() => ch.cheURL('che-namespace'))
       .catch(/ERR_ROUTE_NO_EXIST/)
       .it('fails fetching che URL when route does not exist')

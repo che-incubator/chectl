@@ -51,7 +51,7 @@ export default class Start extends Command {
     const { flags } = this.parse(Start)
     const Listr = require('listr')
     const notifier = require('node-notifier')
-    const che = new CheHelper()
+    const che = new CheHelper(flags)
     if (!flags.devfile && !flags.workspaceconfig) {
       this.error('workspace:start command is expecting a devfile or workspace configuration parameter.')
     }
