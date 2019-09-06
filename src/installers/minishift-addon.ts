@@ -10,7 +10,7 @@
 
 import Command from '@oclif/command'
 import * as execa from 'execa'
-import { mkdirp } from 'fs-extra'
+import { mkdirp, remove } from 'fs-extra'
 import * as Listr from 'listr'
 import { ncp } from 'ncp'
 import * as path from 'path'
@@ -168,6 +168,7 @@ error: E_COMMAND_FAILED`)
   async copyResources(templatesDir: string, cacheDir: string): Promise<string> {
     const srcDir = path.join(templatesDir, '/minishift-addon/')
     const destDir = path.join(cacheDir, '/templates/minishift-addon/')
+    await remove(destDir)
     await mkdirp(destDir)
     await ncp(srcDir, destDir, {}, (err: Error) => { if (err) { throw err } })
     return destDir
