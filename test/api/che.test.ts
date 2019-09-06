@@ -7,7 +7,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-// tslint:disable:object-curly-spacing
 import { Core_v1Api } from '@kubernetes/client-node'
 import { expect, fancy } from 'fancy-test'
 

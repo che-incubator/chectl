@@ -7,7 +7,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-// tslint:disable:object-curly-spacing
 import { expect, fancy } from 'fancy-test'
 
 import { KubeHelper } from '../../src/api/kube'
