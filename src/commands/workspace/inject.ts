@@ -18,6 +18,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
+import { cheNamespace, listrRenderer } from '../../common-flags'
 
 export default class Inject extends Command {
   static description = 'inject configurations and tokens in a Che Workspace'
@@ -37,16 +38,8 @@ export default class Inject extends Command {
       description: 'Target container. If not specified, configuration files will be injected in all containers of a Che Workspace pod',
       required: false
     }),
-    chenamespace: string({
-      char: 'n',
-      description: 'Kubernetes namespace where Che workspace is running',
-      default: 'che',
-      env: 'CHE_NAMESPACE'
-    }),
-    'listr-renderer': string({
-      description: 'Listr renderer. Can be \'default\', \'silent\' or \'verbose\'',
-      default: 'default'
-    }),
+    chenamespace: cheNamespace,
+    'listr-renderer': listrRenderer
   }
 
   async run() {

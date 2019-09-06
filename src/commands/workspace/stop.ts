@@ -10,23 +10,17 @@
 // tslint:disable:object-curly-spacing
 
 import { Command, flags } from '@oclif/command'
-import { string } from '@oclif/parser/lib/flags'
+
+import { accessToken, cheNamespace, listrRenderer } from '../../common-flags'
 
 export default class Stop extends Command {
   static description = 'stop a running Che workspace'
 
   static flags = {
     help: flags.help({ char: 'h' }),
-    chenamespace: string({
-      char: 'n',
-      description: 'Kubernetes namespace where Che server is deployed',
-      default: 'che',
-      env: 'CHE_NAMESPACE'
-    }),
-    'listr-renderer': string({
-      description: 'Listr renderer. Can be \'default\', \'silent\' or \'verbose\'',
-      default: 'default'
-    }),
+    chenamespace: cheNamespace,
+    'access-token': accessToken,
+    'listr-renderer': listrRenderer
   }
 
   async run() {

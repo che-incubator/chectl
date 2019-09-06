@@ -18,6 +18,7 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
+import { cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
 import { HelmHelper } from '../../installers/helm'
 import { MinishiftAddonHelper } from '../../installers/minishift-addon'
 import { OperatorHelper } from '../../installers/operator'
@@ -35,12 +36,9 @@ export default class Start extends Command {
 
   static flags = {
     help: flags.help({ char: 'h' }),
-    chenamespace: string({
-      char: 'n',
-      description: 'Kubernetes namespace where Che resources will be deployed',
-      default: 'che',
-      env: 'CHE_NAMESPACE'
-    }),
+    chenamespace: cheNamespace,
+    'listr-renderer': listrRenderer,
+    'deployment-name': cheDeployment,
     cheimage: string({
       char: 'i',
       description: 'Che server container image',
@@ -75,10 +73,6 @@ export default class Start extends Command {
     k8spodreadytimeout: string({
       description: 'Waiting time for Pod Ready Kubernetes (in milliseconds)',
       default: '130000'
-    }),
-    'listr-renderer': string({
-      description: 'Listr renderer. Can be \'default\', \'silent\' or \'verbose\'',
-      default: 'default'
     }),
     multiuser: flags.boolean({
       char: 'm',
