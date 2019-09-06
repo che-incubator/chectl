@@ -7,9 +7,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-// tslint:disable:object-curly-spacing
-// tslint:disable-next-line:no-http-string
-
 import { Core_v1Api, KubeConfig } from '@kubernetes/client-node'
 import axios from 'axios'
 import { cli } from 'cli-ux'

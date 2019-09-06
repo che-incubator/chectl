@@ -7,7 +7,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-// tslint:disable:object-curly-spacing
 
 import { Apiextensions_v1beta1Api, ApisApi, Apps_v1Api, Core_v1Api, Custom_objectsApi, Extensions_v1beta1Api, KubeConfig, RbacAuthorization_v1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
 import axios from 'axios'

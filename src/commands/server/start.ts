@@ -7,8 +7,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-// tslint:disable:object-curly-spacing
-
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as fs from 'fs-extra'

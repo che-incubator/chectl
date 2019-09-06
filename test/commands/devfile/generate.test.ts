@@ -7,7 +7,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-// tslint:disable:object-curly-spacing
 import { expect, test } from '@oclif/test'
 
 // const namespace = 'che'

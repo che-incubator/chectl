@@ -7,7 +7,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-// tslint:disable:object-curly-spacing
 
 import { KubeConfig } from '@kubernetes/client-node'
 import { Command, flags } from '@oclif/command'

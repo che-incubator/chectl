@@ -7,7 +7,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-// tslint:disable:object-curly-spacing
 import { expect, fancy } from 'fancy-test'
 import { MicroK8sHelper } from '../../src/platforms/microk8s';
 import * as execa from 'execa';
