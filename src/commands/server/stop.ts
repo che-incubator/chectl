@@ -15,23 +15,15 @@ import { string } from '@oclif/parser/lib/flags'
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { OpenShiftHelper } from '../../api/openshift'
+import { cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
 
 export default class Stop extends Command {
   static description = 'stop Eclipse Che Server'
 
   static flags = {
     help: flags.help({ char: 'h' }),
-    chenamespace: string({
-      char: 'n',
-      description: 'Kubernetes namespace where Che resources will be deployed',
-      default: 'che',
-      env: 'CHE_NAMESPACE'
-    }),
-    'deployment-name': string({
-      description: 'Che deployment name',
-      default: 'che',
-      env: 'CHE_DEPLOYMENT'
-    }),
+    chenamespace: cheNamespace,
+    'deployment-name': cheDeployment,
     'che-selector': string({
       description: 'Selector for Che Server resources',
       default: 'app=che,component=che',
@@ -41,10 +33,7 @@ export default class Stop extends Command {
       description: 'Che OIDC Access Token',
       env: 'CHE_ACCESS_TOKEN'
     }),
-    'listr-renderer': string({
-      description: 'Listr renderer. Can be \'default\', \'silent\' or \'verbose\'',
-      default: 'default'
-    })
+    'listr-renderer': listrRenderer
   }
 
   async run() {

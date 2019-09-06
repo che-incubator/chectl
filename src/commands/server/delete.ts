@@ -8,13 +8,14 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 // tslint:disable:object-curly-spacing
+
 import { Command, flags } from '@oclif/command'
-import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as commandExists from 'command-exists'
 
 import { KubeHelper } from '../../api/kube'
 import { OpenShiftHelper } from '../../api/openshift'
+import { cheNamespace, listrRenderer } from '../../common-flags'
 import { HelmHelper } from '../../installers/helm'
 import { MinishiftAddonHelper } from '../../installers/minishift-addon'
 
@@ -23,16 +24,8 @@ export default class Delete extends Command {
 
   static flags = {
     help: flags.help({ char: 'h' }),
-    chenamespace: string({
-      char: 'n',
-      description: 'Kubernetes namespace where Che was deployed',
-      default: 'che',
-      env: 'CHE_NAMESPACE'
-    }),
-    'listr-renderer': string({
-      description: 'Listr renderer. Can be \'default\', \'silent\' or \'verbose\'',
-      default: 'default'
-    }),
+    chenamespace: cheNamespace,
+    'listr-renderer': listrRenderer
   }
 
   async run() {

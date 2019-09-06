@@ -10,23 +10,16 @@
 // tslint:disable:object-curly-spacing
 
 import { Command, flags } from '@oclif/command'
-import { string } from '@oclif/parser/lib/flags'
+
+import { cheNamespace, listrRenderer } from '../../common-flags'
 
 export default class Update extends Command {
   static description = 'update Eclipse Che Server'
 
   static flags = {
     help: flags.help({ char: 'h' }),
-    chenamespace: string({
-      char: 'n',
-      description: 'Kubernetes namespace where Che resources will be deployed',
-      default: 'che',
-      env: 'CHE_NAMESPACE'
-    }),
-    'listr-renderer': string({
-      description: 'Listr renderer. Can be \'default\', \'silent\' or \'verbose\'',
-      default: 'default'
-    }),
+    chenamespace: cheNamespace,
+    'listr-renderer': listrRenderer
   }
 
   async run() {
