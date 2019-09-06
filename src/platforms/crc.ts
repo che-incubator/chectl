@@ -29,7 +29,8 @@ export class CRCHelper {
           }
         }
       },
-      { title: 'Verify if crc is installed',
+      {
+        title: 'Verify if crc is installed',
         task: (_ctx: any, task: any) => {
           if (!commandExists.sync('crc')) {
             command.error('E_REQUISITE_NOT_FOUND', { code: 'E_REQUISITE_NOT_FOUND' })
@@ -38,7 +39,8 @@ export class CRCHelper {
           }
         }
       },
-      { title: 'Verify if CodeReady Containers is running',
+      {
+        title: 'Verify if CodeReady Containers is running',
         task: async (_ctx: any, task: any) => {
           const crcIsRunning = await this.isCRCRunning()
           if (!crcIsRunning) {
@@ -48,7 +50,8 @@ export class CRCHelper {
           }
         }
       },
-      { title: 'Retrieving CodeReady Containers IP and domain for routes URLs',
+      {
+        title: 'Retrieving CodeReady Containers IP and domain for routes URLs',
         enabled: () => flags.domain !== undefined,
         task: async (_ctx: any, task: any) => {
           const ip = await this.getCRCIP()
@@ -56,7 +59,7 @@ export class CRCHelper {
           task.title = `${task.title}...${flags.domain}.`
         }
       },
-    ], {renderer: flags['listr-renderer'] as any})
+    ], { renderer: flags['listr-renderer'] as any })
   }
 
   async isCRCRunning(): Promise<boolean> {
