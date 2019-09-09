@@ -125,7 +125,7 @@ export default class Start extends Command {
       return TEMPLATES
     }
     // else use the location from modules
-    return path.join(__dirname, '../../../../chectl/templates')
+    return path.join(__dirname, '../../../templates')
   }
 
   static setPlaformDefaults(flags: any) {
