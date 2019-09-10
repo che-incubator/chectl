@@ -98,6 +98,12 @@ get_channel() {
   echo "${CHANNEL}"
 }
 
+get_remove_other_versions() {
+  DEFAULT_OTHER_VERSIONS="false"
+  DELETE_OTHER_VERSIONS=${DELETE_OTHER_VERSIONS:-${DEFAULT_OTHER_VERSIONS}}
+  echo "${DELETE_OTHER_VERSIONS}"
+}
+
 check_requirements() {
   get_operating_system > /dev/null
   get_arch > /dev/null
@@ -141,9 +147,31 @@ cleanup_previous_install() {
   rm -rf ~/.local/share/chectl/client
 }
 
+check_another_install() {
+  # if chectl is already available on the path
+  if CHECTL_IN_THE_PATH=$(which chectl) ; then
+    # Check it's in usr/local/bin
+    if [[ ! ":${CHECTL_IN_THE_PATH}:" == *":/usr/local/bin/chectl:"* ]]; then
+      DELETE=$(get_remove_other_versions)
+      if [[ "${DELETE}" == "true" ]]; then
+        if rm ${CHECTL_IN_THE_PATH} ; then
+          log "Removing previous install chectl from ${CHECTL_IN_THE_PATH}"
+        else
+          error "Flag to remove other installs of chectl enabled but there was an error while removing ${CHECTL_IN_THE_PATH}"
+        fi
+      else
+        error "chectl found in PATH installed at ${CHECTL_IN_THE_PATH} but it's not where this script will install it (/usr/local/bin/chectl). Please remove it first or use --delete-other-versions flag"
+      fi
+    fi
+  fi
+}
+
 chectl_install() {
   # check path is OK
   check_bin_path
+
+  # Check there is no other chectl installed in another directory
+  check_another_install
   
   # Cleanup
   cleanup_previous_install
@@ -188,6 +216,9 @@ while [ $# -gt 0 ]; do
   case $1 in
     --channel=*)
       CHANNEL="${1#*=}"
+      shift ;;
+    --delete-other-versions)
+      DELETE_OTHER_VERSIONS=true
       shift ;;
     --*)
       printf "${RED}Unknown parameter: %s${NC}\n" "$1"; exit 2 ;;
