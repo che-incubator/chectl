@@ -59,8 +59,11 @@ export class MinishiftAddonTasks {
       },
       {
         title: 'Apply Che addon',
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           await this.applyAddon(flags)
+          ctx.isCheDeployed = true
+          ctx.isPluginRegistryDeployed = true
+          ctx.isDevfileRegistryDeployed = true
           task.title = `${task.title}...done.`
         }
       }
