@@ -41,7 +41,7 @@ export class CheTasks {
   devfileRegistrySelector = 'app=che,component=devfile-registry'
 
   pluginRegistryDeploymentName = 'plugin-registry'
-  pluginRegistrySelector = 'app=che,component=devfile-registry'
+  pluginRegistrySelector = 'app=che,component=plugin-registry'
 
   constructor(flags: any) {
     this.kube = new KubeHelper(flags)
