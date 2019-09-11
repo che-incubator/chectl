@@ -52,7 +52,7 @@ export class OperatorTasks {
           } else if (flags.platform === 'minikube' || flags.platform === 'k8s' || flags.platform === 'microk8s') {
             await execa(`kubectl create namespace ${flags.chenamespace}`, { shell: true })
             task.title = `${task.title}...done.`
-          } else if (flags.platform === 'minishift' || flags.platform === 'openshift') {
+          } else if (flags.platform === 'minishift' || flags.platform === 'openshift' || flags.platform === 'crc') {
             await execa(`oc new-project ${flags.chenamespace}`, { shell: true })
             task.title = `${task.title}...done.`
           }
