@@ -114,6 +114,13 @@ EXAMPLES
   $ chectl autocomplete zsh
   $ chectl autocomplete --refresh-cache
 ```
+EXAMPLE  Awesome `fish` [![Version](https://img.shields.io/github/tag/fish-shell/fish-shell.svg?label=&color=0080FF)](https://github.com/fish-shell/fish-shell/releases/latest)
+```Fish
+  > chectl autocomplete
+  > chectl autocomplete bash
+  > chectl autocomplete zsh
+  > chectl autocomplete --refresh-cache
+```
 
 _See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.3/src/commands/autocomplete/index.ts)_
 
