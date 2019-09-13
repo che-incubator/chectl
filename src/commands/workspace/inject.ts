@@ -78,7 +78,7 @@ export default class Inject extends Command {
         },
         task: () => this.injectKubeconfigTasks(flags, flags.chenamespace!, flags.workspace!, flags.container)
       },
-    ], { renderer: flags['listr-renderer'] as any, collapse: false })
+    ], { renderer: flags['listr-renderer'] as any })
 
     try {
       await tasks.run()
