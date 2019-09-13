@@ -15,7 +15,7 @@ import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
 import * as path from 'path'
 
-import { ListrOptions } from '../../../types/listr-options'
+import { ListrOptions } from '../../listr-options'
 import { cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { InstallerTasks } from '../../tasks/installers/installer'
