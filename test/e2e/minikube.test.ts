@@ -28,7 +28,7 @@ describe('e2e test', () => {
   describe('server:start without parameters', () => {
     test
       .stdout()
-      .command(['server:start', '--listr-renderer=verbose'])
+      .command(['server:start', '--platform=minikube', '--listr-renderer=verbose'])
       .exit(0)
       .it('uses minikube as platform, helm as installer and auth is disabled', ctx => {
         expect(ctx.stdout).to.contain('Minikube preflight checklist')
@@ -50,7 +50,7 @@ describe('e2e test', () => {
   describe('server:start mulituser', () => {
     test
       .stdout()
-      .command(['server:start', '--listr-renderer=verbose', '--multiuser'])
+      .command(['server:start', '--platform=minikube', '--listr-renderer=verbose', '--multiuser'])
       .exit(0)
       .it('uses minikube as platform, operator as installer and auth is enabled', ctx => {
         expect(ctx.stdout).to.contain('Minikube preflight checklist')

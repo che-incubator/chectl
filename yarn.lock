@@ -1661,17 +1661,17 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
-"eclipse-che-minishift@git://github.com/minishift/minishift#master":
+"eclipse-che-minishift@git://github.com/sleshchenko/minishift#updateChe":
   version "0.0.0"
-  resolved "git://github.com/minishift/minishift#c2ff9cb6d7ac70b2eb4fa2c66d3593989b107600"
+  resolved "git://github.com/sleshchenko/minishift#fb988bebebe933297820ee5ae43e489ab1da91ac"
 
 "eclipse-che-operator@git://github.com/eclipse/che-operator#master":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che-operator#9682f3448fe240c216aa22d9d3f56cc056b01494"
+  resolved "git://github.com/eclipse/che-operator#92384460142e2aca601443d10736e17b8270754f"
 
 "eclipse-che@git://github.com/eclipse/che#master":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che#40ee503a054b60c7b6dc05928d6c0f8d791b2745"
+  resolved "git://github.com/eclipse/che#bc900205dfd7f84320195ef883166e4643976407"
 
 editorconfig@^0.15.0:
   version "0.15.3"

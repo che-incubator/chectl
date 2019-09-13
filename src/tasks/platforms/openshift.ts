@@ -13,7 +13,10 @@ import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
 
-export class OpenshiftHelper {
+export class OpenshiftTasks {
+  /**
+   * Returns tasks list which perform preflight platform checks.
+   */
   startTasks(flags: any, command: Command): Listr {
     return new Listr([
       {

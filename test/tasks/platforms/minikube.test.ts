@@ -7,13 +7,14 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
+import * as execa from 'execa'
 import { expect, fancy } from 'fancy-test'
-import { MinikubeHelper } from '../../src/platforms/minikube';
-import * as execa from 'execa';
 
-jest.mock('execa');
+import { MinikubeTasks } from '../../../src/tasks/platforms/minikube'
 
-let mh = new MinikubeHelper()
+jest.mock('execa')
+
+let mh = new MinikubeTasks()
 
 describe('start', () => {
   fancy

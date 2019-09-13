@@ -44,7 +44,7 @@ export default class Inject extends Command {
   async run() {
     const { flags } = this.parse(Inject)
     const notifier = require('node-notifier')
-    const che = new CheHelper()
+    const che = new CheHelper(flags)
     const tasks = new Listr([
       {
         title: `Verify if namespace ${flags.chenamespace} exists`,
@@ -76,7 +76,7 @@ export default class Inject extends Command {
             return 'Currently, only injecting a kubeconfig is supported. Please, specify flag -k'
           }
         },
-        task: () => this.injectKubeconfigTasks(flags.chenamespace!, flags.workspace!, flags.container)
+        task: () => this.injectKubeconfigTasks(flags, flags.chenamespace!, flags.workspace!, flags.container)
       },
     ], { renderer: flags['listr-renderer'] as any, collapse: false })
 
@@ -92,8 +92,8 @@ export default class Inject extends Command {
     })
   }
 
-  async injectKubeconfigTasks(chenamespace: string, workspace: string, container?: string): Promise<Listr> {
-    const che = new CheHelper()
+  async injectKubeconfigTasks(flags: any, chenamespace: string, workspace: string, container?: string): Promise<Listr> {
+    const che = new CheHelper(flags)
     const tasks = new Listr({ exitOnError: false, concurrent: true })
     const containers = container ? [container] : await che.getWorkspacePodContainers(chenamespace!, workspace!)
     for (const cont of containers) {

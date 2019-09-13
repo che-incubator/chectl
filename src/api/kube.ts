@@ -524,6 +524,31 @@ export class KubeHelper {
     }
   }
 
+  async deploymentReady(name = '', namespace = ''): Promise<boolean> {
+    const k8sApi = this.kc.makeApiClient(Apps_v1Api)
+    try {
+      const res = await k8sApi.readNamespacedDeployment(name, namespace)
+      return ((res && res.body &&
+        res.body.status && res.body.status.readyReplicas
+        && res.body.status.readyReplicas > 0) as boolean)
+    } catch {
+      return false
+    }
+  }
+
+  async deploymentStopped(name = '', namespace = ''): Promise<boolean> {
+    const k8sApi = this.kc.makeApiClient(Apps_v1Api)
+    try {
+      const res = await k8sApi.readNamespacedDeployment(name, namespace)
+      if (res && res.body && res.body.spec && res.body.spec.replicas) {
+        throw new Error(`Deployment '${name}' without replicas in spec is fetched`)
+      }
+      return res.body.spec.replicas === 0
+    } catch {
+      return false
+    }
+  }
+
   async isDeploymentPaused(name = '', namespace = ''): Promise<boolean> {
     const k8sApi = this.kc.makeApiClient(Apps_v1Api)
     try {

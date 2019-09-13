@@ -45,17 +45,6 @@ export class OpenShiftHelper {
     const args = ['delete', 'route', '--all', '--namespace', namespace]
     await execa(command, args, { timeout: 60000 })
   }
-  async deploymentConfigExist(name = '', namespace = ''): Promise<boolean> {
-    const command = 'oc'
-    const args = ['get', 'deploymentconfig', '--namespace', namespace, '-o', `jsonpath={range.items[?(.metadata.name=='${name}')]}{.metadata.name}{end}`]
-    const { stdout } = await execa(command, args, { timeout: 60000 })
-    return stdout.trim().includes(name)
-  }
-  async scaleDeploymentConfig(name = '', namespace = '', replicas: number) {
-    const command = 'oc'
-    const args = ['scale', 'deploymentconfig', '--namespace', namespace, name, `--replicas=${replicas}`]
-    await execa(command, args, { timeout: 60000 })
-  }
   async deleteAllDeploymentConfigs(namespace = '') {
     const command = 'oc'
     const args = ['delete', 'deploymentconfig', '--all', '--namespace', namespace]

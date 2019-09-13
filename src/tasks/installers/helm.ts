@@ -17,9 +17,12 @@ import * as Listr from 'listr'
 import { ncp } from 'ncp'
 import * as path from 'path'
 
-import { KubeHelper } from '../api/kube'
+import { KubeHelper } from '../../api/kube'
 
-export class HelmHelper {
+export class HelmTasks {
+  /**
+   * Returns list of tasks which perform preflight platform checks.
+   */
   startTasks(flags: any, command: Command): Listr {
     return new Listr([
       {
@@ -33,7 +36,7 @@ export class HelmHelper {
           return flags.tls
         },
         task: async (_ctx: any, task: any) => {
-          const kh = new KubeHelper()
+          const kh = new KubeHelper(flags)
           const tlsSecret = await kh.getSecret('che-tls', `${flags.chenamespace}`)
 
           if (!tlsSecret) {
@@ -54,7 +57,7 @@ export class HelmHelper {
           return flags['self-signed-cert']
         },
         task: async (_ctx: any, task: any) => {
-          const kh = new KubeHelper()
+          const kh = new KubeHelper(flags)
           const selfSignedCertSecret = await kh.getSecret('self-signed-cert', `${flags.chenamespace}`)
 
           if (!selfSignedCertSecret) {
@@ -132,6 +135,24 @@ export class HelmHelper {
     ], { renderer: flags['listr-renderer'] as any })
   }
 
+  /**
+   * Returns list of tasks which remove helm chart
+   */
+  deleteTasks(_flags: any): ReadonlyArray<Listr.ListrTask> {
+    return [{
+      title: 'Purge che Helm chart',
+      enabled: (ctx: any) => !ctx.isOpenShift,
+      task: async (_ctx: any, task: any) => {
+        if (await !commandExists.sync('helm')) {
+          task.title = await `${task.title}...OK (Helm not found)`
+        } else {
+          await this.purgeHelmChart('che')
+          task.title = await `${task.title}...OK`
+        }
+      }
+    }]
+  }
+
   async tillerRoleBindingExist(execTimeout = 30000): Promise<boolean> {
     const { exitCode } = await execa('kubectl', ['get', 'clusterrolebinding', 'add-on-cluster-admin'], { timeout: execTimeout, reject: false })
     if (exitCode === 0) { return true } else { return false }
@@ -179,7 +200,11 @@ error: E_COMMAND_FAILED`)
     }
   }
 
-  async prepareCheHelmChart(flags: any, cacheDir: string) {
+  async purgeHelmChart(name: string, execTimeout = 30000) {
+    await execa('helm', ['delete', name, '--purge'], { timeout: execTimeout, reject: false })
+  }
+
+  private async prepareCheHelmChart(flags: any, cacheDir: string) {
     const srcDir = path.join(flags.templates, '/kubernetes/helm/che/')
     const destDir = path.join(cacheDir, '/templates/kubernetes/helm/che/')
     await remove(destDir)
@@ -187,19 +212,22 @@ error: E_COMMAND_FAILED`)
     await ncp(srcDir, destDir, {}, (err: Error) => { if (err) { throw err } })
   }
 
-  async updateCheHelmChartDependencies(cacheDir: string, execTimeout = 120000) {
+  private async updateCheHelmChartDependencies(cacheDir: string, execTimeout = 120000) {
     const destDir = path.join(cacheDir, '/templates/kubernetes/helm/che/')
     await execa(`helm dependencies update --skip-refresh ${destDir}`, { timeout: execTimeout, shell: true })
   }
 
-  async upgradeCheHelmChart(_ctx: any, flags: any, cacheDir: string, execTimeout = 120000) {
+  private async upgradeCheHelmChart(ctx: any, flags: any, cacheDir: string, execTimeout = 120000) {
     const destDir = path.join(cacheDir, '/templates/kubernetes/helm/che/')
 
     let multiUserFlag = ''
     let tlsFlag = ''
     let setOptions = []
 
+    ctx.isCheDeployed = true
     if (flags.multiuser) {
+      ctx.isPostgresDeployed = true
+      ctx.isKeaycloakDeployed = true
       multiUserFlag = `-f ${destDir}values/multi-user.yaml`
     }
 
@@ -214,10 +242,14 @@ error: E_COMMAND_FAILED`)
 
     if (flags['plugin-registry-url']) {
       setOptions.push(`--set che.workspace.pluginRegistryUrl=${flags['plugin-registry-url']} --set chePluginRegistry.deploy=false`)
+    } else {
+      ctx.isPluginRegistryDeployed = true
     }
 
     if (flags['devfile-registry-url']) {
       setOptions.push(`--set che.workspace.devfileRegistryUrl=${flags['devfile-registry-url']} --set cheDevfileRegistry.deploy=false`)
+    } else {
+      ctx.isDevfileRegistryDeployed = true
     }
 
     setOptions.push(`--set global.ingressDomain=${flags.domain}`)
@@ -252,10 +284,6 @@ error: E_COMMAND_FAILED`)
       await execa(command, { timeout: execTimeout, shell: true })
 
     }
-  }
-
-  async purgeHelmChart(name: string, execTimeout = 30000) {
-    await execa('helm', ['delete', name, '--purge'], { timeout: execTimeout, reject: false })
   }
 
 }
