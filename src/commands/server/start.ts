@@ -181,8 +181,7 @@ export default class Start extends Command {
 
   async run() {
     const { flags } = this.parse(Start)
-
-    const listrOptions = flags['listr-renderer'] as Listr.ListrOptions
+    const listrOptions: Listr.ListrOptions = { rendered: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
 
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()
