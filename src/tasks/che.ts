@@ -28,7 +28,7 @@ export class CheTasks {
   cheNamespace: string
 
   cheAccessToken: string
-  cheSelector: string
+  cheSelector = 'app=che,component=che'
   cheDeploymentName: string
 
   keycloakDeploymentName = 'keycloak'
@@ -47,12 +47,6 @@ export class CheTasks {
     this.kube = new KubeHelper(flags)
     this.kubeTasks = new KubeTasks(flags)
     this.che = new CheHelper(flags)
-
-    if (flags.installer === 'minishift-addon') {
-      this.cheSelector = 'app=che'
-    } else {
-      this.cheSelector = 'app=che,component=che'
-    }
 
     this.cheAccessToken = flags['access-token']
 
