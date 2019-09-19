@@ -28,24 +28,6 @@ export class CheHelper {
     this.kube = new KubeHelper(flags)
   }
 
-  async cheServerPodExist(namespace: string): Promise<boolean> {
-    const kc = new KubeConfig()
-    kc.loadFromDefault()
-
-    const k8sApi = kc.makeApiClient(Core_v1Api)
-    let found = false
-
-    await k8sApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, 'app=che')
-      .then(res => {
-        if (res.body.items.length > 0) {
-          found = true
-        } else {
-          found = false
-        }
-      }).catch(err => { throw err })
-    return found
-  }
-
   /**
    * Finds a pod where Che workspace is running.
    * Rejects if no workspace is found for the given workspace ID
