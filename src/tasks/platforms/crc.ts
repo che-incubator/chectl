@@ -65,8 +65,8 @@ export class CRCHelper {
   async isCRCRunning(): Promise<boolean> {
     const { exitCode, stdout } = await execa('crc', ['status'], { timeout: 60000, reject: false })
     if (exitCode === 0 &&
-        stdout.includes('CRC VM:          Running') &&
-        stdout.includes('OpenShift:       Running')) {
+      stdout.includes('CRC VM:          Running') &&
+      stdout.includes('OpenShift:       Running')) {
       return true
     } else {
       return false
