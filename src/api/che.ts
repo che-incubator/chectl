@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-import { Core_v1Api, KubeConfig } from '@kubernetes/client-node'
+import { CoreV1Api, KubeConfig } from '@kubernetes/client-node'
 import axios from 'axios'
 import { cli } from 'cli-ux'
 import * as fs from 'fs'
@@ -35,24 +35,24 @@ export class CheHelper {
    */
   async getWorkspacePod(namespace: string, cheWorkspaceId?: string): Promise<string> {
     this.kc.loadFromDefault()
-    const k8sApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sApi = this.kc.makeApiClient(CoreV1Api)
 
     const res = await k8sApi.listNamespacedPod(namespace)
     const pods = res.body.items
-    const wsPods = pods.filter(pod => pod.metadata.labels['che.workspace_id'])
+    const wsPods = pods.filter(pod => pod.metadata!.labels!['che.workspace_id'])
     if (wsPods.length === 0) {
       throw new Error('No workspace pod is found')
     }
 
     if (cheWorkspaceId) {
-      const wsPod = wsPods.find(p => p.metadata.labels['che.workspace_id'] === cheWorkspaceId)
+      const wsPod = wsPods.find(p => p.metadata!.labels!['che.workspace_id'] === cheWorkspaceId)
       if (wsPod) {
-        return wsPod.metadata.name
+        return wsPod.metadata!.name!
       }
       throw new Error('Pod is not found for the given workspace ID')
     } else {
       if (wsPods.length === 1) {
-        return wsPods[0].metadata.name
+        return wsPods[0].metadata!.name!
       }
       throw new Error('More than one pod with running workspace is found. Please, specify Che Workspace ID.')
     }
@@ -60,24 +60,24 @@ export class CheHelper {
 
   async getWorkspacePodContainers(namespace: string, cheWorkspaceId?: string): Promise<string[]> {
     this.kc.loadFromDefault()
-    const k8sApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sApi = this.kc.makeApiClient(CoreV1Api)
 
     const res = await k8sApi.listNamespacedPod(namespace)
     const pods = res.body.items
-    const wsPods = pods.filter(pod => pod.metadata.labels['che.workspace_id'])
+    const wsPods = pods.filter(pod => pod.metadata!.labels!['che.workspace_id'])
     if (wsPods.length === 0) {
       throw new Error('No workspace pod is found')
     }
 
     if (cheWorkspaceId) {
-      const wsPod = wsPods.find(p => p.metadata.labels['che.workspace_id'] === cheWorkspaceId)
+      const wsPod = wsPods.find(p => p.metadata!.labels!['che.workspace_id'] === cheWorkspaceId)
       if (wsPod) {
-        return wsPod.spec.containers.map(c => c.name)
+        return wsPod.spec!.containers.map(c => c.name)
       }
       throw new Error('Pod is not found for the given workspace ID')
     } else {
       if (wsPods.length === 1) {
-        return wsPods[0].spec.containers.map(c => c.name)
+        return wsPods[0].spec!.containers.map(c => c.name)
       }
       throw new Error('More than one pod with running workspace is found. Please, specify Che Workspace ID.')
     }
@@ -121,7 +121,7 @@ export class CheHelper {
 
   async cheNamespaceExist(namespace = '') {
     this.kc.loadFromDefault()
-    const k8sApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sApi = this.kc.makeApiClient(CoreV1Api)
     try {
       const res = await k8sApi.readNamespace(namespace)
       if (res && res.body &&

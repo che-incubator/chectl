@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-import { Core_v1Api } from '@kubernetes/client-node'
+import { CoreV1Api } from '@kubernetes/client-node'
 import { expect, fancy } from 'fancy-test'
 
 import { CheHelper } from '../../src/api/che'
@@ -21,7 +21,7 @@ let ch = new CheHelper({})
 let kc = ch.kc
 let kube = ch.kube
 let oc = ch.oc
-let k8sApi = new Core_v1Api()
+let k8sApi = new CoreV1Api()
 
 describe('Che helper', () => {
   describe('cheURL', () => {

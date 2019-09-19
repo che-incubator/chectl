@@ -39,7 +39,7 @@ export class HelmTasks {
           const kh = new KubeHelper(flags)
           const tlsSecret = await kh.getSecret('che-tls', `${flags.chenamespace}`)
 
-          if (!tlsSecret) {
+          if (!tlsSecret || !tlsSecret.data) {
             throw new Error(`TLS option is enabled but che-tls secret does not exist in '${flags.chenamespace}' namespace. Example on how to create the secret with TLS: kubectl create secret tls che-tls --namespace='${flags.chenamespace}' --key=privkey.pem --cert=fullchain.pem`)
           }
 
@@ -60,7 +60,7 @@ export class HelmTasks {
           const kh = new KubeHelper(flags)
           const selfSignedCertSecret = await kh.getSecret('self-signed-cert', `${flags.chenamespace}`)
 
-          if (!selfSignedCertSecret) {
+          if (!selfSignedCertSecret || !selfSignedCertSecret.data) {
             throw new Error(`Self-signed-cert option is enabled but 'self-signed-cert' secret does not exist in '${flags.chenamespace}' namespace. Example on how to create the secret with self-signed CA certificate: kubectl create secret generic self-signed-cert --namespace='${flags.chenamespace}' --from-file=ca.crt`)
           }
 

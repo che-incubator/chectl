@@ -151,7 +151,13 @@ export default class Inject extends Command {
     }
     const kubeconfig = path.join(os.tmpdir(), 'che-kubeconfig')
     const cluster = kc.getCluster(contextToInject.cluster)
+    if (!cluster) {
+      throw new Error(`Context ${contextName} has no cluster object`)
+    }
     const user = kc.getUser(contextToInject.user)
+    if (!user) {
+      throw new Error(`Context ${contextName} has no user object`)
+    }
     await execa('kubectl', ['config', '--kubeconfig', kubeconfig, 'set-cluster', cluster.name, `--server=${cluster.server}`, `--certificate-authority=${cluster.caFile}`, '--embed-certs=true'], { timeout: 10000 })
     await execa('kubectl', ['config', '--kubeconfig', kubeconfig, 'set-credentials', user.name, `--client-certificate=${user.certFile}`, `--client-key=${user.keyFile}`, '--embed-certs=true'], { timeout: 10000 })
     await execa('kubectl', ['config', '--kubeconfig', kubeconfig, 'set-context', contextToInject.name, `--cluster=${contextToInject.cluster}`, `--user=${contextToInject.user}`, `--namespace=${cheNamespace}`], { timeout: 10000 })

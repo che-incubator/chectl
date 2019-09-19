@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { Apiextensions_v1beta1Api, ApisApi, Apps_v1Api, Core_v1Api, Custom_objectsApi, Extensions_v1beta1Api, KubeConfig, RbacAuthorization_v1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
 import axios from 'axios'
 import { cli } from 'cli-ux'
 import { readFileSync } from 'fs'
@@ -39,14 +39,14 @@ export class KubeHelper {
   }
 
   async deleteAllServices(namespace = '') {
-    const k8sApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sApi = this.kc.makeApiClient(CoreV1Api)
     try {
-      const res = await k8sApi.listNamespacedService(namespace, 'true')
+      const res = await k8sApi.listNamespacedService(namespace, true)
       if (res && res.response && res.response.statusCode === 200) {
         const serviceList = res.body
         const options = new V1DeleteOptions()
         await serviceList.items.forEach(async service => {
-          await k8sApi.deleteNamespacedService(service.metadata.name, namespace, options)
+          await k8sApi.deleteNamespacedService(service.metadata!.name!, namespace, undefined, options)
         })
       }
     } catch (e) {
@@ -55,9 +55,9 @@ export class KubeHelper {
   }
 
   async getServicesBySelector(labelSelector = '', namespace = ''): Promise<V1ServiceList> {
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
-      const res = await k8sCoreApi.listNamespacedService(namespace, 'true', undefined, undefined, true, labelSelector)
+      const res = await k8sCoreApi.listNamespacedService(namespace, true, 'true', undefined, undefined, labelSelector)
       if (res && res.body) {
         return res.body
       }
@@ -79,20 +79,18 @@ export class KubeHelper {
     throw new Error(`ERR_TIMEOUT: Timeout set to waiting for service ${timeoutMs}`)
   }
 
-  async serviceAccountExist(name = '', namespace = ''): Promise<boolean | ''> {
-    const k8sApi = this.kc.makeApiClient(Core_v1Api)
+  async serviceAccountExist(name = '', namespace = ''): Promise<boolean> {
+    const k8sApi = this.kc.makeApiClient(CoreV1Api)
     try {
-      const res = await k8sApi.readNamespacedServiceAccount(name, namespace)
-      return (res && res.body &&
-        res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === name)
+      const { body } = await k8sApi.readNamespacedServiceAccount(name, namespace)
+      return this.compare(body, name)
     } catch {
       return false
     }
   }
 
   async createServiceAccount(name = '', namespace = '') {
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     let sa = new V1ServiceAccount()
     sa.metadata = new V1ObjectMeta()
     sa.metadata.name = name
@@ -105,10 +103,10 @@ export class KubeHelper {
   }
 
   async deleteServiceAccount(name = '', namespace = '') {
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
       const options = new V1DeleteOptions()
-      await k8sCoreApi.deleteNamespacedServiceAccount(name, namespace, options)
+      await k8sCoreApi.deleteNamespacedServiceAccount(name, namespace, undefined, options)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -117,7 +115,7 @@ export class KubeHelper {
   async createServiceAccountFromFile(filePath: string, namespace = '') {
     const yamlFile = readFileSync(filePath)
     const yamlServiceAccount = yaml.safeLoad(yamlFile.toString()) as V1ServiceAccount
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
       return await k8sCoreApi.createNamespacedServiceAccount(namespace, yamlServiceAccount)
     } catch (e) {
@@ -125,25 +123,21 @@ export class KubeHelper {
     }
   }
 
-  async roleExist(name = '', namespace = ''): Promise<boolean | ''> {
-    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+  async roleExist(name = '', namespace = ''): Promise<boolean> {
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
-      const res = await k8sRbacAuthApi.readNamespacedRole(name, namespace)
-      return (res && res.body &&
-        res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === name)
+      const { body } = await k8sRbacAuthApi.readNamespacedRole(name, namespace)
+      return this.compare(body, name)
     } catch {
       return false
     }
   }
 
-  async clusterRoleExist(name = ''): Promise<boolean | ''> {
-    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+  async clusterRoleExist(name = ''): Promise<boolean> {
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
-      const res = await k8sRbacAuthApi.readClusterRole(name)
-      return (res && res.body &&
-        res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === name)
+      const { body } = await k8sRbacAuthApi.readClusterRole(name)
+      return this.compare(body, name)
     } catch {
       return false
     }
@@ -152,7 +146,7 @@ export class KubeHelper {
   async createRoleFromFile(filePath: string, namespace = '') {
     const yamlFile = readFileSync(filePath)
     const yamlRole = yaml.safeLoad(yamlFile.toString()) as V1Role
-    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
       const res = await k8sRbacAuthApi.createNamespacedRole(namespace, yamlRole)
       return res.response.statusCode
@@ -169,7 +163,7 @@ export class KubeHelper {
   async createClusterRoleFromFile(filePath: string) {
     const yamlFile = readFileSync(filePath)
     const yamlRole = yaml.safeLoad(yamlFile.toString()) as V1ClusterRole
-    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
       const res = await k8sRbacAuthApi.createClusterRole(yamlRole)
       return res.response.statusCode
@@ -184,51 +178,47 @@ export class KubeHelper {
   }
 
   async deleteRole(name = '', namespace = '') {
-    const k8sCoreApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    const k8sCoreApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
       const options = new V1DeleteOptions()
-      await k8sCoreApi.deleteNamespacedRole(name, namespace, options)
+      await k8sCoreApi.deleteNamespacedRole(name, namespace, undefined, options)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
   async deleteClusterRole(name = '') {
-    const k8sCoreApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    const k8sCoreApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
       const options = new V1DeleteOptions()
-      await k8sCoreApi.deleteClusterRole(name, options)
+      await k8sCoreApi.deleteClusterRole(name, undefined, options)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async roleBindingExist(name = '', namespace = ''): Promise<boolean | ''> {
-    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+  async roleBindingExist(name = '', namespace = ''): Promise<boolean> {
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
-      const res = await k8sRbacAuthApi.readNamespacedRoleBinding(name, namespace)
-      return (res && res.body &&
-        res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === name)
+      const { body } = await k8sRbacAuthApi.readNamespacedRoleBinding(name, namespace)
+      return this.compare(body, name)
     } catch {
       return false
     }
   }
 
   async clusterRoleBindingExist(name = ''): Promise<boolean | ''> {
-    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
-      const res = await k8sRbacAuthApi.readClusterRoleBinding(name)
-      return (res && res.body &&
-        res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === name)
+      const { body } = await k8sRbacAuthApi.readClusterRoleBinding(name)
+      return this.compare(body, name)
     } catch {
       return false
     }
   }
 
   async createAdminRoleBinding(name = '', serviceAccount = '', namespace = '') {
-    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     let rb = new V1RoleBinding()
     rb.metadata = new V1ObjectMeta()
     rb.metadata.name = name
@@ -251,7 +241,7 @@ export class KubeHelper {
   async createRoleBindingFromFile(filePath: string, namespace = '') {
     const yamlFile = readFileSync(filePath)
     const yamlRoleBinding = yaml.safeLoad(yamlFile.toString()) as V1RoleBinding
-    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
       return await k8sRbacAuthApi.createNamespacedRoleBinding(namespace, yamlRoleBinding)
     } catch (e) {
@@ -278,7 +268,7 @@ export class KubeHelper {
         apiGroup: 'rbac.authorization.k8s.io'
       }
     } as V1ClusterRoleBinding
-    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
       return await k8sRbacAuthApi.createClusterRoleBinding(clusterRoleBinding)
     } catch (e) {
@@ -287,32 +277,30 @@ export class KubeHelper {
   }
 
   async deleteRoleBinding(name = '', namespace = '') {
-    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
       const options = new V1DeleteOptions()
-      return await k8sRbacAuthApi.deleteNamespacedRoleBinding(name, namespace, options)
+      return await k8sRbacAuthApi.deleteNamespacedRoleBinding(name, namespace, undefined, options)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
   async deleteClusterRoleBinding(name = '') {
-    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorization_v1Api)
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
       const options = new V1DeleteOptions()
-      return await k8sRbacAuthApi.deleteClusterRoleBinding(name, options)
+      return await k8sRbacAuthApi.deleteClusterRoleBinding(name, undefined, options)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async configMapExist(name = '', namespace = ''): Promise<boolean | ''> {
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+  async configMapExist(name = '', namespace = ''): Promise<boolean> {
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
-      const res = await k8sCoreApi.readNamespacedConfigMap(name, namespace)
-      return (res && res.body &&
-        res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === name)
+      const { body } = await k8sCoreApi.readNamespacedConfigMap(name, namespace)
+      return this.compare(body, name)
     } catch {
       return false
     }
@@ -321,7 +309,7 @@ export class KubeHelper {
   async createConfigMapFromFile(filePath: string, namespace = '') {
     const yamlFile = readFileSync(filePath)
     const yamlConfigMap = yaml.safeLoad(yamlFile.toString()) as V1ConfigMap
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
       return await k8sCoreApi.createNamespacedConfigMap(namespace, yamlConfigMap)
     } catch (e) {
@@ -339,32 +327,30 @@ export class KubeHelper {
   }
 
   async deleteConfigMap(name: string, namespace = '') {
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
       const options = new V1DeleteOptions()
-      await k8sCoreApi.deleteNamespacedConfigMap(name, namespace, options)
+      await k8sCoreApi.deleteNamespacedConfigMap(name, namespace, undefined, options)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async podExist(name = '', namespace = ''): Promise<boolean | ''> {
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+  async podExist(name = '', namespace = ''): Promise<boolean> {
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
-      const res = await k8sCoreApi.readNamespacedPod(name, namespace)
-      return (res && res.body &&
-        res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === name)
+      const { body } = await k8sCoreApi.readNamespacedPod(name, namespace)
+      return this.compare(body, name)
     } catch {
       return false
     }
   }
 
   async podsExistBySelector(selector: string, namespace = ''): Promise<boolean> {
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     let res
     try {
-      res = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, true, selector)
+      res = await k8sCoreApi.listNamespacedPod(namespace, true, undefined, undefined, undefined, selector)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -377,10 +363,10 @@ export class KubeHelper {
   }
 
   async getPodPhase(selector: string, namespace = ''): Promise<string> {
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     let res
     try {
-      res = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, true, selector)
+      res = await k8sCoreApi.listNamespacedPod(namespace, true, undefined, undefined, undefined, selector)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -401,10 +387,10 @@ export class KubeHelper {
   }
 
   async getPodReadyConditionStatus(selector: string, namespace = ''): Promise<string> {
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     let res
     try {
-      res = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, true, selector)
+      res = await k8sCoreApi.listNamespacedPod(namespace, true, undefined, undefined, undefined, selector)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -503,29 +489,27 @@ export class KubeHelper {
 
   async deletePod(name: string, namespace = '') {
     this.kc.loadFromDefault()
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     const options = new V1DeleteOptions()
     try {
-      return await k8sCoreApi.deleteNamespacedPod(name, namespace, options)
+      return await k8sCoreApi.deleteNamespacedPod(name, namespace, undefined, options)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
   async deploymentExist(name = '', namespace = ''): Promise<boolean> {
-    const k8sApi = this.kc.makeApiClient(Apps_v1Api)
+    const k8sApi = this.kc.makeApiClient(AppsV1Api)
     try {
-      const res = await k8sApi.readNamespacedDeployment(name, namespace)
-      return ((res && res.body &&
-        res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === name) as boolean)
+      const { body } = await k8sApi.readNamespacedDeployment(name, namespace)
+      return this.compare(body, name)
     } catch {
       return false
     }
   }
 
   async deploymentReady(name = '', namespace = ''): Promise<boolean> {
-    const k8sApi = this.kc.makeApiClient(Apps_v1Api)
+    const k8sApi = this.kc.makeApiClient(AppsV1Api)
     try {
       const res = await k8sApi.readNamespacedDeployment(name, namespace)
       return ((res && res.body &&
@@ -537,26 +521,26 @@ export class KubeHelper {
   }
 
   async deploymentStopped(name = '', namespace = ''): Promise<boolean> {
-    const k8sApi = this.kc.makeApiClient(Apps_v1Api)
+    const k8sApi = this.kc.makeApiClient(AppsV1Api)
     try {
       const res = await k8sApi.readNamespacedDeployment(name, namespace)
       if (res && res.body && res.body.spec && res.body.spec.replicas) {
         throw new Error(`Deployment '${name}' without replicas in spec is fetched`)
       }
-      return res.body.spec.replicas === 0
+      return res.body!.spec!.replicas === 0
     } catch {
       return false
     }
   }
 
   async isDeploymentPaused(name = '', namespace = ''): Promise<boolean> {
-    const k8sApi = this.kc.makeApiClient(Apps_v1Api)
+    const k8sApi = this.kc.makeApiClient(AppsV1Api)
     try {
       const res = await k8sApi.readNamespacedDeployment(name, namespace)
       if (!res || !res.body || !res.body.spec) {
         throw new Error('E_BAD_DEPLOY_RESPONSE')
       }
-      return res.body.spec.paused
+      return res.body.spec.paused || false
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -615,7 +599,7 @@ export class KubeHelper {
                          pullPolicy: string,
                          configMapEnvSource: string,
                          namespace: string) {
-    const k8sAppsApi = this.kc.makeApiClient(Apps_v1Api)
+    const k8sAppsApi = this.kc.makeApiClient(AppsV1Api)
     let deployment = new V1Deployment()
     deployment.metadata = new V1ObjectMeta()
     deployment.metadata.name = name
@@ -650,9 +634,9 @@ export class KubeHelper {
     const yamlFile = readFileSync(filePath)
     const yamlDeployment = yaml.safeLoad(yamlFile.toString()) as V1Deployment
     if (containerImage) {
-      yamlDeployment.spec.template.spec.containers[containerIndex].image = containerImage
+      yamlDeployment.spec!.template.spec!.containers[containerIndex].image = containerImage
     }
-    const k8sAppsApi = this.kc.makeApiClient(Apps_v1Api)
+    const k8sAppsApi = this.kc.makeApiClient(AppsV1Api)
     try {
       return await k8sAppsApi.createNamespacedDeployment(namespace, yamlDeployment)
     } catch (e) {
@@ -661,7 +645,7 @@ export class KubeHelper {
   }
 
   async deleteAllDeployments(namespace = '') {
-    const k8sAppsApi = this.kc.makeApiClient(Apps_v1Api)
+    const k8sAppsApi = this.kc.makeApiClient(AppsV1Api)
     try {
       await k8sAppsApi.deleteCollectionNamespacedDeployment(namespace)
     } catch (e) {
@@ -670,9 +654,9 @@ export class KubeHelper {
   }
 
   async getDeploymentsBySelector(labelSelector = '', namespace = ''): Promise<V1DeploymentList> {
-    const k8sAppsApi = this.kc.makeApiClient(Apps_v1Api)
+    const k8sAppsApi = this.kc.makeApiClient(AppsV1Api)
     try {
-      const res = await k8sAppsApi.listNamespacedDeployment(namespace, 'true', undefined, undefined, true, labelSelector)
+      const res = await k8sAppsApi.listNamespacedDeployment(namespace, true, 'true', undefined, undefined, labelSelector)
       if (res && res.body) {
         return res.body
       }
@@ -689,7 +673,7 @@ export class KubeHelper {
                   pullPolicy: string,
                   configMapEnvSource: string,
                   namespace: string) {
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     let pod = new V1Pod()
     pod.metadata = new V1ObjectMeta()
     pod.metadata.name = name
@@ -716,20 +700,26 @@ export class KubeHelper {
     }
   }
 
-  async ingressExist(name = '', namespace = ''): Promise<boolean | ''> {
-    const k8sExtensionsApi = this.kc.makeApiClient(Extensions_v1beta1Api)
+  async compare(body: any, name: string): Promise<boolean> {
+    if (body && body.metadata && body.metadata.name && body.metadata.name === name) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  async ingressExist(name = '', namespace = ''): Promise<boolean> {
+    const k8sExtensionsApi = this.kc.makeApiClient(ExtensionsV1beta1Api)
     try {
-      const res = await k8sExtensionsApi.readNamespacedIngress(name, namespace)
-      return (res && res.body &&
-        res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === name)
+      const { body } = await k8sExtensionsApi.readNamespacedIngress(name, namespace)
+      return this.compare(body, name)
     } catch {
       return false
     }
   }
 
   async deleteAllIngresses(namespace = '') {
-    const k8sExtensionsApi = this.kc.makeApiClient(Extensions_v1beta1Api)
+    const k8sExtensionsApi = this.kc.makeApiClient(ExtensionsV1beta1Api)
     try {
       await k8sExtensionsApi.deleteCollectionNamespacedIngress(namespace)
     } catch (e) {
@@ -740,7 +730,7 @@ export class KubeHelper {
   async createCrdFromFile(filePath: string) {
     const yamlFile = readFileSync(filePath)
     const yamlCrd = yaml.safeLoad(yamlFile.toString()) as V1beta1CustomResourceDefinition
-    const k8sApiextensionsApi = this.kc.makeApiClient(Apiextensions_v1beta1Api)
+    const k8sApiextensionsApi = this.kc.makeApiClient(ApiextensionsV1beta1Api)
     try {
       return await k8sApiextensionsApi.createCustomResourceDefinition(yamlCrd)
     } catch (e) {
@@ -749,22 +739,20 @@ export class KubeHelper {
   }
 
   async crdExist(name = ''): Promise<boolean | ''> {
-    const k8sApiextensionsApi = this.kc.makeApiClient(Apiextensions_v1beta1Api)
+    const k8sApiextensionsApi = this.kc.makeApiClient(ApiextensionsV1beta1Api)
     try {
-      const res = await k8sApiextensionsApi.readCustomResourceDefinition(name)
-      return (res && res.body &&
-        res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === name)
+      const { body } = await k8sApiextensionsApi.readCustomResourceDefinition(name)
+      return this.compare(body, name)
     } catch {
       return false
     }
   }
 
   async deleteCrd(name = '') {
-    const k8sApiextensionsApi = this.kc.makeApiClient(Apiextensions_v1beta1Api)
+    const k8sApiextensionsApi = this.kc.makeApiClient(ApiextensionsV1beta1Api)
     try {
       const options = new V1DeleteOptions()
-      await k8sApiextensionsApi.deleteCustomResourceDefinition(name, options)
+      await k8sApiextensionsApi.deleteCustomResourceDefinition(name, undefined, options)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -805,7 +793,7 @@ export class KubeHelper {
       yamlCr.spec.server.pluginRegistryImage = yamlCr.spec.server.pluginRegistryImage.replace(tagExp, newTag)
       yamlCr.spec.server.devfileRegistryImage = yamlCr.spec.server.devfileRegistryImage.replace(tagExp, newTag)
     }
-    const customObjectsApi = this.kc.makeApiClient(Custom_objectsApi)
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
     try {
       return await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', cheNamespace, 'checlusters', yamlCr)
     } catch (e) {
@@ -813,20 +801,18 @@ export class KubeHelper {
     }
   }
 
-  async cheClusterExist(name = '', namespace = ''): Promise<boolean | ''> {
-    const customObjectsApi = this.kc.makeApiClient(Custom_objectsApi)
+  async cheClusterExist(name = '', namespace = ''): Promise<boolean> {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
     try {
-      const res = await customObjectsApi.getNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name)
-      return (res && res.body &&
-        res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === name)
+      const { body } = await customObjectsApi.getNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name)
+      return this.compare(body, name)
     } catch {
       return false
     }
   }
 
   async deleteCheCluster(name = '', namespace = '') {
-    const customObjectsApi = this.kc.makeApiClient(Custom_objectsApi)
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
     try {
       const options = new V1DeleteOptions()
       await customObjectsApi.deleteNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name, options)
@@ -843,7 +829,7 @@ export class KubeHelper {
    * Retrieve the default token from the default serviceAccount.
    */
   async getDefaultServiceAccountToken(): Promise<string> {
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     let res
     try {
       res = await k8sCoreApi.listNamespacedServiceAccount('default')
@@ -857,8 +843,8 @@ export class KubeHelper {
     let secretName
     if (v1ServiceAccountList.items && v1ServiceAccountList.items.length > 0) {
       for (let v1ServiceAccount of v1ServiceAccountList.items) {
-        if (v1ServiceAccount.metadata.name === 'default') {
-          secretName = v1ServiceAccount.secrets[0].name
+        if (v1ServiceAccount.metadata!.name === 'default') {
+          secretName = v1ServiceAccount.secrets![0].name
         }
       }
     }
@@ -879,8 +865,8 @@ export class KubeHelper {
     let encodedToken
     if (v1SecretList.items && v1SecretList.items.length > 0) {
       for (let v1Secret of v1SecretList.items) {
-        if (v1Secret.metadata.name === secretName && v1Secret.type === 'kubernetes.io/service-account-token') {
-          encodedToken = v1Secret.data.token
+        if (v1Secret.metadata!.name === secretName && v1Secret.type === 'kubernetes.io/service-account-token') {
+          encodedToken = v1Secret.data!.token
         }
       }
     }
@@ -952,14 +938,14 @@ export class KubeHelper {
   }
 
   async getIngressHost(name = '', namespace = ''): Promise<string> {
-    const k8sExtensionsApi = this.kc.makeApiClient(Extensions_v1beta1Api)
+    const k8sExtensionsApi = this.kc.makeApiClient(ExtensionsV1beta1Api)
     try {
       const res = await k8sExtensionsApi.readNamespacedIngress(name, namespace)
       if (res && res.body &&
         res.body.spec &&
         res.body.spec.rules &&
         res.body.spec.rules.length > 0) {
-        return res.body.spec.rules[0].host
+        return res.body.spec.rules[0].host || ''
       }
       throw new Error('ERR_INGRESS_NO_HOST')
     } catch (e) {
@@ -968,7 +954,7 @@ export class KubeHelper {
   }
 
   async getIngressProtocol(name = '', namespace = ''): Promise<string> {
-    const k8sExtensionsApi = this.kc.makeApiClient(Extensions_v1beta1Api)
+    const k8sExtensionsApi = this.kc.makeApiClient(ExtensionsV1beta1Api)
     try {
       const res = await k8sExtensionsApi.readNamespacedIngress(name, namespace)
       if (!res || !res.body || !res.body.spec) {
@@ -985,9 +971,9 @@ export class KubeHelper {
   }
 
   async getIngressesBySelector(labelSelector = '', namespace = ''): Promise<V1beta1IngressList> {
-    const k8sV1Beta = this.kc.makeApiClient(Extensions_v1beta1Api)
+    const k8sV1Beta = this.kc.makeApiClient(ExtensionsV1beta1Api)
     try {
-      const res = await k8sV1Beta.listNamespacedIngress(namespace, 'true', undefined, undefined, true, labelSelector)
+      const res = await k8sV1Beta.listNamespacedIngress(namespace, true, 'true', undefined, undefined, labelSelector)
       if (res && res.body) {
         return res.body
       }
@@ -1014,7 +1000,7 @@ export class KubeHelper {
   }
 
   async getSecret(name = '', namespace = 'default'): Promise<V1Secret | undefined> {
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
 
     // now get the matching secrets
     try {
@@ -1029,32 +1015,30 @@ export class KubeHelper {
     }
   }
 
-  async persistentVolumeClaimExist(name = '', namespace = ''): Promise<boolean | ''> {
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+  async persistentVolumeClaimExist(name = '', namespace = ''): Promise<boolean> {
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
-      const res = await k8sCoreApi.readNamespacedPersistentVolumeClaim(name, namespace)
-      return (res && res.body &&
-        res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === name)
+      const { body } = await k8sCoreApi.readNamespacedPersistentVolumeClaim(name, namespace)
+      return this.compare(body, name)
     } catch {
       return false
     }
   }
 
   async deletePersistentVolumeClaim(name = '', namespace = '') {
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
       const options = new V1DeleteOptions()
-      await k8sCoreApi.deleteNamespacedPersistentVolumeClaim(name, namespace, options)
+      await k8sCoreApi.deleteNamespacedPersistentVolumeClaim(name, namespace, undefined, options)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
   async getPersistentVolumeClaimsBySelector(labelSelector = '', namespace = ''): Promise<V1PersistentVolumeClaimList> {
-    const k8sCoreApi = this.kc.makeApiClient(Core_v1Api)
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
-      const res = await k8sCoreApi.listNamespacedPersistentVolumeClaim(namespace, 'true', undefined, undefined, true, labelSelector)
+      const res = await k8sCoreApi.listNamespacedPersistentVolumeClaim(namespace, true, 'true', undefined, undefined, labelSelector)
       if (res && res.body) {
         return res.body
       }
@@ -1076,7 +1060,7 @@ export class KubeHelper {
   }
 }
 
-class PatchedK8sApi extends Core_v1Api {
+class PatchedK8sApi extends CoreV1Api {
   patchNamespacedConfigMap(...args: any) {
     const oldDefaultHeaders = this.defaultHeaders
     this.defaultHeaders = {
@@ -1089,7 +1073,7 @@ class PatchedK8sApi extends Core_v1Api {
   }
 }
 
-class PatchedK8sAppsApi extends Apps_v1Api {
+class PatchedK8sAppsApi extends AppsV1Api {
   patchNamespacedDeployment(...args: any) {
     const oldDefaultHeaders = this.defaultHeaders
     this.defaultHeaders = {
