@@ -40,7 +40,7 @@ export class DockerDesktopTasks {
         title: 'Verify if kubectl context is Docker Desktop',
         task: async (_ctx: any, task: any) => {
           const context = await this.kh.currentContext()
-          if (context !== 'docker-for-desktop') {
+          if (context !== 'docker-for-desktop' && context !== 'docker-desktop') {
             command.error(`E_PLATFORM_NOT_READY: current kube context is not Docker Desktop context. Found ${context}`)
           } else {
             task.title = `${task.title}: Found ${context}.`
