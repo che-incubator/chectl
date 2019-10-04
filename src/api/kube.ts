@@ -9,7 +9,8 @@
  **********************************************************************/
 
 import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
-import axios from 'axios'
+import { Cluster } from '@kubernetes/client-node/dist/config_types'
+import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
 import { readFileSync } from 'fs'
 import https = require('https')
@@ -1075,20 +1076,40 @@ export class KubeHelper {
     return Buffer.from(encodedToken, 'base64').toString()
   }
 
+  /**
+   * Checks if kube API from the current context is healthy.
+   */
   async checkKubeApi() {
     const currentCluster = this.kc.getCurrentCluster()
     if (!currentCluster) {
-      throw new Error('Failed to get current Kubernetes cluster: returned null')
+      throw new Error('Failed to get current Kubernetes cluster. Check if the current context is set via kubect/oc')
     }
-    const token = await this.getDefaultServiceAccountToken()
 
+    try {
+      await this.requestKubeHealthz(currentCluster)
+    } catch (error) {
+      if (error.message && (error.message as string).includes('E_K8S_API_UNAUTHORIZED')) {
+        const token = await this.getDefaultServiceAccountToken()
+        await this.requestKubeHealthz(currentCluster, token)
+      } else {
+        throw error
+      }
+    }
+  }
+
+  async requestKubeHealthz(currentCluster: Cluster, token?: string) {
     const agent = new https.Agent({
       rejectUnauthorized: false
     })
     let endpoint = ''
     try {
+      const config: AxiosRequestConfig = { httpsAgent: agent }
+
+      if (token) {
+        config.headers = { Authorization: 'bearer ' + token }
+      }
       endpoint = `${currentCluster.server}/healthz`
-      let response = await axios.get(`${endpoint}`, { httpsAgent: agent, headers: { Authorization: 'bearer ' + token } })
+      let response = await axios.get(`${endpoint}`, config)
       if (!response || response.status !== 200 || response.data !== 'ok') {
         throw new Error('E_BAD_RESP_K8S_API')
       }
