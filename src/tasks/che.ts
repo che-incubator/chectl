@@ -260,7 +260,7 @@ export class CheTasks {
       enabled: (ctx: any) => !ctx.isCheStopped,
       task: async (ctx: any, task: any) => {
         if (ctx.isAuthEnabled && !this.cheAccessToken) {
-          command.error('E_AUTH_REQUIRED - Che authentication is enabled and an access token need to be provided (flag --access-token).\nFor instructions to retreive a valid access token refer to https://www.eclipse.org/che/docs/che-6/authentication.html')
+          command.error('E_AUTH_REQUIRED - Che authentication is enabled and an access token need to be provided (flag --access-token).\nFor instructions to retrieve a valid access token refer to https://www.eclipse.org/che/docs/che-6/authentication.html')
         }
         try {
           const cheURL = await this.che.cheURL(this.cheNamespace)
