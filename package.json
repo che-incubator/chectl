@@ -30,7 +30,7 @@
     "eclipse-che-minishift": "git://github.com/minishift/minishift#master",
     "eclipse-che-operator": "git://github.com/eclipse/che-operator#master",
     "esprima": "^4.0.1",
-    "execa": "^2.0.0",
+    "execa": "^2.1.0",
     "fancy-test": "^1.4.4",
     "fs-extra": "^8.1.0",
     "listr": "^0.14.3",
