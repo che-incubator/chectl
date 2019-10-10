@@ -1055,7 +1055,7 @@ export class KubeHelper {
    * @param e k8s error to wrap
    */
   private wrapK8sClientError(e: any): Error {
-    if (e.body && e.body.message) return new Error(e.body.message)
+    if (e.response && e.response.body && e.response.body.message) return new Error(e.response.body.message)
     else return new Error(e)
   }
 }
