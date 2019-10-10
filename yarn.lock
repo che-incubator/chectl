@@ -632,10 +632,10 @@
   resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-5.2.7.tgz#315d570ccb56c53452ff8638738df60726d5b6ea"
   integrity sha512-NYrtPht0wGzhwe9+/idPaBB+TqkY9AhTvOLMkThm0IoEfLaiVQZwBwyJ5puCkO3AUCWrmcoePjp2mbFocKy4SQ==
 
-"@types/ncp@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@types/ncp/-/ncp-2.0.1.tgz#749432511f6ad747d04e98837b18cca9045567fb"
-  integrity sha512-TeiJ7uvv/92ugSqZ0v9l0eNXzutlki0aK+R1K5bfA5SYUil46ITlxLW4iNTCf55P4L5weCmaOdtxGeGWvudwPg==
+"@types/ncp@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@types/ncp/-/ncp-2.0.2.tgz#5b62ec10c2097cd43e87974614df1f9eae7f6c5b"
+  integrity sha512-tp4KojZzcL2hxBHCz3Ye3AD/kV3lf+Dd9Yz5LdVSThUo5bSPvSMj1QalbX8rCTJD4c5+GVYI4fzmQ+lX0i50+A==
   dependencies:
     "@types/node" "*"
 
