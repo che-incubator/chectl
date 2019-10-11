@@ -12,9 +12,8 @@ import { Command } from '@oclif/command'
 import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as fs from 'fs'
-import { mkdirp, remove } from 'fs-extra'
+import { copy, mkdirp, remove } from 'fs-extra'
 import * as Listr from 'listr'
-import { ncp } from 'ncp'
 import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
@@ -209,7 +208,7 @@ error: E_COMMAND_FAILED`)
     const destDir = path.join(cacheDir, '/templates/kubernetes/helm/che/')
     await remove(destDir)
     await mkdirp(destDir)
-    await ncp(srcDir, destDir, {}, (err: Error) => { if (err) { throw err } })
+    await copy(srcDir, destDir)
   }
 
   private async updateCheHelmChartDependencies(cacheDir: string, execTimeout = 120000) {
