@@ -11,9 +11,8 @@
 import Command from '@oclif/command'
 import * as commandExists from 'command-exists'
 import * as execa from 'execa'
-import { mkdirp, remove } from 'fs-extra'
+import { copy, mkdirp, remove } from 'fs-extra'
 import * as Listr from 'listr'
-import { ncp } from 'ncp'
 import * as path from 'path'
 
 import { OpenShiftHelper } from '../../api/openshift'
@@ -192,7 +191,7 @@ error: E_COMMAND_FAILED`)
     const destDir = path.join(cacheDir, '/templates/minishift-addon/')
     await remove(destDir)
     await mkdirp(destDir)
-    await ncp(srcDir, destDir, {}, (err: Error) => { if (err) { throw err } })
+    await copy(srcDir, destDir)
     return destDir
   }
 
