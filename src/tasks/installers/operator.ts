@@ -10,7 +10,6 @@
 import { Command } from '@oclif/command'
 import { cli } from 'cli-ux'
 import * as execa from 'execa'
-import { readFileSync } from 'fs'
 import { copy, mkdirp, remove } from 'fs-extra'
 import * as Listr from 'listr'
 import * as path from 'path'
