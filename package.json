@@ -43,7 +43,7 @@
     "@oclif/test": "^1",
     "@oclif/tslint": "^3",
     "@types/chai": "^4",
-    "@types/jest": "24.0.18",
+    "@types/jest": "24.0.19",
     "@types/js-yaml": "^3.12.1",
     "@types/listr": "^0.14.2",
     "@types/node": "^12",
