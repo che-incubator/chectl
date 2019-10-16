@@ -37,7 +37,7 @@ apply_sed() {
 run() {
   # use master branch
   git checkout master
-  
+
   # reset local changes
   while true; do
     read -r -p "It will reset any local changes to the current branch ?" yn
@@ -47,28 +47,30 @@ run() {
       * ) echo "Please answer yes or no.";;
     esac
   done
-  
+
   git fetch
   if git show-ref -q --heads "release"; then
     git branch -D release
   fi
-  
+
   VERSION=$1
-  
+
   # Create VERSION file
   echo "$VERSION" > VERSION
-  
+
   # replace nightly versions by release version
   apply_sed "s#eclipse/che-server:nightly#eclipse/che-server:${VERSION}#g" src/commands/server/start.ts
   apply_sed "s#quay.io/eclipse/che-operator:nightly#quay.io/eclipse/che-operator:${VERSION}#g" src/commands/server/start.ts
-  
+
+  apply_sed "s#quay.io/eclipse/che-operator:nightly#quay.io/eclipse/che-operator:${VERSION}#g" src/commands/server/update.ts
+
   # now replace package.json dependencies
   apply_sed "s;github.com/eclipse/che#\(.*\)\",;github.com/eclipse/che#${VERSION}\",;g" package.json
   apply_sed "s;github.com/eclipse/che-operator#\(.*\)\",;github.com/eclipse/che-operator#${VERSION}\",;g" package.json
-  
+
   # move into the release branch
   git checkout -b release
-  
+
   # add VERSION file to commit
   git add VERSION src package.json yarn.lock
 }

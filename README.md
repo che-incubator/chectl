@@ -274,12 +274,29 @@ USAGE
   $ chectl server:update
 
 OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che resources will be deployed
-  --listr-renderer=listr-renderer  [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
+  -a, --installer=helm|operator|minishift-addon        Installer type
+
+  -h, --help                                           show CLI help
+
+  -n, --chenamespace=chenamespace                      [default: che] Kubernetes namespace where Che server is supposed by be deployed
+
+  -p, --platform=minikube|minishift|
+                 k8s|openshift|
+                 microk8s|docker-desktop|  
+                 crc                                    Type of Kubernetes platform. 
+                                                        Valid values are "minikube", "minishift", "k8s (for kubernetes)", 
+                                                        "openshift", "crc (for CodeReady Containers)", "microk8s".
+
+  -t, --templates=templates                             [default: templates] Path to the templates folder
+
+  --deployment-name=deployment-name                     [default: che] Che deployment name
+
+  --listr-renderer=default|silent|verbose               [default: default] Listr renderer
+
+  --skip-version-check                                  Should be specified if user confirmation after version check should be skipped
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/master/src/commands/server/update.ts)_
 
 ## `chectl update [CHANNEL]`
 
