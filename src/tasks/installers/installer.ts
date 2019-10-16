@@ -16,6 +16,52 @@ import { MinishiftAddonTasks } from './minishift-addon'
 import { OperatorTasks } from './operator'
 
 export class InstallerTasks {
+  updateTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
+    const operatorTasks = new OperatorTasks()
+
+    let title: string
+    let task: any
+
+    // let task: Listr.ListrTask
+    if (flags.installer === 'operator') {
+      title = '🏃‍  Running the Che Operator Update'
+      task = () => {
+        return operatorTasks.updateTasks(flags, command)
+      }
+    } else {
+      title = '🏃‍  Installer preflight check'
+      task = () => { command.error(`Installer ${flags.installer} does not support update ¯\\_(ツ)_/¯`) }
+    }
+
+    return [{
+      title,
+      task
+    }]
+  }
+
+  preUpdateTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
+    const operatorTasks = new OperatorTasks()
+
+    let title: string
+    let task: any
+
+    // let task: Listr.ListrTask
+    if (flags.installer === 'operator') {
+      title = '🏃‍  Running the Che Operator Update'
+      task = () => {
+        return operatorTasks.preUpdateTasks(flags, command)
+      }
+    } else {
+      title = '🏃‍  Installer preflight check'
+      task = () => { command.error(`Installer ${flags.installer} does not support update ¯\\_(ツ)_/¯`) }
+    }
+
+    return [{
+      title,
+      task
+    }]
+  }
+
   installTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     const helmTasks = new HelmTasks()
     const operatorTasks = new OperatorTasks()
