@@ -113,11 +113,23 @@ export class KubeHelper {
   }
 
   async createServiceAccountFromFile(filePath: string, namespace = '') {
-    const yamlFile = readFileSync(filePath)
-    const yamlServiceAccount = yaml.safeLoad(yamlFile.toString()) as V1ServiceAccount
+    const yamlServiceAccount = this.safeLoadFromYamlFile(filePath) as V1ServiceAccount
     const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
       return await k8sCoreApi.createNamespacedServiceAccount(namespace, yamlServiceAccount)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async replaceServiceAccountFromFile(filePath: string, namespace = '') {
+    const yamlServiceAccount = this.safeLoadFromYamlFile(filePath) as V1ServiceAccount
+    if (!yamlServiceAccount || !yamlServiceAccount.metadata || !yamlServiceAccount.metadata.name) {
+      throw new Error(`Service account read from ${filePath} must have name specified.`)
+    }
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
+    try {
+      return await k8sCoreApi.replaceNamespacedServiceAccount(yamlServiceAccount.metadata.name, namespace, yamlServiceAccount)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -144,8 +156,7 @@ export class KubeHelper {
   }
 
   async createRoleFromFile(filePath: string, namespace = '') {
-    const yamlFile = readFileSync(filePath)
-    const yamlRole = yaml.safeLoad(yamlFile.toString()) as V1Role
+    const yamlRole = this.safeLoadFromYamlFile(filePath) as V1Role
     const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
       const res = await k8sRbacAuthApi.createNamespacedRole(namespace, yamlRole)
@@ -154,15 +165,32 @@ export class KubeHelper {
       if (e.response && e.response.statusCode && e.response.statusCode === 403) {
         return e.response.statusCode
       } else {
-        if (e.body && e.body.message) throw new Error(e.body.message)
-        else throw new Error(e)
+        throw this.wrapK8sClientError(e)
+      }
+    }
+  }
+
+  async replaceRoleFromFile(filePath: string, namespace = '') {
+    const yamlRole = this.safeLoadFromYamlFile(filePath) as V1Role
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
+
+    if (!yamlRole.metadata || !yamlRole.metadata.name) {
+      throw new Error(`Role read from ${filePath} must have name specified`)
+    }
+    try {
+      const res = await k8sRbacAuthApi.replaceNamespacedRole(yamlRole.metadata.name, namespace, yamlRole)
+      return res.response.statusCode
+    } catch (e) {
+      if (e.response && e.response.statusCode && e.response.statusCode === 403) {
+        return e.response.statusCode
+      } else {
+        throw this.wrapK8sClientError(e)
       }
     }
   }
 
   async createClusterRoleFromFile(filePath: string) {
-    const yamlFile = readFileSync(filePath)
-    const yamlRole = yaml.safeLoad(yamlFile.toString()) as V1ClusterRole
+    const yamlRole = this.safeLoadFromYamlFile(filePath) as V1ClusterRole
     const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
       const res = await k8sRbacAuthApi.createClusterRole(yamlRole)
@@ -171,8 +199,25 @@ export class KubeHelper {
       if (e.response && e.response.statusCode && e.response.statusCode === 403) {
         return e.response.statusCode
       } else {
-        if (e.body && e.body.message) throw new Error(e.body.message)
-        else throw new Error(e)
+        throw this.wrapK8sClientError(e)
+      }
+    }
+  }
+
+  async replaceClusterRoleFromFile(filePath: string) {
+    const yamlRole = this.safeLoadFromYamlFile(filePath) as V1ClusterRole
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
+    if (!yamlRole.metadata || !yamlRole.metadata.name) {
+      throw new Error(`Cluster Role read from ${filePath} must have name specified`)
+    }
+    try {
+      const res = await k8sRbacAuthApi.replaceClusterRole(yamlRole.metadata.name, yamlRole)
+      return res.response.statusCode
+    } catch (e) {
+      if (e.response && e.response.statusCode && e.response.statusCode === 403) {
+        return e.response.statusCode
+      } else {
+        throw this.wrapK8sClientError(e)
       }
     }
   }
@@ -239,11 +284,24 @@ export class KubeHelper {
   }
 
   async createRoleBindingFromFile(filePath: string, namespace = '') {
-    const yamlFile = readFileSync(filePath)
-    const yamlRoleBinding = yaml.safeLoad(yamlFile.toString()) as V1RoleBinding
+    const yamlRoleBinding = this.safeLoadFromYamlFile(filePath) as V1RoleBinding
     const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
       return await k8sRbacAuthApi.createNamespacedRoleBinding(namespace, yamlRoleBinding)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async replaceRoleBindingFromFile(filePath: string, namespace = '') {
+    const yamlRoleBinding = this.safeLoadFromYamlFile(filePath) as V1RoleBinding
+    if (!yamlRoleBinding.metadata || !yamlRoleBinding.metadata.name) {
+      throw new Error(`Role binding read from ${filePath} must have name specified`)
+    }
+
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
+    try {
+      return await k8sRbacAuthApi.replaceNamespacedRoleBinding(yamlRoleBinding.metadata.name, namespace, yamlRoleBinding)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -271,6 +329,33 @@ export class KubeHelper {
     const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
       return await k8sRbacAuthApi.createClusterRoleBinding(clusterRoleBinding)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async replaceClusterRoleBinding(name: string, saName: string, saNamespace = '', roleName = '') {
+    const clusterRoleBinding = {
+      apiVersion: 'rbac.authorization.k8s.io/v1',
+      metadata: {
+        name: `${name}`
+      },
+      subjects: [
+        {
+          kind: 'ServiceAccount',
+          name: `${saName}`,
+          namespace: `${saNamespace}`
+        }
+      ],
+      roleRef: {
+        kind: 'ClusterRole',
+        name: `${roleName}`,
+        apiGroup: 'rbac.authorization.k8s.io'
+      }
+    } as V1ClusterRoleBinding
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
+    try {
+      return await k8sRbacAuthApi.replaceClusterRoleBinding(name, clusterRoleBinding)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -307,8 +392,7 @@ export class KubeHelper {
   }
 
   async createConfigMapFromFile(filePath: string, namespace = '') {
-    const yamlFile = readFileSync(filePath)
-    const yamlConfigMap = yaml.safeLoad(yamlFile.toString()) as V1ConfigMap
+    const yamlConfigMap = this.safeLoadFromYamlFile(filePath) as V1ConfigMap
     const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
       return await k8sCoreApi.createNamespacedConfigMap(namespace, yamlConfigMap)
@@ -498,6 +582,30 @@ export class KubeHelper {
     }
   }
 
+   // make sure that flag is specified for command that it's invoked
+  async waitLatestReplica(deploymentName: string, namespace = '', intervalMs = 500, timeoutMs = this.podWaitTimeout) {
+    const iterations = timeoutMs / intervalMs
+    for (let index = 0; index < iterations; index++) {
+      const deployment = await this.getDeployment(deploymentName, namespace)
+      if (!deployment) {
+        throw new Error(`Deployment ${namespace}/${deploymentName} is not found.`)
+      }
+
+      const deploymentStatus = deployment.status
+      if (!deploymentStatus) {
+        throw new Error(`Deployment ${namespace}/${deploymentName} does not have any status`)
+      }
+
+      if (deploymentStatus.unavailableReplicas && deploymentStatus.unavailableReplicas > 0) {
+        await cli.wait(intervalMs)
+      } else {
+        return
+      }
+    }
+
+    throw new Error(`ERR_TIMEOUT: Timeout set to pod wait timeout ${this.podWaitTimeout}`)
+  }
+
   async deploymentExist(name = '', namespace = ''): Promise<boolean> {
     const k8sApi = this.kc.makeApiClient(AppsV1Api)
     try {
@@ -631,14 +739,38 @@ export class KubeHelper {
   }
 
   async createDeploymentFromFile(filePath: string, namespace = '', containerImage = '', containerIndex = 0) {
-    const yamlFile = readFileSync(filePath)
-    const yamlDeployment = yaml.safeLoad(yamlFile.toString()) as V1Deployment
+    const yamlDeployment = this.safeLoadFromYamlFile(filePath) as V1Deployment
     if (containerImage) {
       yamlDeployment.spec!.template.spec!.containers[containerIndex].image = containerImage
     }
     const k8sAppsApi = this.kc.makeApiClient(AppsV1Api)
     try {
       return await k8sAppsApi.createNamespacedDeployment(namespace, yamlDeployment)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async replaceDeploymentFromFile(filePath: string, namespace = '', containerImage = '', containerIndex = 0) {
+    const yamlDeployment = this.safeLoadFromYamlFile(filePath) as V1Deployment
+    if (containerImage) {
+      yamlDeployment.spec!.template.spec!.containers[containerIndex].image = containerImage
+    }
+    if (!yamlDeployment.metadata || !yamlDeployment.metadata.name) {
+      throw new Error(`Deployment read from ${filePath} must have name specified`)
+    }
+
+    // updating restartedAt to make sure that rollout will be restarted
+    let annotations = yamlDeployment.spec!.template!.metadata!.annotations
+    if (!annotations) {
+      annotations = {}
+      yamlDeployment.spec!.template!.metadata!.annotations = annotations
+    }
+    annotations['kubectl.kubernetes.io/restartedAt'] = new Date().toISOString()
+
+    const k8sAppsApi = this.kc.makeApiClient(AppsV1Api)
+    try {
+      return await k8sAppsApi.replaceNamespacedDeployment(yamlDeployment.metadata.name, namespace, yamlDeployment)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -664,6 +796,22 @@ export class KubeHelper {
       throw this.wrapK8sClientError(e)
     }
     throw new Error('ERR_LIST_NAMESPACES')
+  }
+
+  async getDeployment(name: string, namespace: string): Promise<V1Deployment | undefined> {
+    const k8sAppsApi = this.kc.makeApiClient(AppsV1Api)
+    try {
+      const res = await k8sAppsApi.readNamespacedDeployment(name, namespace)
+      if (res && res.body) {
+        return res.body!
+      }
+    } catch (error) {
+      if (error.response && error.response.statusCode === 404) {
+        return
+      }
+      throw this.wrapK8sClientError(error)
+    }
+    throw new Error('ERR_GET_DEPLOYMENT')
   }
 
   async createPod(name: string,
@@ -728,11 +876,24 @@ export class KubeHelper {
   }
 
   async createCrdFromFile(filePath: string) {
-    const yamlFile = readFileSync(filePath)
-    const yamlCrd = yaml.safeLoad(yamlFile.toString()) as V1beta1CustomResourceDefinition
+    const yamlCrd = this.safeLoadFromYamlFile(filePath) as V1beta1CustomResourceDefinition
     const k8sApiextensionsApi = this.kc.makeApiClient(ApiextensionsV1beta1Api)
     try {
       return await k8sApiextensionsApi.createCustomResourceDefinition(yamlCrd)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async replaceCrdFromFile(filePath: string, resourceVersion: string) {
+    const yamlCrd = this.safeLoadFromYamlFile(filePath) as V1beta1CustomResourceDefinition
+    if (!yamlCrd.metadata || !yamlCrd.metadata.name) {
+      throw new Error(`CRD read from ${filePath} must have name specified`)
+    }
+    yamlCrd.metadata.resourceVersion = resourceVersion
+    const k8sApiextensionsApi = this.kc.makeApiClient(ApiextensionsV1beta1Api)
+    try {
+      return await k8sApiextensionsApi.replaceCustomResourceDefinition(yamlCrd.metadata.name, yamlCrd)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -748,6 +909,16 @@ export class KubeHelper {
     }
   }
 
+  async getCrd(name = ''): Promise<V1beta1CustomResourceDefinition> {
+    const k8sApiextensionsApi = this.kc.makeApiClient(ApiextensionsV1beta1Api)
+    try {
+      const { body } = await k8sApiextensionsApi.readCustomResourceDefinition(name)
+      return body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
   async deleteCrd(name = '') {
     const k8sApiextensionsApi = this.kc.makeApiClient(ApiextensionsV1beta1Api)
     try {
@@ -759,8 +930,7 @@ export class KubeHelper {
   }
 
   async createCheClusterFromFile(filePath: string, flags: any, useDefaultCR: boolean) {
-    const yamlFile = readFileSync(filePath)
-    let yamlCr = yaml.safeLoad(yamlFile.toString())
+    let yamlCr = this.safeLoadFromYamlFile(filePath)
     const cheNamespace = flags.chenamespace
     if (useDefaultCR) {
       // If we don't use an explicitely provided CheCluster CR,
@@ -1057,6 +1227,10 @@ export class KubeHelper {
   private wrapK8sClientError(e: any): Error {
     if (e.response && e.response.body && e.response.body.message) return new Error(e.response.body.message)
     else return new Error(e)
+  }
+
+  private safeLoadFromYamlFile(filePath: string): any {
+    return yaml.safeLoad(readFileSync(filePath).toString())
   }
 }
 

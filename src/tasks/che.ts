@@ -156,7 +156,7 @@ export class CheTasks {
           }
 
           if (!ctx.isCheDeployed) {
-            task.title = await `${task.title}...it is not`
+            task.title = `${task.title}...it is not`
           } else {
             return new Listr([
               {
@@ -198,7 +198,7 @@ export class CheTasks {
             const status = await this.che.getCheServerStatus(cheURL)
             ctx.isAuthEnabled = await this.che.isAuthenticationEnabled(cheURL)
             const auth = ctx.isAuthEnabled ? '(auth enabled)' : '(auth disabled)'
-            task.title = await `${task.title}...${status} ${auth}`
+            task.title = `${task.title}...${status} ${auth}`
           } catch (error) {
             command.error(`E_CHECK_CHE_STATUS_FAIL - Failed to check Che status (URL: ${cheURL}). ${error.message}`)
           }
