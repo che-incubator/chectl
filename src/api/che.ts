@@ -108,7 +108,7 @@ export class CheHelper {
   }
 
   async cheOpenShiftURL(namespace = ''): Promise<string> {
-    const route_names = ['che', 'che-host']
+    const route_names = ['codeready', 'che-host']
     for (const route_name of route_names) {
       if (await this.oc.routeExist(route_name, namespace)) {
         const protocol = await this.oc.getRouteProtocol(route_name, namespace)

@@ -28,20 +28,20 @@ export class CheTasks {
   cheNamespace: string
 
   cheAccessToken: string
-  cheSelector = 'app=che,component=che'
+  cheSelector = 'app=codeready,component=codeready'
   cheDeploymentName: string
 
   keycloakDeploymentName = 'keycloak'
-  keycloakSelector = 'app=che,component=keycloak'
+  keycloakSelector = 'app=codeready,component=keycloak'
 
   postgresDeploymentName = 'postgres'
-  postgresSelector = 'app=che,component=postgres'
+  postgresSelector = 'app=codeready,component=postgres'
 
   devfileRegistryDeploymentName = 'devfile-registry'
-  devfileRegistrySelector = 'app=che,component=devfile-registry'
+  devfileRegistrySelector = 'app=codeready,component=devfile-registry'
 
   pluginRegistryDeploymentName = 'plugin-registry'
-  pluginRegistrySelector = 'app=che,component=plugin-registry'
+  pluginRegistrySelector = 'app=codeready,component=plugin-registry'
 
   constructor(flags: any) {
     this.kube = new KubeHelper(flags)
