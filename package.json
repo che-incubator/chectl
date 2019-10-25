@@ -22,7 +22,7 @@
     "@types/websocket": "^0.0.40",
     "@types/ws": "^6.0.3",
     "axios": "^0.19.0",
-    "cli-ux": "^5.3.2",
+    "cli-ux": "^5.3.3",
     "command-exists": "^1.2.8",
     "debug": "^4.1.1",
     "eclipse-che": "git://github.com/eclipse/che#master",
