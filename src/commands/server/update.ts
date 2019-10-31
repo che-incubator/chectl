@@ -46,7 +46,7 @@ export default class Update extends Command {
     }),
     'che-operator-image': string({
       description: 'Container image of the operator. This parameter is used only when the installer is the operator',
-      default: 'quay.io/eclipse/che-operator:7.3.0'
+      default: 'quay.io/eclipse/che-operator:7.3.1'
     }),
     'skip-version-check': boolean({
       description: 'Skip user confirmation on version check',
