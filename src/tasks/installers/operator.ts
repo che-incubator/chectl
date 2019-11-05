@@ -91,6 +91,11 @@ export class OperatorTasks {
       },
       {
         title: `Create ClusterRole ${this.operatorClusterRole}`,
+        skip: () => {
+          if (!flags['os-oauth']) {
+            return `No need for ClusterRole ${this.operatorClusterRole}`
+          }
+        },
         task: async (_ctx: any, task: any) => {
           const exist = await kube.clusterRoleExist(this.operatorClusterRole)
           if (exist) {
@@ -120,6 +125,11 @@ export class OperatorTasks {
       },
       {
         title: `Create ClusterRoleBinding ${this.operatorClusterRoleBinding}`,
+        skip: () => {
+          if (!flags['os-oauth']) {
+            return `No need for ClusterRole ${this.operatorClusterRole}`
+          }
+        },
         task: async (_ctx: any, task: any) => {
           const exist = await kube.clusterRoleBindingExist(this.operatorRoleBinding)
           if (exist) {
