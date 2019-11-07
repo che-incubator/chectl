@@ -940,6 +940,7 @@ export class KubeHelper {
       const imageAndTag = cheImage.split(':', 2)
       yamlCr.spec.server.cheImage = imageAndTag[0]
       yamlCr.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
+
       yamlCr.spec.auth.openShiftoAuth = flags['os-oauth']
       yamlCr.spec.server.tlsSupport = flags.tls
       if (flags.tls) {
@@ -962,12 +963,26 @@ export class KubeHelper {
       yamlCr.spec.auth.identityProviderImage = yamlCr.spec.auth.identityProviderImage.replace(tagExp, newTag)
       yamlCr.spec.server.pluginRegistryImage = yamlCr.spec.server.pluginRegistryImage.replace(tagExp, newTag)
       yamlCr.spec.server.devfileRegistryImage = yamlCr.spec.server.devfileRegistryImage.replace(tagExp, newTag)
+
+      if (flags.installer === 'operator') {
+        this.patchCrForOperator(yamlCr)
+      }
     }
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
     try {
       return await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', cheNamespace, 'checlusters', yamlCr)
     } catch (e) {
       throw this.wrapK8sClientError(e)
+    }
+  }
+
+  patchCrForOperator(yamlCr: any): void {
+    if (yamlCr.spec.server.cheImageTag !== 'nightly') {
+      yamlCr.spec.server.cheImage = ''
+      yamlCr.spec.server.cheImageTag = ''
+      yamlCr.spec.server.pluginRegistryImage = ''
+      yamlCr.spec.server.devfileRegistryImage = ''
+      yamlCr.spec.auth.identityProviderImage = ''
     }
   }
 
