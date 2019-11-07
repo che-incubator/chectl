@@ -22,6 +22,8 @@ import { InstallerTasks } from '../../tasks/installers/installer'
 import { K8sTasks } from '../../tasks/platforms/k8s'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 
+import { DEFAULT_CHE_OPERATOR_IMAGE } from './constants'
+
 export default class Update extends Command {
   static description = 'update Eclipse Che Server'
 
@@ -46,7 +48,7 @@ export default class Update extends Command {
     }),
     'che-operator-image': string({
       description: 'Container image of the operator. This parameter is used only when the installer is the operator',
-      default: 'quay.io/eclipse/che-operator:nightly'
+      default: DEFAULT_CHE_OPERATOR_IMAGE
     }),
     'skip-version-check': boolean({
       description: 'Skip user confirmation on version check',

@@ -14,6 +14,9 @@ import { cli } from 'cli-ux'
 import { readFileSync } from 'fs'
 import https = require('https')
 import * as yaml from 'js-yaml'
+
+import { DEFAULT_CHE_IMAGE } from '../commands/server/constants'
+
 export class KubeHelper {
   kc = new KubeConfig()
 
@@ -965,7 +968,7 @@ export class KubeHelper {
       yamlCr.spec.server.devfileRegistryImage = yamlCr.spec.server.devfileRegistryImage.replace(tagExp, newTag)
 
       if (flags.installer === 'operator') {
-        this.patchCrForOperator(yamlCr)
+        this.patchCrForOperator(flags, yamlCr)
       }
     }
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
@@ -976,8 +979,8 @@ export class KubeHelper {
     }
   }
 
-  patchCrForOperator(yamlCr: any): void {
-    if (yamlCr.spec.server.cheImageTag !== 'nightly') {
+  patchCrForOperator(flags: any, yamlCr: any): void {
+    if (yamlCr.spec.server.cheImageTag !== 'nightly' && flags.cheimage === DEFAULT_CHE_IMAGE) {
       yamlCr.spec.server.cheImage = ''
       yamlCr.spec.server.cheImageTag = ''
       yamlCr.spec.server.pluginRegistryImage = ''
