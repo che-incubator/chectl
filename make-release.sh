@@ -19,8 +19,8 @@ init() {
 }
 
 check() {
-  if [ $# -eq 0 ]; then
-    printf "%bError: %bNo version provided. Command is $ make-release.sh <version>\n" "${RED}" "${NC}"
+  if [ $# -ne 2 ]; then
+    printf "%bError: %bWrong number of parameters.\nUsage: ./make-release.sh <version> <branch>\n" "${RED}" "${NC}"
     exit 1
   fi
 }
@@ -35,7 +35,12 @@ apply_sed() {
 }
 
 run() {
-  # use master branch
+  
+  VERSION=$1
+  BRANCH_NAME=$2
+  GIT_REMOTE_UPSTREAM=upstream
+  GIT_REMOTE_FORK=origin
+
   git checkout master
 
   # reset local changes
@@ -48,12 +53,17 @@ run() {
     esac
   done
 
-  git fetch
+  git fetch ${GIT_REMOTE_UPSTREAM}
   if git show-ref -q --heads "release"; then
     git branch -D release
   fi
 
-  VERSION=$1
+  # fetch latest changes from master branch
+  git pull ${GIT_REMOTE_UPSTREAM} master
+
+  # create a new local and push it to remote branch
+  git checkout -b ${BRANCH_NAME} master
+  git push ${GIT_REMOTE_UPSTREAM} ${BRANCH_NAME}
 
   # Create VERSION file
   echo "$VERSION" > VERSION
@@ -66,11 +76,12 @@ run() {
   apply_sed "s;github.com/eclipse/che#\(.*\)\",;github.com/eclipse/che#${VERSION}\",;g" package.json
   apply_sed "s;github.com/eclipse/che-operator#\(.*\)\",;github.com/eclipse/che-operator#${VERSION}\",;g" package.json
 
-  # move into the release branch
-  git checkout -b release
-
   # add VERSION file to commit
   git add VERSION src package.json yarn.lock
+
+  git commit -a -s -m "chore(release): release version ${VERSION}"
+
+  git push ${GIT_REMOTE_FORK} ${BRANCH_NAME}
 }
 
 init "$@"
