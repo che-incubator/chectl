@@ -59,10 +59,8 @@ run() {
   echo "$VERSION" > VERSION
 
   # replace nightly versions by release version
-  apply_sed "s#eclipse/che-server:nightly#eclipse/che-server:${VERSION}#g" src/commands/server/start.ts
-  apply_sed "s#quay.io/eclipse/che-operator:nightly#quay.io/eclipse/che-operator:${VERSION}#g" src/commands/server/start.ts
-
-  apply_sed "s#quay.io/eclipse/che-operator:nightly#quay.io/eclipse/che-operator:${VERSION}#g" src/commands/server/update.ts
+  apply_sed "s#eclipse/che-server:nightly#eclipse/che-server:${VERSION}#g" src/constants.ts
+  apply_sed "s#quay.io/eclipse/che-operator:nightly#quay.io/eclipse/che-operator:${VERSION}#g" src/constants.ts
 
   # now replace package.json dependencies
   apply_sed "s;github.com/eclipse/che#\(.*\)\",;github.com/eclipse/che#${VERSION}\",;g" package.json
