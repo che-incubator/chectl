@@ -15,7 +15,7 @@ import { readFileSync } from 'fs'
 import https = require('https')
 import * as yaml from 'js-yaml'
 
-import { DEFAULT_CHE_IMAGE } from '../commands/server/constants'
+import { DEFAULT_CHE_IMAGE } from '../constants'
 
 export class KubeHelper {
   kc = new KubeConfig()
@@ -961,14 +961,26 @@ export class KubeHelper {
         yamlCr.spec.server.devfileRegistryUrl = devfileRegistryUrl
         yamlCr.spec.server.externalDevfileRegistry = true
       }
-      const tagExp = /:[^:]*$/
-      const newTag = `:${yamlCr.spec.server.cheImageTag}`
-      yamlCr.spec.auth.identityProviderImage = yamlCr.spec.auth.identityProviderImage.replace(tagExp, newTag)
-      yamlCr.spec.server.pluginRegistryImage = yamlCr.spec.server.pluginRegistryImage.replace(tagExp, newTag)
-      yamlCr.spec.server.devfileRegistryImage = yamlCr.spec.server.devfileRegistryImage.replace(tagExp, newTag)
 
-      if (flags.installer === 'operator') {
-        this.patchCrForOperator(flags, yamlCr)
+      if (flags.cheimage === DEFAULT_CHE_IMAGE &&
+          yamlCr.spec.server.cheImageTag !== 'nightly' &&
+          yamlCr.spec.server.cheImageTag !== 'latest') {
+        // We obviously are using a release version of chectl with the default `cheimage`
+        // => We should use the operator defaults for docker images
+        yamlCr.spec.server.cheImage = ''
+        yamlCr.spec.server.cheImageTag = ''
+        yamlCr.spec.server.pluginRegistryImage = ''
+        yamlCr.spec.server.devfileRegistryImage = ''
+        yamlCr.spec.auth.identityProviderImage = ''
+      } else {
+        // We obviously are using a non-released version of chectl
+        // or are providing a non-default `cheimage`, with a specific tag, to run with
+        // => We should override the image tags for all the associated docker images
+        const tagExp = /:[^:]*$/
+        const newTag = `:${yamlCr.spec.server.cheImageTag}`
+        yamlCr.spec.auth.identityProviderImage = yamlCr.spec.auth.identityProviderImage.replace(tagExp, newTag)
+        yamlCr.spec.server.pluginRegistryImage = yamlCr.spec.server.pluginRegistryImage.replace(tagExp, newTag)
+        yamlCr.spec.server.devfileRegistryImage = yamlCr.spec.server.devfileRegistryImage.replace(tagExp, newTag)
       }
     }
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
@@ -976,16 +988,6 @@ export class KubeHelper {
       return await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', cheNamespace, 'checlusters', yamlCr)
     } catch (e) {
       throw this.wrapK8sClientError(e)
-    }
-  }
-
-  patchCrForOperator(flags: any, yamlCr: any): void {
-    if (yamlCr.spec.server.cheImageTag !== 'nightly' && flags.cheimage === DEFAULT_CHE_IMAGE) {
-      yamlCr.spec.server.cheImage = ''
-      yamlCr.spec.server.cheImageTag = ''
-      yamlCr.spec.server.pluginRegistryImage = ''
-      yamlCr.spec.server.devfileRegistryImage = ''
-      yamlCr.spec.auth.identityProviderImage = ''
     }
   }
 

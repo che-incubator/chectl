@@ -16,12 +16,11 @@ import * as notifier from 'node-notifier'
 import * as path from 'path'
 
 import { cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
+import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { K8sTasks } from '../../tasks/platforms/k8s'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-
-import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE } from './constants'
 
 export default class Start extends Command {
   static description = 'start Eclipse Che Server'
