@@ -11,7 +11,7 @@ import { string } from '@oclif/parser/lib/flags'
 
 export const cheNamespace = string({
   char: 'n',
-  description: 'Kubernetes namespace where Che server is supposed by be deployed',
+  description: 'Kubernetes namespace where Che server is supposed to be deployed',
   default: 'che',
   env: 'CHE_NAMESPACE'
 })
