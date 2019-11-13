@@ -193,9 +193,9 @@ export class OperatorTasks {
       {
         title: 'Checking versions compatibility before updating',
         task: async (ctx: any, _task: any) => {
-          const operatorDeployment = await kube.getDeployment('che-operator', flags.chenamespace)
+          const operatorDeployment = await kube.getDeployment(this.operatorName, flags.chenamespace)
           if (!operatorDeployment) {
-            command.error(`che-operator deployment is not found in namespace ${flags.chenamespace}.\nProbably Che was initially deployed with another installer`)
+            command.error(`${this.operatorName} deployment is not found in namespace ${flags.chenamespace}.\nProbably Che was initially deployed with another installer`)
             return
           }
           const deployedCheOperator = this.retrieveContainerImage(operatorDeployment)
@@ -343,7 +343,7 @@ export class OperatorTasks {
         title: 'Waiting newer operator to be run',
         task: async (_ctx: any, _task: any) => {
           await cli.wait(1000)
-          await kube.waitLatestReplica('che-operator', flags.chenamespace)
+          await kube.waitLatestReplica(this.operatorName, flags.chenamespace)
         }
       }
     ], { renderer: flags['listr-renderer'] as any })
@@ -355,11 +355,11 @@ export class OperatorTasks {
   deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     let kh = new KubeHelper(flags)
     return [{
-      title: 'Delete the CR eclipse-che of type checlusters.org.eclipse.che',
+      title: `Delete the CR ${this.operatorCheCluster} of type ${this.cheClusterCrd}`,
       task: async (_ctx: any, task: any) => {
-        if (await kh.crdExist('checlusters.org.eclipse.che') &&
-          await kh.cheClusterExist('eclipse-che', flags.chenamespace)) {
-          await kh.deleteCheCluster('eclipse-che', flags.chenamespace)
+        if (await kh.crdExist(this.cheClusterCrd) &&
+          await kh.cheClusterExist(this.operatorCheCluster, flags.chenamespace)) {
+          await kh.deleteCheCluster(this.operatorCheCluster, flags.chenamespace)
           await cli.wait(2000) //wait a couple of secs for the finalizers to be executed
           task.title = await `${task.title}...OK`
         } else {
@@ -368,43 +368,52 @@ export class OperatorTasks {
       }
     },
     {
-      title: 'Delete CRD checlusters.org.eclipse.che',
+      title: `Delete CRD ${this.cheClusterCrd}`,
       task: async (_ctx: any, task: any) => {
-        if (await kh.crdExist('checlusters.org.eclipse.che')) {
-          await kh.deleteCrd('checlusters.org.eclipse.che')
+        if (await kh.crdExist(this.cheClusterCrd)) {
+          await kh.deleteCrd(this.cheClusterCrd)
         }
         task.title = await `${task.title}...OK`
       }
     },
     {
-      title: 'Delete role che-operator',
+      title: `Delete role binding ${this.operatorRoleBinding}`,
       task: async (_ctx: any, task: any) => {
-        if (await kh.roleExist('che-operator', flags.chenamespace)) {
-          await kh.deleteRole('che-operator', flags.chenamespace)
+        if (await kh.roleBindingExist(this.operatorRoleBinding, flags.chenamespace)) {
+          await kh.deleteRoleBinding(this.operatorRoleBinding, flags.chenamespace)
         }
         task.title = await `${task.title}...OK`
       }
     },
     {
-      title: 'Delete cluster role binding che-operator',
+      title: `Delete role ${this.operatorRole}`,
       task: async (_ctx: any, task: any) => {
-        if (await kh.clusterRoleBindingExist('che-operator')) {
-          await kh.deleteClusterRoleBinding('che-operator')
+        if (await kh.roleExist(this.operatorRole, flags.chenamespace)) {
+          await kh.deleteRole(this.operatorRole, flags.chenamespace)
         }
         task.title = await `${task.title}...OK`
       }
     },
     {
-      title: 'Delete cluster role che-operator',
+      title: `Delete cluster role binding ${this.operatorClusterRoleBinding}`,
       task: async (_ctx: any, task: any) => {
-        if (await kh.clusterRoleExist('che-operator')) {
-          await kh.deleteClusterRole('che-operator')
+        if (await kh.clusterRoleBindingExist(this.operatorClusterRoleBinding)) {
+          await kh.deleteClusterRoleBinding(this.operatorClusterRoleBinding)
         }
         task.title = await `${task.title}...OK`
       }
     },
     {
-      title: 'Delete rolebinding che-operator',
+      title: `Delete cluster role ${this.operatorClusterRole}`,
+      task: async (_ctx: any, task: any) => {
+        if (await kh.clusterRoleExist(this.operatorClusterRole)) {
+          await kh.deleteClusterRole(this.operatorClusterRole)
+        }
+        task.title = await `${task.title}...OK`
+      }
+    },
+    {
+      title: 'Delete server and workspace rolebindings',
       task: async (_ctx: any, task: any) => {
         if (await kh.roleBindingExist('che', flags.chenamespace)) {
           await kh.deleteRoleBinding('che', flags.chenamespace)
@@ -419,10 +428,10 @@ export class OperatorTasks {
       }
     },
     {
-      title: 'Delete service accounts che-operator',
+      title: `Delete service accounts ${this.operatorServiceAccount}`,
       task: async (_ctx: any, task: any) => {
-        if (await kh.roleBindingExist('che-operator', flags.chenamespace)) {
-          await kh.deleteServiceAccount('che-operator', flags.chenamespace)
+        if (await kh.serviceAccountExist(this.operatorServiceAccount, flags.chenamespace)) {
+          await kh.deleteServiceAccount(this.operatorServiceAccount, flags.chenamespace)
         }
         task.title = await `${task.title}...OK`
       }
