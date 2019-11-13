@@ -193,9 +193,9 @@ export class OperatorTasks {
       {
         title: 'Checking versions compatibility before updating',
         task: async (ctx: any, _task: any) => {
-          const operatorDeployment = await kube.getDeployment('che-operator', flags.chenamespace)
+          const operatorDeployment = await kube.getDeployment(this.operatorName, flags.chenamespace)
           if (!operatorDeployment) {
-            command.error(`che-operator deployment is not found in namespace ${flags.chenamespace}.\nProbably Che was initially deployed with another installer`)
+            command.error(`${this.operatorName} deployment is not found in namespace ${flags.chenamespace}.\nProbably Che was initially deployed with another installer`)
             return
           }
           const deployedCheOperator = this.retrieveContainerImage(operatorDeployment)
@@ -343,7 +343,7 @@ export class OperatorTasks {
         title: 'Waiting newer operator to be run',
         task: async (_ctx: any, _task: any) => {
           await cli.wait(1000)
-          await kube.waitLatestReplica('che-operator', flags.chenamespace)
+          await kube.waitLatestReplica(this.operatorName, flags.chenamespace)
         }
       }
     ], { renderer: flags['listr-renderer'] as any })
