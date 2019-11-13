@@ -775,6 +775,14 @@ export class KubeHelper {
     try {
       return await k8sAppsApi.replaceNamespacedDeployment(yamlDeployment.metadata.name, namespace, yamlDeployment)
     } catch (e) {
+      if (e.response && e.response.body && e.response.body.message && e.response.body.message.toString().endsWith('field is immutable')) {
+        try {
+          await k8sAppsApi.deleteNamespacedDeployment(yamlDeployment.metadata.name, namespace)
+          return k8sAppsApi.createNamespacedDeployment(namespace, yamlDeployment)
+        } catch (e) {
+          throw this.wrapK8sClientError(e)
+        }
+      }
       throw this.wrapK8sClientError(e)
     }
   }
