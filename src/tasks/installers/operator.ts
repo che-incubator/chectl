@@ -413,7 +413,7 @@ export class OperatorTasks {
       }
     },
     {
-      title: `Delete server and workspace rolebindings`,
+      title: 'Delete server and workspace rolebindings',
       task: async (_ctx: any, task: any) => {
         if (await kh.roleBindingExist('che', flags.chenamespace)) {
           await kh.deleteRoleBinding('che', flags.chenamespace)
@@ -437,7 +437,7 @@ export class OperatorTasks {
       }
     },
     {
-      title: `Delete PVC che-operator`,
+      title: 'Delete PVC che-operator',
       task: async (_ctx: any, task: any) => {
         if (await kh.persistentVolumeClaimExist('che-operator', flags.chenamespace)) {
           await kh.deletePersistentVolumeClaim('che-operator', flags.chenamespace)
