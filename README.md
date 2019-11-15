@@ -115,7 +115,7 @@ EXAMPLES
   $ chectl autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.3/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.4/src/commands/autocomplete/index.ts)_
 
 ## `chectl devfile:generate`
 
@@ -175,9 +175,12 @@ USAGE
   $ chectl server:delete
 
 OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che was deployed
-  --listr-renderer=listr-renderer  [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
+                                           deployed
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
 _See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/delete.ts)_
@@ -191,57 +194,72 @@ USAGE
   $ chectl server:start
 
 OPTIONS
-  -a, --installer=installer                    Installer type. Valid values are "helm", "operator" and "minishift-addon"
+  -a, --installer=helm|operator|minishift-addon
+      Installer type
 
-  -b, --domain=domain                          Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or
-                                               <local-ip>.nip.io)
+  -b, --domain=domain
+      Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
 
-  -h, --help                                   show CLI help
+  -h, --help
+      show CLI help
 
-  -i, --cheimage=cheimage                      [default: eclipse/che-server:nightly] Che server container image
+  -i, --cheimage=cheimage
+      [default: eclipse/che-server:nightly] Che server container image
 
-  -m, --multiuser                              Starts che in multi-user mode
+  -m, --multiuser
+      Starts che in multi-user mode
 
-  -n, --chenamespace=chenamespace              [default: che] Kubernetes namespace where Che resources will be deployed
+  -n, --chenamespace=chenamespace
+      [default: che] Kubernetes namespace where Che server is supposed to be deployed
 
-  -o, --cheboottimeout=cheboottimeout          (required) [default: 40000] Che server bootstrap timeout (in
-                                               milliseconds)
+  -o, --cheboottimeout=cheboottimeout
+      (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
 
-  -p, --platform=platform                      Type of Kubernetes platform. Valid values are "minikube", "minishift",
-                                               "k8s (for kubernetes)", "openshift", "crc (for CodeReady Containers)",
-                                               "microk8s".
+  -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc
+      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc 
+      (for CodeReady Containers)", "microk8s".
 
-  -s, --tls                                    Enable TLS encryption.
-                                               Note that for kubernetes 'che-tls' with TLS
-                                               certificate must be created in the configured namespace.
-                                               For OpenShift, router will use default cluster
-                                               certificates.
+  -s, --tls
+      Enable TLS encryption.
+                           Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured 
+      namespace.
+                           For OpenShift, router will use default cluster certificates.
 
-  -t, --templates=templates                    [default: templates] Path to the templates folder
+  -t, --templates=templates
+      [default: templates] Path to the templates folder
 
-  --che-operator-cr-yaml=che-operator-cr-yaml  Path to a yaml file that defines a CheCluster used by the operator. This
-                                               parameter is used only when the installer is the operator.
+  --che-operator-cr-yaml=che-operator-cr-yaml
+      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer 
+      is the operator.
 
-  --che-operator-image=che-operator-image      [default: quay.io/eclipse/che-operator:nightly] Container image of the
-                                               operator. This parameter is used only when the installer is the operator
+  --che-operator-image=che-operator-image
+      [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when 
+      the installer is the operator
 
-  --devfile-registry-url=devfile-registry-url  The URL of the external Devfile registry.
+  --deployment-name=deployment-name
+      [default: che] Che deployment name
 
-  --k8spodreadytimeout=k8spodreadytimeout      [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
+  --devfile-registry-url=devfile-registry-url
+      The URL of the external Devfile registry.
 
-  --k8spodwaittimeout=k8spodwaittimeout        [default: 300000] Waiting time for Pod Wait Timeout Kubernetes (in
-                                               milliseconds)
+  --k8spodreadytimeout=k8spodreadytimeout
+      [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
 
-  --listr-renderer=listr-renderer              [default: default] Listr renderer. Can be 'default', 'silent' or
-                                               'verbose'
+  --k8spodwaittimeout=k8spodwaittimeout
+      [default: 300000] Waiting time for Pod Wait Timeout Kubernetes (in milliseconds)
 
-  --os-oauth                                   Enable use of OpenShift credentials to log into Che
+  --listr-renderer=default|silent|verbose
+      [default: default] Listr renderer
 
-  --plugin-registry-url=plugin-registry-url    The URL of the external plugin registry.
+  --os-oauth
+      Enable use of OpenShift credentials to log into Che
 
-  --self-signed-cert                           Authorize usage of self signed certificates for encryption. Note that
-                                               `self-signed-cert` secret with CA certificate must be created in the
-                                               configured namespace.
+  --plugin-registry-url=plugin-registry-url
+      The URL of the external plugin registry.
+
+  --self-signed-cert
+      Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate 
+      must be created in the configured namespace.
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
@@ -255,12 +273,18 @@ USAGE
   $ chectl server:stop
 
 OPTIONS
-  -h, --help                         show CLI help
-  -n, --chenamespace=chenamespace    [default: che] Kubernetes namespace where Che resources will be deployed
-  --access-token=access-token        Che OIDC Access Token
-  --che-selector=che-selector        [default: app=che,component=che] Selector for Che Server resources
-  --deployment-name=deployment-name  [default: che] Che deployment name
-  --listr-renderer=listr-renderer    [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
+                                           deployed
+
+  --access-token=access-token              Che OIDC Access Token
+
+  --che-selector=che-selector              [default: app=che,component=che] Selector for Che Server resources
+
+  --deployment-name=deployment-name        [default: che] Che deployment name
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
 _See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
@@ -274,29 +298,34 @@ USAGE
   $ chectl server:update
 
 OPTIONS
-  -a, --installer=helm|operator|minishift-addon        Installer type
+  -a, --installer=helm|operator|minishift-addon                                Installer type
+  -h, --help                                                                   show CLI help
 
-  -h, --help                                           show CLI help
+  -n, --chenamespace=chenamespace                                              [default: che] Kubernetes namespace where
+                                                                               Che server is supposed to be deployed
 
-  -n, --chenamespace=chenamespace                      [default: che] Kubernetes namespace where Che server is supposed by be deployed
+  -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc  Type of Kubernetes platform. Valid values
+                                                                               are "minikube", "minishift", "k8s (for
+                                                                               kubernetes)", "openshift", "crc (for
+                                                                               CodeReady Containers)", "microk8s".
 
-  -p, --platform=minikube|minishift|
-                 k8s|openshift|
-                 microk8s|docker-desktop|  
-                 crc                                    Type of Kubernetes platform. 
-                                                        Valid values are "minikube", "minishift", "k8s (for kubernetes)", 
-                                                        "openshift", "crc (for CodeReady Containers)", "microk8s".
+  -t, --templates=templates                                                    [default: templates] Path to the
+                                                                               templates folder
 
-  -t, --templates=templates                             [default: templates] Path to the templates folder
+  --che-operator-image=che-operator-image                                      [default:
+                                                                               quay.io/eclipse/che-operator:nightly]
+                                                                               Container image of the operator. This
+                                                                               parameter is used only when the installer
+                                                                               is the operator
 
-  --deployment-name=deployment-name                     [default: che] Che deployment name
+  --deployment-name=deployment-name                                            [default: che] Che deployment name
 
-  --listr-renderer=default|silent|verbose               [default: default] Listr renderer
+  --listr-renderer=default|silent|verbose                                      [default: default] Listr renderer
 
-  --skip-version-check                                  Should be specified if user confirmation after version check should be skipped
+  --skip-version-check                                                         Skip user confirmation on version check
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/master/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_
 
 ## `chectl update [CHANNEL]`
 
@@ -318,18 +347,19 @@ USAGE
   $ chectl workspace:inject
 
 OPTIONS
-  -c, --container=container        Target container. If not specified, configuration files will be injected in all
-                                   containers of a Che Workspace pod
+  -c, --container=container                Target container. If not specified, configuration files will be injected in
+                                           all containers of a Che Workspace pod
 
-  -h, --help                       show CLI help
+  -h, --help                               show CLI help
 
-  -k, --kubeconfig                 Inject the local Kubernetes configuration
+  -k, --kubeconfig                         Inject the local Kubernetes configuration
 
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che workspace is running
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
+                                           deployed
 
-  -w, --workspace=workspace        Target workspace. Can be omitted if only one Workspace is running
+  -w, --workspace=workspace                Target workspace. Can be omitted if only one Workspace is running
 
-  --listr-renderer=listr-renderer  [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
 _See code: [src/commands/workspace/inject.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/inject.ts)_
@@ -343,9 +373,14 @@ USAGE
   $ chectl workspace:list
 
 OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che server is deployed
-  --listr-renderer=listr-renderer  [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
+                                           deployed
+
+  --access-token=access-token              Che OIDC Access Token
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
 _See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/list.ts)_
@@ -359,15 +394,20 @@ USAGE
   $ chectl workspace:start
 
 OPTIONS
-  -f, --devfile=devfile                  path or URL to a valid devfile
-  -h, --help                             show CLI help
-  -n, --chenamespace=chenamespace        [default: che] kubernetes namespace where Che server is deployed
-  -w, --workspaceconfig=workspaceconfig  path to a valid workspace configuration json file
-  --access-token=access-token            Che OIDC Access Token
-  --listr-renderer=listr-renderer        [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
+  -f, --devfile=devfile                    path or URL to a valid devfile
+  -h, --help                               show CLI help
 
-  --name=name                            workspace name: overrides the workspace name to use instead of the one defined
-                                         in the devfile. Works only for devfile
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
+                                           deployed
+
+  -w, --workspaceconfig=workspaceconfig    path to a valid workspace configuration json file
+
+  --access-token=access-token              Che OIDC Access Token
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+
+  --name=name                              workspace name: overrides the workspace name to use instead of the one
+                                           defined in the devfile. Works only for devfile
 ```
 
 _See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
@@ -381,9 +421,14 @@ USAGE
   $ chectl workspace:stop
 
 OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che server is deployed
-  --listr-renderer=listr-renderer  [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
+                                           deployed
+
+  --access-token=access-token              Che OIDC Access Token
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
 _See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_
