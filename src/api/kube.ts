@@ -533,7 +533,7 @@ export class KubeHelper {
       podExist = await this.podsExistBySelector(selector, namespace)
       if (podExist) {
         currentPhase = await this.getPodPhase(selector, namespace)
-        if (currentPhase === 'Pending') {
+        if (currentPhase === 'Pending' || currentPhase === 'Running') {
           return
         } else {
           throw new Error(`ERR_UNEXPECTED_PHASE: ${currentPhase} (Pending expected) `)
