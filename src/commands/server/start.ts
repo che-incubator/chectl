@@ -170,7 +170,7 @@ export default class Start extends Command {
         }
       }
       if (flags['os-oauth']) {
-        if (flags.platform !== 'openshift' && flags.platform !== 'minishift') {
+        if (flags.platform !== 'openshift' && flags.platform !== 'minishift' && flags.platform !== 'crc') {
           this.error(`You requested to enable OpenShift OAuth but the platform doesn\'t seem to be OpenShift. Platform is ${flags.platform}.`)
         }
         if (flags.installer !== 'operator') {
