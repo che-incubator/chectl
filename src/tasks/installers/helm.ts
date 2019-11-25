@@ -16,6 +16,7 @@ import { copy, mkdirp, remove } from 'fs-extra'
 import * as Listr from 'listr'
 import * as path from 'path'
 
+import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 
 export class HelmTasks {
@@ -27,6 +28,33 @@ export class HelmTasks {
       {
         title: 'Verify if helm is installed',
         task: () => { if (!commandExists.sync('helm')) { command.error('E_REQUISITE_NOT_FOUND') } }
+      },
+      {
+        title: 'Check Helm Version',
+        task: async (ctx: any, task: any) => {
+          try {
+            const version = await this.getVersion()
+            if (version.startsWith('v3.')) {
+              ctx.isHelmV3 = true
+            }
+            task.title = await `${task.title}: Found ${version}`
+          } catch (error) {
+            command.error(`Unable to get helm version. ${error.message}`)
+          }
+        }
+      },
+      {
+        title: `Create Namespace (${flags.chenamespace})`,
+        task: async (_ctx: any, task: any) => {
+          const che = new CheHelper(flags)
+          const exist = await che.cheNamespaceExist(flags.chenamespace)
+          if (exist) {
+            task.title = `${task.title}...does already exist.`
+          } else {
+            await execa(`kubectl create namespace ${flags.chenamespace}`, { shell: true })
+            task.title = `${task.title}...done.`
+          }
+        }
       },
       {
         title: 'Check for TLS secret prerequisites',
@@ -72,6 +100,8 @@ export class HelmTasks {
       },
       {
         title: 'Create Tiller Role Binding',
+        // Tiller is not used anymore in helm v3
+        enabled: (ctx: any) => !ctx.isHelmV3,
         task: async (_ctx: any, task: any) => {
           const roleBindingExist = await this.tillerRoleBindingExist()
           if (roleBindingExist) {
@@ -83,7 +113,23 @@ export class HelmTasks {
         }
       },
       {
+        title: 'Check Cluster Role Binding',
+        // For helm v3 check for cluster role and delete it if exists
+        enabled: (ctx: any) => ctx.isHelmV3,
+        task: async (_ctx: any, task: any) => {
+          const roleBindingExist = await this.clusterRoleBindingExist(flags.chenamespace)
+          if (!roleBindingExist) {
+            task.title = `${task.title}...does not exists.`
+          } else {
+            await this.removeClusterRoleBinding(flags.chenamespace)
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
+      {
         title: 'Create Tiller Service Account',
+        // Tiller is not used anymore in helm v3
+        enabled: (ctx: any) => !ctx.isHelmV3,
         task: async (_ctx: any, task: any) => {
           const tillerServiceAccountExist = await this.tillerServiceAccountExist()
           if (tillerServiceAccountExist) {
@@ -96,9 +142,13 @@ export class HelmTasks {
       },
       {
         title: 'Create Tiller RBAC',
+        // Tiller is not used anymore in helm v3
+        enabled: (ctx: any) => !ctx.isHelmV3,
         task: async () => this.createTillerRBAC(flags.templates)
       },
       {
+        // Tiller is not used anymore in helm v3
+        enabled: (ctx: any) => !ctx.isHelmV3,
         title: 'Create Tiller Service',
         task: async (_ctx: any, task: any) => {
           const tillerServiceExist = await this.tillerServiceExist()
@@ -152,6 +202,16 @@ export class HelmTasks {
     }]
   }
 
+  async clusterRoleBindingExist(cheNamespace: string, execTimeout = 30000): Promise<boolean> {
+    const { exitCode } = await execa('kubectl', ['get', 'clusterrolebinding', `${cheNamespace}-che-clusterrole-binding`], { timeout: execTimeout, reject: false })
+    if (exitCode === 0) { return true } else { return false }
+  }
+
+  async removeClusterRoleBinding(cheNamespace: string, execTimeout = 30000): Promise<boolean> {
+    const { exitCode } = await execa('kubectl', ['delete', 'clusterrolebinding', `${cheNamespace}-che-clusterrole-binding`], { timeout: execTimeout, reject: false })
+    if (exitCode === 0) { return true } else { return false }
+  }
+
   async tillerRoleBindingExist(execTimeout = 30000): Promise<boolean> {
     const { exitCode } = await execa('kubectl', ['get', 'clusterrolebinding', 'add-on-cluster-admin'], { timeout: execTimeout, reject: false })
     if (exitCode === 0) { return true } else { return false }
@@ -180,6 +240,12 @@ export class HelmTasks {
   async tillerServiceExist(execTimeout = 30000): Promise<boolean> {
     const { exitCode } = await execa('kubectl', ['get', 'services', 'tiller-deploy', '-n', 'kube-system'], { timeout: execTimeout, reject: false })
     if (exitCode === 0) { return true } else { return false }
+  }
+
+  async getVersion(execTimeout = 10000): Promise<string> {
+    const { stdout, exitCode } = await execa('helm', ['version', '--short'], { timeout: execTimeout, reject: false })
+    if (exitCode === 0) { return stdout }
+    throw new Error('Unable to get version')
   }
 
   async createTillerService(execTimeout = 120000) {
