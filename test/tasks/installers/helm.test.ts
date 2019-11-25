@@ -1,0 +1,28 @@
+/*********************************************************************
+ * Copyright (c) 2019 Red Hat, Inc.
+ *
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ **********************************************************************/
+// tslint:disable:object-curly-spacing
+import { expect, fancy } from 'fancy-test'
+import * as execa from 'execa'
+
+import { HelmTasks } from '../../../src/tasks/installers/helm'
+
+jest.mock('execa')
+
+let helmTasks = new HelmTasks()
+describe('Helm helper', () => {
+
+  fancy
+    .it('check get v3 version', async () => {
+      const helmVersionOutput = 'v3.0.0+ge29ce2a';
+      (execa as any).mockResolvedValue({ exitCode: 0, stdout: helmVersionOutput })
+      const version = await helmTasks.getVersion();
+      expect(version).to.equal('v3.0.0+ge29ce2a')
+    })
+})
