@@ -20,7 +20,7 @@
     "@types/node-notifier": "^5.4.0",
     "@types/request": "^2.48.3",
     "@types/websocket": "^1.0.0",
-    "@types/ws": "^6.0.3",
+    "@types/ws": "^6.0.4",
     "axios": "^0.19.0",
     "cli-ux": "^5.3.3",
     "command-exists": "^1.2.8",
