@@ -9,6 +9,7 @@
  **********************************************************************/
 // tslint:disable:object-curly-spacing
 import { expect, fancy } from 'fancy-test'
+import * as execa from 'execa'
 
 import { MinishiftAddonTasks } from '../../../src/tasks/installers/minishift-addon'
 
