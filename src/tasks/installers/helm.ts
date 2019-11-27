@@ -243,7 +243,11 @@ export class HelmTasks {
   }
 
   async getVersion(execTimeout = 10000): Promise<string> {
-    const { stdout, exitCode } = await execa('helm', ['version', '--short'], { timeout: execTimeout, reject: false })
+    let { stdout, exitCode } = await execa('helm', ['version', '-c', '--short'], { timeout: execTimeout, reject: false })
+    const CLIENT_PREFIX = 'Client: '
+    if (stdout.startsWith(CLIENT_PREFIX)) {
+      stdout = stdout.substring(CLIENT_PREFIX.length)
+    }
     if (exitCode === 0) { return stdout }
     throw new Error('Unable to get version')
   }

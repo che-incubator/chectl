@@ -25,4 +25,12 @@ describe('Helm helper', () => {
       const version = await helmTasks.getVersion();
       expect(version).to.equal('v3.0.0+ge29ce2a')
     })
+
+    fancy
+    .it('check get v2 version', async () => {
+      const helmVersionOutput = 'Client: v2.13.0-rc.2+gb0d4c9e';
+      (execa as any).mockResolvedValue({ exitCode: 0, stdout: helmVersionOutput })
+      const version = await helmTasks.getVersion();
+      expect(version).to.equal('v2.13.0-rc.2+gb0d4c9e')
+    })    
 })
