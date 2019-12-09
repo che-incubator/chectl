@@ -359,6 +359,8 @@ OPTIONS
 
   -w, --workspace=workspace                Target workspace. Can be omitted if only one Workspace is running
 
+  --kube-context=kube-context              (required) [default: minikube] Kubeconfig context to inject
+
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
