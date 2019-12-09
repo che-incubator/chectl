@@ -18,6 +18,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
+import { KubeHelper } from '../../api/kube'
 import { cheNamespace, listrRenderer } from '../../common-flags'
 
 export default class Inject extends Command {
@@ -40,8 +41,7 @@ export default class Inject extends Command {
     }),
     'kube-context': string({
       description: 'Kubeconfig context to inject',
-      default: 'minikube',
-      required: true
+      required: false
     }),
     chenamespace: cheNamespace,
     'listr-renderer': listrRenderer
@@ -100,11 +100,16 @@ export default class Inject extends Command {
 
   async injectKubeconfigTasks(flags: any): Promise<Listr> {
     const kubeContext = flags['kube-context']
-    const kc = new KubeConfig()
-    kc.loadFromDefault()
-    const contextToInject = kc.getContexts().find(c => c.name === kubeContext)
-    if (!contextToInject) {
-      this.error(`Context ${kubeContext} is not found in the source kubeconfig`)
+    let contextToInject: Context | null
+    const kh = new KubeHelper(flags)
+    if (kubeContext) {
+      contextToInject = kh.getContext(kubeContext)
+      if (!contextToInject) {
+        this.error(`Context ${kubeContext} is not found in the source kubeconfig`)
+      }
+    } else {
+      const currentContext = await kh.currentContext()
+      contextToInject = kh.getContext(currentContext)
     }
 
     const che = new CheHelper(flags)
