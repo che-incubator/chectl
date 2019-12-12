@@ -39,7 +39,7 @@ export class CheHelper {
 
     const res = await k8sApi.listNamespacedPod(namespace)
     const pods = res.body.items
-    const wsPods = pods.filter(pod => pod.metadata!.labels!['che.workspace_id'])
+    const wsPods = pods.filter(pod => pod.metadata!.labels!['che.workspace_id'] && pod.metadata!.labels!['che.original_name'] !== 'che-jwtproxy')
     if (wsPods.length === 0) {
       throw new Error('No workspace pod is found')
     }
@@ -64,7 +64,7 @@ export class CheHelper {
 
     const res = await k8sApi.listNamespacedPod(namespace)
     const pods = res.body.items
-    const wsPods = pods.filter(pod => pod.metadata!.labels!['che.workspace_id'])
+    const wsPods = pods.filter(pod => pod.metadata!.labels!['che.workspace_id'] && pod.metadata!.labels!['che.original_name'] !== 'che-jwtproxy')
     if (wsPods.length === 0) {
       throw new Error('No workspace pod is found')
     }

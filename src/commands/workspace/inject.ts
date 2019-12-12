@@ -135,12 +135,15 @@ export default class Inject extends Command {
    */
   async injectKubeconfig(cheNamespace: string, workspacePod: string, container: string): Promise<void> {
     const { stdout } = await execa(`kubectl exec ${workspacePod} -n ${cheNamespace} -c ${container} env | grep ^HOME=`, { timeout: 10000, shell: true })
-    const containerHomeDir = stdout.split('=')[1]
+    let containerHomeDir = stdout.split('=')[1]
+    if (!containerHomeDir.endsWith('/')) {
+      containerHomeDir += '/'
+    }
 
-    if (await this.fileExists(cheNamespace, workspacePod, container, `${containerHomeDir}/.kube/config`)) {
+    if (await this.fileExists(cheNamespace, workspacePod, container, `${containerHomeDir}.kube/config`)) {
       throw new Error('kubeconfig already exists in the target container')
     }
-    await execa(`kubectl exec ${workspacePod} -n ${cheNamespace} -c ${container} -- mkdir ${containerHomeDir}/.kube -p`, { timeout: 10000, shell: true })
+    await execa(`kubectl exec ${workspacePod} -n ${cheNamespace} -c ${container} -- mkdir ${containerHomeDir}.kube -p`, { timeout: 10000, shell: true })
 
     const kc = new KubeConfig()
     kc.loadFromDefault()
@@ -162,7 +165,7 @@ export default class Inject extends Command {
     await execa('kubectl', ['config', '--kubeconfig', kubeconfig, 'set-credentials', user.name, `--client-certificate=${user.certFile}`, `--client-key=${user.keyFile}`, '--embed-certs=true'], { timeout: 10000 })
     await execa('kubectl', ['config', '--kubeconfig', kubeconfig, 'set-context', contextToInject.name, `--cluster=${contextToInject.cluster}`, `--user=${contextToInject.user}`, `--namespace=${cheNamespace}`], { timeout: 10000 })
     await execa('kubectl', ['config', '--kubeconfig', kubeconfig, 'use-context', contextToInject.name], { timeout: 10000 })
-    await execa('kubectl', ['cp', kubeconfig, `${cheNamespace}/${workspacePod}:${containerHomeDir}/.kube/config`, '-c', container], { timeout: 10000 })
+    await execa('kubectl', ['cp', kubeconfig, `${cheNamespace}/${workspacePod}:${containerHomeDir}.kube/config`, '-c', container], { timeout: 10000 })
     return
   }
 
