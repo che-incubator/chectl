@@ -90,7 +90,7 @@ export default class Update extends Command {
 
   async run() {
     const { flags } = this.parse(Update)
-    const listrOptions: Listr.ListrOptions = { rendered: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
+    const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
 
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()
