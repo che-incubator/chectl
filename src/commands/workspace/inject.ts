@@ -9,6 +9,7 @@
  **********************************************************************/
 
 import { KubeConfig } from '@kubernetes/client-node'
+import { Context } from '@kubernetes/client-node/dist/config_types'
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as execa from 'execa'
@@ -17,6 +18,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
+import { KubeHelper } from '../../api/kube'
 import { cheNamespace, listrRenderer } from '../../common-flags'
 
 export default class Inject extends Command {
@@ -35,6 +37,10 @@ export default class Inject extends Command {
     container: string({
       char: 'c',
       description: 'Target container. If not specified, configuration files will be injected in all containers of a Che Workspace pod',
+      required: false
+    }),
+    'kube-context': string({
+      description: 'Kubeconfig context to inject',
       required: false
     }),
     chenamespace: cheNamespace,
@@ -76,7 +82,7 @@ export default class Inject extends Command {
             return 'Currently, only injecting a kubeconfig is supported. Please, specify flag -k'
           }
         },
-        task: () => this.injectKubeconfigTasks(flags, flags.chenamespace!, flags.workspace!, flags.container)
+        task: () => this.injectKubeconfigTasks(flags)
       },
     ], { renderer: flags['listr-renderer'] as any, collapse: false } as Listr.ListrOptions)
 
@@ -92,10 +98,23 @@ export default class Inject extends Command {
     })
   }
 
-  async injectKubeconfigTasks(flags: any, chenamespace: string, workspace: string, container?: string): Promise<Listr> {
+  async injectKubeconfigTasks(flags: any): Promise<Listr> {
+    const kubeContext = flags['kube-context']
+    let contextToInject: Context | null
+    const kh = new KubeHelper(flags)
+    if (kubeContext) {
+      contextToInject = kh.getContext(kubeContext)
+      if (!contextToInject) {
+        this.error(`Context ${kubeContext} is not found in the source kubeconfig`)
+      }
+    } else {
+      const currentContext = await kh.currentContext()
+      contextToInject = kh.getContext(currentContext)
+    }
+
     const che = new CheHelper(flags)
     const tasks = new Listr({ exitOnError: false, concurrent: true })
-    const containers = container ? [container] : await che.getWorkspacePodContainers(chenamespace!, workspace!)
+    const containers = flags.container ? [flags.container] : await che.getWorkspacePodContainers(flags.chenamespace!, flags.workspace!)
     for (const cont of containers) {
       // che-machine-exec container is very limited for a security reason.
       // We cannot copy file into it.
@@ -106,8 +125,8 @@ export default class Inject extends Command {
         title: `injecting kubeconfig into container ${cont}`,
         task: async (ctx: any, task: any) => {
           try {
-            if (await this.canInject(chenamespace, ctx.pod, cont)) {
-              await this.injectKubeconfig(chenamespace!, ctx.pod, cont)
+            if (await this.canInject(flags.chenamespace, ctx.pod, cont)) {
+              await this.injectKubeconfig(flags.chenamespace!, ctx.pod, cont, contextToInject!)
               task.title = `${task.title}...done.`
             } else {
               task.skip('the container doesn\'t support file injection')
@@ -130,10 +149,10 @@ export default class Inject extends Command {
   }
 
   /**
-   * Copies the local kubeconfig (only minikube context) into the specified container.
+   * Copies the local kubeconfig into the specified container.
    * If returns, it means injection was completed successfully. If throws an error, injection failed
    */
-  async injectKubeconfig(cheNamespace: string, workspacePod: string, container: string): Promise<void> {
+  async injectKubeconfig(cheNamespace: string, workspacePod: string, container: string, contextToInject: Context): Promise<void> {
     const { stdout } = await execa(`kubectl exec ${workspacePod} -n ${cheNamespace} -c ${container} env | grep ^HOME=`, { timeout: 10000, shell: true })
     let containerHomeDir = stdout.split('=')[1]
     if (!containerHomeDir.endsWith('/')) {
@@ -147,19 +166,14 @@ export default class Inject extends Command {
 
     const kc = new KubeConfig()
     kc.loadFromDefault()
-    const contextName = 'minikube'
-    const contextToInject = kc.getContexts().find(c => c.name === contextName)
-    if (!contextToInject) {
-      throw new Error(`Context ${contextName} is not found in the source kubeconfig`)
-    }
     const kubeconfig = path.join(os.tmpdir(), 'che-kubeconfig')
     const cluster = kc.getCluster(contextToInject.cluster)
     if (!cluster) {
-      throw new Error(`Context ${contextName} has no cluster object`)
+      throw new Error(`Context ${contextToInject.name} has no cluster object`)
     }
     const user = kc.getUser(contextToInject.user)
     if (!user) {
-      throw new Error(`Context ${contextName} has no user object`)
+      throw new Error(`Context ${contextToInject.name} has no user object`)
     }
     await execa('kubectl', ['config', '--kubeconfig', kubeconfig, 'set-cluster', cluster.name, `--server=${cluster.server}`, `--certificate-authority=${cluster.caFile}`, '--embed-certs=true'], { timeout: 10000 })
     await execa('kubectl', ['config', '--kubeconfig', kubeconfig, 'set-credentials', user.name, `--client-certificate=${user.certFile}`, `--client-key=${user.keyFile}`, '--embed-certs=true'], { timeout: 10000 })
