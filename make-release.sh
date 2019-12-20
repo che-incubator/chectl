@@ -19,8 +19,8 @@ init() {
 }
 
 check() {
-  if [ $# -ne 2 ]; then
-    printf "%bError: %bWrong number of parameters.\nUsage: ./make-release.sh <version> <branch>\n" "${RED}" "${NC}"
+  if [ $# -ne 3 ]; then
+    printf "%bError: %bWrong number of parameters.\nUsage: ./make-release.sh <version> <branch> <fork>\n" "${RED}" "${NC}"
     exit 1
   fi
 }
@@ -38,14 +38,15 @@ run() {
   
   VERSION=$1
   BRANCH_NAME=$2
-  GIT_REMOTE_UPSTREAM=upstream
-  GIT_REMOTE_FORK=origin
+  FORK=$3
+  GIT_REMOTE_UPSTREAM="git@github.com:che-incubator/chectl.git"
+  GIT_REMOTE_FORK="git@github.com:${FORK}.git"
 
   git checkout master
 
   # reset local changes
   while true; do
-    read -r -p "It will reset any local changes to the current branch ?" yn
+    read -r -p "It will reset any local changes to the current branch? " yn
     case $yn in
       [Yy]* ) break;;
       [Nn]* ) exit;;
