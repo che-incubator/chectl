@@ -15,6 +15,9 @@ import { HelmTasks } from './helm'
 import { MinishiftAddonTasks } from './minishift-addon'
 import { OperatorTasks } from './operator'
 
+/**
+ * Tasks related to installation way.
+ */
 export class InstallerTasks {
   updateTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     const operatorTasks = new OperatorTasks()

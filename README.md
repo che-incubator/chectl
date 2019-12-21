@@ -58,7 +58,7 @@ Assemblies of chectl are available at [https://github.com/che-incubator/chectl/r
 
 Manual install:
 
-1) Download a .tgz file based on your Operating System / Arch 
+1) Download a .tgz file based on your Operating System / Arch
 2) Unpack the assembly
 3) move `chectl` folder into a folder like `$HOME/chectl`
 4) add `$HOME/chectl/bin` to `$PATH``
@@ -85,6 +85,7 @@ USAGE
 * [`chectl devfile:generate`](#chectl-devfilegenerate)
 * [`chectl help [COMMAND]`](#chectl-help-command)
 * [`chectl server:delete`](#chectl-serverdelete)
+* [`chectl server:logs`](#chectl-serverlogs)
 * [`chectl server:start`](#chectl-serverstart)
 * [`chectl server:stop`](#chectl-serverstop)
 * [`chectl server:update`](#chectl-serverupdate)
@@ -93,6 +94,7 @@ USAGE
 * [`chectl workspace:list`](#chectl-workspacelist)
 * [`chectl workspace:start`](#chectl-workspacestart)
 * [`chectl workspace:stop`](#chectl-workspacestop)
+* [`chectl workspace:logs`](#chectl-workspacelogs)
 
 ## `chectl autocomplete [SHELL]`
 
@@ -185,6 +187,29 @@ OPTIONS
 
 _See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/delete.ts)_
 
+## `chectl server:logs`
+
+Retrieve Eclipse Che Logs
+
+```
+USAGE
+  $ chectl server:logs
+
+OPTIONS
+  -h, --help  show CLI help
+
+  -n, --chenamespace=chenamespace
+      [default: che] Kubernetes namespace where Che server is supposed to be deployed
+
+  --deployment-name=deployment-name
+      [default: che] Che deployment name
+
+  -d, --directory=directory
+      [default: ./Logs] Directory to store server logs
+
+  --access-token=access-token              Che OIDC Access Token
+```
+
 ## `chectl server:start`
 
 start Eclipse Che Server
@@ -216,12 +241,12 @@ OPTIONS
       (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
 
   -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc
-      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc 
+      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc
       (for CodeReady Containers)", "microk8s".
 
   -s, --tls
       Enable TLS encryption.
-                           Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured 
+                           Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured
       namespace.
                            For OpenShift, router will use default cluster certificates.
 
@@ -229,11 +254,11 @@ OPTIONS
       [default: templates] Path to the templates folder
 
   --che-operator-cr-yaml=che-operator-cr-yaml
-      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer 
+      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer
       is the operator.
 
   --che-operator-image=che-operator-image
-      [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when 
+      [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when
       the installer is the operator
 
   --deployment-name=deployment-name
@@ -258,7 +283,7 @@ OPTIONS
       The URL of the external plugin registry.
 
   --self-signed-cert
-      Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate 
+      Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate
       must be created in the configured namespace.
 ```
 
@@ -435,6 +460,28 @@ OPTIONS
 
 _See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_
 <!-- commandsstop -->
+
+## `chectl workspace:logs`
+
+Retrieve Workspace Logs
+
+```
+USAGE
+  $ chectl workspace:logs
+
+OPTIONS
+  -h, --help  show CLI help
+
+  -n, --chenamespace=chenamespace
+      [default: che] Kubernetes namespace where Che server is supposed to be deployed
+
+  -w, --workspace=workspace                Target workspace. Can be omitted if only one Workspace is running
+
+  -d, --directory=directory
+      [default: ./logs] Directory to store server logs
+
+  --access-token=access-token              Che OIDC Access Token
+```
 
 # Contributing
 

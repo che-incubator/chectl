@@ -20,6 +20,7 @@ import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace, listrRenderer } from '../../common-flags'
+import { CheTasks } from '../../tasks/che'
 
 export default class Inject extends Command {
   static description = 'inject configurations and tokens in a Che Workspace'
@@ -50,27 +51,17 @@ export default class Inject extends Command {
   async run() {
     const { flags } = this.parse(Inject)
     const notifier = require('node-notifier')
-    const che = new CheHelper(flags)
-    const tasks = new Listr([
-      {
-        title: `Verify if namespace ${flags.chenamespace} exists`,
-        task: async () => {
-          if (!await che.cheNamespaceExist(flags.chenamespace)) {
-            this.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist. The configuration cannot be injected.\nFix with: verify the namespace where Che workspace is running (kubectl get --all-namespaces deployment | grep workspace)`, { code: 'EBADNS' })
-          }
-        }
-      },
-      {
-        title: 'Verify if the workspaces is running',
-        task: async (ctx: any) => {
-          ctx.pod = await che.getWorkspacePod(flags.chenamespace!, flags.workspace).catch(e => this.error(e.message))
-        }
-      },
+    const cheTasks = new CheTasks(flags)
+
+    const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
+    tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
+    tasks.add(cheTasks.verifyWorkspaceRunTask(flags, this))
+    tasks.add([
       {
         title: `Verify if container ${flags.container} exists`,
         enabled: () => flags.container !== undefined,
         task: async (ctx: any) => {
-          if (!await this.containerExists(flags.chenamespace!, ctx.pod, flags.container!)) {
+          if (!await this.containerExists(flags.chenamespace!, ctx.pod.metadata.name, flags.container!)) {
             this.error(`The specified container "${flags.container}" doesn't exist. The configuration cannot be injected.`)
           }
         }
@@ -84,7 +75,7 @@ export default class Inject extends Command {
         },
         task: () => this.injectKubeconfigTasks(flags)
       },
-    ], { renderer: flags['listr-renderer'] as any, collapse: false } as Listr.ListrOptions)
+    ])
 
     try {
       await tasks.run()

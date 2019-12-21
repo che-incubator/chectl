@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject, V1PodList } from '@kubernetes/client-node'
 import { Context } from '@kubernetes/client-node/dist/config_types'
 import axios from 'axios'
 import { cli } from 'cli-ux'
@@ -586,7 +586,7 @@ export class KubeHelper {
     }
   }
 
-   // make sure that flag is specified for command that it's invoked
+  // make sure that flag is specified for command that it's invoked
   async waitLatestReplica(deploymentName: string, namespace = '', intervalMs = 500, timeoutMs = this.podWaitTimeout) {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
@@ -1249,6 +1249,30 @@ export class KubeHelper {
       throw this.wrapK8sClientError(e)
     }
     throw new Error('ERR_LIST_PVCS')
+  }
+
+  async getPodBySelector(namespace: string, selector: string): Promise<V1PodList | undefined> {
+    const k8sApi = this.kc.makeApiClient(CoreV1Api)
+    try {
+      const res = await k8sApi.listNamespacedPod(namespace, true, undefined, undefined, undefined, selector)
+      if (res && res.body) {
+        return res.body
+      }
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async readNamespacedPodLog(pod: string, namespace: string, container: string): Promise<string | undefined> {
+    const k8sApi = this.kc.makeApiClient(CoreV1Api)
+    try {
+      const res = await k8sApi.readNamespacedPodLog(pod, namespace, container, false, undefined, 'true')
+      if (res && res.body) {
+        return res.body
+      }
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
   }
 
   /**

@@ -7,11 +7,13 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-import { CoreV1Api, KubeConfig } from '@kubernetes/client-node'
+import { CoreV1Api, KubeConfig, V1Pod } from '@kubernetes/client-node'
+import Command from '@oclif/command'
 import axios from 'axios'
 import { cli } from 'cli-ux'
-import * as fs from 'fs'
+import * as fs from 'fs-extra'
 import * as yaml from 'js-yaml'
+import * as path from 'path'
 
 import { OpenShiftHelper } from '../api/openshift'
 
@@ -33,7 +35,7 @@ export class CheHelper {
    * Rejects if no workspace is found for the given workspace ID
    * or if workspace ID wasn't specified but more than one workspace is found.
    */
-  async getWorkspacePod(namespace: string, cheWorkspaceId?: string): Promise<string> {
+  async getWorkspacePod(namespace: string, cheWorkspaceId?: string): Promise<V1Pod> {
     this.kc.loadFromDefault()
     const k8sApi = this.kc.makeApiClient(CoreV1Api)
 
@@ -47,12 +49,12 @@ export class CheHelper {
     if (cheWorkspaceId) {
       const wsPod = wsPods.find(p => p.metadata!.labels!['che.workspace_id'] === cheWorkspaceId)
       if (wsPod) {
-        return wsPod.metadata!.name!
+        return wsPod
       }
       throw new Error('Pod is not found for the given workspace ID')
     } else {
       if (wsPods.length === 1) {
-        return wsPods[0].metadata!.name!
+        return wsPods[0]
       }
       throw new Error('More than one pod with running workspace is found. Please, specify Che Workspace ID.')
     }
@@ -294,6 +296,41 @@ export class CheHelper {
 
   async buildDashboardURL(ideURL: string): Promise<string> {
     return ideURL.replace(/\/[^/|.]*\/[^/|.]*$/g, '\/dashboard\/#\/ide$&')
+  }
+
+  /**
+   * Reads namespace pod logs by selector and stores into a file.
+   */
+  async readPodLogBySelector(namespace: string, selector: string, directory: string, command: Command) {
+    const pods = await this.kube.getPodBySelector(namespace, selector)
+    if (pods && pods.items && pods.items.length > 0) {
+      for (const pod of pods.items) {
+        await this.readPodLog(namespace, pod, directory, command)
+      }
+    } else {
+      command.log(`Pods by selector '${selector}' in the namespace '${namespace}' not found.\nLogs are not available.`)
+    }
+  }
+
+  /**
+   * Reads namespace pod logs and stores into a file.
+   */
+  async readPodLog(namespace: string, pod: V1Pod, directory: string, command: Command) {
+    const podName = pod.metadata!.name!
+    if (!pod.status || !pod.status.containerStatuses) {
+      command.log(`There are no available containers in the pod ${podName} in the namespace ${namespace}'.`)
+      return
+    }
+
+    for (const container of pod.status.containerStatuses) {
+      const filename = path.resolve(directory, podName, `${container.name}.log`)
+      fs.ensureFileSync(filename)
+
+      const logs = await this.kube.readNamespacedPodLog(podName, namespace, container.name)
+      if (logs) {
+        fs.writeFileSync(filename, logs)
+      }
+    }
   }
 
   private getCheApiError(error: any, endpoint: string): Error {

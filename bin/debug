@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+export NODE_OPTIONS='--inspect-brk'
+./run "$@"

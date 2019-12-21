@@ -17,7 +17,7 @@ export class OpenshiftTasks {
   /**
    * Returns tasks list which perform preflight platform checks.
    */
-  startTasks(flags: any, command: Command): Listr {
+  preflightCheckTasks(flags: any, command: Command): Listr {
     return new Listr([
       {
         title: 'Verify if oc is installed',
