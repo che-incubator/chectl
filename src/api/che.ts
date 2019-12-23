@@ -8,7 +8,6 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 import { CoreV1Api, KubeConfig, V1Pod } from '@kubernetes/client-node'
-import Command from '@oclif/command'
 import axios from 'axios'
 import { cli } from 'cli-ux'
 import * as fs from 'fs-extra'
@@ -298,39 +297,65 @@ export class CheHelper {
     return ideURL.replace(/\/[^/|.]*\/[^/|.]*$/g, '\/dashboard\/#\/ide$&')
   }
 
-  /**
-   * Reads namespace pod logs by selector and stores into a file.
-   */
-  async readPodLogBySelector(namespace: string, selector: string, directory: string, command: Command) {
-    const pods = await this.kube.getPodBySelector(namespace, selector)
-    if (pods && pods.items && pods.items.length > 0) {
-      for (const pod of pods.items) {
-        await this.readPodLog(namespace, pod, directory, command)
-      }
+  async readPodLogBySelector(namespace: string, selector: string, directory: string, follow: boolean): Promise<void> {
+    const pods = new Set<string>()
+    if (follow) {
+      setInterval(async () => this.doReadPodLogBySelector(namespace, selector, directory, pods, follow), 100)
     } else {
-      command.log(`Pods by selector '${selector}' in the namespace '${namespace}' not found.\nLogs are not available.`)
+      await this.doReadPodLogBySelector(namespace, selector, directory, pods, follow)
     }
   }
 
-  /**
-   * Reads namespace pod logs and stores into a file.
-   */
-  async readPodLog(namespace: string, pod: V1Pod, directory: string, command: Command) {
-    const podName = pod.metadata!.name!
+  async readPodLogByName(namespace: string, podName: string, directory: string, follow: boolean): Promise<void> {
+    const containers = new Set<string>()
+    if (follow) {
+      setInterval(async () => this.doReadPodLogByName(namespace, podName, directory, containers, follow), 100)
+    } else {
+      await this.doReadPodLogByName(namespace, podName, directory, containers, follow)
+    }
+  }
+
+  private async doReadPodLogBySelector(namespace: string, selector: string, directory: string, pods: Set<string>, follow: boolean): Promise<void> {
+    const _pods = await this.kube.getPodBySelector(namespace, selector)
+
+    if (_pods && _pods.items) {
+      for (const pod of _pods.items) {
+        const podName = pod.metadata!.name!
+        if (!pods.has(podName)) {
+          pods.add(podName)
+          await this.readPodLogByName(namespace, podName, directory, follow)
+        }
+      }
+    }
+  }
+
+  private async doReadPodLogByName(namespace: string, podName: string, directory: string, containers: Set<string>, follow: boolean): Promise<void> {
+    const pod = await this.kube.readNamespacedPod(podName, namespace)
+    if (!pod) {
+      return
+    }
+
     if (!pod.status || !pod.status.containerStatuses) {
-      command.log(`There are no available containers in the pod ${podName} in the namespace ${namespace}'.`)
       return
     }
 
     for (const container of pod.status.containerStatuses) {
-      const filename = path.resolve(directory, podName, `${container.name}.log`)
-      fs.ensureFileSync(filename)
+      if (!container.state || !container.state.running) {
+        continue
+      }
 
-      const logs = await this.kube.readNamespacedPodLog(podName, namespace, container.name)
-      if (logs) {
-        fs.writeFileSync(filename, logs)
+      const containerName = container.name
+      if (!containers.has(containerName)) {
+        containers.add(containerName)
+        await this.readContainerLog(namespace, podName, containerName, directory, follow)
       }
     }
+  }
+
+  private async readContainerLog(namespace: string, podName: string, containerName: string, directory: string, follow: boolean): Promise<void> {
+    const filename = path.resolve(directory, podName, `${containerName}.log`)
+    fs.ensureFileSync(filename)
+    return this.kube.readNamespacedPodLog(podName, namespace, containerName, filename, follow)
   }
 
   private getCheApiError(error: any, endpoint: string): Error {
@@ -353,5 +378,16 @@ export class CheHelper {
       // Something happened in setting up the request that triggered an Error
       return new Error(`E_CHECTL_UNKNOWN_ERROR - Endpoint: ${endpoint} - Message: ${error.message}`)
     }
+  }
+
+  private getK8sError(error: any): Error {
+    if (error.response && error.response.statusCode === 403) {
+      return new Error(`Message: ${error.response.body.message}`)
+    }
+    if (error.response && error.response.statusCode === 401) {
+      return new Error(`Message: ${error.response.body.message}`)
+    }
+
+    return new Error(`Unknown error. Message: ${error.response.body.message}`)
   }
 }

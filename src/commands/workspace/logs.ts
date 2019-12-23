@@ -14,7 +14,7 @@ import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
 import * as path from 'path'
 
-import { accessToken, cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
+import { cheNamespace, listrRenderer } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 
 export default class Logs extends Command {
@@ -23,7 +23,6 @@ export default class Logs extends Command {
   static flags = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
-    'access-token': accessToken,
     'listr-renderer': listrRenderer,
     workspace: string({
       char: 'w',
@@ -44,7 +43,7 @@ export default class Logs extends Command {
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.verifyWorkspaceRunTask(flags, this))
-    tasks.add(cheTasks.workspaceLogsTasks(flags, this))
+    tasks.add(cheTasks.workspaceLogsTasks(flags, false))
 
     await tasks.run()
 
@@ -52,5 +51,7 @@ export default class Logs extends Command {
       title: 'chectl',
       message: 'Command workspace:logs has completed successfully.'
     })
+
+    this.exit(0)
   }
 }

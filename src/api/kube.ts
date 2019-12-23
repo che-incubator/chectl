@@ -8,18 +8,22 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject, V1PodList } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
 import { Context } from '@kubernetes/client-node/dist/config_types'
 import axios from 'axios'
 import { cli } from 'cli-ux'
-import { readFileSync } from 'fs'
-import https = require('https')
+import * as fs from 'fs'
 import * as yaml from 'js-yaml'
+import { Writable } from 'stream'
 
 import { DEFAULT_CHE_IMAGE } from '../constants'
 
+import https = require('https')
+import { rejects } from 'assert'
+
 export class KubeHelper {
   kc = new KubeConfig()
+  logHelper = new Log(this.kc)
 
   podWaitTimeout: number
   podReadyTimeout: number
@@ -424,13 +428,15 @@ export class KubeHelper {
     }
   }
 
-  async podExist(name = '', namespace = ''): Promise<boolean> {
+  async readNamespacedPod(name: string, namespace: string): Promise<V1Pod | undefined> {
     const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
-      const { body } = await k8sCoreApi.readNamespacedPod(name, namespace)
-      return this.compare(body, name)
+      const res = await k8sCoreApi.readNamespacedPod(name, namespace)
+      if (res && res.body) {
+        return res.body
+      }
     } catch {
-      return false
+      return
     }
   }
 
@@ -706,11 +712,11 @@ export class KubeHelper {
   }
 
   async createDeployment(name: string,
-                         image: string,
-                         serviceAccount: string,
-                         pullPolicy: string,
-                         configMapEnvSource: string,
-                         namespace: string) {
+    image: string,
+    serviceAccount: string,
+    pullPolicy: string,
+    configMapEnvSource: string,
+    namespace: string) {
     const k8sAppsApi = this.kc.makeApiClient(AppsV1Api)
     let deployment = new V1Deployment()
     deployment.metadata = new V1ObjectMeta()
@@ -827,12 +833,12 @@ export class KubeHelper {
   }
 
   async createPod(name: string,
-                  image: string,
-                  serviceAccount: string,
-                  restartPolicy: string,
-                  pullPolicy: string,
-                  configMapEnvSource: string,
-                  namespace: string) {
+    image: string,
+    serviceAccount: string,
+    restartPolicy: string,
+    pullPolicy: string,
+    configMapEnvSource: string,
+    namespace: string) {
     const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     let pod = new V1Pod()
     pod.metadata = new V1ObjectMeta()
@@ -972,8 +978,8 @@ export class KubeHelper {
       }
 
       if (flags.cheimage === DEFAULT_CHE_IMAGE &&
-          yamlCr.spec.server.cheImageTag !== 'nightly' &&
-          yamlCr.spec.server.cheImageTag !== 'latest') {
+        yamlCr.spec.server.cheImageTag !== 'nightly' &&
+        yamlCr.spec.server.cheImageTag !== 'latest') {
         // We obviously are using a release version of chectl with the default `cheimage`
         // => We should use the operator defaults for docker images
         yamlCr.spec.server.cheImage = ''
@@ -1263,16 +1269,22 @@ export class KubeHelper {
     }
   }
 
-  async readNamespacedPodLog(pod: string, namespace: string, container: string): Promise<string | undefined> {
-    const k8sApi = this.kc.makeApiClient(CoreV1Api)
-    try {
-      const res = await k8sApi.readNamespacedPodLog(pod, namespace, container, false, undefined, 'true')
-      if (res && res.body) {
-        return res.body
+  async readNamespacedPodLog(pod: string, namespace: string, container: string, filename: string, follow: boolean): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const stream = new Writable()
+      stream._write = function (chunk, encoding, done) {
+        fs.appendFileSync(filename, chunk, { encoding })
+        done()
       }
-    } catch (e) {
-      throw this.wrapK8sClientError(e)
-    }
+
+      this.logHelper.log(namespace, pod, container, stream, error => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve()
+        }
+      }, { follow })
+    })
   }
 
   /**
@@ -1287,7 +1299,7 @@ export class KubeHelper {
   }
 
   private safeLoadFromYamlFile(filePath: string): any {
-    return yaml.safeLoad(readFileSync(filePath).toString())
+    return yaml.safeLoad(fs.readFileSync(filePath).toString())
   }
 }
 

@@ -205,9 +205,7 @@ OPTIONS
       [default: che] Che deployment name
 
   -d, --directory=directory
-      [default: ./Logs] Directory to store server logs
-
-  --access-token=access-token              Che OIDC Access Token
+      [default: ./Logs] Directory to store Eclipse Che logs
 ```
 
 ## `chectl server:start`
@@ -252,6 +250,9 @@ OPTIONS
 
   -t, --templates=templates
       [default: templates] Path to the templates folder
+
+  -d, --directory=directory
+      [default: ./Logs] Directory to store Eclipse Che logs
 
   --che-operator-cr-yaml=che-operator-cr-yaml
       Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer
@@ -478,9 +479,7 @@ OPTIONS
   -w, --workspace=workspace                Target workspace. Can be omitted if only one Workspace is running
 
   -d, --directory=directory
-      [default: ./logs] Directory to store server logs
-
-  --access-token=access-token              Che OIDC Access Token
+      [default: ./logs] Directory to store workspace logs
 ```
 
 # Contributing

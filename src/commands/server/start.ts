@@ -109,6 +109,11 @@ export default class Start extends Command {
       description: 'Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer is the operator.',
       default: ''
     }),
+    directory: string({
+      char: 'd',
+      description: 'Directory to store logs into',
+      default: './logs'
+    })
   }
 
   static getTemplatesDir(): string {
@@ -214,6 +219,12 @@ export default class Start extends Command {
       task: () => new Listr(cheTasks.waitDeployedChe(flags, this))
     }], listrOptions)
 
+    flags.directory = path.resolve(flags.directory, flags.chenamespace)
+    const logsTasks = new Listr([{
+      title: 'Start logs following',
+      task: () => new Listr(cheTasks.serverLogsTasks(flags, true))
+    }], listrOptions)
+
     try {
       const ctx: any = {}
       await preInstallTasks.run(ctx)
@@ -221,6 +232,7 @@ export default class Start extends Command {
       if (!ctx.isCheDeployed) {
         this.checkPlatformCompatibility(flags)
         await platformCheckTasks.run(ctx)
+        await logsTasks.run(ctx)
         await installTasks.run(ctx)
       } else if (!ctx.isCheReady
         || (ctx.isPostgresDeployed && !ctx.isPostgresReady)

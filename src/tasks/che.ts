@@ -492,55 +492,67 @@ export class CheTasks {
   /**
    * Return tasks to collect Eclipse Che logs.
    */
-  serverLogsTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
+  serverLogsTasks(flags: any, follow: boolean): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Retrieve Che logs',
+        title: `${follow ? 'Start following' : 'Read'} Che logs`,
         task: async (_ctx: any, task: any) => {
-          await this.che.readPodLogBySelector(flags.chenamespace, this.cheSelector, flags.directory, command)
-          task.title = await `${task.title}...OK`
+          await this.che.readPodLogBySelector(flags.chenamespace, this.cheSelector, flags.directory, follow)
+          task.title = await `${task.title}...done`
         }
       },
       {
-        title: 'Retrieve Postgres logs',
+        title: `${follow ? 'Start following' : 'Read'} Postgres logs`,
         task: async (_ctx: any, task: any) => {
-          await this.che.readPodLogBySelector(flags.chenamespace, this.postgresSelector, flags.directory, command)
-          task.title = await `${task.title}...OK`
+          await this.che.readPodLogBySelector(flags.chenamespace, this.postgresSelector, flags.directory, follow)
+          task.title = await `${task.title}...done`
         }
       },
       {
-        title: 'Retrieve Keycloak logs',
+        title: `${follow ? 'Start following' : 'Read'} Keycloak logs`,
         task: async (_ctx: any, task: any) => {
-          await this.che.readPodLogBySelector(flags.chenamespace, this.keycloakSelector, flags.directory, command)
-          task.title = await `${task.title}...OK`
+          await this.che.readPodLogBySelector(flags.chenamespace, this.keycloakSelector, flags.directory, follow)
+          task.title = await `${task.title}...done`
         }
       },
       {
-        title: 'Retrieve Plugin registry logs',
+        title: `${follow ? 'Start following' : 'Read'} Plugin registry logs`,
         task: async (_ctx: any, task: any) => {
-          await this.che.readPodLogBySelector(flags.chenamespace, this.pluginRegistrySelector, flags.directory, command)
-          task.title = await `${task.title}...OK`
+          await this.che.readPodLogBySelector(flags.chenamespace, this.pluginRegistrySelector, flags.directory, follow)
+          task.title = await `${task.title}...done`
         }
       },
       {
-        title: 'Retrieve Devfile registry logs',
+        title: `${follow ? 'Start following' : 'Read'} Devfile registry logs`,
         task: async (_ctx: any, task: any) => {
-          await this.che.readPodLogBySelector(flags.chenamespace, this.devfileRegistrySelector, flags.directory, command)
-          task.title = await `${task.title}...OK`
+          await this.che.readPodLogBySelector(flags.chenamespace, this.devfileRegistrySelector, flags.directory, follow)
+          task.title = await `${task.title}...done`
+        }
+      },
+      {
+        title: `Eclipse Che logs will be available in '${flags.directory}'`,
+        task: async (task: any) => {
+          task.title = await `${task.title}...done`
         }
       }
     ]
   }
 
-  workspaceLogsTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
+  workspaceLogsTasks(flags: any, follow: boolean): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Retrieve Workspace logs',
         task: async (ctx: any, task: any) => {
           const workspaceId = ctx.pod.metadata!.labels!['che.workspace_id']
           const directory = path.resolve(flags.directory, workspaceId)
-          await this.che.readPodLog(flags.chenamespace, ctx.pod, directory, command)
-          task.title = await `${task.title}...OK`
+          await this.che.readPodLogByName(flags.chenamespace, ctx.pod.metadata.name, directory, follow)
+          task.title = await `${task.title}...done`
+        }
+      },
+      {
+        title: `Workspace logs will be available in '${flags.directory}'`,
+        task: async (task: any) => {
+          task.title = await `${task.title}...done`
         }
       }
     ]
