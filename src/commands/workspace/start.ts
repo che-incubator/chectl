@@ -14,6 +14,7 @@ import { cli } from 'cli-ux'
 
 import { CheHelper } from '../../api/che'
 import { accessToken, cheNamespace, listrRenderer } from '../../common-flags'
+import { CheTasks } from '../../tasks/che'
 
 export default class Start extends Command {
   static description = 'create and start a Che workspace'
@@ -52,6 +53,7 @@ export default class Start extends Command {
     const Listr = require('listr')
     const notifier = require('node-notifier')
     const che = new CheHelper(flags)
+    const cheTasks = new CheTasks(flags)
     if (!flags.devfile && !flags.workspaceconfig) {
       this.error('workspace:start command is expecting a devfile or workspace configuration parameter.')
     }
@@ -75,6 +77,7 @@ export default class Start extends Command {
           task.title = await `${task.title}...${status} ${auth}`
         }
       },
+      ...cheTasks.workspaceLogsTasks(flags, true),
       {
         title: `Create workspace from Devfile ${flags.devfile}`,
         enabled: () => flags.devfile !== undefined,

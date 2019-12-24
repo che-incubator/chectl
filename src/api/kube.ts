@@ -1257,12 +1257,16 @@ export class KubeHelper {
     throw new Error('ERR_LIST_PVCS')
   }
 
-  async getPodBySelector(namespace: string, selector: string): Promise<V1PodList | undefined> {
+  async listNamespacedPod(namespace: string, selector?: string): Promise<V1PodList> {
     const k8sApi = this.kc.makeApiClient(CoreV1Api)
     try {
       const res = await k8sApi.listNamespacedPod(namespace, true, undefined, undefined, undefined, selector)
       if (res && res.body) {
         return res.body
+      } else {
+        return {
+          items: []
+        }
       }
     } catch (e) {
       throw this.wrapK8sClientError(e)

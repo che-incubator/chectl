@@ -297,7 +297,18 @@ export class CheHelper {
     return ideURL.replace(/\/[^/|.]*\/[^/|.]*$/g, '\/dashboard\/#\/ide$&')
   }
 
-  async readPodLogBySelector(namespace: string, selector: string, directory: string, follow: boolean): Promise<void> {
+  async followNewPodLog(namespace: string, directory: string): Promise<void> {
+    const pods = new Set<string>()
+
+    const _pods = await this.kube.listNamespacedPod(namespace)
+    for (const pod of _pods.items) {
+      pods.add(pod.metadata!.name!)
+    }
+
+    setInterval(async () => this.doReadPodLogBySelector(namespace, undefined, directory, pods, true), 100)
+  }
+
+  async readPodLogBySelector(namespace: string, selector: string | undefined, directory: string, follow: boolean): Promise<void> {
     const pods = new Set<string>()
     if (follow) {
       setInterval(async () => this.doReadPodLogBySelector(namespace, selector, directory, pods, follow), 100)
@@ -315,16 +326,14 @@ export class CheHelper {
     }
   }
 
-  private async doReadPodLogBySelector(namespace: string, selector: string, directory: string, pods: Set<string>, follow: boolean): Promise<void> {
-    const _pods = await this.kube.getPodBySelector(namespace, selector)
+  private async doReadPodLogBySelector(namespace: string, selector: string | undefined, directory: string, pods: Set<string>, follow: boolean): Promise<void> {
+    const _pods = await this.kube.listNamespacedPod(namespace, selector)
 
-    if (_pods && _pods.items) {
-      for (const pod of _pods.items) {
-        const podName = pod.metadata!.name!
-        if (!pods.has(podName)) {
-          pods.add(podName)
-          await this.readPodLogByName(namespace, podName, directory, follow)
-        }
+    for (const pod of _pods.items) {
+      const podName = pod.metadata!.name!
+      if (!pods.has(podName)) {
+        pods.add(podName)
+        await this.readPodLogByName(namespace, podName, directory, follow)
       }
     }
   }
