@@ -388,15 +388,4 @@ export class CheHelper {
       return new Error(`E_CHECTL_UNKNOWN_ERROR - Endpoint: ${endpoint} - Message: ${error.message}`)
     }
   }
-
-  private getK8sError(error: any): Error {
-    if (error.response && error.response.statusCode === 403) {
-      return new Error(`Message: ${error.response.body.message}`)
-    }
-    if (error.response && error.response.statusCode === 401) {
-      return new Error(`Message: ${error.response.body.message}`)
-    }
-
-    return new Error(`Unknown error. Message: ${error.response.body.message}`)
-  }
 }

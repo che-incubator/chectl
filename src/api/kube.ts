@@ -19,7 +19,6 @@ import { Writable } from 'stream'
 import { DEFAULT_CHE_IMAGE } from '../constants'
 
 import https = require('https')
-import { rejects } from 'assert'
 
 export class KubeHelper {
   kc = new KubeConfig()
