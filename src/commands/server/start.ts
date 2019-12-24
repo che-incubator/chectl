@@ -221,7 +221,7 @@ export default class Start extends Command {
 
     flags.directory = path.resolve(flags.directory, flags.chenamespace)
     const logsTasks = new Listr([{
-      title: 'Start logs following',
+      title: 'Start following logs',
       task: () => new Listr(cheTasks.serverLogsTasks(flags, true))
     }], listrOptions)
 

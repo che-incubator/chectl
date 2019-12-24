@@ -297,48 +297,65 @@ export class CheHelper {
     return ideURL.replace(/\/[^/|.]*\/[^/|.]*$/g, '\/dashboard\/#\/ide$&')
   }
 
-  async followNewPodLog(namespace: string, directory: string): Promise<void> {
-    const pods = new Set<string>()
-
-    const _pods = await this.kube.listNamespacedPod(namespace)
-    for (const pod of _pods.items) {
-      pods.add(pod.metadata!.name!)
-    }
-
-    setInterval(async () => this.doReadPodLogBySelector(namespace, undefined, directory, pods, true), 100)
+  /**
+   * Reads logs from all new pods that starting to run.
+   * It basically lists existed pods and starts following logs from a new ones.
+   */
+  async readAllNewPodLog(namespace: string, directory: string): Promise<void> {
+    const processedPods = new Set<string>((await this.kube.listNamespacedPod(namespace)).items.map(pod => pod.metadata!.name!))
+    setInterval(async () => this.readPodLogBySelectorIgnoreSpecificPods(namespace, undefined, directory, processedPods, true), 100)
   }
 
+  /**
+   * Reads logs from pods that match a given selector.
+   */
   async readPodLogBySelector(namespace: string, selector: string | undefined, directory: string, follow: boolean): Promise<void> {
-    const pods = new Set<string>()
+    const processedPods = new Set<string>()
     if (follow) {
-      setInterval(async () => this.doReadPodLogBySelector(namespace, selector, directory, pods, follow), 100)
+      setInterval(async () => this.readPodLogBySelectorIgnoreSpecificPods(namespace, selector, directory, processedPods, follow), 100)
     } else {
-      await this.doReadPodLogBySelector(namespace, selector, directory, pods, follow)
+      await this.readPodLogBySelectorIgnoreSpecificPods(namespace, selector, directory, processedPods, follow)
     }
   }
 
-  async readPodLogByName(namespace: string, podName: string, directory: string, follow: boolean): Promise<void> {
-    const containers = new Set<string>()
-    if (follow) {
-      setInterval(async () => this.doReadPodLogByName(namespace, podName, directory, containers, follow), 100)
-    } else {
-      await this.doReadPodLogByName(namespace, podName, directory, containers, follow)
-    }
-  }
+  /**
+   * Reads logs from pods that match a given selector with exception of already processed ones.
+   * Once log is read the pod is marked as processed.
+   */
+  async readPodLogBySelectorIgnoreSpecificPods(namespace: string, selector: string | undefined, directory: string, processedPods: Set<string>, follow: boolean): Promise<void> {
+    const pods = await this.kube.listNamespacedPod(namespace, selector)
 
-  private async doReadPodLogBySelector(namespace: string, selector: string | undefined, directory: string, pods: Set<string>, follow: boolean): Promise<void> {
-    const _pods = await this.kube.listNamespacedPod(namespace, selector)
-
-    for (const pod of _pods.items) {
+    for (const pod of pods.items) {
       const podName = pod.metadata!.name!
-      if (!pods.has(podName)) {
-        pods.add(podName)
+
+      if (processedPods) {
+        if (!processedPods.has(podName)) {
+          processedPods.add(podName)
+          await this.readPodLogByName(namespace, podName, directory, follow)
+        }
+      } else {
         await this.readPodLogByName(namespace, podName, directory, follow)
       }
     }
   }
 
-  private async doReadPodLogByName(namespace: string, podName: string, directory: string, containers: Set<string>, follow: boolean): Promise<void> {
+  /**
+   * Reads log from pod that matches a given name.
+   */
+  async readPodLogByName(namespace: string, podName: string, directory: string, follow: boolean): Promise<void> {
+    const processedContainers = new Set<string>()
+    if (follow) {
+      setInterval(async () => this.readPodLogByNameIgnoreSpecificContainers(namespace, podName, directory, processedContainers, follow), 100)
+    } else {
+      await this.readPodLogByNameIgnoreSpecificContainers(namespace, podName, directory, processedContainers, follow)
+    }
+  }
+
+  /**
+   * Reads log from all containers in the pod with exception of already processed ones.
+   * Once log is read the container is marked as processed.
+   */
+  async readPodLogByNameIgnoreSpecificContainers(namespace: string, podName: string, directory: string, processedContainers: Set<string>, follow: boolean): Promise<void> {
     const pod = await this.kube.readNamespacedPod(podName, namespace)
     if (!pod) {
       return
@@ -354,17 +371,20 @@ export class CheHelper {
       }
 
       const containerName = container.name
-      if (!containers.has(containerName)) {
-        containers.add(containerName)
+      if (!processedContainers.has(containerName)) {
+        processedContainers.add(containerName)
         await this.readContainerLog(namespace, podName, containerName, directory, follow)
       }
     }
   }
 
+  /**
+   * Reads log from a specific container of the pod and stores into a file.
+   */
   private async readContainerLog(namespace: string, podName: string, containerName: string, directory: string, follow: boolean): Promise<void> {
-    const filename = path.resolve(directory, podName, `${containerName}.log`)
-    fs.ensureFileSync(filename)
-    return this.kube.readNamespacedPodLog(podName, namespace, containerName, filename, follow)
+    const fileName = path.resolve(directory, podName, `${containerName}.log`)
+    fs.ensureFileSync(fileName)
+    return this.kube.readNamespacedPodLog(podName, namespace, containerName, fileName, follow)
   }
 
   private getCheApiError(error: any, endpoint: string): Error {

@@ -1271,6 +1271,9 @@ export class KubeHelper {
     }
   }
 
+  /**
+   * Reads log by chunk and writes into a file.
+   */
   async readNamespacedPodLog(pod: string, namespace: string, container: string, filename: string, follow: boolean): Promise<void> {
     return new Promise((resolve, reject) => {
       const stream = new Writable()

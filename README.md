@@ -205,7 +205,7 @@ OPTIONS
       [default: che] Che deployment name
 
   -d, --directory=directory
-      [default: ./Logs] Directory to store Eclipse Che logs
+      [default: ./logs] Directory to store Eclipse Che logs
 ```
 
 ## `chectl server:start`
@@ -252,7 +252,7 @@ OPTIONS
       [default: templates] Path to the templates folder
 
   -d, --directory=directory
-      [default: ./Logs] Directory to store Eclipse Che logs
+      [default: ./logs] Directory to store Eclipse Che logs
 
   --che-operator-cr-yaml=che-operator-cr-yaml
       Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer

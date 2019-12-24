@@ -117,7 +117,7 @@ export default class Inject extends Command {
         task: async (ctx: any, task: any) => {
           try {
             if (await this.canInject(flags.chenamespace, ctx.pod, cont)) {
-              await this.injectKubeconfig(flags.chenamespace!, ctx.pod, cont, contextToInject!)
+              await this.injectKubeconfig(flags.chenamespace!, ctx.pod.metadata.name, cont, contextToInject!)
               task.title = `${task.title}...done.`
             } else {
               task.skip('the container doesn\'t support file injection')
