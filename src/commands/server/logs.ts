@@ -38,13 +38,19 @@ export default class Logs extends Command {
     const cheTasks = new CheTasks(flags)
     const k8sTasks = new K8sTasks()
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
-    flags.directory = path.resolve(flags.directory, flags.chenamespace)
 
     tasks.add(k8sTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.serverLogsTasks(flags, false))
 
-    await tasks.run()
+    try {
+      await tasks.run()
+      this.log('Command server:logs has completed successfully.')
+    } catch (error) {
+      this.error(error)
+    } finally {
+      this.log(`Eclipse Che logs will be available in '${path.resolve(flags.directory)}'`)
+    }
 
     notifier.notify({
       title: 'chectl',

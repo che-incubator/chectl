@@ -219,7 +219,6 @@ export default class Start extends Command {
       task: () => new Listr(cheTasks.waitDeployedChe(flags, this))
     }], listrOptions)
 
-    flags.directory = path.resolve(flags.directory, flags.chenamespace)
     const logsTasks = new Listr([{
       title: 'Start following logs',
       task: () => new Listr(cheTasks.serverLogsTasks(flags, true))
@@ -250,6 +249,8 @@ export default class Start extends Command {
       this.log('Command server:start has completed successfully.')
     } catch (err) {
       this.error(err)
+    } finally {
+      this.log(`Eclipse Che logs will be available in '${path.resolve(flags.directory)}'`)
     }
 
     notifier.notify({

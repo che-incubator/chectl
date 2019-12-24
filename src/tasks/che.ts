@@ -9,7 +9,6 @@
  **********************************************************************/
 import { Command } from '@oclif/command'
 import * as Listr from 'listr'
-import * as path from 'path'
 
 import { CheHelper } from '../api/che'
 import { KubeHelper } from '../api/kube'
@@ -528,12 +527,6 @@ export class CheTasks {
           await this.che.readPodLogBySelector(flags.chenamespace, this.devfileRegistrySelector, flags.directory, follow)
           task.title = await `${task.title}...done`
         }
-      },
-      {
-        title: `Eclipse Che logs will be available in '${flags.directory}'`,
-        task: async (task: any) => {
-          task.title = await `${task.title}...done`
-        }
       }
     ]
   }
@@ -543,18 +536,11 @@ export class CheTasks {
       {
         title: `${follow ? 'Start following' : 'Read'} workspace logs`,
         task: async (ctx: any, task: any) => {
-          const directory = path.resolve(flags.directory)
           if (follow) {
-            await this.che.readAllNewPodLog(flags.chenamespace, directory)
+            await this.che.readAllNewPodLog(flags.chenamespace, flags.directory)
           } else {
-            await this.che.readPodLogByName(flags.chenamespace, ctx.pod, directory, false)
+            await this.che.readPodLogByName(flags.chenamespace, ctx.pod, flags.directory, false)
           }
-          task.title = await `${task.title}...done`
-        }
-      },
-      {
-        title: `Workspace logs will be available in '${flags.directory}'`,
-        task: async (task: any) => {
           task.title = await `${task.title}...done`
         }
       }

@@ -40,7 +40,6 @@ export default class Logs extends Command {
     const { flags } = this.parse(Logs)
     const cheTasks = new CheTasks(flags)
     const k8sTasks = new K8sTasks()
-    flags.directory = path.resolve(flags.directory, flags.chenamespace)
 
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
     tasks.add(k8sTasks.testApiTasks(flags, this))
@@ -48,7 +47,14 @@ export default class Logs extends Command {
     tasks.add(cheTasks.verifyWorkspaceRunTask(flags, this))
     tasks.add(cheTasks.workspaceLogsTasks(flags, false))
 
-    await tasks.run()
+    try {
+      await tasks.run()
+      this.log('Command workspace:logs has completed successfully.')
+    } catch (error) {
+      this.error(error)
+    } finally {
+      this.log(`Eclipse Che logs will be available in '${path.resolve(flags.directory)}'`)
+    }
 
     notifier.notify({
       title: 'chectl',

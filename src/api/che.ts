@@ -382,7 +382,7 @@ export class CheHelper {
    * Reads log from a specific container of the pod and stores into a file.
    */
   private async readContainerLog(namespace: string, podName: string, containerName: string, directory: string, follow: boolean): Promise<void> {
-    const fileName = path.resolve(directory, podName, `${containerName}.log`)
+    const fileName = path.resolve(directory, namespace, podName, `${containerName}.log`)
     fs.ensureFileSync(fileName)
     return this.kube.readNamespacedPodLog(podName, namespace, containerName, fileName, follow)
   }

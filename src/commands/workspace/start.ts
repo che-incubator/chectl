@@ -11,6 +11,7 @@
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
+import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { accessToken, cheNamespace, listrRenderer } from '../../common-flags'
@@ -38,6 +39,11 @@ export default class Start extends Command {
       description: 'workspace name: overrides the workspace name to use instead of the one defined in the devfile. Works only for devfile',
       required: false,
     }),
+    directory: string({
+      char: 'd',
+      description: 'Directory to store logs into',
+      default: './logs'
+    }),
     'access-token': accessToken,
     'listr-renderer': listrRenderer
   }
@@ -50,6 +56,7 @@ export default class Start extends Command {
 
   async run() {
     const { flags } = this.parse(Start)
+
     const Listr = require('listr')
     const notifier = require('node-notifier')
     const che = new CheHelper(flags)
@@ -100,9 +107,10 @@ export default class Start extends Command {
       let ctx = await tasks.run()
       this.log('\nWorkspace IDE URL:')
       cli.url(ctx.workspaceIdeURL, ctx.workspaceIdeURL)
-      this.log('\n')
     } catch (err) {
       this.error(err)
+    } finally {
+      this.log(`Eclipse Che logs will be available in '${path.resolve(flags.directory)}'`)
     }
 
     notifier.notify({
