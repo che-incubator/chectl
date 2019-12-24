@@ -61,7 +61,7 @@ export default class Inject extends Command {
         title: `Verify if container ${flags.container} exists`,
         enabled: () => flags.container !== undefined,
         task: async (ctx: any) => {
-          if (!await this.containerExists(flags.chenamespace!, ctx.pod.metadata.name, flags.container!)) {
+          if (!await this.containerExists(flags.chenamespace!, ctx.pod, flags.container!)) {
             this.error(`The specified container "${flags.container}" doesn't exist. The configuration cannot be injected.`)
           }
         }
@@ -117,7 +117,7 @@ export default class Inject extends Command {
         task: async (ctx: any, task: any) => {
           try {
             if (await this.canInject(flags.chenamespace, ctx.pod, cont)) {
-              await this.injectKubeconfig(flags.chenamespace!, ctx.pod.metadata.name, cont, contextToInject!)
+              await this.injectKubeconfig(flags.chenamespace!, ctx.pod, cont, contextToInject!)
               task.title = `${task.title}...done.`
             } else {
               task.skip('the container doesn\'t support file injection')
