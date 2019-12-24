@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-import { CoreV1Api, KubeConfig, V1Pod } from '@kubernetes/client-node'
+import { CoreV1Api, KubeConfig } from '@kubernetes/client-node'
 import axios from 'axios'
 import { cli } from 'cli-ux'
 import * as fs from 'fs-extra'
@@ -34,7 +34,7 @@ export class CheHelper {
    * Rejects if no workspace is found for the given workspace ID
    * or if workspace ID wasn't specified but more than one workspace is found.
    */
-  async getWorkspacePod(namespace: string, cheWorkspaceId?: string): Promise<V1Pod> {
+  async getWorkspacePod(namespace: string, cheWorkspaceId?: string): Promise<string> {
     this.kc.loadFromDefault()
     const k8sApi = this.kc.makeApiClient(CoreV1Api)
 
@@ -48,12 +48,12 @@ export class CheHelper {
     if (cheWorkspaceId) {
       const wsPod = wsPods.find(p => p.metadata!.labels!['che.workspace_id'] === cheWorkspaceId)
       if (wsPod) {
-        return wsPod
+        return wsPod.metadata!.name!
       }
       throw new Error('Pod is not found for the given workspace ID')
     } else {
       if (wsPods.length === 1) {
-        return wsPods[0]
+        return wsPods[0].metadata!.name!
       }
       throw new Error('More than one pod with running workspace is found. Please, specify Che Workspace ID.')
     }

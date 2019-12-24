@@ -13,12 +13,11 @@ import { Context } from '@kubernetes/client-node/dist/config_types'
 import axios from 'axios'
 import { cli } from 'cli-ux'
 import * as fs from 'fs'
+import https = require('https')
 import * as yaml from 'js-yaml'
 import { Writable } from 'stream'
 
 import { DEFAULT_CHE_IMAGE } from '../constants'
-
-import https = require('https')
 
 export class KubeHelper {
   kc = new KubeConfig()
@@ -711,11 +710,11 @@ export class KubeHelper {
   }
 
   async createDeployment(name: string,
-    image: string,
-    serviceAccount: string,
-    pullPolicy: string,
-    configMapEnvSource: string,
-    namespace: string) {
+                         image: string,
+                         serviceAccount: string,
+                         pullPolicy: string,
+                         configMapEnvSource: string,
+                         namespace: string) {
     const k8sAppsApi = this.kc.makeApiClient(AppsV1Api)
     let deployment = new V1Deployment()
     deployment.metadata = new V1ObjectMeta()
@@ -832,12 +831,12 @@ export class KubeHelper {
   }
 
   async createPod(name: string,
-    image: string,
-    serviceAccount: string,
-    restartPolicy: string,
-    pullPolicy: string,
-    configMapEnvSource: string,
-    namespace: string) {
+                  image: string,
+                  serviceAccount: string,
+                  restartPolicy: string,
+                  pullPolicy: string,
+                  configMapEnvSource: string,
+                  namespace: string) {
     const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     let pod = new V1Pod()
     pod.metadata = new V1ObjectMeta()

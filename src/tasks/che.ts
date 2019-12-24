@@ -547,7 +547,7 @@ export class CheTasks {
           if (followNew) {
             await this.che.followNewPodLog(flags.chenamespace, directory)
           } else {
-            await this.che.readPodLogByName(flags.chenamespace, ctx.pod.metadata.name, directory, false)
+            await this.che.readPodLogByName(flags.chenamespace, ctx.pod, directory, false)
           }
           task.title = await `${task.title}...done`
         }
