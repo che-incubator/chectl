@@ -58,7 +58,7 @@ Assemblies of chectl are available at [https://github.com/che-incubator/chectl/r
 
 Manual install:
 
-1) Download a .tgz file based on your Operating System / Arch 
+1) Download a .tgz file based on your Operating System / Arch
 2) Unpack the assembly
 3) move `chectl` folder into a folder like `$HOME/chectl`
 4) add `$HOME/chectl/bin` to `$PATH``
@@ -85,12 +85,14 @@ USAGE
 * [`chectl devfile:generate`](#chectl-devfilegenerate)
 * [`chectl help [COMMAND]`](#chectl-help-command)
 * [`chectl server:delete`](#chectl-serverdelete)
+* [`chectl server:logs`](#chectl-serverlogs)
 * [`chectl server:start`](#chectl-serverstart)
 * [`chectl server:stop`](#chectl-serverstop)
 * [`chectl server:update`](#chectl-serverupdate)
 * [`chectl update [CHANNEL]`](#chectl-update-channel)
 * [`chectl workspace:inject`](#chectl-workspaceinject)
 * [`chectl workspace:list`](#chectl-workspacelist)
+* [`chectl workspace:logs`](#chectl-workspacelogs)
 * [`chectl workspace:start`](#chectl-workspacestart)
 * [`chectl workspace:stop`](#chectl-workspacestop)
 
@@ -185,6 +187,28 @@ OPTIONS
 
 _See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/delete.ts)_
 
+## `chectl server:logs`
+
+Retrieve Eclipse Che logs
+
+```
+USAGE
+  $ chectl server:logs
+
+OPTIONS
+  -d, --directory=directory                [default: ./logs] Directory to store logs into
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
+                                           deployed
+
+  --deployment-name=deployment-name        [default: che] Che deployment name
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+```
+
+_See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/logs.ts)_
+
 ## `chectl server:start`
 
 start Eclipse Che Server
@@ -199,6 +223,9 @@ OPTIONS
 
   -b, --domain=domain
       Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
+
+  -d, --directory=directory
+      [default: ./logs] Directory to store logs into
 
   -h, --help
       show CLI help
@@ -359,7 +386,7 @@ OPTIONS
 
   -w, --workspace=workspace                Target workspace. Can be omitted if only one Workspace is running
 
-  --kube-context=kube-context              (required) [default: minikube] Kubeconfig context to inject
+  --kube-context=kube-context              Kubeconfig context to inject
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
@@ -387,6 +414,28 @@ OPTIONS
 
 _See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/list.ts)_
 
+## `chectl workspace:logs`
+
+Retrieve workspace logs
+
+```
+USAGE
+  $ chectl workspace:logs
+
+OPTIONS
+  -d, --directory=directory                [default: ./logs] Directory to store logs into
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
+                                           deployed
+
+  -w, --workspace=workspace                Target workspace. Can be omitted if only one Workspace is running
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+```
+
+_See code: [src/commands/workspace/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/logs.ts)_
+
 ## `chectl workspace:start`
 
 create and start a Che workspace
@@ -396,6 +445,7 @@ USAGE
   $ chectl workspace:start
 
 OPTIONS
+  -d, --directory=directory                [default: ./logs] Directory to store logs into
   -f, --devfile=devfile                    path or URL to a valid devfile
   -h, --help                               show CLI help
 
@@ -435,6 +485,7 @@ OPTIONS
 
 _See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_
 <!-- commandsstop -->
+
 
 # Contributing
 

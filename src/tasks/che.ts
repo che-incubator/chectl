@@ -464,4 +464,86 @@ export class CheTasks {
         }
       }]
   }
+
+  verifyCheNamespaceExistsTask(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
+    return [{
+      title: `Verify if namespace ${flags.chenamespace} exists`,
+      task: async () => {
+        if (!await this.che.cheNamespaceExist(flags.chenamespace)) {
+          command.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist. The configuration cannot be injected.\nFix with: verify the namespace where Che workspace is running (kubectl get --all-namespaces deployment | grep workspace)`, { code: 'EBADNS' })
+        }
+      }
+    }]
+  }
+
+  /**
+   * Verifies if workspace running and puts #V1Pod into a context.
+   */
+  verifyWorkspaceRunTask(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
+    return [{
+      title: 'Verify if the workspaces is running',
+      task: async (ctx: any) => {
+        ctx.pod = await this.che.getWorkspacePod(flags.chenamespace!, flags.workspace).catch(e => command.error(e.message))
+      }
+    }]
+  }
+
+  /**
+   * Return tasks to collect Eclipse Che logs.
+   */
+  serverLogsTasks(flags: any, follow: boolean): ReadonlyArray<Listr.ListrTask> {
+    return [
+      {
+        title: `${follow ? 'Start following' : 'Read'} Che logs`,
+        task: async (_ctx: any, task: any) => {
+          await this.che.readPodLogBySelector(flags.chenamespace, this.cheSelector, flags.directory, follow)
+          task.title = await `${task.title}...done`
+        }
+      },
+      {
+        title: `${follow ? 'Start following' : 'Read'} Postgres logs`,
+        task: async (_ctx: any, task: any) => {
+          await this.che.readPodLogBySelector(flags.chenamespace, this.postgresSelector, flags.directory, follow)
+          task.title = await `${task.title}...done`
+        }
+      },
+      {
+        title: `${follow ? 'Start following' : 'Read'} Keycloak logs`,
+        task: async (_ctx: any, task: any) => {
+          await this.che.readPodLogBySelector(flags.chenamespace, this.keycloakSelector, flags.directory, follow)
+          task.title = await `${task.title}...done`
+        }
+      },
+      {
+        title: `${follow ? 'Start following' : 'Read'} Plugin registry logs`,
+        task: async (_ctx: any, task: any) => {
+          await this.che.readPodLogBySelector(flags.chenamespace, this.pluginRegistrySelector, flags.directory, follow)
+          task.title = await `${task.title}...done`
+        }
+      },
+      {
+        title: `${follow ? 'Start following' : 'Read'} Devfile registry logs`,
+        task: async (_ctx: any, task: any) => {
+          await this.che.readPodLogBySelector(flags.chenamespace, this.devfileRegistrySelector, flags.directory, follow)
+          task.title = await `${task.title}...done`
+        }
+      }
+    ]
+  }
+
+  workspaceLogsTasks(flags: any, follow: boolean): ReadonlyArray<Listr.ListrTask> {
+    return [
+      {
+        title: `${follow ? 'Start following' : 'Read'} workspace logs`,
+        task: async (ctx: any, task: any) => {
+          if (follow) {
+            await this.che.readAllNewPodLog(flags.chenamespace, flags.directory)
+          } else {
+            await this.che.readPodLogByName(flags.chenamespace, ctx.pod, flags.directory, false)
+          }
+          task.title = await `${task.title}...done`
+        }
+      }
+    ]
+  }
 }

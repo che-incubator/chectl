@@ -17,7 +17,7 @@ import * as Listr from 'listr'
  * Helper for Code Ready Container
  */
 export class CRCHelper {
-  startTasks(flags: any, command: Command): Listr {
+  preflightCheckTasks(flags: any, command: Command): Listr {
     return new Listr([
       {
         title: 'Verify if oc is installed',

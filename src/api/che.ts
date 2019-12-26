@@ -10,8 +10,9 @@
 import { CoreV1Api, KubeConfig } from '@kubernetes/client-node'
 import axios from 'axios'
 import { cli } from 'cli-ux'
-import * as fs from 'fs'
+import * as fs from 'fs-extra'
 import * as yaml from 'js-yaml'
+import * as path from 'path'
 
 import { OpenShiftHelper } from '../api/openshift'
 
@@ -19,6 +20,11 @@ import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
 
 export class CheHelper {
+  /**
+   * Polling interval for new pods / containers in the namespace.
+   */
+  private static readonly POLL_INTERVAL = 100
+
   defaultCheResponseTimeoutMs = 3000
   kc = new KubeConfig()
   kube: KubeHelper
@@ -294,6 +300,96 @@ export class CheHelper {
 
   async buildDashboardURL(ideURL: string): Promise<string> {
     return ideURL.replace(/\/[^/|.]*\/[^/|.]*$/g, '\/dashboard\/#\/ide$&')
+  }
+
+  /**
+   * Reads logs from all new pods that starting to run.
+   * It basically lists existed pods and starts following logs from a new ones.
+   */
+  async readAllNewPodLog(namespace: string, directory: string): Promise<void> {
+    const processedPods = new Set<string>((await this.kube.listNamespacedPod(namespace)).items.map(pod => pod.metadata!.name!))
+    setInterval(async () => this.readPodLogBySelectorIgnoreProcessed(namespace, undefined, directory, processedPods, true), CheHelper.POLL_INTERVAL)
+  }
+
+  /**
+   * Reads logs from pods that match a given selector.
+   */
+  async readPodLogBySelector(namespace: string, selector: string | undefined, directory: string, follow: boolean): Promise<void> {
+    const processedPods = new Set<string>()
+    if (follow) {
+      setInterval(async () => this.readPodLogBySelectorIgnoreProcessed(namespace, selector, directory, processedPods, follow), CheHelper.POLL_INTERVAL)
+    } else {
+      await this.readPodLogBySelectorIgnoreProcessed(namespace, selector, directory, processedPods, follow)
+    }
+  }
+
+  /**
+   * Reads logs from pods that match a given selector with exception of already processed ones.
+   * Once log is read the pod is marked as processed.
+   */
+  async readPodLogBySelectorIgnoreProcessed(namespace: string, selector: string | undefined, directory: string, processedPods: Set<string>, follow: boolean): Promise<void> {
+    const pods = await this.kube.listNamespacedPod(namespace, selector)
+
+    for (const pod of pods.items) {
+      const podName = pod.metadata!.name!
+
+      if (processedPods) {
+        if (!processedPods.has(podName)) {
+          processedPods.add(podName)
+          await this.readPodLogByName(namespace, podName, directory, follow)
+        }
+      } else {
+        await this.readPodLogByName(namespace, podName, directory, follow)
+      }
+    }
+  }
+
+  /**
+   * Reads log from pod that matches a given name.
+   */
+  async readPodLogByName(namespace: string, podName: string, directory: string, follow: boolean): Promise<void> {
+    const processedContainers = new Set<string>()
+    if (follow) {
+      setInterval(async () => this.readPodLogByNameIgnoreProcessed(namespace, podName, directory, processedContainers, follow), 100)
+    } else {
+      await this.readPodLogByNameIgnoreProcessed(namespace, podName, directory, processedContainers, follow)
+    }
+  }
+
+  /**
+   * Reads log from all containers in the pod with exception of already processed ones.
+   * Once log is read the container is marked as processed.
+   */
+  async readPodLogByNameIgnoreProcessed(namespace: string, podName: string, directory: string, processedContainers: Set<string>, follow: boolean): Promise<void> {
+    const pod = await this.kube.readNamespacedPod(podName, namespace)
+    if (!pod) {
+      return
+    }
+
+    if (!pod.status || !pod.status.containerStatuses) {
+      return
+    }
+
+    for (const container of pod.status.containerStatuses) {
+      if (!container.state || !container.state.running) {
+        continue
+      }
+
+      const containerName = container.name
+      if (!processedContainers.has(containerName)) {
+        processedContainers.add(containerName)
+        await this.readContainerLog(namespace, podName, containerName, directory, follow)
+      }
+    }
+  }
+
+  /**
+   * Reads log from a specific container of the pod and stores into a file.
+   */
+  private async readContainerLog(namespace: string, podName: string, containerName: string, directory: string, follow: boolean): Promise<void> {
+    const fileName = path.resolve(directory, namespace, podName, `${containerName}.log`)
+    fs.ensureFileSync(fileName)
+    return this.kube.readNamespacedPodLog(podName, namespace, containerName, fileName, follow)
   }
 
   private getCheApiError(error: any, endpoint: string): Error {

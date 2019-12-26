@@ -18,6 +18,10 @@ import { MinikubeTasks } from './minikube'
 import { MinishiftTasks } from './minishift'
 import { OpenshiftTasks } from './openshift'
 
+/**
+ * Platform specific tasks.
+ *  - preflightCheck
+ */
 export class PlatformTasks {
   preflightCheckTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     const minikubeTasks = new MinikubeTasks()
@@ -37,37 +41,37 @@ export class PlatformTasks {
     } else if (flags.platform === 'minikube') {
       task = {
         title: '✈️  Minikube preflight checklist',
-        task: () => minikubeTasks.startTasks(flags, command)
+        task: () => minikubeTasks.preflightCheckTasks(flags, command)
       }
     } else if (flags.platform === 'minishift') {
       task = {
         title: '✈️  Minishift preflight checklist',
-        task: () => minishiftTasks.startTasks(flags, command)
+        task: () => minishiftTasks.preflightCheckTasks(flags, command)
       }
     } else if (flags.platform === 'microk8s') {
       task = {
         title: '✈️  MicroK8s preflight checklist',
-        task: () => microk8sTasks.startTasks(flags, command)
+        task: () => microk8sTasks.preflightCheckTasks(flags, command)
       }
     } else if (flags.platform === 'openshift') {
       task = {
         title: '✈️  Openshift preflight checklist',
-        task: () => openshiftTasks.startTasks(flags, command)
+        task: () => openshiftTasks.preflightCheckTasks(flags, command)
       }
     } else if (flags.platform === 'k8s') {
       task = {
         title: '✈️  Kubernetes preflight checklist',
-        task: () => k8sTasks.startTasks(flags, command)
+        task: () => k8sTasks.preflightCheckTasks(flags, command)
       }
     } else if (flags.platform === 'docker-desktop') {
       task = {
         title: '✈️  Docker Desktop preflight checklist',
-        task: () => dockerDesktopTasks.startTasks(flags, command)
+        task: () => dockerDesktopTasks.preflightCheckTasks(flags, command)
       }
     } else if (flags.platform === 'crc') {
       task = {
         title: '✈️  CodeReady Containers preflight checklist',
-        task: () => crc.startTasks(flags, command)
+        task: () => crc.preflightCheckTasks(flags, command)
       }
     } else {
       task = {

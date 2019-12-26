@@ -26,7 +26,7 @@ export class DockerDesktopTasks {
   /**
    * Returns tasks list which perform preflight platform checks.
    */
-  startTasks(flags: any, command: Command): Listr {
+  preflightCheckTasks(flags: any, command: Command): Listr {
     return new Listr([
       {
         title: 'Verify if kubectl is installed',

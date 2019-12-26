@@ -8,18 +8,20 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
 import { Context } from '@kubernetes/client-node/dist/config_types'
 import axios from 'axios'
 import { cli } from 'cli-ux'
-import { readFileSync } from 'fs'
+import * as fs from 'fs'
 import https = require('https')
 import * as yaml from 'js-yaml'
+import { Writable } from 'stream'
 
 import { DEFAULT_CHE_IMAGE } from '../constants'
 
 export class KubeHelper {
   kc = new KubeConfig()
+  logHelper = new Log(this.kc)
 
   podWaitTimeout: number
   podReadyTimeout: number
@@ -424,13 +426,15 @@ export class KubeHelper {
     }
   }
 
-  async podExist(name = '', namespace = ''): Promise<boolean> {
+  async readNamespacedPod(podName: string, namespace: string): Promise<V1Pod | undefined> {
     const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
-      const { body } = await k8sCoreApi.readNamespacedPod(name, namespace)
-      return this.compare(body, name)
+      const res = await k8sCoreApi.readNamespacedPod(podName, namespace)
+      if (res && res.body) {
+        return res.body
+      }
     } catch {
-      return false
+      return
     }
   }
 
@@ -586,7 +590,7 @@ export class KubeHelper {
     }
   }
 
-   // make sure that flag is specified for command that it's invoked
+  // make sure that flag is specified for command that it's invoked
   async waitLatestReplica(deploymentName: string, namespace = '', intervalMs = 500, timeoutMs = this.podWaitTimeout) {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
@@ -972,8 +976,8 @@ export class KubeHelper {
       }
 
       if (flags.cheimage === DEFAULT_CHE_IMAGE &&
-          yamlCr.spec.server.cheImageTag !== 'nightly' &&
-          yamlCr.spec.server.cheImageTag !== 'latest') {
+        yamlCr.spec.server.cheImageTag !== 'nightly' &&
+        yamlCr.spec.server.cheImageTag !== 'latest') {
         // We obviously are using a release version of chectl with the default `cheimage`
         // => We should use the operator defaults for docker images
         yamlCr.spec.server.cheImage = ''
@@ -1251,6 +1255,43 @@ export class KubeHelper {
     throw new Error('ERR_LIST_PVCS')
   }
 
+  async listNamespacedPod(namespace: string, selector?: string): Promise<V1PodList> {
+    const k8sApi = this.kc.makeApiClient(CoreV1Api)
+    try {
+      const res = await k8sApi.listNamespacedPod(namespace, true, undefined, undefined, undefined, selector)
+      if (res && res.body) {
+        return res.body
+      } else {
+        return {
+          items: []
+        }
+      }
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  /**
+   * Reads log by chunk and writes into a file.
+   */
+  async readNamespacedPodLog(pod: string, namespace: string, container: string, filename: string, follow: boolean): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const stream = new Writable()
+      stream._write = function (chunk, encoding, done) {
+        fs.appendFileSync(filename, chunk, { encoding })
+        done()
+      }
+
+      this.logHelper.log(namespace, pod, container, stream, error => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve()
+        }
+      }, { follow })
+    })
+  }
+
   /**
    * Checks if message is present and returns error with it
    * or returns error with the specified error if message is not found.
@@ -1263,7 +1304,7 @@ export class KubeHelper {
   }
 
   private safeLoadFromYamlFile(filePath: string): any {
-    return yaml.safeLoad(readFileSync(filePath).toString())
+    return yaml.safeLoad(fs.readFileSync(filePath).toString())
   }
 }
 
