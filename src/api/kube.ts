@@ -426,10 +426,10 @@ export class KubeHelper {
     }
   }
 
-  async readNamespacedPod(name: string, namespace: string): Promise<V1Pod | undefined> {
+  async readNamespacedPod(podName: string, namespace: string): Promise<V1Pod | undefined> {
     const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
-      const res = await k8sCoreApi.readNamespacedPod(name, namespace)
+      const res = await k8sCoreApi.readNamespacedPod(podName, namespace)
       if (res && res.body) {
         return res.body
       }

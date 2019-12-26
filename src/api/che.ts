@@ -20,6 +20,11 @@ import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
 
 export class CheHelper {
+  /**
+   * Polling interval for new pods / containers in the namespace.
+   */
+  private static readonly POLL_INTERVAL = 100
+
   defaultCheResponseTimeoutMs = 3000
   kc = new KubeConfig()
   kube: KubeHelper
@@ -303,7 +308,7 @@ export class CheHelper {
    */
   async readAllNewPodLog(namespace: string, directory: string): Promise<void> {
     const processedPods = new Set<string>((await this.kube.listNamespacedPod(namespace)).items.map(pod => pod.metadata!.name!))
-    setInterval(async () => this.readPodLogBySelectorIgnoreSpecificPods(namespace, undefined, directory, processedPods, true), 100)
+    setInterval(async () => this.readPodLogBySelectorIgnoreProcessed(namespace, undefined, directory, processedPods, true), CheHelper.POLL_INTERVAL)
   }
 
   /**
@@ -312,9 +317,9 @@ export class CheHelper {
   async readPodLogBySelector(namespace: string, selector: string | undefined, directory: string, follow: boolean): Promise<void> {
     const processedPods = new Set<string>()
     if (follow) {
-      setInterval(async () => this.readPodLogBySelectorIgnoreSpecificPods(namespace, selector, directory, processedPods, follow), 100)
+      setInterval(async () => this.readPodLogBySelectorIgnoreProcessed(namespace, selector, directory, processedPods, follow), CheHelper.POLL_INTERVAL)
     } else {
-      await this.readPodLogBySelectorIgnoreSpecificPods(namespace, selector, directory, processedPods, follow)
+      await this.readPodLogBySelectorIgnoreProcessed(namespace, selector, directory, processedPods, follow)
     }
   }
 
@@ -322,7 +327,7 @@ export class CheHelper {
    * Reads logs from pods that match a given selector with exception of already processed ones.
    * Once log is read the pod is marked as processed.
    */
-  async readPodLogBySelectorIgnoreSpecificPods(namespace: string, selector: string | undefined, directory: string, processedPods: Set<string>, follow: boolean): Promise<void> {
+  async readPodLogBySelectorIgnoreProcessed(namespace: string, selector: string | undefined, directory: string, processedPods: Set<string>, follow: boolean): Promise<void> {
     const pods = await this.kube.listNamespacedPod(namespace, selector)
 
     for (const pod of pods.items) {
@@ -345,9 +350,9 @@ export class CheHelper {
   async readPodLogByName(namespace: string, podName: string, directory: string, follow: boolean): Promise<void> {
     const processedContainers = new Set<string>()
     if (follow) {
-      setInterval(async () => this.readPodLogByNameIgnoreSpecificContainers(namespace, podName, directory, processedContainers, follow), 100)
+      setInterval(async () => this.readPodLogByNameIgnoreProcessed(namespace, podName, directory, processedContainers, follow), 100)
     } else {
-      await this.readPodLogByNameIgnoreSpecificContainers(namespace, podName, directory, processedContainers, follow)
+      await this.readPodLogByNameIgnoreProcessed(namespace, podName, directory, processedContainers, follow)
     }
   }
 
@@ -355,7 +360,7 @@ export class CheHelper {
    * Reads log from all containers in the pod with exception of already processed ones.
    * Once log is read the container is marked as processed.
    */
-  async readPodLogByNameIgnoreSpecificContainers(namespace: string, podName: string, directory: string, processedContainers: Set<string>, follow: boolean): Promise<void> {
+  async readPodLogByNameIgnoreProcessed(namespace: string, podName: string, directory: string, processedContainers: Set<string>, follow: boolean): Promise<void> {
     const pod = await this.kube.readNamespacedPod(podName, namespace)
     if (!pod) {
       return

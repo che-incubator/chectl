@@ -92,9 +92,9 @@ USAGE
 * [`chectl update [CHANNEL]`](#chectl-update-channel)
 * [`chectl workspace:inject`](#chectl-workspaceinject)
 * [`chectl workspace:list`](#chectl-workspacelist)
+* [`chectl workspace:logs`](#chectl-workspacelogs)
 * [`chectl workspace:start`](#chectl-workspacestart)
 * [`chectl workspace:stop`](#chectl-workspacestop)
-* [`chectl workspace:logs`](#chectl-workspacelogs)
 
 ## `chectl autocomplete [SHELL]`
 
@@ -189,24 +189,25 @@ _See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chec
 
 ## `chectl server:logs`
 
-Retrieve Eclipse Che Logs
+Retrieve Eclipse Che logs
 
 ```
 USAGE
   $ chectl server:logs
 
 OPTIONS
-  -h, --help  show CLI help
+  -d, --directory=directory                [default: ./logs] Directory to store logs into
+  -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace
-      [default: che] Kubernetes namespace where Che server is supposed to be deployed
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
+                                           deployed
 
-  --deployment-name=deployment-name
-      [default: che] Che deployment name
+  --deployment-name=deployment-name        [default: che] Che deployment name
 
-  -d, --directory=directory
-      [default: ./logs] Directory to store Eclipse Che logs
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
+
+_See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/logs.ts)_
 
 ## `chectl server:start`
 
@@ -222,6 +223,9 @@ OPTIONS
 
   -b, --domain=domain
       Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
+
+  -d, --directory=directory
+      [default: ./logs] Directory to store logs into
 
   -h, --help
       show CLI help
@@ -239,27 +243,24 @@ OPTIONS
       (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
 
   -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc
-      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc
+      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc 
       (for CodeReady Containers)", "microk8s".
 
   -s, --tls
       Enable TLS encryption.
-                           Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured
+                           Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured 
       namespace.
                            For OpenShift, router will use default cluster certificates.
 
   -t, --templates=templates
       [default: templates] Path to the templates folder
 
-  -d, --directory=directory
-      [default: ./logs] Directory to store Eclipse Che logs
-
   --che-operator-cr-yaml=che-operator-cr-yaml
-      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer
+      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer 
       is the operator.
 
   --che-operator-image=che-operator-image
-      [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when
+      [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when 
       the installer is the operator
 
   --deployment-name=deployment-name
@@ -284,7 +285,7 @@ OPTIONS
       The URL of the external plugin registry.
 
   --self-signed-cert
-      Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate
+      Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate 
       must be created in the configured namespace.
 ```
 
@@ -385,7 +386,7 @@ OPTIONS
 
   -w, --workspace=workspace                Target workspace. Can be omitted if only one Workspace is running
 
-  --kube-context=kube-context              (required) [default: minikube] Kubeconfig context to inject
+  --kube-context=kube-context              Kubeconfig context to inject
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
@@ -413,6 +414,28 @@ OPTIONS
 
 _See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/list.ts)_
 
+## `chectl workspace:logs`
+
+Retrieve workspace logs
+
+```
+USAGE
+  $ chectl workspace:logs
+
+OPTIONS
+  -d, --directory=directory                [default: ./logs] Directory to store logs into
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
+                                           deployed
+
+  -w, --workspace=workspace                Target workspace. Can be omitted if only one Workspace is running
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+```
+
+_See code: [src/commands/workspace/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/logs.ts)_
+
 ## `chectl workspace:start`
 
 create and start a Che workspace
@@ -422,6 +445,7 @@ USAGE
   $ chectl workspace:start
 
 OPTIONS
+  -d, --directory=directory                [default: ./logs] Directory to store logs into
   -f, --devfile=devfile                    path or URL to a valid devfile
   -h, --help                               show CLI help
 
