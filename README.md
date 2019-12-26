@@ -486,25 +486,6 @@ OPTIONS
 _See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_
 <!-- commandsstop -->
 
-## `chectl workspace:logs`
-
-Retrieve Workspace Logs
-
-```
-USAGE
-  $ chectl workspace:logs
-
-OPTIONS
-  -h, --help  show CLI help
-
-  -n, --chenamespace=chenamespace
-      [default: che] Kubernetes namespace where Che server is supposed to be deployed
-
-  -w, --workspace=workspace                Target workspace. Can be omitted if only one Workspace is running
-
-  -d, --directory=directory
-      [default: ./logs] Directory to store workspace logs
-```
 
 # Contributing
 
