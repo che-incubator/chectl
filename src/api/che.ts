@@ -333,12 +333,8 @@ export class CheHelper {
     for (const pod of pods.items) {
       const podName = pod.metadata!.name!
 
-      if (processedPods) {
-        if (!processedPods.has(podName)) {
-          processedPods.add(podName)
-          await this.readPodLogByName(namespace, podName, directory, follow)
-        }
-      } else {
+      if (!processedPods.has(podName)) {
+        processedPods.add(podName)
         await this.readPodLogByName(namespace, podName, directory, follow)
       }
     }

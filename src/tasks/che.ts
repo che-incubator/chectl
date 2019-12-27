@@ -531,12 +531,12 @@ export class CheTasks {
     ]
   }
 
-  workspaceLogsTasks(flags: any, follow: boolean): ReadonlyArray<Listr.ListrTask> {
+  workspaceLogsTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: `${follow ? 'Start following' : 'Read'} workspace logs`,
+        title: `${flags.follow ? 'Start following' : 'Read'} workspace logs`,
         task: async (ctx: any, task: any) => {
-          if (follow) {
+          if (flags.follow) {
             await this.che.readAllNewPodLog(flags.chenamespace, flags.directory)
           } else {
             await this.che.readPodLogByName(flags.chenamespace, ctx.pod, flags.directory, false)
