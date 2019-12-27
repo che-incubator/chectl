@@ -19,7 +19,7 @@ import { CheTasks } from '../../tasks/che'
 import { K8sTasks } from '../../tasks/platforms/k8s'
 
 export default class Logs extends Command {
-  static description = 'Retrieve Eclipse Che logs'
+  static description = 'Collect Eclipse Che logs'
 
   static flags = {
     help: flags.help({ char: 'h' }),

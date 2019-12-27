@@ -19,12 +19,16 @@ import { CheTasks } from '../../tasks/che'
 import { K8sTasks } from '../../tasks/platforms/k8s'
 
 export default class Logs extends Command {
-  static description = 'Retrieve workspace logs'
+  static description = 'Collect workspace logs'
 
   static flags = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'listr-renderer': listrRenderer,
+    follow: flags.boolean({
+      description: 'Follow workspace creation logs',
+      default: false
+    }),
     workspace: string({
       char: 'w',
       description: 'Target workspace. Can be omitted if only one Workspace is running'
@@ -44,23 +48,27 @@ export default class Logs extends Command {
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
     tasks.add(k8sTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
-    tasks.add(cheTasks.verifyWorkspaceRunTask(flags, this))
-    tasks.add(cheTasks.workspaceLogsTasks(flags, false))
+    if (!flags.follow) {
+      tasks.add(cheTasks.verifyWorkspaceRunTask(flags, this))
+    }
+    tasks.add(cheTasks.workspaceLogsTasks(flags))
 
     try {
       await tasks.run()
-      this.log('Command workspace:logs has completed successfully.')
+
+      if (flags.follow) {
+        this.log(`chectl is still running and keeps collecting logs in '${path.resolve(flags.directory)}'`)
+      } else {
+        this.log(`Workspace logs is available in '${path.resolve(flags.directory)}'`)
+        this.log('Command workspace:logs has completed successfully.')
+      }
     } catch (error) {
       this.error(error)
-    } finally {
-      this.log(`Eclipse Che logs will be available in '${path.resolve(flags.directory)}'`)
     }
 
     notifier.notify({
       title: 'chectl',
       message: 'Command workspace:logs has completed successfully.'
     })
-
-    this.exit(0)
   }
 }

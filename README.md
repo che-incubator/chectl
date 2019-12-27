@@ -189,7 +189,7 @@ _See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chec
 
 ## `chectl server:logs`
 
-Retrieve Eclipse Che logs
+Collect Eclipse Che logs
 
 ```
 USAGE
@@ -416,7 +416,7 @@ _See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/che
 
 ## `chectl workspace:logs`
 
-Retrieve workspace logs
+Collect workspace logs
 
 ```
 USAGE
@@ -430,6 +430,8 @@ OPTIONS
                                            deployed
 
   -w, --workspace=workspace                Target workspace. Can be omitted if only one Workspace is running
+
+  --follow                                 Follow workspace creation logs
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
@@ -445,7 +447,6 @@ USAGE
   $ chectl workspace:start
 
 OPTIONS
-  -d, --directory=directory                [default: ./logs] Directory to store logs into
   -f, --devfile=devfile                    path or URL to a valid devfile
   -h, --help                               show CLI help
 
