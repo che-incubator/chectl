@@ -163,6 +163,43 @@ export class OperatorTasks {
         }
       },
       {
+        title: 'Create host persisted volume storage class',
+        // enabled: () => {
+        //   const yamlPath = flags['host-persisted-volume-storage-class-name']
+        //   return yamlPath && yamlPath !== ''
+        // },
+        task:  async (_ctx: any, task: any) => {
+          task.title = 'Creation host persisted volume storage class...'
+
+          let storageClassName = flags['host-persisted-volume-storage-class-name']
+          let volumePath = flags['pvc-host-volume-path']
+
+          // use default storage and volume from infrastructure
+          if (!volumePath) {
+            return
+          }
+
+          const storageClassExists = await kube.storageClassExists(storageClassName)
+          if (storageClassName && storageClassExists) {
+            flags['host-persisted-volume-storage-class-name'] = storageClassName
+            return
+          }
+
+          // const yamlFilePath = this.resourcesPath + 'storageclass.yaml'
+          const defaultStorageClassPath = '/home/user/templates/che-operator/storageclass.yaml'
+          let storageClass
+          const defaultStorageExists = await kube.storageClassExists('defaultpersistentsc')
+          if (defaultStorageExists) {
+            storageClass = kube.readClassStorage(defaultStorageClassPath)
+          } else {
+            storageClass = await kube.createStorageClass(defaultStorageClassPath)
+            task.title = 'storage applied' + storageClassName
+          }
+
+          flags['host-persisted-volume-storage-class-name'] = storageClass.metadata!.name
+        }
+      },
+      {
         title: `Create Che Cluster ${this.operatorCheCluster} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
           const exist = await kube.cheClusterExist(this.operatorCheCluster, flags.chenamespace)
@@ -441,6 +478,15 @@ export class OperatorTasks {
       task: async (_ctx: any, task: any) => {
         if (await kh.persistentVolumeClaimExist('che-operator', flags.chenamespace)) {
           await kh.deletePersistentVolumeClaim('che-operator', flags.chenamespace)
+        }
+        task.title = await `${task.title}...OK`
+      }
+    },
+    {
+      title: 'Delete class storage',
+      task: async (_ctx: any, task: any) => {
+        if (await kh.storageClassExists('defaultpersistentsc')) {
+          await kh.deleteStorageClass('defaultpersistentsc')
         }
         task.title = await `${task.title}...OK`
       }

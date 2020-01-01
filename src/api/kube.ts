@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject, V1StorageClass, StorageV1Api } from '@kubernetes/client-node'
 import { Context } from '@kubernetes/client-node/dist/config_types'
 import axios from 'axios'
 import { cli } from 'cli-ux'
@@ -747,7 +747,7 @@ export class KubeHelper {
   }
 
   async createDeploymentFromFile(filePath: string, namespace = '', containerImage = '', containerIndex = 0) {
-    const yamlDeployment = this.safeLoadFromYamlFile(filePath) as V1Deployment
+    const yamlDeployment = this.readClassStorage(filePath)
     if (containerImage) {
       yamlDeployment.spec!.template.spec!.containers[containerIndex].image = containerImage
     }
@@ -757,6 +757,46 @@ export class KubeHelper {
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
+  }
+
+  readClassStorage(filePath: string): V1Deployment {
+    return this.safeLoadFromYamlFile(filePath) as V1Deployment
+  }
+
+  async storageClassExists(storageClassName: string): Promise<boolean> {
+    const k8sAppsApi = this.kc.makeApiClient(StorageV1Api)
+    try {
+      const { response } = await k8sAppsApi.readStorageClass(storageClassName)
+      if (response.statusCode === 200) {
+        return true
+      }
+    } catch {
+      // noop
+    }
+    return false
+  }
+
+  async deleteStorageClass(storageClassName: string) {
+    const k8sAppsApi = this.kc.makeApiClient(StorageV1Api)
+    try {
+      await k8sAppsApi.deleteStorageClass(storageClassName)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async createStorageClass(filePath: string): Promise<V1StorageClass> {
+    const storageClass = this.safeLoadFromYamlFile(filePath) as V1StorageClass
+    const k8sAppsApi = this.kc.makeApiClient(StorageV1Api)
+    try {
+      await k8sAppsApi.createStorageClass(storageClass)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+    if (!storageClass.metadata || !storageClass.metadata.name) {
+      throw new Error(`Storage class from ${filePath} must have name specified`)
+    }
+    return storageClass
   }
 
   async replaceDeploymentFromFile(filePath: string, namespace = '', containerImage = '', containerIndex = 0) {
@@ -973,6 +1013,15 @@ export class KubeHelper {
       if (devfileRegistryUrl) {
         yamlCr.spec.server.devfileRegistryUrl = devfileRegistryUrl
         yamlCr.spec.server.externalDevfileRegistry = true
+      }
+      const hostPersistedVolumeStorageClassName = flags['host-persisted-volume-storage-class-name']
+      if (hostPersistedVolumeStorageClassName) {
+        yamlCr.spec.storage.postgresPVCStorageClassName = hostPersistedVolumeStorageClassName
+      }
+
+      const pvcHostVolumePath = flags['pvc-host-volume-path']
+      if (pvcHostVolumePath) {
+        yamlCr.spec.storage.pvcHostVolumePath = pvcHostVolumePath
       }
 
       if (flags.cheimage === DEFAULT_CHE_IMAGE &&
