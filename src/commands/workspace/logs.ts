@@ -10,8 +10,10 @@
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
+import * as fs from 'fs-extra'
 import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
+import * as os from 'os'
 import * as path from 'path'
 
 import { cheNamespace, listrRenderer } from '../../common-flags'
@@ -35,13 +37,14 @@ export default class Logs extends Command {
     }),
     directory: string({
       char: 'd',
-      description: 'Directory to store logs into',
-      default: './logs'
+      description: 'Directory to store logs into'
     })
   }
 
   async run() {
+    const ctx: any = {}
     const { flags } = this.parse(Logs)
+    ctx.directory = path.resolve(os.tmpdir(), flags.directory ? flags.directory : fs.mkdtempSync('chectl-logs-'))
     const cheTasks = new CheTasks(flags)
     const k8sTasks = new K8sTasks()
 
@@ -54,12 +57,12 @@ export default class Logs extends Command {
     tasks.add(cheTasks.workspaceLogsTasks(flags))
 
     try {
-      await tasks.run()
+      await tasks.run(ctx)
 
       if (flags.follow) {
-        this.log(`chectl is still running and keeps collecting logs in '${path.resolve(flags.directory)}'`)
+        this.log(`chectl is still running and keeps collecting logs in '${ctx.directory}'`)
       } else {
-        this.log(`Workspace logs is available in '${path.resolve(flags.directory)}'`)
+        this.log(`Workspace logs is available in '${ctx.directory}'`)
         this.log('Command workspace:logs has completed successfully.')
       }
     } catch (error) {

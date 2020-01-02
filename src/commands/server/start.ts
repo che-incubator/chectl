@@ -13,6 +13,7 @@ import { string } from '@oclif/parser/lib/flags'
 import * as fs from 'fs-extra'
 import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
+import * as os from 'os'
 import * as path from 'path'
 
 import { cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
@@ -111,8 +112,7 @@ export default class Start extends Command {
     }),
     directory: string({
       char: 'd',
-      description: 'Directory to store logs into',
-      default: './logs'
+      description: 'Directory to store logs into'
     })
   }
 
@@ -187,6 +187,8 @@ export default class Start extends Command {
 
   async run() {
     const { flags } = this.parse(Start)
+    const ctx: any = {}
+    ctx.directory = path.resolve(os.tmpdir(), flags.directory ? flags.directory : fs.mkdtempSync('chectl-logs-'))
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
 
     const cheTasks = new CheTasks(flags)
@@ -225,7 +227,6 @@ export default class Start extends Command {
     }], listrOptions)
 
     try {
-      const ctx: any = {}
       await preInstallTasks.run(ctx)
 
       if (!ctx.isCheDeployed) {
@@ -250,7 +251,7 @@ export default class Start extends Command {
     } catch (err) {
       this.error(err)
     } finally {
-      this.log(`Eclipse Che logs will be available in '${path.resolve(flags.directory)}'`)
+      this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
     }
 
     notifier.notify({
