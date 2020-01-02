@@ -114,16 +114,12 @@ export default class Start extends Command {
       description: 'Directory to store logs into',
       default: './logs'
     }),
-    // 'host-persistent-volume-name': string({
-    //   description: 'Path to the already created persisted volume in the node host. Parameter is used only when installer is operator.',
-    //   default: ''
-    // }),
     'host-persisted-volume-storage-class-name': string({
-      description: 'Path to a yaml file that defines node host persisted volume storage class. Parameter is used only when installer is operator.',
+      description: 'Storage class name to configure Eclipse Che volume. Parameter is used only when installer is operator.',
       default: ''
     }),
     'pvc-host-volume-path': string({
-      description: 'Path to a yaml file that defines node host persisted volume storage class. Parameter is used only when installer is operator.',
+      description: 'Host volume path to store Eclipse Che data. Parameter is used only when installer is operator.',
       default: ''
     }),
   }
