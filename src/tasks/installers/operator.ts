@@ -163,40 +163,35 @@ export class OperatorTasks {
         }
       },
       {
-        title: 'Create host persisted volume storage class',
-        // enabled: () => {
-        //   const yamlPath = flags['host-persisted-volume-storage-class-name']
-        //   return yamlPath && yamlPath !== ''
-        // },
+        title: 'Configure host pvc and storage class',
+        enabled: () => {
+          if (flags['pvc-host-volume-path']) {
+            return true
+          }
+          return false
+        },
         task:  async (_ctx: any, task: any) => {
-          task.title = 'Creation host persisted volume storage class...'
-
-          let storageClassName = flags['host-persisted-volume-storage-class-name']
           let volumePath = flags['pvc-host-volume-path']
 
-          // use default storage and volume from infrastructure
-          if (!volumePath) {
+          const storageClassYamlPath = flags['host-persisted-volume-storage-class-path']
+          if (storageClassYamlPath) {
+            const storageClass = await kube.readClassStorage(storageClassYamlPath)
+            const storageExists = await kube.storageClassExists(storageClass.metadata!.name!)
+            if (!storageExists) {
+              await kube.createStorageClass(storageClassYamlPath)
+            }
+
+            flags['host-persisted-volume-storage-class-name'] = storageClass.metadata!.name
+            task.title = `${task.title}... Used pvc "${volumePath}" and storage class "${storageClass.metadata!.name}".`
             return
           }
 
+          const storageClassName = flags['host-persisted-volume-storage-class-name'] || 'standard'
           const storageClassExists = await kube.storageClassExists(storageClassName)
-          if (storageClassName && storageClassExists) {
-            flags['host-persisted-volume-storage-class-name'] = storageClassName
-            return
+          if (!storageClassExists) {
+            throw new Error(`Storage class with name "${storageClassName}" doesn't exist!`)
           }
-
-          // const yamlFilePath = this.resourcesPath + 'storageclass.yaml'
-          const defaultStorageClassPath = '/home/user/templates/che-operator/storageclass.yaml'
-          let storageClass
-          const defaultStorageExists = await kube.storageClassExists('defaultpersistentsc')
-          if (defaultStorageExists) {
-            storageClass = kube.readClassStorage(defaultStorageClassPath)
-          } else {
-            storageClass = await kube.createStorageClass(defaultStorageClassPath)
-            task.title = 'storage applied' + storageClassName
-          }
-
-          flags['host-persisted-volume-storage-class-name'] = storageClass.metadata!.name
+          task.title = `${task.title}... Used pvc "${volumePath}" and storage class "${storageClassName}".`
         }
       },
       {
@@ -478,15 +473,6 @@ export class OperatorTasks {
       task: async (_ctx: any, task: any) => {
         if (await kh.persistentVolumeClaimExist('che-operator', flags.chenamespace)) {
           await kh.deletePersistentVolumeClaim('che-operator', flags.chenamespace)
-        }
-        task.title = await `${task.title}...OK`
-      }
-    },
-    {
-      title: 'Delete class storage',
-      task: async (_ctx: any, task: any) => {
-        if (await kh.storageClassExists('defaultpersistentsc')) {
-          await kh.deleteStorageClass('defaultpersistentsc')
         }
         task.title = await `${task.title}...OK`
       }

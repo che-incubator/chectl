@@ -118,6 +118,10 @@ export default class Start extends Command {
       description: 'Storage class name to configure Eclipse Che volume. Parameter is used only when installer is operator.',
       default: ''
     }),
+    'host-persisted-volume-storage-class-path': string({
+      description: 'Storage class path to the yaml to configure Eclipse Che data volume. Parameter is used only when installer is operator.',
+      default: ''
+    }),
     'pvc-host-volume-path': string({
       description: 'Host volume path to store Eclipse Che data. Parameter is used only when installer is operator.',
       default: ''

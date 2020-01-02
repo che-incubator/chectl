@@ -759,8 +759,12 @@ export class KubeHelper {
     }
   }
 
-  readClassStorage(filePath: string): V1Deployment {
-    return this.safeLoadFromYamlFile(filePath) as V1Deployment
+  readClassStorage(yamlPath: string): V1Deployment {
+    const storageClass = this.safeLoadFromYamlFile(yamlPath) as V1Deployment
+    if (!storageClass.metadata || !storageClass.metadata.name) {
+      throw new Error(`Storage class from ${yamlPath} must have name specified`)
+    }
+    return storageClass
   }
 
   async storageClassExists(storageClassName: string): Promise<boolean> {
@@ -774,15 +778,6 @@ export class KubeHelper {
       // noop
     }
     return false
-  }
-
-  async deleteStorageClass(storageClassName: string) {
-    const k8sAppsApi = this.kc.makeApiClient(StorageV1Api)
-    try {
-      await k8sAppsApi.deleteStorageClass(storageClassName)
-    } catch (e) {
-      throw this.wrapK8sClientError(e)
-    }
   }
 
   async createStorageClass(filePath: string): Promise<V1StorageClass> {
@@ -1021,7 +1016,7 @@ export class KubeHelper {
 
       const pvcHostVolumePath = flags['pvc-host-volume-path']
       if (pvcHostVolumePath) {
-        yamlCr.spec.storage.pvcHostVolumePath = pvcHostVolumePath
+        yamlCr.spec.storage.postgresPVCHostVolumePath = pvcHostVolumePath
       }
 
       if (flags.cheimage === DEFAULT_CHE_IMAGE &&
