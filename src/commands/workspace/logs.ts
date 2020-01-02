@@ -10,7 +10,6 @@
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
-import * as fs from 'fs-extra'
 import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
 import * as os from 'os'
@@ -44,7 +43,7 @@ export default class Logs extends Command {
   async run() {
     const ctx: any = {}
     const { flags } = this.parse(Logs)
-    ctx.directory = path.resolve(os.tmpdir(), flags.directory ? flags.directory : fs.mkdtempSync('chectl-logs-'))
+    ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
     const cheTasks = new CheTasks(flags)
     const k8sTasks = new K8sTasks()
 

@@ -188,7 +188,7 @@ export default class Start extends Command {
   async run() {
     const { flags } = this.parse(Start)
     const ctx: any = {}
-    ctx.directory = path.resolve(os.tmpdir(), flags.directory ? flags.directory : fs.mkdtempSync('chectl-logs-'))
+    ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
 
     const cheTasks = new CheTasks(flags)
