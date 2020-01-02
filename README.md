@@ -196,7 +196,7 @@ USAGE
   $ chectl server:logs
 
 OPTIONS
-  -d, --directory=directory                [default: ./logs] Directory to store logs into
+  -d, --directory=directory                Directory to store logs into
   -h, --help                               show CLI help
 
   -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
@@ -225,7 +225,7 @@ OPTIONS
       Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
 
   -d, --directory=directory
-      [default: ./logs] Directory to store logs into
+      Directory to store logs into
 
   -h, --help
       show CLI help
@@ -423,7 +423,7 @@ USAGE
   $ chectl workspace:logs
 
 OPTIONS
-  -d, --directory=directory                [default: ./logs] Directory to store logs into
+  -d, --directory=directory                Directory to store logs into
   -h, --help                               show CLI help
 
   -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
