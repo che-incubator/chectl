@@ -170,13 +170,13 @@ export class OperatorTasks {
           }
           return false
         },
-        task:  async (_ctx: any, task: any) => {
+        task: async (_ctx: any, task: any) => {
           let volumePath = flags['pvc-host-volume-path']
 
           const storageClassYamlPath = flags['host-persisted-volume-storage-class-path']
           if (storageClassYamlPath) {
             const storageClass = await kube.readClassStorage(storageClassYamlPath)
-            const storageExists = await kube.storageClassExists(storageClass.metadata!.name!)
+            const storageExists = await kube.isStorageClassExists(storageClass.metadata!.name!)
             if (!storageExists) {
               await kube.createStorageClass(storageClassYamlPath)
             }
@@ -187,7 +187,7 @@ export class OperatorTasks {
           }
 
           const storageClassName = flags['host-persisted-volume-storage-class-name'] || 'standard'
-          const storageClassExists = await kube.storageClassExists(storageClassName)
+          const storageClassExists = await kube.isStorageClassExists(storageClassName)
           if (!storageClassExists) {
             throw new Error(`Storage class with name "${storageClassName}" doesn't exist!`)
           }

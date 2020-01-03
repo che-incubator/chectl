@@ -269,6 +269,13 @@ OPTIONS
   --devfile-registry-url=devfile-registry-url
       The URL of the external Devfile registry.
 
+  --host-persisted-volume-storage-class-name=host-persisted-volume-storage-class-name
+      Storage class name to configure Eclipse Che volume. Parameter is used only when installer is operator.
+
+  --host-persisted-volume-storage-class-path=host-persisted-volume-storage-class-path
+      Storage class path to the yaml to configure Eclipse Che data volume. Parameter is used only when installer is 
+      operator.
+
   --k8spodreadytimeout=k8spodreadytimeout
       [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
 
@@ -283,6 +290,9 @@ OPTIONS
 
   --plugin-registry-url=plugin-registry-url
       The URL of the external plugin registry.
+
+  --pvc-host-volume-path=pvc-host-volume-path
+      Host volume path to store Eclipse Che data. Parameter is used only when installer is operator.
 
   --self-signed-cert
       Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate 

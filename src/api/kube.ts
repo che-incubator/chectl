@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject, V1StorageClass, StorageV1Api } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, RbacAuthorizationV1Api, StorageV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1StorageClass, V1Subject } from '@kubernetes/client-node'
 import { Context } from '@kubernetes/client-node/dist/config_types'
 import axios from 'axios'
 import { cli } from 'cli-ux'
@@ -747,7 +747,7 @@ export class KubeHelper {
   }
 
   async createDeploymentFromFile(filePath: string, namespace = '', containerImage = '', containerIndex = 0) {
-    const yamlDeployment = this.readClassStorage(filePath)
+    const yamlDeployment = this.safeLoadFromYamlFile(filePath) as V1Deployment
     if (containerImage) {
       yamlDeployment.spec!.template.spec!.containers[containerIndex].image = containerImage
     }
@@ -759,15 +759,15 @@ export class KubeHelper {
     }
   }
 
-  readClassStorage(yamlPath: string): V1Deployment {
-    const storageClass = this.safeLoadFromYamlFile(yamlPath) as V1Deployment
+  readClassStorage(yamlPath: string): V1StorageClass {
+    const storageClass = this.safeLoadFromYamlFile(yamlPath) as V1StorageClass
     if (!storageClass.metadata || !storageClass.metadata.name) {
       throw new Error(`Storage class from ${yamlPath} must have name specified`)
     }
     return storageClass
   }
 
-  async storageClassExists(storageClassName: string): Promise<boolean> {
+  async isStorageClassExists(storageClassName: string): Promise<boolean> {
     const k8sAppsApi = this.kc.makeApiClient(StorageV1Api)
     try {
       const { response } = await k8sAppsApi.readStorageClass(storageClassName)
@@ -781,17 +781,14 @@ export class KubeHelper {
   }
 
   async createStorageClass(filePath: string): Promise<V1StorageClass> {
-    const storageClass = this.safeLoadFromYamlFile(filePath) as V1StorageClass
+    const storageClassSource = this.readClassStorage(filePath)
     const k8sAppsApi = this.kc.makeApiClient(StorageV1Api)
     try {
-      await k8sAppsApi.createStorageClass(storageClass)
+      const { body } = await k8sAppsApi.createStorageClass(storageClassSource)
+      return body
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
-    if (!storageClass.metadata || !storageClass.metadata.name) {
-      throw new Error(`Storage class from ${filePath} must have name specified`)
-    }
-    return storageClass
   }
 
   async replaceDeploymentFromFile(filePath: string, namespace = '', containerImage = '', containerIndex = 0) {
