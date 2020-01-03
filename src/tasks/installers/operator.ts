@@ -191,6 +191,8 @@ export class OperatorTasks {
           if (!storageClassExists) {
             throw new Error(`Storage class with name "${storageClassName}" doesn't exist!`)
           }
+
+          flags['host-persisted-volume-storage-class-name'] = storageClassName
           task.title = `${task.title}... Used pvc "${volumePath}" and storage class "${storageClassName}".`
         }
       },
