@@ -15,7 +15,7 @@ FORK="l0rd/chectl" && \
 
 ```bash
 GH_USER="l0rd" && \
-REALEASE_ISSUE_LINK="https://github.com/eclipse/che/issues/15504" && \
+RELEASE_ISSUE_LINK="https://github.com/eclipse/che/issues/15504" && \
 hub pull-request --browse \
                  --base che-incubator:${BRANCH_NAME} \
                  --head ${GH_USER}:${BRANCH_NAME} \
@@ -23,7 +23,7 @@ hub pull-request --browse \
                  -m "### What does this PR do?" \
                  -m "Release version ${CHE_VERSION}" \
                  -m "### What issues does this PR fix or reference?" \
-                 -m "${REALEASE_ISSUE_LINK}"
+                 -m "${RELEASE_ISSUE_LINK}"
 ```
 
 Wait for a review approval and then merge it.
