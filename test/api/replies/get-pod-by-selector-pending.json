@@ -58,7 +58,7 @@
                 }
               }
             ],
-            "image": "eclipse/che-server:latest",
+            "image": "quay.io/eclipse/che-server:latest",
             "imagePullPolicy": "IfNotPresent",
             "livenessProbe": {
               "failureThreshold": 3,
@@ -187,7 +187,7 @@
         ],
         "containerStatuses": [
           {
-            "image": "eclipse/che-server:latest",
+            "image": "quay.io/eclipse/che-server:latest",
             "imageID": "",
             "lastState": {},
             "name": "che",

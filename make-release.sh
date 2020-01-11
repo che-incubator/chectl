@@ -70,7 +70,7 @@ run() {
   echo "$VERSION" > VERSION
 
   # replace nightly versions by release version
-  apply_sed "s#eclipse/che-server:nightly#eclipse/che-server:${VERSION}#g" src/constants.ts
+  apply_sed "s#quay.io/eclipse/che-server:nightly#quay.io/eclipse/che-server:${VERSION}#g" src/constants.ts
   apply_sed "s#quay.io/eclipse/che-operator:nightly#quay.io/eclipse/che-operator:${VERSION}#g" src/constants.ts
 
   # now replace package.json dependencies

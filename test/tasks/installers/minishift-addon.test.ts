@@ -19,28 +19,28 @@ let minishiftAddonTasks = new MinishiftAddonTasks()
 describe('Minishift addon helper', () => {
   fancy
     .it('extracts the tag part from an image name', async () => {
-      const image = 'eclipse/che:latest'
+      const image = 'quay.io/eclipse/che:latest'
       const tag = minishiftAddonTasks.getImageTag(image)
       expect(tag).to.equal('latest')
     })
 
   fancy
     .it('extracts the repo part from an image name', async () => {
-      const image = 'eclipse/che:latest'
+      const image = 'quay.io/eclipse/che:latest'
       const repository = minishiftAddonTasks.getImageRepository(image)
-      expect(repository).to.equal('eclipse/che')
+      expect(repository).to.equal('quay.io/eclipse/che')
     })
 
   fancy
     .it('returns the repo part even if an image has no tag', async () => {
-      const image = 'eclipse/che'
+      const image = 'quay.io/eclipse/che'
       const repository = minishiftAddonTasks.getImageRepository(image)
-      expect(repository).to.equal('eclipse/che')
+      expect(repository).to.equal('quay.io/eclipse/che')
     })
 
   fancy
     .it('returns latest as tag if an image has no tag', async () => {
-      const image = 'eclipse/che'
+      const image = 'quay.io/eclipse/che'
       const tag = minishiftAddonTasks.getImageTag(image)
       expect(tag).to.equal('latest')
     })

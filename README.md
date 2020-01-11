@@ -231,7 +231,7 @@ OPTIONS
       show CLI help
 
   -i, --cheimage=cheimage
-      [default: eclipse/che-server:nightly] Che server container image
+      [default: quay.io/eclipse/che-server:nightly] Che server container image
 
   -m, --multiuser
       Starts che in multi-user mode

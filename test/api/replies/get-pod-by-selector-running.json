@@ -58,7 +58,7 @@
                 }
               }
             ],
-            "image": "eclipse/che-server:latest",
+            "image": "quay.io/eclipse/che-server:latest",
             "imagePullPolicy": "IfNotPresent",
             "livenessProbe": {
               "failureThreshold": 3,
@@ -188,8 +188,8 @@
         "containerStatuses": [
           {
             "containerID": "docker://11f7e7b94950e95c5897ddcd088e22c805d8dd4a935fc8480bda6c0af38d6536",
-            "image": "eclipse/che-server:latest",
-            "imageID": "docker-pullable://eclipse/che-server@sha256:eb83b0a66eeae6dac20d196917a027e2b1430834386cbd04326009896fa574f7",
+            "image": "quay.io/eclipse/che-server:latest",
+            "imageID": "docker-pullable://quay.io/eclipse/che-server@sha256:eb83b0a66eeae6dac20d196917a027e2b1430834386cbd04326009896fa574f7",
             "lastState": {},
             "name": "che",
             "ready": false,
