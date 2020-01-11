@@ -7,17 +7,18 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
+
+import Command from '@oclif/command'
+import * as execa from 'execa'
 // tslint:disable:object-curly-spacing
 import { expect, fancy } from 'fancy-test'
-import * as execa from 'execa'
 
 import { HelmTasks } from '../../../src/tasks/installers/helm'
 
 jest.mock('execa')
 
-let helmTasks = new HelmTasks()
+let helmTasks = new HelmTasks({}, {} as Command)
 describe('Helm helper', () => {
-
   fancy
     .it('check get v3 version', async () => {
       const helmVersionOutput = 'v3.0.0+ge29ce2a';
@@ -26,11 +27,11 @@ describe('Helm helper', () => {
       expect(version).to.equal('v3.0.0+ge29ce2a')
     })
 
-    fancy
+  fancy
     .it('check get v2 version', async () => {
       const helmVersionOutput = 'Client: v2.13.0-rc.2+gb0d4c9e';
       (execa as any).mockResolvedValue({ exitCode: 0, stdout: helmVersionOutput })
       const version = await helmTasks.getVersion();
       expect(version).to.equal('v2.13.0-rc.2+gb0d4c9e')
-    })    
+    })
 })

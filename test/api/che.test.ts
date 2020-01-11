@@ -126,7 +126,7 @@ describe('Che helper', () => {
         expect(res).to.equal(false)
       })
     fancy
-      .stub(kc, 'makeApiClient', () => k8sApi)
+      .stub(kube.kc, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'readNamespace', () => ({ response: '', body: { metadata: { name: `${namespace}` } } }))
       .it('founds out that a namespace does exist', async () => {
         const res = await ch.cheNamespaceExist(namespace)

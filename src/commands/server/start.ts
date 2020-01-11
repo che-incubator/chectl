@@ -43,6 +43,11 @@ export default class Start extends Command {
       default: Start.getTemplatesDir(),
       env: 'CHE_TEMPLATES_FOLDER'
     }),
+    resources: string({
+      description: 'Path to the resources folder',
+      env: 'CHE_RESOURCES_FOLDER',
+      default: Start.getResourcesDir()
+    }),
     'devfile-registry-url': string({
       description: 'The URL of the external Devfile registry.',
       env: 'CHE_WORKSPACE_DEVFILE__REGISTRY__URL'
@@ -150,6 +155,18 @@ export default class Start extends Command {
     return path.join(__dirname, '../../../templates')
   }
 
+  static getResourcesDir(): string {
+    // return local resources folder if present
+    const RESOURCES_DIR_NAME = 'resources'
+    const resourcesDirPath = path.resolve(RESOURCES_DIR_NAME)
+    const exists = fs.existsSync(RESOURCES_DIR_NAME)
+    if (exists) {
+      return resourcesDirPath
+    }
+    // else use the location from node modules
+    return path.join(__dirname, '../../../', RESOURCES_DIR_NAME)
+  }
+
   static setPlaformDefaults(flags: any) {
     if (flags.platform === 'minishift') {
       if (!flags.multiuser && flags.installer === '') {
@@ -230,6 +247,13 @@ export default class Start extends Command {
     const ctx: any = {}
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
+    ctx.listrOptions = listrOptions
+
+    // TODO temporary workaround.
+    // When tls by default is implemented for all plutforms, delete `tls` flag
+    if (flags.platform === 'k8s' || flags.platform === 'minikube' || flags.platform === 'microk8s') {
+      flags.tls = true
+    }
 
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()

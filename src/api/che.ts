@@ -122,19 +122,7 @@ export class CheHelper {
   }
 
   async cheNamespaceExist(namespace = '') {
-    const k8sApi = this.kc.makeApiClient(CoreV1Api)
-    try {
-      const res = await k8sApi.readNamespace(namespace)
-      if (res && res.body &&
-        res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === namespace) {
-        return true
-      } else {
-        return false
-      }
-    } catch {
-      return false
-    }
+    return this.kube.namespaceExist(namespace)
   }
 
   async getCheServerStatus(cheURL: string, responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<string> {

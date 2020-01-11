@@ -1,5 +1,5 @@
 /*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
+ * Copyright (c) 2019-2020 Red Hat, Inc.
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -8,10 +8,11 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
 import { Cluster, Context } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
+import * as execa from 'execa'
 import * as fs from 'fs'
 import https = require('https')
 import * as yaml from 'js-yaml'
@@ -21,6 +22,10 @@ import { Writable } from 'stream'
 
 import { DEFAULT_CHE_IMAGE } from '../constants'
 import { getClusterClientCommand } from '../util'
+
+import { V1alpha2Sertificate } from './typings/cert-manager'
+
+const AWAIT_TIMEOUT_S = 30
 
 export class KubeHelper {
   kc = new KubeConfig()
@@ -62,6 +67,11 @@ export class KubeHelper {
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
+  }
+
+  async applyResource(yamlPath: string): Promise<void> {
+    const command = `kubectl apply -f ${yamlPath}`
+    await execa(command, { timeout: 30000, shell: true })
   }
 
   async getServicesBySelector(labelSelector = '', namespace = ''): Promise<V1ServiceList> {
@@ -110,6 +120,52 @@ export class KubeHelper {
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
+  }
+
+  async waitServiceAccount(name: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      let request: any
+
+      // Set up watcher
+      const watcher = new Watch(this.kc)
+      request = watcher
+        .watch(`/api/v1/namespaces/${namespace}/serviceaccounts`, {},
+          (_phase: string, obj: any) => {
+            const serviceAccount = obj as V1ServiceAccount
+
+            // Filter other service accounts in the given namespace
+            if (serviceAccount && serviceAccount.metadata && serviceAccount.metadata.name === name) {
+              // The service account is present, stop watching
+              if (request) {
+                request.abort()
+              }
+              // Release awaiter
+              resolve()
+            }
+          },
+          error => {
+            if (error) {
+              reject(error)
+            }
+          })
+
+      // Automatically stop watching after timeout
+      const timeoutHandler = setTimeout(() => {
+        request.abort()
+        reject(`Timeout reached while waiting for "${name}" service account.`)
+      }, timeout * 1000)
+
+      // Request service account, for case if it is already exist
+      const serviceAccount = await this.getSecret(name, namespace)
+      if (serviceAccount) {
+        // Stop watching
+        request.abort()
+        clearTimeout(timeoutHandler)
+
+        // Relese awaiter
+        resolve()
+      }
+    })
   }
 
   async deleteServiceAccount(name = '', namespace = '') {
@@ -427,6 +483,22 @@ export class KubeHelper {
       await k8sCoreApi.deleteNamespacedConfigMap(name, namespace, undefined, options)
     } catch (e) {
       throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async namespaceExist(namespace: string) {
+    const k8sApi = this.kc.makeApiClient(CoreV1Api)
+    try {
+      const res = await k8sApi.readNamespace(namespace)
+      if (res && res.body &&
+        res.body.metadata && res.body.metadata.name
+        && res.body.metadata.name === namespace) {
+        return true
+      } else {
+        return false
+      }
+    } catch {
+      return false
     }
   }
 
@@ -848,7 +920,6 @@ export class KubeHelper {
     pod.metadata.labels = { app: name }
     pod.metadata.namespace = namespace
     pod.spec = new V1PodSpec()
-    pod.spec.containers
     pod.spec.restartPolicy = restartPolicy
     pod.spec.serviceAccountName = serviceAccount
     let opContainer = new V1Container()
@@ -863,6 +934,109 @@ export class KubeHelper {
 
     try {
       return await k8sCoreApi.createNamespacedPod(namespace, pod)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async createJob(name: string,
+                  image: string,
+                  serviceAccount: string,
+                  namespace: string,
+                  backoffLimit = 0,
+                  restartPolicy = 'Never') {
+    const k8sBatchApi = this.kc.makeApiClient(BatchV1Api)
+
+    const job = new V1Job()
+    job.metadata = new V1ObjectMeta()
+    job.metadata.name = name
+    job.metadata.labels = { app: name }
+    job.metadata.namespace = namespace
+    job.spec = new V1JobSpec()
+    job.spec.ttlSecondsAfterFinished = 10
+    job.spec.backoffLimit = backoffLimit
+    job.spec.template = new V1PodTemplateSpec()
+    job.spec.template.spec = new V1PodSpec()
+    job.spec.template.spec.serviceAccountName = serviceAccount
+    const jobContainer = new V1Container()
+    jobContainer.name = name
+    jobContainer.image = image
+    job.spec.template.spec.restartPolicy = restartPolicy
+    job.spec.template.spec.containers = [jobContainer]
+
+    try {
+      return await k8sBatchApi.createNamespacedJob(namespace, job)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async getJob(jobName: string, namespace: string): Promise<V1Job> {
+    const k8sBatchApi = this.kc.makeApiClient(BatchV1Api)
+
+    try {
+      const result = await k8sBatchApi.readNamespacedJob(jobName, namespace)
+      return result.body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async waitJob(jobName: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      let request: any
+
+      // Set up watcher
+      const watcher = new Watch(this.kc)
+      request = watcher
+        .watch(`/apis/batch/v1/namespaces/${namespace}/jobs/`, {},
+          (_phase: string, obj: any) => {
+            const job = obj as V1Job
+
+            // Filter other jobs in the given namespace
+            if (job && job.metadata && job.metadata.name === jobName) {
+              // Check job status
+              if (job.status && job.status.succeeded && job.status.succeeded >= 1) {
+                // Job is finished, stop watching
+                if (request) {
+                  request.abort()
+                }
+                // Release awaiter
+                resolve()
+              }
+            }
+          },
+          error => {
+            if (error) {
+              reject(error)
+            }
+          })
+
+      // Automatically stop watching after timeout
+      const timeoutHandler = setTimeout(() => {
+        request.abort()
+        reject(`Timeout reached while waiting for "${jobName}" job.`)
+      }, timeout * 1000)
+
+      // Request job, for case if it is already ready
+      const job = await this.getJob(jobName, namespace)
+      if (job.status && job.status.succeeded && job.status.succeeded >= 1) {
+        // Stop watching
+        request.abort()
+        clearTimeout(timeoutHandler)
+
+        // Relese awaiter
+        resolve()
+      }
+    })
+  }
+
+  async deleteJob(jobName: string, namespace: string): Promise<boolean> {
+    const k8sBatchApi = this.kc.makeApiClient(BatchV1Api)
+
+    try {
+      const result = await k8sBatchApi.deleteNamespacedJob(jobName, namespace)
+      return result.body.status === 'Success'
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -919,7 +1093,7 @@ export class KubeHelper {
     }
   }
 
-  async crdExist(name = ''): Promise<boolean | ''> {
+  async crdExist(name = ''): Promise<boolean> {
     const k8sApiextensionsApi = this.kc.makeApiClient(ApiextensionsV1beta1Api)
     try {
       const { body } = await k8sApiextensionsApi.readCustomResourceDefinition(name)
@@ -1030,6 +1204,48 @@ export class KubeHelper {
     try {
       const options = new V1DeleteOptions()
       await customObjectsApi.deleteNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name, options)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async clusterIssuerExists(name: string): Promise<boolean> {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+
+    try {
+      // If cluster issuers doesn't exist an exception will be thrown
+      await customObjectsApi.getClusterCustomObject('cert-manager.io', 'v1alpha2', 'clusterissuers', name)
+      return true
+    } catch (e) {
+      if (e.response.statusCode === 404) {
+        return false
+      }
+
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async createCheClusterIssuer(cheClusterIssuerYamlPath: string): Promise<void> {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+
+    const cheClusterIssuer = this.safeLoadFromYamlFile(cheClusterIssuerYamlPath)
+    try {
+      await customObjectsApi.createClusterCustomObject('cert-manager.io', 'v1alpha2', 'clusterissuers', cheClusterIssuer)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async createCheClusterCertificate(certificateTemplatePath: string, domain: string): Promise<void> {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+
+    const certifiate = this.safeLoadFromYamlFile(certificateTemplatePath) as V1alpha2Sertificate
+    const CN = '*.' + domain
+    certifiate.spec.commonName = CN
+    certifiate.spec.dnsNames = [domain, CN]
+
+    try {
+      await customObjectsApi.createNamespacedCustomObject('cert-manager.io', 'v1alpha2', certifiate.metadata.namespace, 'certificates', certifiate)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1230,6 +1446,62 @@ export class KubeHelper {
     } catch {
       return
     }
+  }
+
+  /**
+   * Awaits secret to be present and contain non-empty data fields specified in dataKeys parameter.
+   */
+  async waitSecret(secretName: string, namespace: string, dataKeys: string[] = [], timeout = AWAIT_TIMEOUT_S): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      let request: any
+
+      // Set up watcher
+      const watcher = new Watch(this.kc)
+      request = watcher
+        .watch(`/api/v1/namespaces/${namespace}/secrets/`, { fieldSelector: `metadata.name=${secretName}` },
+          (_phase: string, obj: any) => {
+            const secret = obj as V1Secret
+
+            // Check all required data fields to be present
+            if (dataKeys.length > 0 && secret.data) {
+              for (const key of dataKeys) {
+                if (!secret.data[key]) {
+                  // Key is missing or empty
+                  return
+                }
+              }
+            }
+
+            // The secret with all specified fields is present, stop watching
+            if (request) {
+              request.abort()
+            }
+            // Release awaiter
+            resolve()
+          },
+          error => {
+            if (error) {
+              reject(error)
+            }
+          })
+
+      // Automatically stop watching after timeout
+      const timeoutHandler = setTimeout(() => {
+        request.abort()
+        reject(`Timeout reached while waiting for "${secretName}" secret.`)
+      }, timeout * 1000)
+
+      // Request secret, for case if it is already exist
+      const secret = await this.getSecret(secretName, namespace)
+      if (secret) {
+        // Stop watching
+        request.abort()
+        clearTimeout(timeoutHandler)
+
+        // Relese awaiter
+        resolve()
+      }
+    })
   }
 
   async persistentVolumeClaimExist(name = '', namespace = ''): Promise<boolean> {

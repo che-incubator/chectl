@@ -19,8 +19,18 @@ import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
+import { CHE_SECRET_NAME } from '../../constants'
+import { CertManagerTasks } from '../../tasks/component-installers/cert-manager'
 
 export class HelmTasks {
+  protected kubeHelper: KubeHelper
+  protected command: Command
+
+  constructor(flags: any, command: Command) {
+    this.kubeHelper = new KubeHelper(flags)
+    this.command = command
+  }
+
   /**
    * Returns list of tasks which perform preflight platform checks.
    */
@@ -64,45 +74,29 @@ export class HelmTasks {
         }
       },
       {
-        title: 'Check for TLS secret prerequisites',
-        // Check only if TLS is enabled
-        enabled: () => {
-          return flags.tls
-        },
-        task: async (_ctx: any, task: any) => {
-          const kh = new KubeHelper(flags)
-          const tlsSecret = await kh.getSecret('che-tls', `${flags.chenamespace}`)
+        title: 'Check Che TLS certificate',
+        task: async (ctx: any, task: any) => {
+          const cheTlsSecret = await this.kubeHelper.getSecret(CHE_SECRET_NAME, flags.chenamespace)
 
-          if (!tlsSecret || !tlsSecret.data) {
-            throw new Error(`TLS option is enabled but che-tls secret does not exist in '${flags.chenamespace}' namespace. Example on how to create the secret with TLS: kubectl create secret tls che-tls --namespace='${flags.chenamespace}' --key=privkey.pem --cert=fullchain.pem`)
+          if (cheTlsSecret && cheTlsSecret.data) {
+            if (!cheTlsSecret.data['tls.crt'] || !cheTlsSecret.data['tls.key'] || !cheTlsSecret.data['ca.crt']) {
+              throw new Error('"che-tls" secret is found but it is invalid. The valid self-signed certificate should contain "tls.crt", "tls.key" and "ca.crt" entries.')
+            }
+
+            ctx.cheCertificateExists = true
+
+            task.title = `${task.title}...self-signed certificate secret found`
+          } else {
+            // TLS certificate for Che hasn't been added into the cluster manually, so we need to take care about it automatically
+            ctx.cheCertificateExists = false
+            // Set self-signed certificate flag to true as we are going to generate one
+            flags['self-signed-cert'] = true
+
+            task.title = `${task.title}...going to generate self-signed one`
+
+            const certManagerTasks = new CertManagerTasks(flags)
+            return new Listr(certManagerTasks.getTasks(flags, this.command), ctx.listrOptions)
           }
-
-          if (!tlsSecret.data['tls.crt'] || !tlsSecret.data['tls.key']) {
-            throw new Error(`'che-tls' secret is found but 'tls.crt' or 'tls.key' entry is missing. Example on how to create the secret with self-signed CA certificate: kubectl create secret tls che-tls --namespace='${flags.chenamespace}' --key=privkey.pem --cert=fullchain.pem`)
-          }
-
-          task.title = `${task.title}...self-signed-cert secret found.`
-        }
-      },
-      {
-        title: 'Check for self-signed certificate prerequisites',
-        // Check only if self-signed-cert is enabled
-        enabled: () => {
-          return flags['self-signed-cert']
-        },
-        task: async (_ctx: any, task: any) => {
-          const kh = new KubeHelper(flags)
-          const selfSignedCertSecret = await kh.getSecret('self-signed-cert', `${flags.chenamespace}`)
-
-          if (!selfSignedCertSecret || !selfSignedCertSecret.data) {
-            throw new Error(`Self-signed-cert option is enabled but 'self-signed-cert' secret does not exist in '${flags.chenamespace}' namespace. Example on how to create the secret with self-signed CA certificate: kubectl create secret generic self-signed-cert --namespace='${flags.chenamespace}' --from-file=ca.crt`)
-          }
-
-          if (!selfSignedCertSecret.data['ca.crt']) {
-            throw new Error(`'self-signed-cert' secret is found but 'ca.crt' entry is missing. Example on how to create the secret with self-signed CA certificate: kubectl create secret tls che-tls --namespace='${flags.chenamespace}' --key=privkey.pem --cert=fullchain.pem`)
-          }
-
-          task.title = `${task.title}...che-tls secret found.`
         }
       },
       {

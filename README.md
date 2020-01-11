@@ -267,12 +267,12 @@ OPTIONS
       (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
 
   -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc
-      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc 
+      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc
       (for CodeReady Containers)", "microk8s".
 
   -s, --tls
       Enable TLS encryption.
-                           Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured 
+                           Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured
       namespace.
                            For OpenShift, router will use default cluster certificates.
 
@@ -284,11 +284,11 @@ OPTIONS
       only when the installer is the operator.
 
   --che-operator-cr-yaml=che-operator-cr-yaml
-      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer 
+      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer
       is the operator.
 
   --che-operator-image=che-operator-image
-      [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when 
+      [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when
       the installer is the operator
 
   --debug
@@ -319,8 +319,9 @@ OPTIONS
       persistent volume storage class name to use to store Eclipse Che Postgres database
 
   --self-signed-cert
-      Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate 
-      must be created in the configured namespace.
+      Indicates that self signed certificates is used for encryption.
+      This is the flag for Che to propagate the certificate to components, so they will trust it.
+      Note that `che-tls` secret with CA certificate must be created in the configured namespace.
 
   --skip-version-check
       Skip minimal versions check.

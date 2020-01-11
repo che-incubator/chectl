@@ -8,9 +8,21 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-export const DEFAULT_CHE_IMAGE = 'eclipse/che-server:nightly'
-export const DEFAULT_CHE_OPERATOR_IMAGE = 'quay.io/eclipse/che-operator:nightly'
+export interface V1alpha2Sertificate {
+  apiVersion: string
+  kind: string
+  metadata: V1ObjectMeta
+  spec: V1alpha2SertificateSpec
+}
 
-export const CERT_MANAGER_NAMESPACE_NAME = 'cert-manager'
+export interface V1alpha2SertificateSpec {
+  secretName: string
+  issuerRef: V1alpha2SertificateSpecIssuerRrederence
+  commonName: string
+  dnsNames: List<string>
+}
 
-export const CHE_SECRET_NAME = 'che-tls'
+export interface V1alpha2SertificateSpecIssuerRrederence {
+  name: string
+  kind: string
+}
