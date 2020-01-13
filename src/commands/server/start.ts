@@ -113,6 +113,15 @@ export default class Start extends Command {
     directory: string({
       char: 'd',
       description: 'Directory to store logs into'
+    }),
+    'workspace-pvc-storage-class-name': string({
+      description: 'persistent volume(s) storage class name to use to store Eclipse Che workspaces data',
+      env: 'CHE_INFRA_KUBERNETES_PVC_STORAGE__CLASS__NAME',
+      default: ''
+    }),
+    'postgres-pvc-storage-class-name': string({
+      description: 'persistent volume storage class name to use to store Eclipse Che Postgres database',
+      default: ''
     })
   }
 

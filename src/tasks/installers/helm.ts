@@ -321,6 +321,14 @@ error: E_COMMAND_FAILED`)
       ctx.isDevfileRegistryDeployed = true
     }
 
+    if (flags['workspace-pvc-storage-class-name']) {
+      setOptions.push(`--set global.cheWorkspacePVCStorageClassName=${flags['workspace-pvc-storage-class-name']}`)
+    }
+
+    if (flags['postgres-pvc-storage-class-name']) {
+      setOptions.push(`--set global.chePostgresPVCStorageClassName=${flags['postgres-pvc-storage-class-name']}`)
+    }
+
     setOptions.push(`--set global.ingressDomain=${flags.domain}`)
     setOptions.push(`--set cheImage=${flags.cheimage}`)
     setOptions.push(`--set global.cheWorkspacesNamespace=${flags.chenamespace}`)
