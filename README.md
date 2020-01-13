@@ -284,9 +284,15 @@ OPTIONS
   --plugin-registry-url=plugin-registry-url
       The URL of the external plugin registry.
 
+  --postgres-pvc-storage-class-name=postgres-pvc-storage-class-name
+      persistent volume storage class name to use to store Eclipse Che Postgres database
+
   --self-signed-cert
       Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate 
       must be created in the configured namespace.
+
+  --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
+      persistent volume(s) storage class name to use to store Eclipse Che workspaces data
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
