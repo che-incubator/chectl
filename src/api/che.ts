@@ -9,7 +9,9 @@
  **********************************************************************/
 import { CoreV1Api, KubeConfig } from '@kubernetes/client-node'
 import axios from 'axios'
+import * as cp from 'child_process'
 import { cli } from 'cli-ux'
+import * as commandExists from 'command-exists'
 import * as fs from 'fs-extra'
 import * as yaml from 'js-yaml'
 import * as path from 'path'
@@ -376,6 +378,21 @@ export class CheHelper {
         processedContainers.add(containerName)
         await this.readContainerLog(namespace, podName, containerName, directory, follow)
       }
+    }
+  }
+
+  /**
+   * Reads all namespace events and store into a file.
+   */
+  async readNamespaceEvents(namespace: string, directory: string, follow: boolean): Promise<void> {
+    const fileName = path.resolve(directory, namespace, 'events.txt')
+    fs.ensureFileSync(fileName)
+
+    const cliTool = (commandExists.sync('kubectl') && 'kubectl') || (commandExists.sync('oc') && 'oc')
+    if (cliTool) {
+      cp.exec(`${cliTool} get events -n ${namespace} ${follow ? '--watch' : ''} >> ${fileName}`)
+    } else {
+      throw new Error('No events are collected. \'kubectl\' or \'oc\' is required to perform the task.')
     }
   }
 

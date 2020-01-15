@@ -36,7 +36,8 @@ export default class Logs extends Command {
     }),
     directory: string({
       char: 'd',
-      description: 'Directory to store logs into'
+      description: 'Directory to store logs into',
+      env: 'CHE_LOGS'
     })
   }
 
@@ -54,14 +55,15 @@ export default class Logs extends Command {
       tasks.add(cheTasks.verifyWorkspaceRunTask(flags, this))
     }
     tasks.add(cheTasks.workspaceLogsTasks(flags))
+    tasks.add(cheTasks.namespaceEventsTask(flags, this, flags.follow))
 
     try {
+      this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
       await tasks.run(ctx)
 
       if (flags.follow) {
-        this.log(`chectl is still running and keeps collecting logs in '${ctx.directory}'`)
+        this.log('chectl is still running and keeps collecting logs.')
       } else {
-        this.log(`Workspace logs is available in '${ctx.directory}'`)
         this.log('Command workspace:logs has completed successfully.')
       }
     } catch (error) {

@@ -546,4 +546,16 @@ export class CheTasks {
       }
     ]
   }
+
+  namespaceEventsTask(flags: any, command: Command, follow: boolean): ReadonlyArray<Listr.ListrTask> {
+    return [
+      {
+        title: `${follow ? 'Start following' : 'Read'} namespace events`,
+        task: async (ctx: any, task: any) => {
+          await this.che.readNamespaceEvents(flags.chenamespace, ctx.directory, follow).catch(e => command.error(e.message))
+          task.title = await `${task.title}...done`
+        }
+      }
+    ]
+  }
 }
