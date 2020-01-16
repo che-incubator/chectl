@@ -964,16 +964,19 @@ export class KubeHelper {
       }
       yamlCr.spec.server.selfSignedCert = flags['self-signed-cert']
       yamlCr.spec.k8s.ingressDomain = flags.domain
-      let pluginRegistryUrl = flags['plugin-registry-url']
+      const pluginRegistryUrl = flags['plugin-registry-url']
       if (pluginRegistryUrl) {
         yamlCr.spec.server.pluginRegistryUrl = pluginRegistryUrl
         yamlCr.spec.server.externalPluginRegistry = true
       }
-      let devfileRegistryUrl = flags['devfile-registry-url']
+      const devfileRegistryUrl = flags['devfile-registry-url']
       if (devfileRegistryUrl) {
         yamlCr.spec.server.devfileRegistryUrl = devfileRegistryUrl
         yamlCr.spec.server.externalDevfileRegistry = true
       }
+
+      yamlCr.spec.storage.postgresPVCStorageClassName = flags['postgres-pvc-storage-class-name']
+      yamlCr.spec.storage.workspacePVCStorageClassName = flags['workspace-pvc-storage-class-name']
 
       if (flags.cheimage === DEFAULT_CHE_IMAGE &&
         yamlCr.spec.server.cheImageTag !== 'nightly' &&
