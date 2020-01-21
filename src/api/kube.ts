@@ -313,6 +313,22 @@ export class KubeHelper {
     }
   }
 
+  async createClusterRoleBindingFromFile(filePath: string, namespace: string) {
+    const yamlRoleBinding = this.safeLoadFromYamlFile(filePath) as V1ClusterRoleBinding
+    if (yamlRoleBinding.subjects && namespace) {
+      for (const subject of yamlRoleBinding.subjects) {
+        subject.namespace = namespace
+      }
+    }
+
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
+    try {
+      return await k8sRbacAuthApi.createClusterRoleBinding(yamlRoleBinding)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
   async createClusterRoleBinding(name: string, saName: string, saNamespace = '', roleName = '') {
     const clusterRoleBinding = {
       apiVersion: 'rbac.authorization.k8s.io/v1',
@@ -362,6 +378,25 @@ export class KubeHelper {
     const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
       return await k8sRbacAuthApi.replaceClusterRoleBinding(name, clusterRoleBinding)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async replaceClusterRoleBindingFromFile(filePath: string, namespace: string) {
+    const yamlClusterRoleBinding = this.safeLoadFromYamlFile(filePath) as V1ClusterRoleBinding
+    if (!yamlClusterRoleBinding.metadata || !yamlClusterRoleBinding.metadata.name) {
+      throw new Error(`Cluster role binding read from ${filePath} must have name specified`)
+    }
+
+    const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
+    try {
+      if (yamlClusterRoleBinding.subjects && namespace) {
+        for (const subject of yamlClusterRoleBinding.subjects) {
+          subject.namespace = namespace
+        }
+      }
+      return await k8sRbacAuthApi.replaceClusterRoleBinding(yamlClusterRoleBinding.metadata.name, yamlClusterRoleBinding)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }

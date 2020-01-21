@@ -26,6 +26,17 @@ export class OperatorTasks {
   operatorClusterRole = 'che-operator'
   operatorRoleBinding = 'che-operator'
   operatorClusterRoleBinding = 'che-operator'
+
+  cheClusterRoleCreateNamespaces = 'che-create-namespaces'
+  cheOperatorClusterRoleBindingCreateNamespaces = 'che-operator-create-namespaces'
+  // Cluster rolebindings for che-server to have ability create new namespace for workspace using defaut namespace strategy.
+  cheClusterRoleBindingCreateNamespace = 'che-namespaces-creator'
+
+  cheClusterRole = 'che'
+  cheClusterRoleBinding = 'che-operator-che'
+  // Cluster rolebindings for che-server to manage che workspaces out of che namespace
+  cheClusterRoleBindingManagerNamespaces = 'che-namespaces-manager'
+
   cheClusterCrd = 'checlusters.org.eclipse.che'
   operatorName = 'che-operator'
   operatorCheCluster = 'eclipse-che'
@@ -101,6 +112,64 @@ export class OperatorTasks {
             if (statusCode === 403) {
               command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
             }
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
+      {
+        title: `Create ClusterRole ${this.cheClusterRoleCreateNamespaces}`,
+        task: async (_ctx: any, task: any) => {
+          const exist = await kube.clusterRoleExist(this.cheClusterRoleCreateNamespaces)
+          if (exist) {
+            task.title = `${task.title}...It already exists.`
+          } else {
+            const yamlFilePath = this.resourcesPath + 'cluster_role_createns.yaml'
+            const statusCode = await kube.createClusterRoleFromFile(yamlFilePath)
+            if (statusCode === 403) {
+              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
+            }
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
+      {
+        title: `Create ClusterRoleBinding ${this.cheOperatorClusterRoleBindingCreateNamespaces} in namespace ${flags.chenamespace}`,
+        task: async (_ctx: any, task: any) => {
+          const exist = await kube.clusterRoleBindingExist(this.cheOperatorClusterRoleBindingCreateNamespaces)
+          if (exist) {
+            task.title = `${task.title}...It already exists.`
+          } else {
+            const yamlFilePath = this.resourcesPath + 'cluster_role_binding_createns.yaml'
+            await kube.createClusterRoleBindingFromFile(yamlFilePath, flags.chenamespace)
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
+      {
+        title: `Create Cluster role ${this.cheClusterRole}`,
+        task: async (_ctx: any, task: any) => {
+          const exist = await kube.clusterRoleExist(this.cheClusterRole)
+          if (exist) {
+            task.title = `${task.title}...It already exists.`
+          } else {
+            const yamlFilePath = this.resourcesPath + 'cluster_role_che.yaml'
+            const statusCode = await kube.createClusterRoleFromFile(yamlFilePath)
+            if (statusCode === 403) {
+              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
+            }
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
+      {
+        title: `Create RoleBinding ${this.cheClusterRoleBinding} in namespace ${flags.chenamespace}`,
+        task: async (_ctx: any, task: any) => {
+          const exist = await kube.clusterRoleBindingExist(this.cheClusterRoleBinding)
+          if (exist) {
+            task.title = `${task.title}...It already exists.`
+          } else {
+            const yamlFilePath = this.resourcesPath + 'cluster_role_binding_che.yaml'
+            await kube.createClusterRoleBindingFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...done.`
           }
         }
@@ -302,6 +371,62 @@ export class OperatorTasks {
         }
       },
       {
+        title: `Update ClusterRole ${this.cheClusterRoleCreateNamespaces}`,
+        task: async (_ctx: any, task: any) => {
+          const exist = await kube.clusterRoleExist(this.cheClusterRoleCreateNamespaces)
+          const yamlFilePath = this.resourcesPath + 'cluster_role_createns.yaml'
+          if (exist) {
+            await kube.replaceClusterRoleFromFile(yamlFilePath)
+            task.title = `${task.title}...updated.`
+          } else {
+            await kube.createClusterRoleFromFile(yamlFilePath)
+            task.title = `${task.title}...created a new one.`
+          }
+        }
+      },
+      {
+        title: `Update ClusterRoleBinding ${this.cheOperatorClusterRoleBindingCreateNamespaces} in namespace ${flags.chenamespace}`,
+        task: async (_ctx: any, task: any) => {
+          const exist = await kube.clusterRoleBindingExist(this.cheOperatorClusterRoleBindingCreateNamespaces)
+          const yamlFilePath = this.resourcesPath + 'cluster_role_binding_createns.yaml'
+          if (exist) {
+            await kube.replaceClusterRoleBindingFromFile(yamlFilePath, flags.chenamespace)
+            task.title = `${task.title}...updated.`
+          } else {
+            await kube.createClusterRoleBindingFromFile(yamlFilePath, flags.chenamespace)
+            task.title = `${task.title}...created new one.`
+          }
+        }
+      },
+      {
+        title: `Update ClusterRole ${this.cheClusterRole}`,
+        task: async (_ctx: any, task: any) => {
+          const exist = await kube.clusterRoleExist(this.cheClusterRole)
+          const yamlFilePath = this.resourcesPath + 'cluster_role_che.yaml'
+          if (exist) {
+            await kube.replaceClusterRoleFromFile(yamlFilePath)
+            task.title = `${task.title}...updated.`
+          } else {
+            await kube.createClusterRoleFromFile(yamlFilePath)
+            task.title = `${task.title}...created a new one.`
+          }
+        }
+      },
+      {
+        title: `Update ClusterRoleBinding ${this.cheClusterRoleBinding} in namespace ${flags.chenamespace}`,
+        task: async (_ctx: any, task: any) => {
+          const exist = await kube.clusterRoleBindingExist(this.cheClusterRoleBinding)
+          const yamlFilePath = this.resourcesPath + 'cluster_role_binding_che.yaml'
+          if (exist) {
+            await kube.replaceClusterRoleBindingFromFile(yamlFilePath, flags.chenamespace)
+            task.title = `${task.title}...updated.`
+          } else {
+            await kube.createClusterRoleBindingFromFile(yamlFilePath, flags.chenamespace)
+            task.title = `${task.title}...created new one.`
+          }
+        }
+      },
+      {
         title: `Updating Che Cluster CRD ${this.cheClusterCrd}`,
         task: async (_ctx: any, task: any) => {
           const crd = await kube.getCrd(this.cheClusterCrd)
@@ -408,6 +533,62 @@ export class OperatorTasks {
       task: async (_ctx: any, task: any) => {
         if (await kh.clusterRoleExist(this.operatorClusterRole)) {
           await kh.deleteClusterRole(this.operatorClusterRole)
+        }
+        task.title = await `${task.title}...OK`
+      }
+    },
+    // -- Remove cluster rolebindings created for che by che-operator itself --
+    {
+      title: `Delete cluster role binding ${this.cheClusterRoleBindingCreateNamespace}`,
+      task: async (_ctx: any, task: any) => {
+        if (await kh.clusterRoleBindingExist(this.cheClusterRoleBindingCreateNamespace)) {
+          await kh.deleteClusterRoleBinding(this.cheClusterRoleBindingCreateNamespace)
+        }
+        task.title = await `${task.title}...OK`
+      }
+    },
+    {
+      title: `Delete cluster role binding ${this.cheClusterRoleBindingManagerNamespaces}`,
+      task: async (_ctx: any, task: any) => {
+        if (await kh.clusterRoleBindingExist(this.cheClusterRoleBindingManagerNamespaces)) {
+          await kh.deleteClusterRoleBinding(this.cheClusterRoleBindingManagerNamespaces)
+        }
+        task.title = await `${task.title}...OK`
+      }
+    },
+    // --  --
+    {
+      title: `Delete cluster role binding ${this.cheOperatorClusterRoleBindingCreateNamespaces}`,
+      task: async (_ctx: any, task: any) => {
+        if (await kh.clusterRoleBindingExist(this.cheOperatorClusterRoleBindingCreateNamespaces)) {
+          await kh.deleteClusterRoleBinding(this.cheOperatorClusterRoleBindingCreateNamespaces)
+        }
+        task.title = await `${task.title}...OK`
+      }
+    },
+    {
+      title: `Delete cluster role ${this.cheClusterRoleCreateNamespaces}`,
+      task: async (_ctx: any, task: any) => {
+        if (await kh.clusterRoleExist(this.cheClusterRoleCreateNamespaces)) {
+          await kh.deleteClusterRole(this.cheClusterRoleCreateNamespaces)
+        }
+        task.title = await `${task.title}...OK`
+      }
+    },
+    {
+      title: `Delete cluster role binding ${this.cheClusterRoleBinding}`,
+      task: async (_ctx: any, task: any) => {
+        if (await kh.clusterRoleBindingExist(this.cheClusterRoleBinding)) {
+          await kh.deleteClusterRoleBinding(this.cheClusterRoleBinding)
+        }
+        task.title = await `${task.title}...OK`
+      }
+    },
+    {
+      title: `Delete cluster role ${this.cheClusterRole}`,
+      task: async (_ctx: any, task: any) => {
+        if (await kh.clusterRoleExist(this.cheClusterRole)) {
+          await kh.deleteClusterRole(this.cheClusterRole)
         }
         task.title = await `${task.title}...OK`
       }
