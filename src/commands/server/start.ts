@@ -238,7 +238,7 @@ export default class Start extends Command {
 
     const eventTasks = new Listr([{
       title: 'Start following events',
-      task: () => new Listr(cheTasks.namespaceEventsTask(flags, this, true))
+      task: () => new Listr(cheTasks.namespaceEventsTask(flags.chenamespace, this, true))
     }], listrOptions)
 
     try {

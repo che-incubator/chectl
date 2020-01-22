@@ -45,7 +45,7 @@ export default class Logs extends Command {
     tasks.add(k8sTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.serverLogsTasks(flags, false))
-    tasks.add(cheTasks.namespaceEventsTask(flags, this, false))
+    tasks.add(cheTasks.namespaceEventsTask(flags.chenamespace, this, false))
 
     try {
       this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
