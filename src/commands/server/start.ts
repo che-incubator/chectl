@@ -112,7 +112,8 @@ export default class Start extends Command {
     }),
     directory: string({
       char: 'd',
-      description: 'Directory to store logs into'
+      description: 'Directory to store logs into',
+      env: 'CHE_LOGS'
     }),
     'workspace-pvc-storage-class-name': string({
       description: 'persistent volume(s) storage class name to use to store Eclipse Che workspaces data',
@@ -235,13 +236,20 @@ export default class Start extends Command {
       task: () => new Listr(cheTasks.serverLogsTasks(flags, true))
     }], listrOptions)
 
+    const eventTasks = new Listr([{
+      title: 'Start following events',
+      task: () => new Listr(cheTasks.namespaceEventsTask(flags.chenamespace, this, true))
+    }], listrOptions)
+
     try {
       await preInstallTasks.run(ctx)
 
       if (!ctx.isCheDeployed) {
         this.checkPlatformCompatibility(flags)
         await platformCheckTasks.run(ctx)
+        this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
         await logsTasks.run(ctx)
+        await eventTasks.run(ctx)
         await installTasks.run(ctx)
       } else if (!ctx.isCheReady
         || (ctx.isPostgresDeployed && !ctx.isPostgresReady)
@@ -259,8 +267,6 @@ export default class Start extends Command {
       this.log('Command server:start has completed successfully.')
     } catch (err) {
       this.error(err)
-    } finally {
-      this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
     }
 
     notifier.notify({

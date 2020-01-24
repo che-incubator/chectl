@@ -15,28 +15,30 @@ import * as notifier from 'node-notifier'
 import * as os from 'os'
 import * as path from 'path'
 
-import { cheNamespace, listrRenderer } from '../../common-flags'
+import { listrRenderer } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { K8sTasks } from '../../tasks/platforms/k8s'
 
 export default class Logs extends Command {
-  static description = 'Collect workspace logs'
+  static description = 'Collect workspace(s) logs'
 
   static flags = {
     help: flags.help({ char: 'h' }),
-    chenamespace: cheNamespace,
     'listr-renderer': listrRenderer,
-    follow: flags.boolean({
-      description: 'Follow workspace creation logs',
-      default: false
-    }),
     workspace: string({
       char: 'w',
-      description: 'Target workspace. Can be omitted if only one Workspace is running'
+      description: 'Target workspace id. Can be found in workspace configuration \'id\' field.',
+      required: true
+    }),
+    namespace: string({
+      char: 'n',
+      description: 'The namespace where workspace is located. Can be found in workspace configuration \'attributes.infrastructureNamespace\' field.',
+      required: true
     }),
     directory: string({
       char: 'd',
-      description: 'Directory to store logs into'
+      description: 'Directory to store logs into',
+      env: 'CHE_LOGS'
     })
   }
 
@@ -49,20 +51,16 @@ export default class Logs extends Command {
 
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
     tasks.add(k8sTasks.testApiTasks(flags, this))
-    tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
-    if (!flags.follow) {
-      tasks.add(cheTasks.verifyWorkspaceRunTask(flags, this))
-    }
-    tasks.add(cheTasks.workspaceLogsTasks(flags))
+    tasks.add(cheTasks.workspaceLogsTasks(flags.namespace, flags.workspace))
 
     try {
+      this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
       await tasks.run(ctx)
 
-      if (flags.follow) {
-        this.log(`chectl is still running and keeps collecting logs in '${ctx.directory}'`)
-      } else {
-        this.log(`Workspace logs is available in '${ctx.directory}'`)
-        this.log('Command workspace:logs has completed successfully.')
+      if (!ctx['workspace-run']) {
+        this.log(`Workspace ${flags.workspace} probably hasn't been started yet.`)
+        this.log('The program will keep running and collecting logs...')
+        this.log('Terminate the program when all logs are gathered...')
       }
     } catch (error) {
       this.error(error)

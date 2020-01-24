@@ -496,51 +496,59 @@ export class CheTasks {
       {
         title: `${follow ? 'Start following' : 'Read'} Che logs`,
         task: async (ctx: any, task: any) => {
-          await this.che.readPodLogBySelector(flags.chenamespace, this.cheSelector, ctx.directory, follow)
+          await this.che.readPodLog(flags.chenamespace, this.cheSelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
         }
       },
       {
         title: `${follow ? 'Start following' : 'Read'} Postgres logs`,
         task: async (ctx: any, task: any) => {
-          await this.che.readPodLogBySelector(flags.chenamespace, this.postgresSelector, ctx.directory, follow)
+          await this.che.readPodLog(flags.chenamespace, this.postgresSelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
         }
       },
       {
         title: `${follow ? 'Start following' : 'Read'} Keycloak logs`,
         task: async (ctx: any, task: any) => {
-          await this.che.readPodLogBySelector(flags.chenamespace, this.keycloakSelector, ctx.directory, follow)
+          await this.che.readPodLog(flags.chenamespace, this.keycloakSelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
         }
       },
       {
         title: `${follow ? 'Start following' : 'Read'} Plugin registry logs`,
         task: async (ctx: any, task: any) => {
-          await this.che.readPodLogBySelector(flags.chenamespace, this.pluginRegistrySelector, ctx.directory, follow)
+          await this.che.readPodLog(flags.chenamespace, this.pluginRegistrySelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
         }
       },
       {
         title: `${follow ? 'Start following' : 'Read'} Devfile registry logs`,
         task: async (ctx: any, task: any) => {
-          await this.che.readPodLogBySelector(flags.chenamespace, this.devfileRegistrySelector, ctx.directory, follow)
+          await this.che.readPodLog(flags.chenamespace, this.devfileRegistrySelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
         }
       }
     ]
   }
 
-  workspaceLogsTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+  workspaceLogsTasks(namespace: string, workspaceId: string): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: `${flags.follow ? 'Start following' : 'Read'} workspace logs`,
+        title: 'Read workspace logs',
         task: async (ctx: any, task: any) => {
-          if (flags.follow) {
-            await this.che.readAllNewPodLog(flags.chenamespace, ctx.directory)
-          } else {
-            await this.che.readPodLogByName(flags.chenamespace, ctx.pod, ctx.directory, false)
-          }
+          ctx['workspace-run'] = await this.che.readWorkspacePodLog(namespace, workspaceId, ctx.directory)
+          task.title = `${task.title}...done`
+        }
+      }
+    ]
+  }
+
+  namespaceEventsTask(namespace: string, command: Command, follow: boolean): ReadonlyArray<Listr.ListrTask> {
+    return [
+      {
+        title: `${follow ? 'Start following' : 'Read'} namespace events`,
+        task: async (ctx: any, task: any) => {
+          await this.che.readNamespaceEvents(namespace, ctx.directory, follow).catch(e => command.error(e.message))
           task.title = await `${task.title}...done`
         }
       }

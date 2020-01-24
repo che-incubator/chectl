@@ -422,7 +422,7 @@ _See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/che
 
 ## `chectl workspace:logs`
 
-Collect workspace logs
+Collect workspace(s) logs
 
 ```
 USAGE
@@ -432,12 +432,11 @@ OPTIONS
   -d, --directory=directory                Directory to store logs into
   -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
-                                           deployed
+  -n, --namespace=namespace                (required) The namespace where workspace is located. Can be found in
+                                           workspace configuration 'attributes.infrastructureNamespace' field.
 
-  -w, --workspace=workspace                Target workspace. Can be omitted if only one Workspace is running
-
-  --follow                                 Follow workspace creation logs
+  -w, --workspace=workspace                (required) Target workspace id. Can be found in workspace configuration 'id'
+                                           field.
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
