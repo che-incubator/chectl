@@ -29,13 +29,9 @@ export class OperatorTasks {
 
   cheClusterRoleCreateNamespaces = 'che-create-namespaces'
   cheOperatorClusterRoleBindingCreateNamespaces = 'che-operator-create-namespaces'
-  // Cluster rolebindings for che-server to have ability create new namespace for workspace using defaut namespace strategy.
-  cheClusterRoleBindingCreateNamespace = 'che-create-namespaces'
 
   cheClusterRole = 'che-manage-namespaces'
   cheClusterRoleBinding = 'che-operator-che'
-  // Cluster rolebindings for che-server to manage che workspaces out of che namespace
-  cheClusterRoleBindingManagerNamespaces = 'che-manage-namespaces'
 
   cheClusterCrd = 'checlusters.org.eclipse.che'
   operatorName = 'che-operator'
@@ -537,26 +533,6 @@ export class OperatorTasks {
         task.title = await `${task.title}...OK`
       }
     },
-    // -- Remove cluster rolebindings created for che by che-operator itself --
-    {
-      title: `Delete cluster role binding ${this.cheClusterRoleBindingCreateNamespace}`,
-      task: async (_ctx: any, task: any) => {
-        if (await kh.clusterRoleBindingExist(this.cheClusterRoleBindingCreateNamespace)) {
-          await kh.deleteClusterRoleBinding(this.cheClusterRoleBindingCreateNamespace)
-        }
-        task.title = await `${task.title}...OK`
-      }
-    },
-    {
-      title: `Delete cluster role binding ${this.cheClusterRoleBindingManagerNamespaces}`,
-      task: async (_ctx: any, task: any) => {
-        if (await kh.clusterRoleBindingExist(this.cheClusterRoleBindingManagerNamespaces)) {
-          await kh.deleteClusterRoleBinding(this.cheClusterRoleBindingManagerNamespaces)
-        }
-        task.title = await `${task.title}...OK`
-      }
-    },
-    // --  --
     {
       title: `Delete cluster role binding ${this.cheOperatorClusterRoleBindingCreateNamespaces}`,
       task: async (_ctx: any, task: any) => {
