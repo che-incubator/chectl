@@ -30,9 +30,9 @@ export class OperatorTasks {
   cheClusterRoleCreateNamespaces = 'che-create-namespaces'
   cheOperatorClusterRoleBindingCreateNamespaces = 'che-operator-create-namespaces'
   // Cluster rolebindings for che-server to have ability create new namespace for workspace using defaut namespace strategy.
-  cheClusterRoleBindingCreateNamespace = 'che-namespaces-creator'
+  cheClusterRoleBindingCreateNamespace = 'che-create-namespaces'
 
-  cheClusterRole = 'che'
+  cheClusterRole = 'che-manage-namespaces'
   cheClusterRoleBinding = 'che-operator-che'
   // Cluster rolebindings for che-server to manage che workspaces out of che namespace
   cheClusterRoleBindingManagerNamespaces = 'che-namespaces-manager'
