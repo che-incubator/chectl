@@ -11,13 +11,13 @@ import { string } from '@oclif/parser/lib/flags'
 
 export const cheNamespace = string({
   char: 'n',
-  description: 'Kubernetes namespace where Che server is supposed to be deployed',
+  description: 'Kubernetes namespace where Eclipse Che server is supposed to be deployed',
   default: 'che',
   env: 'CHE_NAMESPACE'
 })
 
 export const cheDeployment = string({
-  description: 'Che deployment name',
+  description: 'Eclipse Che deployment name',
   default: 'che',
   env: 'CHE_DEPLOYMENT'
 })
@@ -29,6 +29,6 @@ export const listrRenderer = string({
 })
 
 export const accessToken = string({
-  description: 'Che OIDC Access Token',
+  description: 'Eclipse Che OIDC Access Token',
   env: 'CHE_ACCESS_TOKEN'
 })

@@ -13,7 +13,7 @@ import { Command, flags } from '@oclif/command'
 import { accessToken, cheNamespace, listrRenderer } from '../../common-flags'
 
 export default class List extends Command {
-  static description = 'list Che workspaces'
+  static description = 'list workspaces'
 
   static flags = {
     help: flags.help({ char: 'h' }),
@@ -28,7 +28,7 @@ export default class List extends Command {
     const notifier = require('node-notifier')
     const tasks = new Listr([
       { title: 'Verify if we can access Kubernetes API', skip: this.warn('Not implemented yet') },
-      { title: 'Verify if Che is running', skip: this.warn('Not implemented yet') },
+      { title: 'Verify if Eclipse Che is running', skip: this.warn('Not implemented yet') },
       { title: 'Get Workspaces', skip: this.warn('Not implemented yet') },
     ], { renderer: flags['listr-renderer'] as any })
 

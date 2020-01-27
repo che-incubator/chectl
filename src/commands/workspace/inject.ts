@@ -23,7 +23,7 @@ import { cheNamespace, listrRenderer } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 
 export default class Inject extends Command {
-  static description = 'inject configurations and tokens in a Che Workspace'
+  static description = 'inject configurations and tokens in a workspace'
 
   static flags = {
     help: flags.help({ char: 'h' }),
@@ -37,7 +37,7 @@ export default class Inject extends Command {
     }),
     container: string({
       char: 'c',
-      description: 'Target container. If not specified, configuration files will be injected in all containers of a Che Workspace pod',
+      description: 'Target container. If not specified, configuration files will be injected in all containers of a workspace pod',
       required: false
     }),
     'kube-context': string({

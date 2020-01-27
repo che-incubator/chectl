@@ -38,7 +38,7 @@ export class CheHelper {
   }
 
   /**
-   * Finds a pod where Che workspace is running.
+   * Finds a pod where workspace is running.
    * Rejects if no workspace is found for the given workspace ID
    * or if workspace ID wasn't specified but more than one workspace is found.
    */
@@ -63,7 +63,7 @@ export class CheHelper {
       if (wsPods.length === 1) {
         return wsPods[0].metadata!.name!
       }
-      throw new Error('More than one pod with running workspace is found. Please, specify Che Workspace ID.')
+      throw new Error('More than one pod with running workspace is found. Please, specify Workspace ID.')
     }
   }
 
@@ -88,7 +88,7 @@ export class CheHelper {
       if (wsPods.length === 1) {
         return wsPods[0].spec!.containers.map(c => c.name)
       }
-      throw new Error('More than one pod with running workspace is found. Please, specify Che Workspace ID.')
+      throw new Error('More than one pod with running workspace is found. Please, specify Workspace ID.')
     }
   }
 

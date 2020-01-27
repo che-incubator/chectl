@@ -75,26 +75,26 @@ export class InstallerTasks {
 
     // let task: Listr.ListrTask
     if (flags.installer === 'helm') {
-      title = '🏃‍  Running Helm to install Che'
+      title = '🏃‍  Running Helm to install Eclipse Che'
       task = () => helmTasks.startTasks(flags, command)
     } else if (flags.installer === 'operator') {
       title = '🏃‍  Running the Che Operator'
       task = () => {
-        // The operator installs Che multiuser only
+        // The operator installs Eclipse Che multiuser only
         if (!flags.multiuser) {
-          command.warn("Che will be deployed in Multi-User mode since Configured 'operator' installer which support only such.")
+          command.warn("Eclipse Che will be deployed in Multi-User mode since Configured 'operator' installer which support only such.")
           flags.multiuser = true
         }
 
         return operatorTasks.startTasks(flags, command)
       }
     } else if (flags.installer === 'minishift-addon') {
-      // minishift-addon supports Che singleuser only
+      // minishift-addon supports Eclipse Che singleuser only
       if (flags.multiuser) {
-        command.warn("Che will be deployed in Single-User mode since Configured 'minishift-addon' installer which support only such.")
+        command.warn("Eclipse Che will be deployed in Single-User mode since Configured 'minishift-addon' installer which support only such.")
         flags.multiuser = false
       }
-      title = '🏃‍  Running the Che minishift-addon'
+      title = '🏃‍  Running the Eclipse Che minishift-addon'
       task = () => minishiftAddonTasks.startTasks(flags, command)
     } else {
       title = '🏃‍  Installer preflight check'

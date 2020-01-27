@@ -163,7 +163,7 @@ export class OperatorTasks {
         }
       },
       {
-        title: `Create Che Cluster ${this.operatorCheCluster} in namespace ${flags.chenamespace}`,
+        title: `Create Eclipse Che Cluster ${this.operatorCheCluster} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
           const exist = await kube.cheClusterExist(this.operatorCheCluster, flags.chenamespace)
           if (exist) {
@@ -195,7 +195,7 @@ export class OperatorTasks {
         task: async (ctx: any, _task: any) => {
           const operatorDeployment = await kube.getDeployment(this.operatorName, flags.chenamespace)
           if (!operatorDeployment) {
-            command.error(`${this.operatorName} deployment is not found in namespace ${flags.chenamespace}.\nProbably Che was initially deployed with another installer`)
+            command.error(`${this.operatorName} deployment is not found in namespace ${flags.chenamespace}.\nProbably Eclipse Che was initially deployed with another installer`)
             return
           }
           const deployedCheOperator = this.retrieveContainerImage(operatorDeployment)
@@ -302,7 +302,7 @@ export class OperatorTasks {
         }
       },
       {
-        title: `Updating Che Cluster CRD ${this.cheClusterCrd}`,
+        title: `Updating Eclipse Che Cluster CRD ${this.cheClusterCrd}`,
         task: async (_ctx: any, task: any) => {
           const crd = await kube.getCrd(this.cheClusterCrd)
           const yamlFilePath = this.resourcesPath + 'crds/org_v1_che_crd.yaml'
@@ -350,7 +350,7 @@ export class OperatorTasks {
   }
 
   /**
-   * Returns list of tasks which remove che operator related resources
+   * Returns list of tasks which remove Che Operator related resources
    */
   deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     let kh = new KubeHelper(flags)

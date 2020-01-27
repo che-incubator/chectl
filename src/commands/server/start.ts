@@ -99,7 +99,7 @@ export default class Start extends Command {
       default: ''
     }),
     'os-oauth': flags.boolean({
-      description: 'Enable use of OpenShift credentials to log into Che',
+      description: 'Enable use of OpenShift credentials to log into Eclipse Che',
       default: false
     }),
     'che-operator-image': string({
@@ -209,11 +209,11 @@ export default class Start extends Command {
     // Platform Checks
     let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), listrOptions)
 
-    // Checks if Che is already deployed
+    // Checks if Eclipse Che is already deployed
     let preInstallTasks = new Listr(undefined, listrOptions)
     preInstallTasks.add(k8sTasks.testApiTasks(flags, this))
     preInstallTasks.add({
-      title: '👀  Looking for an already existing Che instance',
+      title: '👀  Looking for an already existing Eclipse Che instance',
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     })
 
@@ -221,7 +221,7 @@ export default class Start extends Command {
     let installTasks = new Listr(installerTasks.installTasks(flags, this), listrOptions)
 
     const startDeployedCheTasks = new Listr([{
-      title: '👀  Starting already deployed Che',
+      title: '👀  Starting already deployed Eclipse Che',
       task: () => new Listr(cheTasks.scaleCheUpTasks(this))
     }], listrOptions)
 
@@ -257,9 +257,9 @@ export default class Start extends Command {
         || (ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryReady)
         || (ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryReady)) {
         if (flags.platform || flags.installer) {
-          this.warn('Deployed Che is found and the specified installation parameters will be ignored')
+          this.warn('Deployed Eclipse Che is found and the specified installation parameters will be ignored')
         }
-        // perform Che start task if there is any component that is not ready
+        // perform Eclipse Che start task if there is any component that is not ready
         await startDeployedCheTasks.run(ctx)
       }
 

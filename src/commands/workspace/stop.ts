@@ -13,7 +13,7 @@ import { Command, flags } from '@oclif/command'
 import { accessToken, cheNamespace, listrRenderer } from '../../common-flags'
 
 export default class Stop extends Command {
-  static description = 'stop a running Che workspace'
+  static description = 'stop a running workspace'
 
   static flags = {
     help: flags.help({ char: 'h' }),
@@ -28,7 +28,7 @@ export default class Stop extends Command {
     const notifier = require('node-notifier')
     const tasks = new Listr([
       { title: 'Verify if we can access Kubernetes API', skip: () => 'Not implemented yet', task: () => { } },
-      { title: 'Verify if Che is responding', skip: () => 'Not implemented yet', task: () => { } },
+      { title: 'Verify if Eclipse Che is responding', skip: () => 'Not implemented yet', task: () => { } },
       { title: 'Verify if the workspaces is running', skip: () => 'Not implemented yet', task: () => { } },
       { title: 'Stop the workspace', skip: () => 'Not implemented yet', task: () => { } },
       { title: 'Waiting for the workspace resources to be deleted', skip: () => 'Not implemented yet', task: () => { } },

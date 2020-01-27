@@ -102,11 +102,11 @@ export default class Update extends Command {
 
     this.checkIfInstallerSupportUpdating(flags)
 
-    // Checks if Che is already deployed
+    // Checks if Eclipse Che is already deployed
     let preInstallTasks = new Listr(undefined, listrOptions)
     preInstallTasks.add(k8sTasks.testApiTasks(flags, this))
     preInstallTasks.add({
-      title: '👀  Looking for an already existing Che instance',
+      title: '👀  Looking for an already existing Eclipse Che instance',
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     })
 
@@ -130,9 +130,9 @@ export default class Update extends Command {
         await preUpdateTasks.run(ctx)
 
         if (!flags['skip-version-check']) {
-          await cli.anykey(`      Found deployed Che with operator [${ctx.deployedCheOperatorImage}]:${ctx.deployedCheOperatorTag}.
+          await cli.anykey(`      Found deployed Eclipse Che with operator [${ctx.deployedCheOperatorImage}]:${ctx.deployedCheOperatorTag}.
       You are going to update it to [${ctx.newCheOperatorImage}]:${ctx.newCheOperatorTag}.
-      Note that che operator will update components images (che server, plugin registry) only if their values
+      Note that Che Operator will update components images (che server, plugin registry) only if their values
       are not overridden in eclipse-che Customer Resource. So, you may need to remove them manually.
       Press q to quit or any key to continue`)
         }
