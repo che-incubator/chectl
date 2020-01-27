@@ -35,7 +35,7 @@ export class OperatorTasks {
   cheClusterRole = 'che-manage-namespaces'
   cheClusterRoleBinding = 'che-operator-che'
   // Cluster rolebindings for che-server to manage che workspaces out of che namespace
-  cheClusterRoleBindingManagerNamespaces = 'che-namespaces-manager'
+  cheClusterRoleBindingManagerNamespaces = 'che-manage-namespaces'
 
   cheClusterCrd = 'checlusters.org.eclipse.che'
   operatorName = 'che-operator'
