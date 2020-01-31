@@ -43,11 +43,6 @@ export default class Start extends Command {
       default: Start.getTemplatesDir(),
       env: 'CHE_TEMPLATES_FOLDER'
     }),
-    resources: string({
-      description: 'Path to the resources folder',
-      env: 'CHE_RESOURCES_FOLDER',
-      default: Start.getResourcesDir()
-    }),
     'devfile-registry-url': string({
       description: 'The URL of the external Devfile registry.',
       env: 'CHE_WORKSPACE_DEVFILE__REGISTRY__URL'
@@ -153,18 +148,6 @@ export default class Start extends Command {
     }
     // else use the location from modules
     return path.join(__dirname, '../../../templates')
-  }
-
-  static getResourcesDir(): string {
-    // return local resources folder if present
-    const RESOURCES_DIR_NAME = 'resources'
-    const resourcesDirPath = path.resolve(RESOURCES_DIR_NAME)
-    const exists = fs.existsSync(RESOURCES_DIR_NAME)
-    if (exists) {
-      return resourcesDirPath
-    }
-    // else use the location from node modules
-    return path.join(__dirname, '../../../', RESOURCES_DIR_NAME)
   }
 
   static setPlaformDefaults(flags: any) {

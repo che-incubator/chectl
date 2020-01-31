@@ -17,8 +17,6 @@ import * as path from 'path'
 import { KubeHelper } from '../../api/kube'
 import { CERT_MANAGER_NAMESPACE_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
 
-const RESOURCES_FOLDER_PATH = path.resolve(__dirname, '..', '..', '..', 'resources')
-
 export const CERT_MANAGER_CA_SECRET_NAME = 'ca'
 
 export class CertManagerTasks {
@@ -47,7 +45,7 @@ export class CertManagerTasks {
               {
                 title: 'Deploy cert-manager',
                 task: async (ctx: any, task: any) => {
-                  const yamlPath = path.join(flags.resources, '/cert-manager/cert-manager.yml')
+                  const yamlPath = path.join(flags.templates, 'cert-manager', 'cert-manager.yml')
                   await this.kubeHelper.applyResource(yamlPath)
                   ctx.certManagerInstalled = true
 
@@ -91,8 +89,8 @@ export class CertManagerTasks {
             try {
               // Configure permissions for CA key pair generation job
               await this.kubeHelper.createServiceAccount(CA_CERT_GENERATION_SERVICE_ACCOUNT_NAME, CERT_MANAGER_NAMESPACE_NAME)
-              await this.kubeHelper.createRoleFromFile(path.join(RESOURCES_FOLDER_PATH, 'cert-manager', 'ca-cert-generator-role.yml'), CERT_MANAGER_NAMESPACE_NAME)
-              await this.kubeHelper.createRoleBindingFromFile(path.join(RESOURCES_FOLDER_PATH, 'cert-manager', 'ca-cert-generator-role-binding.yml'), CERT_MANAGER_NAMESPACE_NAME)
+              await this.kubeHelper.createRoleFromFile(path.join(flags.templates, 'cert-manager', 'ca-cert-generator-role.yml'), CERT_MANAGER_NAMESPACE_NAME)
+              await this.kubeHelper.createRoleBindingFromFile(path.join(flags.templates, 'cert-manager', 'ca-cert-generator-role-binding.yml'), CERT_MANAGER_NAMESPACE_NAME)
 
               // Await created resources to be available
               await this.kubeHelper.waitServiceAccount(CA_CERT_GENERATION_SERVICE_ACCOUNT_NAME, CERT_MANAGER_NAMESPACE_NAME)
@@ -132,7 +130,7 @@ export class CertManagerTasks {
         task: async (_ctx: any, task: any) => {
           const cheClusterIssuerExists = await this.kubeHelper.clusterIssuerExists('che-cluster-issuer')
           if (!cheClusterIssuerExists) {
-            const cheCertificateClusterIssuerTemplatePath = path.join(flags.resources, '/cert-manager/che-cluster-issuer.yml')
+            const cheCertificateClusterIssuerTemplatePath = path.join(flags.templates, '/cert-manager/che-cluster-issuer.yml')
             await this.kubeHelper.createCheClusterIssuer(cheCertificateClusterIssuerTemplatePath)
 
             task.title = `${task.title}...done`
@@ -148,7 +146,7 @@ export class CertManagerTasks {
             throw new Error('Che certificate already exists.')
           }
 
-          const certificateTemplatePath = path.join(flags.resources, '/cert-manager/che-certificate.yml')
+          const certificateTemplatePath = path.join(flags.templates, '/cert-manager/che-certificate.yml')
           await this.kubeHelper.createCheClusterCertificate(certificateTemplatePath, flags.domain, flags.chenamespace)
           ctx.cheCertificateExists = true
 
