@@ -5,5 +5,5 @@ metadata:
     name: che-cluster-issuer
     namespace: cert-manager
 spec:
-   ca:
-       secretName: ca
+    ca:
+        secretName: ca

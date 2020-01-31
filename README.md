@@ -272,9 +272,9 @@ OPTIONS
 
   -s, --tls
       Enable TLS encryption.
-                           Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured
-      namespace.
-                           For OpenShift, router will use default cluster certificates.
+      Note, that this option is turned on by default for kubernetes infrastructure.
+      If it is needed to provide own certificate, 'che-tls' secret with TLS certificate must be created in the configured namespace. Otherwise, it will be automatically generated.
+      For OpenShift, router will use default cluster certificates.
 
   -t, --templates=templates
       [default: templates] Path to the templates folder

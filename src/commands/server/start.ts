@@ -250,7 +250,7 @@ export default class Start extends Command {
     ctx.listrOptions = listrOptions
 
     // TODO temporary workaround.
-    // When tls by default is implemented for all plutforms, delete `tls` flag
+    // When tls by default is implemented for all platforms, delete `tls` flag or make it turned on by default.
     if (flags.platform === 'k8s' || flags.platform === 'minikube' || flags.platform === 'microk8s') {
       flags.tls = true
     }

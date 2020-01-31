@@ -1236,13 +1236,16 @@ export class KubeHelper {
     }
   }
 
-  async createCheClusterCertificate(certificateTemplatePath: string, domain: string): Promise<void> {
+  async createCheClusterCertificate(certificateTemplatePath: string, domain: string, namespace: string): Promise<void> {
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
 
     const certifiate = this.safeLoadFromYamlFile(certificateTemplatePath) as V1alpha2Sertificate
+
     const CN = '*.' + domain
     certifiate.spec.commonName = CN
     certifiate.spec.dnsNames = [domain, CN]
+
+    certifiate.metadata.namespace = namespace
 
     try {
       await customObjectsApi.createNamespacedCustomObject('cert-manager.io', 'v1alpha2', certifiate.metadata.namespace, 'certificates', certifiate)

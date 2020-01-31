@@ -19,7 +19,7 @@ import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { CHE_SECRET_NAME } from '../../constants'
+import { CHE_TLS_SECRET_NAME } from '../../constants'
 import { CertManagerTasks } from '../../tasks/component-installers/cert-manager'
 
 export class HelmTasks {
@@ -76,7 +76,7 @@ export class HelmTasks {
       {
         title: 'Check Che TLS certificate',
         task: async (ctx: any, task: any) => {
-          const cheTlsSecret = await this.kubeHelper.getSecret(CHE_SECRET_NAME, flags.chenamespace)
+          const cheTlsSecret = await this.kubeHelper.getSecret(CHE_TLS_SECRET_NAME, flags.chenamespace)
 
           if (cheTlsSecret && cheTlsSecret.data) {
             if (!cheTlsSecret.data['tls.crt'] || !cheTlsSecret.data['tls.key'] || !cheTlsSecret.data['ca.crt']) {

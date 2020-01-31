@@ -13,4 +13,4 @@ export const DEFAULT_CHE_OPERATOR_IMAGE = 'quay.io/eclipse/che-operator:nightly'
 
 export const CERT_MANAGER_NAMESPACE_NAME = 'cert-manager'
 
-export const CHE_SECRET_NAME = 'che-tls'
+export const CHE_TLS_SECRET_NAME = 'che-tls'

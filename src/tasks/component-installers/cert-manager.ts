@@ -15,7 +15,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
-import { CERT_MANAGER_NAMESPACE_NAME, CHE_SECRET_NAME } from '../../constants'
+import { CERT_MANAGER_NAMESPACE_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
 
 const RESOURCES_FOLDER_PATH = path.resolve(__dirname, '..', '..', '..', 'resources')
 
@@ -149,7 +149,7 @@ export class CertManagerTasks {
           }
 
           const certificateTemplatePath = path.join(flags.resources, '/cert-manager/che-certificate.yml')
-          await this.kubeHelper.createCheClusterCertificate(certificateTemplatePath, flags.domain)
+          await this.kubeHelper.createCheClusterCertificate(certificateTemplatePath, flags.domain, flags.chenamespace)
           ctx.cheCertificateExists = true
 
           task.title = `${task.title}...done`
@@ -158,7 +158,7 @@ export class CertManagerTasks {
       {
         title: 'Wait for self-signed certificate',
         task: async (_ctx: any, task: any) => {
-          await this.kubeHelper.waitSecret(CHE_SECRET_NAME, flags.chenamespace, ['tls.key', 'tls.crt', 'ca.crt'])
+          await this.kubeHelper.waitSecret(CHE_TLS_SECRET_NAME, flags.chenamespace, ['tls.key', 'tls.crt', 'ca.crt'])
 
           task.title = `${task.title}...ready`
         }
@@ -166,13 +166,15 @@ export class CertManagerTasks {
       {
         title: 'Add local Che CA certificate into browser',
         task: async (_ctx: any, task: any) => {
-          const cheSecret = await this.kubeHelper.getSecret(CHE_SECRET_NAME, flags.chenamespace)
+          const cheSecret = await this.kubeHelper.getSecret(CHE_TLS_SECRET_NAME, flags.chenamespace)
           if (cheSecret && cheSecret.data) {
             const cheCaCrt = Buffer.from(cheSecret.data['ca.crt'], 'base64').toString('ascii')
             const cheCaPublicCertPath = path.join(os.homedir(), 'cheCA.crt')
             fs.writeFileSync(cheCaPublicCertPath, cheCaCrt)
 
-            task.title = `❗[MANUAL ACTION REQUIRED] Please add local Che CA certificate into your browser: ${cheCaPublicCertPath}`
+            const yellow = '\x1b[33m'
+            const noColor = '\x1b[0m'
+            task.title = `❗${yellow}[MANUAL ACTION REQUIRED]${noColor} Please add local Che CA certificate into your browser: ${cheCaPublicCertPath}`
           } else {
             throw new Error('Failed to get Cert Manager CA secret')
           }
