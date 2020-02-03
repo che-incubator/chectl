@@ -66,7 +66,7 @@ export class InstallerTasks {
   }
 
   installTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
-    const helmTasks = new HelmTasks(flags, command)
+    const helmTasks = new HelmTasks(flags)
     const operatorTasks = new OperatorTasks()
     const minishiftAddonTasks = new MinishiftAddonTasks()
 

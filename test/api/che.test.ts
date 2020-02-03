@@ -119,7 +119,7 @@ describe('Che helper', () => {
   })
   describe('cheNamespaceExist', () => {
     fancy
-      .stub(kc, 'makeApiClient', () => k8sApi)
+      .stub(kube.kc, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'readNamespace', jest.fn().mockImplementation(() => { throw new Error() }))
       .it('founds out that a namespace doesn\'t exist', async () => {
         const res = await ch.cheNamespaceExist(namespace)

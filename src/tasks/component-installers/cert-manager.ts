@@ -8,7 +8,6 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { Command } from '@oclif/command'
 import * as fs from 'fs'
 import * as Listr from 'listr'
 import * as os from 'os'
@@ -29,7 +28,7 @@ export class CertManagerTasks {
   /**
    * Returns list of tasks which perform cert-manager checks and deploy and requests self-signed certificate for Che.
    */
-  getTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
+  getTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Check Cert Manager deployment',
@@ -40,34 +39,33 @@ export class CertManagerTasks {
             task.title = `${task.title}...already deployed`
           } else {
             task.title = `${task.title}...not deployed`
-
-            return new Listr([
-              {
-                title: 'Deploy cert-manager',
-                task: async (ctx: any, task: any) => {
-                  const yamlPath = path.join(flags.templates, 'cert-manager', 'cert-manager.yml')
-                  await this.kubeHelper.applyResource(yamlPath)
-                  ctx.certManagerInstalled = true
-
-                  task.title = `${task.title}...done`
-                }
-              },
-              {
-                title: 'Wait for cert-manager',
-                task: async (ctx: any, task: any) => {
-                  if (!ctx.certManagerInstalled) {
-                    throw new Error('Cert Manager should be deployed before.')
-                  }
-
-                  await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cert-manager', CERT_MANAGER_NAMESPACE_NAME)
-                  await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=webhook', CERT_MANAGER_NAMESPACE_NAME)
-                  await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cainjector', CERT_MANAGER_NAMESPACE_NAME)
-
-                  task.title = `${task.title}...ready`
-                }
-              }
-            ], ctx.listrOptions)
           }
+        }
+      },
+      {
+        title: 'Deploy cert-manager',
+        enabled: ctx => !ctx.certManagerInstalled,
+        task: async (ctx: any, task: any) => {
+          const yamlPath = path.join(flags.templates, 'cert-manager', 'cert-manager.yml')
+          await this.kubeHelper.applyResource(yamlPath)
+          ctx.certManagerInstalled = true
+
+          task.title = `${task.title}...done`
+        }
+      },
+      {
+        title: 'Wait for cert-manager',
+        enabled: ctx => ctx.certManagerInstalled,
+        task: async (ctx: any, task: any) => {
+          if (!ctx.certManagerInstalled) {
+            throw new Error('Cert Manager should be deployed before.')
+          }
+
+          await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cert-manager', CERT_MANAGER_NAMESPACE_NAME)
+          await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=webhook', CERT_MANAGER_NAMESPACE_NAME)
+          await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cainjector', CERT_MANAGER_NAMESPACE_NAME)
+
+          task.title = `${task.title}...ready`
         }
       },
       {
@@ -100,7 +98,7 @@ export class CertManagerTasks {
                 await this.kubeHelper.createJob(CA_CERT_GENERATION_JOB_NAME, CA_CERT_GENERATION_JOB_IMAGE, CA_CERT_GENERATION_SERVICE_ACCOUNT_NAME, CERT_MANAGER_NAMESPACE_NAME)
                 await this.kubeHelper.waitJob(CA_CERT_GENERATION_JOB_NAME, CERT_MANAGER_NAMESPACE_NAME)
               } catch {
-                command.error('Failed to generate self-signed CA certificate: generating job failed.')
+                throw new Error('Failed to generate self-signed CA certificate: generating job failed.')
               }
             } finally {
               // Clean up resources

@@ -24,11 +24,9 @@ import { CertManagerTasks } from '../../tasks/component-installers/cert-manager'
 
 export class HelmTasks {
   protected kubeHelper: KubeHelper
-  protected command: Command
 
-  constructor(flags: any, command: Command) {
+  constructor(flags: any) {
     this.kubeHelper = new KubeHelper(flags)
-    this.command = command
   }
 
   /**
@@ -95,7 +93,7 @@ export class HelmTasks {
             task.title = `${task.title}...going to generate self-signed one`
 
             const certManagerTasks = new CertManagerTasks(flags)
-            return new Listr(certManagerTasks.getTasks(flags, this.command), ctx.listrOptions)
+            return new Listr(certManagerTasks.getTasks(flags), ctx.listrOptions)
           }
         }
       },

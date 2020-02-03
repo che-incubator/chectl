@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-export const DEFAULT_CHE_IMAGE = 'eclipse/che-server:nightly'
+export const DEFAULT_CHE_IMAGE = 'quay.io/eclipse/che-server:nightly'
 export const DEFAULT_CHE_OPERATOR_IMAGE = 'quay.io/eclipse/che-operator:nightly'
 
 export const CERT_MANAGER_NAMESPACE_NAME = 'cert-manager'
