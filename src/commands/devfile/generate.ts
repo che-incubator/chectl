@@ -36,7 +36,7 @@ const EditorComponents = new Map<Editor, DevfileComponent>([
 ])
 
 export default class Generate extends Command {
-  static description = 'generate and print a devfile to stdout given some Kubernetes resources and other Che workspaces features (project, language-support, commands etc...)'
+  static description = 'generate and print a devfile to stdout given some Kubernetes resources and other workspaces features (project, language-support, commands etc...)'
 
   static flags = {
     help: flags.help({ char: 'h' }),
@@ -58,7 +58,7 @@ export default class Generate extends Command {
       required: false,
     }),
     editor: string({
-      description: `Specify the Che editor component. Currently supported editors: ${editors}`,
+      description: `Specify the editor component. Currently supported editors: ${editors}`,
       env: 'EDITOR',
       required: false,
     }),

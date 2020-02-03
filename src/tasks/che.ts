@@ -17,7 +17,7 @@ import { OpenShiftHelper } from '../api/openshift'
 import { KubeTasks } from './kube'
 
 /**
- * Holds tasks to work with Che component.
+ * Holds tasks to work with Eclipse Che component.
  */
 export class CheTasks {
   kube: KubeHelper
@@ -55,9 +55,9 @@ export class CheTasks {
   }
 
   /**
-   * Returns tasks list that waits until every Che component will be started.
+   * Returns tasks list that waits until every Eclipse Che component will be started.
    *
-   * Note that Che components statuses should be already set in context.
+   * Note that Eclipse Che components statuses should be already set in context.
    *
    * @see che.checkIfCheIsInstalledTasks
    */
@@ -84,26 +84,26 @@ export class CheTasks {
         task: () => this.kubeTasks.podStartTasks(command, this.pluginRegistrySelector, this.cheNamespace)
       },
       {
-        title: 'Che pod bootstrap',
+        title: 'Eclipse Che pod bootstrap',
         enabled: ctx => !ctx.isCheReady,
         task: () => this.kubeTasks.podStartTasks(command, this.cheSelector, this.cheNamespace)
       },
       {
-        title: 'Retrieving Che Server URL',
+        title: 'Retrieving Eclipse Che Server URL',
         task: async (ctx: any, task: any) => {
           ctx.cheURL = await this.che.cheURL(flags.chenamespace)
           task.title = await `${task.title}...${ctx.cheURL}`
         }
       },
       {
-        title: 'Che status check',
+        title: 'Eclipse Che status check',
         task: async ctx => this.che.isCheServerReady(ctx.cheURL)
       }
     ]
   }
 
   /**
-   * Returns list of tasks that checks if Che is already installed.
+   * Returns list of tasks that checks if Eclipse Che is already installed.
    *
    * After executing the following properties are set in context:
    * is[Component]Deployed, is[Component]Stopped, is[Component]Ready
@@ -112,10 +112,10 @@ export class CheTasks {
   checkIfCheIsInstalledTasks(_flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: `Verify if Che is deployed into namespace \"${this.cheNamespace}\"`,
+        title: `Verify if Eclipse Che is deployed into namespace \"${this.cheNamespace}\"`,
         task: async (ctx: any, task: any) => {
           if (await this.kube.deploymentExist(this.cheDeploymentName, this.cheNamespace)) {
-            // helm chart and Che operator use a deployment
+            // helm chart and Che Operator use a deployment
             ctx.isCheDeployed = true
             ctx.isCheReady = await this.kube.deploymentReady(this.cheDeploymentName, this.cheNamespace)
             if (!ctx.isCheReady) {
@@ -189,7 +189,7 @@ export class CheTasks {
         }
       },
       {
-        title: 'Check Che server status',
+        title: 'Check Eclipse Che server status',
         enabled: (ctx: any) => ctx.isCheDeployed && ctx.isCheReady,
         task: async (ctx: any, task: any) => {
           let cheURL = ''
@@ -200,7 +200,7 @@ export class CheTasks {
             const auth = ctx.isAuthEnabled ? '(auth enabled)' : '(auth disabled)'
             task.title = `${task.title}...${status} ${auth}`
           } catch (error) {
-            command.error(`E_CHECK_CHE_STATUS_FAIL - Failed to check Che status (URL: ${cheURL}). ${error.message}`)
+            command.error(`E_CHECK_CHE_STATUS_FAIL - Failed to check Eclipse Che status (URL: ${cheURL}). ${error.message}`)
           }
         }
       }
@@ -208,7 +208,7 @@ export class CheTasks {
   }
 
   /**
-   * Returns tasks list which scale down all Che components which are deployed.
+   * Returns tasks list which scale down all Eclipse Che components which are deployed.
    * It requires {@link this#checkIfCheIsInstalledTasks} to be executed before.
    *
    * @see [CheTasks](#checkIfCheIsInstalledTasks)
@@ -216,7 +216,7 @@ export class CheTasks {
   scaleCheUpTasks(_command: Command): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Scaling up Che Deployments',
+        title: 'Scaling up Eclipse Che Deployments',
         enabled: (ctx: any) => ctx.isCheDeployed,
         task: async (ctx: any, task: any) => {
           if (ctx.isPostgresDeployed) {
@@ -236,7 +236,7 @@ export class CheTasks {
         }
       },
       {
-        title: `Che is already running in namespace \"${this.cheNamespace}\".`,
+        title: `Eclipse Che is already running in namespace \"${this.cheNamespace}\".`,
         enabled: (ctx: any) => (ctx.isCheDeployed && ctx.isCheAvailable),
         task: async (ctx: any, task: any) => {
           ctx.cheDeploymentExist = true
@@ -249,18 +249,18 @@ export class CheTasks {
   }
 
   /**
-   * Returns tasks list which scale down all Che components which are deployed.
+   * Returns tasks list which scale down all Eclipse Che components which are deployed.
    * It requires {@link this#checkIfCheIsInstalledTasks} to be executed before.
    *
    * @see [CheTasks](#checkIfCheIsInstalledTasks)
    */
   scaleCheDownTasks(command: Command): ReadonlyArray<Listr.ListrTask> {
     return [{
-      title: 'Stop Che server and wait until it\'s ready to shutdown',
+      title: 'Stop Eclipse Che server and wait until it\'s ready to shutdown',
       enabled: (ctx: any) => !ctx.isCheStopped,
       task: async (ctx: any, task: any) => {
         if (ctx.isAuthEnabled && !this.cheAccessToken) {
-          command.error('E_AUTH_REQUIRED - Che authentication is enabled and an access token need to be provided (flag --access-token).\nFor instructions to retrieve a valid access token refer to https://www.eclipse.org/che/docs/che-6/authentication.html')
+          command.error('E_AUTH_REQUIRED - Eclipse Che authentication is enabled and an access token need to be provided (flag --access-token).\nFor instructions to retrieve a valid access token refer to https://www.eclipse.org/che/docs/che-6/authentication.html')
         }
         try {
           const cheURL = await this.che.cheURL(this.cheNamespace)
@@ -268,7 +268,7 @@ export class CheTasks {
           await this.che.waitUntilReadyToShutdown(cheURL)
           task.title = await `${task.title}...done`
         } catch (error) {
-          command.error(`E_SHUTDOWN_CHE_SERVER_FAIL - Failed to shutdown Che server. ${error.message}`)
+          command.error(`E_SHUTDOWN_CHE_SERVER_FAIL - Failed to shutdown Eclipse Che server. ${error.message}`)
         }
       }
     },
@@ -285,7 +285,7 @@ export class CheTasks {
       }
     },
     {
-      title: 'Wait until Che pod is deleted',
+      title: 'Wait until Eclipse Che pod is deleted',
       enabled: (ctx: any) => !ctx.isCheStopped,
       task: async (_ctx: any, task: any) => {
         await this.kube.waitUntilPodIsDeleted(this.cheSelector, this.cheNamespace)
@@ -375,7 +375,7 @@ export class CheTasks {
   }
 
   /**
-   * Returns tasks which remove all Che related resources.
+   * Returns tasks which remove all Eclipse Che related resources.
    */
   deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
@@ -470,7 +470,7 @@ export class CheTasks {
       title: `Verify if namespace ${flags.chenamespace} exists`,
       task: async () => {
         if (!await this.che.cheNamespaceExist(flags.chenamespace)) {
-          command.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist. The configuration cannot be injected.\nFix with: verify the namespace where Che workspace is running (kubectl get --all-namespaces deployment | grep workspace)`, { code: 'EBADNS' })
+          command.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist. The configuration cannot be injected.\nFix with: verify the namespace where workspace is running (kubectl get --all-namespaces deployment | grep workspace)`, { code: 'EBADNS' })
         }
       }
     }]
@@ -494,7 +494,7 @@ export class CheTasks {
   serverLogsTasks(flags: any, follow: boolean): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: `${follow ? 'Start following' : 'Read'} Che logs`,
+        title: `${follow ? 'Start following' : 'Read'} Eclipse Che logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.cheSelector, ctx.directory, follow)
           task.title = await `${task.title}...done`

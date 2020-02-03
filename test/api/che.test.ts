@@ -236,7 +236,7 @@ describe('Che helper', () => {
       .stub(kc, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: { labels: { 'che.workspace_id': workspace } } }, { metadata: { labels: { 'che.workspace_id': `${workspace}1` } } }] } }))
       .do(() => ch.getWorkspacePod(namespace))
-      .catch(/More than one pod with running workspace is found. Please, specify Che Workspace ID./)
+      .catch(/More than one pod with running workspace is found. Please, specify Workspace ID./)
       .it('should fail if no workspace ID was provided but several workspaces are found')
   })
   describe('isAuthenticationEnabled', () => {

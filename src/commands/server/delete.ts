@@ -19,7 +19,7 @@ import { OperatorTasks } from '../../tasks/installers/operator'
 import { K8sTasks } from '../../tasks/platforms/k8s'
 
 export default class Delete extends Command {
-  static description = 'delete any Che related resource: Kubernetes/OpenShift/Helm'
+  static description = 'delete any Eclipse Che related resource: Kubernetes/OpenShift/Helm'
 
   static flags = {
     help: flags.help({ char: 'h' }),

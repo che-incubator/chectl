@@ -15,7 +15,7 @@ import { cli } from 'cli-ux'
 import { CheHelper } from '../../api/che'
 import { accessToken, cheNamespace, listrRenderer } from '../../common-flags'
 export default class Start extends Command {
-  static description = 'create and start a Che workspace'
+  static description = 'create and start a workspace'
 
   static flags = {
     help: flags.help({ char: 'h' }),
@@ -42,7 +42,7 @@ export default class Start extends Command {
 
   async checkToken(flags: any, ctx: any) {
     if (ctx.isAuthEnabled && !flags['access-token']) {
-      this.error('E_AUTH_REQUIRED - Che authentication is enabled and an access token need to be provided (flag --access-token).')
+      this.error('E_AUTH_REQUIRED - Eclipse Che authentication is enabled and an access token need to be provided (flag --access-token).')
     }
   }
 
@@ -57,17 +57,17 @@ export default class Start extends Command {
     }
     const tasks = new Listr([
       {
-        title: 'Retrieving Che Server URL',
+        title: 'Retrieving Eclipse Che Server URL',
         task: async (ctx: any, task: any) => {
           ctx.cheURL = await che.cheURL(flags.chenamespace)
           task.title = await `${task.title}...${ctx.cheURL}`
         }
       },
       {
-        title: 'Verify if Che server is running',
+        title: 'Verify if Eclipse Che server is running',
         task: async (ctx: any, task: any) => {
           if (!await che.isCheServerReady(ctx.cheURL)) {
-            this.error(`E_SRV_NOT_RUNNING - Che Server is not available by ${ctx.cheURL}`, { code: 'E_SRV_NOT_RUNNNG' })
+            this.error(`E_SRV_NOT_RUNNING - Eclipse Che Server is not available by ${ctx.cheURL}`, { code: 'E_SRV_NOT_RUNNNG' })
           }
           const status = await che.getCheServerStatus(ctx.cheURL)
           ctx.isAuthEnabled = await che.isAuthenticationEnabled(ctx.cheURL)
