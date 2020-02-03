@@ -121,7 +121,7 @@ _See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomp
 
 ## `chectl devfile:generate`
 
-generate and print a devfile to stdout given some Kubernetes resources and other Che workspaces features (project, language-support, commands etc...)
+generate and print a devfile to stdout given some Kubernetes resources and other workspaces features (project, language-support, commands etc...)
 
 ```
 USAGE
@@ -131,7 +131,7 @@ OPTIONS
   -h, --help                 show CLI help
   --command=command          Command to include in the workspace
   --dockerimage=dockerimage  dockerimage component to include in the Devfile
-  --editor=editor            Specify the Che editor component. Currently supported editors: theia-next,theia-1.0.0
+  --editor=editor            Specify the editor component. Currently supported editors: theia-next,theia-1.0.0
   --git-repo=git-repo        Source code git repository to include in the workspace
 
   --language=language        Add support for a particular language. Currently supported languages:
@@ -170,7 +170,7 @@ _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.1
 
 ## `chectl server:delete`
 
-delete any Che related resource: Kubernetes/OpenShift/Helm
+delete any Eclipse Che related resource: Kubernetes/OpenShift/Helm
 
 ```
 USAGE
@@ -179,8 +179,8 @@ USAGE
 OPTIONS
   -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
-                                           deployed
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
+                                           be deployed
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
@@ -199,10 +199,10 @@ OPTIONS
   -d, --directory=directory                Directory to store logs into
   -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
-                                           deployed
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
+                                           be deployed
 
-  --deployment-name=deployment-name        [default: che] Che deployment name
+  --deployment-name=deployment-name        [default: che] Eclipse Che deployment name
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
@@ -237,7 +237,7 @@ OPTIONS
       Starts che in multi-user mode
 
   -n, --chenamespace=chenamespace
-      [default: che] Kubernetes namespace where Che server is supposed to be deployed
+      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
 
   -o, --cheboottimeout=cheboottimeout
       (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
@@ -264,7 +264,7 @@ OPTIONS
       the installer is the operator
 
   --deployment-name=deployment-name
-      [default: che] Che deployment name
+      [default: che] Eclipse Che deployment name
 
   --devfile-registry-url=devfile-registry-url
       The URL of the external Devfile registry.
@@ -279,7 +279,7 @@ OPTIONS
       [default: default] Listr renderer
 
   --os-oauth
-      Enable use of OpenShift credentials to log into Che
+      Enable use of OpenShift credentials to log into Eclipse Che
 
   --plugin-registry-url=plugin-registry-url
       The URL of the external plugin registry.
@@ -308,14 +308,14 @@ USAGE
 OPTIONS
   -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
-                                           deployed
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
+                                           be deployed
 
-  --access-token=access-token              Che OIDC Access Token
+  --access-token=access-token              Eclipse Che OIDC Access Token
 
-  --che-selector=che-selector              [default: app=che,component=che] Selector for Che Server resources
+  --che-selector=che-selector              [default: app=che,component=che] Selector for Eclipse Che Server resources
 
-  --deployment-name=deployment-name        [default: che] Che deployment name
+  --deployment-name=deployment-name        [default: che] Eclipse Che deployment name
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
@@ -335,7 +335,8 @@ OPTIONS
   -h, --help                                                                   show CLI help
 
   -n, --chenamespace=chenamespace                                              [default: che] Kubernetes namespace where
-                                                                               Che server is supposed to be deployed
+                                                                               Eclipse Che server is supposed to be
+                                                                               deployed
 
   -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc  Type of Kubernetes platform. Valid values
                                                                                are "minikube", "minishift", "k8s (for
@@ -351,7 +352,8 @@ OPTIONS
                                                                                parameter is used only when the installer
                                                                                is the operator
 
-  --deployment-name=deployment-name                                            [default: che] Che deployment name
+  --deployment-name=deployment-name                                            [default: che] Eclipse Che deployment
+                                                                               name
 
   --listr-renderer=default|silent|verbose                                      [default: default] Listr renderer
 
@@ -373,7 +375,7 @@ _See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1
 
 ## `chectl workspace:inject`
 
-inject configurations and tokens in a Che Workspace
+inject configurations and tokens in a workspace
 
 ```
 USAGE
@@ -381,14 +383,14 @@ USAGE
 
 OPTIONS
   -c, --container=container                Target container. If not specified, configuration files will be injected in
-                                           all containers of a Che Workspace pod
+                                           all containers of a workspace pod
 
   -h, --help                               show CLI help
 
   -k, --kubeconfig                         Inject the local Kubernetes configuration
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
-                                           deployed
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
+                                           be deployed
 
   -w, --workspace=workspace                Target workspace. Can be omitted if only one Workspace is running
 
@@ -401,7 +403,7 @@ _See code: [src/commands/workspace/inject.ts](https://github.com/che-incubator/c
 
 ## `chectl workspace:list`
 
-list Che workspaces
+list workspaces
 
 ```
 USAGE
@@ -410,10 +412,10 @@ USAGE
 OPTIONS
   -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
-                                           deployed
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
+                                           be deployed
 
-  --access-token=access-token              Che OIDC Access Token
+  --access-token=access-token              Eclipse Che OIDC Access Token
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
@@ -445,7 +447,7 @@ _See code: [src/commands/workspace/logs.ts](https://github.com/che-incubator/che
 
 ## `chectl workspace:start`
 
-create and start a Che workspace
+create and start a workspace
 
 ```
 USAGE
@@ -455,12 +457,12 @@ OPTIONS
   -f, --devfile=devfile                    path or URL to a valid devfile
   -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
-                                           deployed
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
+                                           be deployed
 
   -w, --workspaceconfig=workspaceconfig    path to a valid workspace configuration json file
 
-  --access-token=access-token              Che OIDC Access Token
+  --access-token=access-token              Eclipse Che OIDC Access Token
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 
@@ -472,7 +474,7 @@ _See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/ch
 
 ## `chectl workspace:stop`
 
-stop a running Che workspace
+stop a running workspace
 
 ```
 USAGE
@@ -481,10 +483,10 @@ USAGE
 OPTIONS
   -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
-                                           deployed
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
+                                           be deployed
 
-  --access-token=access-token              Che OIDC Access Token
+  --access-token=access-token              Eclipse Che OIDC Access Token
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
