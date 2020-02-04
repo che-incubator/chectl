@@ -97,7 +97,6 @@ export default class Start extends Command {
       let ctx = await tasks.run()
       this.log('\nWorkspace IDE URL:')
       cli.url(ctx.workspaceIdeURL, ctx.workspaceIdeURL)
-      cli.info("To start collecting logs run 'chectl workspace:logs --follow'")
     } catch (err) {
       this.error(err)
     }

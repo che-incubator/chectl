@@ -8,19 +8,21 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
 import { Context } from '@kubernetes/client-node/dist/config_types'
 import axios from 'axios'
 import { cli } from 'cli-ux'
 import * as fs from 'fs'
 import https = require('https')
 import * as yaml from 'js-yaml'
+import * as net from 'net'
 import { Writable } from 'stream'
 
 import { DEFAULT_CHE_IMAGE } from '../constants'
 
 export class KubeHelper {
   kc = new KubeConfig()
+  portForwardHelper = new PortForward(this.kc, true)
   logHelper = new Log(this.kc)
 
   podWaitTimeout: number
@@ -387,13 +389,13 @@ export class KubeHelper {
     }
   }
 
-  async configMapExist(name = '', namespace = ''): Promise<boolean> {
+  async getConfigMap(name = '', namespace = ''): Promise<V1ConfigMap | undefined> {
     const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
       const { body } = await k8sCoreApi.readNamespacedConfigMap(name, namespace)
-      return this.compare(body, name)
+      return this.compare(body, name) && body
     } catch {
-      return false
+      return
     }
   }
 
@@ -956,6 +958,7 @@ export class KubeHelper {
       const imageAndTag = cheImage.split(':', 2)
       yamlCr.spec.server.cheImage = imageAndTag[0]
       yamlCr.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
+      yamlCr.spec.server.cheDebug = flags.debug ? flags.debug.toString() : 'false'
 
       yamlCr.spec.auth.openShiftoAuth = flags['os-oauth']
       yamlCr.spec.server.tlsSupport = flags.tls
@@ -1309,6 +1312,22 @@ export class KubeHelper {
         }
       }, { follow })
     })
+  }
+
+  /**
+   * Forwards port, based on the example
+   * https://github.com/kubernetes-client/javascript/blob/master/examples/typescript/port-forward/port-forward.ts
+   */
+  async portForward(podName: string, namespace: string, port: number): Promise<void> {
+    try {
+      const server = net.createServer(async socket => {
+        await this.portForwardHelper.portForward(namespace, podName, [port], socket, null, socket)
+      })
+      server.listen(port, 'localhost')
+      return
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
   }
 
   /**

@@ -331,6 +331,7 @@ error: E_COMMAND_FAILED`)
 
     setOptions.push(`--set global.ingressDomain=${flags.domain}`)
     setOptions.push(`--set cheImage=${flags.cheimage}`)
+    setOptions.push(`--set che.disableProbes=${flags.debug}`)
 
     let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} ${setOptions.join(' ')} ${multiUserFlag} ${tlsFlag} ${destDir}`
 
