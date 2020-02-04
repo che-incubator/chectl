@@ -84,6 +84,7 @@ USAGE
 * [`chectl autocomplete [SHELL]`](#chectl-autocomplete-shell)
 * [`chectl devfile:generate`](#chectl-devfilegenerate)
 * [`chectl help [COMMAND]`](#chectl-help-command)
+* [`chectl server:debug`](#chectl-serverdebug)
 * [`chectl server:delete`](#chectl-serverdelete)
 * [`chectl server:logs`](#chectl-serverlogs)
 * [`chectl server:start`](#chectl-serverstart)
@@ -167,6 +168,27 @@ OPTIONS
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.1/src/commands/help.ts)_
+
+## `chectl server:debug`
+
+Enable local debug of Eclipse Che server
+
+```
+USAGE
+  $ chectl server:debug
+
+OPTIONS
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
+                                           deployed
+
+  --debug-port=debug-port                  [default: 8000] Eclipse Che Server debug port
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+```
+
+_See code: [src/commands/server/debug.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/debug.ts)_
 
 ## `chectl server:delete`
 
@@ -262,6 +284,9 @@ OPTIONS
   --che-operator-image=che-operator-image
       [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when 
       the installer is the operator
+
+  --debug
+      Enables the debug mode for Che server. To debug Eclipse Che Server from localhost use 'server:debug' command.
 
   --deployment-name=deployment-name
       [default: che] Eclipse Che deployment name

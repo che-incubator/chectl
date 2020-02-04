@@ -412,10 +412,10 @@ export class CheTasks {
       {
         title: 'Delete configmaps che and che-operator',
         task: async (_ctx: any, task: any) => {
-          if (await this.kube.configMapExist('che', flags.chenamespace)) {
+          if (await this.kube.getConfigMap('che', flags.chenamespace)) {
             await this.kube.deleteConfigMap('che', flags.chenamespace)
           }
-          if (await this.kube.configMapExist('che-operator', flags.chenamespace)) {
+          if (await this.kube.getConfigMap('che-operator', flags.chenamespace)) {
             await this.kube.deleteConfigMap('che-operator', flags.chenamespace)
           }
           task.title = await `${task.title}...OK`
@@ -550,6 +550,40 @@ export class CheTasks {
         task: async (ctx: any, task: any) => {
           await this.che.readNamespaceEvents(namespace, ctx.directory, follow).catch(e => command.error(e.message))
           task.title = await `${task.title}...done`
+        }
+      }
+    ]
+  }
+
+  debugTask(flags: any): ReadonlyArray<Listr.ListrTask> {
+    return [
+      {
+        title: 'Find Che Server pod',
+        task: async (ctx: any, task: any) => {
+          const chePods = await this.kube.listNamespacedPod(flags.chenamespace, undefined, this.cheSelector)
+          if (chePods.items.length === 0) {
+            throw new Error(`Che Server pod not found in the namespace '${flags.chenamespace}'`)
+          }
+          ctx.podName = chePods.items[0].metadata!.name!
+          task.title = `${task.title}...done`
+        }
+      },
+      {
+        title: 'Check if debug mode is enabled',
+        task: async (task: any) => {
+          const configMap = await this.kube.getConfigMap('che', flags.chenamespace)
+          if (!configMap || configMap.data!.CHE_DEBUG_SERVER !== 'true') {
+            throw new Error('Che Server should be redeployed with \'--debug\' flag')
+          }
+
+          task.title = `${task.title}...done`
+        }
+      },
+      {
+        title: `Forward port '${flags['debug-port']}'`,
+        task: async (ctx: any, task: any) => {
+          await this.kube.portForward(ctx.podName, flags.chenamespace, flags['debug-port'])
+          task.title = `${task.title}...done`
         }
       }
     ]
