@@ -8,21 +8,21 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-export interface V1alpha2Sertificate {
+export interface V1alpha2Certificate {
   apiVersion: string
   kind: string
   metadata: V1ObjectMeta
-  spec: V1alpha2SertificateSpec
+  spec: V1alpha2CertificateSpec
 }
 
-export interface V1alpha2SertificateSpec {
+export interface V1alpha2CertificateSpec {
   secretName: string
-  issuerRef: V1alpha2SertificateSpecIssuerRrederence
+  issuerRef: V1alpha2CertificateSpecIssuerReference
   commonName: string
   dnsNames: List<string>
 }
 
-export interface V1alpha2SertificateSpecIssuerRrederence {
+export interface V1alpha2CertificateSpecIssuerReference {
   name: string
   kind: string
 }

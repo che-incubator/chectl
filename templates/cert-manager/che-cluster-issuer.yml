@@ -2,8 +2,8 @@
 apiVersion: cert-manager.io/v1alpha2
 kind: ClusterIssuer
 metadata:
-    name: che-cluster-issuer
-    namespace: cert-manager
+  name: che-cluster-issuer
+  namespace: cert-manager
 spec:
-    ca:
-        secretName: ca
+  ca:
+    secretName: ca

@@ -23,7 +23,7 @@ import { Writable } from 'stream'
 import { DEFAULT_CHE_IMAGE } from '../constants'
 import { getClusterClientCommand } from '../util'
 
-import { V1alpha2Sertificate } from './typings/cert-manager'
+import { V1alpha2Certificate } from './typings/cert-manager'
 
 const AWAIT_TIMEOUT_S = 30
 
@@ -1239,7 +1239,7 @@ export class KubeHelper {
   async createCheClusterCertificate(certificateTemplatePath: string, domain: string, namespace: string): Promise<void> {
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
 
-    const certifiate = this.safeLoadFromYamlFile(certificateTemplatePath) as V1alpha2Sertificate
+    const certifiate = this.safeLoadFromYamlFile(certificateTemplatePath) as V1alpha2Certificate
 
     const CN = '*.' + domain
     certifiate.spec.commonName = CN
