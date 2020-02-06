@@ -100,8 +100,6 @@ describe('Kube API helper', () => {
     })
   fancy
     .nock(kubeClusterURL, api => api
-      .get('/api/v1/namespaces/default/serviceaccounts')
-      .replyWithFile(200, __dirname + '/replies/get-serviceaccounts.json', { 'Content-Type': 'application/json' })
       .get('/api/v1/namespaces/default/secrets')
       .replyWithFile(200, __dirname + '/replies/get-secrets.json', { 'Content-Type': 'application/json' })
       .get('/healthz')
