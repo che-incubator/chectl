@@ -18,7 +18,7 @@
     "@types/command-exists": "^1.2.0",
     "@types/fs-extra": "^8.0.1",
     "@types/node-notifier": "^5.4.0",
-    "@types/request": "^2.48.3",
+    "@types/request": "^2.48.4",
     "@types/websocket": "^1.0.0",
     "@types/ws": "^7.2.1",
     "axios": "^0.19.0",
