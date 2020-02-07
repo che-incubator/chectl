@@ -18,6 +18,7 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
+import { VersionHelper } from '../../api/version'
 
 export class HelmTasks {
   /**
@@ -34,10 +35,16 @@ export class HelmTasks {
         task: async (ctx: any, task: any) => {
           try {
             const version = await this.getVersion()
-            if (version.startsWith('v3.')) {
-              ctx.isHelmV3 = true
+            ctx.isHelmV3 = version.startsWith('v3.')
+
+            if (!flags['skip-versions-check']) {
+              const versionCheck = VersionHelper.checkMinimalHelmVersions(version)
+              if (!versionCheck) {
+                throw new Error(`The minimal supported version of helm is '${VersionHelper.MINIMAL_HELM_VERSION} but found '${version}'. To bypass version check use '--skip-versions-check' flag.`)
+              }
             }
-            task.title = await `${task.title}: Found ${version}`
+
+            task.title = `${task.title}: Found ${version}`
           } catch (error) {
             command.error(`Unable to get helm version. ${error.message}`)
           }

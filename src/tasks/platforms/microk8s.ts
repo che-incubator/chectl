@@ -13,6 +13,8 @@ import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
 
+import { VersionHelper } from '../../api/version'
+
 export class MicroK8sTasks {
   /**
    * Returns tasks list which perform preflight platform checks.
@@ -54,8 +56,7 @@ export class MicroK8sTasks {
           command.error('MicroK8s is not running.', { code: 'E_REQUISITE_NOT_RUNNING' })
         }
       },
-      // { title: 'Verify microk8s memory configuration', skip: () => 'Not implemented yet', task: () => {}},
-      // { title: 'Verify kubernetes version', skip: () => 'Not implemented yet', task: () => {}},
+      VersionHelper.getK8sCheckVersionTask(flags),
       {
         title: 'Verify if microk8s ingress and storage addons is enabled',
         task: async (ctx: any) => {

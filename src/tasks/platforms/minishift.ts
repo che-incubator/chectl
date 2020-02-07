@@ -12,6 +12,7 @@ import { Command } from '@oclif/command'
 import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
+import { VersionHelper } from '../../api/version'
 
 export class MinishiftTasks {
   /**
@@ -50,8 +51,8 @@ export class MinishiftTasks {
           }
         }
       },
-      // { title: 'Verify minishift memory configuration', skip: () => 'Not implemented yet', task: () => {}},
-      // { title: 'Verify kubernetes version', skip: () => 'Not implemented yet', task: () => {}},
+      VersionHelper.getOpenShiftCheckVersionTask(flags),
+      VersionHelper.getK8sCheckVersionTask(flags)
     ], { renderer: flags['listr-renderer'] as any })
   }
 

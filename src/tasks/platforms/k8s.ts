@@ -13,6 +13,7 @@ import * as commandExists from 'command-exists'
 import * as Listr from 'listr'
 
 import { KubeHelper } from '../../api/kube'
+import { VersionHelper } from '../../api/version'
 
 export class K8sTasks {
   /**
@@ -64,6 +65,7 @@ export class K8sTasks {
           }
         }
       },
+      VersionHelper.getK8sCheckVersionTask(flags),
       // Should automatically compute route if missing
       {
         title: 'Verify domain is set',
