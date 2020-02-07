@@ -991,15 +991,6 @@ export class KubeHelper {
         yamlCr.spec.server.pluginRegistryImage = ''
         yamlCr.spec.server.devfileRegistryImage = ''
         yamlCr.spec.auth.identityProviderImage = ''
-      } else {
-        // We obviously are using a non-released version of chectl
-        // or are providing a non-default `cheimage`, with a specific tag, to run with
-        // => We should override the image tags for all the associated docker images
-        const tagExp = /:[^:]*$/
-        const newTag = `:${yamlCr.spec.server.cheImageTag}`
-        yamlCr.spec.auth.identityProviderImage = yamlCr.spec.auth.identityProviderImage.replace(tagExp, newTag)
-        yamlCr.spec.server.pluginRegistryImage = yamlCr.spec.server.pluginRegistryImage.replace(tagExp, newTag)
-        yamlCr.spec.server.devfileRegistryImage = yamlCr.spec.server.devfileRegistryImage.replace(tagExp, newTag)
       }
     }
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
