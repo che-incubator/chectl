@@ -180,8 +180,8 @@ USAGE
 OPTIONS
   -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
-                                           deployed
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
+                                           be deployed
 
   --debug-port=debug-port                  [default: 8000] Eclipse Che Server debug port
 
@@ -265,12 +265,12 @@ OPTIONS
       (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
 
   -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc
-      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc
+      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc 
       (for CodeReady Containers)", "microk8s".
 
   -s, --tls
       Enable TLS encryption.
-                           Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured
+                           Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured 
       namespace.
                            For OpenShift, router will use default cluster certificates.
 
@@ -278,11 +278,11 @@ OPTIONS
       [default: templates] Path to the templates folder
 
   --che-operator-cr-yaml=che-operator-cr-yaml
-      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer
+      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer 
       is the operator.
 
   --che-operator-image=che-operator-image
-      [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when
+      [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when 
       the installer is the operator
 
   --debug
@@ -313,8 +313,11 @@ OPTIONS
       persistent volume storage class name to use to store Eclipse Che Postgres database
 
   --self-signed-cert
-      Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate
+      Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate 
       must be created in the configured namespace.
+
+  --skip-versions-check
+      Skip versions check.
 
   --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
       persistent volume(s) storage class name to use to store Eclipse Che workspaces data
@@ -375,7 +378,7 @@ OPTIONS
                                                                                quay.io/eclipse/che-operator:nightly]
                                                                                Container image of the operator. This
                                                                                parameter is used only when the installer
-                                            v                                   is the operator
+                                                                               is the operator
 
   --deployment-name=deployment-name                                            [default: che] Eclipse Che deployment
                                                                                name
