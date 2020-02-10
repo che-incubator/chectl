@@ -11,7 +11,6 @@
 import execa = require('execa')
 import Listr = require('listr')
 
-// tslint:disable-next-line: no-unnecessary-class
 export namespace VersionHelper {
   export const MINIMAL_OPENSHIFT_VERSION = '3.11'
   export const MINIMAL_K8S_VERSION = '1.9'
