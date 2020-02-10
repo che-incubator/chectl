@@ -316,8 +316,8 @@ OPTIONS
       Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate 
       must be created in the configured namespace.
 
-  --skip-versions-check
-      Skip versions check.
+  --skip-version-check
+      Skip minimal versions check.
 
   --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
       persistent volume(s) storage class name to use to store Eclipse Che workspaces data

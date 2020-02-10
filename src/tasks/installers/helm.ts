@@ -37,10 +37,10 @@ export class HelmTasks {
             const version = await this.getVersion()
             ctx.isHelmV3 = version.startsWith('v3.')
 
-            if (!flags['skip-versions-check']) {
-              const versionCheck = VersionHelper.checkMinimalHelmVersions(version)
-              if (!versionCheck) {
-                throw new Error(`The minimal supported version of helm is '${VersionHelper.MINIMAL_HELM_VERSION} but found '${version}'. To bypass version check use '--skip-versions-check' flag.`)
+            if (!flags['skip-version-check']) {
+              const checkPassed = VersionHelper.checkMinimalHelmVersions(version)
+              if (!checkPassed) {
+                throw VersionHelper.getError('helm', version, VersionHelper.MINIMAL_HELM_VERSION)
               }
             }
 

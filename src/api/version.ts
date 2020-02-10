@@ -25,12 +25,14 @@ export class VersionHelper {
         const actualVersion = await VersionHelper.getOpenShiftVersion()
         if (actualVersion) {
           task.title = `${task.title}: Found ${actualVersion}.`
+        } else {
+          task.title = `${task.title}: Unknown.`
         }
 
-        if (!flags['skip-versions-check'] && actualVersion) {
-          const versionCheck = VersionHelper.checkMinimalVersions(actualVersion, VersionHelper.MINIMAL_OPENSHIFT_VERSION)
-          if (!versionCheck) {
-            throw new Error(`The minimal supported version of OpenShift is '${VersionHelper.MINIMAL_OPENSHIFT_VERSION} but found '${actualVersion}'. To bypass version check use '--skip-versions-check' flag.`)
+        if (!flags['skip-version-check'] && actualVersion) {
+          const checkPassed = VersionHelper.checkMinimalVersions(actualVersion, VersionHelper.MINIMAL_OPENSHIFT_VERSION)
+          if (!checkPassed) {
+            throw VersionHelper.getError('OpenShift', actualVersion, VersionHelper.MINIMAL_OPENSHIFT_VERSION)
           }
         }
       }
@@ -45,13 +47,13 @@ export class VersionHelper {
         if (actualVersion) {
           task.title = `${task.title}: Found ${actualVersion}.`
         } else {
-          task.title = `${task.title}: Not found.`
+          task.title = `${task.title}: Unknown.`
         }
 
-        if (!flags['skip-versions-check'] && actualVersion) {
-          const versionCheck = VersionHelper.checkMinimalVersions(actualVersion, VersionHelper.MINIMAL_K8S_VERSION)
-          if (!versionCheck) {
-            throw new Error(`The minimal supported version of Kubernetes is '${VersionHelper.MINIMAL_K8S_VERSION} but found '${actualVersion}'. To bypass version check use '--skip-versions-check' flag.`)
+        if (!flags['skip-version-check'] && actualVersion) {
+          const checkPassed = VersionHelper.checkMinimalVersions(actualVersion, VersionHelper.MINIMAL_K8S_VERSION)
+          if (!checkPassed) {
+            throw VersionHelper.getError('Kubernetes', actualVersion, VersionHelper.MINIMAL_K8S_VERSION)
           }
         }
       }
@@ -106,6 +108,10 @@ export class VersionHelper {
     const minimalMinor = parseInt(vers[1], 10)
 
     return (actualMajor >= minimalMajor || (actualMajor === minimalMajor && actualMinor >= minimalMinor))
+  }
+
+  static getError(actualVersion: string, minimalVersion: string, component: string): Error {
+    return new Error(`The minimal supported version of ${component} is '${minimalVersion} but found '${actualVersion}'. To bypass version check use '--skip-version-check' flag.`)
   }
 
   private static async getVersionWithOC(versionPrefix: string): Promise<string | undefined> {

@@ -128,8 +128,8 @@ export default class Start extends Command {
       description: 'persistent volume storage class name to use to store Eclipse Che Postgres database',
       default: ''
     }),
-    'skip-versions-check': flags.boolean({
-      description: 'Skip versions check.',
+    'skip-version-check': flags.boolean({
+      description: 'Skip minimal versions check.',
       default: false
     }),
   }
