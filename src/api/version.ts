@@ -79,15 +79,15 @@ export namespace VersionHelper {
     return getVersionWithKubectl('Server Version: ')
   }
 
-  export function checkMinimalK8sVersions(actualVersion: string): boolean {
+  export function checkMinimalK8sVersion(actualVersion: string): boolean {
     return checkMinimalVersion(actualVersion, MINIMAL_K8S_VERSION)
   }
 
-  export function checkMinimalOpenShiftVersions(actualVersion: string): boolean {
+  export function checkMinimalOpenShiftVersion(actualVersion: string): boolean {
     return checkMinimalVersion(actualVersion, MINIMAL_OPENSHIFT_VERSION)
   }
 
-  export function checkMinimalHelmVersions(actualVersion: string): boolean {
+  export function checkMinimalHelmVersion(actualVersion: string): boolean {
     return checkMinimalVersion(actualVersion, MINIMAL_HELM_VERSION)
   }
 
