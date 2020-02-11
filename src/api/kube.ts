@@ -1034,31 +1034,12 @@ export class KubeHelper {
    */
   async getDefaultServiceAccountToken(): Promise<string> {
     const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
+    const namespaceName = 'default'
+    const saName = 'default'
     let res
-    try {
-      res = await k8sCoreApi.listNamespacedServiceAccount('default')
-    } catch (e) {
-      throw this.wrapK8sClientError(e)
-    }
-    if (!res || !res.body) {
-      throw new Error('Unable to get default service account')
-    }
-    const v1ServiceAccountList = res.body
-    let secretName
-    if (v1ServiceAccountList.items && v1ServiceAccountList.items.length > 0) {
-      for (let v1ServiceAccount of v1ServiceAccountList.items) {
-        if (v1ServiceAccount.metadata!.name === 'default') {
-          secretName = v1ServiceAccount.secrets![0].name
-        }
-      }
-    }
-    if (!secretName) {
-      throw new Error('Unable to get default service account secret')
-    }
-
     // now get the matching secrets
     try {
-      res = await k8sCoreApi.listNamespacedSecret('default')
+      res = await k8sCoreApi.listNamespacedSecret(namespaceName)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1066,19 +1047,20 @@ export class KubeHelper {
       throw new Error('Unable to get default service account')
     }
     const v1SecretList = res.body
-    let encodedToken
-    if (v1SecretList.items && v1SecretList.items.length > 0) {
-      for (let v1Secret of v1SecretList.items) {
-        if (v1Secret.metadata!.name === secretName && v1Secret.type === 'kubernetes.io/service-account-token') {
-          encodedToken = v1Secret.data!.token
-        }
-      }
+
+    if (!v1SecretList.items || v1SecretList.items.length === 0) {
+      throw new Error(`Unable to get default service account token since there is no secret in '${namespaceName}' namespace`)
     }
-    if (!encodedToken) {
-      throw new Error('Unable to grab default service account token')
+
+    let v1DefaultSATokenSecret = v1SecretList.items.find(secret => secret.metadata!.annotations
+      && secret.metadata!.annotations['kubernetes.io/service-account.name'] === saName
+      && secret.type === 'kubernetes.io/service-account-token')
+
+    if (!v1DefaultSATokenSecret) {
+      throw new Error(`Secret for '${saName}' service account is not found in namespace '${namespaceName}'`)
     }
-    // decode the token
-    return Buffer.from(encodedToken, 'base64').toString()
+
+    return Buffer.from(v1DefaultSATokenSecret.data!.token, 'base64').toString()
   }
 
   async checkKubeApi() {
