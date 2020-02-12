@@ -180,8 +180,8 @@ USAGE
 OPTIONS
   -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Che server is supposed to be
-                                           deployed
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
+                                           be deployed
 
   --debug-port=debug-port                  [default: 8000] Eclipse Che Server debug port
 
@@ -315,6 +315,9 @@ OPTIONS
   --self-signed-cert
       Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate 
       must be created in the configured namespace.
+
+  --skip-version-check
+      Skip minimal versions check.
 
   --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
       persistent volume(s) storage class name to use to store Eclipse Che workspaces data

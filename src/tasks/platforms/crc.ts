@@ -13,6 +13,8 @@ import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
 
+import { VersionHelper } from '../../api/version'
+
 /**
  * Helper for Code Ready Container
  */
@@ -50,6 +52,8 @@ export class CRCHelper {
           }
         }
       },
+      VersionHelper.getOpenShiftCheckVersionTask(flags),
+      VersionHelper.getK8sCheckVersionTask(flags),
       {
         title: 'Retrieving CodeReady Containers IP and domain for routes URLs',
         enabled: () => flags.domain !== undefined,
