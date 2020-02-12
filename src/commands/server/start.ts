@@ -274,7 +274,7 @@ export default class Start extends Command {
       await postInstallTasks.run(ctx)
       this.log('Command server:start has completed successfully.')
     } catch (err) {
-      this.error(`${err}\n. Installation failed, check logs in '${ctx.directory}'`)
+      this.error(`${err}\nInstallation failed, check logs in '${ctx.directory}'`)
     }
 
     notifier.notify({

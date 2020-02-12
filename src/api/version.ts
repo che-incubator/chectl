@@ -102,11 +102,11 @@ export namespace VersionHelper {
     const actualMinor = parseInt(vers[1], 10)
 
     minimal = removeVPrefix(minimal)
-    vers = actual.split('.')
+    vers = minimal.split('.')
     const minimalMajor = parseInt(vers[0], 10)
     const minimalMinor = parseInt(vers[1], 10)
 
-    return (actualMajor >= minimalMajor || (actualMajor === minimalMajor && actualMinor >= minimalMinor))
+    return (actualMajor > minimalMajor || (actualMajor === minimalMajor && actualMinor >= minimalMinor))
   }
 
   export function getError(actualVersion: string, minimalVersion: string, component: string): Error {
