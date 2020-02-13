@@ -346,8 +346,9 @@ export class CheHelper {
       }
 
       const podName = pod.metadata!.name!
-      for (const containerName of this.getRunningContainers(pod)) {
-        await this.doReadNamespacedPodLog(namespace, podName, containerName, directory, false)
+      for (const containerName of this.getContainers(pod)) {
+        const fileName = this.doCreateLogFile(namespace, podName, containerName, directory)
+        await this.doReadNamespacedPodLog(namespace, podName, containerName, fileName, false)
       }
     }
   }
@@ -384,11 +385,13 @@ export class CheHelper {
         }
 
         if (!podLabelSelector || this.matchLabels(pod.metadata!.labels || {}, podLabelSelector)) {
-          for (const containerName of this.getRunningContainers(pod)) {
+          for (const containerName of this.getContainers(pod)) {
+            // not to read logs from the same containers twice
             if (!processedContainers.get(podName)!.has(containerName)) {
               processedContainers.get(podName)!.add(containerName)
 
-              await this.doReadNamespacedPodLog(namespace, pod.metadata!.name!, containerName, directory, true)
+              const fileName = this.doCreateLogFile(namespace, podName, containerName, directory)
+              await this.doReadNamespacedPodLog(namespace, pod.metadata!.name!, containerName, fileName, true)
             }
           }
         }
@@ -415,23 +418,36 @@ export class CheHelper {
   }
 
   /**
-   * Returns containers with running status
+   * Returns containers names.
    */
-  private getRunningContainers(pod: V1Pod): string[] {
+  private getContainers(pod: V1Pod): string[] {
     if (!pod.status || !pod.status.containerStatuses) {
       return []
     }
-    return pod.status.containerStatuses.filter(status => status.state && status.state.running).map(status => status.name)
+    return pod.status.containerStatuses.map(containerStatus => containerStatus.name)
   }
 
   /**
    * Reads pod log from a specific container of the pod.
    */
-  private async doReadNamespacedPodLog(namespace: string, podName: string, containerName: string, directory: string, follow: boolean): Promise<void> {
+  private async doReadNamespacedPodLog(namespace: string, podName: string, containerName: string, fileName: string, follow: boolean): Promise<void> {
+    if (follow) {
+      try {
+        await this.kube.readNamespacedPodLog(podName, namespace, containerName, fileName, follow)
+      } catch {
+        // retry in 200ms, container might not be started
+        setTimeout(async () => this.doReadNamespacedPodLog(namespace, podName, containerName, fileName, follow), 200)
+      }
+    } else {
+      await this.kube.readNamespacedPodLog(podName, namespace, containerName, fileName, follow)
+    }
+  }
+
+  private doCreateLogFile(namespace: string, podName: string, containerName: string, directory: string): string {
     const fileName = path.resolve(directory, namespace, podName, `${containerName}.log`)
     fs.ensureFileSync(fileName)
 
-    return this.kube.readNamespacedPodLog(podName, namespace, containerName, fileName, follow)
+    return fileName
   }
 
   private getCheApiError(error: any, endpoint: string): Error {
