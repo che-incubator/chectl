@@ -358,6 +358,16 @@ OPTIONS
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
+To obtain a user access token from the indentity provider (eg, Keycloak or Red Hat Single Sign-On), using `oc` or `kubectl` with `curl` and `jq`:
+
+```
+KEYCLOAK_URL=$(kubectl get route/keycloak -n ${cheNamespace} -o jsonpath='{.spec.host}')
+USER_ACCESS_TOKEN=$(curl -X POST $KEYCLOAK_URL/auth/realms/che/protocol/openid-connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "username=${username}" -d "password=${password}" 
+  -d "grant_type=password" -d "client_id=che-public" | jq -r .access_token)
+```
+
 _See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
 
 ## `chectl server:update`
