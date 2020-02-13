@@ -127,7 +127,11 @@ export default class Start extends Command {
     'postgres-pvc-storage-class-name': string({
       description: 'persistent volume storage class name to use to store Eclipse Che Postgres database',
       default: ''
-    })
+    }),
+    'skip-version-check': flags.boolean({
+      description: 'Skip minimal versions check.',
+      default: false
+    }),
   }
 
   static getTemplatesDir(): string {
@@ -270,7 +274,7 @@ export default class Start extends Command {
       await postInstallTasks.run(ctx)
       this.log('Command server:start has completed successfully.')
     } catch (err) {
-      this.error(err)
+      this.error(`${err}\nInstallation failed, check logs in '${ctx.directory}'`)
     }
 
     notifier.notify({

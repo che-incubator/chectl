@@ -15,6 +15,7 @@ import * as Listr from 'listr'
 import * as os from 'os'
 
 import { KubeHelper } from '../../api/kube'
+import { VersionHelper } from '../../api/version'
 
 export class DockerDesktopTasks {
   private readonly kh: KubeHelper
@@ -58,6 +59,7 @@ export class DockerDesktopTasks {
           }
         }
       },
+      VersionHelper.getK8sCheckVersionTask(flags),
       {
         title: 'Verify if nginx ingress is installed',
         task: async (ctx: any) => {

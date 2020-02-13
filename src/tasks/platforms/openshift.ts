@@ -13,6 +13,8 @@ import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
 
+import { VersionHelper } from '../../api/version'
+
 export class OpenshiftTasks {
   /**
    * Returns tasks list which perform preflight platform checks.
@@ -40,6 +42,8 @@ export class OpenshiftTasks {
           }
         }
       },
+      VersionHelper.getOpenShiftCheckVersionTask(flags),
+      VersionHelper.getK8sCheckVersionTask(flags)
     ], { renderer: flags['listr-renderer'] as any })
   }
 

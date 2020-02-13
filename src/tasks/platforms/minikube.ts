@@ -13,6 +13,8 @@ import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
 
+import { VersionHelper } from '../../api/version'
+
 export class MinikubeTasks {
   /**
    * Returns tasks list which perform preflight platform checks.
@@ -50,8 +52,7 @@ export class MinikubeTasks {
         },
         task: () => this.startMinikube()
       },
-      // { title: 'Verify minikube memory configuration', skip: () => 'Not implemented yet', task: () => {}},
-      // { title: 'Verify kubernetes version', skip: () => 'Not implemented yet', task: () => {}},
+      VersionHelper.getK8sCheckVersionTask(flags),
       {
         title: 'Verify if minikube ingress addon is enabled',
         task: async (ctx: any) => {
