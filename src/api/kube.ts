@@ -1278,6 +1278,7 @@ export class KubeHelper {
       }
 
       this.logHelper.log(namespace, pod, container, stream, error => {
+        stream.end()
         if (error) {
           reject(error)
         } else {

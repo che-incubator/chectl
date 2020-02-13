@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-import { CoreV1Api, KubeConfig } from '@kubernetes/client-node'
+import { CoreV1Api, KubeConfig, V1Pod, Watch } from '@kubernetes/client-node'
 import axios from 'axios'
 import * as cp from 'child_process'
 import { cli } from 'cli-ux'
@@ -15,7 +15,6 @@ import * as commandExists from 'command-exists'
 import * as fs from 'fs-extra'
 import * as yaml from 'js-yaml'
 import * as path from 'path'
-import { setInterval } from 'timers'
 
 import { OpenShiftHelper } from '../api/openshift'
 
@@ -23,11 +22,6 @@ import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
 
 export class CheHelper {
-  /**
-   * Polling interval for new pods / containers in the namespace.
-   */
-  private static readonly POLL_INTERVAL = 100
-
   defaultCheResponseTimeoutMs = 3000
   kc = new KubeConfig()
   kube: KubeHelper
@@ -35,6 +29,7 @@ export class CheHelper {
 
   constructor(flags: any) {
     this.kube = new KubeHelper(flags)
+    this.kc.loadFromDefault()
   }
 
   /**
@@ -43,7 +38,6 @@ export class CheHelper {
    * or if workspace ID wasn't specified but more than one workspace is found.
    */
   async getWorkspacePod(namespace: string, cheWorkspaceId?: string): Promise<string> {
-    this.kc.loadFromDefault()
     const k8sApi = this.kc.makeApiClient(CoreV1Api)
 
     const res = await k8sApi.listNamespacedPod(namespace)
@@ -68,7 +62,6 @@ export class CheHelper {
   }
 
   async getWorkspacePodContainers(namespace: string, cheWorkspaceId?: string): Promise<string[]> {
-    this.kc.loadFromDefault()
     const k8sApi = this.kc.makeApiClient(CoreV1Api)
 
     const res = await k8sApi.listNamespacedPod(namespace)
@@ -129,7 +122,6 @@ export class CheHelper {
   }
 
   async cheNamespaceExist(namespace = '') {
-    this.kc.loadFromDefault()
     const k8sApi = this.kc.makeApiClient(CoreV1Api)
     try {
       const res = await k8sApi.readNamespace(namespace)
@@ -335,40 +327,28 @@ export class CheHelper {
    * Reads logs from pods that match a given selector.
    */
   async readPodLog(namespace: string, podLabelSelector: string | undefined, directory: string, follow: boolean): Promise<void> {
-    const processedContainers = new Map<string, Set<string>>()
     if (follow) {
-      setInterval(async () => this.readContainerLogIgnoreProcessed(namespace, podLabelSelector, directory, processedContainers, follow), CheHelper.POLL_INTERVAL)
+      await this.watchNamespacedPods(namespace, podLabelSelector, directory)
     } else {
-      await this.readContainerLogIgnoreProcessed(namespace, podLabelSelector, directory, processedContainers, follow)
+      await this.readNamespacedPodLog(namespace, podLabelSelector, directory)
     }
   }
 
   /**
    * Reads containers logs inside pod that match a given selector.
    */
-  async readContainerLogIgnoreProcessed(namespace: string, podLabelSelector: string | undefined, directory: string, processedContainers: Map<string, Set<string>>, follow: boolean): Promise<void> {
+  async readNamespacedPodLog(namespace: string, podLabelSelector: string | undefined, directory: string): Promise<void> {
     const pods = await this.kube.listNamespacedPod(namespace, undefined, podLabelSelector)
 
     for (const pod of pods.items) {
-      const podName = pod.metadata!.name!
-      if (!processedContainers.has(podName)) {
-        processedContainers.set(podName, new Set<string>())
-      }
-
       if (!pod.status || !pod.status.containerStatuses) {
         return
       }
 
-      for (const containerStatus of pod.status.containerStatuses) {
-        if (!containerStatus.state || !containerStatus.state.running) {
-          continue
-        }
-
-        const containerName = containerStatus.name
-        if (!processedContainers.get(podName)!.has(containerName)) {
-          processedContainers.get(podName)!.add(containerName)
-          await this.readContainerLog(namespace, podName, containerName, directory, follow)
-        }
+      const podName = pod.metadata!.name!
+      for (const containerName of this.getContainers(pod)) {
+        const fileName = this.doCreateLogFile(namespace, podName, containerName, directory)
+        await this.doReadNamespacedPodLog(namespace, podName, containerName, fileName, false)
       }
     }
   }
@@ -392,14 +372,82 @@ export class CheHelper {
     }
   }
 
+  async watchNamespacedPods(namespace: string, podLabelSelector: string | undefined, directory: string): Promise<void> {
+    const processedContainers = new Map<string, Set<string>>()
+
+    const watcher = new Watch(this.kc)
+    watcher.watch(`/api/v1/namespaces/${namespace}/pods`, {},
+      async (_phase: string, obj: any) => {
+        const pod = obj as V1Pod
+        const podName = pod.metadata!.name!
+        if (!processedContainers.has(podName)) {
+          processedContainers.set(podName, new Set<string>())
+        }
+
+        if (!podLabelSelector || this.matchLabels(pod.metadata!.labels || {}, podLabelSelector)) {
+          for (const containerName of this.getContainers(pod)) {
+            // not to read logs from the same containers twice
+            if (!processedContainers.get(podName)!.has(containerName)) {
+              processedContainers.get(podName)!.add(containerName)
+
+              const fileName = this.doCreateLogFile(namespace, podName, containerName, directory)
+              await this.doReadNamespacedPodLog(namespace, pod.metadata!.name!, containerName, fileName, true)
+            }
+          }
+        }
+      },
+      // ignore errors
+      () => { })
+  }
+
   /**
-   * Reads log from a specific container of the pod and stores into a file.
+   * Indicates if pod matches given labels.
    */
-  private async readContainerLog(namespace: string, podName: string, containerName: string, directory: string, follow: boolean): Promise<void> {
+  private matchLabels(podLabels: { [key: string]: string }, podLabelSelector: string): boolean {
+    const labels = podLabelSelector.split(',')
+    for (const label of labels) {
+      if (label) {
+        const keyValue = label.split('=')
+        if (podLabels[keyValue[0]] !== keyValue[1]) {
+          return false
+        }
+      }
+    }
+
+    return true
+  }
+
+  /**
+   * Returns containers names.
+   */
+  private getContainers(pod: V1Pod): string[] {
+    if (!pod.status || !pod.status.containerStatuses) {
+      return []
+    }
+    return pod.status.containerStatuses.map(containerStatus => containerStatus.name)
+  }
+
+  /**
+   * Reads pod log from a specific container of the pod.
+   */
+  private async doReadNamespacedPodLog(namespace: string, podName: string, containerName: string, fileName: string, follow: boolean): Promise<void> {
+    if (follow) {
+      try {
+        await this.kube.readNamespacedPodLog(podName, namespace, containerName, fileName, follow)
+      } catch {
+        // retry in 200ms, container might not be started
+        setTimeout(async () => this.doReadNamespacedPodLog(namespace, podName, containerName, fileName, follow), 200)
+      }
+    } else {
+      await this.kube.readNamespacedPodLog(podName, namespace, containerName, fileName, follow)
+    }
+  }
+
+  private doCreateLogFile(namespace: string, podName: string, containerName: string, directory: string): string {
     const fileName = path.resolve(directory, namespace, podName, `${containerName}.log`)
     fs.ensureFileSync(fileName)
 
-    return this.kube.readNamespacedPodLog(podName, namespace, containerName, fileName, follow)
+    return fileName
   }
 
   private getCheApiError(error: any, endpoint: string): Error {
