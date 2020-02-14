@@ -279,6 +279,10 @@ OPTIONS
   -t, --templates=templates
       [default: templates] Path to the templates folder
 
+  --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
+      Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used 
+      only when the installer is the operator.
+
   --che-operator-cr-yaml=che-operator-cr-yaml
       Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer 
       is the operator.

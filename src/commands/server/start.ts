@@ -114,6 +114,10 @@ export default class Start extends Command {
       description: 'Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer is the operator.',
       default: ''
     }),
+    'che-operator-cr-patch-yaml': string({
+      description: 'Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used only when the installer is the operator.',
+      default: ''
+    }),
     directory: string({
       char: 'd',
       description: 'Directory to store logs into',
@@ -131,7 +135,7 @@ export default class Start extends Command {
     'skip-version-check': flags.boolean({
       description: 'Skip minimal versions check.',
       default: false
-    }),
+    })
   }
 
   static getTemplatesDir(): string {

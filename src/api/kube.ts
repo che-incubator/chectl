@@ -15,6 +15,7 @@ import { cli } from 'cli-ux'
 import * as fs from 'fs'
 import https = require('https')
 import * as yaml from 'js-yaml'
+import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
@@ -949,9 +950,11 @@ export class KubeHelper {
 
   async createCheClusterFromFile(filePath: string, flags: any, useDefaultCR: boolean) {
     let yamlCr = this.safeLoadFromYamlFile(filePath)
+    yamlCr = this.overrideDefaultValues(yamlCr, flags['che-operator-cr-patch-yaml'])
+
     const cheNamespace = flags.chenamespace
     if (useDefaultCR) {
-      // If we don't use an explicitely provided CheCluster CR,
+      // If we don't use an explicitly provided CheCluster CR,
       // then let's modify the default example CR with values
       // derived from the other parameters
       const cheImage = flags.cheimage
@@ -998,6 +1001,15 @@ export class KubeHelper {
       return await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', cheNamespace, 'checlusters', yamlCr)
     } catch (e) {
       throw this.wrapK8sClientError(e)
+    }
+  }
+
+  overrideDefaultValues(yamlCr: any, filePath: string): any {
+    if (filePath) {
+      const patchCr = this.safeLoadFromYamlFile(filePath)
+      return merge(yamlCr, patchCr)
+    } else {
+      return yamlCr
     }
   }
 
