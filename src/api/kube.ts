@@ -998,7 +998,8 @@ export class KubeHelper {
     }
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
     try {
-      return await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', cheNamespace, 'checlusters', yamlCr)
+      const { body } = await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', cheNamespace, 'checlusters', yamlCr)
+      return body
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }

@@ -179,7 +179,9 @@ export class OperatorTasks {
             ctx.isDevfileRegistryDeployed = !(flags['devfile-registry-url'] as boolean)
 
             const yamlFilePath = flags['che-operator-cr-yaml'] === '' ? this.resourcesPath + 'crds/org_v1_che_cr.yaml' : flags['che-operator-cr-yaml']
-            await kube.createCheClusterFromFile(yamlFilePath, flags, flags['che-operator-cr-yaml'] === '')
+            const cr = await kube.createCheClusterFromFile(yamlFilePath, flags, flags['che-operator-cr-yaml'] === '')
+            ctx.isKeycloakReady = ctx.isKeycloakReady || cr.spec.auth.externalIdentityProvider
+
             task.title = `${task.title}...done.`
           }
         }
