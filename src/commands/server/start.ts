@@ -20,7 +20,7 @@ import { cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
 import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { InstallerTasks } from '../../tasks/installers/installer'
-import { K8sTasks } from '../../tasks/platforms/k8s'
+import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 
 export default class Start extends Command {
@@ -216,14 +216,14 @@ export default class Start extends Command {
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()
     const installerTasks = new InstallerTasks()
-    const k8sTasks = new K8sTasks()
+    const apiTasks = new ApiTasks()
 
     // Platform Checks
     let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), listrOptions)
 
     // Checks if Eclipse Che is already deployed
     let preInstallTasks = new Listr(undefined, listrOptions)
-    preInstallTasks.add(k8sTasks.testApiTasks(flags, this))
+    preInstallTasks.add(apiTasks.testApiTasks(flags, this))
     preInstallTasks.add({
       title: '👀  Looking for an already existing Eclipse Che instance',
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
