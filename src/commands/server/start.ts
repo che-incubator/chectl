@@ -114,8 +114,8 @@ export default class Start extends Command {
       description: 'Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer is the operator.',
       default: ''
     }),
-    'che-operator-cr-patch': string({
-      description: 'Path to a yaml file that overrides the default value a CheCluster used by the operator. This parameter is used only when the installer is the operator.',
+    'che-operator-cr-patch-yaml': string({
+      description: 'Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used only when the installer is the operator.',
       default: ''
     }),
     directory: string({

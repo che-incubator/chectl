@@ -950,7 +950,7 @@ export class KubeHelper {
 
   async createCheClusterFromFile(filePath: string, flags: any, useDefaultCR: boolean) {
     let yamlCr = this.safeLoadFromYamlFile(filePath)
-    yamlCr = this.overrideDefaultValues(yamlCr, flags['che-operator-cr-patch'])
+    yamlCr = this.overrideDefaultValues(yamlCr, flags['che-operator-cr-patch-yaml'])
 
     const cheNamespace = flags.chenamespace
     if (useDefaultCR) {
