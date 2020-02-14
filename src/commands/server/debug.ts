@@ -14,7 +14,7 @@ import * as Listr from 'listr'
 
 import { cheNamespace, listrRenderer } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
-import { K8sTasks } from '../../tasks/platforms/k8s'
+import { ApiTasks } from '../../tasks/platforms/api'
 
 export default class Debug extends Command {
   static description = 'Enable local debug of Eclipse Che server'
@@ -34,10 +34,10 @@ export default class Debug extends Command {
     const ctx: any = {}
 
     const cheTasks = new CheTasks(flags)
-    const k8sTasks = new K8sTasks()
+    const apiTasks = new ApiTasks()
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
 
-    tasks.add(k8sTasks.testApiTasks(flags, this))
+    tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.debugTask(flags))
 

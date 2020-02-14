@@ -19,7 +19,7 @@ import { CheTasks } from '../../tasks/che'
 import { HelmTasks } from '../../tasks/installers/helm'
 import { MinishiftAddonTasks } from '../../tasks/installers/minishift-addon'
 import { OperatorTasks } from '../../tasks/installers/operator'
-import { K8sTasks } from '../../tasks/platforms/k8s'
+import { ApiTasks } from '../../tasks/platforms/api'
 
 export default class Delete extends Command {
   static description = 'delete any Eclipse Che related resource: Kubernetes/OpenShift/Helm'
@@ -39,7 +39,7 @@ export default class Delete extends Command {
 
     const notifier = require('node-notifier')
 
-    const k8sTasks = new K8sTasks()
+    const apiTasks = new ApiTasks()
     const helmTasks = new HelmTasks()
     const msAddonTasks = new MinishiftAddonTasks()
     const operatorTasks = new OperatorTasks()
@@ -49,7 +49,7 @@ export default class Delete extends Command {
       { renderer: flags['listr-renderer'] as any }
     )
 
-    tasks.add(k8sTasks.testApiTasks(flags, this))
+    tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(operatorTasks.deleteTasks(flags))
     tasks.add(cheTasks.deleteTasks(flags))
     tasks.add(helmTasks.deleteTasks(flags))
