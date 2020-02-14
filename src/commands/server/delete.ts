@@ -59,10 +59,9 @@ export default class Delete extends Command {
     kc.loadFromDefault()
 
     const cluster = kc.getCurrentCluster()
-    const context = kc.getContextObject(kc.getCurrentContext())
 
     if (!flags['skip-deletion-check']) {
-      const confirmed = await cli.confirm(`You're going to remove Eclipse Che server in namespace '${context ? context.namespace : ''}' on server '${cluster ? cluster.server : ''}'. If you want to continue - press Y`)
+      const confirmed = await cli.confirm(`You're going to remove Eclipse Che server in namespace '${flags.chenamespace}' on server '${cluster ? cluster.server : ''}'. If you want to continue - press Y`)
       if (!confirmed) {
         this.exit(0)
       }
