@@ -82,7 +82,7 @@ export class InstallerTasks {
       task = () => {
         // The operator installs Eclipse Che multiuser only
         if (!flags.multiuser) {
-          command.warn("Eclipse Che will be deployed in Multi-User mode since Configured 'operator' installer which support only such.")
+          command.warn("Eclipse Che will be deployed in Multi-User mode as 'operator' installer supports only that mode.")
           flags.multiuser = true
         }
 
@@ -91,7 +91,7 @@ export class InstallerTasks {
     } else if (flags.installer === 'minishift-addon') {
       // minishift-addon supports Eclipse Che singleuser only
       if (flags.multiuser) {
-        command.warn("Eclipse Che will be deployed in Single-User mode since Configured 'minishift-addon' installer which support only such.")
+        command.warn("Eclipse Che will be deployed in Single-User mode as 'minishift-addon' installer supports only that mode.")
         flags.multiuser = false
       }
       title = '🏃‍  Running the Eclipse Che minishift-addon'
