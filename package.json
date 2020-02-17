@@ -134,7 +134,8 @@
     "postpack": "rm -f oclif.manifest.json",
     "format": "tsfmt -r --useTsfmt tsfmt.json",
     "tslint-fix": "tslint --fix -p test -t stylish",
-    "version": "oclif-dev readme && git add README.md"
+    "version": "oclif-dev readme && git add README.md",
+    "watch": "tsc --watch"
   },
   "types": "lib/index.d.ts",
   "jest": {
