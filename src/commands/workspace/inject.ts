@@ -13,6 +13,7 @@ import { Context } from '@kubernetes/client-node/dist/config_types'
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as execa from 'execa'
+import * as fs from 'fs'
 import * as Listr from 'listr'
 import * as os from 'os'
 import * as path from 'path'
@@ -21,6 +22,7 @@ import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace, listrRenderer } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
+import { getClusterClientCommand, OPENSHIFT_CLI } from '../../util'
 
 export default class Inject extends Command {
   static description = 'inject configurations and tokens in a workspace'
@@ -47,6 +49,9 @@ export default class Inject extends Command {
     chenamespace: cheNamespace,
     'listr-renderer': listrRenderer
   }
+
+  // Holds cluster CLI tool name: kubectl or oc
+  private readonly command = getClusterClientCommand()
 
   async run() {
     const { flags } = this.parse(Inject)
@@ -109,7 +114,7 @@ export default class Inject extends Command {
     for (const cont of containers) {
       // che-machine-exec container is very limited for a security reason.
       // We cannot copy file into it.
-      if (cont === 'che-machine-exec') {
+      if (cont.startsWith('che-machine-exec')) {
         continue
       }
       tasks.add({
@@ -135,7 +140,7 @@ export default class Inject extends Command {
    * Tests whether a file can be injected into the specified container.
    */
   async canInject(namespace: string, pod: string, container: string): Promise<boolean> {
-    const { exitCode } = await execa(`kubectl exec ${pod} -n ${namespace} -c ${container} -- tar --version `, { timeout: 10000, reject: false, shell: true })
+    const { exitCode } = await execa(`${this.command} exec ${pod} -n ${namespace} -c ${container} -- tar --version `, { timeout: 10000, reject: false, shell: true })
     if (exitCode === 0) { return true } else { return false }
   }
 
@@ -144,7 +149,7 @@ export default class Inject extends Command {
    * If returns, it means injection was completed successfully. If throws an error, injection failed
    */
   async injectKubeconfig(cheNamespace: string, workspacePod: string, container: string, contextToInject: Context): Promise<void> {
-    const { stdout } = await execa(`kubectl exec ${workspacePod} -n ${cheNamespace} -c ${container} env | grep ^HOME=`, { timeout: 10000, shell: true })
+    const { stdout } = await execa(`${this.command} exec ${workspacePod} -n ${cheNamespace} -c ${container} env | grep ^HOME=`, { timeout: 10000, shell: true })
     let containerHomeDir = stdout.split('=')[1]
     if (!containerHomeDir.endsWith('/')) {
       containerHomeDir += '/'
@@ -153,11 +158,11 @@ export default class Inject extends Command {
     if (await this.fileExists(cheNamespace, workspacePod, container, `${containerHomeDir}.kube/config`)) {
       throw new Error('kubeconfig already exists in the target container')
     }
-    await execa(`kubectl exec ${workspacePod} -n ${cheNamespace} -c ${container} -- mkdir ${containerHomeDir}.kube -p`, { timeout: 10000, shell: true })
+    await execa(`${this.command} exec ${workspacePod} -n ${cheNamespace} -c ${container} -- mkdir ${containerHomeDir}.kube -p`, { timeout: 10000, shell: true })
 
     const kc = new KubeConfig()
     kc.loadFromDefault()
-    const kubeconfig = path.join(os.tmpdir(), 'che-kubeconfig')
+    const kubeConfigPath = path.join(os.tmpdir(), 'che-kubeconfig')
     const cluster = kc.getCluster(contextToInject.cluster)
     if (!cluster) {
       throw new Error(`Context ${contextToInject.name} has no cluster object`)
@@ -166,21 +171,51 @@ export default class Inject extends Command {
     if (!user) {
       throw new Error(`Context ${contextToInject.name} has no user object`)
     }
-    await execa('kubectl', ['config', '--kubeconfig', kubeconfig, 'set-cluster', cluster.name, `--server=${cluster.server}`, `--certificate-authority=${cluster.caFile}`, '--embed-certs=true'], { timeout: 10000 })
-    await execa('kubectl', ['config', '--kubeconfig', kubeconfig, 'set-credentials', user.name, `--client-certificate=${user.certFile}`, `--client-key=${user.keyFile}`, '--embed-certs=true'], { timeout: 10000 })
-    await execa('kubectl', ['config', '--kubeconfig', kubeconfig, 'set-context', contextToInject.name, `--cluster=${contextToInject.cluster}`, `--user=${contextToInject.user}`, `--namespace=${cheNamespace}`], { timeout: 10000 })
-    await execa('kubectl', ['config', '--kubeconfig', kubeconfig, 'use-context', contextToInject.name], { timeout: 10000 })
-    await execa('kubectl', ['cp', kubeconfig, `${cheNamespace}/${workspacePod}:${containerHomeDir}.kube/config`, '-c', container], { timeout: 10000 })
+
+    // Despite oc has --kubeconfig flag it actually does nothing, so we need to use --config instead
+    const configPathFlag = this.command === OPENSHIFT_CLI ? '--config' : '--kubeconfig'
+
+    const setClusterArgs = ['config', configPathFlag, kubeConfigPath, 'set-cluster', cluster.name, `--server=${cluster.server}`]
+    // Prepare CA certificate file
+    if (cluster.caFile) {
+      setClusterArgs.push(`--certificate-authority=${cluster.caFile}`)
+      setClusterArgs.push('--embed-certs=true')
+    } else if (cluster.caData) {
+      const caFile = path.join(os.tmpdir(), 'cluster-ca-file.pem')
+      // Write caData into a file and pass it as the parameter
+      fs.writeFileSync(caFile, cluster.caData, 'utf8')
+
+      setClusterArgs.push(`--certificate-authority=${caFile}`)
+      setClusterArgs.push('--embed-certs=true')
+    }
+    await execa(this.command, setClusterArgs, { timeout: 10000 })
+
+    const setCredentialsArgs = ['config', configPathFlag, kubeConfigPath, 'set-credentials', user.name]
+    if (user.certFile) {
+      setCredentialsArgs.push(`--client-certificate=${user.certFile}`)
+    }
+    if (user.keyFile) {
+      setCredentialsArgs.push(`--client-key=${user.keyFile}`)
+    }
+    if (user.certFile || user.keyFile) {
+      setCredentialsArgs.push('--embed-certs=true')
+    }
+    await execa(this.command, setCredentialsArgs, { timeout: 10000 })
+
+    await execa(this.command, ['config', configPathFlag, kubeConfigPath, 'set-context', contextToInject.name, `--cluster=${contextToInject.cluster}`, `--user=${contextToInject.user}`, `--namespace=${cheNamespace}`], { timeout: 10000 })
+    await execa(this.command, ['config', configPathFlag, kubeConfigPath, 'use-context', contextToInject.name], { timeout: 10000 })
+
+    await execa(this.command, ['cp', kubeConfigPath, `${cheNamespace}/${workspacePod}:${containerHomeDir}.kube/config`, '-c', container], { timeout: 10000 })
     return
   }
 
-  async fileExists(namespace: string, pod: string, container: string, file: string): Promise<boolean> {
-    const { exitCode } = await execa(`kubectl exec ${pod} -n ${namespace} -c ${container} -- test -e ${file}`, { timeout: 10000, reject: false, shell: true })
+  private async fileExists(namespace: string, pod: string, container: string, file: string): Promise<boolean> {
+    const { exitCode } = await execa(`${this.command} exec ${pod} -n ${namespace} -c ${container} -- test -e ${file}`, { timeout: 10000, reject: false, shell: true })
     if (exitCode === 0) { return true } else { return false }
   }
 
-  async containerExists(namespace: string, pod: string, container: string): Promise<boolean> {
-    const { stdout } = await execa('kubectl', ['get', 'pods', `${pod}`, '-n', `${namespace}`, '-o', 'jsonpath={.spec.containers[*].name}'], { timeout: 10000 })
+  private async containerExists(namespace: string, pod: string, container: string): Promise<boolean> {
+    const { stdout } = await execa(this.command, ['get', 'pods', `${pod}`, '-n', `${namespace}`, '-o', 'jsonpath={.spec.containers[*].name}'], { timeout: 10000 })
     return stdout.split(' ').some(c => c === container)
   }
 }
