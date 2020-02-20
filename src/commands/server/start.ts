@@ -187,17 +187,20 @@ export default class Start extends Command {
   checkPlatformCompatibility(flags: any) {
     // matrix checks
     if (flags.installer === 'operator' && flags['che-operator-cr-yaml']) {
-      this.warn('--che-operator-cr-yaml is used. The following flags will be ignored:')
-      this.warn('\t--plugin-registry-url')
-      this.warn('\t--devfile-registry-url')
-      this.warn('\t--postgres-pvc-storage-class-name')
-      this.warn('\t--workspace-pvc-storage-class-name')
-      this.warn('\t--self-signed-cert')
-      this.warn('\t--os-oauth')
-      this.warn('\t--tls')
-      this.warn('\t--cheimage')
-      this.warn('\t--debug')
-      this.warn('\t--domain')
+      let msg = ''
+      msg += flags['plugin-registry-url'] ? '\t--plugin-registry-url' : ''
+      msg += flags['devfile-registry-url'] ? '\t--devfile-registry-url' : ''
+      msg += flags['postgres-pvc-storage-class-name'] ? '\t--postgres-pvc-storage-class-name' : ''
+      msg += flags['workspace-pvc-storage-class-name'] ? '\t--workspace-pvc-storage-class-name' : ''
+      msg += flags['self-signed-cert'] ? '\t--self-signed-cert' : ''
+      msg += flags['os-oauth'] ? '\t--os-oauth' : ''
+      msg += flags.tls ? '\t--ls' : ''
+      msg += flags.cheimage ? '\t--cheimage' : ''
+      msg += flags.debug ? '\t--debug' : ''
+      msg += flags.domain ? '\t--domain' : ''
+      if (msg) {
+        this.warn(`--che-operator-cr-yaml is used. The following flags will be ignored:\n${msg}`)
+      }
     }
 
     if (flags.installer) {
