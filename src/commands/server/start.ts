@@ -186,6 +186,20 @@ export default class Start extends Command {
 
   checkPlatformCompatibility(flags: any) {
     // matrix checks
+    if (flags.installer === 'operator' && flags['che-operator-cr-yaml']) {
+      this.warn('--che-operator-cr-yaml is used. The following flags will be ignored:')
+      this.warn('\t--plugin-registry-url')
+      this.warn('\t--devfile-registry-url')
+      this.warn('\t--postgres-pvc-storage-class-name')
+      this.warn('\t--workspace-pvc-storage-class-name')
+      this.warn('\t--self-signed-cert')
+      this.warn('\t--os-oauth')
+      this.warn('\t--tls')
+      this.warn('\t--cheimage')
+      this.warn('\t--debug')
+      this.warn('\t--domain')
+    }
+
     if (flags.installer) {
       if (flags.installer === 'minishift-addon') {
         if (flags.platform !== 'minishift') {
