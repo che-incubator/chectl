@@ -59,6 +59,9 @@ export default class Delete extends Command {
     kc.loadFromDefault()
 
     const cluster = kc.getCurrentCluster()
+    if (!cluster) {
+      throw new Error('Failed to get current Kubernetes cluster. Check if the current context is set via kubect/oc')
+    }
 
     if (!flags['skip-deletion-check']) {
       const confirmed = await cli.confirm(`You're going to remove Eclipse Che server in namespace '${flags.chenamespace}' on server '${cluster ? cluster.server : ''}'. If you want to continue - press Y`)
