@@ -200,7 +200,7 @@ export default class Start extends Command {
       flags.domain && ignoredFlags.push('--domain')
 
       if (ignoredFlags.length) {
-        this.warn(`--che-operator-cr-yaml is used. The following flag(s) will be ignored:\n${ignoredFlags.join('\n')}`)
+        this.warn(`--che-operator-cr-yaml is used. The following flag(s) will be ignored: ${ignoredFlags.join('\t')}`)
       }
     }
 
