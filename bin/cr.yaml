@@ -1,0 +1,132 @@
+#
+#  Copyright (c) 2012-2019 Red Hat, Inc.
+#    This program and the accompanying materials are made
+#    available under the terms of the Eclipse Public License 2.0
+#    which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+#  SPDX-License-Identifier: EPL-2.0
+#
+#  Contributors:
+#    Red Hat, Inc. - initial API and implementation
+
+# CR is based on https://raw.githubusercontent.com/redhat-developer/codeready-workspaces-chectl/master/docs/custom-resource.yaml
+
+apiVersion: org.eclipse.che/v1
+kind: CheCluster
+metadata:
+  name: codeready-workspaces
+spec:
+  server:
+    # server image used in Che deployment
+    cheImage: 'quay.io/crw/server-rhel8'
+    # image pull policy used in Che deployment
+    cheImageTag: 'latest'
+    # image:tag used in Devfile registry deployment
+    devfileRegistryImage: 'quay.io/crw/devfileregistry-rhel8:latest'
+    # image:tag used in plugin registry deployment
+    pluginRegistryImage: 'quay.io/crw/pluginregistry-rhel8:latest'
+    # defaults to . When set to , CodeReady Workspaces is deployed
+    # the difference is in images, labels, exec commands
+    cheFlavor: 'codeready'
+    # specifies a custom cluster role to user for the Che workspaces
+    # Uses the default roles if left blank.
+    cheWorkspaceClusterRole: ''
+    # when set to true the operator will attempt to get a secret in OpenShift router namespace
+    # to add it to Java trust store of Che server. Requires cluster-admin privileges for operator service account
+    selfSignedCert: false
+    ## If enabled then the certificate from  config map
+    ## will be propagated to the Che components and provide particular configuration for Git.
+    gitSelfSignedCert: false
+    # TLS mode for Che. Make sure you either have public cert, or set selfSignedCert to true
+    tlsSupport: false
+    # protocol+hostname of a proxy server. Automatically added as JAVA_OPTS and https(s)_proxy
+    # to Che server and workspaces containers
+    proxyURL: ''
+    # port of a proxy server
+    proxyPort: ''
+    # username for a proxy server
+    proxyUser: ''
+    # password for a proxy user
+    proxyPassword: ''
+    # a list of non-proxy hosts. Use | as delimiter, eg localhost|my.host.com|123.42.12.32
+    nonProxyHosts: ''
+    # sets mem request for server deployment. Defaults to 512Mi
+    serverMemoryRequest: ''
+    # sets mem limit for server deployment. Defaults to 1Gi
+    serverMemoryLimit: ''
+    # sets default namespace where new workspaces will be created
+    workspaceNamespaceDefault: ''
+    # defines if user is able to specify namespace different from the default
+    allowUserDefinedWorkspaceNamespaces: false
+    customCheProperties:
+      CHE_LIMITS_USER_WORKSPACES_RUN_COUNT: '-1'
+      CHE_INFRA_KUBERNETES_WORKSPACE__UNRECOVERABLE__EVENTS: 'Failed Scheduling,Failed to pull image'
+      CHE_DOCKER_ALWAYS__PULL__IMAGE: 'true'
+      CHE_WORKSPACE_PLUGIN__BROKER_METADATA_IMAGE: 'quay.io/crw/pluginbroker-metadata-rhel8:latest'
+      CHE_WORKSPACE_PLUGIN__BROKER_ARTIFACTS_IMAGE: 'quay.io/crw/pluginbroker-artifacts-rhel8:latest'
+      CHE_SERVER_SECURE__EXPOSER_JWTPROXY_IMAGE: 'quay.io/crw/jwtproxy-rhel8:latest'
+      CHE_FACTORY_DEFAULT__EDITOR: 'eclipse/che-theia/latest'
+      CHE_FACTORY_DEFAULT__PLUGINS: 'eclipse/che-machine-exec-plugin/latest'
+      CHE_WORKSPACE_DEVFILE_DEFAULT__EDITOR: 'eclipse/che-theia/latest'
+      CHE_WORKSPACE_DEVFILE_DEFAULT__EDITOR_PLUGINS: 'eclipse/che-machine-exec-plugin/latest'
+
+  database:
+    # when set to true, the operator skips deploying Postgres, and passes connection details of existing DB to Che server
+    # otherwise a Postgres deployment is created
+    externalDb: false
+    # Postgres Database hostname that Che server uses to connect to. Defaults to postgres
+    chePostgresHostName: ''
+    # Postgres Database port that Che server uses to connect to. Defaults to 5432
+    chePostgresPort: ''
+    # Postgres user that Che server when making a db connection. Defaults to pgche
+    chePostgresUser: ''
+    # password of a postgres user. Auto-generated when left blank
+    chePostgresPassword: ''
+    # Postgres database name that Che server uses to connect to. Defaults to dbche
+    chePostgresDb: ''
+    # Postgres deployment in format image:tag. Defaults to registry.redhat.io/rhscl/postgresql-96-rhel7 (see pkg/deploy/defaults.go for latest tag)
+    postgresImage: ''
+    
+  storage:
+    # persistent volume claim strategy for Che server. Can be common (all workspaces PVCs in one volume),
+    # per-workspace (one PVC per workspace for all declared volumes) and unique (one PVC per declared volume). Defaults to common
+    pvcStrategy: 'per-workspace'
+    # size of a persistent volume claim for workspaces. Defaults to 1Gi
+    pvcClaimSize: '1Gi'
+    # instruct Che server to launch a special pod to precreate a subpath in a PV
+    preCreateSubPaths: true
+    # image:tag for preCreateSubPaths jobs
+    pvcJobsImage: ''
+    # keep blank unless you need to use a non default storage class for Postgres PVC
+    postgresPVCStorageClassName: ''
+    # keep blank unless you need to use a non default storage class for workspace PVC(s)
+    workspacePVCStorageClassName: ''
+
+  auth:
+    # instructs operator on whether or not to deploy Keycloak/RH SSO instance. When set to true provision connection details
+    externalIdentityProvider: false
+    # retrieved from respective route/ingress unless explicitly specified in CR (when ExternalKeycloak is true)
+    identityProviderURL: ''
+    # password for keycloak database user. Auto generated if left blank
+    keycloakPostgresPassword: ''
+    # desired admin username of Keycloak admin user (applicable only when externalIdentityProvider is false)
+    identityProviderAdminUserName: 'admin'
+    # desired password of Keycloak admin user (applicable only when externalIdentityProvider is false)
+    identityProviderPassword: 'admin'
+    # name of a keycloak realm. This realm will be created, when externalIdentityProvider is true, otherwise passed to Che server
+    identityProviderRealm: ''
+    # id of a keycloak client. This client will be created, when externalIdentityProvider is false, otherwise passed to Che server
+    identityProviderClientId: ''
+    # instructs an Operator to enable OpenShift v3 identity provider in Keycloak,
+    # as well as create respective oAuthClient and configure Che configMap accordingly
+    openShiftoAuth: false
+    # name of oAuthClient used in OpenShift v3 identity provider in Keycloak realm. Auto generated if left blank
+    oAuthClientName: ''
+    # secret used in oAuthClient. Auto generated if left blank
+    oAuthSecret: ''
+    # image:tag used in Keycloak deployment
+    identityProviderImage: ''
+  
+  metrics:
+    # Enables '/metrics' endpoint of Che server.
+    enable: false

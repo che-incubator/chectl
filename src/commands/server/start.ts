@@ -187,19 +187,20 @@ export default class Start extends Command {
   checkPlatformCompatibility(flags: any) {
     // matrix checks
     if (flags.installer === 'operator' && flags['che-operator-cr-yaml']) {
-      let msg = ''
-      msg += flags['plugin-registry-url'] ? '\t--plugin-registry-url\n' : ''
-      msg += flags['devfile-registry-url'] ? '\t--devfile-registry-url\n' : ''
-      msg += flags['postgres-pvc-storage-class-name'] ? '\t--postgres-pvc-storage-class-name\n' : ''
-      msg += flags['workspace-pvc-storage-class-name'] ? '\t--workspace-pvc-storage-class-name\n' : ''
-      msg += flags['self-signed-cert'] ? '\t--self-signed-cert\n' : ''
-      msg += flags['os-oauth'] ? '\t--os-oauth\n' : ''
-      msg += flags.tls ? '\t--ls\n' : ''
-      msg += flags.cheimage ? '\t--cheimage\n' : ''
-      msg += flags.debug ? '\t--debug\n' : ''
-      msg += flags.domain ? '\t--domain\n' : ''
-      if (msg) {
-        this.warn(`--che-operator-cr-yaml is used. The following flags will be ignored:\n${msg}`)
+      const ignoredFlags = []
+      flags['plugin-registry-url'] && ignoredFlags.push('--dplugin-registry-urlomain')
+      flags['devfile-registry-url'] && ignoredFlags.push('--devfile-registry-url')
+      flags['postgres-pvc-storage-class-name'] && ignoredFlags.push('--postgres-pvc-storage-class-name')
+      flags['workspace-pvc-storage-class-name'] && ignoredFlags.push('--workspace-pvc-storage-class-name')
+      flags['self-signed-cert'] && ignoredFlags.push('--self-signed-cert')
+      flags['os-oauth'] && ignoredFlags.push('--os-oauth')
+      flags.tls && ignoredFlags.push('--tls')
+      flags.cheimage && ignoredFlags.push('--cheimage')
+      flags.debug && ignoredFlags.push('--debug')
+      flags.domain && ignoredFlags.push('--domain')
+
+      if (ignoredFlags.length) {
+        this.warn(`--che-operator-cr-yaml is used. The following flag(s) will be ignored:\n${ignoredFlags.join('\n')}`)
       }
     }
 
