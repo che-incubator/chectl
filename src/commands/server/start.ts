@@ -188,16 +188,16 @@ export default class Start extends Command {
     // matrix checks
     if (flags.installer === 'operator' && flags['che-operator-cr-yaml']) {
       let msg = ''
-      msg += flags['plugin-registry-url'] ? '\t--plugin-registry-url' : ''
-      msg += flags['devfile-registry-url'] ? '\t--devfile-registry-url' : ''
-      msg += flags['postgres-pvc-storage-class-name'] ? '\t--postgres-pvc-storage-class-name' : ''
-      msg += flags['workspace-pvc-storage-class-name'] ? '\t--workspace-pvc-storage-class-name' : ''
-      msg += flags['self-signed-cert'] ? '\t--self-signed-cert' : ''
-      msg += flags['os-oauth'] ? '\t--os-oauth' : ''
-      msg += flags.tls ? '\t--ls' : ''
-      msg += flags.cheimage ? '\t--cheimage' : ''
-      msg += flags.debug ? '\t--debug' : ''
-      msg += flags.domain ? '\t--domain' : ''
+      msg += flags['plugin-registry-url'] ? '\t--plugin-registry-url\n' : ''
+      msg += flags['devfile-registry-url'] ? '\t--devfile-registry-url\n' : ''
+      msg += flags['postgres-pvc-storage-class-name'] ? '\t--postgres-pvc-storage-class-name\n' : ''
+      msg += flags['workspace-pvc-storage-class-name'] ? '\t--workspace-pvc-storage-class-name\n' : ''
+      msg += flags['self-signed-cert'] ? '\t--self-signed-cert\n' : ''
+      msg += flags['os-oauth'] ? '\t--os-oauth\n' : ''
+      msg += flags.tls ? '\t--ls\n' : ''
+      msg += flags.cheimage ? '\t--cheimage\n' : ''
+      msg += flags.debug ? '\t--debug\n' : ''
+      msg += flags.domain ? '\t--domain\n' : ''
       if (msg) {
         this.warn(`--che-operator-cr-yaml is used. The following flags will be ignored:\n${msg}`)
       }
