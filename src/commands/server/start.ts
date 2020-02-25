@@ -188,7 +188,7 @@ export default class Start extends Command {
     // matrix checks
     if (flags.installer === 'operator' && flags['che-operator-cr-yaml']) {
       const ignoredFlags = []
-      flags['plugin-registry-url'] && ignoredFlags.push('--dplugin-registry-urlomain')
+      flags['plugin-registry-url'] && ignoredFlags.push('--plugin-registry-urlomain')
       flags['devfile-registry-url'] && ignoredFlags.push('--devfile-registry-url')
       flags['postgres-pvc-storage-class-name'] && ignoredFlags.push('--postgres-pvc-storage-class-name')
       flags['workspace-pvc-storage-class-name'] && ignoredFlags.push('--workspace-pvc-storage-class-name')
