@@ -618,13 +618,6 @@
   resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-5.2.7.tgz#315d570ccb56c53452ff8638738df60726d5b6ea"
   integrity sha512-NYrtPht0wGzhwe9+/idPaBB+TqkY9AhTvOLMkThm0IoEfLaiVQZwBwyJ5puCkO3AUCWrmcoePjp2mbFocKy4SQ==
 
-"@types/nock@*":
-  version "11.1.0"
-  resolved "https://registry.yarnpkg.com/@types/nock/-/nock-11.1.0.tgz#0a8c1056a31ba32a959843abccf99626dd90a538"
-  integrity sha512-jI/ewavBQ7X5178262JQR0ewicPAcJhXS/iFaNJl0VHLfyosZ/kwSrsa6VNQNSO8i9d8SqdRgOtZSOKJ/+iNMw==
-  dependencies:
-    nock "*"
-
 "@types/node-notifier@^5.4.0":
   version "5.4.0"
   resolved "https://registry.yarnpkg.com/@types/node-notifier/-/node-notifier-5.4.0.tgz#4e66c85eb41cce8387b4cd9c6c67852be41a99db"
@@ -1934,15 +1927,14 @@ extsprintf@^1.2.0:
   resolved "https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.4.0.tgz#e2689f8f356fad62cca65a3a91c5df5f9551692f"
   integrity sha1-4mifjzVvrWLMplo6kcXfX5VRaS8=
 
-fancy-test@^1.4.3, fancy-test@^1.4.4:
-  version "1.4.4"
-  resolved "https://registry.yarnpkg.com/fancy-test/-/fancy-test-1.4.4.tgz#979f2827fccafac0ef52b542ab9ba9e8bcf40e50"
-  integrity sha512-F2JYBLJTsfvqjziAl/niwxnWYJy+JCIyDMbbBJqT7XzF8JwEIOL3/TC99v3Ig5LFXkvuwKrKpetSymd6CjH8ew==
+fancy-test@^1.4.3, fancy-test@^1.4.7:
+  version "1.4.7"
+  resolved "https://registry.yarnpkg.com/fancy-test/-/fancy-test-1.4.7.tgz#2a9fa5de970fad65b3d27228d9904545524d0550"
+  integrity sha512-drgNrpNbvXXbPAz0rn7jvzjoEihDKpm1fFF+aZ+FVLatjE3jZSc6WwfgC5x7N/+nhmentMx4TXPQ0OkS0SElVQ==
   dependencies:
     "@types/chai" "*"
     "@types/lodash" "*"
     "@types/mocha" "*"
-    "@types/nock" "*"
     "@types/node" "*"
     "@types/sinon" "*"
     lodash "^4.17.13"
@@ -3770,7 +3762,7 @@ nice-try@^1.0.4:
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
   integrity sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==
 
-nock@*, nock@^11.7.0:
+nock@^11.7.0:
   version "11.7.0"
   resolved "https://registry.yarnpkg.com/nock/-/nock-11.7.0.tgz#5eaae8b8a55c0dfc014d05692c8cf3d31d61a342"
   integrity sha512-7c1jhHew74C33OBeRYyQENT+YXQiejpwIrEjinh6dRurBae+Ei4QjeUaPlkptIF0ZacEiVCnw8dWaxqepkiihg==
