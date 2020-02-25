@@ -186,6 +186,24 @@ export default class Start extends Command {
 
   checkPlatformCompatibility(flags: any) {
     // matrix checks
+    if (flags.installer === 'operator' && flags['che-operator-cr-yaml']) {
+      const ignoredFlags = []
+      flags['plugin-registry-url'] && ignoredFlags.push('--plugin-registry-urlomain')
+      flags['devfile-registry-url'] && ignoredFlags.push('--devfile-registry-url')
+      flags['postgres-pvc-storage-class-name'] && ignoredFlags.push('--postgres-pvc-storage-class-name')
+      flags['workspace-pvc-storage-class-name'] && ignoredFlags.push('--workspace-pvc-storage-class-name')
+      flags['self-signed-cert'] && ignoredFlags.push('--self-signed-cert')
+      flags['os-oauth'] && ignoredFlags.push('--os-oauth')
+      flags.tls && ignoredFlags.push('--tls')
+      flags.cheimage && ignoredFlags.push('--cheimage')
+      flags.debug && ignoredFlags.push('--debug')
+      flags.domain && ignoredFlags.push('--domain')
+
+      if (ignoredFlags.length) {
+        this.warn(`--che-operator-cr-yaml is used. The following flag(s) will be ignored: ${ignoredFlags.join('\t')}`)
+      }
+    }
+
     if (flags.installer) {
       if (flags.installer === 'minishift-addon') {
         if (flags.platform !== 'minishift') {
