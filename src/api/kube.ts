@@ -19,8 +19,8 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { getClusterClientCommand } from '../../src/util'
 import { DEFAULT_CHE_IMAGE } from '../constants'
+import { getClusterClientCommand } from '../util'
 
 export class KubeHelper {
   kc = new KubeConfig()
