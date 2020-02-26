@@ -100,11 +100,21 @@ describe('Kube API helper', () => {
     })
   fancy
     .nock(kubeClusterURL, api => api
+      .get('/healthz')
+      .reply(200, 'ok'))
+    .it('verifies that kuber API is ok via public healthz endpoint', async () => {
+      await kube.checkKubeApi()
+    })
+  fancy
+    .nock(kubeClusterURL, api => api
+      .get('/healthz')
+      .matchHeader('Authorization', val => !val)
+      .reply(401, 'token is missing')
       .get('/api/v1/namespaces/default/secrets')
       .replyWithFile(200, __dirname + '/replies/get-secrets.json', { 'Content-Type': 'application/json' })
       .get('/healthz')
       .reply(200, 'ok'))
-    .it('verifies that kuber API is ok', async () => {
+    .it('verifies that kuber API is ok via secure healthz endpoint', async () => {
       await kube.checkKubeApi()
     })
   fancy

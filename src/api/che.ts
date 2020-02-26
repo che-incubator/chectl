@@ -379,7 +379,11 @@ export class CheHelper {
     watcher.watch(`/api/v1/namespaces/${namespace}/pods`, {},
       async (_phase: string, obj: any) => {
         const pod = obj as V1Pod
-        const podName = pod.metadata!.name!
+        if (!pod || !pod.metadata || !pod.metadata.name) {
+          return
+        }
+        const podName = pod.metadata.name!
+
         if (!processedContainers.has(podName)) {
           processedContainers.set(podName, new Set<string>())
         }

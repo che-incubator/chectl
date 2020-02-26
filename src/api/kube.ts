@@ -9,8 +9,8 @@
  **********************************************************************/
 
 import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
-import { Context } from '@kubernetes/client-node/dist/config_types'
-import axios from 'axios'
+import { Cluster, Context } from '@kubernetes/client-node/dist/config_types'
+import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
 import * as fs from 'fs'
 import https = require('https')
@@ -19,6 +19,7 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
+import { getClusterClientCommand } from '../../src/util'
 import { DEFAULT_CHE_IMAGE } from '../constants'
 
 export class KubeHelper {
@@ -1079,17 +1080,34 @@ export class KubeHelper {
   async checkKubeApi() {
     const currentCluster = this.kc.getCurrentCluster()
     if (!currentCluster) {
-      throw new Error('Failed to get current Kubernetes cluster: returned null')
+      throw new Error(`The current context is unknown. It should be set using '${getClusterClientCommand()} config use-context <CONTEXT_NAME>' or in another way.`)
     }
-    const token = await this.getDefaultServiceAccountToken()
 
-    const agent = new https.Agent({
-      rejectUnauthorized: false
-    })
-    let endpoint = ''
     try {
-      endpoint = `${currentCluster.server}/healthz`
-      let response = await axios.get(`${endpoint}`, { httpsAgent: agent, headers: { Authorization: 'bearer ' + token } })
+      await this.requestKubeHealthz(currentCluster)
+    } catch (error) {
+      if (error.message && (error.message as string).includes('E_K8S_API_UNAUTHORIZED')) {
+        const token = await this.getDefaultServiceAccountToken()
+        await this.requestKubeHealthz(currentCluster, token)
+      } else {
+        throw error
+      }
+    }
+  }
+
+  async requestKubeHealthz(currentCluster: Cluster, token?: string) {
+    const endpoint = `${currentCluster.server}/healthz`
+
+    try {
+      const config: AxiosRequestConfig = {
+        httpsAgent: new https.Agent({
+          rejectUnauthorized: false,
+          requestCert: true
+        }),
+        headers: token && { Authorization: 'bearer ' + token }
+      }
+
+      const response = await axios.get(`${endpoint}`, config)
       if (!response || response.status !== 200 || response.data !== 'ok') {
         throw new Error('E_BAD_RESP_K8S_API')
       }
