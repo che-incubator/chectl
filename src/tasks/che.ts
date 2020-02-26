@@ -43,6 +43,8 @@ export class CheTasks {
   pluginRegistryDeploymentName = 'plugin-registry'
   pluginRegistrySelector = 'app=che,component=plugin-registry'
 
+  cheOperatorSelector = 'app=che-operator'
+
   constructor(flags: any) {
     this.kube = new KubeHelper(flags)
     this.kubeTasks = new KubeTasks(flags)
@@ -493,6 +495,14 @@ export class CheTasks {
    */
   serverLogsTasks(flags: any, follow: boolean): ReadonlyArray<Listr.ListrTask> {
     return [
+      {
+        title: `${follow ? 'Start following' : 'Read'} Operator logs`,
+        skip: () => flags.installer && flags.installer !== 'operator',
+        task: async (ctx: any, task: any) => {
+          await this.che.readPodLog(flags.chenamespace, this.cheOperatorSelector, ctx.directory, follow)
+          task.title = `${task.title}...done`
+        }
+      },
       {
         title: `${follow ? 'Start following' : 'Read'} Eclipse Che logs`,
         task: async (ctx: any, task: any) => {
