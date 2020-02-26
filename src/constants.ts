@@ -10,6 +10,7 @@
 
 export const DEFAULT_CHE_IMAGE = 'quay.io/eclipse/che-server:nightly'
 export const DEFAULT_CHE_OPERATOR_IMAGE = 'quay.io/eclipse/che-operator:nightly'
+export const CA_CERT_GENERATION_JOB_IMAGE = 'quay.io/eclipse/che-cert-manager-ca-cert-generator:latest'
 
 export const CERT_MANAGER_NAMESPACE_NAME = 'cert-manager'
 

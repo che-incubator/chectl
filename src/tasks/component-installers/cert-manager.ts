@@ -14,7 +14,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
-import { CERT_MANAGER_NAMESPACE_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
+import { CA_CERT_GENERATION_JOB_IMAGE, CERT_MANAGER_NAMESPACE_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
 
 export const CERT_MANAGER_CA_SECRET_NAME = 'ca'
 
@@ -46,7 +46,7 @@ export class CertManagerTasks {
         title: 'Deploy cert-manager',
         enabled: ctx => !ctx.certManagerInstalled,
         task: async (ctx: any, task: any) => {
-          const yamlPath = path.join(flags.templates, 'cert-manager', 'cert-manager.yml')
+          const yamlPath = path.join(flags.templates, '..', 'installers', 'cert-manager.yml')
           await this.kubeHelper.applyResource(yamlPath)
           ctx.certManagerInstalled = true
 
@@ -84,7 +84,6 @@ export class CertManagerTasks {
 
             const CA_CERT_GENERATION_SERVICE_ACCOUNT_NAME = 'ca-cert-generator'
             const CA_CERT_GENERATION_JOB_NAME = 'ca-cert-generation-job'
-            const CA_CERT_GENERATION_JOB_IMAGE = 'quay.io/eclipse/che-cert-manager-ca-cert-generator:latest'
             try {
               // Configure permissions for CA key pair generation job
               await this.kubeHelper.createServiceAccount(CA_CERT_GENERATION_SERVICE_ACCOUNT_NAME, CERT_MANAGER_NAMESPACE_NAME)
