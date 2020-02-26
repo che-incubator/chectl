@@ -272,8 +272,9 @@ OPTIONS
 
   -s, --tls
       Enable TLS encryption.
-                           Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured 
-      namespace.
+                           Note, that this option is turned on by default for kubernetes infrastructure.
+                           If it is needed to provide own certificate, 'che-tls' secret with TLS certificate must be 
+      created in the configured namespace. Otherwise, it will be automatically generated.
                            For OpenShift, router will use default cluster certificates.
 
   -t, --templates=templates
@@ -319,8 +320,9 @@ OPTIONS
       persistent volume storage class name to use to store Eclipse Che Postgres database
 
   --self-signed-cert
-      Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate 
-      must be created in the configured namespace.
+      Authorize usage of self signed certificates for encryption.
+                           This is the flag for Che to propagate the certificate to components, so they will trust it.
+                           Note that `che-tls` secret with CA certificate must be created in the configured namespace.
 
   --skip-version-check
       Skip minimal versions check.

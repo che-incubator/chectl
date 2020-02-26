@@ -74,12 +74,15 @@ export default class Start extends Command {
     tls: flags.boolean({
       char: 's',
       description: `Enable TLS encryption.
-                    Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured namespace.
+                    Note, that this option is turned on by default for kubernetes infrastructure.
+                    If it is needed to provide own certificate, 'che-tls' secret with TLS certificate must be created in the configured namespace. Otherwise, it will be automatically generated.
                     For OpenShift, router will use default cluster certificates.`,
       default: false
     }),
     'self-signed-cert': flags.boolean({
-      description: 'Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate must be created in the configured namespace.',
+      description: `Authorize usage of self signed certificates for encryption.
+                    This is the flag for Che to propagate the certificate to components, so they will trust it.
+                    Note that \`che-tls\` secret with CA certificate must be created in the configured namespace.`,
       default: false
     }),
     platform: string({
@@ -230,6 +233,12 @@ export default class Start extends Command {
     const ctx: any = {}
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
+    ctx.listrOptions = listrOptions
+
+    // TODO when tls by default is implemented for all platforms, make `tls` flag turned on by default.
+    if (flags.platform === 'k8s' || flags.platform === 'minikube' || flags.platform === 'microk8s') {
+      flags.tls = true
+    }
 
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()

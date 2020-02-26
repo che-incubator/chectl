@@ -60,7 +60,7 @@ export default class Start extends Command {
         title: 'Retrieving Eclipse Che Server URL',
         task: async (ctx: any, task: any) => {
           ctx.cheURL = await che.cheURL(flags.chenamespace)
-          task.title = await `${task.title}...${ctx.cheURL}`
+          task.title = await `${task.title}... ${ctx.cheURL}`
         }
       },
       {
