@@ -65,6 +65,7 @@
   "files": [
     "/bin",
     "/lib",
+    "/installers",
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json"
   ],
@@ -111,18 +112,11 @@
       }
     }
   },
-  "pkg": {
-    "scripts": [
-      "lib/**/*.js"
-    ],
-    "assets": [
-      "templates/**/*"
-    ]
-  },
   "repository": "che-incubator/chectl",
   "scripts": {
-    "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-helm && npm run -s postinstall-operator && npm run -s postinstall-minishift-addon && npm run -s postinstall-cleanup",
+    "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-helm && npm run -s postinstall-cert-manager && npm run -s postinstall-operator && npm run -s postinstall-minishift-addon && npm run -s postinstall-cleanup",
     "postinstall-helm": "rimraf templates/kubernetes && cpx 'node_modules/eclipse-che/deploy/kubernetes/**' 'templates/kubernetes'",
+    "postinstall-cert-manager": "rimraf templates/cert-manager && cpx 'node_modules/eclipse-che/deploy/cert-manager/**' 'templates/cert-manager'",
     "postinstall-minishift-addon": "rimraf templates/minishift-addon && cpx 'node_modules/eclipse-che-minishift/addons/che/**' 'templates/minishift-addon/che'",
     "postinstall-operator": "rimraf templates/che-operator && cpx 'node_modules/eclipse-che-operator/deploy/**' 'templates/che-operator'",
     "postinstall-repositories": "yarn upgrade eclipse-che eclipse-che-operator eclipse-che-minishift",
