@@ -69,8 +69,8 @@ export class KubeHelper {
     }
   }
 
-  async applyResource(yamlPath: string): Promise<void> {
-    const command = `kubectl apply -f ${yamlPath}`
+  async applyResource(yamlPath: string, opts = ''): Promise<void> {
+    const command = `kubectl apply -f ${yamlPath} ${opts}`
     await execa(command, { timeout: 30000, shell: true })
   }
 
