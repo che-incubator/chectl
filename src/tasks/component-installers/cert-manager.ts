@@ -47,7 +47,8 @@ export class CertManagerTasks {
         enabled: ctx => !ctx.certManagerInstalled,
         task: async (ctx: any, task: any) => {
           const yamlPath = path.join(flags.templates, '..', 'installers', 'cert-manager.yml')
-          await this.kubeHelper.applyResource(yamlPath)
+          // Apply additional --validate=false flag to be able to deploy Cert Manager on Kubernetes v1.15.4 or below
+          await this.kubeHelper.applyResource(yamlPath, '--validate=false')
           ctx.certManagerInstalled = true
 
           task.title = `${task.title}...done`
