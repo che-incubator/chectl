@@ -185,6 +185,11 @@ export default class Start extends Command {
         flags.installer = 'operator'
       }
     }
+
+    // TODO when tls by default is implemented for all platforms, make `tls` flag turned on by default.
+    if (flags.installer === 'helm' && (flags.platform === 'k8s' || flags.platform === 'minikube' || flags.platform === 'microk8s')) {
+      flags.tls = true
+    }
   }
 
   checkPlatformCompatibility(flags: any) {
@@ -234,11 +239,6 @@ export default class Start extends Command {
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
     ctx.listrOptions = listrOptions
-
-    // TODO when tls by default is implemented for all platforms, make `tls` flag turned on by default.
-    if (flags.installer === 'helm' && (flags.platform === 'k8s' || flags.platform === 'minikube' || flags.platform === 'microk8s')) {
-      flags.tls = true
-    }
 
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()
