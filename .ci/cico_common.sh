@@ -38,13 +38,27 @@ helm_install() {
 
 install_required_packages() {
   # Install EPEL repo
+  if yum repolist | grep epel; then
+    printInfo "Epel already installed, skipping instalation."
+  else
+    #excluding mirror1.ci.centos.org
+    printInfo "Installing epel..."
+    yum install -d1 --assumeyes epel-release
+    yum update --assumeyes -d1
+  fi
   # Get all the deps in
-  yum -y install libvirt qemu-kvm
   printInfo 'Installing required virtualization packages installed'
+  yum -y install libvirt qemu-kvm
 }
 
 start_libvirt() {
   systemctl start libvirtd
+}
+
+install_node_deps() {
+  curl -sL https://rpm.nodesource.com/setup_10.x | bash -
+  yum-config-manager --add-repo https://dl.yarnpkg.com/rpm/yarn.repo
+  yum install -y nodejs yarn
 }
 
 setup_kvm_machine_driver() {
