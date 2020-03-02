@@ -34,7 +34,7 @@ describe('e2e test', () => {
       .exit(0)
       .it('uses minishift as platform, minishift-addon as installer and auth is disabled', ctx => {
         expect(ctx.stdout).to.contain('Minishift preflight checklist')
-          .and.to.contain('Running the Che minishift-addon')
+          .and.to.contain('Running the Eclipse Che minishift-addon')
           .and.to.contain('Post installation checklist')
           .and.to.contain('Command server:start has completed successfully')
       })
@@ -45,7 +45,7 @@ describe('e2e test', () => {
       .it('stops Server on minishift successfully')
     test
       .stdout()
-      .command(['server:delete', '--listr-renderer=verbose'])
+      .command(['server:delete','--skip-deletion-check', '--listr-renderer=verbose'])
       .exit(0)
       .it('deletes Che resources on minishift successfully')
   })
@@ -75,9 +75,8 @@ describe('e2e test', () => {
       .exit(0)
       .it('stops Server on Minishift successfully')
     test
-      .skip()
       .stdout()
-      .command(['server:delete', '--listr-renderer=verbose'])
+      .command(['server:delete', '--skip-deletion-check', '--listr-renderer=verbose'])
       .exit(0)
       .it('deletes Che resources on Minishift successfully')
   })
