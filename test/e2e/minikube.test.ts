@@ -78,4 +78,36 @@ describe('e2e test', () => {
       .exit(0)
       .it('deletes Che resources on minikube successfully')
   })
+  describe('server:start mulituser tls enabled with helm installer', () => {
+    test
+      .stdout()
+      .command(['server:start', '--platform=minikube', '--tls', '--self-signed-cert', '--installer=helm', '--listr-renderer=verbose', '--multiuser'])
+      .exit(0)
+      .it('uses minikube as platform, operator as installer and auth is enabled', ctx => {
+        expect(ctx.stdout).to.contain('Minikube preflight checklist')
+          .and.to.contain('Running the Che Operator')
+          .and.to.contain('Post installation checklist')
+          .and.to.contain('Command server:start has completed successfully')
+      })
+    test
+      .skip()
+      .stdout()
+      .command(['server:stop', '--listr-renderer=verbose'])
+      /*
+      TODO: set CHE_ACCESS_TOKEN with auth:che-api-token that does something similar to
+        CHE_USER=admin
+        CHE_PASSWORD=admin
+        TOKEN_ENDPOINT="http://keycloak-che.192.168.64.68.nip.io/auth/realms/che/protocol/openid-connect/token"
+        export CHE_ACCESS_TOKEN=$(curl -sSL --data "grant_type=password&client_id=che-public&username=${CHE_USER}&password=${CHE_PASSWORD}" \
+            ${TOKEN_ENDPOINT} | jq -r .access_token)
+      */
+      .exit(0)
+      .it('stops Server on minikube successfully')
+    test
+      .stdout()
+      .command(['server:delete','--skip-deletion-check', '--listr-renderer=verbose'])
+      .exit(0)
+      .it('deletes Che resources on minikube successfully')
+  })
+
 })
