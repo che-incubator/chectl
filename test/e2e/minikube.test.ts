@@ -32,7 +32,7 @@ describe('e2e test', () => {
       .exit(0)
       .it('uses minikube as platform, helm as installer and auth is disabled', ctx => {
         expect(ctx.stdout).to.contain('Minikube preflight checklist')
-          .and.to.contain('Running Helm')
+          .and.to.contain('Running Helm to install Eclipse Che')
           .and.to.contain('Post installation checklist')
           .and.to.contain('Command server:start has completed successfully')
       })
@@ -43,7 +43,7 @@ describe('e2e test', () => {
       .it('stops Server on minikube successfully')
     test
       .stdout()
-      .command(['server:delete', '--listr-renderer=verbose'])
+      .command(['server:delete','--skip-deletion-check', '--listr-renderer=verbose'])
       .exit(0)
       .it('deletes Che resources on minikube successfully')
   })
@@ -73,9 +73,8 @@ describe('e2e test', () => {
       .exit(0)
       .it('stops Server on minikube successfully')
     test
-      .skip()
       .stdout()
-      .command(['server:delete', '--listr-renderer=verbose'])
+      .command(['server:delete','--skip-deletion-check', '--listr-renderer=verbose'])
       .exit(0)
       .it('deletes Che resources on minikube successfully')
   })
