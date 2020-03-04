@@ -87,10 +87,10 @@
     ],
     "topics": {
       "server": {
-        "description": "control Che server"
+        "description": "control Eclipse Che server"
       },
       "workspace": {
-        "description": "control Che workspaces"
+        "description": "control Eclipse Che workspaces"
       }
     },
     "update": {

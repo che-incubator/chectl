@@ -73,7 +73,7 @@ export default class Generate extends Command {
       required: false,
     }),
     plugin: string({
-      description: 'Che plugin to include in the workspace. The format is JSON. For example this is a valid Che Plugin specification: {"type": "TheEndpointName.ChePlugin", "alias": "java-ls", "id": "redhat/java/0.38.0"}',
+      description: 'Eclipse Che plugin to include in the workspace. The format is JSON. For example this is a valid Eclipse Che plugin specification: {"type": "TheEndpointName.ChePlugin", "alias": "java-ls", "id": "redhat/java/0.38.0"}',
       env: 'CHE_PLUGIN',
       required: false,
     }),

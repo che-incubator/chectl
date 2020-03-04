@@ -163,13 +163,13 @@ export class OperatorTasks {
         }
       },
       {
-        title: `Create Eclipse Che Cluster ${this.operatorCheCluster} in namespace ${flags.chenamespace}`,
+        title: `Create Eclipse Che cluster ${this.operatorCheCluster} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
           const exist = await kube.cheClusterExist(this.operatorCheCluster, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            // Eclipse Che Operator supports only Multi-User Che
+            // Eclipse Che operator supports only Multi-User Che
             ctx.isCheDeployed = true
             ctx.isPostgresDeployed = true
             ctx.isKeycloakDeployed = true
@@ -307,7 +307,7 @@ export class OperatorTasks {
         }
       },
       {
-        title: `Updating Eclipse Che Cluster CRD ${this.cheClusterCrd}`,
+        title: `Updating Eclipse Che cluster CRD ${this.cheClusterCrd}`,
         task: async (_ctx: any, task: any) => {
           const crd = await kube.getCrd(this.cheClusterCrd)
           const yamlFilePath = this.resourcesPath + 'crds/org_v1_che_crd.yaml'
@@ -355,7 +355,7 @@ export class OperatorTasks {
   }
 
   /**
-   * Returns list of tasks which remove Eclipse Che Operator related resources
+   * Returns list of tasks which remove Eclipse Che operator related resources
    */
   deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     let kh = new KubeHelper(flags)

@@ -89,7 +89,7 @@ export class CheTasks {
         task: () => this.kubeTasks.podStartTasks(command, this.cheSelector, this.cheNamespace)
       },
       {
-        title: 'Retrieving Eclipse Che Server URL',
+        title: 'Retrieving Eclipse Che server URL',
         task: async (ctx: any, task: any) => {
           ctx.cheURL = await this.che.cheURL(flags.chenamespace)
           task.title = await `${task.title}...${ctx.cheURL}`
@@ -115,7 +115,7 @@ export class CheTasks {
         title: `Verify if Eclipse Che is deployed into namespace \"${this.cheNamespace}\"`,
         task: async (ctx: any, task: any) => {
           if (await this.kube.deploymentExist(this.cheDeploymentName, this.cheNamespace)) {
-            // helm chart and Che Operator use a deployment
+            // helm chart and Eclipse Che operator use a deployment
             ctx.isCheDeployed = true
             ctx.isCheReady = await this.kube.deploymentReady(this.cheDeploymentName, this.cheNamespace)
             if (!ctx.isCheReady) {
@@ -161,7 +161,7 @@ export class CheTasks {
             return new Listr([
               {
                 enabled: () => ctx.isCheDeployed,
-                title: `Found ${ctx.isCheStopped ? 'stopped' : 'running'} che deployment`,
+                title: `Found ${ctx.isCheStopped ? 'stopped' : 'running'} Eclipse Che deployment`,
                 task: () => { }
               },
               {
@@ -410,7 +410,7 @@ export class CheTasks {
         }
       },
       {
-        title: 'Delete configmaps che and che-operator',
+        title: 'Delete configmaps for Eclipse Che server and operator',
         task: async (_ctx: any, task: any) => {
           if (await this.kube.getConfigMap('che', flags.chenamespace)) {
             await this.kube.deleteConfigMap('che', flags.chenamespace)
@@ -558,11 +558,11 @@ export class CheTasks {
   debugTask(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Find Che Server pod',
+        title: 'Find Eclipse Che server pod',
         task: async (ctx: any, task: any) => {
           const chePods = await this.kube.listNamespacedPod(flags.chenamespace, undefined, this.cheSelector)
           if (chePods.items.length === 0) {
-            throw new Error(`Che Server pod not found in the namespace '${flags.chenamespace}'`)
+            throw new Error(`Eclipse Che server pod not found in the namespace '${flags.chenamespace}'`)
           }
           ctx.podName = chePods.items[0].metadata!.name!
           task.title = `${task.title}...done`
@@ -573,7 +573,7 @@ export class CheTasks {
         task: async (task: any) => {
           const configMap = await this.kube.getConfigMap('che', flags.chenamespace)
           if (!configMap || configMap.data!.CHE_DEBUG_SERVER !== 'true') {
-            throw new Error('Che Server should be redeployed with \'--debug\' flag')
+            throw new Error('Eclipse Che server should be redeployed with \'--debug\' flag')
           }
 
           task.title = `${task.title}...done`

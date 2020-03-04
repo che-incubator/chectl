@@ -168,7 +168,7 @@ export class HelmTasks {
         }
       },
       {
-        title: 'Preparing Che Helm Chart',
+        title: 'Preparing Eclipse Che Helm Chart',
         task: async (_ctx: any, task: any) => {
           await this.prepareCheHelmChart(flags, command.config.cacheDir)
           task.title = `${task.title}...done.`
@@ -182,7 +182,7 @@ export class HelmTasks {
         }
       },
       {
-        title: 'Deploying Che Helm Chart',
+        title: 'Deploying Eclipse Che Helm Chart',
         task: async (ctx: any, task: any) => {
           await this.upgradeCheHelmChart(ctx, flags, command.config.cacheDir)
           task.title = `${task.title}...done.`
@@ -196,7 +196,7 @@ export class HelmTasks {
    */
   deleteTasks(_flags: any): ReadonlyArray<Listr.ListrTask> {
     return [{
-      title: 'Purge che Helm chart',
+      title: 'Purge Eclipse Che Helm chart',
       enabled: (ctx: any) => !ctx.isOpenShift,
       task: async (_ctx: any, task: any) => {
         if (await !commandExists.sync('helm')) {

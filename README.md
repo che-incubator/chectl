@@ -142,9 +142,9 @@ OPTIONS
 
   --namespace=namespace      Kubernetes namespace where the resources are defined
 
-  --plugin=plugin            Che plugin to include in the workspace. The format is JSON. For example this is a valid Che
-                             Plugin specification: {"type": "TheEndpointName.ChePlugin", "alias": "java-ls", "id":
-                             "redhat/java/0.38.0"}
+  --plugin=plugin            Eclipse Che plugin to include in the workspace. The format is JSON. For example this is a
+                             valid Eclipse Che plugin specification: {"type": "TheEndpointName.ChePlugin", "alias":
+                             "java-ls", "id": "redhat/java/0.38.0"}
 
   --selector=selector        label selector to filter the Kubernetes resources. For example
                              --selector="app.kubernetes.io/name=employee-manager"
@@ -183,7 +183,7 @@ OPTIONS
   -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
                                            be deployed
 
-  --debug-port=debug-port                  [default: 8000] Eclipse Che Server debug port
+  --debug-port=debug-port                  [default: 8000] Eclipse Che server debug port
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
@@ -235,7 +235,7 @@ _See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl
 
 ## `chectl server:start`
 
-start Eclipse Che Server
+start Eclipse Che server
 
 ```
 USAGE
@@ -255,16 +255,16 @@ OPTIONS
       show CLI help
 
   -i, --cheimage=cheimage
-      [default: quay.io/eclipse/che-server:nightly] Che server container image
+      [default: quay.io/eclipse/che-server:7.9.0] Eclipse Che server container image
 
   -m, --multiuser
-      Starts che in multi-user mode
+      Starts Eclipse Che in multi-user mode
 
   -n, --chenamespace=chenamespace
       [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
 
   -o, --cheboottimeout=cheboottimeout
-      (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
+      (required) [default: 40000] Eclipse Che server bootstrap timeout (in milliseconds)
 
   -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc
       Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc 
@@ -288,11 +288,12 @@ OPTIONS
       is the operator.
 
   --che-operator-image=che-operator-image
-      [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when 
-      the installer is the operator
+      [default: quay.io/eclipse/che-operator:7.9.0] Container image of the operator. This parameter is used only when the 
+      installer is the operator
 
   --debug
-      Enables the debug mode for Che server. To debug Eclipse Che Server from localhost use 'server:debug' command.
+      Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug' 
+      command.
 
   --deployment-name=deployment-name
       [default: che] Eclipse Che deployment name
@@ -316,7 +317,7 @@ OPTIONS
       The URL of the external plugin registry.
 
   --postgres-pvc-storage-class-name=postgres-pvc-storage-class-name
-      persistent volume storage class name to use to store Eclipse Che Postgres database
+      persistent volume storage class name to use to store Eclipse Che postgres database
 
   --self-signed-cert
       Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate 
@@ -333,7 +334,7 @@ _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chect
 
 ## `chectl server:stop`
 
-stop Eclipse Che Server
+stop Eclipse Che server
 
 ```
 USAGE
@@ -347,7 +348,7 @@ OPTIONS
 
   --access-token=access-token              Eclipse Che OIDC Access Token
 
-  --che-selector=che-selector              [default: app=che,component=che] Selector for Eclipse Che Server resources
+  --che-selector=che-selector              [default: app=che,component=che] Selector for Eclipse Che server resources
 
   --deployment-name=deployment-name        [default: che] Eclipse Che deployment name
 
@@ -358,7 +359,7 @@ _See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl
 
 ## `chectl server:update`
 
-update Eclipse Che Server
+update Eclipse Che server
 
 ```
 USAGE
@@ -381,7 +382,7 @@ OPTIONS
                                                                                templates folder
 
   --che-operator-image=che-operator-image                                      [default:
-                                                                               quay.io/eclipse/che-operator:nightly]
+                                                                               quay.io/eclipse/che-operator:7.9.0]
                                                                                Container image of the operator. This
                                                                                parameter is used only when the installer
                                                                                is the operator
@@ -426,7 +427,7 @@ OPTIONS
   -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
                                            be deployed
 
-  -w, --workspace=workspace                Target workspace. Can be omitted if only one Workspace is running
+  -w, --workspace=workspace                Target workspace. Can be omitted if only one workspace is running
 
   --kube-context=kube-context              Kubeconfig context to inject
 

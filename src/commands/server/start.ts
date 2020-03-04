@@ -24,7 +24,7 @@ import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 
 export default class Start extends Command {
-  static description = 'start Eclipse Che Server'
+  static description = 'start Eclipse Che server'
 
   static flags = {
     help: flags.help({ char: 'h' }),
@@ -99,7 +99,7 @@ export default class Start extends Command {
       default: ''
     }),
     debug: boolean({
-      description: 'Enables the debug mode for Eclipse Che server. To debug Eclipse Che Server from localhost use \'server:debug\' command.',
+      description: 'Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use \'server:debug\' command.',
       default: false
     }),
     'os-oauth': flags.boolean({
@@ -129,7 +129,7 @@ export default class Start extends Command {
       default: ''
     }),
     'postgres-pvc-storage-class-name': string({
-      description: 'persistent volume storage class name to use to store Eclipse Che Postgres database',
+      description: 'persistent volume storage class name to use to store Eclipse Che postgres database',
       default: ''
     }),
     'skip-version-check': flags.boolean({

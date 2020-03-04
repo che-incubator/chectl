@@ -30,7 +30,7 @@ export class MinishiftAddonTasks {
         task: async (_ctx: any, task: any) => {
           const version = await this.grabVersion()
           if (version < 133) {
-            command.error('The minishift che addon is requiring minishift version >= 1.33.0. Please update your minishift installation with "minishift update" command.')
+            command.error('The Eclipse Che minishift-addon requires minishift version >= 1.33.0. Please update your minishift installation with "minishift update" command.')
           }
           task.title = `${task.title}...done.`
         }
@@ -50,14 +50,14 @@ export class MinishiftAddonTasks {
         }
       },
       {
-        title: 'Check che addon is available',
+        title: 'Check Eclipse Che minishift-addon is available',
         task: async (_ctx: any, task: any) => {
           await this.installAddonIfMissing(resourcesPath)
           task.title = `${task.title}...done.`
         }
       },
       {
-        title: 'Apply Che addon',
+        title: 'Apply Eclipse Che minishift-addon',
         task: async (ctx: any, task: any) => {
           await this.applyAddon(flags)
           ctx.isCheDeployed = true
@@ -74,7 +74,7 @@ export class MinishiftAddonTasks {
    */
   deleteTasks(_flags: any): ReadonlyArray<Listr.ListrTask> {
     return [{
-      title: 'Remove Che minishift addon',
+      title: 'Remove Eclipse Che minishift-addon',
       enabled: (ctx: any) => ctx.isOpenShift,
       task: async (_ctx: any, task: any) => {
         if (!commandExists.sync('minishift')) {
