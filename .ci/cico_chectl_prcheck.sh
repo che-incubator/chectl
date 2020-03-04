@@ -9,8 +9,9 @@
 #
 # Contributors:
 #   Red Hat, Inc. - initial API and implementation
+
 set -e -x
-#TODO ADD github token to minishift
+
 #Stop execution on any error
 trap "fail_trap" EXIT
 
@@ -84,5 +85,5 @@ run() {
 init
 
 source ${CHECTL_REPO}/.ci/cico_common.sh
-#install_utilities
+install_utilities
 run
