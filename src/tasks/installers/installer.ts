@@ -27,7 +27,7 @@ export class InstallerTasks {
 
     // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
-      title = '🏃‍  Running the Che Operator Update'
+      title = '🏃‍  Running the Eclipse Che Operator Update'
       task = () => {
         return operatorTasks.updateTasks(flags, command)
       }
@@ -50,7 +50,7 @@ export class InstallerTasks {
 
     // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
-      title = '🏃‍  Running the Che Operator Update'
+      title = '🏃‍  Running the Eclipse Che Operator Update'
       task = () => {
         return operatorTasks.preUpdateTasks(flags, command)
       }
@@ -78,7 +78,7 @@ export class InstallerTasks {
       title = '🏃‍  Running Helm to install Eclipse Che'
       task = () => helmTasks.startTasks(flags, command)
     } else if (flags.installer === 'operator') {
-      title = '🏃‍  Running the Che Operator'
+      title = '🏃‍  Running the Eclipse Che Operator'
       task = () => {
         // The operator installs Eclipse Che multiuser only
         if (!flags.multiuser) {

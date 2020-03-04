@@ -33,7 +33,7 @@ export default class Start extends Command {
     'deployment-name': cheDeployment,
     cheimage: string({
       char: 'i',
-      description: 'Che server container image',
+      description: 'Eclipse Che server container image',
       default: DEFAULT_CHE_IMAGE,
       env: 'CHE_CONTAINER_IMAGE'
     }),
@@ -53,7 +53,7 @@ export default class Start extends Command {
     }),
     cheboottimeout: string({
       char: 'o',
-      description: 'Che server bootstrap timeout (in milliseconds)',
+      description: 'Eclipse Che server bootstrap timeout (in milliseconds)',
       default: '40000',
       required: true,
       env: 'CHE_SERVER_BOOT_TIMEOUT'
@@ -68,7 +68,7 @@ export default class Start extends Command {
     }),
     multiuser: flags.boolean({
       char: 'm',
-      description: 'Starts che in multi-user mode',
+      description: 'Starts Eclipse Che in multi-user mode',
       default: false
     }),
     tls: flags.boolean({
@@ -99,7 +99,7 @@ export default class Start extends Command {
       default: ''
     }),
     debug: boolean({
-      description: 'Enables the debug mode for Che server. To debug Eclipse Che Server from localhost use \'server:debug\' command.',
+      description: 'Enables the debug mode for Eclipse Che server. To debug Eclipse Che Server from localhost use \'server:debug\' command.',
       default: false
     }),
     'os-oauth': flags.boolean({

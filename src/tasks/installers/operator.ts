@@ -169,7 +169,7 @@ export class OperatorTasks {
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            // Che Operator supports only Multi-User Che
+            // Eclipse Che Operator supports only Multi-User Che
             ctx.isCheDeployed = true
             ctx.isPostgresDeployed = true
             ctx.isKeycloakDeployed = true
@@ -355,7 +355,7 @@ export class OperatorTasks {
   }
 
   /**
-   * Returns list of tasks which remove Che Operator related resources
+   * Returns list of tasks which remove Eclipse Che Operator related resources
    */
   deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     let kh = new KubeHelper(flags)
