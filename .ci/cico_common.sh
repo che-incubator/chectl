@@ -93,8 +93,7 @@ minikube_installation() {
     && chmod +x minikube
 
   cp minikube /usr/local/bin && rm minikube
-  minikube start --memory=${RAM_MEMORY} -p ${PROFILE} --vm-driver=none
-  minikube profile ${PROFILE}
+  minikube start --vm-driver=none
   printInfo "Minikube was started"
 }
 #TEST

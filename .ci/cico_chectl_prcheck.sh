@@ -62,7 +62,7 @@ run() {
   yarn --cwd ${CHECTL_REPO}
   for platform in 'minishift' 'minikube'
   do
-      if [[ ${platform} == 'minishift' ]]; then
+      if [[ ${platform} == 'aaminishift' ]]; then
         minishift_installation
 
         printInfo "Running e2e tests on ${platform} platform."
