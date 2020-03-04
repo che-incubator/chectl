@@ -10,7 +10,7 @@
 # Contributors:
 #   Red Hat, Inc. - initial API and implementation
 set -e -x
-
+#TODO ADD github token to minishift
 #Stop execution on any error
 trap "fail_trap" EXIT
 
