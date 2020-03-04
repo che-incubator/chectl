@@ -13,7 +13,7 @@ describe('start', () => {
   test
     .stdout()
     .command(['start'])
-    .it('starts Eclipse Che Server', ctx => {
+    .it('starts Eclipse Che server', ctx => {
       expect(ctx.stdout).to.contain('Successfully started')
     })
 })

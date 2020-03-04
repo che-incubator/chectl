@@ -16,14 +16,14 @@ import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 
 export default class Stop extends Command {
-  static description = 'stop Eclipse Che Server'
+  static description = 'stop Eclipse Che server'
 
   static flags = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'deployment-name': cheDeployment,
     'che-selector': string({
-      description: 'Selector for Eclipse Che Server resources',
+      description: 'Selector for Eclipse Che server resources',
       default: 'app=che,component=che',
       env: 'CHE_SELECTOR'
     }),
@@ -52,7 +52,7 @@ export default class Stop extends Command {
         title: 'Deployment doesn\'t exist',
         enabled: (ctx: any) => !ctx.isCheDeployed,
         task: async () => {
-          await this.error(`E_BAD_DEPLOY - Deployment do not exist.\nA Deployment named "${flags['deployment-name']}" exist in namespace \"${flags.chenamespace}\", Eclipse Che Server cannot be stopped.\nFix with: verify the namespace where Eclipse Che is running (oc get projects)\nhttps://github.com/eclipse/che`, { code: 'E_BAD_DEPLOY' })
+          await this.error(`E_BAD_DEPLOY - Deployment do not exist.\nA Deployment named "${flags['deployment-name']}" exist in namespace \"${flags.chenamespace}\", Eclipse Che server cannot be stopped.\nFix with: verify the namespace where Eclipse Che is running (oc get projects)\nhttps://github.com/eclipse/che`, { code: 'E_BAD_DEPLOY' })
         }
       },
       {
@@ -61,7 +61,7 @@ export default class Stop extends Command {
         task: async () => { }
       },
       {
-        title: 'Eclipse Che server Pod is not ready. It may be failing to start. Skipping shutdown request',
+        title: 'Eclipse Che server pod is not ready. It may be failing to start. Skipping shutdown request',
         enabled: (ctx: any) => (ctx.isNotReadyYet),
         task: async () => { }
       }

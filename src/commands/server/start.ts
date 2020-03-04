@@ -24,7 +24,7 @@ import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 
 export default class Start extends Command {
-  static description = 'start Eclipse Che Server'
+  static description = 'start Eclipse Che server'
 
   static flags = {
     help: flags.help({ char: 'h' }),
@@ -81,7 +81,7 @@ export default class Start extends Command {
     }),
     'self-signed-cert': flags.boolean({
       description: `Authorize usage of self signed certificates for encryption.
-                    This is the flag for Che to propagate the certificate to components, so they will trust it.
+                    This is the flag for Eclipse Che to propagate the certificate to components, so they will trust it.
                     Note that \`che-tls\` secret with CA certificate must be created in the configured namespace.`,
       default: false
     }),
@@ -102,7 +102,7 @@ export default class Start extends Command {
       default: ''
     }),
     debug: boolean({
-      description: 'Enables the debug mode for Eclipse Che server. To debug Eclipse Che Server from localhost use \'server:debug\' command.',
+      description: 'Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use \'server:debug\' command.',
       default: false
     }),
     'os-oauth': flags.boolean({
@@ -132,7 +132,7 @@ export default class Start extends Command {
       default: ''
     }),
     'postgres-pvc-storage-class-name': string({
-      description: 'persistent volume storage class name to use to store Eclipse Che Postgres database',
+      description: 'persistent volume storage class name to use to store Eclipse Che postgres database',
       default: ''
     }),
     'skip-version-check': flags.boolean({
@@ -215,7 +215,7 @@ export default class Start extends Command {
     if (flags.installer) {
       if (flags.installer === 'minishift-addon') {
         if (flags.platform !== 'minishift') {
-          this.error(`🛑 Current platform is ${flags.platform}. Minishift addon is only available on top of Minishift platform.`)
+          this.error(`🛑 Current platform is ${flags.platform}. Minishift-addon is only available for Minishift.`)
         }
       } else if (flags.installer === 'helm') {
         if (flags.platform !== 'k8s' && flags.platform !== 'minikube' && flags.platform !== 'microk8s' && flags.platform !== 'docker-desktop') {
