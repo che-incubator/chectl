@@ -93,8 +93,8 @@ minikube_installation() {
     printInfo "Installing minikube..."
     curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.28.2/minikube-linux-amd64 > ${CHECTL_REPO}/tmp/minikube
     chmod +x ${CHECTL_REPO}/tmp/minikube
-    sudo install ${CHECTL_REPO}/tmp/minikube /usr/local/bin/
-
+    install ${CHECTL_REPO}/tmp/minikube /usr/local/bin/
+    printInfo "Finishing installed minikube"
   else
     printInfo "Minikube is already installed"
   fi
