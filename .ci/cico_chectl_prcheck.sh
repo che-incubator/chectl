@@ -54,7 +54,6 @@ install_utilities() {
   helm_install
   install_required_packages
   setup_kvm_machine_driver
-  start_libvirt
   install_node_deps
 }
 
