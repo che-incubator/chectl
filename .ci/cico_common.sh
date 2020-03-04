@@ -95,3 +95,4 @@ minikube_installation() {
   minikube start --memory=${RAM_MEMORY} -p ${PROFILE}
   minikube profile ${PROFILE}
 }
+#TEST
