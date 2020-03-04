@@ -55,6 +55,7 @@ install_utilities() {
   install_required_packages
   setup_kvm_machine_driver
   install_node_deps
+  installStartDocker
 }
 
 run() {

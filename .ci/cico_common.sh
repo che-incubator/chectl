@@ -36,6 +36,21 @@ helm_install() {
   curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 }
 
+installStartDocker() {
+  if [ -x "$(command -v docker)" ]; then
+    printWarn "Docker already installed"
+  else
+    printInfo "Installing docker..."
+    yum install --assumeyes -d1 yum-utils device-mapper-persistent-data lvm2
+    yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+    printInfo "Starting docker service..."
+    yum install --assumeyes -d1 docker-ce
+    systemctl start docker
+    docker version
+  fi
+}
+
 install_required_packages() {
   # Install EPEL repo
   if yum repolist | grep epel; then
