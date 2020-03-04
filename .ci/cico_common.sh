@@ -58,7 +58,7 @@ start_libvirt() {
 install_node_deps() {
   curl -sL https://rpm.nodesource.com/setup_10.x | bash -
   yum-config-manager --add-repo https://dl.yarnpkg.com/rpm/yarn.repo
-  yum install -y nodejs yarn
+  yum install -y nodejs yarn git
 }
 
 setup_kvm_machine_driver() {
