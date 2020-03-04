@@ -49,7 +49,7 @@ cleanup() {
   rm -rf ~/.minishift ~/.kube ~/.minikube
 }
 
-#Call all necesaries dependencies to install from {PROJECT_PATH/.ci/ci.common.sh}
+#Call all necesaries dependencies to install
 install_utilities() {
   helm_install
   install_required_packages
