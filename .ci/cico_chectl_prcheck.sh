@@ -96,3 +96,4 @@ minikube_installation
 yarn --cwd ${CHECTL_REPO}
 sleep 40
 yarn test --coverage=false --ci --forceExit --testRegex=${CHECTL_REPO}/test/e2e/minikube.test.ts
+#S[]
