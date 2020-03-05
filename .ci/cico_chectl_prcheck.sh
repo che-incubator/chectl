@@ -85,6 +85,6 @@ init
 
 source ${CHECTL_REPO}/.ci/cico_common.sh
 install_utilities
-run
+minikube_installation
 #[TEST]
 #[TEST]

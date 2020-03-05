@@ -122,8 +122,11 @@ minikube_installation() {
   systemctl stop firewalld
   systemctl start docker
   minikube version
-  sudo ${MINIKUBE} start --extra-config=apiserver.authorization-mode=RBAC
-  sudo chown -R $USER $HOME/.kube $HOME/.minikube
+  adduser chectl
+  sudo -u chectl bash -c 'minikube start --memory=8192"'
+
+  #${MINIKUBE} start --extra-config=apiserver.authorization-mode=RBAC
+  #sudo chown -R $USER $HOME/.kube $HOME/.minikube
 
   minikube update-context
   # waiting for node(s) to be ready
