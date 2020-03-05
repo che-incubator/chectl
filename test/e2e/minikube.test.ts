@@ -28,7 +28,7 @@ describe('e2e test', () => {
   describe('server:start without parameters', () => {
     test
       .stdout({print: true})
-      .command(['server:start', '--platform=minikube', '--listr-renderer=verbose', '--chenamespace=chectl'])
+      .command(['server:start', '--platform=minikube', '--listr-renderer=verbose'])
       .exit(0)
       .it('uses minikube as platform, helm as installer and auth is disabled', ctx => {
         expect(ctx.stdout).to.contain('Minikube preflight checklist')
@@ -38,7 +38,7 @@ describe('e2e test', () => {
       })
     test
       .stdout({print: true})
-      .command(['server:stop','--chenamespace=chectl', '--listr-renderer=verbose'])
+      .command(['server:stop', '--listr-renderer=verbose'])
       .exit(0)
       .it('stops Server on minikube successfully')
     test

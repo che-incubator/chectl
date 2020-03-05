@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright (c) 2012-2020 Red Hat, Inc.
 # This program and the accompanying materials are made
@@ -100,15 +100,7 @@ minishift_installation() {
 }
 
 minikube_installation() {
-#!/usr/bin/env bash
-# exit immediately when a command fails
-set -e
-# only exit with zero if all commands of the pipeline exit successfully
-set -o pipefail
-# error on unset variables
-set -u
-# print each command before executing it
-set -x
+
 
     export MINIKUBE_VERSION=v1.2.0
     export KUBERNETES_VERSION=v1.14.5
