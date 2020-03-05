@@ -61,9 +61,6 @@ install_required_packages() {
     yum install -d1 --assumeyes epel-release
     yum update --assumeyes -d1
   fi
-  # Get all the deps in
-  printInfo 'Installing required virtualization packages installed'
-  yum -y install libvirt qemu-kvm
 }
 
 start_libvirt() {
@@ -89,7 +86,6 @@ setup_kvm_machine_driver() {
 
   virsh net-list --all
   printInfo "KVM has been installed successfully"
-
 }
 
 minishift_installation() {
