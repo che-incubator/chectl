@@ -119,7 +119,8 @@ minikube_installation() {
   # minikube config
   minikube config set WantNoneDriverWarning false
   minikube config set vm-driver none
-
+  systemctl stop firewalld
+  systemctl start docker
   minikube version
   sudo ${MINIKUBE} start --extra-config=apiserver.authorization-mode=RBAC
   sudo chown -R $USER $HOME/.kube $HOME/.minikube
