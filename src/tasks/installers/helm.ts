@@ -72,7 +72,7 @@ export class HelmTasks {
         }
       },
       {
-        title: 'Check Che TLS certificate',
+        title: 'Check Eclipse Che TLS certificate',
         task: async (ctx: any, task: any) => {
           const cheTlsSecret = await this.kubeHelper.getSecret(CHE_TLS_SECRET_NAME, flags.chenamespace)
 
@@ -85,7 +85,7 @@ export class HelmTasks {
 
             task.title = `${task.title}...self-signed certificate secret found`
           } else {
-            // TLS certificate for Che hasn't been added into the cluster manually, so we need to take care about it automatically
+            // TLS certificate for Eclipse Che hasn't been added into the cluster manually, so we need to take care about it automatically
             ctx.cheCertificateExists = false
             // Set self-signed certificate flag to true as we are going to generate one
             flags['self-signed-cert'] = true
@@ -160,7 +160,7 @@ export class HelmTasks {
         }
       },
       {
-        title: 'Preparing Che Helm Chart',
+        title: 'Preparing Eclipse Che Helm Chart',
         task: async (_ctx: any, task: any) => {
           await this.prepareCheHelmChart(flags, command.config.cacheDir)
           task.title = `${task.title}...done.`
@@ -174,7 +174,7 @@ export class HelmTasks {
         }
       },
       {
-        title: 'Deploying Che Helm Chart',
+        title: 'Deploying Eclipse Che Helm Chart',
         task: async (ctx: any, task: any) => {
           await this.upgradeCheHelmChart(ctx, flags, command.config.cacheDir)
           task.title = `${task.title}...done.`
@@ -188,7 +188,7 @@ export class HelmTasks {
    */
   deleteTasks(_flags: any): ReadonlyArray<Listr.ListrTask> {
     return [{
-      title: 'Purge che Helm chart',
+      title: 'Purge Eclipse Che Helm chart',
       enabled: (ctx: any) => !ctx.isOpenShift,
       task: async (_ctx: any, task: any) => {
         if (await !commandExists.sync('helm')) {

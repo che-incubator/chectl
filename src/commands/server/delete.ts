@@ -41,7 +41,7 @@ export default class Delete extends Command {
 
     const apiTasks = new ApiTasks()
     const helmTasks = new HelmTasks(flags)
-    const msAddonTasks = new MinishiftAddonTasks()
+    const minishiftAddonTasks = new MinishiftAddonTasks()
     const operatorTasks = new OperatorTasks()
     const cheTasks = new CheTasks(flags)
 
@@ -53,7 +53,7 @@ export default class Delete extends Command {
     tasks.add(operatorTasks.deleteTasks(flags))
     tasks.add(cheTasks.deleteTasks(flags))
     tasks.add(helmTasks.deleteTasks(flags))
-    tasks.add(msAddonTasks.deleteTasks(flags))
+    tasks.add(minishiftAddonTasks.deleteTasks(flags))
 
     const kc = new KubeConfig()
     kc.loadFromDefault()

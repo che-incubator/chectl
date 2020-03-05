@@ -35,7 +35,7 @@ export default class Inject extends Command {
     }),
     workspace: string({
       char: 'w',
-      description: 'Target workspace. Can be omitted if only one Workspace is running'
+      description: 'Target workspace. Can be omitted if only one workspace is running'
     }),
     container: string({
       char: 'c',

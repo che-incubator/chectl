@@ -24,7 +24,7 @@ import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 
 export default class Update extends Command {
-  static description = 'update Eclipse Che Server'
+  static description = 'update Eclipse Che server'
 
   static flags = {
     installer: string({
@@ -132,8 +132,8 @@ export default class Update extends Command {
         if (!flags['skip-version-check']) {
           await cli.anykey(`      Found deployed Eclipse Che with operator [${ctx.deployedCheOperatorImage}]:${ctx.deployedCheOperatorTag}.
       You are going to update it to [${ctx.newCheOperatorImage}]:${ctx.newCheOperatorTag}.
-      Note that Che Operator will update components images (che server, plugin registry) only if their values
-      are not overridden in eclipse-che Customer Resource. So, you may need to remove them manually.
+      Note that Eclipse Che operator will update component images (server, plugin registry) only if their values
+      are not overridden in eclipse-che Custom Resource. So, you may need to remove them manually.
       Press q to quit or any key to continue`)
         }
 

@@ -45,7 +45,7 @@ describe('e2e test', () => {
       .stdout()
       .command(['server:delete','--skip-deletion-check', '--listr-renderer=verbose'])
       .exit(0)
-      .it('deletes Che resources on minikube successfully')
+      .it('deletes Eclipse Che resources on minikube successfully')
   })
   describe('server:start mulituser', () => {
     test
@@ -54,7 +54,7 @@ describe('e2e test', () => {
       .exit(0)
       .it('uses minikube as platform, operator as installer and auth is enabled', ctx => {
         expect(ctx.stdout).to.contain('Minikube preflight checklist')
-          .and.to.contain('Running the Che Operator')
+          .and.to.contain('Running the Eclipse Che operator')
           .and.to.contain('Post installation checklist')
           .and.to.contain('Command server:start has completed successfully')
       })
@@ -76,6 +76,6 @@ describe('e2e test', () => {
       .stdout()
       .command(['server:delete','--skip-deletion-check', '--listr-renderer=verbose'])
       .exit(0)
-      .it('deletes Che resources on minikube successfully')
+      .it('deletes Eclipse Che resources on minikube successfully')
   })
 })

@@ -183,7 +183,7 @@ OPTIONS
   -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
                                            be deployed
 
-  --debug-port=debug-port                  [default: 8000] Eclipse Che Server debug port
+  --debug-port=debug-port                  [default: 8000] Eclipse Che server debug port
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
@@ -235,7 +235,7 @@ _See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl
 
 ## `chectl server:start`
 
-start Eclipse Che Server
+start Eclipse Che server
 
 ```
 USAGE
@@ -255,16 +255,16 @@ OPTIONS
       show CLI help
 
   -i, --cheimage=cheimage
-      [default: quay.io/eclipse/che-server:nightly] Che server container image
+      [default: quay.io/eclipse/che-server:nightly] Eclipse Che server container image
 
   -m, --multiuser
-      Starts che in multi-user mode
+      Starts Eclipse Che in multi-user mode
 
   -n, --chenamespace=chenamespace
       [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
 
   -o, --cheboottimeout=cheboottimeout
-      (required) [default: 40000] Che server bootstrap timeout (in milliseconds)
+      (required) [default: 40000] Eclipse Che server bootstrap timeout (in milliseconds)
 
   -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc
       Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc 
@@ -293,7 +293,7 @@ OPTIONS
       the installer is the operator
 
   --debug
-      Enables the debug mode for Che server. To debug Eclipse Che Server from localhost use 'server:debug' command.
+      Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug' command.
 
   --deployment-name=deployment-name
       [default: che] Eclipse Che deployment name
@@ -317,11 +317,11 @@ OPTIONS
       The URL of the external plugin registry.
 
   --postgres-pvc-storage-class-name=postgres-pvc-storage-class-name
-      persistent volume storage class name to use to store Eclipse Che Postgres database
+      persistent volume storage class name to use to store Eclipse Che postgres database
 
   --self-signed-cert
       Authorize usage of self signed certificates for encryption.
-                           This is the flag for Che to propagate the certificate to components, so they will trust it.
+                           This is the flag for Eclipse Che to propagate the certificate to components, so they will trust it.
                            Note that `che-tls` secret with CA certificate must be created in the configured namespace.
 
   --skip-version-check
@@ -335,7 +335,7 @@ _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chect
 
 ## `chectl server:stop`
 
-stop Eclipse Che Server
+stop Eclipse Che server
 
 ```
 USAGE
@@ -349,7 +349,7 @@ OPTIONS
 
   --access-token=access-token              Eclipse Che OIDC Access Token
 
-  --che-selector=che-selector              [default: app=che,component=che] Selector for Eclipse Che Server resources
+  --che-selector=che-selector              [default: app=che,component=che] Selector for Eclipse Che server resources
 
   --deployment-name=deployment-name        [default: che] Eclipse Che deployment name
 
@@ -360,7 +360,7 @@ _See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl
 
 ## `chectl server:update`
 
-update Eclipse Che Server
+update Eclipse Che server
 
 ```
 USAGE
