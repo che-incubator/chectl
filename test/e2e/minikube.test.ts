@@ -27,7 +27,7 @@ minikube delete -p ${PROFILE}
 describe('e2e test', () => {
   describe('server:start without parameters', () => {
     test
-      .stdout()
+      .stdout({print: true})
       .command(['server:start', '--platform=minikube', '--listr-renderer=verbose'])
       .exit(0)
       .it('uses minikube as platform, helm as installer and auth is disabled', ctx => {
@@ -37,19 +37,19 @@ describe('e2e test', () => {
           .and.to.contain('Command server:start has completed successfully')
       })
     test
-      .stdout()
+      .stdout({print: true})
       .command(['server:stop', '--listr-renderer=verbose'])
       .exit(0)
       .it('stops Server on minikube successfully')
     test
-      .stdout()
+      .stdout({print: true})
       .command(['server:delete','--skip-deletion-check', '--listr-renderer=verbose'])
       .exit(0)
       .it('deletes Eclipse Che resources on minikube successfully')
   })
   describe('server:start mulituser', () => {
     test
-      .stdout()
+      .stdout({print: true})
       .command(['server:start', '--platform=minikube', '--listr-renderer=verbose', '--multiuser'])
       .exit(0)
       .it('uses minikube as platform, operator as installer and auth is enabled', ctx => {
@@ -60,7 +60,7 @@ describe('e2e test', () => {
       })
     test
       .skip()
-      .stdout()
+      .stdout({print: true})
       .command(['server:stop', '--listr-renderer=verbose'])
       /*
       TODO: set CHE_ACCESS_TOKEN with auth:che-api-token that does something similar to
@@ -73,7 +73,7 @@ describe('e2e test', () => {
       .exit(0)
       .it('stops Server on minikube successfully')
     test
-      .stdout()
+      .stdout({print: true})
       .command(['server:delete','--skip-deletion-check', '--listr-renderer=verbose'])
       .exit(0)
       .it('deletes Eclipse Che resources on minikube successfully')
