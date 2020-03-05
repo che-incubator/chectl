@@ -108,7 +108,7 @@ minikube_installation() {
     && chmod +x minikube
 
   cp minikube /usr/local/bin && rm minikube
-  minikube start --memory=8192
+  minikube start --memory=8192 --vm-driver=docker
   printInfo "Minikube was started"
 }
 #TEST
