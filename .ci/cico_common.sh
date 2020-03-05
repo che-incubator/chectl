@@ -108,7 +108,7 @@ minikube_installation() {
     && chmod +x minikube
 
   cp minikube /usr/local/bin && rm minikube
-  minikube start --vm-driver=none
+  minikube start --vm-driver=kvm
   printInfo "Minikube was started"
 }
 #TEST
