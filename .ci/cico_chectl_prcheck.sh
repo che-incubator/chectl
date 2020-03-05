@@ -61,7 +61,7 @@ install_utilities() {
 run() {
   #Before to start to run the e2e tests we need to install all deps with yarn
   yarn --cwd ${CHECTL_REPO}
-  for platform in 'minishift' 'minikube'
+  for platform in 'minishift'
   do
       if [[ ${platform} == 'minishift' ]]; then
         minishift_installation
