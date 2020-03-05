@@ -24,7 +24,7 @@ export default class Debug extends Command {
     chenamespace: cheNamespace,
     'listr-renderer': listrRenderer,
     'debug-port': integer({
-      description: 'Eclipse Che Server debug port',
+      description: 'Eclipse Che server debug port',
       default: 8000
     })
   }
@@ -43,7 +43,7 @@ export default class Debug extends Command {
 
     try {
       await tasks.run(ctx)
-      this.log(`Eclipse Che Server debug is available on localhost:${flags['debug-port']}.`)
+      this.log(`Eclipse Che server debug is available on localhost:${flags['debug-port']}.`)
       this.log('The program keeps running to enable port forwarding.')
     } catch (error) {
       this.error(error)

@@ -125,7 +125,7 @@ export class CertManagerTasks {
         }
       },
       {
-        title: 'Set up Che certificates issuer',
+        title: 'Set up Eclipse Che certificates issuer',
         task: async (_ctx: any, task: any) => {
           const cheClusterIssuerExists = await this.kubeHelper.clusterIssuerExists('che-cluster-issuer')
           if (!cheClusterIssuerExists) {
@@ -142,7 +142,7 @@ export class CertManagerTasks {
         title: 'Request self-signed certificate',
         task: async (ctx: any, task: any) => {
           if (ctx.cheCertificateExists) {
-            throw new Error('Che certificate already exists.')
+            throw new Error('Eclipse Che certificate already exists.')
           }
 
           const certificateTemplatePath = path.join(flags.templates, '/cert-manager/che-certificate.yml')
@@ -161,7 +161,7 @@ export class CertManagerTasks {
         }
       },
       {
-        title: 'Add local Che CA certificate into browser',
+        title: 'Add local Eclipse Che CA certificate into browser',
         task: async (_ctx: any, task: any) => {
           const cheSecret = await this.kubeHelper.getSecret(CHE_TLS_SECRET_NAME, flags.chenamespace)
           if (cheSecret && cheSecret.data) {
@@ -171,7 +171,7 @@ export class CertManagerTasks {
 
             const yellow = '\x1b[33m'
             const noColor = '\x1b[0m'
-            task.title = `❗${yellow}[MANUAL ACTION REQUIRED]${noColor} Please add local Che CA certificate into your browser: ${cheCaPublicCertPath}`
+            task.title = `❗${yellow}[MANUAL ACTION REQUIRED]${noColor} Please add local Eclipse Che CA certificate into your browser: ${cheCaPublicCertPath}`
           } else {
             throw new Error('Failed to get Cert Manager CA secret')
           }
