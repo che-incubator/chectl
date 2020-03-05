@@ -104,10 +104,27 @@ minikube_installation() {
     && chmod +x minikube
 
   sudo cp minikube /usr/local/bin && rm minikube
-  export CHANGE_MINIKUBE_NONE_USER=true
-  minikube start --memory=8192 --force  --native-ssh=false --vm-driver=none
+  export MINIKUBE_VERSION=v1.0.0
+  export KUBERNETES_VERSION=v1.14.0
 
+  MINIKUBE=$(which minikube) # it's outside of the regular PATH, so, need the full path when calling with sudo
 
-  printInfo "Minikube was started"
+  sudo mount --make-rshared /
+  sudo mount --make-rshared /proc
+  sudo mount --make-rshared /sys
+
+  mkdir "${HOME}"/.kube || true
+  touch "${HOME}"/.kube/config
+
+  # minikube config
+  minikube config set WantNoneDriverWarning false
+  minikube config set vm-driver none
+
+  minikube version
+  sudo ${MINIKUBE} start --kubernetes-version=$KUBERNETES_VERSION --extra-config=apiserver.authorization-mode=RBAC
+  sudo chown -R $USER $HOME/.kube $HOME/.minikube
+
+  minikube update-context
+
 }
 #TEST
