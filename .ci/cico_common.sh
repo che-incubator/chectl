@@ -46,9 +46,6 @@ install_required_packages() {
     yum install -d1 --assumeyes epel-release
     yum update --assumeyes -d1
   fi
-  # Get all the deps in
-  printInfo 'Installing required virtualization packages installed'
-  yum -y install libvirt qemu-kvm
 }
 
 start_libvirt() {
@@ -62,13 +59,18 @@ install_node_deps() {
 }
 
 setup_kvm_machine_driver() {
-  printInfo "Installing docker machine kvm drivers"
+  echo "======== Start to install KVM virtual machine ========"
+
+  yum install -y qemu-kvm libvirt libvirt-python libguestfs-tools virt-install
+
   curl -L https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.10.0/docker-machine-driver-kvm-centos7 -o /usr/local/bin/docker-machine-driver-kvm
   chmod +x /usr/local/bin/docker-machine-driver-kvm
-  check_libvirtd=$(systemctl is-active libvirtd)
-  if [ $check_libvirtd != 'active' ]; then
-    virsh net-start default
-  fi
+
+  systemctl enable libvirtd
+  systemctl start libvirtd
+
+  virsh net-list --all
+  echo "======== KVM has been installed successfully ========"
 }
 
 minishift_installation() {
