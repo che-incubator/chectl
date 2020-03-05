@@ -350,7 +350,7 @@ export class CheTasks {
       title: 'Wait until Devfile registry pod is deleted',
       enabled: (ctx: any) => ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryStopped,
       task: async (_ctx: any, task: any) => {
-        await this.kube.waitUntilPodIsDeleted('app=che,component=devfile-registry', this.cheNamespace)
+        await this.kube.waitUntilPodIsDeleted(this.devfileRegistrySelector, this.cheNamespace)
         task.title = `${task.title}...done.`
       }
     },
@@ -370,7 +370,7 @@ export class CheTasks {
       title: 'Wait until Plugin registry pod is deleted',
       enabled: (ctx: any) => ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryStopped,
       task: async (_ctx: any, task: any) => {
-        await this.kube.waitUntilPodIsDeleted('app=che,component=plugin-registry', this.cheNamespace)
+        await this.kube.waitUntilPodIsDeleted(this.pluginRegistrySelector, this.cheNamespace)
         task.title = `${task.title}...done.`
       }
     }]
