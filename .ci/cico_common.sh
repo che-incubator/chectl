@@ -109,8 +109,6 @@ minikube_installation() {
 
   sudo cp minikube /usr/local/bin && rm minikube
   export CHANGE_MINIKUBE_NONE_USER=true
-  adduser chectl
-  su - chectl
   minikube start --memory=8192 --force
 
 
