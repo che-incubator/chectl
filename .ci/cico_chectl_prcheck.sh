@@ -87,5 +87,5 @@ source ${CHECTL_REPO}/.ci/cico_common.sh
 install_utilities
 minikube_installation
 yarn --cwd ${CHECTL_REPO}
-sleep 480
+sleep 40
 yarn test --coverage=false --ci --forceExit --testRegex=${CHECTL_REPO}/test/e2e/minikube.test.ts
