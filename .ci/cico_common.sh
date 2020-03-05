@@ -104,6 +104,8 @@ minikube_installation() {
     && chmod +x minikube
 
   sudo cp minikube /usr/local/bin && rm minikube
+  sudo swapoff -a
+
 
   MINIKUBE=$(which minikube) # it's outside of the regular PATH, so, need the full path when calling with sudo
 
