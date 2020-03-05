@@ -138,6 +138,6 @@ set -x
     minikube config set vm-driver none
 
     minikube version
-    sudo minikube start --kubernetes-version=$KUBERNETES_VERSION --extra-config=apiserver.authorization-mode=RBAC
+     minikube start --kubernetes-version=$KUBERNETES_VERSION --extra-config=apiserver.authorization-mode=RBAC
 }
 #TEST
