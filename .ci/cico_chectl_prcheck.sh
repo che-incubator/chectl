@@ -54,21 +54,19 @@ install_utilities() {
   helm_install
   install_required_packages
   setup_kvm_machine_driver
-  start_libvirt
   install_node_deps
 }
 
 run() {
   #Before to start to run the e2e tests we need to install all deps with yarn
   yarn --cwd ${CHECTL_REPO}
-  for platform in 'minishift' 'minikube'
+  for platform in 'minishift'
   do
       if [[ ${platform} == 'minishift' ]]; then
         minishift_installation
 
         printInfo "Running e2e tests on ${platform} platform."
         yarn test --coverage=false --forceExit --testRegex=${CHECTL_REPO}/test/e2e/minishift.test.ts
-        #Clearing minishift installation from system
         yes | minishift delete --profile ${PROFILE}
         rm -rf ~/.minishift
       fi
