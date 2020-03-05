@@ -105,7 +105,7 @@ minikube_installation() {
 
   sudo cp minikube /usr/local/bin && rm minikube
   sudo swapoff -a
-
+  yum install -y socat
 
   MINIKUBE=$(which minikube) # it's outside of the regular PATH, so, need the full path when calling with sudo
 
