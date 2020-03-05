@@ -61,7 +61,7 @@ export default class Stop extends Command {
         task: async () => { }
       },
       {
-        title: 'Eclipse Che server Pod is not ready. It may be failing to start. Skipping shutdown request',
+        title: 'Eclipse Che server pod is not ready. It may be failing to start. Skipping shutdown request',
         enabled: (ctx: any) => (ctx.isNotReadyYet),
         task: async () => { }
       }

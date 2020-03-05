@@ -320,8 +320,10 @@ OPTIONS
       persistent volume storage class name to use to store Eclipse Che postgres database
 
   --self-signed-cert
-      Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate 
-      must be created in the configured namespace.
+      Authorize usage of self signed certificates for encryption.
+                           This is the flag for Eclipse Che to propagate the certificate to components, so they will trust 
+      it.
+                           Note that `che-tls` secret with CA certificate must be created in the configured namespace.
 
   --skip-version-check
       Skip minimal versions check.
