@@ -126,6 +126,10 @@ set -x
 
     export MINIKUBE_HOME=$HOME
     export CHANGE_MINIKUBE_NONE_USER=true
+    firewall-cmd --permanent --zone=trusted --add-interface=docker0
+    firewall-cmd --reload
+    firewall-cmd --get-active-zones
+    firewall-cmd --list-all --zone=trusted
     mkdir "${HOME}"/.kube || true
     touch "${HOME}"/.kube/config
 
@@ -138,7 +142,7 @@ set -x
     minikube config set vm-driver none
     export TEST_OUTPUT=1
     minikube version
-    systemctl stop firewalld
+
     minikube start --kubernetes-version=$KUBERNETES_VERSION --extra-config=apiserver.authorization-mode=RBAC
         # waiting for node(s) to be ready
     JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'; until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done
