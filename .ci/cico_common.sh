@@ -105,7 +105,7 @@ minikube_installation() {
 
   sudo cp minikube /usr/local/bin && rm minikube
   export CHANGE_MINIKUBE_NONE_USER=true
-  minikube start --memory=8192 --force
+  minikube start --memory=8192 --force  --native-ssh=false --vm-driver=docker
 
 
   printInfo "Minikube was started"
