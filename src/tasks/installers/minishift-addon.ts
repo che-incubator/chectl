@@ -50,14 +50,14 @@ export class MinishiftAddonTasks {
         }
       },
       {
-        title: 'Check Eclipse Che minishift-addon is available',
+        title: 'Check Eclipse Che addon is available',
         task: async (_ctx: any, task: any) => {
           await this.installAddonIfMissing(resourcesPath)
           task.title = `${task.title}...done.`
         }
       },
       {
-        title: 'Apply Eclipse Che minishift-addon',
+        title: 'Apply Eclipse Che addon',
         task: async (ctx: any, task: any) => {
           await this.applyAddon(flags)
           ctx.isCheDeployed = true
