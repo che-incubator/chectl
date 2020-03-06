@@ -48,8 +48,19 @@ install_required_packages() {
   fi
 }
 
-start_libvirt() {
-  systemctl start libvirtd
+installStartDocker() {
+  if [ -x "$(command -v docker)" ]; then
+    printWarn "Docker already installed"
+  else
+    printInfo "Installing docker..."
+    yum install --assumeyes -d1 yum-utils device-mapper-persistent-data lvm2
+    yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+    printInfo "Starting docker service..."
+    yum install --assumeyes -d1 docker-ce
+    systemctl start docker
+    docker version
+  fi
 }
 
 install_node_deps() {
@@ -82,18 +93,4 @@ minishift_installation() {
   minishift start --memory=${RAM_MEMORY} && eval $(minishift oc-env)
   oc login -u system:admin
   printInfo "Successfully installed and initialized minishift"
-}
-
-minikube_installation() {
-  if ! [ -x "$(command -v minikube)" ]; then
-    printInfo "Installing minikube..."
-    curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.28.2/minikube-linux-amd64 > ${CHECTL_REPO}/tmp/minikube
-    chmod +x ${CHECTL_REPO}/tmp/minikube
-    cp ${CHECTL_REPO}/tmp/minikube /usr/local/bin/
-
-  else
-    printInfo "Minikube is already installed"
-  fi
-  minikube start --memory=${RAM_MEMORY} -p ${PROFILE}
-  minikube profile ${PROFILE}
 }

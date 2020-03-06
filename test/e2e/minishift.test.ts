@@ -11,48 +11,11 @@ import { expect, test } from '@oclif/test'
 
 jest.setTimeout(600000)
 
-/*
-## Before
-# Note that VM Driver value should be set accordanly to your platform
-VM_DRIVER=xhyve && \
-PROFILE=chectl-e2e-tests && \
-minishift profile set ${PROFILE} && \
-minishift start --memory=8GB --cpus=4 --disk-size=50g --vm-driver=${VM_DRIVER}  --network-nameserver 8.8.8.8 --profile ${PROFILE}
-
-yarn test --coverage=false --testRegex=/test/e2e/minishift.test.ts
-
-## After
-minishift stop --profile ${PROFILE}
-minishift delete --profile ${PROFILE}
-*/
-
 describe('e2e test', () => {
   describe('server:start without parameters', () => {
     test
       .stdout()
-      .command(['server:start', '--platform=minishift', '--listr-renderer=verbose'])
-      .exit(0)
-      .it('uses minishift as platform, minishift-addon as installer and auth is disabled', ctx => {
-        expect(ctx.stdout).to.contain('Minishift preflight checklist')
-          .and.to.contain('Running the Eclipse Che minishift-addon')
-          .and.to.contain('Post installation checklist')
-          .and.to.contain('Command server:start has completed successfully')
-      })
-    test
-      .stdout()
-      .command(['server:stop', '--listr-renderer=verbose'])
-      .exit(0)
-      .it('stops Server on minishift successfully')
-    test
-      .stdout()
-      .command(['server:delete','--skip-deletion-check', '--listr-renderer=verbose'])
-      .exit(0)
-      .it('deletes Eclipse Che resources on minishift successfully')
-  })
-  describe('server:start mulituser', () => {
-    test
-      .stdout()
-      .command(['server:start', '--platform=minishift', '--listr-renderer=verbose', '--multiuser'])
+      .command(['server:start', '--platform=minishift', '--installer=operator'])
       .exit(0)
       .it('uses minishift as platform, operator as installer and auth is enabled', ctx => {
         expect(ctx.stdout).to.contain('Minishift preflight checklist')
@@ -63,21 +26,13 @@ describe('e2e test', () => {
     test
       .skip()
       .stdout()
-      /*
-      TODO: set CHE_ACCESS_TOKEN with auth:che-api-token that does something similar to
-        CHE_USER=admin && \
-        CHE_PASSWORD=admin && \
-        TOKEN_ENDPOINT="http://keycloak-che.192.168.64.69.nip.io/auth/realms/che/protocol/openid-connect/token" && \
-        export CHE_ACCESS_TOKEN=$(curl -sSL --data "grant_type=password&client_id=che-public&username=${CHE_USER}&password=${CHE_PASSWORD}" \
-            ${TOKEN_ENDPOINT} | jq -r .access_token)
-      */
-      .command(['server:stop', '--listr-renderer=verbose'])
+      .command(['server:stop'])
       .exit(0)
-      .it('stops Server on Minishift successfully')
+      .it('stops Server on minishift successfully')
     test
       .stdout()
-      .command(['server:delete', '--skip-deletion-check', '--listr-renderer=verbose'])
+      .command(['server:delete', '--skip-deletion-check'])
       .exit(0)
-      .it('deletes Eclipse Che resources on Minishift successfully')
+      .it('deletes Eclipse Che resources on minishift successfully')
   })
 })
