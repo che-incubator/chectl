@@ -14,7 +14,7 @@ jest.setTimeout(600000)
 describe('e2e test', () => {
   describe('server:start without parameters', () => {
     test
-      .stdout({ print: true })
+      .stdout()
       .command(['server:start', '--platform=minishift', '--installer=operator'])
       .exit(0)
       .it('uses minishift as platform, operator as installer and auth is enabled', ctx => {
@@ -30,7 +30,7 @@ describe('e2e test', () => {
       .exit(0)
       .it('stops Server on minishift successfully')
     test
-      .stdout({ print: true })
+      .stdout()
       .command(['server:delete', '--skip-deletion-check'])
       .exit(0)
       .it('deletes Eclipse Che resources on minishift successfully')

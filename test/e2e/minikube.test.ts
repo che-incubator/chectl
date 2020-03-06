@@ -14,7 +14,7 @@ jest.setTimeout(600000)
 describe('e2e test', () => {
   describe('server:start without parameters', () => {
     test
-      .stdout({ print: true })
+      .stdout()
       .command(['server:start', '--platform=minikube', '--installer=operator'])
       .exit(0)
       .it('uses minikube as platform, operator as installer and auth is enabled', ctx => {
@@ -25,12 +25,12 @@ describe('e2e test', () => {
       })
     test
       .skip()
-      .stdout({ print: true })
+      .stdout()
       .command(['server:stop'])
       .exit(0)
       .it('stops Server on minikube successfully')
     test
-      .stdout({ print: true })
+      .stdout()
       .command(['server:delete', '--skip-deletion-check'])
       .exit(0)
       .it('deletes Eclipse Che resources on minikube successfully')

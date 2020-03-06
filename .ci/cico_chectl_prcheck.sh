@@ -45,7 +45,7 @@ fail_trap() {
 cleanup() {
   set +e
   yes | minishift delete --profile ${PROFILE}
-  minikube delete && kubeadm reset
+  minikube delete && yes | kubeadm reset
   rm -rf ~/.minishift ~/.kube ~/.minikube
 }
 
