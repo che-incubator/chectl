@@ -142,9 +142,9 @@ OPTIONS
 
   --namespace=namespace      Kubernetes namespace where the resources are defined
 
-  --plugin=plugin            Che plugin to include in the workspace. The format is JSON. For example this is a valid Che
-                             Plugin specification: {"type": "TheEndpointName.ChePlugin", "alias": "java-ls", "id":
-                             "redhat/java/0.38.0"}
+  --plugin=plugin            Eclipse Che plugin to include in the workspace. The format is JSON. For example this is a
+                             valid Eclipse Che plugin specification: {"type": "TheEndpointName.ChePlugin", "alias":
+                             "java-ls", "id": "redhat/java/0.38.0"}
 
   --selector=selector        label selector to filter the Kubernetes resources. For example
                              --selector="app.kubernetes.io/name=employee-manager"
@@ -293,7 +293,8 @@ OPTIONS
       the installer is the operator
 
   --debug
-      Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug' command.
+      Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug' 
+      command.
 
   --deployment-name=deployment-name
       [default: che] Eclipse Che deployment name
@@ -321,7 +322,8 @@ OPTIONS
 
   --self-signed-cert
       Authorize usage of self signed certificates for encryption.
-                           This is the flag for Eclipse Che to propagate the certificate to components, so they will trust it.
+                           This is the flag for Eclipse Che to propagate the certificate to components, so they will trust 
+      it.
                            Note that `che-tls` secret with CA certificate must be created in the configured namespace.
 
   --skip-version-check
@@ -428,7 +430,7 @@ OPTIONS
   -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
                                            be deployed
 
-  -w, --workspace=workspace                Target workspace. Can be omitted if only one Workspace is running
+  -w, --workspace=workspace                Target workspace. Can be omitted if only one workspace is running
 
   --kube-context=kube-context              Kubeconfig context to inject
 
