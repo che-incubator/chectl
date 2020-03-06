@@ -75,8 +75,7 @@ export default class Start extends Command {
       char: 's',
       description: `Enable TLS encryption.
                     Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured namespace.
-                    For OpenShift, router will use default cluster certificates.`,
-      default: false
+                    For OpenShift, router will use default cluster certificates.`
     }),
     'self-signed-cert': flags.boolean({
       description: `Authorize usage of self signed certificates for encryption.
