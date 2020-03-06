@@ -48,8 +48,19 @@ install_required_packages() {
   fi
 }
 
-start_libvirt() {
-  systemctl start libvirtd
+installStartDocker() {
+  if [ -x "$(command -v docker)" ]; then
+    printWarn "Docker already installed"
+  else
+    printInfo "Installing docker..."
+    yum install --assumeyes -d1 yum-utils device-mapper-persistent-data lvm2
+    yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+    printInfo "Starting docker service..."
+    yum install --assumeyes -d1 docker-ce
+    systemctl start docker
+    docker version
+  fi
 }
 
 install_node_deps() {
