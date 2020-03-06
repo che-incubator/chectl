@@ -60,9 +60,9 @@ install_utilities() {
 run() {
   #Before to start to run the e2e tests we need to install all deps with yarn
   yarn --cwd ${CHECTL_REPO}
-  for platform in 'minishift'
+  for platform in 'minishift', 'minikube'
   do
-      if [[ ${platform} == 'minishift' ]]; then
+      if [[ ${platform} == 'aminishift' ]]; then
         minishift_installation
 
         printInfo "Running e2e tests on ${platform} platform."
@@ -71,9 +71,8 @@ run() {
         rm -rf ~/.minishift
       fi
       if [[ ${platform} == 'minikube' ]]; then
-        minikube_installation
+        source ${CHECTL_REPO}/.ci/start-minikube.sh
 
-        sleep 60
         printInfo "Running e2e tests on ${platform} platform."
         yarn test --coverage=false --forceExit --testRegex=${CHECTL_REPO}/test/e2e/minikube.test.ts
       fi
@@ -83,5 +82,5 @@ run() {
 init
 
 source ${CHECTL_REPO}/.ci/cico_common.sh
-install_utilities
+#install_utilities
 run

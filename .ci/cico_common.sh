@@ -83,17 +83,3 @@ minishift_installation() {
   oc login -u system:admin
   printInfo "Successfully installed and initialized minishift"
 }
-
-minikube_installation() {
-  if ! [ -x "$(command -v minikube)" ]; then
-    printInfo "Installing minikube..."
-    curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.28.2/minikube-linux-amd64 > ${CHECTL_REPO}/tmp/minikube
-    chmod +x ${CHECTL_REPO}/tmp/minikube
-    cp ${CHECTL_REPO}/tmp/minikube /usr/local/bin/
-
-  else
-    printInfo "Minikube is already installed"
-  fi
-  minikube start --memory=${RAM_MEMORY} -p ${PROFILE}
-  minikube profile ${PROFILE}
-}
