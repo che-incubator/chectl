@@ -30,7 +30,7 @@ describe('e2e test', () => {
   describe('server:start without parameters', () => {
     test
       .stdout()
-      .command(['server:start', '--platform=minishift', '--listr-renderer=verbose'])
+      .command(['server:start', '--platform=minishift'])
       .exit(0)
       .it('uses minishift as platform, minishift-addon as installer and auth is disabled', ctx => {
         expect(ctx.stdout).to.contain('Minishift preflight checklist')
