@@ -964,8 +964,8 @@ export class KubeHelper {
       yamlCr.spec.server.cheDebug = flags.debug ? flags.debug.toString() : 'false'
 
       yamlCr.spec.auth.openShiftoAuth = flags['os-oauth']
-      yamlCr.spec.server.tlsSupport = flags.tls
       if (flags.tls) {
+        yamlCr.spec.server.tlsSupport = flags.tls
         yamlCr.spec.k8s.tlsSecretName = 'che-tls'
       }
       yamlCr.spec.server.selfSignedCert = flags['self-signed-cert']
