@@ -37,6 +37,7 @@ describe('e2e test', () => {
           .and.to.contain('Command server:start has completed successfully')
       })
     test
+      .skip()
       .stdout({print: true})
       .command(['server:stop', '--listr-renderer=verbose'])
       .exit(0)
