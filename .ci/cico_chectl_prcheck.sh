@@ -52,7 +52,8 @@ cleanup() {
 #Call all necesaries dependencies to install from {PROJECT_PATH/.ci/ci.common.sh}
 install_utilities() {
   helm_install
-  install_required_packages
+  installJQ
+  load_jenkins_vars
   setup_kvm_machine_driver
   install_node_deps
   installStartDocker
@@ -81,8 +82,6 @@ run() {
       fi
   done
 }
-
-
 
 init
 

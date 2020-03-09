@@ -36,7 +36,7 @@ helm_install() {
   curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 }
 
-install_required_packages() {
+installEpelRelease() {
   # Install EPEL repo
   if yum repolist | grep epel; then
     printInfo "Epel already installed, skipping instalation."
@@ -84,13 +84,47 @@ setup_kvm_machine_driver() {
   echo "======== KVM has been installed successfully ========"
 }
 
+github_token_set() {
+  #Setup GitHub token for minishift
+  if [ -z "$CHE_BOT_GITHUB_TOKEN" ]
+  then
+    printWarn "\$CHE_BOT_GITHUB_TOKEN is empty. Minishift start might fail with GitGub API rate limit reached."
+  else
+    printInfo "\$CHE_BOT_GITHUB_TOKEN is set, checking limits."
+    GITHUB_RATE_REMAINING=$(curl -slL "https://api.github.com/rate_limit?access_token=$CHE_BOT_GITHUB_TOKEN" | jq .rate.remaining)
+    if [ "$GITHUB_RATE_REMAINING" -gt 1000 ]
+    then
+      printInfo "Github rate greater than 1000. Using che-bot token for minishift startup."
+      export MINISHIFT_GITHUB_API_TOKEN=$CHE_BOT_GITHUB_TOKEN
+    else
+      printInfo "Github rate is lower than 1000. *Not* using che-bot for minishift startup."
+      printInfo "If minishift startup fails, please try again later."
+    fi
+  fi
+}
+
 minishift_installation() {
   printInfo "Downloading Minishift binaries"
   curl -L https://github.com/minishift/minishift/releases/download/v$MSFT_RELEASE/minishift-$MSFT_RELEASE-linux-amd64.tgz \
     -o ${CHECTL_REPO}/tmp/minishift-$MSFT_RELEASE-linux-amd64.tar && tar -xvf ${CHECTL_REPO}/tmp/minishift-$MSFT_RELEASE-linux-amd64.tar -C /usr/local/bin --strip-components=1
-  echo "[INFO] Starting a new OC cluster."
+  printInfo "Starting a new OC cluster."
   minishift profile set ${PROFILE}
-  minishift start --memory=${RAM_MEMORY} && eval $(minishift oc-env)
+
+  printInfo "Setting github token and start a new minishift VM."
+  github_token_set
+  minishift start --memory=8192 && eval $(minishift oc-env)
+
   oc login -u system:admin
   printInfo "Successfully installed and initialized minishift"
+}
+
+installJQ() {
+  installEpelRelease
+  yum install --assumeyes -d1 jq
+}
+
+load_jenkins_vars() {
+    set +x
+    eval "$(./env-toolkit load -f jenkins-env.json \
+                              CHE_BOT_GITHUB_TOKEN)"
 }
