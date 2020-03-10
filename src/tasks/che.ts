@@ -299,7 +299,7 @@ export class CheTasks {
       enabled: (ctx: any) => ctx.isKeycloakDeployed && !ctx.isKeycloakStopped,
       task: async (_ctx: any, task: any) => {
         try {
-          await this.kube.scaleDeployment(this.keycloakSelector, this.cheNamespace, 0)
+          await this.kube.scaleDeployment(this.keycloakDeploymentName, this.cheNamespace, 0)
           task.title = await `${task.title}...done`
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale keycloak deployment. ${error.message}`)
@@ -319,7 +319,7 @@ export class CheTasks {
       enabled: (ctx: any) => ctx.isPostgresDeployed && !ctx.isPostgresStopped,
       task: async (_ctx: any, task: any) => {
         try {
-          await this.kube.scaleDeployment(this.postgresSelector, this.cheNamespace, 0)
+          await this.kube.scaleDeployment(this.postgresDeploymentName, this.cheNamespace, 0)
           task.title = await `${task.title}...done`
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale postgres deployment. ${error.message}`)
@@ -339,7 +339,7 @@ export class CheTasks {
       enabled: (ctx: any) => ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryStopped,
       task: async (_ctx: any, task: any) => {
         try {
-          await this.kube.scaleDeployment(this.devfileRegistrySelector, this.cheNamespace, 0)
+          await this.kube.scaleDeployment(this.devfileRegistryDeploymentName, this.cheNamespace, 0)
           task.title = await `${task.title}...done`
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale devfile-registry deployment. ${error.message}`)
@@ -359,7 +359,7 @@ export class CheTasks {
       enabled: (ctx: any) => ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryStopped,
       task: async (_ctx: any, task: any) => {
         try {
-          await this.kube.scaleDeployment(this.pluginRegistrySelector, this.cheNamespace, 0)
+          await this.kube.scaleDeployment(this.pluginRegistryDeploymentName, this.cheNamespace, 0)
           task.title = await `${task.title}...done`
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale plugin-registry deployment. ${error.message}`)
