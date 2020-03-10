@@ -62,6 +62,10 @@ install_utilities() {
 run() {
   #Before to start to run the e2e tests we need to install all deps with yarn
   yarn --cwd ${CHECTL_REPO}
+
+  # Temporal
+  sed -i "s/tlsSupport: true/tlsSupport: false/" ${CHECTL_REPO}/templates/che-operator/crds/org_v1_che_cr.yaml
+
   for platform in 'minishift' 'minikube'
   do
       if [[ ${platform} == 'minishift' ]]; then
