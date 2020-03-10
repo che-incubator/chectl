@@ -38,6 +38,17 @@ export class PlatformTasks {
         title: '✈️  Platform preflight checklist',
         task: () => { command.error('Platform is required ¯\\_(ツ)_/¯') }
       }
+    } else if (flags.platform === 'openshift') {
+      task = {
+        title: '✈️  Openshift preflight checklist',
+        task: () => openshiftTasks.preflightCheckTasks(flags, command)
+      }
+    } else if (flags.platform === 'crc') {
+      task = {
+        title: '✈️  CodeReady Containers preflight checklist',
+        task: () => crc.preflightCheckTasks(flags, command)
+      }
+    // platform.ts BEGIN CHE ONLY
     } else if (flags.platform === 'minikube') {
       task = {
         title: '✈️  Minikube preflight checklist',
@@ -53,11 +64,6 @@ export class PlatformTasks {
         title: '✈️  MicroK8s preflight checklist',
         task: () => microk8sTasks.preflightCheckTasks(flags, command)
       }
-    } else if (flags.platform === 'openshift') {
-      task = {
-        title: '✈️  Openshift preflight checklist',
-        task: () => openshiftTasks.preflightCheckTasks(flags, command)
-      }
     } else if (flags.platform === 'k8s') {
       task = {
         title: '✈️  Kubernetes preflight checklist',
@@ -68,11 +74,7 @@ export class PlatformTasks {
         title: '✈️  Docker Desktop preflight checklist',
         task: () => dockerDesktopTasks.preflightCheckTasks(flags, command)
       }
-    } else if (flags.platform === 'crc') {
-      task = {
-        title: '✈️  CodeReady Containers preflight checklist',
-        task: () => crc.preflightCheckTasks(flags, command)
-      }
+    // platform.ts END CHE ONLY
     } else {
       task = {
         title: '✈️  Platform preflight checklist',

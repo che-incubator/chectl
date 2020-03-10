@@ -74,10 +74,8 @@ export class InstallerTasks {
     let task: any
 
     // let task: Listr.ListrTask
-    if (flags.installer === 'helm') {
-      title = '🏃‍  Running Helm to install Eclipse Che'
-      task = () => helmTasks.startTasks(flags, command)
-    } else if (flags.installer === 'operator') {
+
+    if (flags.installer === 'operator') {
       title = '🏃‍  Running the Eclipse Che operator'
       task = () => {
         // The operator installs Eclipse Che in multiuser mode only
@@ -88,6 +86,10 @@ export class InstallerTasks {
 
         return operatorTasks.startTasks(flags, command)
       }
+    // installer.ts BEGIN CHE ONLY
+    } else if (flags.installer === 'helm') {
+      title = '🏃‍  Running Helm to install Eclipse Che'
+      task = () => helmTasks.startTasks(flags, command)
     } else if (flags.installer === 'minishift-addon') {
       // minishift-addon supports Eclipse Che singleuser only
       if (flags.multiuser) {
@@ -96,6 +98,7 @@ export class InstallerTasks {
       }
       title = '🏃‍  Running the Eclipse Che minishift-addon'
       task = () => minishiftAddonTasks.startTasks(flags, command)
+    // installer.ts END CHE ONLY
     } else {
       title = '🏃‍  Installer preflight check'
       task = () => { command.error(`Installer ${flags.installer} is not supported ¯\\_(ツ)_/¯`) }
