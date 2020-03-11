@@ -80,9 +80,8 @@ export class InstallerTasks {
     } else if (flags.installer === 'operator') {
       title = '🏃‍  Running the Eclipse Che operator'
       task = () => {
-        // The operator installs Eclipse Che in multiuser mode only
+        // The operator installs Eclipse Che in multiuser mode by default
         if (!flags.multiuser) {
-          command.warn("Eclipse Che will be deployed in Multi-User mode as 'operator' installer supports only that mode.")
           flags.multiuser = true
         }
 

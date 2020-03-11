@@ -185,6 +185,10 @@ export class OperatorTasks {
             ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || cr.spec.server.externalDevfileRegistry
             ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || cr.spec.server.externalPluginRegistry
 
+            if (cr.spec.server.customCheProperties && cr.spec.server.customCheProperties.CHE_MULTIUSER === 'false') {
+              flags.multiuser = false
+            }
+
             task.title = `${task.title}...done.`
           }
         }

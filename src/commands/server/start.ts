@@ -152,7 +152,7 @@ export default class Start extends Command {
     return path.join(__dirname, '../../../templates')
   }
 
-  static setPlaformDefaults(flags: any) {
+  setPlaformDefaults(flags: any) {
     if (flags.platform === 'minishift') {
       if (!flags.multiuser && flags.installer === '') {
         flags.installer = 'minishift-addon'
@@ -192,7 +192,6 @@ export default class Start extends Command {
   }
 
   checkPlatformCompatibility(flags: any) {
-    // matrix checks
     if (flags.installer === 'operator' && flags['che-operator-cr-yaml']) {
       const ignoredFlags = []
       flags['plugin-registry-url'] && ignoredFlags.push('--plugin-registry-urlomain')
@@ -205,6 +204,7 @@ export default class Start extends Command {
       flags.cheimage && ignoredFlags.push('--cheimage')
       flags.debug && ignoredFlags.push('--debug')
       flags.domain && ignoredFlags.push('--domain')
+      flags.multiuser && ignoredFlags.push('--multiuser')
 
       if (ignoredFlags.length) {
         this.warn(`--che-operator-cr-yaml is used. The following flag(s) will be ignored: ${ignoredFlags.join('\t')}`)
@@ -255,7 +255,7 @@ export default class Start extends Command {
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     })
 
-    Start.setPlaformDefaults(flags)
+    this.setPlaformDefaults(flags)
     let installTasks = new Listr(installerTasks.installTasks(flags, this), listrOptions)
 
     const startDeployedCheTasks = new Listr([{

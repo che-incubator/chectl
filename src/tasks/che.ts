@@ -67,11 +67,13 @@ export class CheTasks {
     return [
       {
         title: 'PostgreSQL pod bootstrap',
+        skip: () => !flags.multiuser,
         enabled: ctx => ctx.isPostgresDeployed && !ctx.isPostgresReady,
         task: () => this.kubeTasks.podStartTasks(command, this.postgresSelector, this.cheNamespace)
       },
       {
         title: 'Keycloak pod bootstrap',
+        skip: () => !flags.multiuser,
         enabled: ctx => ctx.isKeycloakDeployed && !ctx.isKeycloakReady,
         task: () => this.kubeTasks.podStartTasks(command, this.keycloakSelector, this.cheNamespace)
       },
