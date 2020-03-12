@@ -48,7 +48,7 @@ export class PlatformTasks {
         title: '✈️  CodeReady Containers preflight checklist',
         task: () => crc.preflightCheckTasks(flags, command)
       }
-    /* platform.ts BEGIN CHE ONLY */
+    // platform.ts BEGIN CHE ONLY
     } else if (flags.platform === 'minikube') {
       task = {
         title: '✈️  Minikube preflight checklist',
@@ -74,7 +74,7 @@ export class PlatformTasks {
         title: '✈️  Docker Desktop preflight checklist',
         task: () => dockerDesktopTasks.preflightCheckTasks(flags, command)
       }
-    /* platform.ts END CHE ONLY */
+    // platform.ts END CHE ONLY
     } else {
       task = {
         title: '✈️  Platform preflight checklist',

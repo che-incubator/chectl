@@ -85,7 +85,7 @@ export class InstallerTasks {
 
         return operatorTasks.startTasks(flags, command)
       }
-    /* installer.ts BEGIN CHE ONLY */
+    // installer.ts BEGIN CHE ONLY
     } else if (flags.installer === 'helm') {
       title = '�‍  Running Helm to install Eclipse Che'
       task = () => helmTasks.startTasks(flags, command)
@@ -97,7 +97,7 @@ export class InstallerTasks {
       }
       title = '🏃‍  Running the Eclipse Che minishift-addon'
       task = () => minishiftAddonTasks.startTasks(flags, command)
-    /* installer.ts END CHE ONLY */
+    // installer.ts END CHE ONLY
     } else {
       title = '🏃‍  Installer preflight check'
       task = () => { command.error(`Installer ${flags.installer} is not supported ¯\\_(ツ)_/¯`) }
