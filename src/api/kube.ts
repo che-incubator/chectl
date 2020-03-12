@@ -1141,7 +1141,9 @@ export class KubeHelper {
       yamlCr.spec.auth.openShiftoAuth = flags['os-oauth']
       if (flags.tls) {
         yamlCr.spec.server.tlsSupport = flags.tls
-        yamlCr.spec.k8s.tlsSecretName = 'che-tls'
+        if (!yamlCr.spec.k8s.tlsSecretName) {
+          yamlCr.spec.k8s.tlsSecretName = 'che-tls'
+        }
       }
       yamlCr.spec.server.selfSignedCert = flags['self-signed-cert']
       yamlCr.spec.k8s.ingressDomain = flags.domain
