@@ -492,13 +492,11 @@ USAGE
   $ chectl workspace:start
 
 OPTIONS
-  -f, --devfile=devfile                    path or URL to a valid devfile
+  -f, --devfile=devfile                    (required) path or URL to a valid devfile
   -h, --help                               show CLI help
 
   -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
                                            be deployed
-
-  -w, --workspaceconfig=workspaceconfig    path to a valid workspace configuration json file
 
   --access-token=access-token              Eclipse Che OIDC Access Token
 

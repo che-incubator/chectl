@@ -242,37 +242,6 @@ export class CheHelper {
     }
   }
 
-  async createWorkspaceFromWorkspaceConfig(namespace: string | undefined, workspaceConfigPath = '', accessToken = ''): Promise<string> {
-    if (!await this.cheNamespaceExist(namespace)) {
-      throw new Error('E_BAD_NS')
-    }
-    let url = await this.cheURL(namespace)
-    let endpoint = `${url}/api/workspace`
-    let workspaceConfig
-    let response
-    const headers: any = { 'Content-Type': 'application/json' }
-    if (accessToken && accessToken.length > 0) {
-      headers.Authorization = `${accessToken}`
-    }
-
-    try {
-      let workspaceConfig = fs.readFileSync(workspaceConfigPath, 'utf8')
-      response = await this.axios.post(endpoint, workspaceConfig, { headers })
-    } catch (error) {
-      if (!workspaceConfig) { throw new Error(`E_NOT_FOUND_WORKSPACE_CONFIG_FILE - ${workspaceConfigPath} - ${error.message}`) }
-      if (error.response && error.response.status === 400) {
-        throw new Error(`E_BAD_WORKSPACE_CONFIG_FORMAT - Message: ${error.response.data.message}`)
-      }
-      throw this.getCheApiError(error, endpoint)
-    }
-    if (response && response.data && response.data.links && response.data.links.ide) {
-      let ideURL = response.data.links.ide
-      return this.buildDashboardURL(ideURL)
-    } else {
-      throw new Error('E_BAD_RESP_CHE_SERVER')
-    }
-  }
-
   async isAuthenticationEnabled(cheURL: string, responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
     const endpoint = `${cheURL}/api/keycloak/settings`
     let response = null

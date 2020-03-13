@@ -184,18 +184,6 @@ describe('Eclipse Che helper', () => {
       .catch(/E_NOT_FOUND_DEVFILE/)
       .it('fails creating a workspace from a non-existing remote devfile')
   })
-  describe('createWorkspaceFromWorkspaceConfig', () => {
-    fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(ch, 'cheURL', () => cheURL)
-      .nock(cheURL, api => api
-        .post('/api/workspace')
-        .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
-      .it('succeds creating a workspace from a valid workspaceconfig', async () => {
-        const res = await ch.createWorkspaceFromWorkspaceConfig(namespace, __dirname + '/requests/workspaceconfig.valid')
-        expect(res).to.equal('https://che-che.192.168.64.39.nip.io/dashboard/#/ide/che/chectl')
-      })
-  })
   describe('buildDashboardURL', () => {
     fancy
       .it('builds the Dashboard URL of a workspace given the IDE link', async () => {
