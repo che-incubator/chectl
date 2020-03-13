@@ -24,13 +24,7 @@ export default class Start extends Command {
       char: 'f',
       description: 'path or URL to a valid devfile',
       env: 'DEVFILE_PATH',
-      required: false,
-    }),
-    workspaceconfig: string({
-      char: 'w',
-      description: 'path to a valid workspace configuration json file',
-      env: 'WORKSPACE_CONFIG_JSON_PATH',
-      required: false,
+      required: true,
     }),
     name: string({
       description: 'workspace name: overrides the workspace name to use instead of the one defined in the devfile. Works only for devfile',
@@ -52,9 +46,6 @@ export default class Start extends Command {
     const Listr = require('listr')
     const notifier = require('node-notifier')
     const che = new CheHelper(flags)
-    if (!flags.devfile && !flags.workspaceconfig) {
-      this.error('workspace:start command is expecting a devfile or workspace configuration parameter.')
-    }
     const tasks = new Listr([
       {
         title: 'Retrieving Eclipse Che server URL',
@@ -77,20 +68,11 @@ export default class Start extends Command {
       },
       {
         title: `Create workspace from Devfile ${flags.devfile}`,
-        enabled: () => flags.devfile !== undefined,
         task: async (ctx: any) => {
           await this.checkToken(flags, ctx)
           ctx.workspaceIdeURL = await che.createWorkspaceFromDevfile(flags.chenamespace, flags.devfile, flags.name, flags['access-token'])
         }
-      },
-      {
-        title: `Create workspace from Workspace Config ${flags.workspaceconfig}`,
-        enabled: () => flags.workspaceconfig !== undefined,
-        task: async (ctx: any) => {
-          await this.checkToken(flags, ctx)
-          ctx.workspaceIdeURL = await che.createWorkspaceFromWorkspaceConfig(flags.chenamespace, flags.workspaceconfig, flags['access-token'])
-        }
-      },
+      }
     ], { renderer: flags['listr-renderer'] as any })
 
     try {
