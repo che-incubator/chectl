@@ -15,7 +15,7 @@ Filter all releases in descending order and matching 'next' channel
   {%- endif -%}
 {%- endfor -%}
 
-{%- assign semVerReleases = stableRls | sort: 'name' | reverse -%}
+{%- assign semVerReleases = stableRls | sort: 'name' | where: "name","7.10.0" | reverse -%}
 {%- assign lastRelease = semVerReleases[0] -%}
 {%- assign fileNameFilter = page.platform | append: '.tar.gz' -%}
 
