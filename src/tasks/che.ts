@@ -92,17 +92,8 @@ export class CheTasks {
         enabled: ctx => !ctx.isCheReady,
         task: () => this.kubeTasks.podStartTasks(command, this.cheSelector, this.cheNamespace)
       },
-      {
-        title: 'Retrieving Eclipse Che server URL',
-        task: async (ctx: any, task: any) => {
-          ctx.cheURL = await this.che.cheURL(flags.chenamespace)
-          task.title = await `${task.title}... ${ctx.cheURL}`
-        }
-      },
-      {
-        title: 'Eclipse Che status check',
-        task: async ctx => this.che.isCheServerReady(ctx.cheURL)
-      }
+      ...this.retrieveEclipseCheUrl(flags),
+      ...this.checkEclipseCheStatus()
     ]
   }
 
@@ -597,6 +588,27 @@ export class CheTasks {
           await this.kube.portForward(ctx.podName, flags.chenamespace, flags['debug-port'])
           task.title = `${task.title}...done`
         }
+      }
+    ]
+  }
+
+  retrieveEclipseCheUrl(flags: any): ReadonlyArray<Listr.ListrTask> {
+    return [
+      {
+        title: 'Retrieving Eclipse Che server URL',
+        task: async (ctx: any, task: any) => {
+          ctx.cheURL = await this.che.cheURL(flags.chenamespace)
+          task.title = `${task.title}... ${ctx.cheURL}`
+        }
+      }
+    ]
+  }
+
+  checkEclipseCheStatus(): ReadonlyArray<Listr.ListrTask> {
+    return [
+      {
+        title: 'Eclipse Che status check',
+        task: async ctx => this.che.isCheServerReady(ctx.cheURL)
       }
     ]
   }

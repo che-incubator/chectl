@@ -372,6 +372,28 @@ export class CheHelper {
   }
 
   /**
+   * Returns list of workspaces
+   */
+  async getWorkspaces(cheUrl: string, skipCount: number, maxItems: number, accessToken = ''): Promise<[any]> {
+    const endpoint = `${cheUrl}/api/workspace?skipCount=${skipCount}&maxItems=${maxItems}`
+    const headers: any = { 'Content-Type': 'text/yaml' }
+    if (accessToken && accessToken.length > 0) {
+      headers.Authorization = `${accessToken}`
+    }
+
+    try {
+      const response = await this.axios.get(endpoint, { headers })
+      if (response && response.data) {
+        return response.data
+      } else {
+        throw new Error('E_BAD_RESP_CHE_SERVER')
+      }
+    } catch (error) {
+      throw this.getCheApiError(error, endpoint)
+    }
+  }
+
+  /**
    * Indicates if pod matches given labels.
    */
   private matchLabels(podLabels: { [key: string]: string }, podLabelSelector: string): boolean {

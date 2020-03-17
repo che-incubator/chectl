@@ -456,6 +456,10 @@ OPTIONS
   --access-token=access-token              Eclipse Che OIDC Access Token
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+
+  --max-items=max-items                    [default: 30] The maximum number of workspaces to return
+
+  --skip-count=skip-count                  The number of workspaces to skip
 ```
 
 _See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/list.ts)_
