@@ -16,11 +16,11 @@ import * as fs from 'fs-extra'
 import * as https from 'https'
 import * as yaml from 'js-yaml'
 import * as path from 'path'
-
 import { OpenShiftHelper } from '../api/openshift'
-
 import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
+
+
 
 export class CheHelper {
   defaultCheResponseTimeoutMs = 3000
@@ -394,6 +394,44 @@ export class CheHelper {
   }
 
   /**
+   * Get workspace.
+   */
+  async getWorkspace(cheUrl: string, workspaceId: string, accessToken = ''): Promise<any> {
+    const endpoint = `${cheUrl}/api/workspace/${workspaceId}`
+    const headers: any = { 'Content-Type': 'text/yaml' }
+    if (accessToken && accessToken.length > 0) {
+      headers.Authorization = `${accessToken}`
+    }
+
+    try {
+      const response = await this.axios.get(endpoint, { headers })
+      return response.data
+    } catch (error) {
+      throw this.getCheApiError(error, endpoint)
+    }
+  }
+
+  /**
+   * Deletes workspace.
+   */
+  async deleteWorkspace(cheUrl: string, workspaceId: string, accessToken = ''): Promise<void> {
+    const endpoint = `${cheUrl}/api/workspace/${workspaceId}`
+    const headers: any = {}
+    if (accessToken) {
+      headers.Authorization = `${accessToken}`
+    }
+
+    try {
+      await this.axios.delete(endpoint, { headers })
+    } catch (error) {
+      if (error.response.status === 409) {
+        throw new Error(`Workspace '${workspaceId}' not found`)
+      }
+      throw this.getCheApiError(error, endpoint)
+    }
+  }
+
+  /**
    * Indicates if pod matches given labels.
    */
   private matchLabels(podLabels: { [key: string]: string }, podLabelSelector: string): boolean {
@@ -444,16 +482,20 @@ export class CheHelper {
   }
 
   private getCheApiError(error: any, endpoint: string): Error {
-    if (error.response && error.response.status === 403) {
-      return new Error(`E_CHE_API_FORBIDDEN - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data.message)}`)
-    }
-    if (error.response && error.response.status === 401) {
-      return new Error(`E_CHE_API_UNAUTHORIZED - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
-    }
     if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      return new Error(`E_CHE_API_UNKNOWN_ERROR - Endpoint: ${endpoint} -Status: ${error.response.status}`)
+      const status = error.response.status
+      if (status === 403) {
+        return new Error(`E_CHE_API_FORBIDDEN - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data.message)}`)
+      } else if (status === 401) {
+        return new Error(`E_CHE_API_UNAUTHORIZED - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
+      } else if (status === 404) {
+        return new Error(`E_CHE_API_NOTFOUND - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
+      } else {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        return new Error(`E_CHE_API_UNKNOWN_ERROR - Endpoint: ${endpoint} -Status: ${error.response.status}`)
+      }
+
     } else if (error.request) {
       // The request was made but no response was received
       // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
