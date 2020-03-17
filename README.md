@@ -91,6 +91,7 @@ USAGE
 * [`chectl server:stop`](#chectl-serverstop)
 * [`chectl server:update`](#chectl-serverupdate)
 * [`chectl update [CHANNEL]`](#chectl-update-channel)
+* [`chectl workspace:delete`](#chectl-workspacedelete)
 * [`chectl workspace:inject`](#chectl-workspaceinject)
 * [`chectl workspace:list`](#chectl-workspacelist)
 * [`chectl workspace:logs`](#chectl-workspacelogs)
@@ -410,6 +411,29 @@ USAGE
 ```
 
 _See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.3.9/src/commands/update.ts)_
+
+## `chectl workspace:delete`
+
+delete workspace
+
+```
+USAGE
+  $ chectl workspace:delete
+
+OPTIONS
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
+                                           be deployed
+
+  -w, --workspace=workspace                (required) The workspace id to delete
+
+  --access-token=access-token              Eclipse Che OIDC Access Token
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+```
+
+_See code: [src/commands/workspace/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/delete.ts)_
 
 ## `chectl workspace:inject`
 

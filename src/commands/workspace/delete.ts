@@ -12,11 +12,12 @@ import { Command, flags } from '@oclif/command'
 import * as Listrq from 'listr'
 
 import { CheHelper } from '../../api/che'
+import { KubeHelper } from '../../api/kube'
 import { accessToken, cheNamespace, listrRenderer } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 
-export default class List extends Command {
+export default class Delete extends Command {
   static description = 'delete workspace'
 
   static flags = {
@@ -32,13 +33,14 @@ export default class List extends Command {
   }
 
   async run() {
-    const { flags } = this.parse(List)
+    const { flags } = this.parse(Delete)
     const ctx: any = {}
     ctx.workspaces = []
 
     const apiTasks = new ApiTasks()
     const cheTasks = new CheTasks(flags)
     const cheHelper = new CheHelper(flags)
+    const kubeHelper = new KubeHelper(flags)
     const tasks = new Listrq(undefined, { renderer: flags['listr-renderer'] as any })
 
     tasks.add(apiTasks.testApiTasks(flags, this))
@@ -48,7 +50,8 @@ export default class List extends Command {
     tasks.add({
       title: `Get workspace with id '${flags.workspace}'`,
       task: async (ctx, task) => {
-        ctx.workspace = await cheHelper.getWorkspace(ctx.cheURL, flags.workspace, flags['access-token'])
+        const workspace = await cheHelper.getWorkspace(ctx.cheURL, flags.workspace, flags['access-token'])
+        ctx.infrastructureNamespace = workspace.attributes.infrastructureNamespace
         task.title = `${task.title}... done`
       }
     })
@@ -56,6 +59,14 @@ export default class List extends Command {
       title: `Delete workspace with id '${flags.workspace}'`,
       task: async (ctx, task) => {
         await cheHelper.deleteWorkspace(ctx.cheURL, flags.workspace, flags['access-token'])
+        task.title = `${task.title}... done`
+      }
+    })
+    tasks.add({
+      title: `Delete namespace '${ctx.infrastructureNamespace}'`,
+      enabled: ctx => ctx.infrastructureNamespace !== flags.chenamespace,
+      task: async (ctx, task) => {
+        await kubeHelper.deleteNamespace(ctx.infrastructureNamespace)
         task.title = `${task.title}... done`
       }
     })
