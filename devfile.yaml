@@ -16,10 +16,11 @@ components:
     type: dockerimage
     image: 'quay.io/eclipse/che-theia-dev:next'
     mountSources: true
-    memoryLimit: 3G
+    memoryLimit: 1G
 
   - id: redhat/vscode-yaml/latest
     type: chePlugin
+    memoryLimit: 128M
 
   - id: che-incubator/typescript/latest
     type: chePlugin
@@ -89,3 +90,21 @@ commands:
         command: >
                  yarn format
         workdir: /projects/chectl
+  - name: Attach remote debugger
+    actions:
+      - referenceContent: |
+          {
+            "version": "0.2.0",
+            "configurations": [
+              {
+                "type": "node",
+                "request": "attach",
+                "name": "Attach to Remote",
+                "address": "localhost",
+                "port": 9229,
+                "localRoot": "${workspaceFolder}",
+                "remoteRoot": "${workspaceFolder}"
+              }
+            ]
+          }
+        type: vscode-launch
