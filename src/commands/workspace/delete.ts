@@ -10,6 +10,7 @@
 
 import { Command, flags } from '@oclif/command'
 import * as Listrq from 'listr'
+import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
@@ -63,9 +64,23 @@ export default class Delete extends Command {
       }
     })
     tasks.add({
-      title: `Delete namespace '${ctx.infrastructureNamespace}'`,
-      enabled: ctx => ctx.infrastructureNamespace !== flags.chenamespace,
+      title: 'Verify if namespace exists',
+      skip: ctx => ctx.infrastructureNamespace === flags.chenamespace,
       task: async (ctx, task) => {
+        task.title = `${task.title} '${ctx.infrastructureNamespace}'`
+        ctx.infrastructureNamespaceExists = await kubeHelper.namespaceExist(ctx.infrastructureNamespace)
+        if (ctx.infrastructureNamespaceExists) {
+          task.title = `${task.title}... found`
+        } else {
+          task.title = `${task.title}... not found`
+        }
+      }
+    })
+    tasks.add({
+      title: 'Delete namespace',
+      skip: ctx => !ctx.infrastructureNamespaceExists,
+      task: async (ctx, task) => {
+        task.title = `${task.title} '${ctx.infrastructureNamespace}'`
         await kubeHelper.deleteNamespace(ctx.infrastructureNamespace)
         task.title = `${task.title}... done`
       }
@@ -76,5 +91,12 @@ export default class Delete extends Command {
     } catch (error) {
       this.error(error)
     }
+
+    notifier.notify({
+      title: 'chectl',
+      message: 'Command workspace:delete has completed successfully.'
+    })
+
+    this.exit(0)
   }
 }
