@@ -554,9 +554,9 @@
   version "5.2.7"
   resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-5.2.7.tgz#315d570ccb56c53452ff8638738df60726d5b6ea"
 
-"@types/node-notifier@^5.4.0":
-  version "5.4.0"
-  resolved "https://registry.yarnpkg.com/@types/node-notifier/-/node-notifier-5.4.0.tgz#4e66c85eb41cce8387b4cd9c6c67852be41a99db"
+"@types/node-notifier@^6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@types/node-notifier/-/node-notifier-6.0.0.tgz#f9bc38da95f7da0d7e8b853a9978867006d002d1"
   dependencies:
     "@types/node" "*"
 
