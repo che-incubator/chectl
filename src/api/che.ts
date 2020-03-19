@@ -16,11 +16,11 @@ import * as fs from 'fs-extra'
 import * as https from 'https'
 import * as yaml from 'js-yaml'
 import * as path from 'path'
+
 import { OpenShiftHelper } from '../api/openshift'
+
 import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
-
-
 
 export class CheHelper {
   defaultCheResponseTimeoutMs = 3000

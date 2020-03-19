@@ -13,7 +13,7 @@ import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
 
 import { CheHelper } from '../../api/che'
-import { accessToken, cheNamespace, listrRenderer } from '../../common-flags'
+import { accessToken, cheNamespace } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 
@@ -23,8 +23,7 @@ export default class List extends Command {
   static flags = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
-    'access-token': accessToken,
-    'listr-renderer': listrRenderer
+    'access-token': accessToken
   }
 
   async run() {
@@ -34,7 +33,7 @@ export default class List extends Command {
 
     const apiTasks = new ApiTasks()
     const cheTasks = new CheTasks(flags)
-    const tasks = new Listrq(undefined, { renderer: flags['listr-renderer'] as any })
+    const tasks = new Listrq(undefined, { renderer: 'silent' })
 
     tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))

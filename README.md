@@ -430,6 +430,8 @@ OPTIONS
 
   --access-token=access-token              Eclipse Che OIDC Access Token
 
+  --delete-namespace                       Indicates that a namespace where workspace is created will be deleted as well
+
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
