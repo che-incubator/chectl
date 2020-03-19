@@ -15,7 +15,7 @@ import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { accessToken } from '../../common-flags'
+import { accessToken, cheNamespace } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 
@@ -24,12 +24,7 @@ export default class Delete extends Command {
 
   static flags = {
     help: flags.help({ char: 'h' }),
-    chenamespace: flags.string({
-      char: 'n',
-      description: 'Kubernetes namespace where Eclipse Che server is deployed',
-      default: 'che',
-      env: 'CHE_NAMESPACE'
-    }),
+    chenamespace: cheNamespace,
     'delete-namespace': flags.boolean({
       description: 'Indicates that a Kubernetes namespace where workspace was created will be deleted as well',
       default: false

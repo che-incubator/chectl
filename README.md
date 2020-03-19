@@ -425,7 +425,10 @@ ARGUMENTS
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is deployed
+
+  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
+                                   deployed
+
   --access-token=access-token      Eclipse Che OIDC Access Token
 
   --delete-namespace               Indicates that a Kubernetes namespace where workspace was created will be deleted as
