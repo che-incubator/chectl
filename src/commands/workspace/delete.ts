@@ -9,6 +9,7 @@
  **********************************************************************/
 
 import { Command, flags } from '@oclif/command'
+import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
 import * as notifier from 'node-notifier'
 
@@ -17,10 +18,9 @@ import { KubeHelper } from '../../api/kube'
 import { accessToken, cheNamespace } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { cli } from 'cli-ux'
 
 export default class Delete extends Command {
-  static description = 'delete workspace'
+  static description = 'delete a user\'s workspace'
 
   static flags = {
     help: flags.help({ char: 'h' }),

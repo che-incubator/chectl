@@ -414,25 +414,23 @@ _See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1
 
 ## `chectl workspace:delete`
 
-delete workspace
+delete a user's workspace
 
 ```
 USAGE
   $ chectl workspace:delete
 
 OPTIONS
-  -h, --help                               show CLI help
+  -h, --help                       show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
-                                           be deployed
+  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
+                                   deployed
 
-  -w, --workspace=workspace                (required) The workspace id to delete
+  -w, --workspace=workspace        (required) The workspace id to delete
 
-  --access-token=access-token              Eclipse Che OIDC Access Token
+  --access-token=access-token      Eclipse Che OIDC Access Token
 
-  --delete-namespace                       Indicates that a namespace where workspace is created will be deleted as well
-
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+  --delete-namespace               Indicates that a namespace where workspace is created will be deleted as well
 ```
 
 _See code: [src/commands/workspace/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/delete.ts)_
@@ -474,14 +472,12 @@ USAGE
   $ chectl workspace:list
 
 OPTIONS
-  -h, --help                               show CLI help
+  -h, --help                       show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
-                                           be deployed
+  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
+                                   deployed
 
-  --access-token=access-token              Eclipse Che OIDC Access Token
-
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+  --access-token=access-token      Eclipse Che OIDC Access Token
 ```
 
 _See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/list.ts)_
