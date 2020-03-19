@@ -1211,6 +1211,15 @@ export class KubeHelper {
     }
   }
 
+  async deleteNamespace(namespace: string): Promise<void> {
+    const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
+    try {
+      await k8sCoreApi.deleteNamespace(namespace)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
   async clusterIssuerExists(name: string): Promise<boolean> {
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
 
