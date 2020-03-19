@@ -15,7 +15,7 @@ import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { accessToken, cheNamespace } from '../../common-flags'
+import { accessToken } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 
@@ -24,21 +24,29 @@ export default class Delete extends Command {
 
   static flags = {
     help: flags.help({ char: 'h' }),
-    chenamespace: cheNamespace,
-    workspace: flags.string({
-      char: 'w',
-      description: 'The workspace id to delete',
-      required: true
+    chenamespace: flags.string({
+      char: 'n',
+      description: 'Kubernetes namespace where Eclipse Che server is deployed',
+      default: 'che',
+      env: 'CHE_NAMESPACE'
     }),
     'delete-namespace': flags.boolean({
-      description: 'Indicates that a namespace where workspace is created will be deleted as well',
+      description: 'Indicates that a Kubernetes namespace where workspace was created will be deleted as well',
       default: false
     }),
     'access-token': accessToken
   }
+  static args = [
+    {
+      name: 'workspace',
+      description: 'The workspace id to delete',
+      required: true
+    }
+  ]
 
   async run() {
     const { flags } = this.parse(Delete)
+    const { args } = this.parse(Delete)
     const ctx: any = {}
     ctx.workspaces = []
 
@@ -53,18 +61,18 @@ export default class Delete extends Command {
     tasks.add(cheTasks.retrieveEclipseCheUrl(flags))
     tasks.add(cheTasks.checkEclipseCheStatus())
     tasks.add({
-      title: `Get workspace with id '${flags.workspace}'`,
+      title: `Get workspace with id '${args.workspace}'`,
       task: async (ctx, task) => {
-        const workspace = await cheHelper.getWorkspace(ctx.cheURL, flags.workspace, flags['access-token'])
+        const workspace = await cheHelper.getWorkspace(ctx.cheURL, args.workspace, flags['access-token'])
         ctx.infrastructureNamespace = workspace.attributes.infrastructureNamespace
         task.title = `${task.title}... done`
       }
     })
     tasks.add({
-      title: `Delete workspace with id '${flags.workspace}'`,
+      title: `Delete workspace with id '${args.workspace}'`,
       task: async (ctx, task) => {
-        await cheHelper.deleteWorkspace(ctx.cheURL, flags.workspace, flags['access-token'])
-        cli.log(`Workspace with id '${flags.workspace}' deleted.`)
+        await cheHelper.deleteWorkspace(ctx.cheURL, args.workspace, flags['access-token'])
+        cli.log(`Workspace with id '${args.workspace}' deleted.`)
         task.title = `${task.title}... done`
       }
     })

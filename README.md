@@ -91,7 +91,7 @@ USAGE
 * [`chectl server:stop`](#chectl-serverstop)
 * [`chectl server:update`](#chectl-serverupdate)
 * [`chectl update [CHANNEL]`](#chectl-update-channel)
-* [`chectl workspace:delete`](#chectl-workspacedelete)
+* [`chectl workspace:delete WORKSPACE`](#chectl-workspacedelete-workspace)
 * [`chectl workspace:inject`](#chectl-workspaceinject)
 * [`chectl workspace:list`](#chectl-workspacelist)
 * [`chectl workspace:logs`](#chectl-workspacelogs)
@@ -412,25 +412,24 @@ USAGE
 
 _See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.3.9/src/commands/update.ts)_
 
-## `chectl workspace:delete`
+## `chectl workspace:delete WORKSPACE`
 
 delete a user's workspace
 
 ```
 USAGE
-  $ chectl workspace:delete
+  $ chectl workspace:delete WORKSPACE
+
+ARGUMENTS
+  WORKSPACE  The workspace id to delete
 
 OPTIONS
   -h, --help                       show CLI help
-
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
-                                   deployed
-
-  -w, --workspace=workspace        (required) The workspace id to delete
-
+  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is deployed
   --access-token=access-token      Eclipse Che OIDC Access Token
 
-  --delete-namespace               Indicates that a namespace where workspace is created will be deleted as well
+  --delete-namespace               Indicates that a Kubernetes namespace where workspace was created will be deleted as
+                                   well
 ```
 
 _See code: [src/commands/workspace/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/delete.ts)_
