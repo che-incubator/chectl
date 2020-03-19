@@ -123,6 +123,10 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
+"@eclipse-che/api@latest":
+  version "7.5.0-SNAPSHOT"
+  resolved "https://registry.yarnpkg.com/@eclipse-che/api/-/api-7.5.0-SNAPSHOT.tgz#bf0c5be60354e34c73bc52b2e18be8680ce8d900"
+
 "@fimbul/bifrost@^0.21.0":
   version "0.21.0"
   resolved "https://registry.yarnpkg.com/@fimbul/bifrost/-/bifrost-0.21.0.tgz#d0fafa25938fda475657a6a1e407a21bbe02c74e"
