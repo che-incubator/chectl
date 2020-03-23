@@ -383,15 +383,6 @@ export class OperatorTasks {
       }
     },
     {
-      title: `Delete CRD ${this.cheClusterCrd}`,
-      task: async (_ctx: any, task: any) => {
-        if (await kh.crdExist(this.cheClusterCrd)) {
-          await kh.deleteCrd(this.cheClusterCrd)
-        }
-        task.title = await `${task.title}...OK`
-      }
-    },
-    {
       title: `Delete role binding ${this.operatorRoleBinding}`,
       task: async (_ctx: any, task: any) => {
         if (await kh.roleBindingExist(this.operatorRoleBinding, flags.chenamespace)) {
