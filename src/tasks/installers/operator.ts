@@ -35,6 +35,8 @@ export class OperatorTasks {
    * Returns tasks list which perform preflight platform checks.
    */
   startTasks(flags: any, command: Command): Listr {
+    const clusterRoleName = `${this.operatorClusterRole}-${flags.chenamespace}`
+    const clusterRoleBindingName = `${this.operatorClusterRoleBinding}-${flags.chenamespace}`
     const che = new CheHelper(flags)
     const kube = new KubeHelper(flags)
     return new Listr([
@@ -90,14 +92,14 @@ export class OperatorTasks {
         }
       },
       {
-        title: `Create ClusterRole ${this.operatorClusterRole}`,
+        title: `Create ClusterRole ${clusterRoleName}`,
         task: async (_ctx: any, task: any) => {
-          const exist = await kube.clusterRoleExist(this.operatorClusterRole)
+          const exist = await kube.clusterRoleExist(clusterRoleName)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
             const yamlFilePath = this.resourcesPath + 'cluster_role.yaml'
-            const statusCode = await kube.createClusterRoleFromFile(yamlFilePath)
+            const statusCode = await kube.createClusterRoleFromFile(yamlFilePath, clusterRoleName)
             if (statusCode === 403) {
               command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
             }
@@ -119,13 +121,13 @@ export class OperatorTasks {
         }
       },
       {
-        title: `Create ClusterRoleBinding ${this.operatorClusterRoleBinding}`,
+        title: `Create ClusterRoleBinding ${clusterRoleBindingName}`,
         task: async (_ctx: any, task: any) => {
-          const exist = await kube.clusterRoleBindingExist(this.operatorRoleBinding)
+          const exist = await kube.clusterRoleBindingExist(clusterRoleBindingName)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            await kube.createClusterRoleBinding(this.operatorClusterRoleBinding, this.operatorServiceAccount, flags.chenamespace, this.operatorClusterRole)
+            await kube.createClusterRoleBinding(clusterRoleBindingName, this.operatorServiceAccount, flags.chenamespace, clusterRoleName)
             task.title = `${task.title}...done.`
           }
         }
@@ -220,6 +222,8 @@ export class OperatorTasks {
   }
 
   updateTasks(flags: any, command: Command): Listr {
+    const clusterRoleName = `${this.operatorClusterRole}-${flags.chenamespace}`
+    const clusterRoleBindingName = `${this.operatorClusterRoleBinding}-${flags.chenamespace}`
     const kube = new KubeHelper(flags)
     return new Listr([
       {
@@ -264,18 +268,18 @@ export class OperatorTasks {
         }
       },
       {
-        title: `Updating ClusterRole ${this.operatorClusterRole}`,
+        title: `Updating ClusterRole ${clusterRoleName}`,
         task: async (_ctx: any, task: any) => {
-          const exist = await kube.clusterRoleExist(this.operatorClusterRole)
+          const exist = await kube.clusterRoleExist(clusterRoleName)
           const yamlFilePath = this.resourcesPath + 'cluster_role.yaml'
           if (exist) {
-            const statusCode = await kube.replaceClusterRoleFromFile(yamlFilePath)
+            const statusCode = await kube.replaceClusterRoleFromFile(yamlFilePath, clusterRoleName)
             if (statusCode === 403) {
               command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
             }
             task.title = `${task.title}...updated.`
           } else {
-            const statusCode = await kube.createClusterRoleFromFile(yamlFilePath)
+            const statusCode = await kube.createClusterRoleFromFile(yamlFilePath, clusterRoleName)
             if (statusCode === 403) {
               command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
             }
@@ -298,14 +302,14 @@ export class OperatorTasks {
         }
       },
       {
-        title: `Updating ClusterRoleBinding ${this.operatorClusterRoleBinding}`,
+        title: `Updating ClusterRoleBinding ${clusterRoleBindingName}`,
         task: async (_ctx: any, task: any) => {
-          const exist = await kube.clusterRoleBindingExist(this.operatorRoleBinding)
+          const exist = await kube.clusterRoleBindingExist(clusterRoleBindingName)
           if (exist) {
-            await kube.replaceClusterRoleBinding(this.operatorClusterRoleBinding, this.operatorServiceAccount, flags.chenamespace, this.operatorClusterRole)
+            await kube.replaceClusterRoleBinding(clusterRoleBindingName, this.operatorServiceAccount, flags.chenamespace, clusterRoleName)
             task.title = `${task.title}...updated.`
           } else {
-            await kube.createClusterRoleBinding(this.operatorClusterRoleBinding, this.operatorServiceAccount, flags.chenamespace, this.operatorClusterRole)
+            await kube.createClusterRoleBinding(clusterRoleBindingName, this.operatorServiceAccount, flags.chenamespace, clusterRoleName)
             task.title = `${task.title}...created new one.`
           }
         }
@@ -363,6 +367,8 @@ export class OperatorTasks {
    */
   deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     let kh = new KubeHelper(flags)
+    const clusterRoleName = `${this.operatorClusterRole}-${flags.chenamespace}`
+    const clusterRoleBindingName = `${this.operatorClusterRoleBinding}-${flags.chenamespace}`
     return [{
       title: `Delete the CR ${this.operatorCheCluster} of type ${this.cheClusterCrd}`,
       task: async (_ctx: any, task: any) => {
@@ -404,19 +410,19 @@ export class OperatorTasks {
       }
     },
     {
-      title: `Delete cluster role binding ${this.operatorClusterRoleBinding}`,
+      title: `Delete cluster role binding ${clusterRoleBindingName}`,
       task: async (_ctx: any, task: any) => {
-        if (await kh.clusterRoleBindingExist(this.operatorClusterRoleBinding)) {
-          await kh.deleteClusterRoleBinding(this.operatorClusterRoleBinding)
+        if (await kh.clusterRoleBindingExist(clusterRoleBindingName)) {
+          await kh.deleteClusterRoleBinding(clusterRoleBindingName)
         }
         task.title = await `${task.title}...OK`
       }
     },
     {
-      title: `Delete cluster role ${this.operatorClusterRole}`,
+      title: `Delete cluster role ${clusterRoleName}`,
       task: async (_ctx: any, task: any) => {
-        if (await kh.clusterRoleExist(this.operatorClusterRole)) {
-          await kh.deleteClusterRole(this.operatorClusterRole)
+        if (await kh.clusterRoleExist(clusterRoleName)) {
+          await kh.deleteClusterRole(clusterRoleName)
         }
         task.title = await `${task.title}...OK`
       }

@@ -255,8 +255,14 @@ export class KubeHelper {
     }
   }
 
-  async createClusterRoleFromFile(filePath: string) {
+  async createClusterRoleFromFile(filePath: string, roleName?: string) {
     const yamlRole = this.safeLoadFromYamlFile(filePath) as V1ClusterRole
+    if (!yamlRole.metadata || !yamlRole.metadata.name) {
+      throw new Error(`Cluster Role read from ${filePath} must have name specified`)
+    }
+    if (roleName) {
+      yamlRole.metadata!.name = roleName
+    }
     const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     try {
       const res = await k8sRbacAuthApi.createClusterRole(yamlRole)
@@ -270,11 +276,14 @@ export class KubeHelper {
     }
   }
 
-  async replaceClusterRoleFromFile(filePath: string) {
+  async replaceClusterRoleFromFile(filePath: string, roleName?: string) {
     const yamlRole = this.safeLoadFromYamlFile(filePath) as V1ClusterRole
     const k8sRbacAuthApi = this.kc.makeApiClient(RbacAuthorizationV1Api)
     if (!yamlRole.metadata || !yamlRole.metadata.name) {
       throw new Error(`Cluster Role read from ${filePath} must have name specified`)
+    }
+    if (roleName) {
+      yamlRole.metadata!.name = roleName
     }
     try {
       const res = await k8sRbacAuthApi.replaceClusterRole(yamlRole.metadata.name, yamlRole)
