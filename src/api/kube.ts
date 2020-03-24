@@ -969,7 +969,9 @@ export class KubeHelper {
         yamlCr.spec.k8s.tlsSecretName = 'che-tls'
       }
       yamlCr.spec.server.selfSignedCert = flags['self-signed-cert']
-      yamlCr.spec.k8s.ingressDomain = flags.domain
+      if (flags.domain) {
+        yamlCr.spec.k8s.ingressDomain = flags.domain
+      }
       const pluginRegistryUrl = flags['plugin-registry-url']
       if (pluginRegistryUrl) {
         yamlCr.spec.server.pluginRegistryUrl = pluginRegistryUrl
