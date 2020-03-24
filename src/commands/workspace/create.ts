@@ -11,13 +11,14 @@
 import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
+import * as fs from 'fs'
 import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
-import { accessToken, cheNamespace, listrRenderer } from '../../common-flags'
+import { accessToken, cheNamespace } from '../../common-flags'
 export default class Create extends Command {
-  static description = 'Creates a workspace from devfile'
+  static description = 'Creates a workspace from a devfile'
 
   static flags = {
     help: flags.help({ char: 'h' }),
@@ -26,10 +27,10 @@ export default class Create extends Command {
       char: 'f',
       description: 'path or URL to a valid devfile',
       env: 'DEVFILE_PATH',
-      required: true,
+      required: false,
     }),
     name: string({
-      description: 'workspace name: overrides the workspace name to use instead of the one defined in the devfile. Works only for devfile',
+      description: 'workspace name: overrides the workspace name to use instead of the one defined in the devfile.',
       required: false,
     }),
     start: boolean({
@@ -37,8 +38,7 @@ export default class Create extends Command {
       description: 'Starts the workspace after creation',
       default: false
     }),
-    'access-token': accessToken,
-    'listr-renderer': listrRenderer
+    'access-token': accessToken
   }
 
   async run() {
@@ -89,7 +89,19 @@ export default class Create extends Command {
           if (ctx.isAuthEnabled && !flags['access-token']) {
             this.error('E_AUTH_REQUIRED - Eclipse Che authentication is enabled and an access token needs to be provided (flag --access-token).')
           }
-          const workspaceConfig = await che.createWorkspaceFromDevfile(flags.chenamespace, flags.devfile, flags.name, flags['access-token'])
+
+          let devfilePath: string
+          if (flags.devfile) {
+            devfilePath = flags.devfile
+          } else if (fs.existsSync('devfile.yaml')) {
+            devfilePath = 'devfile.yaml'
+          } else if (fs.existsSync('devfile.yml')) {
+            devfilePath = 'devfile.yml'
+          } else {
+            throw new Error("E_DEVFILE_MISSING - Devfile wasn't specified via '-f' option and \'devfile.yaml' is not present in current directory.")
+          }
+
+          const workspaceConfig = await che.createWorkspaceFromDevfile(flags.chenamespace, devfilePath, flags.name, flags['access-token'])
           ctx.workspaceId = workspaceConfig.id
           if (workspaceConfig.links && workspaceConfig.links.ide) {
             ctx.workspaceIdeURL = await che.buildDashboardURL(workspaceConfig.links.ide)
@@ -99,11 +111,11 @@ export default class Create extends Command {
         title: 'Start workspace',
         enabled: () => flags.start,
         task: async (ctx: any, task: any) => {
-          await che.startWorkspace(flags.chenamespace, ctx.workspaceId)
+          await che.startWorkspace(flags.chenamespace, ctx.workspaceId, flags['access-token'])
           task.title = `${task.title}... Done`
         }
       }
-    ], { renderer: flags['listr-renderer'] as any })
+    ], { renderer: 'silent' })
 
   }
 

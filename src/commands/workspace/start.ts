@@ -14,24 +14,15 @@ import * as notifier from 'node-notifier'
 import Create from './create'
 
 export default class Start extends Create {
-  static description = 'Creates and starts workspace from devfile'
+  static description = 'Creates and starts workspace from a devfile'
 
   async run() {
     const { flags } = this.parse(Create)
     flags.start = true
 
     const tasks = this.getWorkspaceCreateTasks(flags)
-    tasks.add(
-      {
-        title: 'Warning',
-        task: (_: any, task: any) => {
-          const yellow = '\x1b[33m'
-          const noColor = '\x1b[0m'
-          task.title = `${yellow}This command is deprecated. Please use 'workspace:create --start' instead ${noColor}`
-        }
-      }
-    )
 
+    cli.warn('This command is deprecated. Please use "workspace:create --start" instead')
     try {
       let ctx = await tasks.run()
       this.log('\nWorkspace IDE URL:')
