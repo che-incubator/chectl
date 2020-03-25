@@ -205,14 +205,14 @@ export class CheHelper {
     let response
 
     const headers: {[key: string]: string} = {}
-    if (accessToken && accessToken.length > 0) {
+    if (accessToken) {
       headers.Authorization = accessToken
     }
     try {
       response = await this.axios.post(endpoint, undefined, { headers })
     } catch (error) {
       if (error.response && error.response.status === 404) {
-        throw new Error('E_WORKSPACE_NOT_EXIST')
+        throw new Error(`E_WORKSPACE_NOT_EXIST - workspace with "${workspaceId}" id doesn't exist`)
       } else {
         throw this.getCheApiError(error, endpoint)
       }
