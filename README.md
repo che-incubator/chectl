@@ -91,6 +91,7 @@ USAGE
 * [`chectl server:stop`](#chectl-serverstop)
 * [`chectl server:update`](#chectl-serverupdate)
 * [`chectl update [CHANNEL]`](#chectl-update-channel)
+* [`chectl workspace:create`](#chectl-workspacecreate)
 * [`chectl workspace:delete WORKSPACE`](#chectl-workspacedelete-workspace)
 * [`chectl workspace:inject`](#chectl-workspaceinject)
 * [`chectl workspace:list`](#chectl-workspacelist)
@@ -412,6 +413,31 @@ USAGE
 
 _See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.3.9/src/commands/update.ts)_
 
+## `chectl workspace:create`
+
+Creates a workspace from a devfile
+
+```
+USAGE
+  $ chectl workspace:create
+
+OPTIONS
+  -f, --devfile=devfile            path or URL to a valid devfile
+  -h, --help                       show CLI help
+
+  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
+                                   deployed
+
+  -s, --start                      Starts the workspace after creation
+
+  --access-token=access-token      Eclipse Che OIDC Access Token
+
+  --name=name                      workspace name: overrides the workspace name to use instead of the one defined in the
+                                   devfile.
+```
+
+_See code: [src/commands/workspace/create.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/create.ts)_
+
 ## `chectl workspace:delete WORKSPACE`
 
 delete a user's workspace
@@ -509,25 +535,25 @@ _See code: [src/commands/workspace/logs.ts](https://github.com/che-incubator/che
 
 ## `chectl workspace:start`
 
-create and start a workspace
+Creates and starts workspace from a devfile
 
 ```
 USAGE
   $ chectl workspace:start
 
 OPTIONS
-  -f, --devfile=devfile                    (required) path or URL to a valid devfile
-  -h, --help                               show CLI help
+  -f, --devfile=devfile            path or URL to a valid devfile
+  -h, --help                       show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
-                                           be deployed
+  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
+                                   deployed
 
-  --access-token=access-token              Eclipse Che OIDC Access Token
+  -s, --start                      Starts the workspace after creation
 
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+  --access-token=access-token      Eclipse Che OIDC Access Token
 
-  --name=name                              workspace name: overrides the workspace name to use instead of the one
-                                           defined in the devfile. Works only for devfile
+  --name=name                      workspace name: overrides the workspace name to use instead of the one defined in the
+                                   devfile.
 ```
 
 _See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
