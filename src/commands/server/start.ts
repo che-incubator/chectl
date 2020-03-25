@@ -74,9 +74,12 @@ export default class Start extends Command {
     tls: flags.boolean({
       char: 's',
       description: `Enable TLS encryption.
-                    Note, that this option is turned on by default for kubernetes infrastructure.
-                    If it is needed to provide own certificate, 'che-tls' secret with TLS certificate must be created in the configured namespace. Otherwise, it will be automatically generated.
-                    For OpenShift, router will use default cluster certificates.`
+                    Note, this option is turned on by default.
+                    For Kubernetes infrastructure, it is required to provide own certificate: 'che-tls' secret with TLS certificate must be pre-created in the configured namespace.
+                    The only exception is Helm installer. In that case the secret will be generated automatically.
+                    For OpenShift, router will use default cluster certificates.
+                    If the certificate is self-signed, '--self-signed-cert' option should be provided, otherwise Che won't be able to start.
+                    Please see docs for more details: https://www.eclipse.org/che/docs/che-7/setup-che-in-tls-mode-with-self-signed-certificate/`
     }),
     'self-signed-cert': flags.boolean({
       description: `Authorize usage of self signed certificates for encryption.

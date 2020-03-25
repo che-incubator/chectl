@@ -23,3 +23,11 @@ export function getClusterClientCommand(): string {
 
   throw new Error('No cluster CLI client is installed.')
 }
+
+export function isKubernetesPlatformFamily(platform: string): boolean {
+  return platform === 'k8s' || platform === 'minikube' || platform === 'microk8s'
+}
+
+export function isOpenshiftPlatformFamily(platform: string): boolean {
+  return platform === 'openshift' || platform === 'minishift' || platform === 'crc'
+}
