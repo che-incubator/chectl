@@ -68,7 +68,7 @@ export class OperatorTasks {
         task: async (_: any, task: any) => {
           // Che is being deployed on Kubernetes infrastructure
 
-          if (!(flags.tls || await this.checkCrForTls(flags))) {
+          if (! await this.checkTlsMode(flags)) {
             // No TLS mode, skip this check
             return
           }
@@ -94,7 +94,7 @@ export class OperatorTasks {
         // If the flag is set no need to check if it is required
         skip: () => flags['self-signed-cert'],
         task: async (_: any, task: any) => {
-          if (!(flags.tls || await this.checkCrForTls(flags))) {
+          if (! await this.checkTlsMode(flags)) {
             // No TLS mode, skip this check
             return
           }
@@ -119,6 +119,8 @@ export class OperatorTasks {
           }
 
           // TODO check the secret certificate if it is commonly trusted.
+          cli.info('TLS mode is turned on, however we failed to determine whether self-signed certificate is used. \n\
+                   Please rerun chectl with "--self-signed-cert" option if it is the case, otherwise Eclipse Che will fail to start.')
         }
       },
       {
@@ -563,7 +565,7 @@ export class OperatorTasks {
    * Checks if TLS is disabled via operator custom resource.
    * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
    */
-  private async checkCrForTls(flags: any): Promise<boolean> {
+  private async checkTlsMode(flags: any): Promise<boolean> {
     if (flags['che-operator-cr-yaml']) {
       const cheOperatorCrYamlPath = flags['che-operator-cr-yaml']
       if (fs.existsSync(cheOperatorCrYamlPath)) {
@@ -582,6 +584,11 @@ export class OperatorTasks {
           return false
         }
       }
+    }
+
+    // If tls flag is undefined we suppose that tls is turned on
+    if (flags.tls === false) {
+      return false
     }
 
     // TLS is on
