@@ -1,5 +1,5 @@
 /*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
+ * Copyright (c) 2019-2020 Red Hat, Inc.
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -7,6 +7,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
+
+import { che as chetypes } from '@eclipse-che/api'
 import { CoreV1Api, KubeConfig, V1Pod, Watch } from '@kubernetes/client-node'
 import axios, { AxiosInstance } from 'axios'
 import * as cp from 'child_process'
@@ -197,13 +199,37 @@ export class CheHelper {
     }
   }
 
-  async createWorkspaceFromDevfile(namespace: string | undefined, devfilePath = '', workspaceName: string | undefined, accessToken = ''): Promise<string> {
+  async startWorkspace(cheNamespace: string, workspaceId: string, accessToken?: string): Promise<void> {
+    const cheUrl = await this.cheURL(cheNamespace)
+    const endpoint = `${cheUrl}/api/workspace/${workspaceId}/runtime`
+    let response
+
+    const headers: {[key: string]: string} = {}
+    if (accessToken) {
+      headers.Authorization = accessToken
+    }
+    try {
+      response = await this.axios.post(endpoint, undefined, { headers })
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        throw new Error(`E_WORKSPACE_NOT_EXIST - workspace with "${workspaceId}" id doesn't exist`)
+      } else {
+        throw this.getCheApiError(error, endpoint)
+      }
+    }
+
+    if (!response || response.status !== 200 || !response.data) {
+      throw new Error('E_BAD_RESP_CHE_API')
+    }
+  }
+
+  async createWorkspaceFromDevfile(namespace: string | undefined, devfilePath = '', workspaceName: string | undefined, accessToken = ''): Promise<chetypes.workspace.Workspace> {
     if (!await this.cheNamespaceExist(namespace)) {
       throw new Error('E_BAD_NS')
     }
     let url = await this.cheURL(namespace)
     let endpoint = `${url}/api/workspace/devfile`
-    let devfile
+    let devfile: string | undefined
     let response
     const headers: any = { 'Content-Type': 'text/yaml' }
     if (accessToken && accessToken.length > 0) {
@@ -217,17 +243,31 @@ export class CheHelper {
         json.metadata.name = workspaceName
         devfile = yaml.dump(json)
       }
+
       response = await this.axios.post(endpoint, devfile, { headers })
     } catch (error) {
-      if (!devfile) { throw new Error(`E_NOT_FOUND_DEVFILE - ${devfilePath} - ${error.message}`) }
-      if (error.response && error.response.status === 400) {
-        throw new Error(`E_BAD_DEVFILE_FORMAT - Message: ${error.response.data.message}`)
+      if (!devfile) {
+        throw new Error(`E_NOT_FOUND_DEVFILE - ${devfilePath} - ${error.message}`)
       }
+
+      if (error.response) {
+        if (error.response.status === 400) {
+          throw new Error(`E_BAD_DEVFILE_FORMAT - Message: ${error.response.data.message}`)
+        }
+        if (error.response.status === 409) {
+          let message = ''
+          if (error.response.data) {
+            message = error.response.data.message
+          }
+          throw new Error(`E_CONFLICT - Message: ${message}`)
+        }
+      }
+
       throw this.getCheApiError(error, endpoint)
     }
-    if (response && response.data && response.data.links && response.data.links.ide) {
-      let ideURL = response.data.links.ide
-      return this.buildDashboardURL(ideURL)
+
+    if (response && response.data) {
+      return response.data as chetypes.workspace.Workspace
     } else {
       throw new Error('E_BAD_RESP_CHE_SERVER')
     }
