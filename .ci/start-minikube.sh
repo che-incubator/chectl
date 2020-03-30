@@ -21,7 +21,7 @@ export TEST_OUTPUT=1
 self_signed_minikube() {
   export DOMAIN=*.$(minikube ip).nip.io
 
-  /bin/bash self-signed-cert.sh
+  /bin/bash ${CHECTL_REPO}/self-signed-cert.sh
 
   kubectl create namespace che
   kubectl create secret tls che-tls --key=domain.key --cert=domain.crt -n che
