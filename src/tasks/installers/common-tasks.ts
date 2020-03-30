@@ -16,6 +16,9 @@ import * as path from 'path'
 import { KubeHelper } from '../../api/kube'
 import { operatorCheCluster } from '../../constants'
 import { isOpenshiftPlatformFamily, isKubernetesPlatformFamily } from '../../util'
+import * as fs from 'fs'
+import * as yaml from 'js-yaml'
+import { cli } from 'cli-ux'
 
 export function createNamespaceTask(flags: any): ListrTask<ListrContext> {
     return {
@@ -92,3 +95,104 @@ export function createEclipeCheCluster(flags: any): ListrTask<ListrContext> {
       }
 }
 
+export function checkPreCreatedTls(flags: any, kube: KubeHelper): ListrTask<ListrContext> {
+  return {
+    title: 'Checking for pre-created TLS secret',
+    // In case of Openshift infrastructure the certificate from cluster router will be used, so no need in the `che-tls` secret.
+    skip: () => !isKubernetesPlatformFamily(flags.platform),
+    task: async (_: any, task: any) => {
+      // Che is being deployed on Kubernetes infrastructure
+
+      if (! await checkTlsMode(flags)) {
+        // No TLS mode, skip this check
+        return
+      }
+
+      const cheSecretName = 'che-tls'
+      const cheSecret = await kube.getSecret(cheSecretName, flags.chenamespace)
+      if (cheSecret) {
+        task.title = `${task.title}... "${cheSecretName}" secret found`
+        return
+      }
+
+      // The secret is required but doesn't exist, show error message.
+      const errorMessage =
+        `Che TLS mode is turned on, but required "${cheSecretName}" secret is not pre-created in "${flags.chenamespace}" namespace, so Eclipse Che cannot be started. \n` +
+        'This is not bug in Eclipse Che and such behavior is expected. \n' +
+        'Please refer to Che documentation for more informations: ' +
+        'https://www.eclipse.org/che/docs/che-7/setup-che-in-tls-mode-with-self-signed-certificate/'
+      throw new Error(errorMessage)
+    }
+  }
+}
+
+export function checkTlsSertificate(flags: any) {
+  return {
+    title: 'Checking certificate',
+    // If the flag is set no need to check if it is required
+    skip: () => flags['self-signed-cert'],
+    task: async (_: any, task: any) => {
+      if (! await checkTlsMode(flags)) {
+        // No TLS mode, skip this check
+        return
+      }
+
+      const warningMessage = 'Self-signed certificate is used, so "--self-signed-cert" option is required. Added automatically.'
+
+      const platform = flags.platform
+      if (platform === 'minikube' || platform === 'crc' || platform === 'minishift') {
+        // There is no way to use real certificate on listed above platforms
+        cli.warn(warningMessage)
+        flags['self-signed-cert'] = true
+        task.title = `${task.title}... self-signed`
+        return
+      }
+
+      if (flags.domain && (flags.domain.endsWith('nip.io') || flags.domain.endsWith('xip.io'))) {
+        // It is not possible to use real certificate with *.nip.io and similar services
+        cli.warn(warningMessage)
+        flags['self-signed-cert'] = true
+        task.title = `${task.title}... self-signed`
+        return
+      }
+
+      // TODO check the secret certificate if it is commonly trusted.
+      cli.info('TLS mode is turned on, however we failed to determine whether self-signed certificate is used. \n\
+               Please rerun chectl with "--self-signed-cert" option if it is the case, otherwise Eclipse Che will fail to start.')
+    }
+  }
+}
+
+/**
+ * Checks if TLS is disabled via operator custom resource.
+ * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
+ */
+async function checkTlsMode(flags: any): Promise<boolean> {
+    if (flags['che-operator-cr-yaml']) {
+      const cheOperatorCrYamlPath = flags['che-operator-cr-yaml']
+      if (fs.existsSync(cheOperatorCrYamlPath)) {
+        const cr = yaml.safeLoad(fs.readFileSync(cheOperatorCrYamlPath).toString())
+        if (cr && cr.spec && cr.spec.server && cr.spec.server.tlsSupport === false) {
+          return false
+        }
+      }
+    }
+
+    if (flags['che-operator-cr-patch-yaml']) {
+      const cheOperatorCrPatchYamlPath = flags['che-operator-cr-patch-yaml']
+      if (fs.existsSync(cheOperatorCrPatchYamlPath)) {
+        const crPatch = yaml.safeLoad(fs.readFileSync(cheOperatorCrPatchYamlPath).toString())
+        if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
+          return false
+        }
+      }
+    }
+
+    // If tls flag is undefined we suppose that tls is turned on
+    if (flags.tls === false) {
+      return false
+    }
+
+    // TLS is on
+    return true
+  }
