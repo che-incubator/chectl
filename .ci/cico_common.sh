@@ -106,7 +106,7 @@ github_token_set() {
 self_signed_minishift() {
   export DOMAIN=*.$(minishift ip).nip.io
 
-  /bin/bash ${CHECTL_REPO}/self-signed-cert.sh
+  source ${CHECTL_REPO}/.ci/self-signed-cert.sh
 
   #Configure Router with generated certificate:
 
