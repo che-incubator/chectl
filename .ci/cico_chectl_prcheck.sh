@@ -63,9 +63,6 @@ run() {
   #Before to start to run the e2e tests we need to install all deps with yarn
   yarn --cwd ${CHECTL_REPO}
 
-  # Temporal
-  sed -i "s/tlsSupport: true/tlsSupport: false/" ${CHECTL_REPO}/templates/che-operator/crds/org_v1_che_cr.yaml
-
   for platform in 'minishift' 'minikube'
   do
       if [[ ${platform} == 'minishift' ]]; then
@@ -73,6 +70,7 @@ run() {
 
         printInfo "Running e2e tests on ${platform} platform."
         yarn test --coverage=false --forceExit --testRegex=${CHECTL_REPO}/test/e2e/minishift.test.ts
+
         #Clearing minishift installation from system
         yes | minishift delete --profile ${PROFILE}
         rm -rf ~/.minishift
