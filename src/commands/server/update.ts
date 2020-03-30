@@ -30,7 +30,7 @@ export default class Update extends Command {
     installer: string({
       char: 'a',
       description: 'Installer type',
-      options: ['helm', 'operator', 'minishift-addon'],
+      options: ['helm', 'operator', 'minishift-addon', 'olm'],
       default: ''
     }),
     platform: string({
@@ -76,7 +76,7 @@ export default class Update extends Command {
       this.error('🛑 --installer parameter must be specified.')
     }
 
-    if (flags.installer === 'operator') {
+    if (flags.installer === 'operator' || flags.installer === 'olm') {
       // operator already supports updating
       return
     }

@@ -1298,7 +1298,7 @@ export class KubeHelper {
     }
   }
 
-  async createOperatorSubscription(packageName: string, namespace: string, marketplaceNamespace: string, channel: string, csv?: string) {
+  async createOperatorSubscription(packageName: string, namespace: string, marketplaceNamespace: string, channel: string, sourceName: string, csv?: string) {
     const subscription: Subscription = {
       apiVersion: "operators.coreos.com/v1alpha1",
       kind: 'Subscription',
@@ -1311,10 +1311,11 @@ export class KubeHelper {
         installPlanApproval: 'Manual',
         name: packageName,
         // we use package name the same like subscription name
-        source: packageName,
+        source: sourceName,
         // Todo let's use source namespace the same with Che installation
         sourceNamespace: marketplaceNamespace,
-        // startingCSV: csv
+        // todo remove it...
+        startingCSV: 'eclipse-che-preview-openshift.v7.9.0'
       }
     }
 
@@ -1322,6 +1323,16 @@ export class KubeHelper {
     try {
       const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', subscription)
       return body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async getOperatorSubscription(name: string, namespace: string): Promise<Subscription> {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', name)
+      return body as Subscription
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }

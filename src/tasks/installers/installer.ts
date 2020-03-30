@@ -22,6 +22,7 @@ import { OLMTasks } from './olm'
 export class InstallerTasks {
   updateTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     const operatorTasks = new OperatorTasks()
+    const olmTasks = new OLMTasks()
 
     let title: string
     let task: any
@@ -32,8 +33,13 @@ export class InstallerTasks {
       task = () => {
         return operatorTasks.updateTasks(flags, command)
       }
+    } else if (flags.installer === 'olm') {
+      title = '🏃‍  Running the Eclipse Che operator Update using OLM'
+      task = () => {
+        return olmTasks.updateTasks(flags, command)
+      }
     } else {
-      title = '🏃‍  Installer preflight check'
+    title = '🏃‍  Installer preflight check'
       task = () => { command.error(`Installer ${flags.installer} does not support update ¯\\_(ツ)_/¯`) }
     }
 
@@ -45,6 +51,7 @@ export class InstallerTasks {
 
   preUpdateTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     const operatorTasks = new OperatorTasks()
+    const olmTasks = new OLMTasks()
 
     let title: string
     let task: any
@@ -54,6 +61,11 @@ export class InstallerTasks {
       title = '🏃‍  Running the Eclipse Che operator Update'
       task = () => {
         return operatorTasks.preUpdateTasks(flags, command)
+      }
+    } else if (flags.installer === 'olm') {
+      title = '🏃‍  Running the Eclipse Che operator Update using OLM'
+      task = () => {
+        return olmTasks.preUpdateTasks(flags, command)
       }
     } else {
       title = '🏃‍  Installer preflight check'
