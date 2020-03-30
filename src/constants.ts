@@ -17,3 +17,17 @@ export const CA_CERT_GENERATION_JOB_IMAGE = 'quay.io/eclipse/che-cert-manager-ca
 
 export const CERT_MANAGER_NAMESPACE_NAME = 'cert-manager'
 export const CHE_TLS_SECRET_NAME = 'che-tls'
+
+export const operatorCheCluster = 'eclipse-che'
+
+export const defaultOlmOpenshiftRegistryNamespace = 'eclipse-che-operator-openshift'
+export const defaultOmlKubernetesRegistryNamespace = 'eclipse-che-operator-kubernetes'
+export const defaultOlmOpenshiftOperatorSourceNamespace = 'openshift-marketplace'
+export const defaultOlmKubernetesOperatorSourceNamespace = 'marketplace'
+export const defaultOlmRegistry = 'https://quay.io/cnr'
+
+// TODO figure out and handle, Do we have the same channels for CRW?
+export enum CheOLMChannel {
+    NIGHTLY = 'nightly',
+    STABLE = 'stable'
+}

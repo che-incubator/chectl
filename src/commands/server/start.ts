@@ -95,7 +95,7 @@ export default class Start extends Command {
     installer: string({
       char: 'a',
       description: 'Installer type',
-      options: ['helm', 'operator', 'minishift-addon'],
+      options: ['helm', 'operator', 'olm', 'minishift-addon'],
       default: ''
     }),
     domain: string({
@@ -184,12 +184,12 @@ export default class Start extends Command {
       }
     } else if (flags.platform === 'crc') {
       if (flags.installer === '') {
-        flags.installer = 'operator'
+        flags.installer = 'olm'
       }
     }
 
     // TODO when tls by default is implemented for all platforms, make `tls` flag turned on by default.
-    if (flags.installer === 'helm' && (flags.platform === 'k8s' || flags.platform === 'minikube' || flags.platform === 'microk8s')) {
+    if (flags.installer === 'helm' && (flags.platform === 'k8s' || flags.platform === 'minikube' || flags.platform === 'microk8s')) { // todo olm
       flags.tls = true
     }
   }

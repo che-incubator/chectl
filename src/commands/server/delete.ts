@@ -19,6 +19,7 @@ import { CheTasks } from '../../tasks/che'
 import { HelmTasks } from '../../tasks/installers/helm'
 import { MinishiftAddonTasks } from '../../tasks/installers/minishift-addon'
 import { OperatorTasks } from '../../tasks/installers/operator'
+import { OLMTasks } from '../../tasks/installers/olm'
 import { ApiTasks } from '../../tasks/platforms/api'
 
 export default class Delete extends Command {
@@ -43,6 +44,7 @@ export default class Delete extends Command {
     const helmTasks = new HelmTasks(flags)
     const minishiftAddonTasks = new MinishiftAddonTasks()
     const operatorTasks = new OperatorTasks()
+    const olmTasks = new OLMTasks()
     const cheTasks = new CheTasks(flags)
 
     let tasks = new Listrq(undefined,
@@ -51,6 +53,7 @@ export default class Delete extends Command {
 
     tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(operatorTasks.deleteTasks(flags))
+    tasks.add(olmTasks.deleteTasks(flags))
     tasks.add(cheTasks.deleteTasks(flags))
     tasks.add(helmTasks.deleteTasks(flags))
     tasks.add(minishiftAddonTasks.deleteTasks(flags))

@@ -20,10 +20,11 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { DEFAULT_CHE_IMAGE } from '../constants'
+import { DEFAULT_CHE_IMAGE, defaultOlmRegistry } from '../constants'
 import { getClusterClientCommand } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
+import { OperatorSource, OperatorGroup, Subscription, InstallPlan } from 'olm'
 
 const AWAIT_TIMEOUT_S = 30
 
@@ -1211,6 +1212,215 @@ export class KubeHelper {
     }
   }
 
+  async operatorSourceExists(name: string, namespace: string): Promise<boolean> {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorsources', name)
+      return this.compare(body, name)
+    } catch {
+      return false
+    }
+  }
+
+  async createOperatorSource(name: string, registryNamespace: string, namespace: string) {
+    const operatorSource: OperatorSource = {
+      apiVersion: 'operators.coreos.com/v1',
+      kind: 'OperatorSource',
+      metadata: {
+        name,
+        namespace,
+      },
+      spec: {
+        endpoint: defaultOlmRegistry,
+        registryNamespace,
+        type: "appregistry"
+      }
+    }
+
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorsources', operatorSource)
+      return body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async deleteOperatorSource(name: string, namespace: string) {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const options = new V1DeleteOptions()
+      await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorsources', name, options)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async operatorGroupExists(name: string, namespace: string): Promise<boolean> {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorgroups', name)
+      return this.compare(body, name)
+    } catch {
+      return false
+    }
+  }
+
+  async createOperatorGroup(operatorGroupName: string, namespace: string) {
+    const operatorGroup: OperatorGroup = {
+      apiVersion: 'operators.coreos.com/v1',
+      kind: 'OperatorGroup',
+      metadata: {
+        name: operatorGroupName,
+        namespace,
+      },
+      spec: {
+        targetNamespaces: [ namespace ]
+      }
+    }
+
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorgroups', operatorGroup)
+      return body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async deleteOperatorGroup(operatorGroupName: string, namespace: string) {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const options = new V1DeleteOptions()
+      await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorgroups', operatorGroupName, options)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async createOperatorSubscription(packageName: string, namespace: string, marketplaceNamespace: string, channel: string, csv?: string) {
+    const subscription: Subscription = {
+      apiVersion: "operators.coreos.com/v1alpha1",
+      kind: 'Subscription',
+      metadata: {
+        name: packageName,
+        namespace
+      },
+      spec: {
+        channel,
+        installPlanApproval: 'Manual',
+        name: packageName,
+        // we use package name the same like subscription name
+        source: packageName,
+        // Todo let's use source namespace the same with Che installation
+        sourceNamespace: marketplaceNamespace,
+        // startingCSV: csv
+      }
+    }
+
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', subscription)
+      return body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async operatorSubscriptionExists(name: string, namespace: string): Promise<boolean> {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', name)
+      return this.compare(body, name)
+    } catch {
+      return false
+    }
+  }
+
+  async deleteOperatorSubscription(operatorSubscriptionName: string, namespace: string) {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const options = new V1DeleteOptions()
+      await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', operatorSubscriptionName, options)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async waitOperatorSubscriptionReadyForApproval(namespace: string, subscriptionName: string, timeout = AWAIT_TIMEOUT_S): Promise<InstallPlan> {
+    return new Promise<InstallPlan>(async (resolve, reject) => {
+      const watcher = new Watch(this.kc)
+      let request: any
+      request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`, 
+      { fieldSelector: `metadata.name=${subscriptionName}` },
+      (_phase: string, obj: any) => {
+        const subscription = obj as Subscription
+        if (subscription.status && subscription.status.conditions) {
+          for (const condition of subscription.status.conditions) {
+            if (condition.type === 'InstallPlanPending' && condition.status === 'True') {
+              resolve(subscription.status.installplan)
+            }
+          }
+        }
+      },
+      error => {
+        if (error) {
+          reject(error)
+        }
+      })
+
+      setTimeout(() => {
+        request.abort()
+        reject(`Timeout reached while waiting for "${subscriptionName}" subscription is ready.`)
+      }, timeout * 1000)
+    })
+  }
+
+  // await k8sApi.getAPIResources() // todo check if operator api exists...
+
+  async aproveOperatorInstallationPlan(name = '', namespace = '') {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const patch: InstallPlan = {
+        spec: {
+          approved: true
+        }
+      }
+      await customObjectsApi.patchNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'installplans', name, patch, {headers: {'Content-Type': 'application/merge-patch+json'}})
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async waitWhileOperatorInstalled(installPlanName: string, namespace: string, timeout = 30) {
+    return new Promise<InstallPlan>(async (resolve, reject) => {
+      const watcher = new Watch(this.kc)
+      let request: any
+      request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`, 
+      { fieldSelector: `metadata.name=${installPlanName}` },
+      (_phase: string, obj: any) => {
+        const installPlan = obj as InstallPlan
+        if (installPlan.status && installPlan.status.conditions) {
+          for (const condition of installPlan.status.conditions) {
+            if (condition.type === 'Installed' && condition.status === 'True') {
+              resolve()
+            }
+          }
+        }
+      },
+      error => {
+        if (error) {
+          reject(error)
+        }
+      })
+
+      setTimeout(() => {
+        request.abort()
+        reject(`Timeout reached while waiting for "${installPlanName}" has go status 'Installed'.`)
+      }, timeout * 1000)
+    })
+  }
+
   async deleteNamespace(namespace: string): Promise<void> {
     const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
@@ -1472,7 +1682,8 @@ export class KubeHelper {
       // Set up watcher
       const watcher = new Watch(this.kc)
       request = watcher
-        .watch(`/api/v1/namespaces/${namespace}/secrets/`, { fieldSelector: `metadata.name=${secretName}` },
+        .watch(`/api/v1/namespaces/${namespace}/secrets/`, 
+        { fieldSelector: `metadata.name=${secretName}` },
           (_phase: string, obj: any) => {
             const secret = obj as V1Secret
 

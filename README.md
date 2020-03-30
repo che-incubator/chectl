@@ -244,7 +244,7 @@ USAGE
   $ chectl server:start
 
 OPTIONS
-  -a, --installer=helm|operator|minishift-addon
+  -a, --installer=helm|operator|olm|minishift-addon
       Installer type
 
   -b, --domain=domain
