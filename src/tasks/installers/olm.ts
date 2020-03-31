@@ -29,14 +29,7 @@ export class OLMTasks {
   startTasks(flags: any, command: Command): Listr {
     const kube = new KubeHelper(flags)
     return new Listr([
-      {
-        title: "Check if OLM is pre-installed on the platform",
-        task: async  (ctx: any, task: any) => {
-          if (!await kube.isPreInstalledOLM()) {
-            command.error("OLM isn't installed on your platfrom. If your platform hasn't got emdedded OML, you need install it manually.")
-          }
-        }
-      },
+      this.isOlmPreInstalledTask(flags, command, kube),
       copyOperatorResources(flags, command.config.cacheDir),  
       createNamespaceTask(flags),
       checkPreCreatedTls(flags, kube),
@@ -82,7 +75,7 @@ export class OLMTasks {
       {
         title: 'Wait while subscription is ready',
         task: async (ctx: any, task: any) => {
-          const installPlan = await kube.waitOperatorSubscriptionReadyForApproval(flags.chenamespace, ctx.packageName)
+          const installPlan = await kube.waitOperatorSubscriptionReadyForApproval(flags.chenamespace, ctx.packageName, 60)
           ctx.installPlanName = installPlan.name
           task.title = `${task.title}...OK`
         }
@@ -108,6 +101,7 @@ export class OLMTasks {
   preUpdateTasks(flags: any, command: Command): Listr {
     const kube = new KubeHelper(flags)
     return new Listr([
+      this.isOlmPreInstalledTask(flags, command, kube),
       {
         title: 'Check if operator source exists',
         task: async (ctx: any, task: any) => {
@@ -167,17 +161,24 @@ export class OLMTasks {
       {
         title: 'Wait while newer operator installed',
         task: async (ctx: any, task: any) => {
-          await kube.waitWhileOperatorInstalled(ctx.installPlanName, flags.chenamespace)
+          await kube.waitWhileOperatorInstalled(ctx.installPlanName, flags.chenamespace, 60)
         }
       },
     ], { renderer: flags['listr-renderer'] as any })
   }
 
-  deleteTasks(flags: any, command?: Command): ReadonlyArray<Listr.ListrTask> {
+  deleteTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     const kube = new KubeHelper(flags)
     return [
       {
+        title: "Check if OLM is pre-installed on the platform",
+        task: async  (ctx: any, task: any) => {
+          ctx.isPreInstalledOLM = await kube.isPreInstalledOLM() ? true : false
+        }
+      },
+      {
         title: `Delete(OLM) operator subscription 'Todo package name...'`,
+        enabled: (ctx) => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
           // todo why do we need the same subscription name like package name. Are you sure? or move it upper.
           const packageName = this.packageNamePrefix + (ctx.isOpenShift ? 'openshift' : 'kubernetes') 
@@ -189,6 +190,7 @@ export class OLMTasks {
       },
       {
         title: `Delete(OLM) operator group ${this.operatorGroupName}`,
+        enabled: (ctx) => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
           if (await kube.operatorGroupExists(this.operatorGroupName, flags.chenamespace)) {
             await kube.deleteOperatorGroup(this.operatorGroupName, flags.chenamespace)
@@ -198,6 +200,7 @@ export class OLMTasks {
       },
       {
         title: `Delete(OLM) operator source ${this.OperatorSourceNamePrefix}`, // todo use name instead of prefix
+        enabled: (ctx) => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
           // todo, maybe we should deploy source to the the same namespace with Che?
           ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOLMOpenshiftOperatorSourceNamespace : defaultOLMKubernetesOperatorSourceNamespace
@@ -218,6 +221,17 @@ export class OLMTasks {
       return CheOLMChannel.NIGHTLY
     }
     return CheOLMChannel.STABLE
+  }
+
+  isOlmPreInstalledTask(flags: any, command: Command, kube: KubeHelper): Listr.ListrTask<Listr.ListrContext> {
+    return {
+      title: "Check if OLM is pre-installed on the platform",
+      task: async  (ctx: any, task: any) => {
+        if (!await kube.isPreInstalledOLM()) {
+          command.error("OLM isn't installed on your platfrom. If your platform hasn't got embedded OML, you need install it manually.")
+        }
+      }
+    }
   }
 }
 

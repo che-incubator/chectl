@@ -126,7 +126,7 @@ export function checkPreCreatedTls(flags: any, kube: KubeHelper): ListrTask<List
   }
 }
 
-export function checkTlsSertificate(flags: any) {
+export function checkTlsSertificate(flags: any): ListrTask<ListrContext> {
   return {
     title: 'Checking certificate',
     // If the flag is set no need to check if it is required
