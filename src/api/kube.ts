@@ -1212,6 +1212,19 @@ export class KubeHelper {
     }
   }
 
+  async isPreInstalledOLM() {
+    const apiApi = this.kc.makeApiClient(ApisApi)
+    try {
+      const { body } = await apiApi.getAPIVersions()
+      const OLMAPIGroup = body.groups.find((apiGroup) => apiGroup.name === 'operators.coreos.com')
+      if (OLMAPIGroup) {
+        return true
+      }
+    } catch {}
+
+    return false
+  }
+
   async operatorSourceExists(name: string, namespace: string): Promise<boolean> {
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
     try {
@@ -1386,19 +1399,6 @@ export class KubeHelper {
       }, timeout * 1000)
     })
   }
-
-  async isPreInstalledOLM() {
-    const apiApi = this.kc.makeApiClient(ApisApi)
-    try {
-
-      const { body } = await apiApi.getAPIVersions()
-      const olmGroup = body.groups.find((apiGroup) => apiGroup.name === 'operators.coreos.com')
-      if (olmGroup) {
-        return true
-      }
-  } catch {}
-  return false
-}
 
   async aproveOperatorInstallationPlan(name = '', namespace = '') {
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
@@ -1704,8 +1704,7 @@ export class KubeHelper {
       // Set up watcher
       const watcher = new Watch(this.kc)
       request = watcher
-        .watch(`/api/v1/namespaces/${namespace}/secrets/`, 
-        { fieldSelector: `metadata.name=${secretName}` },
+        .watch(`/api/v1/namespaces/${namespace}/secrets/`, { fieldSelector: `metadata.name=${secretName}` },
           (_phase: string, obj: any) => {
             const secret = obj as V1Secret
 

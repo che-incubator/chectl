@@ -39,7 +39,7 @@ export class InstallerTasks {
         return olmTasks.updateTasks(flags, command)
       }
     } else {
-    title = '🏃‍  Installer preflight check'
+      title = '🏃‍  Installer preflight check'
       task = () => { command.error(`Installer ${flags.installer} does not support update ¯\\_(ツ)_/¯`) }
     }
 

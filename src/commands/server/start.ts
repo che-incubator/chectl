@@ -189,7 +189,7 @@ export default class Start extends Command {
     }
 
     // TODO when tls by default is implemented for all platforms, make `tls` flag turned on by default.
-    if (flags.installer === 'helm' && (flags.platform === 'k8s' || flags.platform === 'minikube' || flags.platform === 'microk8s')) { // todo olm
+    if (flags.installer === 'helm' && (flags.platform === 'k8s' || flags.platform === 'minikube' || flags.platform === 'microk8s')) {
       flags.tls = true
     }
   }
