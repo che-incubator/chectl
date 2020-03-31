@@ -376,7 +376,7 @@ USAGE
   $ chectl server:update
 
 OPTIONS
-  -a, --installer=helm|operator|minishift-addon                                Installer type
+  -a, --installer=helm|operator|minishift-addon|olm                            Installer type
   -h, --help                                                                   show CLI help
 
   -n, --chenamespace=chenamespace                                              [default: che] Kubernetes namespace where

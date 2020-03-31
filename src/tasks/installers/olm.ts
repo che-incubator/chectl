@@ -29,6 +29,14 @@ export class OLMTasks {
   startTasks(flags: any, command: Command): Listr {
     const kube = new KubeHelper(flags)
     return new Listr([
+      {
+        title: "Check if OLM is pre-installed on the platform",
+        task: async  (ctx: any, task: any) => {
+          if (!await kube.isPreInstalledOLM()) {
+            command.error("OLM isn't installed on your platfrom. If your platform hasn't got emdedded OML, you need install it manually.")
+          }
+        }
+      },
       copyOperatorResources(flags, command.config.cacheDir),  
       createNamespaceTask(flags),
       checkPreCreatedTls(flags, kube),
@@ -173,7 +181,6 @@ export class OLMTasks {
         task: async (ctx: any, task: any) => {
           // todo why do we need the same subscription name like package name. Are you sure? or move it upper.
           const packageName = this.packageNamePrefix + (ctx.isOpenShift ? 'openshift' : 'kubernetes') 
-
           if (await kube.operatorSubscriptionExists(packageName, flags.chenamespace)) {
             await kube.deleteOperatorSubscription(packageName, flags.chenamespace)
           }

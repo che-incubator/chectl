@@ -1314,8 +1314,8 @@ export class KubeHelper {
         source: sourceName,
         // Todo let's use source namespace the same with Che installation
         sourceNamespace: marketplaceNamespace,
-        // todo remove it...
-        startingCSV: 'eclipse-che-preview-openshift.v7.9.0'
+        // Todo: remove it. Applied to test update olm after installation older Che and stable channel.
+        // startingCSV: 'eclipse-che-preview-openshift.v7.9.0'
       }
     }
 
@@ -1387,7 +1387,18 @@ export class KubeHelper {
     })
   }
 
-  // await k8sApi.getAPIResources() // todo check if operator api exists...
+  async isPreInstalledOLM() {
+    const apiApi = this.kc.makeApiClient(ApisApi)
+    try {
+
+      const { body } = await apiApi.getAPIVersions()
+      const olmGroup = body.groups.find((apiGroup) => apiGroup.name === 'operators.coreos.com')
+      if (olmGroup) {
+        return true
+      }
+  } catch {}
+  return false
+}
 
   async aproveOperatorInstallationPlan(name = '', namespace = '') {
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
