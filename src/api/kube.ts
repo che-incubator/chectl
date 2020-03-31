@@ -20,7 +20,7 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { DEFAULT_CHE_IMAGE, defaultOlmRegistry } from '../constants'
+import { DEFAULT_CHE_IMAGE, defaultOLMRegistry } from '../constants'
 import { getClusterClientCommand } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
@@ -1231,7 +1231,7 @@ export class KubeHelper {
         namespace,
       },
       spec: {
-        endpoint: defaultOlmRegistry,
+        endpoint: defaultOLMRegistry,
         registryNamespace,
         type: "appregistry"
       }

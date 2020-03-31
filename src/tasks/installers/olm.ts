@@ -10,7 +10,7 @@
 
 import Command from '@oclif/command';
 import Listr = require('listr');
-import { CheOLMChannel, DEFAULT_CHE_IMAGE, defaultOlmOpenshiftRegistryNamespace, defaultOmlKubernetesRegistryNamespace, defaultOlmOpenshiftOperatorSourceNamespace, defaultOlmKubernetesOperatorSourceNamespace } from '../../constants';
+import { CheOLMChannel, DEFAULT_CHE_IMAGE, defaultOLMOpenshiftRegistryNamespace, defaultOLMKubernetesRegistryNamespace, defaultOLMOpenshiftOperatorSourceNamespace, defaultOLMKubernetesOperatorSourceNamespace } from '../../constants';
 
 import { KubeHelper } from '../../api/kube';
 import { createNamespaceTask, createEclipeCheCluster, copyOperatorResources, checkPreCreatedTls, checkTlsSertificate } from './common-tasks';
@@ -44,8 +44,8 @@ export class OLMTasks {
       {
         title: "Create operator source",
         task: async (ctx: any, task: any) => {
-            ctx.operatorRegistryNamespace = ctx.isOpenShift ? defaultOlmOpenshiftRegistryNamespace : defaultOmlKubernetesRegistryNamespace
-            ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOlmOpenshiftOperatorSourceNamespace : defaultOlmKubernetesOperatorSourceNamespace
+            ctx.operatorRegistryNamespace = ctx.isOpenShift ? defaultOLMOpenshiftRegistryNamespace : defaultOLMKubernetesRegistryNamespace
+            ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOLMOpenshiftOperatorSourceNamespace : defaultOLMKubernetesOperatorSourceNamespace
             ctx.operatorSourceName = this.OperatorSourceNamePrefix + flags.chenamespace
 
             if (await kube.operatorSourceExists(ctx.operatorSourceName, ctx.marketplaceNamespace)) {
@@ -111,7 +111,7 @@ export class OLMTasks {
       {
         title: 'Check if operator source exists',
         task: async (ctx: any, task: any) => {
-          ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOlmOpenshiftOperatorSourceNamespace : defaultOlmKubernetesOperatorSourceNamespace
+          ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOLMOpenshiftOperatorSourceNamespace : defaultOLMKubernetesOperatorSourceNamespace
           ctx.operatorSourceName = this.OperatorSourceNamePrefix + flags.chenamespace
           if (!await kube.operatorSourceExists(ctx.operatorSourceName, ctx.marketplaceNamespace)) {
             command.error(`Unable to find operator source ${ctx.operatorSourceName}`)
@@ -200,7 +200,7 @@ export class OLMTasks {
         title: `Delete(OLM) operator source ${this.OperatorSourceNamePrefix}`, // todo use name instead of prefix
         task: async (ctx: any, task: any) => {
           // todo, maybe we should deploy source to the the same namespace with Che?
-          ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOlmOpenshiftOperatorSourceNamespace : defaultOlmKubernetesOperatorSourceNamespace
+          ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOLMOpenshiftOperatorSourceNamespace : defaultOLMKubernetesOperatorSourceNamespace
           const operatorSourceName = this.OperatorSourceNamePrefix + flags.chenamespace
           if (await kube.operatorSourceExists(operatorSourceName, ctx.marketplaceNamespace)) {
             await kube.deleteOperatorSource(operatorSourceName, ctx.marketplaceNamespace)
