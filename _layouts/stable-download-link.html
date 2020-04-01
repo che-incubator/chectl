@@ -1,22 +1,8 @@
 ---
 layout: null
 ---
-{%- comment -%}
-Filter all releases in descending order and matching 'next' channel
-{%- endcomment -%}
+{% include last-stable-release.html %}
 
-{%- assign releases = site.github.releases | where: "draft", false | sort: "created_at" | reverse -%}
-{%- assign stableRls = "" | split: ',' -%}
-
-{%- for gitRelease in releases -%}
-  {%- if gitRelease.name contains "next" or gitRelease.name == '' or  gitRelease.name == nil -%}
-  {%- else -%}
-    {%- assign stableRls = stableRls | push: gitRelease -%}
-  {%- endif -%}
-{%- endfor -%}
-
-{%- assign semVerReleases = stableRls | sort: 'name' | where: "name","7.10.0" | reverse -%}
-{%- assign lastRelease = semVerReleases[0] -%}
 {%- assign fileNameFilter = page.platform | append: '.tar.gz' -%}
 
 {%- for asset in lastRelease.assets -%}

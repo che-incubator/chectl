@@ -1,0 +1,28 @@
+{%- assign releases = site.github.releases | where: "draft", false | sort: "created_at" | reverse -%}
+{%- assign stableRls = "" | split: ',' -%}
+
+{%- assign lastRelease = "" -%}
+{%- assign lastReleaseVer = 0 -%}
+
+{%- for gitRelease in releases -%}
+  {%- if gitRelease.name contains "next" or gitRelease.name == '' or  gitRelease.name == nil -%}
+  {%- else -%}
+    {% assign verItems = gitRelease.name | split: "." %}
+
+    {%- comment -%}
+    Interested only in stable x.y.z releases
+    {%- endcomment -%}
+
+    {%- if verItems.size == 3 -%}
+      {%- assign intMajorVer = verItems[0] | to_integer | times: 1000 -%}
+      {%- assign intMinorVer = verItems[1] | to_integer | times: 10 -%}
+      {%- assign intBugFixVer = verItems[2] | to_integer -%}
+      {%- assign ver = intBugFixVer | plus: intMinorVer | plus: intMajorVer -%}
+
+      {%- if ver > lastReleaseVer -%}
+        {%- assign lastRelease = gitRelease -%}
+        {%- assign lastReleaseVer = ver -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endif -%}
+{%- endfor -%}
