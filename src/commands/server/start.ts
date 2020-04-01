@@ -22,6 +22,7 @@ import { CheTasks } from '../../tasks/che'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
+import { isOpenshiftPlatformFamily } from '../../util'
 
 export default class Start extends Command {
   static description = 'start Eclipse Che server'
@@ -100,7 +101,12 @@ export default class Start extends Command {
     }),
     domain: string({
       char: 'b',
-      description: 'Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)',
+      description: `Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
+                    This flag makes sense only for Kubernetes family infrastructures and will be autodetected for Minikube and MicroK8s in most cases.
+                    However, for Kubernetes cluster it is required to specify.
+                    Please note, that just setting this flag will not likely work out of the box.
+                    According changes should be done in Kubernetes cluster configuration as well.
+                    In case of Openshift, domain adjustment should be done on the cluster configuration level.`,
       default: ''
     }),
     debug: boolean({
@@ -212,6 +218,10 @@ export default class Start extends Command {
       if (ignoredFlags.length) {
         this.warn(`--che-operator-cr-yaml is used. The following flag(s) will be ignored: ${ignoredFlags.join('\t')}`)
       }
+    }
+
+    if (flags.domain && !flags['che-operator-cr-yaml'] && isOpenshiftPlatformFamily(flags.platform)) {
+      this.warn('"--domain" flag is ignored for Openshift family infrastructures. It should be done on the cluster level.')
     }
 
     if (flags.installer) {
