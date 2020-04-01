@@ -15,6 +15,8 @@ import * as Listr from 'listr'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 
+import { CommonPlatformTasks } from './common-platform-tasks'
+
 export class K8sTasks {
   /**
    * Returns tasks list which perform preflight platform checks.
@@ -52,6 +54,7 @@ export class K8sTasks {
           task.title = `${task.title}...set to ${flags.domain}.`
         }
       },
+      CommonPlatformTasks.getPingClusterTask(flags)
     ],
       { renderer: flags['listr-renderer'] as any }
     )

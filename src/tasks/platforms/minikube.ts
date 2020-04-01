@@ -15,6 +15,8 @@ import * as Listr from 'listr'
 
 import { VersionHelper } from '../../api/version'
 
+import { CommonPlatformTasks } from './common-platform-tasks'
+
 export class MinikubeTasks {
   /**
    * Returns tasks list which perform preflight platform checks.
@@ -77,6 +79,7 @@ export class MinikubeTasks {
           task.title = `${task.title}...${flags.domain}.`
         }
       },
+      CommonPlatformTasks.getPingClusterTask(flags)
     ], { renderer: flags['listr-renderer'] as any })
   }
 
