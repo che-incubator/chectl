@@ -1,11 +1,4 @@
 ---
 layout: null
 ---
-{% include last-stable-release.html %}
-
-{%- assign fileNameFilter = page.platform | append: '.tar.gz' -%}
-
-{%- for asset in lastRelease.assets -%}
-  {%- if asset.name contains fileNameFilter -%}{% assign gzLink = asset.browser_download_url %}{%- endif -%}
-{%- endfor -%}
-{{gzLink}}
+{% include last-stable-release.html %}{{gzLink}}

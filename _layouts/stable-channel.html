@@ -1,12 +1,7 @@
 ---
 layout: null
 ---
-{% include last-stable-release.html %}
-
-{%- for asset in lastRelease.assets -%}
-  {%- if asset.name contains fileNameFilter -%}{% assign gzLink = asset.browser_download_url %}{%- endif -%}
-{%- endfor -%}
-{
+{% include last-stable-release.html %}{
   "version": "{{lastRelease.name}}",
   "channel": "stable",
   "baseDir": "chectl",
