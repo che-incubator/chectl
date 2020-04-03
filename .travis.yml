@@ -2,15 +2,10 @@ language: node_js
 matrix:
   include:
    - os: osx
-   - os: linux
-     arch: amd64
-   - os: linux
-     arch: arm64
-   - os: linux
-     arch: s390x
 node_js: '10'
 before_deploy:
 - |
+  TARGETS=darwin-x64,linux-arm,linux-s390x,linux-x64,linux-x64,win32-x86
   if ! [ "$BEFORE_DEPLOY_DONE" ]; then
     export BEFORE_DEPLOY_DONE=1
     brew update
@@ -35,7 +30,7 @@ before_deploy:
     fi;
     sed -i sed "s#version\":\ \"\(.*\)\",#version\":\ \"$CHECTL_VERSION\",#g" package.json
     git tag $TRAVIS_TAG
-    npx oclif-dev pack
+    npx oclif-dev pack --targets=$TARGETS
     git clone https://github.com/flacatus/chectl -b gh-pages --single-branch gh-pages
     rm -rf gh-pages/.git
     echo $(date +%s) > gh-pages/update
