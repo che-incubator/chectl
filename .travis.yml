@@ -13,8 +13,8 @@ before_deploy:
     export BEFORE_DEPLOY_DONE=1
     brew update
     brew install p7zip
-    git config --local user.name "Mario Loriedo"
-    git config --local user.email "mario.loriedo@gmail.com"
+    git config --local user.name "Flavius Lacatusu"
+    git config --local user.email "flacatus@redhat.com"
     export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')}
     export CHECTL_VERSION="UNKNOWN"
     export GITHUB_RELEASE_NAME=$TRAVIS_TAG
