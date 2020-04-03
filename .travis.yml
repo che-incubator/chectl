@@ -52,3 +52,12 @@ deploy:
       tags: false
       all_branches: true
       condition: $TRAVIS_BRANCH =~ ^(master|release)$
+  - provider: pages
+    skip_cleanup: true
+    github_token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+    keep_history: true
+    local-dir: gh-pages
+    on:
+      repo: che-incubator/chectl
+      all_branches: true
+      condition: $TRAVIS_BRANCH =~ ^(master|release)$
