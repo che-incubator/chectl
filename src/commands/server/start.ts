@@ -255,6 +255,8 @@ export default class Start extends Command {
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
     ctx.listrOptions = listrOptions
+    // Holds messages which should be printed at the end of chectl log
+    ctx.highlightedMessages = [] as string[]
 
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()
@@ -281,10 +283,26 @@ export default class Start extends Command {
     }], listrOptions)
 
     // Post Install Checks
-    const postInstallTasks = new Listr([{
-      title: '✅  Post installation checklist',
-      task: () => new Listr(cheTasks.waitDeployedChe(flags, this))
-    }], listrOptions)
+    const postInstallTasks = new Listr([
+      {
+        title: '✅  Post installation checklist',
+        task: () => new Listr(cheTasks.waitDeployedChe(flags, this))
+      },
+      {
+        title: 'Show important messages',
+        enabled: ctx => ctx.highlightedMessages.length > 0,
+        task: (ctx: any) => {
+          const printMessageTasks = new Listr([], ctx.listrOptions)
+          for (const message of ctx.highlightedMessages) {
+            printMessageTasks.add({
+              title: message,
+              task: () => { }
+            })
+          }
+          return printMessageTasks
+        }
+      }
+    ], listrOptions)
 
     const logsTasks = new Listr([{
       title: 'Start following logs',
