@@ -162,7 +162,7 @@ export class CertManagerTasks {
       },
       {
         title: 'Add local Eclipse Che CA certificate into browser',
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const cheSecret = await this.kubeHelper.getSecret(CHE_TLS_SECRET_NAME, flags.chenamespace)
           if (cheSecret && cheSecret.data) {
             const cheCaCrt = Buffer.from(cheSecret.data['ca.crt'], 'base64').toString('ascii')
@@ -171,7 +171,9 @@ export class CertManagerTasks {
 
             const yellow = '\x1b[33m'
             const noColor = '\x1b[0m'
-            task.title = `❗${yellow}[MANUAL ACTION REQUIRED]${noColor} Please add local Eclipse Che CA certificate into your browser: ${cheCaPublicCertPath}`
+            const message = `❗${yellow}[MANUAL ACTION REQUIRED]${noColor} Please add local Eclipse Che CA certificate into your browser: ${cheCaPublicCertPath}`
+            task.title = message
+            ctx.highlightedMessages.push(message)
           } else {
             throw new Error('Failed to get Cert Manager CA secret')
           }
