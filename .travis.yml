@@ -1,10 +1,6 @@
 jobs:
   include:
    - os: osx
-   - os: linux
-     arch:
-      - amd64
-      - s390x
 language: node_js
 node_js: '10'
 before_deploy:
@@ -34,6 +30,7 @@ before_deploy:
     sed -i sed "s#version\":\ \"\(.*\)\",#version\":\ \"$CHECTL_VERSION\",#g" package.json
     git tag $TRAVIS_TAG
     npx oclif-dev pack
+    npx oclif-dev pack --targets=linux-s390x
     git clone https://github.com/che-incubator/chectl -b gh-pages --single-branch gh-pages
     rm -rf gh-pages/.git
     echo $(date +%s) > gh-pages/update
