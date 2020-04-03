@@ -1,6 +1,10 @@
 jobs:
   include:
-   - os: osx
+    - os: linux
+    - arch:
+      - amd64
+      - s390x
+      - arm64
 
 language: node_js
 node_js: '10'
