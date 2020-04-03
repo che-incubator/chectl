@@ -2,10 +2,11 @@ jobs:
   include:
    - os: osx
    - os: linux
-     arch:
-      - amd64
-      - s390x
+
 language: node_js
+arch:
+  - amd64
+  - s390x
 node_js: '10'
 before_deploy:
 - |
