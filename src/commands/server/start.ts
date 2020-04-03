@@ -146,6 +146,10 @@ export default class Start extends Command {
     'skip-version-check': flags.boolean({
       description: 'Skip minimal versions check.',
       default: false
+    }),
+    'skip-cluster-availability-check': flags.boolean({
+      description: 'Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.',
+      default: false
     })
   }
 
