@@ -1,7 +1,6 @@
 jobs:
   include:
    - os: osx
-   - arch: s390x
 language: node_js
 node_js: '10'
 before_deploy:
