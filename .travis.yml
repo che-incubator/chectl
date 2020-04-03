@@ -42,8 +42,7 @@ before_deploy:
   fi
 deploy:
   - provider: releases
-    api-key:
-      secure: VF/xQoNU+pxVV9Sl1Dm7ivHeSUiUO1uzFdxEhH/nev1hUsZBqa2YGcXuRQ5MWX4BF8ltSG6W6eka3WU0Sma2oD9HXt7XfIbQEmeHjh9bR0D1O019wcMTvQwUXk7Lk823mLu2hzc3oXDgM2w0xmCsnffs2lDVP96jq9yk+x3m73EXaoVetOHJNGG+z4tVHql4NP4iyM3uBP2s6Xwrx6GgrcAuShzxa4HKacwjnTjIFiF9i2VYZITavKmCwW6CbeSDzIEtQ9778pwNk1woHfs0PmBwUkcGZ1xf+vA0f/HtZVlaPTmOJZPYoDQ3IrM83M+g3SCvG+TKSHf0iWcQURSdI+zTTshDuHV/WgyhsBiSq+xzoxZqDKgNeuH1NAw5qEyEmvV1AN/2Cl0El8iUSZUBGPU9oFd4uo0K7o1WkG0v0/zGJReRuyHzP8qxPpk7Ejli+RL05mQhHf8Xk4YuxMxVpdam+SdYyL+D+6yhoBKf2RClABVhVbDRAcUt9U+Q46eUrNYIY5zSkSzHOhvgGQ+ZgygdRMMrmNTFPgFsiKrCc3Uvv2iOe/fmpSNuDOWdedK9cAS1tmcXeGVGGCTE7qGoCXcsmhV/qaPNB0onSwZ/S+eqnFDiSNXctxxp04hYbZ8HZxrWEdI1FfRX2s1A1jazThhuXZ/l5HDiHFlbTHVV43g=
+    api-key: $GITHUB_TOKEN
     file_glob: true
     name: $GITHUB_RELEASE_NAME
     file:
@@ -55,8 +54,7 @@ deploy:
       all_branches: true
       condition: $TRAVIS_BRANCH =~ ^(master|release)$
   - provider: pages
-    github-token:
-      secure: VF/xQoNU+pxVV9Sl1Dm7ivHeSUiUO1uzFdxEhH/nev1hUsZBqa2YGcXuRQ5MWX4BF8ltSG6W6eka3WU0Sma2oD9HXt7XfIbQEmeHjh9bR0D1O019wcMTvQwUXk7Lk823mLu2hzc3oXDgM2w0xmCsnffs2lDVP96jq9yk+x3m73EXaoVetOHJNGG+z4tVHql4NP4iyM3uBP2s6Xwrx6GgrcAuShzxa4HKacwjnTjIFiF9i2VYZITavKmCwW6CbeSDzIEtQ9778pwNk1woHfs0PmBwUkcGZ1xf+vA0f/HtZVlaPTmOJZPYoDQ3IrM83M+g3SCvG+TKSHf0iWcQURSdI+zTTshDuHV/WgyhsBiSq+xzoxZqDKgNeuH1NAw5qEyEmvV1AN/2Cl0El8iUSZUBGPU9oFd4uo0K7o1WkG0v0/zGJReRuyHzP8qxPpk7Ejli+RL05mQhHf8Xk4YuxMxVpdam+SdYyL+D+6yhoBKf2RClABVhVbDRAcUt9U+Q46eUrNYIY5zSkSzHOhvgGQ+ZgygdRMMrmNTFPgFsiKrCc3Uvv2iOe/fmpSNuDOWdedK9cAS1tmcXeGVGGCTE7qGoCXcsmhV/qaPNB0onSwZ/S+eqnFDiSNXctxxp04hYbZ8HZxrWEdI1FfRX2s1A1jazThhuXZ/l5HDiHFlbTHVV43g=
+    github-token: $GITHUB_TOKEN
     skip_cleanup: true
     keep_history: true
     local-dir: gh-pages
