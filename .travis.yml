@@ -39,29 +39,16 @@ before_deploy:
     env
   fi
 deploy:
-  matrix:
   - provider: releases
     api-key:
-      secure: kmbudgyZMniPl/0ksp51tdGDqJktXdF9D0jWd/rROz3CaMkj3SX3kc5Z9X+U1Rsn9QHkkdsfJgdxTjPt/Jl1k1vlR00aYZbiYf3QgPSq6BJVbh5upROKwYtOgIEchRuem/QHnfM2ROsjezECngA48aFuaU4hu2GCyWCgjOdBMzyo4woTdLGKUMZgH2vv2MWOldUGCXzWMxs2Uu3/jAT0/we8eHFYqgoC0hplS8BVpf9jaRcFExblxLXWEg024MlrHJT41lR20CgKISv4elwda3WCtX01VWX80TT8XqIG50/08F7m7WgHVZpdUiYDjI+qT66QzDmFDQXlWZhuBBMfvxYZa5rSSN6qffpPscw/X7wxkzP6J5ogxgHtnpEPaW5+Tf6p8Qa0OqToMGWzkd5qBm7iHqahe7OxLBV6Mc/dGyqBxP9kANP56/djMSSe/ysBrckkNFMbqBMb5oWMIpwWVbXMkgCAo74RQ1DAqkb+WrUlRqGpkpddKVwOkmd51xcQxh3OanlxI2L3tizxBfykGyuqYEZ8dqZkpqUlD7jQkeNMlZxVKYxNHI9qqmXTYRd7fvjST6La2OyIMb45LFSmJ87zKOm5xvg7oWuCPsu2Vvz9lxyk3DBNcWvRYO8BaTnsmOz/U+kPBdgnnY8JCAU6N6ftN5HEiYZ0aMbq7OtD+MA=
+      secure: VF/xQoNU+pxVV9Sl1Dm7ivHeSUiUO1uzFdxEhH/nev1hUsZBqa2YGcXuRQ5MWX4BF8ltSG6W6eka3WU0Sma2oD9HXt7XfIbQEmeHjh9bR0D1O019wcMTvQwUXk7Lk823mLu2hzc3oXDgM2w0xmCsnffs2lDVP96jq9yk+x3m73EXaoVetOHJNGG+z4tVHql4NP4iyM3uBP2s6Xwrx6GgrcAuShzxa4HKacwjnTjIFiF9i2VYZITavKmCwW6CbeSDzIEtQ9778pwNk1woHfs0PmBwUkcGZ1xf+vA0f/HtZVlaPTmOJZPYoDQ3IrM83M+g3SCvG+TKSHf0iWcQURSdI+zTTshDuHV/WgyhsBiSq+xzoxZqDKgNeuH1NAw5qEyEmvV1AN/2Cl0El8iUSZUBGPU9oFd4uo0K7o1WkG0v0/zGJReRuyHzP8qxPpk7Ejli+RL05mQhHf8Xk4YuxMxVpdam+SdYyL+D+6yhoBKf2RClABVhVbDRAcUt9U+Q46eUrNYIY5zSkSzHOhvgGQ+ZgygdRMMrmNTFPgFsiKrCc3Uvv2iOe/fmpSNuDOWdedK9cAS1tmcXeGVGGCTE7qGoCXcsmhV/qaPNB0onSwZ/S+eqnFDiSNXctxxp04hYbZ8HZxrWEdI1FfRX2s1A1jazThhuXZ/l5HDiHFlbTHVV43g=
     file_glob: true
-    name: "$GITHUB_RELEASE_NAME"
+    name: $GITHUB_RELEASE_NAME
     file:
-    - "./dist/channels/**/chectl-*.gz"
+      - "./dist/channels/**/chectl-*.gz"
     skip_cleanup: true
     on:
-      repo: flacatus/chectl
+      repo: che-incubator/chectl
       tags: false
       all_branches: true
-      condition: "$TRAVIS_BRANCH =~ ^(master|release)$"
-  - provider: pages
-    github-token:
-      secure: kmbudgyZMniPl/0ksp51tdGDqJktXdF9D0jWd/rROz3CaMkj3SX3kc5Z9X+U1Rsn9QHkkdsfJgdxTjPt/Jl1k1vlR00aYZbiYf3QgPSq6BJVbh5upROKwYtOgIEchRuem/QHnfM2ROsjezECngA48aFuaU4hu2GCyWCgjOdBMzyo4woTdLGKUMZgH2vv2MWOldUGCXzWMxs2Uu3/jAT0/we8eHFYqgoC0hplS8BVpf9jaRcFExblxLXWEg024MlrHJT41lR20CgKISv4elwda3WCtX01VWX80TT8XqIG50/08F7m7WgHVZpdUiYDjI+qT66QzDmFDQXlWZhuBBMfvxYZa5rSSN6qffpPscw/X7wxkzP6J5ogxgHtnpEPaW5+Tf6p8Qa0OqToMGWzkd5qBm7iHqahe7OxLBV6Mc/dGyqBxP9kANP56/djMSSe/ysBrckkNFMbqBMb5oWMIpwWVbXMkgCAo74RQ1DAqkb+WrUlRqGpkpddKVwOkmd51xcQxh3OanlxI2L3tizxBfykGyuqYEZ8dqZkpqUlD7jQkeNMlZxVKYxNHI9qqmXTYRd7fvjST6La2OyIMb45LFSmJ87zKOm5xvg7oWuCPsu2Vvz9lxyk3DBNcWvRYO8BaTnsmOz/U+kPBdgnnY8JCAU6N6ftN5HEiYZ0aMbq7OtD+MA=
-    skip_cleanup: true
-    keep_history: true
-    local-dir: gh-pages
-    on:
-      repo: flacatus/chectl
-      all_branches: true
-      condition: "$TRAVIS_BRANCH =~ ^(master|release)$"
-  token:
-    secure: VF/xQoNU+pxVV9Sl1Dm7ivHeSUiUO1uzFdxEhH/nev1hUsZBqa2YGcXuRQ5MWX4BF8ltSG6W6eka3WU0Sma2oD9HXt7XfIbQEmeHjh9bR0D1O019wcMTvQwUXk7Lk823mLu2hzc3oXDgM2w0xmCsnffs2lDVP96jq9yk+x3m73EXaoVetOHJNGG+z4tVHql4NP4iyM3uBP2s6Xwrx6GgrcAuShzxa4HKacwjnTjIFiF9i2VYZITavKmCwW6CbeSDzIEtQ9778pwNk1woHfs0PmBwUkcGZ1xf+vA0f/HtZVlaPTmOJZPYoDQ3IrM83M+g3SCvG+TKSHf0iWcQURSdI+zTTshDuHV/WgyhsBiSq+xzoxZqDKgNeuH1NAw5qEyEmvV1AN/2Cl0El8iUSZUBGPU9oFd4uo0K7o1WkG0v0/zGJReRuyHzP8qxPpk7Ejli+RL05mQhHf8Xk4YuxMxVpdam+SdYyL+D+6yhoBKf2RClABVhVbDRAcUt9U+Q46eUrNYIY5zSkSzHOhvgGQ+ZgygdRMMrmNTFPgFsiKrCc3Uvv2iOe/fmpSNuDOWdedK9cAS1tmcXeGVGGCTE7qGoCXcsmhV/qaPNB0onSwZ/S+eqnFDiSNXctxxp04hYbZ8HZxrWEdI1FfRX2s1A1jazThhuXZ/l5HDiHFlbTHVV43g=
+      condition: $TRAVIS_BRANCH =~ ^(master|release)$
