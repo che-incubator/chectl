@@ -42,6 +42,7 @@ before_deploy:
   fi
 deploy:
   - provider: releases
+    api-key: e0ccbff01a46e3c7c377b1a6ae5b8797d5b9afe6
     file_glob: true
     name: $GITHUB_RELEASE_NAME
     file:
@@ -53,6 +54,7 @@ deploy:
       all_branches: true
       condition: $TRAVIS_BRANCH =~ ^(master|release)$
   - provider: pages
+    github-token: e0ccbff01a46e3c7c377b1a6ae5b8797d5b9afe6
     skip_cleanup: true
     keep_history: true
     local-dir: gh-pages
