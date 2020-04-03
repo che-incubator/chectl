@@ -12,8 +12,8 @@ before_deploy:
     export BEFORE_DEPLOY_DONE=1
     brew update
     brew install p7zip
-    git config --local user.name "Mario Loriedo"
-    git config --local user.email "mario.loriedo@gmail.com"
+    git config --local user.name "Flavius Lacatusu"
+    git config --local user.email "flacatus@redhat.com"
     export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')}
     export CHECTL_VERSION="UNKNOWN"
     export GITHUB_RELEASE_NAME=$TRAVIS_TAG
@@ -39,9 +39,26 @@ before_deploy:
     env
   fi
 deploy:
-  provider: releases
-  api_key:
-    secure: J5YFaxiVgP6mWTWsdveGZOe1wdAvtlmDStCgg5O8ZZp3TpdW4osmxJOR1cdRPSYNjhJQblLbe7q6BONE0SJ4RCb2fjD41Dk5xa2p8pvrWhrGaXwsqPO/HPwSjP2qcROEiCP+AfaMleDRXwtU0DtOyEB735D77BgIIgmlqN8LyQ7Ixz1RDTisdywBntbsriDtpVvh3HNrkECRHFA39ET8LipQotjdBvlxMJUiVfAnXU4pEXJCckVBvQBeX2PabZSWMt+IgeQO3N8Ki8+YMrIrez5VkWb68fMujlGI0l79vIyPkmYao2usV+QlDz95vIteOXfNtZwljmBalovDKb5wtt0dIPYR1yACEoyRhUnBoNy2yREcZW2oFFycWuLqjUFGbS039mmFbbtPTVDsSC8QzEC0l0omU/hzeAgh7QhY4h+u70g/rHa9T4CHm7vvuY9c8q4Wjg14c64Ais7CPkPcKS6XlevAGXkp6Q20x1Y0VbJskApPWuFJ2rU/KuuRgRMxLubSHBU4lb3zdRGzpw8bGc3bCxDLUuKzDON8TtGmXBHtvYsuSMwUl89Mc08wnJpg9uC6csjtKfA7i3DeukT8TYiucL70PQoVJsRKEknrBBl85WIoeoHma+der9dbUrcYdsP/HYt3nQdgmfohHKy0/qfdk8oL/S3TMrTx5Y6HBeM=
-  file: ''
-  on:
-    repo: flacatus/chectl
+  - provider: releases
+    api-key:
+      secure: kmbudgyZMniPl/0ksp51tdGDqJktXdF9D0jWd/rROz3CaMkj3SX3kc5Z9X+U1Rsn9QHkkdsfJgdxTjPt/Jl1k1vlR00aYZbiYf3QgPSq6BJVbh5upROKwYtOgIEchRuem/QHnfM2ROsjezECngA48aFuaU4hu2GCyWCgjOdBMzyo4woTdLGKUMZgH2vv2MWOldUGCXzWMxs2Uu3/jAT0/we8eHFYqgoC0hplS8BVpf9jaRcFExblxLXWEg024MlrHJT41lR20CgKISv4elwda3WCtX01VWX80TT8XqIG50/08F7m7WgHVZpdUiYDjI+qT66QzDmFDQXlWZhuBBMfvxYZa5rSSN6qffpPscw/X7wxkzP6J5ogxgHtnpEPaW5+Tf6p8Qa0OqToMGWzkd5qBm7iHqahe7OxLBV6Mc/dGyqBxP9kANP56/djMSSe/ysBrckkNFMbqBMb5oWMIpwWVbXMkgCAo74RQ1DAqkb+WrUlRqGpkpddKVwOkmd51xcQxh3OanlxI2L3tizxBfykGyuqYEZ8dqZkpqUlD7jQkeNMlZxVKYxNHI9qqmXTYRd7fvjST6La2OyIMb45LFSmJ87zKOm5xvg7oWuCPsu2Vvz9lxyk3DBNcWvRYO8BaTnsmOz/U+kPBdgnnY8JCAU6N6ftN5HEiYZ0aMbq7OtD+MA=
+    file_glob: true
+    name: $GITHUB_RELEASE_NAME
+    file:
+      - "./dist/channels/**/chectl-*.gz"
+    skip_cleanup: true
+    on:
+      repo: flacatus/chectl
+      tags: false
+      all_branches: true
+      condition: $TRAVIS_BRANCH =~ ^(master|release)$
+  - provider: pages
+    github-token:
+      secure: kmbudgyZMniPl/0ksp51tdGDqJktXdF9D0jWd/rROz3CaMkj3SX3kc5Z9X+U1Rsn9QHkkdsfJgdxTjPt/Jl1k1vlR00aYZbiYf3QgPSq6BJVbh5upROKwYtOgIEchRuem/QHnfM2ROsjezECngA48aFuaU4hu2GCyWCgjOdBMzyo4woTdLGKUMZgH2vv2MWOldUGCXzWMxs2Uu3/jAT0/we8eHFYqgoC0hplS8BVpf9jaRcFExblxLXWEg024MlrHJT41lR20CgKISv4elwda3WCtX01VWX80TT8XqIG50/08F7m7WgHVZpdUiYDjI+qT66QzDmFDQXlWZhuBBMfvxYZa5rSSN6qffpPscw/X7wxkzP6J5ogxgHtnpEPaW5+Tf6p8Qa0OqToMGWzkd5qBm7iHqahe7OxLBV6Mc/dGyqBxP9kANP56/djMSSe/ysBrckkNFMbqBMb5oWMIpwWVbXMkgCAo74RQ1DAqkb+WrUlRqGpkpddKVwOkmd51xcQxh3OanlxI2L3tizxBfykGyuqYEZ8dqZkpqUlD7jQkeNMlZxVKYxNHI9qqmXTYRd7fvjST6La2OyIMb45LFSmJ87zKOm5xvg7oWuCPsu2Vvz9lxyk3DBNcWvRYO8BaTnsmOz/U+kPBdgnnY8JCAU6N6ftN5HEiYZ0aMbq7OtD+MA=
+    skip_cleanup: true
+    keep_history: true
+    local-dir: gh-pages
+    on:
+      repo: flacatus/chectl
+      all_branches: true
+      condition: $TRAVIS_BRANCH =~ ^(master|release)$
