@@ -1,9 +1,11 @@
 jobs:
   include:
    - os: osx
-   - os: linux
-     arch: s390x
-     
+
+arch:
+  - amd64
+  - s390x
+
 language: node_js
 node_js: '10'
 before_deploy:
@@ -48,7 +50,7 @@ deploy:
       - "./dist/channels/**/chectl-*.gz"
     skip_cleanup: true
     on:
-      repo: che-incubator/chectl
+      repo: flacatus/chectl
       tags: false
       all_branches: true
       condition: $TRAVIS_BRANCH =~ ^(master|release)$
@@ -59,6 +61,6 @@ deploy:
     keep_history: true
     local-dir: gh-pages
     on:
-      repo: che-incubator/chectl
+      repo: flacatus/chectl
       all_branches: true
       condition: $TRAVIS_BRANCH =~ ^(master|release)$
