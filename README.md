@@ -96,8 +96,8 @@ USAGE
 * [`chectl workspace:inject`](#chectl-workspaceinject)
 * [`chectl workspace:list`](#chectl-workspacelist)
 * [`chectl workspace:logs`](#chectl-workspacelogs)
-* [`chectl workspace:start`](#chectl-workspacestart)
-* [`chectl workspace:stop`](#chectl-workspacestop)
+* [`chectl workspace:start WORKSPACE`](#chectl-workspacestart-workspace)
+* [`chectl workspace:stop WORKSPACE`](#chectl-workspacestop-workspace)
 
 ## `chectl autocomplete [SHELL]`
 
@@ -433,7 +433,11 @@ USAGE
   $ chectl workspace:create
 
 OPTIONS
-  -f, --devfile=devfile            path or URL to a valid devfile
+  -d, --debug                      Debug workspace start. It is useful when workspace start fails and it is needed to
+                                   print more logs on startup. This flag is used in conjunction with --start flag.
+
+  -f, --devfile=devfile            Path or URL to a valid devfile
+
   -h, --help                       show CLI help
 
   -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
@@ -443,7 +447,7 @@ OPTIONS
 
   --access-token=access-token      Eclipse Che OIDC Access Token
 
-  --name=name                      workspace name: overrides the workspace name to use instead of the one defined in the
+  --name=name                      Workspace name: overrides the workspace name to use instead of the one defined in the
                                    devfile.
 ```
 
@@ -544,48 +548,49 @@ OPTIONS
 
 _See code: [src/commands/workspace/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/logs.ts)_
 
-## `chectl workspace:start`
+## `chectl workspace:start WORKSPACE`
 
-Creates and starts workspace from a devfile
+Starts a workspace
 
 ```
 USAGE
-  $ chectl workspace:start
+  $ chectl workspace:start WORKSPACE
+
+ARGUMENTS
+  WORKSPACE  The workspace id to start
 
 OPTIONS
-  -f, --devfile=devfile            path or URL to a valid devfile
+  -d, --debug                      Debug workspace start. It is useful when workspace start fails and it is needed to
+                                   print more logs on startup.
+
   -h, --help                       show CLI help
 
   -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
                                    deployed
 
-  -s, --start                      Starts the workspace after creation
-
   --access-token=access-token      Eclipse Che OIDC Access Token
-
-  --name=name                      workspace name: overrides the workspace name to use instead of the one defined in the
-                                   devfile.
 ```
 
 _See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
 
-## `chectl workspace:stop`
+## `chectl workspace:stop WORKSPACE`
 
-stop a running workspace
+Stop a running workspace
 
 ```
 USAGE
-  $ chectl workspace:stop
+  $ chectl workspace:stop WORKSPACE
+
+ARGUMENTS
+  WORKSPACE  The workspace id to stop
 
 OPTIONS
-  -h, --help                               show CLI help
+  -h, --help                       show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
-                                           be deployed
+  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
+                                   deployed
 
-  --access-token=access-token              Eclipse Che OIDC Access Token
-
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+  --access-token=access-token      Eclipse Che OIDC Access Token
 ```
 
 _See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_

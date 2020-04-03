@@ -56,7 +56,7 @@ export default class Delete extends Command {
     tasks.add(cheTasks.retrieveEclipseCheUrl(flags))
     tasks.add(cheTasks.checkEclipseCheStatus())
     tasks.add({
-      title: `Get workspace with id '${args.workspace}'`,
+      title: `Get workspace by id '${args.workspace}'`,
       task: async (ctx, task) => {
         const workspace = await cheHelper.getWorkspace(ctx.cheURL, args.workspace, flags['access-token'])
         ctx.infrastructureNamespace = workspace.attributes.infrastructureNamespace
@@ -64,7 +64,7 @@ export default class Delete extends Command {
       }
     })
     tasks.add({
-      title: `Delete workspace with id '${args.workspace}'`,
+      title: `Delete workspace by id '${args.workspace}'`,
       task: async (ctx, task) => {
         await cheHelper.deleteWorkspace(ctx.cheURL, args.workspace, flags['access-token'])
         cli.log(`Workspace with id '${args.workspace}' deleted.`)

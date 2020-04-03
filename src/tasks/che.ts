@@ -612,4 +612,19 @@ export class CheTasks {
       }
     ]
   }
+
+  checkIsAuthenticationEnabled(): ReadonlyArray<Listr.ListrTask> {
+    return [
+      {
+        title: 'Checking authentication',
+        task: async (ctx: any, task: any) => {
+          ctx.isAuthEnabled = await this.che.isAuthenticationEnabled(ctx.cheURL)
+          if (ctx.isAuthEnabled && !this.cheAccessToken) {
+            throw new Error('E_AUTH_REQUIRED - Eclipse Che authentication is enabled but access token is missed. Use --access-token to provide access token.')
+          }
+          task.title = `${task.title}... ${ctx.isAuthEnabled ? '(auth enabled)' : '(auth disabled)'}`
+        }
+      }
+    ]
+  }
 }
