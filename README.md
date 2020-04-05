@@ -249,6 +249,12 @@ OPTIONS
 
   -b, --domain=domain
       Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
+                           This flag makes sense only for Kubernetes family infrastructures and will be autodetected for 
+      Minikube and MicroK8s in most cases.
+                           However, for Kubernetes cluster it is required to specify.
+                           Please note, that just setting this flag will not likely work out of the box.
+                           According changes should be done in Kubernetes cluster configuration as well.
+                           In case of Openshift, domain adjustment should be done on the cluster configuration level.
 
   -d, --directory=directory
       Directory to store logs into

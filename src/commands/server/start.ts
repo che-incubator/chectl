@@ -22,6 +22,7 @@ import { CheTasks } from '../../tasks/che'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
+import { isOpenshiftPlatformFamily } from '../../util'
 
 export default class Start extends Command {
   static description = 'start Eclipse Che server'
@@ -100,7 +101,12 @@ export default class Start extends Command {
     }),
     domain: string({
       char: 'b',
-      description: 'Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)',
+      description: `Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
+                    This flag makes sense only for Kubernetes family infrastructures and will be autodetected for Minikube and MicroK8s in most cases.
+                    However, for Kubernetes cluster it is required to specify.
+                    Please note, that just setting this flag will not likely work out of the box.
+                    According changes should be done in Kubernetes cluster configuration as well.
+                    In case of Openshift, domain adjustment should be done on the cluster configuration level.`,
       default: ''
     }),
     debug: boolean({
@@ -139,6 +145,10 @@ export default class Start extends Command {
     }),
     'skip-version-check': flags.boolean({
       description: 'Skip minimal versions check.',
+      default: false
+    }),
+    'skip-cluster-availability-check': flags.boolean({
+      description: 'Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.',
       default: false
     })
   }
@@ -214,6 +224,10 @@ export default class Start extends Command {
       }
     }
 
+    if (flags.domain && !flags['che-operator-cr-yaml'] && isOpenshiftPlatformFamily(flags.platform)) {
+      this.warn('"--domain" flag is ignored for Openshift family infrastructures. It should be done on the cluster level.')
+    }
+
     if (flags.installer) {
       if (flags.installer === 'minishift-addon') {
         if (flags.platform !== 'minishift') {
@@ -241,6 +255,8 @@ export default class Start extends Command {
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
     ctx.listrOptions = listrOptions
+    // Holds messages which should be printed at the end of chectl log
+    ctx.highlightedMessages = [] as string[]
 
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()
@@ -267,10 +283,26 @@ export default class Start extends Command {
     }], listrOptions)
 
     // Post Install Checks
-    const postInstallTasks = new Listr([{
-      title: '✅  Post installation checklist',
-      task: () => new Listr(cheTasks.waitDeployedChe(flags, this))
-    }], listrOptions)
+    const postInstallTasks = new Listr([
+      {
+        title: '✅  Post installation checklist',
+        task: () => new Listr(cheTasks.waitDeployedChe(flags, this))
+      },
+      {
+        title: 'Show important messages',
+        enabled: ctx => ctx.highlightedMessages.length > 0,
+        task: (ctx: any) => {
+          const printMessageTasks = new Listr([], ctx.listrOptions)
+          for (const message of ctx.highlightedMessages) {
+            printMessageTasks.add({
+              title: message,
+              task: () => { }
+            })
+          }
+          return printMessageTasks
+        }
+      }
+    ], listrOptions)
 
     const logsTasks = new Listr([{
       title: 'Start following logs',
