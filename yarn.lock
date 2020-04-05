@@ -4601,8 +4601,8 @@ ts-jest@^24.3.0:
     yargs-parser "10.x"
 
 ts-node@^8:
-  version "8.6.2"
-  resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-8.6.2.tgz#7419a01391a818fbafa6f826a33c1a13e9464e35"
+  version "8.8.2"
+  resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-8.8.2.tgz#0b39e690bee39ea5111513a9d2bcdc0bc121755f"
   dependencies:
     arg "^4.1.0"
     diff "^4.0.1"
