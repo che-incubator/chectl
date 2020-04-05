@@ -20,7 +20,7 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { DEFAULT_CHE_IMAGE, defaultApplicationRegistry, defaultOLMNamespace } from '../constants'
+import { DEFAULT_CHE_IMAGE, defaultApplicationRegistry } from '../constants'
 import { getClusterClientCommand } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
@@ -1364,7 +1364,7 @@ export class KubeHelper {
     }
   }
 
-  async createOperatorSubscription(packageName: string, namespace: string, marketplaceNamespace: string, channel: string, sourceName: string, csv?: string) {
+  async createOperatorSubscription(packageName: string, namespace: string, defaultCatalogSourceKubernetesNamespace: string, channel: string, sourceName: string) {
     const subscription: Subscription = {
         apiVersion: "operators.coreos.com/v1alpha1",
         kind: 'Subscription',
@@ -1377,7 +1377,7 @@ export class KubeHelper {
           installPlanApproval: 'Manual',
           name: packageName,
           source: sourceName,
-          sourceNamespace: defaultOLMNamespace,
+          sourceNamespace: defaultCatalogSourceKubernetesNamespace,
         }
       }
 

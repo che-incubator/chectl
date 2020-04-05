@@ -27,7 +27,7 @@ export const applicationRegistryNamespace = 'eclipse-che'
 
 export const defaultOpenshiftMarketPlaceNamespace = 'openshift-marketplace'
 export const defaultKubernetesMarketPlaceNamespace = 'marketplace'
-export const defaultOLMNamespace = 'olm'
+export const defaultOLMKubernetesNamespace = 'olm'
 
 export const defaultApplicationRegistry = 'https://quay.io/cnr'
 

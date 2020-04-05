@@ -10,7 +10,7 @@
 
 import Command from '@oclif/command';
 import Listr = require('listr');
-import { CheOLMChannel, DEFAULT_CHE_IMAGE, openshiftApplicationPreviewRegistryNamespace, kubernetesApplicationPreviewRegistryNamespace, defaultOpenshiftMarketPlaceNamespace, defaultKubernetesMarketPlaceNamespace, defaultOLMNamespace } from '../../constants';
+import { CheOLMChannel, DEFAULT_CHE_IMAGE, openshiftApplicationPreviewRegistryNamespace, kubernetesApplicationPreviewRegistryNamespace, defaultOpenshiftMarketPlaceNamespace, defaultKubernetesMarketPlaceNamespace, defaultOLMKubernetesNamespace } from '../../constants';
 
 import { KubeHelper } from '../../api/kube';
 import { createNamespaceTask, createEclipeCheCluster, copyOperatorResources, checkPreCreatedTls, checkTlsSertificate } from './common-tasks';
@@ -63,14 +63,16 @@ export class OLMTasks {
       {
         title: "Create catalog source",
         task: async (ctx: any, task: any) => {
-          if (!await kube.catalogSourceExists(this.operatorSourceName, defaultOLMNamespace)) {
+          // Todo: should we do check for installer openshift? flags.platform === 'crc' || flags.platform === 'openshift'
+          ctx.defaultCatalogSourceNamespace = flags.platform === 'crc' ? defaultOpenshiftMarketPlaceNamespace : defaultOLMKubernetesNamespace
+          if (!await kube.catalogSourceExists(this.operatorSourceName, ctx.defaultCatalogSourceNamespace)) {
             const catalogSourceInTheMarketPlaceNamespace = await kube.getCatalogSource(this.operatorSourceName, ctx.marketplaceNamespace)
             const catalogSource: CatalogSource = {
               apiVersion: 'operators.coreos.com/v1alpha1',
               kind: 'CatalogSource',
               metadata: {
                 name: this.operatorSourceName,
-                namespace: defaultOLMNamespace,
+                namespace: ctx.defaultCatalogSourceNamespace,
               },
               spec: {
                 address: catalogSourceInTheMarketPlaceNamespace.spec.address,
@@ -81,7 +83,7 @@ export class OLMTasks {
             }
             // Create catalog source in the olm namespace to make it working in the namespace differ than marketplace
             await kube.createCatalogSource(catalogSource)
-            await kube.waitCatalogSource(defaultOLMNamespace, this.operatorSourceName)
+            await kube.waitCatalogSource(ctx.defaultCatalogSourceNamespace, this.operatorSourceName)
           }
         }
       },
@@ -92,7 +94,7 @@ export class OLMTasks {
           if (await kube.operatorSubscriptionExists(ctx.packageName, flags.chenamespace)) {
             task.title = `${task.title}...It already exists.`
           } else {
-            await kube.createOperatorSubscription(ctx.packageName, flags.chenamespace, ctx.marketplaceNamespace, this.channel, this.operatorSourceName)
+            await kube.createOperatorSubscription(ctx.packageName, flags.chenamespace, ctx.defaultCatalogSourceNamespace, this.channel, this.operatorSourceName)
             task.title = `${task.title}...OK`
           }
         }
