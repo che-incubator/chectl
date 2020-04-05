@@ -45,8 +45,8 @@ declare module 'olm' {
   }
 
   export interface SubscriptionSpec {
-    channel: string
-    installPlanApproval: string
+    channel?: string
+    installPlanApproval?: string
     name: string
     source: string
     sourceNamespace: string
@@ -72,7 +72,6 @@ declare module 'olm' {
     kind?: string
     name?: string
     namespace?: string
-    uuid?: string
     spec?: InstallPlanSpec
     status?: InstallPlanStatus
   }
@@ -88,5 +87,30 @@ declare module 'olm' {
   export interface InstallPlanCondition {
     type: string
     status: string
+  }
+
+  export interface ClusterServiceVersion {
+    kind: string;
+    metadata: V1ObjectMeta;
+  }
+
+  export interface ClusterServiceVersionList {
+    apiVersion: string
+    kind: string
+    items: Array<ClusterServiceVersion>
+  }
+
+  export interface CatalogSource {
+    apiVersion: string
+    kind: string
+    metadata: V1ObjectMeta
+    spec: CatalogSourceSpec
+  }
+
+  export interface CatalogSourceSpec {
+    address: string
+    base64data: string
+    mediatype: string
+    sourceType: string
   }
 }

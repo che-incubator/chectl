@@ -20,11 +20,11 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { DEFAULT_CHE_IMAGE, defaultOLMRegistry } from '../constants'
+import { DEFAULT_CHE_IMAGE, defaultApplicationRegistry, defaultOLMNamespace } from '../constants'
 import { getClusterClientCommand } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
-import { OperatorSource, OperatorGroup, Subscription, InstallPlan } from 'olm'
+import { OperatorSource, OperatorGroup, Subscription, InstallPlan, ClusterServiceVersionList, CatalogSource } from 'olm'
 
 const AWAIT_TIMEOUT_S = 30
 
@@ -1244,7 +1244,7 @@ export class KubeHelper {
         namespace,
       },
       spec: {
-        endpoint: defaultOLMRegistry,
+        endpoint: defaultApplicationRegistry,
         registryNamespace,
         type: "appregistry"
       }
@@ -1267,6 +1267,59 @@ export class KubeHelper {
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
+  }
+
+  async catalogSourceExists(name: string, namespace: string): Promise<boolean> {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', name)
+      return this.compare(body, name)
+    } catch {
+      return false
+    }
+  }
+
+  async getCatalogSource(name: string, namespace: string): Promise<CatalogSource> {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', name)
+      return body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async createCatalogSource(catalogSource: CatalogSource) {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const namespace = catalogSource.metadata.namespace
+      const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', catalogSource)
+      return body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async waitCatalogSource(namespace: string, catalogSourceName: string, timeout = 60): Promise<CatalogSource> {
+    return new Promise<CatalogSource>(async (resolve, reject) => {
+      const watcher = new Watch(this.kc)
+      let request: any
+      request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/catalogsources`, 
+      { fieldSelector: `metadata.name=${catalogSourceName}` },
+      (_phase: string, obj: any) => {
+        resolve(obj as CatalogSource)
+      },
+      error => {
+        if (error) {
+          reject(error)
+        }
+      })
+
+      setTimeout(() => {
+        request.abort()
+        reject(`Timeout reached while waiting for "${catalogSourceName}" catalog source is created.`)
+      }, timeout * 1000)
+    })
   }
 
   async operatorGroupExists(name: string, namespace: string): Promise<boolean> {
@@ -1313,24 +1366,20 @@ export class KubeHelper {
 
   async createOperatorSubscription(packageName: string, namespace: string, marketplaceNamespace: string, channel: string, sourceName: string, csv?: string) {
     const subscription: Subscription = {
-      apiVersion: "operators.coreos.com/v1alpha1",
-      kind: 'Subscription',
-      metadata: {
-        name: packageName,
-        namespace
-      },
-      spec: {
-        channel,
-        installPlanApproval: 'Manual',
-        name: packageName,
-        // we use package name the same like subscription name
-        source: sourceName,
-        // Todo let's use source namespace the same with Che installation
-        sourceNamespace: marketplaceNamespace,
-        // Todo: remove it. Applied to test update olm after installation older Che and stable channel.
-        // startingCSV: 'eclipse-che-preview-openshift.v7.9.0'
+        apiVersion: "operators.coreos.com/v1alpha1",
+        kind: 'Subscription',
+        metadata: {
+          name: packageName,
+          namespace
+        },
+        spec: {
+          channel,
+          installPlanApproval: 'Manual',
+          name: packageName,
+          source: sourceName,
+          sourceNamespace: defaultOLMNamespace,
+        }
       }
-    }
 
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
     try {
@@ -1441,6 +1490,27 @@ export class KubeHelper {
         reject(`Timeout reached while waiting for "${installPlanName}" has go status 'Installed'.`)
       }, timeout * 1000)
     })
+  }
+
+  async getClusterServiceVersions(namespace: string): Promise<ClusterServiceVersionList> {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions')
+      return body as ClusterServiceVersionList
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async deleteClusterServiceVersion(namespace: string, csvName: string) {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const options = new V1DeleteOptions()
+      const { body } = await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions', csvName, options)
+      return body as ClusterServiceVersionList
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
   }
 
   async deleteNamespace(namespace: string): Promise<void> {

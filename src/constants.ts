@@ -20,11 +20,16 @@ export const CHE_TLS_SECRET_NAME = 'che-tls'
 
 export const operatorCheCluster = 'eclipse-che'
 
-export const defaultOLMOpenshiftRegistryNamespace = 'eclipse-che-operator-openshift'
-export const defaultOLMKubernetesRegistryNamespace = 'eclipse-che-operator-kubernetes'
-export const defaultOLMOpenshiftOperatorSourceNamespace = 'openshift-marketplace'
-export const defaultOLMKubernetesOperatorSourceNamespace = 'marketplace'
-export const defaultOLMRegistry = 'https://quay.io/cnr'
+export const openshiftApplicationPreviewRegistryNamespace = 'eclipse-che-operator-openshift'
+export const kubernetesApplicationPreviewRegistryNamespace = 'eclipse-che-operator-kubernetes'
+// application registry namespace from operator-hub.io
+export const applicationRegistryNamespace = 'eclipse-che'
+
+export const defaultOpenshiftMarketPlaceNamespace = 'openshift-marketplace'
+export const defaultKubernetesMarketPlaceNamespace = 'marketplace'
+export const defaultOLMNamespace = 'olm'
+
+export const defaultApplicationRegistry = 'https://quay.io/cnr'
 
 // TODO figure out and handle, Do we have the same channels for CRW?
 export enum CheOLMChannel {

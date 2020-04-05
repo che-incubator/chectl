@@ -10,18 +10,18 @@
 
 import Command from '@oclif/command';
 import Listr = require('listr');
-import { CheOLMChannel, DEFAULT_CHE_IMAGE, defaultOLMOpenshiftRegistryNamespace, defaultOLMKubernetesRegistryNamespace, defaultOLMOpenshiftOperatorSourceNamespace, defaultOLMKubernetesOperatorSourceNamespace } from '../../constants';
+import { CheOLMChannel, DEFAULT_CHE_IMAGE, openshiftApplicationPreviewRegistryNamespace, kubernetesApplicationPreviewRegistryNamespace, defaultOpenshiftMarketPlaceNamespace, defaultKubernetesMarketPlaceNamespace, defaultOLMNamespace } from '../../constants';
 
 import { KubeHelper } from '../../api/kube';
 import { createNamespaceTask, createEclipeCheCluster, copyOperatorResources, checkPreCreatedTls, checkTlsSertificate } from './common-tasks';
-import { SubscriptionStatusCondition, Subscription } from 'olm';
+import { SubscriptionStatusCondition, Subscription, CatalogSource } from 'olm';
 
 export class OLMTasks {
 
-  OperatorSourceNamePrefix = 'eclipse-che-preview-'
-  operatorGroupName = 'cheoperatorgroup'
-  packageNamePrefix = 'eclipse-che-preview-'
-  channel = this.getDefaultChannel()
+  private operatorSourceName = 'eclipse-che1'
+  private operatorGroupName = 'che-operator-group'
+  private packageNamePrefix = 'eclipse-che-preview-'
+  private channel = this.getDefaultChannel()
 
   /**
    * Returns list of tasks which perform preflight platform checks.
@@ -35,21 +35,6 @@ export class OLMTasks {
       checkPreCreatedTls(flags, kube),
       checkTlsSertificate(flags),
       {
-        title: "Create operator source",
-        task: async (ctx: any, task: any) => {
-            ctx.operatorRegistryNamespace = ctx.isOpenShift ? defaultOLMOpenshiftRegistryNamespace : defaultOLMKubernetesRegistryNamespace
-            ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOLMOpenshiftOperatorSourceNamespace : defaultOLMKubernetesOperatorSourceNamespace
-            ctx.operatorSourceName = this.OperatorSourceNamePrefix + flags.chenamespace
-
-            if (await kube.operatorSourceExists(ctx.operatorSourceName, ctx.marketplaceNamespace)) {
-              task.title = `${task.title}...It already exists.`
-            } else {
-              await kube.createOperatorSource(ctx.operatorSourceName, ctx.operatorRegistryNamespace, ctx.marketplaceNamespace)
-              task.title = `${task.title}...OK`
-            }
-        }
-      },
-      {
         title: 'Create operator group',
         task: async (ctx: any, task: any) => {
           if (await kube.operatorGroupExists(this.operatorGroupName, flags.chenamespace)) {
@@ -61,13 +46,53 @@ export class OLMTasks {
         }
       },
       {
+        title: "Create operator source",
+        task: async (ctx: any, task: any) => {
+            ctx.operatorRegistryNamespace = ctx.isOpenShift ? openshiftApplicationPreviewRegistryNamespace : kubernetesApplicationPreviewRegistryNamespace
+            ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOpenshiftMarketPlaceNamespace : defaultKubernetesMarketPlaceNamespace
+
+            if (await kube.operatorSourceExists(this.operatorSourceName, ctx.marketplaceNamespace)) {
+              task.title = `${task.title}...It already exists.`
+            } else {
+              await kube.createOperatorSource(this.operatorSourceName, ctx.operatorRegistryNamespace, ctx.marketplaceNamespace)
+              await kube.waitCatalogSource(ctx.marketplaceNamespace, this.operatorSourceName)
+              task.title = `${task.title}...OK`
+            }
+        }
+      },
+      {
+        title: "Create catalog source",
+        task: async (ctx: any, task: any) => {
+          if (!await kube.catalogSourceExists(this.operatorSourceName, defaultOLMNamespace)) {
+            const catalogSourceInTheMarketPlaceNamespace = await kube.getCatalogSource(this.operatorSourceName, ctx.marketplaceNamespace)
+            const catalogSource: CatalogSource = {
+              apiVersion: 'operators.coreos.com/v1alpha1',
+              kind: 'CatalogSource',
+              metadata: {
+                name: this.operatorSourceName,
+                namespace: defaultOLMNamespace,
+              },
+              spec: {
+                address: catalogSourceInTheMarketPlaceNamespace.spec.address,
+                base64data: '',
+                mediatype: '',
+                sourceType: 'grpc'
+              }
+            }
+            // Create catalog source in the olm namespace to make it working in the namespace differ than marketplace
+            await kube.createCatalogSource(catalogSource)
+            await kube.waitCatalogSource(defaultOLMNamespace, this.operatorSourceName)
+          }
+        }
+      },
+      {
         title: 'Create operator subscription',
         task: async (ctx: any, task: any) => {
           ctx.packageName = this.packageNamePrefix + (ctx.isOpenShift ? 'openshift' : 'kubernetes')
           if (await kube.operatorSubscriptionExists(ctx.packageName, flags.chenamespace)) {
             task.title = `${task.title}...It already exists.`
           } else {
-            await kube.createOperatorSubscription(ctx.packageName, flags.chenamespace, ctx.marketplaceNamespace, this.channel, ctx.operatorSourceName)
+            await kube.createOperatorSubscription(ctx.packageName, flags.chenamespace, ctx.marketplaceNamespace, this.channel, this.operatorSourceName)
             task.title = `${task.title}...OK`
           }
         }
@@ -75,7 +100,7 @@ export class OLMTasks {
       {
         title: 'Wait while subscription is ready',
         task: async (ctx: any, task: any) => {
-          const installPlan = await kube.waitOperatorSubscriptionReadyForApproval(flags.chenamespace, ctx.packageName, 60)
+          const installPlan = await kube.waitOperatorSubscriptionReadyForApproval(flags.chenamespace, ctx.packageName, 600)
           ctx.installPlanName = installPlan.name
           task.title = `${task.title}...OK`
         }
@@ -105,10 +130,9 @@ export class OLMTasks {
       {
         title: 'Check if operator source exists',
         task: async (ctx: any, task: any) => {
-          ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOLMOpenshiftOperatorSourceNamespace : defaultOLMKubernetesOperatorSourceNamespace
-          ctx.operatorSourceName = this.OperatorSourceNamePrefix + flags.chenamespace
-          if (!await kube.operatorSourceExists(ctx.operatorSourceName, ctx.marketplaceNamespace)) {
-            command.error(`Unable to find operator source ${ctx.operatorSourceName}`)
+          ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOpenshiftMarketPlaceNamespace : defaultKubernetesMarketPlaceNamespace
+          if (!await kube.operatorSourceExists(this.operatorSourceName, ctx.marketplaceNamespace)) {
+            command.error(`Unable to find operator source ${this.operatorSourceName}`)
           }
         }
       },
@@ -177,6 +201,15 @@ export class OLMTasks {
         }
       },
       {
+        title: 'Delete(OLM) Eclipse Che cluster service versions',
+        enabled: (ctx) => ctx.isPreInstalledOLM,
+        task: async (ctx: any, task: any) => {
+          const csvs = await kube.getClusterServiceVersions(flags.chenamespace)
+          const csvsToDelete = csvs.items.filter((csv) => csv.metadata.name.startsWith("eclipse-che"))
+          csvsToDelete.forEach((csv) => kube.deleteClusterServiceVersion(flags.chenamespace, csv.metadata.name))
+        }
+      },
+      {
         title: `Delete(OLM) operator subscription 'Todo package name...'`,
         enabled: (ctx) => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
@@ -199,19 +232,17 @@ export class OLMTasks {
         }
       },
       {
-        title: `Delete(OLM) operator source ${this.OperatorSourceNamePrefix}`, // todo use name instead of prefix
+        title: `Delete(OLM) operator source ${this.operatorSourceName}`,
         enabled: (ctx) => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
-          // todo, maybe we should deploy source to the the same namespace with Che?
-          ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOLMOpenshiftOperatorSourceNamespace : defaultOLMKubernetesOperatorSourceNamespace
-          const operatorSourceName = this.OperatorSourceNamePrefix + flags.chenamespace
-          if (await kube.operatorSourceExists(operatorSourceName, ctx.marketplaceNamespace)) {
-            await kube.deleteOperatorSource(operatorSourceName, ctx.marketplaceNamespace)
+          ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOpenshiftMarketPlaceNamespace : defaultKubernetesMarketPlaceNamespace
+          if (await kube.operatorSourceExists(this.operatorSourceName, ctx.marketplaceNamespace)) {
+            await kube.deleteOperatorSource(this.operatorSourceName, ctx.marketplaceNamespace)
           }
           task.title = `${task.title}...OK`
         }
       }
-      ]
+    ]
   }
 
   // To update chectl stable channel we are patching src/constants.ts from nightly to release version.
