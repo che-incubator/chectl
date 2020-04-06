@@ -18,7 +18,7 @@ import { Subscription, CatalogSource } from 'olm';
 
 export class OLMTasks {
 
-  private operatorSourceName = 'eclipse-che1'
+  private operatorSourceName = 'eclipse-che'
   private operatorGroupName = 'che-operator-group'
   private packageNamePrefix = 'eclipse-che-preview-'
   private channel = this.getDefaultChannel()
@@ -51,6 +51,7 @@ export class OLMTasks {
           ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOpenshiftMarketPlaceNamespace : defaultKubernetesMarketPlaceNamespace
           // Todo: should we do check for installer openshift? flags.platform === 'crc' || flags.platform === 'openshift'
           ctx.defaultCatalogSourceNamespace = flags.platform === 'crc' ? defaultOpenshiftMarketPlaceNamespace : defaultOLMKubernetesNamespace
+          ctx.packageName = this.packageNamePrefix + (ctx.isOpenShift ? 'openshift' : 'kubernetes')
           task.title = `${task.title}...OK`
         }
       },
@@ -64,7 +65,6 @@ export class OLMTasks {
       {
         title: 'Create operator subscription',
         task: async (ctx: any, task: any) => {
-          ctx.packageName = this.packageNamePrefix + (ctx.isOpenShift ? 'openshift' : 'kubernetes')
           var subscription: Subscription
           if (this.channel === CheOLMChannel.STABLE) {
             const packageManifest = await kube.getPackageManifect('eclipse-che')                                                                                     
@@ -211,17 +211,6 @@ export class OLMTasks {
         task: async (ctx: any, task: any) => {
           if (await kube.operatorGroupExists(this.operatorGroupName, flags.chenamespace)) {
             await kube.deleteOperatorGroup(this.operatorGroupName, flags.chenamespace)
-          }
-          task.title = `${task.title}...OK`
-        }
-      },
-      {
-        title: `Delete(OLM) operator source ${this.operatorSourceName}`,
-        enabled: (ctx) => ctx.isPreInstalledOLM,
-        task: async (ctx: any, task: any) => {
-          ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOpenshiftMarketPlaceNamespace : defaultKubernetesMarketPlaceNamespace
-          if (await kube.operatorSourceExists(this.operatorSourceName, ctx.marketplaceNamespace)) {
-            await kube.deleteOperatorSource(this.operatorSourceName, ctx.marketplaceNamespace)
           }
           task.title = `${task.title}...OK`
         }
