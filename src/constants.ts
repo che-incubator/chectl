@@ -31,7 +31,6 @@ export const defaultOLMKubernetesNamespace = 'olm'
 
 export const defaultApplicationRegistry = 'https://quay.io/cnr'
 
-// TODO figure out and handle, Do we have the same channels for CRW?
 export enum CheOLMChannel {
     NIGHTLY = 'nightly',
     STABLE = 'stable'

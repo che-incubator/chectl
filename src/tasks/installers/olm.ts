@@ -15,10 +15,12 @@ import { CheOLMChannel, DEFAULT_CHE_IMAGE, openshiftApplicationPreviewRegistryNa
 import { KubeHelper } from '../../api/kube';
 import { createNamespaceTask, createEclipeCheCluster, copyOperatorResources, checkPreCreatedTls, checkTlsSertificate } from './common-tasks';
 import { Subscription, CatalogSource } from 'olm';
+import { isKubernetesPlatformFamily } from '../../util';
 
 export class OLMTasks {
 
   private operatorSourceName = 'eclipse-che'
+  private subscriptionName = 'eclipse-che-subscription'
   private operatorGroupName = 'che-operator-group'
   private packageNamePrefix = 'eclipse-che-preview-'
   private channel = this.getDefaultChannel()
@@ -51,7 +53,10 @@ export class OLMTasks {
           ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOpenshiftMarketPlaceNamespace : defaultKubernetesMarketPlaceNamespace
           // Todo: should we do check for installer openshift? flags.platform === 'crc' || flags.platform === 'openshift'
           ctx.defaultCatalogSourceNamespace = flags.platform === 'crc' ? defaultOpenshiftMarketPlaceNamespace : defaultOLMKubernetesNamespace
+          // preview package name
           ctx.packageName = this.packageNamePrefix + (ctx.isOpenShift ? 'openshift' : 'kubernetes')
+          // catalog source name for stable Che version
+          ctx.catalogSourceNameStable = isKubernetesPlatformFamily(flags.platform) ? 'operatorhubio-catalog' : 'community-operators'
           task.title = `${task.title}...OK`
         }
       },
@@ -65,17 +70,15 @@ export class OLMTasks {
       {
         title: 'Create operator subscription',
         task: async (ctx: any, task: any) => {
-          var subscription: Subscription
-          if (this.channel === CheOLMChannel.STABLE) {
-            const packageManifest = await kube.getPackageManifect('eclipse-che')                                                                                     
-            subscription = this.createSubscription(ctx.packageName, 'eclipse-che', flags.chenamespace, packageManifest.status!.catalogSourceNamespace, 'stable', packageManifest.status!.catalogSource)
-          } else {
-            subscription = this.createSubscription(ctx.packageName, ctx.packageName, flags.chenamespace, ctx.defaultCatalogSourceNamespace, this.channel, this.operatorSourceName)
-          }
- 
-          if (await kube.operatorSubscriptionExists(ctx.packageName, flags.chenamespace)) {
+          if (await kube.operatorSubscriptionExists(this.subscriptionName, flags.chenamespace)) {
             task.title = `${task.title}...It already exists.`
           } else {
+            var subscription: Subscription
+            if (this.channel === CheOLMChannel.STABLE) {
+                subscription = this.createSubscription(this.subscriptionName, 'eclipse-che', flags.chenamespace, ctx.defaultCatalogSourceNamespace, 'stable', ctx.catalogSourceNameStable)
+            } else {
+              subscription = this.createSubscription(this.subscriptionName, ctx.packageName, flags.chenamespace, ctx.defaultCatalogSourceNamespace, this.channel, this.operatorSourceName)
+            }
             await kube.createOperatorSubscription(subscription)
             task.title = `${task.title}...OK`
           }
@@ -84,7 +87,7 @@ export class OLMTasks {
       {
         title: 'Wait while subscription is ready',
         task: async (ctx: any, task: any) => {
-          const installPlan = await kube.waitOperatorSubscriptionReadyForApproval(flags.chenamespace, ctx.packageName, 600)
+          const installPlan = await kube.waitOperatorSubscriptionReadyForApproval(flags.chenamespace, this.subscriptionName, 600)
           ctx.installPlanName = installPlan.name
           task.title = `${task.title}...OK`
         }
@@ -132,9 +135,8 @@ export class OLMTasks {
       {
         title: 'Check if operator subscription exists',
         task: async (ctx: any, task: any) => {
-          ctx.packageName = this.packageNamePrefix + (ctx.isOpenShift ? 'openshift' : 'kubernetes')
-          if (!await kube.operatorSubscriptionExists(ctx.packageName, flags.chenamespace)) {
-            command.error(`Unable to find operator subscription ${ctx.packageName}`)
+          if (!await kube.operatorSubscriptionExists(this.subscriptionName, flags.chenamespace)) {
+            command.error(`Unable to find operator subscription ${this.subscriptionName}`)
           }
         }
       },
@@ -147,8 +149,7 @@ export class OLMTasks {
       {
         title: 'Get operator installation plan',
         task: async (ctx: any) => {
-          ctx.packageName = this.packageNamePrefix + (ctx.isOpenShift ? 'openshift' : 'kubernetes')
-          const subscription: Subscription = await kube.getOperatorSubscription(ctx.packageName, flags.chenamespace)
+          const subscription: Subscription = await kube.getOperatorSubscription(this.subscriptionName, flags.chenamespace)
           if (subscription.status && subscription.status!.conditions) {
             const installCondition = subscription.status.conditions.find(condition => condition.type === 'InstallPlanPending' && condition.status === 'True')
             if (installCondition) {
@@ -156,7 +157,7 @@ export class OLMTasks {
               return
             }
           }
-          // Todo... You had already installed the latest version Che.
+          // Todo... Handle situation `You had already installed the latest version Che`.
           command.error("Unable to find installation plan to update.")
         }
       },
@@ -194,13 +195,11 @@ export class OLMTasks {
         }
       },
       {
-        title: `Delete(OLM) operator subscription 'Todo package name...'`,
+        title: `Delete(OLM) operator subscription ${this.subscriptionName}`,
         enabled: (ctx) => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
-          // todo why do we need the same subscription name like package name. Are you sure? or move it upper.
-          const packageName = this.packageNamePrefix + (ctx.isOpenShift ? 'openshift' : 'kubernetes') 
-          if (await kube.operatorSubscriptionExists(packageName, flags.chenamespace)) {
-            await kube.deleteOperatorSubscription(packageName, flags.chenamespace)
+          if (await kube.operatorSubscriptionExists(this.subscriptionName, flags.chenamespace)) {
+            await kube.deleteOperatorSubscription(this.subscriptionName, flags.chenamespace)
           }
           task.title = `${task.title}...OK`
         }
@@ -243,8 +242,8 @@ export class OLMTasks {
       {
         title: "Create operator source",
         task: async (ctx: any, task: any) => {
-            const applicationRegistryNamespace = ctx.isOpenShift ? openshiftApplicationPreviewRegistryNamespace 
-                                                                 : kubernetesApplicationPreviewRegistryNamespace
+          const applicationRegistryNamespace = ctx.isOpenShift ? openshiftApplicationPreviewRegistryNamespace
+                                                               : kubernetesApplicationPreviewRegistryNamespace
             if (await kube.operatorSourceExists(this.operatorSourceName, ctx.marketplaceNamespace)) {
               task.title = `${task.title}...It already exists.`
             } else {
