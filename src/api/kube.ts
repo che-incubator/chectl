@@ -24,7 +24,7 @@ import { DEFAULT_CHE_IMAGE, defaultApplicationRegistry } from '../constants'
 import { getClusterClientCommand } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
-import { OperatorSource, OperatorGroup, Subscription, InstallPlan, ClusterServiceVersionList, CatalogSource } from 'olm'
+import { OperatorSource, OperatorGroup, Subscription, InstallPlan, ClusterServiceVersionList, CatalogSource, PackageManifest } from 'olm'
 
 const AWAIT_TIMEOUT_S = 30
 
@@ -1364,26 +1364,10 @@ export class KubeHelper {
     }
   }
 
-  async createOperatorSubscription(packageName: string, namespace: string, defaultCatalogSourceKubernetesNamespace: string, channel: string, sourceName: string) {
-    const subscription: Subscription = {
-        apiVersion: "operators.coreos.com/v1alpha1",
-        kind: 'Subscription',
-        metadata: {
-          name: packageName,
-          namespace
-        },
-        spec: {
-          channel,
-          installPlanApproval: 'Manual',
-          name: packageName,
-          source: sourceName,
-          sourceNamespace: defaultCatalogSourceKubernetesNamespace,
-        }
-      }
-
+  async createOperatorSubscription(subscription: Subscription) {
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', subscription)
+      const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', subscription.metadata.namespace, 'subscriptions', subscription)
       return body
     } catch (e) {
       throw this.wrapK8sClientError(e)
@@ -1449,7 +1433,7 @@ export class KubeHelper {
     })
   }
 
-  async aproveOperatorInstallationPlan(name = '', namespace = '') {
+  async approveOperatorInstallationPlan(name = '', namespace = '') {
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
     try {
       const patch: InstallPlan = {
@@ -1508,6 +1492,16 @@ export class KubeHelper {
       const options = new V1DeleteOptions()
       const { body } = await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions', csvName, options)
       return body as ClusterServiceVersionList
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async getPackageManifect(name: string): Promise<PackageManifest> {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.getNamespacedCustomObject('packages.operators.coreos.com', 'v1', 'default', 'packagemanifests', name)
+      return body as PackageManifest
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }

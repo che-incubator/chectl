@@ -14,7 +14,7 @@ import { CheOLMChannel, DEFAULT_CHE_IMAGE, openshiftApplicationPreviewRegistryNa
 
 import { KubeHelper } from '../../api/kube';
 import { createNamespaceTask, createEclipeCheCluster, copyOperatorResources, checkPreCreatedTls, checkTlsSertificate } from './common-tasks';
-import { SubscriptionStatusCondition, Subscription, CatalogSource } from 'olm';
+import { Subscription, CatalogSource } from 'olm';
 
 export class OLMTasks {
 
@@ -46,55 +46,37 @@ export class OLMTasks {
         }
       },
       {
-        title: "Create operator source",
+        title: 'Configure context information',
         task: async (ctx: any, task: any) => {
-            ctx.operatorRegistryNamespace = ctx.isOpenShift ? openshiftApplicationPreviewRegistryNamespace : kubernetesApplicationPreviewRegistryNamespace
-            ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOpenshiftMarketPlaceNamespace : defaultKubernetesMarketPlaceNamespace
-
-            if (await kube.operatorSourceExists(this.operatorSourceName, ctx.marketplaceNamespace)) {
-              task.title = `${task.title}...It already exists.`
-            } else {
-              await kube.createOperatorSource(this.operatorSourceName, ctx.operatorRegistryNamespace, ctx.marketplaceNamespace)
-              await kube.waitCatalogSource(ctx.marketplaceNamespace, this.operatorSourceName)
-              task.title = `${task.title}...OK`
-            }
+          ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOpenshiftMarketPlaceNamespace : defaultKubernetesMarketPlaceNamespace
+          // Todo: should we do check for installer openshift? flags.platform === 'crc' || flags.platform === 'openshift'
+          ctx.defaultCatalogSourceNamespace = flags.platform === 'crc' ? defaultOpenshiftMarketPlaceNamespace : defaultOLMKubernetesNamespace
+          task.title = `${task.title}...OK`
         }
       },
       {
-        title: "Create catalog source",
-        task: async (ctx: any, task: any) => {
-          // Todo: should we do check for installer openshift? flags.platform === 'crc' || flags.platform === 'openshift'
-          ctx.defaultCatalogSourceNamespace = flags.platform === 'crc' ? defaultOpenshiftMarketPlaceNamespace : defaultOLMKubernetesNamespace
-          if (!await kube.catalogSourceExists(this.operatorSourceName, ctx.defaultCatalogSourceNamespace)) {
-            const catalogSourceInTheMarketPlaceNamespace = await kube.getCatalogSource(this.operatorSourceName, ctx.marketplaceNamespace)
-            const catalogSource: CatalogSource = {
-              apiVersion: 'operators.coreos.com/v1alpha1',
-              kind: 'CatalogSource',
-              metadata: {
-                name: this.operatorSourceName,
-                namespace: ctx.defaultCatalogSourceNamespace,
-              },
-              spec: {
-                address: catalogSourceInTheMarketPlaceNamespace.spec.address,
-                base64data: '',
-                mediatype: '',
-                sourceType: 'grpc'
-              }
-            }
-            // Create catalog source in the olm namespace to make it working in the namespace differ than marketplace
-            await kube.createCatalogSource(catalogSource)
-            await kube.waitCatalogSource(ctx.defaultCatalogSourceNamespace, this.operatorSourceName)
-          }
+        title: 'Create custom catalog source for "nightly" channel...OK',
+        enabled: () => this.channel === CheOLMChannel.NIGHTLY,
+        task: async () => {
+          return this.customCatalogTasks(flags, command, kube)
         }
       },
       {
         title: 'Create operator subscription',
         task: async (ctx: any, task: any) => {
           ctx.packageName = this.packageNamePrefix + (ctx.isOpenShift ? 'openshift' : 'kubernetes')
+          var subscription: Subscription
+          if (this.channel === CheOLMChannel.STABLE) {
+            const packageManifest = await kube.getPackageManifect('eclipse-che')                                                                                     
+            subscription = this.createSubscription(ctx.packageName, 'eclipse-che', flags.chenamespace, packageManifest.status!.catalogSourceNamespace, 'stable', packageManifest.status!.catalogSource)
+          } else {
+            subscription = this.createSubscription(ctx.packageName, ctx.packageName, flags.chenamespace, ctx.defaultCatalogSourceNamespace, this.channel, this.operatorSourceName)
+          }
+ 
           if (await kube.operatorSubscriptionExists(ctx.packageName, flags.chenamespace)) {
             task.title = `${task.title}...It already exists.`
           } else {
-            await kube.createOperatorSubscription(ctx.packageName, flags.chenamespace, ctx.defaultCatalogSourceNamespace, this.channel, this.operatorSourceName)
+            await kube.createOperatorSubscription(subscription)
             task.title = `${task.title}...OK`
           }
         }
@@ -110,7 +92,7 @@ export class OLMTasks {
       {
         title: 'Approve installation',
         task: async (ctx: any, task: any) => {
-          await kube.aproveOperatorInstallationPlan(ctx.installPlanName, flags.chenamespace)
+          await kube.approveOperatorInstallationPlan(ctx.installPlanName, flags.chenamespace)
           task.title = `${task.title}...OK`
         }
       },
@@ -131,6 +113,7 @@ export class OLMTasks {
       this.isOlmPreInstalledTask(flags, command, kube),
       {
         title: 'Check if operator source exists',
+        enabled: () => this.channel === CheOLMChannel.NIGHTLY,
         task: async (ctx: any, task: any) => {
           ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOpenshiftMarketPlaceNamespace : defaultKubernetesMarketPlaceNamespace
           if (!await kube.operatorSourceExists(this.operatorSourceName, ctx.marketplaceNamespace)) {
@@ -163,25 +146,24 @@ export class OLMTasks {
     return new Listr([
       {
         title: 'Get operator installation plan',
-        task: async (ctx: any, task: any) => {
+        task: async (ctx: any) => {
           ctx.packageName = this.packageNamePrefix + (ctx.isOpenShift ? 'openshift' : 'kubernetes')
           const subscription: Subscription = await kube.getOperatorSubscription(ctx.packageName, flags.chenamespace)
           if (subscription.status && subscription.status!.conditions) {
-            const installationCondition = subscription.status.conditions.find((condition: SubscriptionStatusCondition) => {
-              return condition.type === 'InstallPlanPending' && condition.status === 'True'
-            })
-            if (installationCondition) {
+            const installCondition = subscription.status.conditions.find(condition => condition.type === 'InstallPlanPending' && condition.status === 'True')
+            if (installCondition) {
               ctx.installPlanName = subscription.status.installplan.name
-              return 
+              return
             }
           }
+          // Todo... You had already installed the latest version Che.
           command.error("Unable to find installation plan to update.")
         }
       },
       {
         title: 'Approve installation',
         task: async (ctx: any, task: any) => {
-          await kube.aproveOperatorInstallationPlan(ctx.installPlanName, flags.chenamespace)
+          await kube.approveOperatorInstallationPlan(ctx.installPlanName, flags.chenamespace)
         }
       },
       {
@@ -193,7 +175,7 @@ export class OLMTasks {
     ], { renderer: flags['listr-renderer'] as any })
   }
 
-  deleteTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
+  deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     const kube = new KubeHelper(flags)
     return [
       {
@@ -249,14 +231,14 @@ export class OLMTasks {
 
   // To update chectl stable channel we are patching src/constants.ts from nightly to release version.
   // Let's use it to determine which olm channel should we use by default.
-  getDefaultChannel(): CheOLMChannel {
+  private getDefaultChannel(): CheOLMChannel {
     if (DEFAULT_CHE_IMAGE.endsWith(':nightly')) {
       return CheOLMChannel.NIGHTLY
     }
     return CheOLMChannel.STABLE
   }
 
-  isOlmPreInstalledTask(flags: any, command: Command, kube: KubeHelper): Listr.ListrTask<Listr.ListrContext> {
+  private isOlmPreInstalledTask(flags: any, command: Command, kube: KubeHelper): Listr.ListrTask<Listr.ListrContext> {
     return {
       title: "Check if OLM is pre-installed on the platform",
       task: async  (ctx: any, task: any) => {
@@ -266,5 +248,70 @@ export class OLMTasks {
       }
     }
   }
-}
 
+  private customCatalogTasks(flags: any, command: Command, kube: KubeHelper): Listr {
+    return new Listr([
+      {
+        title: "Create operator source",
+        task: async (ctx: any, task: any) => {
+            const applicationRegistryNamespace = ctx.isOpenShift ? openshiftApplicationPreviewRegistryNamespace 
+                                                                 : kubernetesApplicationPreviewRegistryNamespace
+            if (await kube.operatorSourceExists(this.operatorSourceName, ctx.marketplaceNamespace)) {
+              task.title = `${task.title}...It already exists.`
+            } else {
+              await kube.createOperatorSource(this.operatorSourceName, applicationRegistryNamespace, ctx.marketplaceNamespace)
+              await kube.waitCatalogSource(ctx.marketplaceNamespace, this.operatorSourceName)
+              task.title = `${task.title}...OK`
+            }
+        }
+      },
+      {
+        title: "Create catalog source",
+        task: async (ctx: any, task: any) => {
+          if (!await kube.catalogSourceExists(this.operatorSourceName, ctx.defaultCatalogSourceNamespace)) {
+            const catalogSourceInTheMarketPlaceNamespace = await kube.getCatalogSource(this.operatorSourceName, ctx.marketplaceNamespace)
+
+            const catalogSource: CatalogSource = {
+              apiVersion: 'operators.coreos.com/v1alpha1',
+              kind: 'CatalogSource',
+              metadata: {
+                name: this.operatorSourceName,
+                namespace: ctx.defaultCatalogSourceNamespace,
+              },
+              spec: {
+                address: catalogSourceInTheMarketPlaceNamespace.spec.address,
+                base64data: '',
+                mediatype: '',
+                sourceType: 'grpc'
+              }
+            }
+            // Create catalog source in the olm namespace to make it working in the namespace differ than marketplace
+            await kube.createCatalogSource(catalogSource)
+            await kube.waitCatalogSource(ctx.defaultCatalogSourceNamespace, this.operatorSourceName)
+            task.title = `${task.title}...OK`
+          } else {
+            task.title = `${task.title}...It already exists.`
+          }
+        }
+      }
+    ])
+  }
+
+  private createSubscription(name: string, packageName: string, namespace: string, sourceNamespace: string, channel: string, sourceName: string): Subscription {
+    return {
+      apiVersion: "operators.coreos.com/v1alpha1",
+      kind: 'Subscription',
+      metadata: {
+        name: name,
+        namespace
+      },
+      spec: {
+        channel,
+        installPlanApproval: 'Manual',
+        name: packageName,
+        source: sourceName,
+        sourceNamespace,
+      }
+    }
+  }
+}

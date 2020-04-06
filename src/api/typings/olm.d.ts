@@ -113,4 +113,14 @@ declare module 'olm' {
     mediatype: string
     sourceType: string
   }
+
+  export interface PackageManifest {
+    name: string
+    status?: PackageManifestStatus
+  }
+
+  export interface PackageManifestStatus {
+    catalogSource: string
+    catalogSourceNamespace: string
+  }  
 }
