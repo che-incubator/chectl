@@ -70,7 +70,12 @@ export default class Create extends Command {
 
     try {
       await tasks.run(ctx)
-      this.log(`Workspace successfully ${flags.start ? 'started' : 'created'}. Workspace IDE URL:`)
+      if (flags.start) {
+        this.log('Workspace has been successfully created and workspace start request has been sent')
+        this.log('Workspace will be available shortly:')
+      } else {
+        this.log('Workspace has been successfully created:')
+      }
       cli.url(ctx.workspaceIdeURL, ctx.workspaceIdeURL)
     } catch (err) {
       this.error(err)

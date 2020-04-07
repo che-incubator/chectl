@@ -40,7 +40,7 @@ export class WorkspaceTasks {
       {
         title: 'Stop the workspace',
         task: async (ctx: any, task: any) => {
-          await this.cheHelper.stoptWorkspace(ctx.cheURL, ctx.workspaceId, this.accessToken)
+          await this.cheHelper.stopWorkspace(ctx.cheURL, ctx.workspaceId, this.accessToken)
           task.title = `${task.title}... Done`
         }
       }

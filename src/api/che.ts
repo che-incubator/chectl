@@ -199,7 +199,7 @@ export class CheHelper {
     }
   }
 
-  async startWorkspace(cheNamespace: string, workspaceId: string, debug: boolean, accessToken?: string): Promise<void> {
+  async startWorkspace(cheNamespace: string, workspaceId: string, debug: boolean, accessToken: string | undefined): Promise<void> {
     const cheUrl = await this.cheURL(cheNamespace)
     let endpoint = `${cheUrl}/api/workspace/${workspaceId}/runtime`
     if (debug) {
@@ -226,7 +226,7 @@ export class CheHelper {
     }
   }
 
-  async stoptWorkspace(cheUrl: string, workspaceId: string, accessToken?: string): Promise<void> {
+  async stopWorkspace(cheUrl: string, workspaceId: string, accessToken?: string): Promise<void> {
     let endpoint = `${cheUrl}/api/workspace/${workspaceId}/runtime`
     let response
 

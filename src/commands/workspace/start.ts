@@ -61,7 +61,7 @@ export default class Start extends Command {
 
     try {
       await tasks.run(ctx)
-      this.log('Workspace successfully started. Workspace IDE URL:')
+      this.log('Workspace start request has been sent, workspace will be available shortly:')
       cli.url(ctx.workspaceIdeURL, ctx.workspaceIdeURL)
     } catch (err) {
       this.error(err)
