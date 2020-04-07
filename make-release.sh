@@ -140,12 +140,26 @@ createPR() {
   fi
 }
 
+pushChangesToReleaseBranch() {
+  set +e
+  ask "6. Push changes to release branch?"
+  result=$?
+  set -e
+
+  if [[ $result == 0 ]]; then
+    git push origin $RELEASE:release -f
+  elif [[ $result == 1 ]]; then
+    echo -e $YELLOW"> SKIPPED"$NC
+  fi
+}
+
 run() {
   resetLocalChanges
   release
   commitChanges
   pushChanges
   createPR
+  pushChangesToReleaseBranch
 }
 
 init "$@"
