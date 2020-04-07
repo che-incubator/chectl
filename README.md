@@ -263,7 +263,7 @@ OPTIONS
       show CLI help
 
   -i, --cheimage=cheimage
-      [default: quay.io/eclipse/che-server:nightly] Eclipse Che server container image
+      [default: quay.io/eclipse/che-server:7.11.0] Eclipse Che server container image
 
   -m, --multiuser
       Starts Eclipse Che in multi-user mode
@@ -302,8 +302,8 @@ OPTIONS
       is the operator.
 
   --che-operator-image=che-operator-image
-      [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when 
-      the installer is the operator
+      [default: quay.io/eclipse/che-operator:7.11.0] Container image of the operator. This parameter is used only when the 
+      installer is the operator
 
   --debug
       Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug' 
@@ -338,6 +338,9 @@ OPTIONS
                            This is the flag for Eclipse Che to propagate the certificate to components, so they will trust 
       it.
                            Note that `che-tls` secret with CA certificate must be created in the configured namespace.
+
+  --skip-cluster-availability-check
+      Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.
 
   --skip-version-check
       Skip minimal versions check.
@@ -398,7 +401,7 @@ OPTIONS
                                                                                templates folder
 
   --che-operator-image=che-operator-image                                      [default:
-                                                                               quay.io/eclipse/che-operator:nightly]
+                                                                               quay.io/eclipse/che-operator:7.11.0]
                                                                                Container image of the operator. This
                                                                                parameter is used only when the installer
                                                                                is the operator

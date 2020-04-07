@@ -14,15 +14,37 @@ set -e
 set -u
 
 init() {
-  RED='\033[0;31m'
-  NC='\033[0m'
+  RED='\e[31m'
+  NC='\e[0m'
+  YELLOW='\e[33m'
+  GREEN='\e[32m'
+
+  RELEASE="$1"
+  BRANCH=${2:-master}
+  GIT_REMOTE_UPSTREAM="git@github.com:che-incubator/chectl.git"
+  CURRENT_DIR=$(pwd)
+  BASE_DIR=$(cd "$(dirname "$0")"; pwd)
 }
 
 check() {
-  if [ $# -ne 3 ]; then
-    printf "%bError: %bWrong number of parameters.\nUsage: ./make-release.sh <version> <branch> <fork>\n" "${RED}" "${NC}"
+  if [ $# -lt 1 ]; then
+    printf "%bError: %bWrong number of parameters.\nUsage: ./make-release.sh <version>\n" "${RED}" "${NC}"
     exit 1
   fi
+
+  echo "Release '$RELEASE' from branch '$BRANCH'"
+}
+
+ask() {
+  while true; do
+    echo -e -n $GREEN$@$NC" (Y)es or (N)o "
+    read -r yn
+    case $yn in
+      [Yy]* ) return 0;;
+      [Nn]* ) return 1;;
+      * ) echo "Please answer (Y)es or (N)o. ";;
+    esac
+  done
 }
 
 apply_sed() {
@@ -34,55 +56,96 @@ apply_sed() {
   fi
 }
 
-run() {
-  
-  VERSION=$1
-  BRANCH_NAME=$2
-  FORK=$3
-  GIT_REMOTE_UPSTREAM="git@github.com:che-incubator/chectl.git"
-  GIT_REMOTE_FORK="git@github.com:${FORK}.git"
+resetLocalChanges() {
+  set +e
+  ask "1. Reset local changes?"
+  result=$?
+  set -e
 
-  git checkout master
-
-  # reset local changes
-  while true; do
-    read -r -p "It will reset any local changes to the current branch? " yn
-    case $yn in
-      [Yy]* ) break;;
-      [Nn]* ) exit;;
-      * ) echo "Please answer yes or no.";;
-    esac
-  done
-
-  git fetch ${GIT_REMOTE_UPSTREAM}
-  if git show-ref -q --heads "release"; then
-    git branch -D release
+  if [[ $result == 0 ]]; then
+    git reset --hard
+    git checkout $BRANCH
+    git fetch ${GIT_REMOTE_UPSTREAM} --prune
+    git pull ${GIT_REMOTE_UPSTREAM} $BRANCH
+    git checkout -B $RELEASE
+  elif [[ $result == 1 ]]; then
+    echo -e $YELLOW"> SKIPPED"$NC
   fi
+}
 
-  # fetch latest changes from master branch
-  git pull ${GIT_REMOTE_UPSTREAM} master
+release() {
+  set +e
+  ask "2. Release?"
+  result=$?
+  set -e
 
-  # create a new local and push it to remote branch
-  git checkout -b ${BRANCH_NAME} master
-  git push ${GIT_REMOTE_UPSTREAM} ${BRANCH_NAME}
+  if [[ $result == 0 ]]; then
+    # Create VERSION file
+    echo "$RELEASE" > VERSION
 
-  # Create VERSION file
-  echo "$VERSION" > VERSION
+    # replace nightly versions by release version
+    apply_sed "s#quay.io/eclipse/che-server:nightly#quay.io/eclipse/che-server:${RELEASE}#g" src/constants.ts
+    apply_sed "s#quay.io/eclipse/che-operator:nightly#quay.io/eclipse/che-operator:${RELEASE}#g" src/constants.ts
 
-  # replace nightly versions by release version
-  apply_sed "s#quay.io/eclipse/che-server:nightly#quay.io/eclipse/che-server:${VERSION}#g" src/constants.ts
-  apply_sed "s#quay.io/eclipse/che-operator:nightly#quay.io/eclipse/che-operator:${VERSION}#g" src/constants.ts
+    # now replace package.json dependencies
+    apply_sed "s;github.com/eclipse/che#\(.*\)\",;github.com/eclipse/che#${RELEASE}\",;g" package.json
+    apply_sed "s;github.com/eclipse/che-operator#\(.*\)\",;github.com/eclipse/che-operator#${RELEASE}\",;g" package.json
 
-  # now replace package.json dependencies
-  apply_sed "s;github.com/eclipse/che#\(.*\)\",;github.com/eclipse/che#${VERSION}\",;g" package.json
-  apply_sed "s;github.com/eclipse/che-operator#\(.*\)\",;github.com/eclipse/che-operator#${VERSION}\",;g" package.json
+    # build
+    yarn
+    yarn pack
+    yarn test
+  elif [[ $result == 1 ]]; then
+    echo -e $YELLOW"> SKIPPED"$NC
+  fi
+}
 
-  # add VERSION file to commit
-  git add VERSION src package.json yarn.lock
+commitChanges() {
+  set +e
+  ask "3. Commit changes?"
+  result=$?
+  set -e
 
-  git commit -a -s -m "chore(release): release version ${VERSION}"
+  if [[ $result == 0 ]]; then
+    git add -A
+    git commit -s -m "chore(release): release version ${RELEASE}"
+  elif [[ $result == 1 ]]; then
+    echo -e $YELLOW"> SKIPPED"$NC
+  fi
+}
 
-  git push ${GIT_REMOTE_FORK} ${BRANCH_NAME}
+pushChanges() {
+  set +e
+  ask "4. Push changes?"
+  result=$?
+  set -e
+
+  if [[ $result == 0 ]]; then
+    git push origin $RELEASE
+  elif [[ $result == 1 ]]; then
+    echo -e $YELLOW"> SKIPPED"$NC
+  fi
+}
+
+createPR() {
+  set +e
+  ask "5. Create PR?"
+  result=$?
+  set -e
+
+  if [[ $result == 0 ]]; then
+    hub pull-request --base ${BRANCH} --head ${RELEASE} --browse -m "Release version ${RELEASE}"
+  elif [[ $result == 1 ]]; then
+    echo -e $YELLOW"> SKIPPED"$NC
+  fi
+}
+
+run() {
+  resetLocalChanges
+  release
+  commitChanges
+  pushChanges
+  createPR
 }
 
 init "$@"

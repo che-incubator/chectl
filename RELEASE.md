@@ -3,10 +3,7 @@
 #### Make release changes and push them to your personal fork
 
 ```bash
-CHE_VERSION="7.7.0" && \
-BRANCH_NAME="7.7.x" && \
-FORK="l0rd/chectl" && \
-./make-release.sh ${CHE_VERSION} ${BRANCH_NAME} ${FORK}
+./make-release.sh ${RELEASE} ${BRANCH_NAME}
 ```
 
 #### Create a PR using `hub`
