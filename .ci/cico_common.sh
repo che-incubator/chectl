@@ -1,3 +1,4 @@
+
 #!/bin/bash
 #
 # Copyright (c) 2012-2020 Red Hat, Inc.
@@ -103,6 +104,27 @@ github_token_set() {
   fi
 }
 
+self_signed_minishift() {
+  export DOMAIN=*.$(minishift ip).nip.io
+
+  source ${CHECTL_REPO}/.ci/che-cert_generation.sh
+
+  #Configure Router with generated certificate:
+
+  oc login -u system:admin --insecure-skip-tls-verify=true
+  oc project default
+  oc delete secret router-certs
+
+  cat domain.crt domain.key > minishift.crt
+  oc create secret tls router-certs --key=domain.key --cert=minishift.crt
+  oc rollout latest router
+
+  oc create namespace che
+
+  cp rootCA.crt ca.crt
+  oc create secret generic self-signed-certificate --from-file=ca.crt -n=che
+}
+
 minishift_installation() {
   printInfo "Downloading Minishift binaries"
   curl -L https://github.com/minishift/minishift/releases/download/v$MSFT_RELEASE/minishift-$MSFT_RELEASE-linux-amd64.tgz \
@@ -114,7 +136,7 @@ minishift_installation() {
   github_token_set
   minishift start --memory=8192 && eval $(minishift oc-env)
 
-  oc login -u system:admin
+  self_signed_minishift
   printInfo "Successfully installed and initialized minishift"
 }
 
