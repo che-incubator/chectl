@@ -1,3 +1,4 @@
+
 #!/bin/bash
 #
 # Copyright (c) 2012-2020 Red Hat, Inc.
@@ -10,82 +11,142 @@
 # Contributors:
 #   Red Hat, Inc. - initial API and implementation
 
-set -e -x
+RAM_MEMORY=8192
+MSFT_RELEASE="1.34.2"
 
-#Stop execution on any error
-trap "fail_trap" EXIT
+printInfo() {
+  set +x
+  echo ""
+  echo "[=============== [INFO] $1 ===============]"
+}
 
-init() {
-  SCRIPT=$(readlink -f "$0")
-  SCRIPTPATH=$(dirname "$SCRIPT")
-  PROFILE=chectl-e2e-tests
+printWarn() {
+  set +x
+  echo ""
+  echo "[=============== [WARN] $1 ===============]"
+}
 
-  # Environment to define the project absolute path.
-  if [[ ${WORKSPACE} ]] && [[ -d ${WORKSPACE} ]]; then
-    CHECTL_REPO=${WORKSPACE};
+printError() {
+  set +x
+  echo ""
+  echo "[=============== [ERROR] $1 ===============]"
+}
+
+
+helm_install() {
+  curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+}
+
+installEpelRelease() {
+  # Install EPEL repo
+  if yum repolist | grep epel; then
+    printInfo "Epel already installed, skipping instalation."
   else
-    CHECTL_REPO=$(dirname "$SCRIPTPATH");
+    #excluding mirror1.ci.centos.org
+    printInfo "Installing epel..."
+    yum install -d1 --assumeyes epel-release
+    yum update --assumeyes -d1
   fi
-
-  #Create tmp path for binaries installations.
-  if [ ! -d "$CHECTL_REPO/tmp" ]; then mkdir -p "$CHECTL_REPO/tmp" && chmod 777 "$CHECTL_REPO/tmp"; fi
 }
 
-# fail_trap is executed if an error occurs.
-fail_trap() {
-  result=$?
-  if [ "$result" != "0" ]; then
-    printError "Please check CI fail.Cleaning up minikube and minishift..."
+installStartDocker() {
+  if [ -x "$(command -v docker)" ]; then
+    printWarn "Docker already installed"
+  else
+    printInfo "Installing docker..."
+    yum install --assumeyes -d1 yum-utils device-mapper-persistent-data lvm2
+    yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+    printInfo "Starting docker service..."
+    yum install --assumeyes -d1 docker-ce
+    systemctl start docker
+    docker version
   fi
-  cleanup
-  exit $result
 }
 
-# cleanup temporary files or minikube/minishift installations.
-cleanup() {
-  set +e
-  yes | minishift delete --profile ${PROFILE}
-  minikube delete && yes | kubeadm reset
-  rm -rf ~/.minishift ~/.kube ~/.minikube
+install_node_deps() {
+  curl -sL https://rpm.nodesource.com/setup_10.x | bash -
+  yum-config-manager --add-repo https://dl.yarnpkg.com/rpm/yarn.repo
+  yum install -y nodejs yarn git
 }
 
-#Call all necesaries dependencies to install from {PROJECT_PATH/.ci/ci.common.sh}
-install_utilities() {
-  helm_install
-  installJQ
-  load_jenkins_vars
-  setup_kvm_machine_driver
-  install_node_deps
-  installStartDocker
+setup_kvm_machine_driver() {
+  echo "======== Start to install KVM virtual machine ========"
+
+  yum install -y qemu-kvm libvirt libvirt-python libguestfs-tools virt-install
+
+  curl -L https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.10.0/docker-machine-driver-kvm-centos7 -o /usr/local/bin/docker-machine-driver-kvm
+  chmod +x /usr/local/bin/docker-machine-driver-kvm
+
+  systemctl enable libvirtd
+  systemctl start libvirtd
+
+  virsh net-list --all
+  echo "======== KVM has been installed successfully ========"
 }
 
-run() {
-  #Before to start to run the e2e tests we need to install all deps with yarn
-  yarn --cwd ${CHECTL_REPO}
-
-  for platform in 'minishift' 'minikube'
-  do
-      if [[ ${platform} == 'minishift' ]]; then
-        minishift_installation
-
-        printInfo "Running e2e tests on ${platform} platform."
-        yarn test --coverage=false --forceExit --testRegex=${CHECTL_REPO}/test/e2e/minishift.test.ts
-        #Clearing minishift installation from system
-        yes | minishift delete --profile ${PROFILE}
-        rm -rf ~/.minishift
-      fi
-      if [[ ${platform} == 'minikube' ]]; then
-        source ${CHECTL_REPO}/.ci/start-minikube.sh
-
-        sleep 60
-        printInfo "Running e2e tests on ${platform} platform."
-        yarn test --coverage=false --forceExit --testRegex=${CHECTL_REPO}/test/e2e/minikube.test.ts
-      fi
-  done
+github_token_set() {
+  #Setup GitHub token for minishift
+  if [ -z "$CHE_BOT_GITHUB_TOKEN" ]
+  then
+    printWarn "\$CHE_BOT_GITHUB_TOKEN is empty. Minishift start might fail with GitGub API rate limit reached."
+  else
+    printInfo "\$CHE_BOT_GITHUB_TOKEN is set, checking limits."
+    GITHUB_RATE_REMAINING=$(curl -slL "https://api.github.com/rate_limit?access_token=$CHE_BOT_GITHUB_TOKEN" | jq .rate.remaining)
+    if [ "$GITHUB_RATE_REMAINING" -gt 1000 ]
+    then
+      printInfo "Github rate greater than 1000. Using che-bot token for minishift startup."
+      export MINISHIFT_GITHUB_API_TOKEN=$CHE_BOT_GITHUB_TOKEN
+    else
+      printInfo "Github rate is lower than 1000. *Not* using che-bot for minishift startup."
+      printInfo "If minishift startup fails, please try again later."
+    fi
+  fi
 }
 
-init
+self_signed_minishift() {
+  export DOMAIN=*.$(minishift ip).nip.io
 
-source ${CHECTL_REPO}/.ci/cico_common.sh
-install_utilities
-run
+  source ${CHECTL_REPO}/.ci/self-signed-cert.sh
+
+  #Configure Router with generated certificate:
+
+  oc login -u system:admin --insecure-skip-tls-verify=true
+  oc project default
+  oc delete secret router-certs
+
+  cat domain.crt domain.key > minishift.crt
+  oc create secret tls router-certs --key=domain.key --cert=minishift.crt
+  oc rollout latest router
+
+  oc create namespace che
+
+  cp rootCA.crt ca.crt
+  oc create secret generic self-signed-certificate --from-file=ca.crt -n=che
+}
+
+minishift_installation() {
+  printInfo "Downloading Minishift binaries"
+  curl -L https://github.com/minishift/minishift/releases/download/v$MSFT_RELEASE/minishift-$MSFT_RELEASE-linux-amd64.tgz \
+    -o ${CHECTL_REPO}/tmp/minishift-$MSFT_RELEASE-linux-amd64.tar && tar -xvf ${CHECTL_REPO}/tmp/minishift-$MSFT_RELEASE-linux-amd64.tar -C /usr/local/bin --strip-components=1
+  printInfo "Starting a new OC cluster."
+  minishift profile set ${PROFILE}
+
+  printInfo "Setting github token and start a new minishift VM."
+  github_token_set
+  minishift start --memory=8192 && eval $(minishift oc-env)
+
+  self_signed_minishift
+  printInfo "Successfully installed and initialized minishift"
+}
+
+installJQ() {
+  installEpelRelease
+  yum install --assumeyes -d1 jq
+}
+
+load_jenkins_vars() {
+    set +x
+    eval "$(./env-toolkit load -f jenkins-env.json \
+                              CHE_BOT_GITHUB_TOKEN)"
+}
