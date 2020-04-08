@@ -14,8 +14,8 @@ jest.setTimeout(600000)
 describe('e2e test', () => {
   describe('server:start without parameters', () => {
     test
-      .stdout()
-      .command(['server:start', '--platform=minikube', '--installer=operator'])
+      .stdout({ print: true })
+      .command(['server:start', '--platform=minikube', '--tls', '--self-signed-cert', '--installer=operator'])
       .exit(0)
       .it('uses minikube as platform, operator as installer and auth is enabled', ctx => {
         expect(ctx.stdout).to.contain('Minikube preflight checklist')
@@ -25,7 +25,7 @@ describe('e2e test', () => {
       })
     test
       .skip()
-      .stdout()
+      .stdout({ print: true })
       .command(['server:stop'])
       .exit(0)
       .it('stops Server on minikube successfully')
