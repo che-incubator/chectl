@@ -339,6 +339,9 @@ OPTIONS
       it.
                            Note that `che-tls` secret with CA certificate must be created in the configured namespace.
 
+  --skip-cluster-availability-check
+      Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.
+
   --skip-version-check
       Skip minimal versions check.
 

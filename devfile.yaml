@@ -57,7 +57,12 @@ commands:
       - type: exec
         component: dev
         command: >
-                 ./run devfile:generate                      --name=chectl-test                      --language=typescript                      --dockerimage=eclipse/che-theia-dev:next                      --git-repo=https://github.com/che-incubator/chectl.git                      --command="yarn" > /projects/sample.devfile;
+                 ./run devfile:generate \
+                     --name=chectl-test \
+                     --language=typescript \
+                     --dockerimage=eclipse/che-theia-dev:next \
+                     --git-repo=https://github.com/che-incubator/chectl.git \
+                     --command="yarn" > /projects/sample.devfile;
                   cat /projects/sample.devfile
         workdir: /projects/chectl/bin
 
@@ -67,7 +72,7 @@ commands:
         component: dev
         command: >
                  cat /projects/sample.devfile | curl -F 'clbin=<-' https://clbin.com > /projects/clbin;
-                 uri=; ./run workspace:start -f=
+                 uri=$(cat /projects/clbin); ./run workspace:start -f=$uri
         workdir: /projects/chectl/bin
 
   - name: Package Binaries
@@ -97,8 +102,8 @@ commands:
                 "name": "Attach to Remote",
                 "address": "localhost",
                 "port": 9229,
-                "localRoot": "",
-                "remoteRoot": ""
+                "localRoot": "${workspaceFolder}",
+                "remoteRoot": "${workspaceFolder}"
               }
             ]
           }
