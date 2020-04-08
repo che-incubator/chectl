@@ -8,24 +8,60 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
+import Command, { flags } from '@oclif/command'
 import { cli } from 'cli-ux'
+import Listr = require('listr')
 import * as notifier from 'node-notifier'
 
-import Create from './create'
+import { accessToken, cheNamespace } from '../../common-flags'
+import { CheTasks } from '../../tasks/che'
+import { ApiTasks } from '../../tasks/platforms/api'
+import { WorkspaceTasks } from '../../tasks/workspace-tasks'
 
-export default class Start extends Create {
-  static description = 'Creates and starts workspace from a devfile'
+export default class Start extends Command {
+  static description = 'Starts a workspace'
+
+  static flags = {
+    help: flags.help({ char: 'h' }),
+    debug: flags.boolean({
+      char: 'd',
+      description: 'Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup.',
+      default: false
+    }),
+    'access-token': accessToken,
+    chenamespace: cheNamespace,
+  }
+
+  static args = [
+    {
+      name: 'workspace',
+      description: 'The workspace id to start',
+      required: true
+    }
+  ]
 
   async run() {
-    const { flags } = this.parse(Create)
-    flags.start = true
+    const { flags } = this.parse(Start)
+    const { args } = this.parse(Start)
+    const ctx: any = {}
 
-    const tasks = this.getWorkspaceCreateTasks(flags)
+    const tasks = new Listr([], { renderer: 'silent' })
 
-    cli.warn('This command is deprecated. Please use "workspace:create --start" instead')
+    const apiTasks = new ApiTasks()
+    const cheTasks = new CheTasks(flags)
+    const workspaceTasks = new WorkspaceTasks(flags)
+
+    ctx.workspaceId = args.workspace
+    tasks.add(apiTasks.testApiTasks(flags, this))
+    tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
+    tasks.add(cheTasks.retrieveEclipseCheUrl(flags))
+    tasks.add(cheTasks.checkEclipseCheStatus())
+    tasks.add(workspaceTasks.getWorkspaceStartTask(flags.debug))
+    tasks.add(workspaceTasks.getWorkspaceIdeUrlTask())
+
     try {
-      let ctx = await tasks.run()
-      this.log('\nWorkspace IDE URL:')
+      await tasks.run(ctx)
+      this.log('Workspace start request has been sent, workspace will be available shortly:')
       cli.url(ctx.workspaceIdeURL, ctx.workspaceIdeURL)
     } catch (err) {
       this.error(err)

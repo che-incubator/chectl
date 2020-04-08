@@ -62,7 +62,7 @@ export default class List extends Command {
       await tasks.run(ctx)
       this.printWorkspaces(ctx.workspaces)
     } catch (error) {
-      this.error(error)
+      this.error(error.message)
     }
   }
 

@@ -9,36 +9,62 @@
  **********************************************************************/
 
 import { Command, flags } from '@oclif/command'
+import { cli } from 'cli-ux'
+import Listr = require('listr')
+import * as notifier from 'node-notifier'
 
-import { accessToken, cheNamespace, listrRenderer } from '../../common-flags'
+import { accessToken, cheNamespace } from '../../common-flags'
+import { CheTasks } from '../../tasks/che'
+import { ApiTasks } from '../../tasks/platforms/api'
+import { WorkspaceTasks } from '../../tasks/workspace-tasks'
 
 export default class Stop extends Command {
-  static description = 'stop a running workspace'
+  static description = 'Stop a running workspace'
 
   static flags = {
     help: flags.help({ char: 'h' }),
-    chenamespace: cheNamespace,
     'access-token': accessToken,
-    'listr-renderer': listrRenderer
+    chenamespace: cheNamespace,
   }
+
+  static args = [
+    {
+      name: 'workspace',
+      description: 'The workspace id to stop',
+      required: true
+    }
+  ]
 
   async run() {
     const { flags } = this.parse(Stop)
-    const Listr = require('listr')
-    const notifier = require('node-notifier')
-    const tasks = new Listr([
-      { title: 'Verify if we can access Kubernetes API', skip: () => 'Not implemented yet', task: () => { } },
-      { title: 'Verify if Eclipse Che is responding', skip: () => 'Not implemented yet', task: () => { } },
-      { title: 'Verify if the workspaces is running', skip: () => 'Not implemented yet', task: () => { } },
-      { title: 'Stop the workspace', skip: () => 'Not implemented yet', task: () => { } },
-      { title: 'Waiting for the workspace resources to be deleted', skip: () => 'Not implemented yet', task: () => { } },
-    ], { renderer: flags['listr-renderer'] as any })
+    const { args } = this.parse(Stop)
+    const ctx: any = {}
 
-    await tasks.run()
+    const tasks = new Listr([], { renderer: 'silent' })
+
+    const apiTasks = new ApiTasks()
+    const cheTasks = new CheTasks(flags)
+    const workspaceTasks = new WorkspaceTasks(flags)
+
+    ctx.workspaceId = args.workspace
+    tasks.add(apiTasks.testApiTasks(flags, this))
+    tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
+    tasks.add(cheTasks.retrieveEclipseCheUrl(flags))
+    tasks.add(cheTasks.checkEclipseCheStatus())
+    tasks.add(workspaceTasks.getWorkspaceStopTask())
+
+    try {
+      await tasks.run(ctx)
+      cli.log('Workspace successfully stopped.')
+    } catch (err) {
+      this.error(err)
+    }
 
     notifier.notify({
       title: 'chectl',
-      message: 'Command workspace:stop has completed.'
+      message: 'Command workspace:stop has completed successfully.'
     })
+
+    this.exit(0)
   }
 }

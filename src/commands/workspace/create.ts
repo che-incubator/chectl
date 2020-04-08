@@ -11,12 +11,14 @@
 import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
-import * as fs from 'fs'
 import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
 
-import { CheHelper } from '../../api/che'
 import { accessToken, cheNamespace } from '../../common-flags'
+import { CheTasks } from '../../tasks/che'
+import { ApiTasks } from '../../tasks/platforms/api'
+import { WorkspaceTasks } from '../../tasks/workspace-tasks'
+
 export default class Create extends Command {
   static description = 'Creates a workspace from a devfile'
 
@@ -25,12 +27,12 @@ export default class Create extends Command {
     chenamespace: cheNamespace,
     devfile: string({
       char: 'f',
-      description: 'path or URL to a valid devfile',
+      description: 'Path or URL to a valid devfile',
       env: 'DEVFILE_PATH',
       required: false,
     }),
     name: string({
-      description: 'workspace name: overrides the workspace name to use instead of the one defined in the devfile.',
+      description: 'Workspace name: overrides the workspace name to use instead of the one defined in the devfile.',
       required: false,
     }),
     start: boolean({
@@ -38,16 +40,42 @@ export default class Create extends Command {
       description: 'Starts the workspace after creation',
       default: false
     }),
+    debug: boolean({
+      char: 'd',
+      description: 'Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup. This flag is used in conjunction with --start flag.',
+      default: false
+    }),
     'access-token': accessToken
   }
 
   async run() {
     const { flags } = this.parse(Create)
+    const ctx: any = {}
 
-    const tasks = this.getWorkspaceCreateTasks(flags)
+    const apiTasks = new ApiTasks()
+    const cheTasks = new CheTasks(flags)
+    const workspaceTasks = new WorkspaceTasks(flags)
+
+    const tasks = new Listr([], { renderer: 'silent' })
+
+    tasks.add(apiTasks.testApiTasks(flags, this))
+    tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
+    tasks.add(cheTasks.retrieveEclipseCheUrl(flags))
+    tasks.add(cheTasks.checkEclipseCheStatus())
+    tasks.add(workspaceTasks.getWorkspaceCreateTask(flags.devfile, flags.name))
+    if (flags.start) {
+      tasks.add(workspaceTasks.getWorkspaceStartTask(flags.debug))
+    }
+    tasks.add(workspaceTasks.getWorkspaceIdeUrlTask())
+
     try {
-      let ctx = await tasks.run()
-      this.log('\nWorkspace IDE URL:')
+      await tasks.run(ctx)
+      if (flags.start) {
+        this.log('Workspace has been successfully created and workspace start request has been sent')
+        this.log('Workspace will be available shortly:')
+      } else {
+        this.log('Workspace has been successfully created:')
+      }
       cli.url(ctx.workspaceIdeURL, ctx.workspaceIdeURL)
     } catch (err) {
       this.error(err)
@@ -60,63 +88,4 @@ export default class Create extends Command {
 
     this.exit(0)
   }
-
-  getWorkspaceCreateTasks(flags: any): Listr<any> {
-    const che = new CheHelper(flags)
-    return new Listr([
-      {
-        title: 'Retrieving Eclipse Che server URL',
-        task: async (ctx: any, task: any) => {
-          ctx.cheURL = await che.cheURL(flags.chenamespace)
-          task.title = await `${task.title}... ${ctx.cheURL}`
-        }
-      },
-      {
-        title: 'Verify if Eclipse Che server is running',
-        task: async (ctx: any, task: any) => {
-          if (!await che.isCheServerReady(ctx.cheURL)) {
-            this.error(`E_SRV_NOT_RUNNING - Eclipse Che server is not available by ${ctx.cheURL}`, { code: 'E_SRV_NOT_RUNNNG' })
-          }
-          const status = await che.getCheServerStatus(ctx.cheURL)
-          ctx.isAuthEnabled = await che.isAuthenticationEnabled(ctx.cheURL)
-          const auth = ctx.isAuthEnabled ? '(auth enabled)' : '(auth disabled)'
-          task.title = await `${task.title}...${status} ${auth}`
-        }
-      },
-      {
-        title: `Create workspace from Devfile ${flags.devfile}`,
-        task: async (ctx: any) => {
-          if (ctx.isAuthEnabled && !flags['access-token']) {
-            this.error('E_AUTH_REQUIRED - Eclipse Che authentication is enabled and an access token needs to be provided (flag --access-token).')
-          }
-
-          let devfilePath: string
-          if (flags.devfile) {
-            devfilePath = flags.devfile
-          } else if (fs.existsSync('devfile.yaml')) {
-            devfilePath = 'devfile.yaml'
-          } else if (fs.existsSync('devfile.yml')) {
-            devfilePath = 'devfile.yml'
-          } else {
-            throw new Error("E_DEVFILE_MISSING - Devfile wasn't specified via '-f' option and \'devfile.yaml' is not present in current directory.")
-          }
-
-          const workspaceConfig = await che.createWorkspaceFromDevfile(flags.chenamespace, devfilePath, flags.name, flags['access-token'])
-          ctx.workspaceId = workspaceConfig.id
-          if (workspaceConfig.links && workspaceConfig.links.ide) {
-            ctx.workspaceIdeURL = await che.buildDashboardURL(workspaceConfig.links.ide)
-          }
-        }
-      }, {
-        title: 'Start workspace',
-        enabled: () => flags.start,
-        task: async (ctx: any, task: any) => {
-          await che.startWorkspace(flags.chenamespace, ctx.workspaceId, flags['access-token'])
-          task.title = `${task.title}... Done`
-        }
-      }
-    ], { renderer: 'silent' })
-
-  }
-
 }
