@@ -20,7 +20,7 @@ export namespace CommonPlatformTasks {
   export function getPingClusterTask(flags: any): Listr.ListrTask {
     return {
       title: 'Check if cluster accessible',
-      skip: () => flags['skip-cluster-availability-check'],
+      skip: () => true,
       task: async (_ctx: any, task: any) => {
         const domain: string = flags.domain
         if (!domain) {
