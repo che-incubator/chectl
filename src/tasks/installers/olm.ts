@@ -157,7 +157,7 @@ export class OLMTasks {
 
           if (subscription.status) {
             if (subscription.status.state === 'AtLatestKnown') {
-              task.title = `Everything is up to date. Installed the latest known version '${subscription.status.currentCSV}' from channel '${this.channel}.`
+              task.title = `Everything is up to date. Installed the latest known version '${subscription.status.currentCSV}' from channel '${this.channel}'.`
               return
             }
 
