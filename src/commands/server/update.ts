@@ -132,7 +132,7 @@ export default class Update extends Command {
 
         await preUpdateTasks.run(ctx)
 
-        if (!flags['skip-version-check']) {
+        if (!flags['skip-version-check'] && flags.installer !== 'olm') {
           await cli.anykey(`      Found deployed Eclipse Che with operator [${ctx.deployedCheOperatorImage}]:${ctx.deployedCheOperatorTag}.
       You are going to update it to [${ctx.newCheOperatorImage}]:${ctx.newCheOperatorTag}.
       Note that Eclipse Che operator will update component images (server, plugin registry) only if their values

@@ -90,7 +90,7 @@ export class OLMTasks {
         task: async (ctx: any, task: any) => {
           const installPlan = await kube.waitOperatorSubscriptionReadyForApproval(flags.chenamespace, this.subscriptionName, 600)
           ctx.installPlanName = installPlan.name
-          task.title = `${task.title}...OK`
+          task.title = `${task.title}...OK.`
         }
       },
       {
@@ -123,6 +123,7 @@ export class OLMTasks {
           if (!await kube.operatorSourceExists(this.operatorSourceName, ctx.marketplaceNamespace)) {
             command.error(`Unable to find operator source ${this.operatorSourceName}`)
           }
+          task.title = `${task.title}...OK`
         }
       },
       {
@@ -131,6 +132,7 @@ export class OLMTasks {
           if (!await kube.operatorGroupExists(this.operatorGroupName, flags.chenamespace)){
             command.error(`Unable to find operator group ${this.operatorGroupName}`)
           }
+          task.title = `${task.title}...OK`
         }
       },
       {
@@ -139,6 +141,7 @@ export class OLMTasks {
           if (!await kube.operatorSubscriptionExists(this.subscriptionName, flags.chenamespace)) {
             command.error(`Unable to find operator subscription ${this.subscriptionName}`)
           }
+          task.title = `${task.title}...OK`
         }
       },
     ], { renderer: flags['listr-renderer'] as any })
@@ -149,28 +152,38 @@ export class OLMTasks {
     return new Listr([
       {
         title: 'Get operator installation plan',
-        task: async (ctx: any) => {
+        task: async (ctx: any, task: any) => {
           const subscription: Subscription = await kube.getOperatorSubscription(this.subscriptionName, flags.chenamespace)
-          if (subscription.status && subscription.status!.conditions) {
-            const installCondition = subscription.status.conditions.find(condition => condition.type === 'InstallPlanPending' && condition.status === 'True')
-            if (installCondition) {
-              ctx.installPlanName = subscription.status.installplan.name
+
+          if (subscription.status) {
+            if (subscription.status.state === 'AtLatestKnown') {
+              task.title = `Everything is up to date. Installed the latest known version '${subscription.status.currentCSV}' from channel '${this.channel}.`
               return
             }
+
+            if (subscription.status.state === 'UpgradePending' && subscription.status!.conditions) {
+              const installCondition = subscription.status.conditions.find(condition => condition.type === 'InstallPlanPending' && condition.status === 'True')
+              if (installCondition) {
+                ctx.installPlanName = subscription.status.installplan.name
+                task.title = `${task.title}...OK`
+                return
+              }
+            }
           }
-          // Todo... Handle situation `You had already installed the latest version Che`.
           command.error("Unable to find installation plan to update.")
         }
       },
       {
         title: 'Approve installation',
-        task: async (ctx: any, task: any) => {
+        enabled: (ctx: any) => ctx.installPlanName,
+        task: async (ctx: any) => {
           await kube.approveOperatorInstallationPlan(ctx.installPlanName, flags.chenamespace)
         }
       },
       {
         title: 'Wait while newer operator installed',
-        task: async (ctx: any, task: any) => {
+        enabled: (ctx: any) => ctx.installPlanName,
+        task: async (ctx: any) => {
           await kube.waitWhileOperatorInstalled(ctx.installPlanName, flags.chenamespace, 60)
         }
       },
