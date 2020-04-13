@@ -61,10 +61,11 @@ export class OLMTasks {
         }
       },
       {
-        title: 'Create custom catalog source for "nightly" channel...OK',
+        title: 'Create custom catalog source for "nightly" channel',
         enabled: () => this.channel === CheOLMChannel.NIGHTLY,
-        task: async () => {
-          return this.customCatalogTasks(flags, command, kube)
+        task: async (ctx: any, task: any) => {
+          await this.customCatalogTasks(flags, command, kube).run(ctx)
+          task.title = `${task.title}...OK`
         }
       },
       {
@@ -183,6 +184,7 @@ export class OLMTasks {
         title: "Check if OLM is pre-installed on the platform",
         task: async  (ctx: any, task: any) => {
           ctx.isPreInstalledOLM = await kube.isPreInstalledOLM() ? true : false
+          task.title = `${task.title}...OK`
         }
       },
       {
@@ -192,6 +194,7 @@ export class OLMTasks {
           const csvs = await kube.getClusterServiceVersions(flags.chenamespace)
           const csvsToDelete = csvs.items.filter((csv) => csv.metadata.name.startsWith("eclipse-che"))
           csvsToDelete.forEach((csv) => kube.deleteClusterServiceVersion(flags.chenamespace, csv.metadata.name))
+          task.title = `${task.title}...OK`
         }
       },
       {
@@ -233,6 +236,7 @@ export class OLMTasks {
         if (!await kube.isPreInstalledOLM()) {
           command.error("OLM isn't installed on your platfrom. If your platform hasn't got embedded OML, you need install it manually.")
         }
+        task.title = `${task.title}...OK`
       }
     }
   }

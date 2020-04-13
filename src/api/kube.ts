@@ -1212,17 +1212,15 @@ export class KubeHelper {
     }
   }
 
-  async isPreInstalledOLM() {
+  async isPreInstalledOLM(): Promise<boolean> {
     const apiApi = this.kc.makeApiClient(ApisApi)
     try {
       const { body } = await apiApi.getAPIVersions()
       const OLMAPIGroup = body.groups.find((apiGroup) => apiGroup.name === 'operators.coreos.com')
-      if (OLMAPIGroup) {
-        return true
-      }
-    } catch {}
-
-    return false
+      return !!OLMAPIGroup
+    } catch {
+      return false
+    }
   }
 
   async operatorSourceExists(name: string, namespace: string): Promise<boolean> {
