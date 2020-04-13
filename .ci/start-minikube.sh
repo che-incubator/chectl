@@ -18,6 +18,17 @@ export CHANGE_MINIKUBE_NONE_USER=true
 export KUBECONFIG=$HOME/.kube/config
 export TEST_OUTPUT=1
 
+self_signed_minikube() {
+  export DOMAIN=*.$(minikube ip).nip.io
+
+  source ${CHECTL_REPO}/.ci/che-cert_generation.sh
+
+  kubectl create namespace che
+  kubectl create secret tls che-tls --key=domain.key --cert=domain.crt -n che
+  cp rootCA.crt ca.crt
+  kubectl create secret generic self-signed-certificate --from-file=ca.crt -n che
+}
+
 sudo mount --make-rshared /
 sudo mount --make-rshared /proc
 sudo mount --make-rshared /sys
@@ -75,3 +86,5 @@ rules:
     verbs: ["*"]
 
 EOF
+
+self_signed_minikube

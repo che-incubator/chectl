@@ -199,12 +199,15 @@ export class CheHelper {
     }
   }
 
-  async startWorkspace(cheNamespace: string, workspaceId: string, accessToken?: string): Promise<void> {
+  async startWorkspace(cheNamespace: string, workspaceId: string, debug: boolean, accessToken: string | undefined): Promise<void> {
     const cheUrl = await this.cheURL(cheNamespace)
-    const endpoint = `${cheUrl}/api/workspace/${workspaceId}/runtime`
+    let endpoint = `${cheUrl}/api/workspace/${workspaceId}/runtime`
+    if (debug) {
+      endpoint += '?debug-workspace-start=true'
+    }
     let response
 
-    const headers: {[key: string]: string} = {}
+    const headers: { [key: string]: string } = {}
     if (accessToken) {
       headers.Authorization = accessToken
     }
@@ -219,6 +222,29 @@ export class CheHelper {
     }
 
     if (!response || response.status !== 200 || !response.data) {
+      throw new Error('E_BAD_RESP_CHE_API')
+    }
+  }
+
+  async stopWorkspace(cheUrl: string, workspaceId: string, accessToken?: string): Promise<void> {
+    let endpoint = `${cheUrl}/api/workspace/${workspaceId}/runtime`
+    let response
+
+    const headers: { [key: string]: string } = {}
+    if (accessToken) {
+      headers.Authorization = accessToken
+    }
+    try {
+      response = await this.axios.delete(endpoint, { headers })
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        throw new Error(`E_WORKSPACE_NOT_EXIST - workspace with "${workspaceId}" id doesn't exist`)
+      } else {
+        throw this.getCheApiError(error, endpoint)
+      }
+    }
+
+    if (!response || response.status !== 204) {
       throw new Error('E_BAD_RESP_CHE_API')
     }
   }
