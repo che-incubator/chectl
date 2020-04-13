@@ -84,6 +84,9 @@ export default class Update extends Command {
     if (flags.installer === 'minishift-addon' || flags.installer === 'helm') {
       this.error(`🛑 The specified installer ${flags.installer} does not support updating yet.`)
     }
+    if (flags.installer === 'olm' && flags.platform === 'minishift') {
+      this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
+    }
 
     this.error(`🛑 Unknown installer ${flags.installer} is specified.`)
   }

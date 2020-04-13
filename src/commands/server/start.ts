@@ -246,6 +246,9 @@ export default class Start extends Command {
           this.error(`You requested to enable OpenShift OAuth but that's only possible when using the operator as installer. The current installer is ${flags.installer}. To use the operator add parameter "--installer operator".`)
         }
       }
+      if (flags.installer === 'olm' && flags.platform === 'minishift') {
+        this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
+      }
     }
   }
 
