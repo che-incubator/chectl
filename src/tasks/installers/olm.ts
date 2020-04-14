@@ -10,7 +10,7 @@
 
 import Command from '@oclif/command';
 import Listr = require('listr');
-import { CheOLMChannel, DEFAULT_CHE_IMAGE, openshiftApplicationPreviewRegistryNamespace, kubernetesApplicationPreviewRegistryNamespace, defaultOpenshiftMarketPlaceNamespace, defaultKubernetesMarketPlaceNamespace, defaultOLMKubernetesNamespace, InstallPlanApprovalFlags } from '../../constants';
+import { CheOLMChannel, DEFAULT_CHE_IMAGE, openshiftApplicationPreviewRegistryNamespace, kubernetesApplicationPreviewRegistryNamespace, defaultOpenshiftMarketPlaceNamespace, defaultKubernetesMarketPlaceNamespace, defaultOLMKubernetesNamespace } from '../../constants';
 
 import { KubeHelper } from '../../api/kube';
 import { createNamespaceTask, createEclipeCheCluster, copyOperatorResources, checkPreCreatedTls, checkTlsSertificate } from './common-tasks';
@@ -32,23 +32,6 @@ export class OLMTasks {
     const kube = new KubeHelper(flags)
     return new Listr([
       this.isOlmPreInstalledTask(flags, command, kube),
-      {
-        title: 'Set up approval strategy',
-        task: async (ctx: any, task: any) => {
-          switch(flags['approval-strategy']) {
-            case InstallPlanApprovalFlags.Automatic:
-              ctx.approvalStarategy = 'Automatic'
-              break;
-            case InstallPlanApprovalFlags.Manual:
-              ctx.approvalStarategy = 'Manual'
-              break;
-            default:
-              command.error(`Invalid 'approval-strategy' flag value. Valied values are "${Object.values(InstallPlanApprovalFlags).join('", "')}"`)
-          }
-
-          task.title = `${task.title}...OK ${ctx.approvalStarategy}`
-        }
-      },
       copyOperatorResources(flags, command.config.cacheDir),  
       createNamespaceTask(flags),
       checkPreCreatedTls(flags, kube),
@@ -74,6 +57,9 @@ export class OLMTasks {
           ctx.packageName = this.packageNamePrefix + (ctx.isOpenShift ? 'openshift' : 'kubernetes')
           // catalog source name for stable Che version
           ctx.catalogSourceNameStable = isKubernetesPlatformFamily(flags.platform) ? 'operatorhubio-catalog' : 'community-operators'
+
+          ctx.approvalStarategy = flags['auto-update'] ? 'Automatic' : 'Manual'
+
           task.title = `${task.title}...OK`
         }
       },
