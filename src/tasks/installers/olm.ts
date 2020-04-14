@@ -93,9 +93,9 @@ export class OLMTasks {
           } else {
             var subscription: Subscription
             if (this.channel === CheOLMChannel.STABLE) {
-                subscription = this.createSubscription(this.subscriptionName, 'eclipse-che', flags.chenamespace, ctx.defaultCatalogSourceNamespace, 'stable', ctx.catalogSourceNameStable, ctx.approvalStarategy)
+              subscription = this.createSubscription(this.subscriptionName, 'eclipse-che', flags.chenamespace, ctx.defaultCatalogSourceNamespace, 'stable', ctx.catalogSourceNameStable, ctx.approvalStarategy, flags['starting-csv'])
             } else {
-              subscription = this.createSubscription(this.subscriptionName, ctx.packageName, flags.chenamespace, ctx.defaultCatalogSourceNamespace, this.channel, this.operatorSourceName, ctx.approvalStarategy)
+              subscription = this.createSubscription(this.subscriptionName, ctx.packageName, flags.chenamespace, ctx.defaultCatalogSourceNamespace, this.channel, this.operatorSourceName, ctx.approvalStarategy, flags['starting-csv'])
             }
             await kube.createOperatorSubscription(subscription)
             task.title = `${task.title}...OK`
@@ -320,7 +320,7 @@ export class OLMTasks {
     ])
   }
 
-  private createSubscription(name: string, packageName: string, namespace: string, sourceNamespace: string, channel: string, sourceName: string, installPlanApproval: string): Subscription {
+  private createSubscription(name: string, packageName: string, namespace: string, sourceNamespace: string, channel: string, sourceName: string, installPlanApproval: string, startingCSV?: string): Subscription {
     return {
       apiVersion: "operators.coreos.com/v1alpha1",
       kind: 'Subscription',
@@ -334,6 +334,7 @@ export class OLMTasks {
         name: packageName,
         source: sourceName,
         sourceNamespace,
+        startingCSV,
       }
     }
   }

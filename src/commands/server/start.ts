@@ -158,8 +158,14 @@ export default class Start extends Command {
                     By default strategy is 'manual'. It requires approval from user.
                     To approve installation newer version Eclipse Che user should execute 'chectl server:update ...' command. 
                     This parameter is used only when the installer is 'olm'.`,
+      options: ['manual', 'auto'],              
       default: 'manual'
     }),
+    'starting-csv': flags.string({
+      description: `Start cluster service version for installation Eclipse Che.
+                    Flags uses to set up installation version Che matched to the OLM CSV.
+                    This parameter is used only when the installer is 'olm'.`
+    })
   }
 
   static getTemplatesDir(): string {
@@ -260,6 +266,9 @@ export default class Start extends Command {
       }
       if (flags.installer !== 'olm' && flags['approval-strategy']) {
         this.error('"approval-strategy" flag should be used only with "olm" installer.')
+      }
+      if (flags.installer !== 'olm' && flags['starting-csv']) {
+        this.error('"starting-csv" flag should be used only with "olm" installer.')
       }
     }
   }
