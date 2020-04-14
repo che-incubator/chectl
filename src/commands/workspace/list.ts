@@ -43,17 +43,7 @@ export default class List extends Command {
       title: 'Get workspaces',
       task: async (ctx, task) => {
         const cheHelper = new CheHelper(flags)
-
-        const maxItems = 30
-        let skipCount = 0
-        let workspaces: any[] = []
-
-        do {
-          workspaces = await cheHelper.getWorkspaces(ctx.cheURL, skipCount, maxItems, flags['access-token'])
-          ctx.workspaces.push(...workspaces)
-          skipCount += workspaces.length
-        } while (workspaces.length === maxItems)
-
+        ctx.workspaces = await cheHelper.getWorkspaces(ctx.cheURL, flags['access-token'])
         task.title = `${task.title}... done`
       }
     })

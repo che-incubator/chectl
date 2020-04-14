@@ -198,34 +198,15 @@ describe('Eclipse Che helper', () => {
       .stub(kc, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: { name: 'pod-name', labels: { 'che.workspace_id': workspace } } }] } }))
       .it('should return pod name where workspace with the given ID is running', async () => {
-        const pod = await ch.getWorkspacePod(namespace, workspace)
+        const pod = await ch.getWorkspacePodName(namespace, workspace)
         expect(pod).to.equal('pod-name')
       })
-    fancy
-      .stub(kc, 'makeApiClient', () => k8sApi)
-      .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: { name: 'pod-name', labels: { 'che.workspace_id': workspace } } }] } }))
-      .it('should detect a pod where single workspace is running', async () => {
-        const pod = await ch.getWorkspacePod(namespace)
-        expect(pod).to.equal('pod-name')
-      })
-    fancy
-      .stub(kc, 'makeApiClient', () => k8sApi)
-      .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [] } }))
-      .do(() => ch.getWorkspacePod(namespace))
-      .catch(/No workspace pod is found/)
-      .it('should fail if no workspace is running')
     fancy
       .stub(kc, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: { labels: { 'che.workspace_id': `${workspace}1` } } }] } }))
-      .do(() => ch.getWorkspacePod(namespace, workspace))
+      .do(() => ch.getWorkspacePodName(namespace, workspace))
       .catch(/Pod is not found for the given workspace ID/)
       .it('should fail if no workspace is found for the given ID')
-    fancy
-      .stub(kc, 'makeApiClient', () => k8sApi)
-      .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: { labels: { 'che.workspace_id': workspace } } }, { metadata: { labels: { 'che.workspace_id': `${workspace}1` } } }] } }))
-      .do(() => ch.getWorkspacePod(namespace))
-      .catch(/More than one pod with running workspace is found. Please, specify Workspace ID./)
-      .it('should fail if no workspace ID was provided but several workspaces are found')
   })
   describe('isAuthenticationEnabled', () => {
     fancy
