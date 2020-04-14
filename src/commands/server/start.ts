@@ -150,7 +150,16 @@ export default class Start extends Command {
     'skip-cluster-availability-check': flags.boolean({
       description: 'Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.',
       default: false
-    })
+    }),
+    'approval-strategy': flags.string({
+      description: `Approval strategy for installation Eclipse Che. 
+                    There are two strategies: 'automatic' and 'manual'. 
+                    'automatic' strategy used to enable auto-update Eclipse Che without any human interaction. 
+                    By default strategy is 'manual'. It requires approval from user.
+                    To approve installation newer version Eclipse Che user should execute 'chectl server:update ...' command. 
+                    This parameter is used only when the installer is 'olm'.`,
+      default: 'manual'
+    }),
   }
 
   static getTemplatesDir(): string {
@@ -248,6 +257,9 @@ export default class Start extends Command {
       }
       if (flags.installer === 'olm' && flags.platform === 'minishift') {
         this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
+      }
+      if (flags.installer !== 'olm' && flags['approval-strategy']) {
+        this.error('"approval-strategy" flag should be used only with "olm" installer.')
       }
     }
   }

@@ -35,3 +35,8 @@ export enum CheOLMChannel {
     NIGHTLY = 'nightly',
     STABLE = 'stable'
 }
+
+export enum InstallPlanApprovalFlags {
+    Manual = 'manual',
+    Automatic = 'auto'
+}
