@@ -1191,13 +1191,13 @@ export class KubeHelper {
     }
   }
 
-  async cheClusterExist(name = '', namespace = ''): Promise<boolean> {
+  async getCheCluster(name: string, namespace: string): Promise<any | undefined> {
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.getNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name)
-      return this.compare(body, name)
+      return body
     } catch {
-      return false
+      return
     }
   }
 
