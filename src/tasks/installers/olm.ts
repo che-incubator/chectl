@@ -111,7 +111,7 @@ export class OLMTasks {
           task.title = `${task.title}...OK`
         }
       },
-      createEclipeCheCluster(flags)
+      createEclipeCheCluster(flags, kube)
     ], { renderer: flags['listr-renderer'] as any })
   }
 
