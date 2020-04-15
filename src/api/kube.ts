@@ -18,13 +18,13 @@ import https = require('https')
 import * as yaml from 'js-yaml'
 import { merge } from 'lodash'
 import * as net from 'net'
-import { CatalogSource, ClusterServiceVersionList, InstallPlan, OperatorGroup, OperatorSource, PackageManifest, Subscription } from 'olm'
 import { Writable } from 'stream'
 
 import { DEFAULT_CHE_IMAGE, defaultApplicationRegistry } from '../constants'
 import { getClusterClientCommand } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
+import { CatalogSource, ClusterServiceVersionList, InstallPlan, OperatorGroup, OperatorSource, PackageManifest, Subscription } from './typings/olm'
 
 const AWAIT_TIMEOUT_S = 30
 
