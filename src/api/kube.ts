@@ -18,13 +18,13 @@ import https = require('https')
 import * as yaml from 'js-yaml'
 import { merge } from 'lodash'
 import * as net from 'net'
+import { CatalogSource, ClusterServiceVersionList, InstallPlan, OperatorGroup, OperatorSource, PackageManifest, Subscription } from 'olm'
 import { Writable } from 'stream'
 
 import { DEFAULT_CHE_IMAGE, defaultApplicationRegistry } from '../constants'
 import { getClusterClientCommand } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
-import { OperatorSource, OperatorGroup, Subscription, InstallPlan, ClusterServiceVersionList, CatalogSource, PackageManifest } from 'olm'
 
 const AWAIT_TIMEOUT_S = 30
 
@@ -1216,7 +1216,7 @@ export class KubeHelper {
     const apiApi = this.kc.makeApiClient(ApisApi)
     try {
       const { body } = await apiApi.getAPIVersions()
-      const OLMAPIGroup = body.groups.find((apiGroup) => apiGroup.name === 'operators.coreos.com')
+      const OLMAPIGroup = body.groups.find(apiGroup => apiGroup.name === 'operators.coreos.com')
       return !!OLMAPIGroup
     } catch {
       return false
@@ -1244,7 +1244,7 @@ export class KubeHelper {
       spec: {
         endpoint: defaultApplicationRegistry,
         registryNamespace,
-        type: "appregistry"
+        type: 'appregistry'
       }
     }
 

@@ -13,9 +13,11 @@ import { cli } from 'cli-ux'
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
+
 import { KubeHelper } from '../../api/kube'
-import { createEclipeCheCluster, copyOperatorResources, createNamespaceTask, checkPreCreatedTls, checkTlsSertificate } from './common-tasks'
 import { operatorCheCluster } from '../../constants'
+
+import { checkPreCreatedTls, checkTlsSertificate, copyOperatorResources, createEclipeCheCluster, createNamespaceTask } from './common-tasks'
 
 export class OperatorTasks {
   operatorServiceAccount = 'che-operator'
@@ -96,7 +98,7 @@ export class OperatorTasks {
       },
       {
         title: `Create ClusterRoleBinding ${this.operatorClusterRoleBinding}`,
-        task: async (ctx: any, task: any) => {
+        task: async (task: any) => {
           const exist = await kube.clusterRoleBindingExist(this.operatorRoleBinding)
           if (exist) {
             task.title = `${task.title}...It already exists.`

@@ -152,10 +152,10 @@ export default class Start extends Command {
       default: false
     }),
     'auto-update': flags.boolean({
-      description: `Auto update approval strategy for installation Eclipse Che.  
-                    With this strategy will be provided auto-update Eclipse Che without any human interaction. 
+      description: `Auto update approval strategy for installation Eclipse Che.
+                    With this strategy will be provided auto-update Eclipse Che without any human interaction.
                     By default strategy this flag is false. It requires approval from user.
-                    To approve installation newer version Eclipse Che user should execute 'chectl server:update' command. 
+                    To approve installation newer version Eclipse Che user should execute 'chectl server:update' command.
                     This parameter is used only when the installer is 'olm'.`,
       default: false
     }),

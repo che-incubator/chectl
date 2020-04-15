@@ -13,8 +13,8 @@ import * as Listr from 'listr'
 
 import { HelmTasks } from './helm'
 import { MinishiftAddonTasks } from './minishift-addon'
-import { OperatorTasks } from './operator'
 import { OLMTasks } from './olm'
+import { OperatorTasks } from './operator'
 
 /**
  * Tasks related to installation way.
@@ -100,7 +100,7 @@ export class InstallerTasks {
         return operatorTasks.startTasks(flags, command)
       }
     // installer.ts BEGIN CHE ONLY
-    } else if (flags.installer == 'olm') {
+    } else if (flags.installer === 'olm') {
       title = '🏃‍  Running Olm installaion Eclipse Che'
       task = () => olmTasks.startTasks(flags, command)
     } else if (flags.installer === 'helm') {

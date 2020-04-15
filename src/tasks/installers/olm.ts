@@ -8,22 +8,23 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import Command from '@oclif/command';
-import Listr = require('listr');
-import { CheOLMChannel, DEFAULT_CHE_IMAGE, openshiftApplicationPreviewRegistryNamespace, kubernetesApplicationPreviewRegistryNamespace, defaultOpenshiftMarketPlaceNamespace, defaultKubernetesMarketPlaceNamespace, defaultOLMKubernetesNamespace } from '../../constants';
+import Command from '@oclif/command'
+import Listr = require('listr')
+import { CatalogSource, Subscription } from 'olm'
 
-import { KubeHelper } from '../../api/kube';
-import { createNamespaceTask, createEclipeCheCluster, copyOperatorResources, checkPreCreatedTls, checkTlsSertificate } from './common-tasks';
-import { Subscription, CatalogSource } from 'olm';
-import { isKubernetesPlatformFamily } from '../../util';
+import { KubeHelper } from '../../api/kube'
+import { CheOLMChannel, DEFAULT_CHE_IMAGE, defaultKubernetesMarketPlaceNamespace, defaultOLMKubernetesNamespace, defaultOpenshiftMarketPlaceNamespace, kubernetesApplicationPreviewRegistryNamespace, openshiftApplicationPreviewRegistryNamespace } from '../../constants'
+import { isKubernetesPlatformFamily } from '../../util'
+
+import { checkPreCreatedTls, checkTlsSertificate, copyOperatorResources, createEclipeCheCluster, createNamespaceTask } from './common-tasks'
 
 export class OLMTasks {
 
-  private operatorSourceName = 'eclipse-che'
-  private subscriptionName = 'eclipse-che-subscription'
-  private operatorGroupName = 'che-operator-group'
-  private packageNamePrefix = 'eclipse-che-preview-'
-  private channel = this.getDefaultChannel()
+  private readonly operatorSourceName = 'eclipse-che'
+  private readonly subscriptionName = 'eclipse-che-subscription'
+  private readonly operatorGroupName = 'che-operator-group'
+  private readonly packageNamePrefix = 'eclipse-che-preview-'
+  private readonly channel = this.getDefaultChannel()
 
   /**
    * Returns list of tasks which perform preflight platform checks.
@@ -77,7 +78,7 @@ export class OLMTasks {
           if (await kube.operatorSubscriptionExists(this.subscriptionName, flags.chenamespace)) {
             task.title = `${task.title}...It already exists.`
           } else {
-            var subscription: Subscription
+            let subscription: Subscription
             if (this.channel === CheOLMChannel.STABLE) {
               subscription = this.createSubscription(this.subscriptionName, 'eclipse-che', flags.chenamespace, ctx.defaultCatalogSourceNamespace, 'stable', ctx.catalogSourceNameStable, ctx.approvalStarategy, flags['starting-csv'])
             } else {
@@ -174,7 +175,7 @@ export class OLMTasks {
               }
             }
           }
-          command.error("Unable to find installation plan to update.")
+          command.error('Unable to find installation plan to update.')
         }
       },
       {
@@ -198,7 +199,7 @@ export class OLMTasks {
     const kube = new KubeHelper(flags)
     return [
       {
-        title: "Check if OLM is pre-installed on the platform",
+        title: 'Check if OLM is pre-installed on the platform',
         task: async (ctx: any, task: any) => {
           ctx.isPreInstalledOLM = await kube.isPreInstalledOLM() ? true : false
           task.title = `${task.title}...OK`
@@ -206,17 +207,17 @@ export class OLMTasks {
       },
       {
         title: 'Delete(OLM) Eclipse Che cluster service versions',
-        enabled: (ctx) => ctx.isPreInstalledOLM,
+        enabled: ctx => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
           const csvs = await kube.getClusterServiceVersions(flags.chenamespace)
-          const csvsToDelete = csvs.items.filter((csv) => csv.metadata.name.startsWith("eclipse-che"))
-          csvsToDelete.forEach((csv) => kube.deleteClusterServiceVersion(flags.chenamespace, csv.metadata.name))
+          const csvsToDelete = csvs.items.filter(csv => csv.metadata.name.startsWith('eclipse-che'))
+          csvsToDelete.forEach(csv => kube.deleteClusterServiceVersion(flags.chenamespace, csv.metadata.name))
           task.title = `${task.title}...OK`
         }
       },
       {
         title: `Delete(OLM) operator subscription ${this.subscriptionName}`,
-        enabled: (ctx) => ctx.isPreInstalledOLM,
+        enabled: ctx => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
           if (await kube.operatorSubscriptionExists(this.subscriptionName, flags.chenamespace)) {
             await kube.deleteOperatorSubscription(this.subscriptionName, flags.chenamespace)
@@ -226,7 +227,7 @@ export class OLMTasks {
       },
       {
         title: `Delete(OLM) operator group ${this.operatorGroupName}`,
-        enabled: (ctx) => ctx.isPreInstalledOLM,
+        enabled: ctx => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
           if (await kube.operatorGroupExists(this.operatorGroupName, flags.chenamespace)) {
             await kube.deleteOperatorGroup(this.operatorGroupName, flags.chenamespace)
@@ -248,7 +249,7 @@ export class OLMTasks {
 
   private isOlmPreInstalledTask(flags: any, command: Command, kube: KubeHelper): Listr.ListrTask<Listr.ListrContext> {
     return {
-      title: "Check if OLM is pre-installed on the platform",
+      title: 'Check if OLM is pre-installed on the platform',
       task: async (ctx: any, task: any) => {
         if (!await kube.isPreInstalledOLM()) {
           command.error("OLM isn't installed on your platfrom. If your platform hasn't got embedded OML, you need install it manually.")
@@ -261,7 +262,7 @@ export class OLMTasks {
   private customCatalogTasks(flags: any, command: Command, kube: KubeHelper): Listr {
     return new Listr([
       {
-        title: "Create operator source",
+        title: 'Create operator source',
         task: async (ctx: any, task: any) => {
           const applicationRegistryNamespace = ctx.isOpenShift ? openshiftApplicationPreviewRegistryNamespace
             : kubernetesApplicationPreviewRegistryNamespace
@@ -275,7 +276,7 @@ export class OLMTasks {
         }
       },
       {
-        title: "Create catalog source",
+        title: 'Create catalog source',
         task: async (ctx: any, task: any) => {
           if (!await kube.catalogSourceExists(this.operatorSourceName, ctx.defaultCatalogSourceNamespace)) {
             const catalogSourceInTheMarketPlaceNamespace = await kube.getCatalogSource(this.operatorSourceName, ctx.marketplaceNamespace)
@@ -308,10 +309,10 @@ export class OLMTasks {
 
   private createSubscription(name: string, packageName: string, namespace: string, sourceNamespace: string, channel: string, sourceName: string, installPlanApproval: string, startingCSV?: string): Subscription {
     return {
-      apiVersion: "operators.coreos.com/v1alpha1",
+      apiVersion: 'operators.coreos.com/v1alpha1',
       kind: 'Subscription',
       metadata: {
-        name: name,
+        name,
         namespace
       },
       spec: {

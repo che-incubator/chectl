@@ -8,19 +8,20 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ListrTask, ListrContext } from 'listr'
-import { CheHelper } from '../../api/che'
+import { cli } from 'cli-ux'
 import * as execa from 'execa'
+import * as fs from 'fs'
 import { copy, mkdirp, remove } from 'fs-extra'
+import * as yaml from 'js-yaml'
+import { ListrTask } from 'listr'
 import * as path from 'path'
+
+import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { operatorCheCluster } from '../../constants'
-import { isOpenshiftPlatformFamily, isKubernetesPlatformFamily } from '../../util'
-import * as fs from 'fs'
-import * as yaml from 'js-yaml'
-import { cli } from 'cli-ux'
+import { isKubernetesPlatformFamily, isOpenshiftPlatformFamily } from '../../util'
 
-export function createNamespaceTask(flags: any): ListrTask<ListrContext> {
+export function createNamespaceTask(flags: any): ListrTask {
   return {
     title: `Create Namespace (${flags.chenamespace})`,
     task: async (_ctx: any, task: any) => {
@@ -39,7 +40,7 @@ export function createNamespaceTask(flags: any): ListrTask<ListrContext> {
   }
 }
 
-export function copyOperatorResources(flags: any, cacheDir: string): ListrTask<ListrContext> {
+export function copyOperatorResources(flags: any, cacheDir: string): ListrTask {
   return {
     title: 'Copying operator resources',
     task: async (ctx: any, task: any) => {
@@ -60,7 +61,7 @@ async function copyCheOperatorResources(templatesDir: string, cacheDir: string):
   return destDir
 }
 
-export function createEclipeCheCluster(flags: any): ListrTask<ListrContext> {
+export function createEclipeCheCluster(flags: any): ListrTask {
   return {
     title: `Create Eclipse Che cluster ${operatorCheCluster} in namespace ${flags.chenamespace}`,
     task: async (ctx: any, task: any) => {
@@ -95,7 +96,7 @@ export function createEclipeCheCluster(flags: any): ListrTask<ListrContext> {
   }
 }
 
-export function checkPreCreatedTls(flags: any, kube: KubeHelper): ListrTask<ListrContext> {
+export function checkPreCreatedTls(flags: any, kube: KubeHelper): ListrTask {
   return {
     title: 'Checking for pre-created TLS secret',
     // In case of Openshift infrastructure the certificate from cluster router will be used, so no need in the `che-tls` secret.
@@ -126,7 +127,7 @@ export function checkPreCreatedTls(flags: any, kube: KubeHelper): ListrTask<List
   }
 }
 
-export function checkTlsSertificate(flags: any): ListrTask<ListrContext> {
+export function checkTlsSertificate(flags: any): ListrTask {
   return {
     title: 'Checking certificate',
     // If the flag is set no need to check if it is required
