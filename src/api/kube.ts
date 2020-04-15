@@ -1302,16 +1302,16 @@ export class KubeHelper {
     return new Promise<CatalogSource>(async (resolve, reject) => {
       const watcher = new Watch(this.kc)
       let request: any
-      request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/catalogsources`, 
-      { fieldSelector: `metadata.name=${catalogSourceName}` },
-      (_phase: string, obj: any) => {
-        resolve(obj as CatalogSource)
-      },
-      error => {
-        if (error) {
-          reject(error)
-        }
-      })
+      request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/catalogsources`,
+        { fieldSelector: `metadata.name=${catalogSourceName}` },
+        (_phase: string, obj: any) => {
+          resolve(obj as CatalogSource)
+        },
+        error => {
+          if (error) {
+            reject(error)
+          }
+        })
 
       setTimeout(() => {
         request.abort()
@@ -1339,7 +1339,7 @@ export class KubeHelper {
         namespace,
       },
       spec: {
-        targetNamespaces: [ namespace ]
+        targetNamespaces: [namespace]
       }
     }
 
@@ -1406,23 +1406,23 @@ export class KubeHelper {
     return new Promise<InstallPlan>(async (resolve, reject) => {
       const watcher = new Watch(this.kc)
       let request: any
-      request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`, 
-      { fieldSelector: `metadata.name=${subscriptionName}` },
-      (_phase: string, obj: any) => {
-        const subscription = obj as Subscription
-        if (subscription.status && subscription.status.conditions) {
-          for (const condition of subscription.status.conditions) {
-            if (condition.type === 'InstallPlanPending' && condition.status === 'True') {
-              resolve(subscription.status.installplan)
+      request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
+        { fieldSelector: `metadata.name=${subscriptionName}` },
+        (_phase: string, obj: any) => {
+          const subscription = obj as Subscription
+          if (subscription.status && subscription.status.conditions) {
+            for (const condition of subscription.status.conditions) {
+              if (condition.type === 'InstallPlanPending' && condition.status === 'True') {
+                resolve(subscription.status.installplan)
+              }
             }
           }
-        }
-      },
-      error => {
-        if (error) {
-          reject(error)
-        }
-      })
+        },
+        error => {
+          if (error) {
+            reject(error)
+          }
+        })
 
       setTimeout(() => {
         request.abort()
@@ -1439,7 +1439,7 @@ export class KubeHelper {
           approved: true
         }
       }
-      await customObjectsApi.patchNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'installplans', name, patch, {headers: {'Content-Type': 'application/merge-patch+json'}})
+      await customObjectsApi.patchNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'installplans', name, patch, { headers: { 'Content-Type': 'application/merge-patch+json' } })
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1449,23 +1449,23 @@ export class KubeHelper {
     return new Promise<InstallPlan>(async (resolve, reject) => {
       const watcher = new Watch(this.kc)
       let request: any
-      request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`, 
-      { fieldSelector: `metadata.name=${installPlanName}` },
-      (_phase: string, obj: any) => {
-        const installPlan = obj as InstallPlan
-        if (installPlan.status && installPlan.status.conditions) {
-          for (const condition of installPlan.status.conditions) {
-            if (condition.type === 'Installed' && condition.status === 'True') {
-              resolve()
+      request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`,
+        { fieldSelector: `metadata.name=${installPlanName}` },
+        (_phase: string, obj: any) => {
+          const installPlan = obj as InstallPlan
+          if (installPlan.status && installPlan.status.conditions) {
+            for (const condition of installPlan.status.conditions) {
+              if (condition.type === 'Installed' && condition.status === 'True') {
+                resolve()
+              }
             }
           }
-        }
-      },
-      error => {
-        if (error) {
-          reject(error)
-        }
-      })
+        },
+        error => {
+          if (error) {
+            reject(error)
+          }
+        })
 
       setTimeout(() => {
         request.abort()

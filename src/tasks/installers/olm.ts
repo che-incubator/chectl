@@ -32,7 +32,7 @@ export class OLMTasks {
     const kube = new KubeHelper(flags)
     return new Listr([
       this.isOlmPreInstalledTask(flags, command, kube),
-      copyOperatorResources(flags, command.config.cacheDir),  
+      copyOperatorResources(flags, command.config.cacheDir),
       createNamespaceTask(flags),
       checkPreCreatedTls(flags, kube),
       checkTlsSertificate(flags),
@@ -133,7 +133,7 @@ export class OLMTasks {
       {
         title: 'Check if operator group exists',
         task: async (ctx: any, task: any) => {
-          if (!await kube.operatorGroupExists(this.operatorGroupName, flags.chenamespace)){
+          if (!await kube.operatorGroupExists(this.operatorGroupName, flags.chenamespace)) {
             command.error(`Unable to find operator group ${this.operatorGroupName}`)
           }
           task.title = `${task.title}...OK`
@@ -199,7 +199,7 @@ export class OLMTasks {
     return [
       {
         title: "Check if OLM is pre-installed on the platform",
-        task: async  (ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           ctx.isPreInstalledOLM = await kube.isPreInstalledOLM() ? true : false
           task.title = `${task.title}...OK`
         }
@@ -249,7 +249,7 @@ export class OLMTasks {
   private isOlmPreInstalledTask(flags: any, command: Command, kube: KubeHelper): Listr.ListrTask<Listr.ListrContext> {
     return {
       title: "Check if OLM is pre-installed on the platform",
-      task: async  (ctx: any, task: any) => {
+      task: async (ctx: any, task: any) => {
         if (!await kube.isPreInstalledOLM()) {
           command.error("OLM isn't installed on your platfrom. If your platform hasn't got embedded OML, you need install it manually.")
         }
@@ -264,14 +264,14 @@ export class OLMTasks {
         title: "Create operator source",
         task: async (ctx: any, task: any) => {
           const applicationRegistryNamespace = ctx.isOpenShift ? openshiftApplicationPreviewRegistryNamespace
-                                                               : kubernetesApplicationPreviewRegistryNamespace
-            if (await kube.operatorSourceExists(this.operatorSourceName, ctx.marketplaceNamespace)) {
-              task.title = `${task.title}...It already exists.`
-            } else {
-              await kube.createOperatorSource(this.operatorSourceName, applicationRegistryNamespace, ctx.marketplaceNamespace)
-              await kube.waitCatalogSource(ctx.marketplaceNamespace, this.operatorSourceName)
-              task.title = `${task.title}...OK`
-            }
+            : kubernetesApplicationPreviewRegistryNamespace
+          if (await kube.operatorSourceExists(this.operatorSourceName, ctx.marketplaceNamespace)) {
+            task.title = `${task.title}...It already exists.`
+          } else {
+            await kube.createOperatorSource(this.operatorSourceName, applicationRegistryNamespace, ctx.marketplaceNamespace)
+            await kube.waitCatalogSource(ctx.marketplaceNamespace, this.operatorSourceName)
+            task.title = `${task.title}...OK`
+          }
         }
       },
       {

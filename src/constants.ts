@@ -32,6 +32,6 @@ export const defaultOLMKubernetesNamespace = 'olm'
 export const defaultApplicationRegistry = 'https://quay.io/cnr'
 
 export enum CheOLMChannel {
-    NIGHTLY = 'nightly',
-    STABLE = 'stable'
+  NIGHTLY = 'nightly',
+  STABLE = 'stable'
 }

@@ -14,7 +14,7 @@ declare module 'olm' {
     apiVersion: string;
     kind: string;
     metadata: V1ObjectMeta;
-    spec: OperatorSourceSpec; 
+    spec: OperatorSourceSpec;
   }
 
   export interface OperatorSourceSpec {
@@ -122,5 +122,5 @@ declare module 'olm' {
   export interface PackageManifestStatus {
     catalogSource: string
     catalogSourceNamespace: string
-  }  
+  }
 }

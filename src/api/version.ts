@@ -42,13 +42,13 @@ export namespace VersionHelper {
       task: async (_ctx: any, task: any) => {
         let actualVersion
         switch (flags.platform) {
-        case 'minishift':
-        case 'openshift':
-        case 'crc':
-          actualVersion = await getK8sVersionWithOC()
-          break
-        default:
-          actualVersion = await getK8sVersionWithKubectl()
+          case 'minishift':
+          case 'openshift':
+          case 'crc':
+            actualVersion = await getK8sVersionWithOC()
+            break
+          default:
+            actualVersion = await getK8sVersionWithKubectl()
         }
 
         if (actualVersion) {

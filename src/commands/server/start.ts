@@ -155,13 +155,16 @@ export default class Start extends Command {
       description: `Auto update approval strategy for installation Eclipse Che.  
                     With this strategy will be provided auto-update Eclipse Che without any human interaction. 
                     By default strategy this flag is false. It requires approval from user.
-                    To approve installation newer version Eclipse Che user should execute 'chectl server:update ...' command. 
-                    This parameter is used only when the installer is 'olm'.`,           
+                    To approve installation newer version Eclipse Che user should execute 'chectl server:update' command. 
+                    This parameter is used only when the installer is 'olm'.`,
       default: false
     }),
     'starting-csv': flags.string({
-      description: `Start cluster service version for installation Eclipse Che.
-                    Flags uses to set up installation version Che matched to the OLM CSV.
+      description: `Starting cluster service version(CSV) for installation Eclipse Che.
+                    Flags uses to set up start installation version Che.
+                    For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
+                    Then OLM will install Eclipse Che with version 7.10.0.
+                    Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known version.
                     This parameter is used only when the installer is 'olm'.`
     })
   }
