@@ -437,7 +437,7 @@ export class CheHelper {
       () => { })
   }
 
-  async getWorkspaces(cheURL: string, accessToken?: string): Promise<any[]> {
+  async getAllWorkspaces(cheURL: string, accessToken?: string): Promise<any[]> {
     const all: any[] = []
     const maxItems = 30
     let skipCount = 0

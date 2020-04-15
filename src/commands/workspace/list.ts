@@ -43,7 +43,7 @@ export default class List extends Command {
       title: 'Get workspaces',
       task: async (ctx, task) => {
         const cheHelper = new CheHelper(flags)
-        ctx.workspaces = await cheHelper.getWorkspaces(ctx.cheURL, flags['access-token'])
+        ctx.workspaces = await cheHelper.getAllWorkspaces(ctx.cheURL, flags['access-token'])
         task.title = `${task.title}... done`
       }
     })

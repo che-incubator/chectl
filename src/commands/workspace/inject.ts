@@ -77,11 +77,11 @@ export default class Inject extends Command {
 
       const cheURL = await cheHelper.cheURL(flags.chenamespace)
       if (!flags['access-token'] && await cheHelper.isAuthenticationEnabled(cheURL)) {
-        cli.error('Authentication is enabled but \'access-token\' is not provided.\nSee more help with --help.')
+        cli.error('Authentication is enabled but \'access-token\' is not provided.\nSee more details with the --help flag.')
       }
 
       if (!workspaceId) {
-        const workspaces = await cheHelper.getWorkspaces(cheURL, flags['access-token'])
+        const workspaces = await cheHelper.getAllWorkspaces(cheURL, flags['access-token'])
         const runningWorkspaces = workspaces.filter(w => w.status === 'RUNNING')
         if (runningWorkspaces.length === 1) {
           workspaceId = runningWorkspaces[0].id
@@ -89,7 +89,7 @@ export default class Inject extends Command {
         } else if (runningWorkspaces.length === 0) {
           cli.error('There are no running workspaces. Please start workspace first.')
         } else {
-          cli.error('There are more than 1 running workspaces. Please, specify the workspace id by providing \'--workspace\' flag.\nSee more help with --help.')
+          cli.error('There are more than 1 running workspaces. Please, specify the workspace id by providing \'--workspace\' flag.\nSee more details with the --help flag.')
         }
       } else {
         const workspace = await cheHelper.getWorkspace(cheURL, workspaceId, flags['access-token'])
