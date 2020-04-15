@@ -478,7 +478,7 @@ export class CheTasks {
     return [{
       title: 'Verify if the workspaces is running',
       task: async (ctx: any) => {
-        ctx.pod = await this.che.getWorkspacePod(flags.chenamespace!, flags.workspace).catch(e => command.error(e.message))
+        ctx.pod = await this.che.getWorkspacePodName(flags.chenamespace!, flags.workspace).catch(e => command.error(e.message))
       }
     }]
   }

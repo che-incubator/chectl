@@ -49,7 +49,7 @@ export class CheHelper {
    * Rejects if no workspace is found for the given workspace ID
    * or if workspace ID wasn't specified but more than one workspace is found.
    */
-  async getWorkspacePod(namespace: string, cheWorkspaceId?: string): Promise<string> {
+  async getWorkspacePodName(namespace: string, cheWorkspaceId: string): Promise<string> {
     const k8sApi = this.kc.makeApiClient(CoreV1Api)
 
     const res = await k8sApi.listNamespacedPod(namespace)
@@ -437,10 +437,24 @@ export class CheHelper {
       () => { })
   }
 
+  async getAllWorkspaces(cheURL: string, accessToken?: string): Promise<any[]> {
+    const all: any[] = []
+    const maxItems = 30
+    let skipCount = 0
+
+    do {
+      const workspaces = await this.doGetWorkspaces(cheURL, skipCount, maxItems, accessToken)
+      all.push(...workspaces)
+      skipCount += workspaces.length
+    } while (all.length === maxItems)
+
+    return all
+  }
+
   /**
    * Returns list of workspaces
    */
-  async getWorkspaces(cheUrl: string, skipCount: number, maxItems: number, accessToken = ''): Promise<[any]> {
+  async doGetWorkspaces(cheUrl: string, skipCount: number, maxItems: number, accessToken = ''): Promise<any[]> {
     const endpoint = `${cheUrl}/api/workspace?skipCount=${skipCount}&maxItems=${maxItems}`
     const headers: any = { 'Content-Type': 'text/yaml' }
     if (accessToken && accessToken.length > 0) {
