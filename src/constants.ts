@@ -19,6 +19,7 @@ export const CERT_MANAGER_NAMESPACE_NAME = 'cert-manager'
 export const CHE_TLS_SECRET_NAME = 'che-tls'
 
 export const operatorCheCluster = 'eclipse-che'
+export const CHE_CLUSTER_CR_NAME = 'eclipse-che'
 
 export const openshiftApplicationPreviewRegistryNamespace = 'eclipse-che-operator-openshift'
 export const kubernetesApplicationPreviewRegistryNamespace = 'eclipse-che-operator-kubernetes'

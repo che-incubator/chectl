@@ -18,7 +18,7 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { operatorCheCluster } from '../../constants'
+import { CHE_CLUSTER_CR_NAME } from '../../constants'
 import { isKubernetesPlatformFamily, isOpenshiftPlatformFamily } from '../../util'
 
 export function createNamespaceTask(flags: any): ListrTask {
@@ -61,13 +61,12 @@ async function copyCheOperatorResources(templatesDir: string, cacheDir: string):
   return destDir
 }
 
-export function createEclipeCheCluster(flags: any): ListrTask {
+export function createEclipeCheCluster(flags: any, kube: KubeHelper): ListrTask {
   return {
-    title: `Create Eclipse Che cluster ${operatorCheCluster} in namespace ${flags.chenamespace}`,
+    title: `Create Eclipse Che cluster ${CHE_CLUSTER_CR_NAME} in namespace ${flags.chenamespace}`,
     task: async (ctx: any, task: any) => {
-      const kube = new KubeHelper(flags)
-      const exist = await kube.cheClusterExist(operatorCheCluster, flags.chenamespace)
-      if (exist) {
+      const cheCluster = await kube.getCheCluster(CHE_CLUSTER_CR_NAME, flags.chenamespace)
+      if (cheCluster) {
         task.title = `${task.title}...It already exists.`
       } else {
         // Eclipse Che operator supports only Multi-User Che

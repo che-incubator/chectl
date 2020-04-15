@@ -15,7 +15,7 @@ import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
 
 import { KubeHelper } from '../../api/kube'
-import { operatorCheCluster } from '../../constants'
+import { CHE_CLUSTER_CR_NAME } from '../../constants'
 
 import { checkPreCreatedTls, checkTlsSertificate, copyOperatorResources, createEclipeCheCluster, createNamespaceTask } from './common-tasks'
 
@@ -140,7 +140,7 @@ export class OperatorTasks {
           }
         }
       },
-      createEclipeCheCluster(flags)
+      createEclipeCheCluster(flags, kube)
     ], { renderer: flags['listr-renderer'] as any })
   }
 
@@ -306,11 +306,11 @@ export class OperatorTasks {
   deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     let kh = new KubeHelper(flags)
     return [{
-      title: `Delete the CR ${operatorCheCluster} of type ${this.cheClusterCrd}`,
+      title: `Delete the CR ${CHE_CLUSTER_CR_NAME} of type ${this.cheClusterCrd}`,
       task: async (_ctx: any, task: any) => {
         if (await kh.crdExist(this.cheClusterCrd) &&
-          await kh.cheClusterExist(operatorCheCluster, flags.chenamespace)) {
-          await kh.deleteCheCluster(operatorCheCluster, flags.chenamespace)
+          await kh.getCheCluster(CHE_CLUSTER_CR_NAME, flags.chenamespace)) {
+          await kh.deleteCheCluster(CHE_CLUSTER_CR_NAME, flags.chenamespace)
           await cli.wait(2000) //wait a couple of secs for the finalizers to be executed
           task.title = await `${task.title}...OK`
         } else {

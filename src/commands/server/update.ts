@@ -16,12 +16,14 @@ import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
 import * as path from 'path'
 
+import { KubeHelper } from '../../api/kube'
 import { cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
-import { DEFAULT_CHE_OPERATOR_IMAGE } from '../../constants'
+import { CHE_CLUSTER_CR_NAME, DEFAULT_CHE_OPERATOR_IMAGE } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
+import { isKubernetesPlatformFamily } from '../../util'
 
 export default class Update extends Command {
   static description = 'update Eclipse Che server'
@@ -128,6 +130,9 @@ export default class Update extends Command {
       if (!ctx.isCheDeployed) {
         this.error('Eclipse Che deployment is not found. Use `chectl server:start` to initiate new deployment.')
       } else {
+        if (isKubernetesPlatformFamily(flags.platform!)) {
+          await this.setDomainFlag(flags)
+        }
         await platformCheckTasks.run(ctx)
 
         await preUpdateTasks.run(ctx)
@@ -153,5 +158,13 @@ export default class Update extends Command {
     })
 
     this.exit(0)
+  }
+
+  async setDomainFlag(flags: any): Promise<void> {
+    const kubeHelper = new KubeHelper()
+    const cheCluster = await kubeHelper.getCheCluster(CHE_CLUSTER_CR_NAME, flags.chenamespace)
+    if (cheCluster && cheCluster.spec.k8s && cheCluster.spec.k8s.ingressDomain) {
+      flags.domain = cheCluster.spec.k8s.ingressDomain
+    }
   }
 }
