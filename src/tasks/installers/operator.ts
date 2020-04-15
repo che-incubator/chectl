@@ -19,6 +19,7 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
+import { CHE_CLUSTER_CR_NAME } from '../../constants'
 import { isKubernetesPlatformFamily } from '../../util'
 
 export class OperatorTasks {
@@ -29,7 +30,6 @@ export class OperatorTasks {
   operatorClusterRoleBinding = 'che-operator'
   cheClusterCrd = 'checlusters.org.eclipse.che'
   operatorName = 'che-operator'
-  operatorCheCluster = 'eclipse-che'
   resourcesPath = ''
 
   /**
@@ -226,10 +226,10 @@ export class OperatorTasks {
         }
       },
       {
-        title: `Create Eclipse Che cluster ${this.operatorCheCluster} in namespace ${flags.chenamespace}`,
+        title: `Create Eclipse Che cluster ${CHE_CLUSTER_CR_NAME} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
-          const exist = await kube.cheClusterExist(this.operatorCheCluster, flags.chenamespace)
-          if (exist) {
+          const cheCluster = await kube.getCheCluster(CHE_CLUSTER_CR_NAME, flags.chenamespace)
+          if (cheCluster) {
             task.title = `${task.title}...It already exists.`
           } else {
             // Eclipse Che operator supports only Multi-User Che
@@ -427,11 +427,11 @@ export class OperatorTasks {
   deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     let kh = new KubeHelper(flags)
     return [{
-      title: `Delete the CR ${this.operatorCheCluster} of type ${this.cheClusterCrd}`,
+      title: `Delete the CR ${CHE_CLUSTER_CR_NAME} of type ${this.cheClusterCrd}`,
       task: async (_ctx: any, task: any) => {
         if (await kh.crdExist(this.cheClusterCrd) &&
-          await kh.cheClusterExist(this.operatorCheCluster, flags.chenamespace)) {
-          await kh.deleteCheCluster(this.operatorCheCluster, flags.chenamespace)
+          await kh.getCheCluster(CHE_CLUSTER_CR_NAME, flags.chenamespace)) {
+          await kh.deleteCheCluster(CHE_CLUSTER_CR_NAME, flags.chenamespace)
           await cli.wait(2000) //wait a couple of secs for the finalizers to be executed
           task.title = await `${task.title}...OK`
         } else {
