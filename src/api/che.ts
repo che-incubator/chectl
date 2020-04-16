@@ -9,7 +9,7 @@
  **********************************************************************/
 
 import { che as chetypes } from '@eclipse-che/api'
-import { CoreV1Api, KubeConfig, V1Pod, Watch } from '@kubernetes/client-node'
+import { CoreV1Api, V1Pod, Watch } from '@kubernetes/client-node'
 import axios, { AxiosInstance } from 'axios'
 import * as cp from 'child_process'
 import { cli } from 'cli-ux'
@@ -26,7 +26,6 @@ import { KubeHelper } from './kube'
 
 export class CheHelper {
   defaultCheResponseTimeoutMs = 3000
-  kc = new KubeConfig()
   kube: KubeHelper
   oc = new OpenShiftHelper()
 
@@ -34,7 +33,6 @@ export class CheHelper {
 
   constructor(flags: any) {
     this.kube = new KubeHelper(flags)
-    this.kc.loadFromDefault()
 
     // Make axios ignore untrusted certificate error for self-signed certificate case.
     const httpsAgent = new https.Agent({ rejectUnauthorized: false })
@@ -50,7 +48,7 @@ export class CheHelper {
    * or if workspace ID wasn't specified but more than one workspace is found.
    */
   async getWorkspacePodName(namespace: string, cheWorkspaceId: string): Promise<string> {
-    const k8sApi = this.kc.makeApiClient(CoreV1Api)
+    const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
 
     const res = await k8sApi.listNamespacedPod(namespace)
     const pods = res.body.items
@@ -74,7 +72,7 @@ export class CheHelper {
   }
 
   async getWorkspacePodContainers(namespace: string, cheWorkspaceId?: string): Promise<string[]> {
-    const k8sApi = this.kc.makeApiClient(CoreV1Api)
+    const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
 
     const res = await k8sApi.listNamespacedPod(namespace)
     const pods = res.body.items
@@ -408,7 +406,7 @@ export class CheHelper {
   async watchNamespacedPods(namespace: string, podLabelSelector: string | undefined, directory: string): Promise<void> {
     const processedContainers = new Map<string, Set<string>>()
 
-    const watcher = new Watch(this.kc)
+    const watcher = new Watch(KubeHelper.KUBE_CONFIG)
     watcher.watch(`/api/v1/namespaces/${namespace}/pods`, {},
       async (_phase: string, obj: any) => {
         const pod = obj as V1Pod
