@@ -1445,7 +1445,7 @@ export class KubeHelper {
     }
   }
 
-  async waitWhileOperatorInstalled(installPlanName: string, namespace: string, timeout = 30) {
+  async waitUntilOperatorIsInstalled(installPlanName: string, namespace: string, timeout = 30) {
     return new Promise<InstallPlan>(async (resolve, reject) => {
       const watcher = new Watch(this.kc)
       let request: any

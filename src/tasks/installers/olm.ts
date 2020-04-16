@@ -43,7 +43,7 @@ export class OLMTasks {
             task.title = `${task.title}...It already exists.`
           } else {
             await kube.createOperatorGroup(this.operatorGroupName, flags.chenamespace)
-            task.title = `${task.title}...OK`
+            task.title = `${task.title}...created new one.`
           }
         }
       },
@@ -60,7 +60,7 @@ export class OLMTasks {
 
           ctx.approvalStarategy = flags['auto-update'] ? 'Automatic' : 'Manual'
 
-          task.title = `${task.title}...OK`
+          task.title = `${task.title}...done.`
         }
       },
       {
@@ -68,7 +68,7 @@ export class OLMTasks {
         enabled: () => this.channel === CheOLMChannel.NIGHTLY,
         task: async (ctx: any, task: any) => {
           await this.customCatalogTasks(kube).run(ctx)
-          task.title = `${task.title}...OK`
+          task.title = `${task.title}...done.`
         }
       },
       {
@@ -84,7 +84,7 @@ export class OLMTasks {
               subscription = this.createSubscription(this.subscriptionName, ctx.packageName, flags.chenamespace, ctx.defaultCatalogSourceNamespace, this.channel, this.operatorSourceName, ctx.approvalStarategy, flags['starting-csv'])
             }
             await kube.createOperatorSubscription(subscription)
-            task.title = `${task.title}...OK`
+            task.title = `${task.title}...created new one.`
           }
         }
       },
@@ -93,7 +93,7 @@ export class OLMTasks {
         task: async (ctx: any, task: any) => {
           const installPlan = await kube.waitOperatorSubscriptionReadyForApproval(flags.chenamespace, this.subscriptionName, 600)
           ctx.installPlanName = installPlan.name
-          task.title = `${task.title}...OK.`
+          task.title = `${task.title}...done.`
         }
       },
       {
@@ -101,14 +101,14 @@ export class OLMTasks {
         enabled: ctx => ctx.approvalStarategy === 'Manual',
         task: async (ctx: any, task: any) => {
           await kube.approveOperatorInstallationPlan(ctx.installPlanName, flags.chenamespace)
-          task.title = `${task.title}...OK`
+          task.title = `${task.title}...done.`
         }
       },
       {
         title: 'Wait while operator installed',
         task: async (ctx: any, task: any) => {
-          await kube.waitWhileOperatorInstalled(ctx.installPlanName, flags.chenamespace)
-          task.title = `${task.title}...OK`
+          await kube.waitUntilOperatorIsInstalled(ctx.installPlanName, flags.chenamespace)
+          task.title = `${task.title}...done.`
         }
       },
       createEclipeCheCluster(flags, kube)
@@ -127,7 +127,7 @@ export class OLMTasks {
           if (!await kube.operatorSourceExists(this.operatorSourceName, ctx.marketplaceNamespace)) {
             command.error(`Unable to find operator source ${this.operatorSourceName}`)
           }
-          task.title = `${task.title}...OK`
+          task.title = `${task.title}...done.`
         }
       },
       {
@@ -136,7 +136,7 @@ export class OLMTasks {
           if (!await kube.operatorGroupExists(this.operatorGroupName, flags.chenamespace)) {
             command.error(`Unable to find operator group ${this.operatorGroupName}`)
           }
-          task.title = `${task.title}...OK`
+          task.title = `${task.title}...done.`
         }
       },
       {
@@ -145,7 +145,7 @@ export class OLMTasks {
           if (!await kube.operatorSubscriptionExists(this.subscriptionName, flags.chenamespace)) {
             command.error(`Unable to find operator subscription ${this.subscriptionName}`)
           }
-          task.title = `${task.title}...OK`
+          task.title = `${task.title}...done.`
         }
       },
     ], { renderer: flags['listr-renderer'] as any })
@@ -169,7 +169,7 @@ export class OLMTasks {
               const installCondition = subscription.status.conditions.find(condition => condition.type === 'InstallPlanPending' && condition.status === 'True')
               if (installCondition) {
                 ctx.installPlanName = subscription.status.installplan.name
-                task.title = `${task.title}...OK`
+                task.title = `${task.title}...done.`
                 return
               }
             }
@@ -180,15 +180,17 @@ export class OLMTasks {
       {
         title: 'Approve installation',
         enabled: (ctx: any) => ctx.installPlanName,
-        task: async (ctx: any) => {
+        task: async (ctx: any, task: any) => {
           await kube.approveOperatorInstallationPlan(ctx.installPlanName, flags.chenamespace)
+          task.title = `${task.title}...done.`
         }
       },
       {
         title: 'Wait while newer operator installed',
         enabled: (ctx: any) => ctx.installPlanName,
-        task: async (ctx: any) => {
-          await kube.waitWhileOperatorInstalled(ctx.installPlanName, flags.chenamespace, 60)
+        task: async (ctx: any, task: any) => {
+          await kube.waitUntilOperatorIsInstalled(ctx.installPlanName, flags.chenamespace, 60)
+          task.title = `${task.title}...done.`
         }
       },
     ], { renderer: flags['listr-renderer'] as any })
@@ -253,7 +255,7 @@ export class OLMTasks {
         if (!await kube.isPreInstalledOLM()) {
           command.error("OLM isn't installed on your platfrom. If your platform hasn't got embedded OML, you need install it manually.")
         }
-        task.title = `${task.title}...OK`
+        task.title = `${task.title}...done.`
       }
     }
   }
@@ -270,7 +272,7 @@ export class OLMTasks {
           } else {
             await kube.createOperatorSource(this.operatorSourceName, applicationRegistryNamespace, ctx.marketplaceNamespace)
             await kube.waitCatalogSource(ctx.marketplaceNamespace, this.operatorSourceName)
-            task.title = `${task.title}...OK`
+            task.title = `${task.title}...created new one.`
           }
         }
       },
@@ -297,7 +299,7 @@ export class OLMTasks {
             // Create catalog source in the olm namespace to make it working in the namespace differ than marketplace
             await kube.createCatalogSource(catalogSource)
             await kube.waitCatalogSource(ctx.defaultCatalogSourceNamespace, this.operatorSourceName)
-            task.title = `${task.title}...OK`
+            task.title = `${task.title}...created new one.`
           } else {
             task.title = `${task.title}...It already exists.`
           }
