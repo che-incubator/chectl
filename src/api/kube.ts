@@ -31,13 +31,8 @@ export class KubeHelper {
   public static readonly KUBE_CONFIG = KubeHelper.initializeKubeConfig()
   static initializeKubeConfig(): KubeConfig {
     const kc = new KubeConfig()
-    if (process.env.KUBECONFIG) {
-      kc.loadFromFile(process.env.KUBECONFIG)
-      cli.info(`kubeconfig => loaded from the file ${process.env.KUBECONFIG}`)
-    } else {
-      kc.loadFromDefault()
-      cli.info('kubeconfig => loaded default configuration.')
-    }
+    kc.loadFromDefault()
+    cli.info(`Set current context to '${kc.currentContext}'`)
     return kc
   }
 
@@ -793,11 +788,11 @@ export class KubeHelper {
   }
 
   async createDeployment(name: string,
-                         image: string,
-                         serviceAccount: string,
-                         pullPolicy: string,
-                         configMapEnvSource: string,
-                         namespace: string) {
+    image: string,
+    serviceAccount: string,
+    pullPolicy: string,
+    configMapEnvSource: string,
+    namespace: string) {
     const k8sAppsApi = KubeHelper.KUBE_CONFIG.makeApiClient(AppsV1Api)
     let deployment = new V1Deployment()
     deployment.metadata = new V1ObjectMeta()
@@ -914,12 +909,12 @@ export class KubeHelper {
   }
 
   async createPod(name: string,
-                  image: string,
-                  serviceAccount: string,
-                  restartPolicy: string,
-                  pullPolicy: string,
-                  configMapEnvSource: string,
-                  namespace: string) {
+    image: string,
+    serviceAccount: string,
+    restartPolicy: string,
+    pullPolicy: string,
+    configMapEnvSource: string,
+    namespace: string) {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     let pod = new V1Pod()
     pod.metadata = new V1ObjectMeta()
@@ -947,11 +942,11 @@ export class KubeHelper {
   }
 
   async createJob(name: string,
-                  image: string,
-                  serviceAccount: string,
-                  namespace: string,
-                  backoffLimit = 0,
-                  restartPolicy = 'Never') {
+    image: string,
+    serviceAccount: string,
+    namespace: string,
+    backoffLimit = 0,
+    restartPolicy = 'Never') {
     const k8sBatchApi = KubeHelper.KUBE_CONFIG.makeApiClient(BatchV1Api)
 
     const job = new V1Job()
