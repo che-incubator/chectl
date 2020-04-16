@@ -263,7 +263,7 @@ OPTIONS
       show CLI help
 
   -i, --cheimage=cheimage
-      [default: quay.io/eclipse/che-server:7.9.0] Eclipse Che server container image
+      [default: quay.io/eclipse/che-server:nightly] Eclipse Che server container image
 
   -m, --multiuser
       Starts Eclipse Che in multi-user mode
@@ -294,11 +294,11 @@ OPTIONS
       [default: templates] Path to the templates folder
 
   --auto-update
-      Auto update approval strategy for installation Eclipse Che.  
-                           With this strategy will be provided auto-update Eclipse Che without any human interaction. 
+      Auto update approval strategy for installation Eclipse Che.
+                           With this strategy will be provided auto-update Eclipse Che without any human interaction.
                            By default strategy this flag is false. It requires approval from user.
                            To approve installation newer version Eclipse Che user should execute 'chectl server:update' 
-      command. 
+      command.
                            This parameter is used only when the installer is 'olm'.
 
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
