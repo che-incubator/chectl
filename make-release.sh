@@ -64,8 +64,8 @@ release() {
   echo "$RELEASE" > VERSION
 
   # replace nightly versions by release version
-  apply_sed "s#quay.io/eclipse/che-server:nightly#quay.io/eclipse/che-server:${RELEASE}#g" src/constants.ts
-  apply_sed "s#quay.io/eclipse/che-operator:nightly#quay.io/eclipse/che-operator:${RELEASE}#g" src/constants.ts
+  apply_sed "s#quay.io/eclipse/che-server:.*#quay.io/eclipse/che-server:${RELEASE}'#g" src/constants.ts
+  apply_sed "s#quay.io/eclipse/che-operator:.*#quay.io/eclipse/che-operator:${RELEASE}'#g" src/constants.ts
 
   # now replace package.json dependencies
   apply_sed "s;github.com/eclipse/che#\(.*\)\",;github.com/eclipse/che#${RELEASE}\",;g" package.json
