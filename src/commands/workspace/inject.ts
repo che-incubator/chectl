@@ -12,6 +12,7 @@ import { KubeConfig } from '@kubernetes/client-node'
 import { Context } from '@kubernetes/client-node/dist/config_types'
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
+import { cli } from 'cli-ux'
 import * as execa from 'execa'
 import * as fs from 'fs'
 import * as Listr from 'listr'
@@ -20,8 +21,9 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { cheNamespace, listrRenderer } from '../../common-flags'
+import { accessToken, cheNamespace } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
+import { ApiTasks } from '../../tasks/platforms/api'
 import { getClusterClientCommand, OPENSHIFT_CLI } from '../../util'
 
 export default class Inject extends Command {
@@ -31,23 +33,25 @@ export default class Inject extends Command {
     help: flags.help({ char: 'h' }),
     kubeconfig: flags.boolean({
       char: 'k',
-      description: 'Inject the local Kubernetes configuration'
+      description: 'Inject the local Kubernetes configuration',
+      required: true
     }),
     workspace: string({
       char: 'w',
-      description: 'Target workspace. Can be omitted if only one workspace is running'
+      description: `The workspace id to inject configuration into. It can be omitted if the only one running workspace exists.
+                    Use workspace:list command to get all workspaces and their statuses.`
     }),
     container: string({
       char: 'c',
-      description: 'Target container. If not specified, configuration files will be injected in all containers of a workspace pod',
+      description: 'The container name. If not specified, configuration files will be injected in all containers of the workspace pod',
       required: false
     }),
     'kube-context': string({
       description: 'Kubeconfig context to inject',
       required: false
     }),
-    chenamespace: cheNamespace,
-    'listr-renderer': listrRenderer
+    'access-token': accessToken,
+    chenamespace: cheNamespace
   }
 
   // Holds cluster CLI tool name: kubectl or oc
@@ -55,35 +59,52 @@ export default class Inject extends Command {
 
   async run() {
     const { flags } = this.parse(Inject)
+
     const notifier = require('node-notifier')
     const cheTasks = new CheTasks(flags)
+    const apiTasks = new ApiTasks()
+    const cheHelper = new CheHelper(flags)
 
-    const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
+    const tasks = new Listr([], { renderer: 'silent' })
+    tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
-    tasks.add(cheTasks.verifyWorkspaceRunTask(flags, this))
-    tasks.add([
-      {
-        title: `Verify if container ${flags.container} exists`,
-        enabled: () => flags.container !== undefined,
-        task: async (ctx: any) => {
-          if (!await this.containerExists(flags.chenamespace!, ctx.pod, flags.container!)) {
-            this.error(`The specified container "${flags.container}" doesn't exist. The configuration cannot be injected.`)
-          }
-        }
-      },
-      {
-        title: 'Injecting configurations',
-        skip: () => {
-          if (!flags.kubeconfig) {
-            return 'Currently, only injecting a kubeconfig is supported. Please, specify flag -k'
-          }
-        },
-        task: () => this.injectKubeconfigTasks(flags)
-      },
-    ])
 
     try {
       await tasks.run()
+
+      let workspaceId = flags.workspace
+      let workspaceNamespace = ''
+
+      const cheURL = await cheHelper.cheURL(flags.chenamespace)
+      if (!flags['access-token'] && await cheHelper.isAuthenticationEnabled(cheURL)) {
+        cli.error('Authentication is enabled but \'access-token\' is not provided.\nSee more details with the --help flag.')
+      }
+
+      if (!workspaceId) {
+        const workspaces = await cheHelper.getAllWorkspaces(cheURL, flags['access-token'])
+        const runningWorkspaces = workspaces.filter(w => w.status === 'RUNNING')
+        if (runningWorkspaces.length === 1) {
+          workspaceId = runningWorkspaces[0].id
+          workspaceNamespace = runningWorkspaces[0].attributes.infrastructureNamespace
+        } else if (runningWorkspaces.length === 0) {
+          cli.error('There are no running workspaces. Please start workspace first.')
+        } else {
+          cli.error('There are more than 1 running workspaces. Please, specify the workspace id by providing \'--workspace\' flag.\nSee more details with the --help flag.')
+        }
+      } else {
+        const workspace = await cheHelper.getWorkspace(cheURL, workspaceId, flags['access-token'])
+        if (workspace.status !== 'RUNNING') {
+          cli.error(`Workspace '${workspaceId}' is not running. Please start workspace first.`)
+        }
+        workspaceNamespace = workspace.attributes.infrastructureNamespace
+      }
+
+      const workspacePodName = await cheHelper.getWorkspacePodName(workspaceNamespace, workspaceId!)
+      if (flags.container && !await this.containerExists(workspaceNamespace, workspacePodName, flags.container)) {
+        cli.error(`The specified container '${flags.container}' doesn't exist. The configuration cannot be injected.`)
+      }
+
+      await this.injectKubeconfig(flags, workspaceNamespace, workspacePodName, workspaceId!)
     } catch (err) {
       this.error(err)
     }
@@ -94,7 +115,7 @@ export default class Inject extends Command {
     })
   }
 
-  async injectKubeconfigTasks(flags: any): Promise<Listr> {
+  async injectKubeconfig(flags: any, workspaceNamespace: string, workspacePodName: string, workspaceId: string): Promise<void> {
     const kubeContext = flags['kube-context']
     let contextToInject: Context | null
     const kh = new KubeHelper(flags)
@@ -109,37 +130,29 @@ export default class Inject extends Command {
     }
 
     const che = new CheHelper(flags)
-    const tasks = new Listr({ exitOnError: false, concurrent: true })
-    const containers = flags.container ? [flags.container] : await che.getWorkspacePodContainers(flags.chenamespace!, flags.workspace!)
-    for (const cont of containers) {
+    const containers = flags.container ? [flags.container] : await che.getWorkspacePodContainers(workspaceNamespace, workspaceId)
+    for (const container of containers) {
       // che-machine-exec container is very limited for a security reason.
       // We cannot copy file into it.
-      if (cont.startsWith('che-machine-exec')) {
+      if (container.startsWith('che-machine-exec') || container.startsWith('che-jwtproxy')) {
         continue
       }
-      tasks.add({
-        title: `injecting kubeconfig into container ${cont}`,
-        task: async (ctx: any, task: any) => {
-          try {
-            if (await this.canInject(flags.chenamespace, ctx.pod, cont)) {
-              await this.injectKubeconfig(flags.chenamespace!, ctx.pod, cont, contextToInject!)
-              task.title = `${task.title}...done.`
-            } else {
-              task.skip('the container doesn\'t support file injection')
-            }
-          } catch (error) {
-            task.skip(error.message)
-          }
+
+      try {
+        if (await this.canInject(workspaceNamespace, workspacePodName, container)) {
+          await this.doInjectKubeconfig(workspaceNamespace, workspacePodName, container, contextToInject!)
+          cli.info(`Configuration successfully injected into ${container} container`)
         }
-      })
+      } catch (error) {
+        cli.warn(`Failed to injected configuration into ${container} container.\nError: ${error.message}`)
+      }
     }
-    return tasks
   }
 
   /**
    * Tests whether a file can be injected into the specified container.
    */
-  async canInject(namespace: string, pod: string, container: string): Promise<boolean> {
+  private async canInject(namespace: string, pod: string, container: string): Promise<boolean> {
     const { exitCode } = await execa(`${this.command} exec ${pod} -n ${namespace} -c ${container} -- tar --version `, { timeout: 10000, reject: false, shell: true })
     if (exitCode === 0) { return true } else { return false }
   }
@@ -148,7 +161,7 @@ export default class Inject extends Command {
    * Copies the local kubeconfig into the specified container.
    * If returns, it means injection was completed successfully. If throws an error, injection failed
    */
-  async injectKubeconfig(cheNamespace: string, workspacePod: string, container: string, contextToInject: Context): Promise<void> {
+  private async doInjectKubeconfig(cheNamespace: string, workspacePod: string, container: string, contextToInject: Context): Promise<void> {
     const { stdout } = await execa(`${this.command} exec ${workspacePod} -n ${cheNamespace} -c ${container} env | grep ^HOME=`, { timeout: 10000, shell: true })
     let containerHomeDir = stdout.split('=')[1]
     if (!containerHomeDir.endsWith('/')) {

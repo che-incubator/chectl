@@ -507,21 +507,24 @@ USAGE
   $ chectl workspace:inject
 
 OPTIONS
-  -c, --container=container                Target container. If not specified, configuration files will be injected in
-                                           all containers of a workspace pod
+  -c, --container=container        The container name. If not specified, configuration files will be injected in all
+                                   containers of the workspace pod
 
-  -h, --help                               show CLI help
+  -h, --help                       show CLI help
 
-  -k, --kubeconfig                         Inject the local Kubernetes configuration
+  -k, --kubeconfig                 (required) Inject the local Kubernetes configuration
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
-                                           be deployed
+  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
+                                   deployed
 
-  -w, --workspace=workspace                Target workspace. Can be omitted if only one workspace is running
+  -w, --workspace=workspace        The workspace id to inject configuration into. It can be omitted if the only one
+                                   running workspace exists.
+                                   Use workspace:list command to get all workspaces and their
+                                   statuses.
 
-  --kube-context=kube-context              Kubeconfig context to inject
+  --access-token=access-token      Eclipse Che OIDC Access Token
 
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+  --kube-context=kube-context      Kubeconfig context to inject
 ```
 
 _See code: [src/commands/workspace/inject.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/inject.ts)_
