@@ -11,6 +11,7 @@ import { CoreV1Api } from '@kubernetes/client-node'
 import { expect, fancy } from 'fancy-test'
 
 import { CheHelper } from '../../src/api/che'
+import { KubeHelper } from '../../src/api/kube'
 
 const namespace = 'che'
 const workspace = 'workspace-0123'
@@ -18,7 +19,6 @@ const cheURL = 'https://che-che.192.168.64.34.nip.io'
 const devfileServerURL = 'https://devfile-server'
 const devfileEndpoint = '/api/workspace/devfile'
 let ch = new CheHelper({})
-let kc = ch.kc
 let kube = ch.kube
 let oc = ch.oc
 let k8sApi = new CoreV1Api()
@@ -119,14 +119,14 @@ describe('Eclipse Che helper', () => {
   })
   describe('cheNamespaceExist', () => {
     fancy
-      .stub(kube.kc, 'makeApiClient', () => k8sApi)
+      .stub(KubeHelper.KUBE_CONFIG, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'readNamespace', jest.fn().mockImplementation(() => { throw new Error() }))
       .it('founds out that a namespace doesn\'t exist', async () => {
         const res = await ch.cheNamespaceExist(namespace)
         expect(res).to.equal(false)
       })
     fancy
-      .stub(kube.kc, 'makeApiClient', () => k8sApi)
+      .stub(KubeHelper.KUBE_CONFIG, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'readNamespace', () => ({ response: '', body: { metadata: { name: `${namespace}` } } }))
       .it('founds out that a namespace does exist', async () => {
         const res = await ch.cheNamespaceExist(namespace)
@@ -195,14 +195,14 @@ describe('Eclipse Che helper', () => {
   })
   describe('getWorkspacePod', () => {
     fancy
-      .stub(kc, 'makeApiClient', () => k8sApi)
+      .stub(KubeHelper.KUBE_CONFIG, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: { name: 'pod-name', labels: { 'che.workspace_id': workspace } } }] } }))
       .it('should return pod name where workspace with the given ID is running', async () => {
         const pod = await ch.getWorkspacePodName(namespace, workspace)
         expect(pod).to.equal('pod-name')
       })
     fancy
-      .stub(kc, 'makeApiClient', () => k8sApi)
+      .stub(KubeHelper.KUBE_CONFIG, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: { labels: { 'che.workspace_id': `${workspace}1` } } }] } }))
       .do(() => ch.getWorkspacePodName(namespace, workspace))
       .catch(/Pod is not found for the given workspace ID/)

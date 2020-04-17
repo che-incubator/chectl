@@ -1521,11 +1521,11 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-operator@git://github.com/eclipse/che-operator#master":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che-operator#a8c155409d1024ed90771a02f3a5e4a333db649f"
+  resolved "git://github.com/eclipse/che-operator#56c6806b20055566b8d590f9b7fe6daf4805bed2"
 
 "eclipse-che@git://github.com/eclipse/che#master":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che#c9e6cca19f57df40d9e1cdf5d6c65eb670bcaa1c"
+  resolved "git://github.com/eclipse/che#5c004a220619e59c75890ae90eb42e70c27e1322"
 
 editorconfig@^0.15.0:
   version "0.15.3"

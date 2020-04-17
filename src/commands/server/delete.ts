@@ -8,12 +8,12 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { KubeConfig } from '@kubernetes/client-node'
 import { Command, flags } from '@oclif/command'
 import { boolean } from '@oclif/command/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
 
+import { KubeHelper } from '../../api/kube'
 import { cheNamespace, listrRenderer } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { HelmTasks } from '../../tasks/installers/helm'
@@ -55,10 +55,7 @@ export default class Delete extends Command {
     tasks.add(helmTasks.deleteTasks(flags))
     tasks.add(minishiftAddonTasks.deleteTasks(flags))
 
-    const kc = new KubeConfig()
-    kc.loadFromDefault()
-
-    const cluster = kc.getCurrentCluster()
+    const cluster = KubeHelper.KUBE_CONFIG.getCurrentCluster()
     if (!cluster) {
       throw new Error('Failed to get current Kubernetes cluster. Check if the current context is set via kubect/oc')
     }
