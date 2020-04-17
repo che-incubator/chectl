@@ -8,4 +8,4 @@
 
 2. Wait until [TravisCI Job](https://travis-ci.org/che-incubator/chectl/branches) from `release` branch is completed
 
-3. Test
+3. Test 2
