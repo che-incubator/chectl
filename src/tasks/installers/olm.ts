@@ -13,13 +13,13 @@ import Listr = require('listr')
 
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/typings/olm'
-import { CheOLMChannel, DEFAULT_CHE_IMAGE, defaultKubernetesMarketPlaceNamespace, defaultOLMKubernetesNamespace, defaultOpenshiftMarketPlaceNamespace, kubernetesApplicationPreviewRegistryNamespace, openshiftApplicationPreviewRegistryNamespace } from '../../constants'
+import { CheOLMChannel, DEFAULT_CHE_IMAGE, defaultKubernetesMarketPlaceNamespace, defaultOLMKubernetesNamespace, defaultOpenshiftMarketPlaceNamespace, DEFAULT_CHE_OLM_PACKAGE_NAME } from '../../constants'
 import { isKubernetesPlatformFamily } from '../../util'
 
 import { checkPreCreatedTls, checkTlsSertificate, copyOperatorResources, createEclipeCheCluster, createNamespaceTask } from './common-tasks'
 
 export class OLMTasks {
-  private readonly operatorSourceName = 'eclipse-che'
+  private readonly customCatalogSourceName = 'eclipse-che-custom-catalog-source'
   private readonly subscriptionName = 'eclipse-che-subscription'
   private readonly operatorGroupName = 'che-operator-group'
   private readonly packageNamePrefix = 'eclipse-che-preview-'
@@ -60,15 +60,25 @@ export class OLMTasks {
 
           ctx.approvalStarategy = flags['auto-update'] ? 'Automatic' : 'Manual'
 
+          ctx.sourceName = this.customCatalogSourceName
+
           task.title = `${task.title}...done.`
         }
       },
       {
-        title: 'Create custom catalog source for "nightly" channel',
-        enabled: () => this.channel === CheOLMChannel.NIGHTLY,
+        enabled: () => flags['catalog-source-yaml'] !== '',
+        title: `Create custom catalog source from file`,
         task: async (ctx: any, task: any) => {
-          await this.customCatalogTasks(kube).run(ctx)
-          task.title = `${task.title}...done.`
+          if (!await kube.catalogSourceExists(this.customCatalogSourceName, flags.chenamespace)) {
+            const customCatalogSource: CatalogSource = kube.readCatalogSourceFromFile(flags['catalog-source-yaml'])
+            customCatalogSource.metadata.name = ctx.sourceName
+            customCatalogSource.metadata.namespace = flags.chenamespace
+            await kube.createCatalogSource(customCatalogSource)
+            await kube.waitCatalogSource(flags.chenamespace, this.customCatalogSourceName)
+            task.title = `${task.title}...created new one, but with name ${this.customCatalogSourceName} in the namespace ${flags.chenamespace}.`
+          } else {
+            task.title = `${task.title}...It already exists.`
+          }
         }
       },
       {
@@ -79,9 +89,9 @@ export class OLMTasks {
           } else {
             let subscription: Subscription
             if (this.channel === CheOLMChannel.STABLE) {
-              subscription = this.createSubscription(this.subscriptionName, 'eclipse-che', flags.chenamespace, ctx.defaultCatalogSourceNamespace, 'stable', ctx.catalogSourceNameStable, ctx.approvalStarategy, flags['starting-csv'])
+              subscription = this.createSubscription(this.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, 'stable', ctx.catalogSourceNameStable, ctx.approvalStarategy, flags['starting-csv'])
             } else {
-              subscription = this.createSubscription(this.subscriptionName, ctx.packageName, flags.chenamespace, ctx.defaultCatalogSourceNamespace, this.channel, this.operatorSourceName, ctx.approvalStarategy, flags['starting-csv'])
+              subscription = this.createSubscription(this.subscriptionName, ctx.packageName, flags.chenamespace, flags.chenamespace, this.channel, ctx.sourceName, ctx.approvalStarategy, flags['starting-csv'])
             }
             await kube.createOperatorSubscription(subscription)
             task.title = `${task.title}...created new one.`
@@ -119,17 +129,17 @@ export class OLMTasks {
     const kube = new KubeHelper(flags)
     return new Listr([
       this.isOlmPreInstalledTask(command, kube),
-      {
-        title: 'Check if operator source exists',
-        enabled: () => this.channel === CheOLMChannel.NIGHTLY,
-        task: async (ctx: any, task: any) => {
-          ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOpenshiftMarketPlaceNamespace : defaultKubernetesMarketPlaceNamespace
-          if (!await kube.operatorSourceExists(this.operatorSourceName, ctx.marketplaceNamespace)) {
-            command.error(`Unable to find operator source ${this.operatorSourceName}`)
-          }
-          task.title = `${task.title}...done.`
-        }
-      },
+      // {
+      //   title: 'Check if operator catalog source exists',
+      //   enabled: () => this.channel === CheOLMChannel.NIGHTLY,
+      //   task: async (ctx: any, task: any) => {
+      //     ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOpenshiftMarketPlaceNamespace : defaultKubernetesMarketPlaceNamespace
+      //     if (!await kube.operatorSourceExists(this.operatorSourceName, ctx.marketplaceNamespace)) {
+      //       command.error(`Unable to find operator source ${this.operatorSourceName}`)
+      //     }
+      //     task.title = `${task.title}...done.`
+      //   }
+      // },
       {
         title: 'Check if operator group exists',
         task: async (task: any) => {
@@ -258,54 +268,6 @@ export class OLMTasks {
         task.title = `${task.title}...done.`
       }
     }
-  }
-
-  private customCatalogTasks(kube: KubeHelper): Listr {
-    return new Listr([
-      {
-        title: 'Create operator source',
-        task: async (ctx: any, task: any) => {
-          const applicationRegistryNamespace = ctx.isOpenShift ? openshiftApplicationPreviewRegistryNamespace
-            : kubernetesApplicationPreviewRegistryNamespace
-          if (await kube.operatorSourceExists(this.operatorSourceName, ctx.marketplaceNamespace)) {
-            task.title = `${task.title}...It already exists.`
-          } else {
-            await kube.createOperatorSource(this.operatorSourceName, applicationRegistryNamespace, ctx.marketplaceNamespace)
-            await kube.waitCatalogSource(ctx.marketplaceNamespace, this.operatorSourceName)
-            task.title = `${task.title}...created new one.`
-          }
-        }
-      },
-      {
-        title: 'Create catalog source',
-        task: async (ctx: any, task: any) => {
-          if (!await kube.catalogSourceExists(this.operatorSourceName, ctx.defaultCatalogSourceNamespace)) {
-            const catalogSourceInTheMarketPlaceNamespace = await kube.getCatalogSource(this.operatorSourceName, ctx.marketplaceNamespace)
-
-            const catalogSource: CatalogSource = {
-              apiVersion: 'operators.coreos.com/v1alpha1',
-              kind: 'CatalogSource',
-              metadata: {
-                name: this.operatorSourceName,
-                namespace: ctx.defaultCatalogSourceNamespace,
-              },
-              spec: {
-                address: catalogSourceInTheMarketPlaceNamespace.spec.address,
-                base64data: '',
-                mediatype: '',
-                sourceType: 'grpc'
-              }
-            }
-            // Create catalog source in the olm namespace to make it working in the namespace differ than marketplace
-            await kube.createCatalogSource(catalogSource)
-            await kube.waitCatalogSource(ctx.defaultCatalogSourceNamespace, this.operatorSourceName)
-            task.title = `${task.title}...created new one.`
-          } else {
-            task.title = `${task.title}...It already exists.`
-          }
-        }
-      }
-    ])
   }
 
   private createSubscription(name: string, packageName: string, namespace: string, sourceNamespace: string, channel: string, sourceName: string, installPlanApproval: string, startingCSV?: string): Subscription {

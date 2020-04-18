@@ -20,11 +20,11 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { DEFAULT_CHE_IMAGE, defaultApplicationRegistry } from '../constants'
+import { DEFAULT_CHE_IMAGE } from '../constants'
 import { getClusterClientCommand } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
-import { CatalogSource, ClusterServiceVersionList, InstallPlan, OperatorGroup, OperatorSource, PackageManifest, Subscription } from './typings/olm'
+import { CatalogSource, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './typings/olm'
 
 const AWAIT_TIMEOUT_S = 30
 
@@ -1233,40 +1233,6 @@ export class KubeHelper {
     }
   }
 
-  async createOperatorSource(name: string, registryNamespace: string, namespace: string) {
-    const operatorSource: OperatorSource = {
-      apiVersion: 'operators.coreos.com/v1',
-      kind: 'OperatorSource',
-      metadata: {
-        name,
-        namespace,
-      },
-      spec: {
-        endpoint: defaultApplicationRegistry,
-        registryNamespace,
-        type: 'appregistry'
-      }
-    }
-
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
-    try {
-      const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorsources', operatorSource)
-      return body
-    } catch (e) {
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async deleteOperatorSource(name: string, namespace: string) {
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
-    try {
-      const options = new V1DeleteOptions()
-      await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorsources', name, options)
-    } catch (e) {
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
   async catalogSourceExists(name: string, namespace: string): Promise<boolean> {
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
     try {
@@ -1285,6 +1251,10 @@ export class KubeHelper {
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
+  }
+
+  readCatalogSourceFromFile(filePath: string): CatalogSource {
+    return this.safeLoadFromYamlFile(filePath) as CatalogSource
   }
 
   async createCatalogSource(catalogSource: CatalogSource) {

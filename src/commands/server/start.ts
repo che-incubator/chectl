@@ -166,6 +166,12 @@ export default class Start extends Command {
                     Then OLM will install Eclipse Che with version 7.10.0.
                     Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known version.
                     This parameter is used only when the installer is 'olm'.`
+    }),
+    'catalog-source-yaml': string({
+      description: `Path to a yaml file that describes custom catalog source for installation Eclipse Che operator.
+                    Catalog source will be applied to the namespace with Che operator. 
+                    This parameter is used only when the installer is the 'olm'.`,
+      default: ''
     })
   }
 
@@ -270,6 +276,9 @@ export default class Start extends Command {
       }
       if (flags.installer !== 'olm' && flags['starting-csv']) {
         this.error('"starting-csv" flag should be used only with "olm" installer.')
+      }
+      if (flags.installer !== 'olm' && 'catalog-source-yaml') {
+        this.error('"catalog-source-yaml" flag should be used only with "olm" installer.')
       }
     }
   }

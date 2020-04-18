@@ -301,6 +301,11 @@ OPTIONS
       command.
                            This parameter is used only when the installer is 'olm'.
 
+  --catalog-source-yaml=catalog-source-yaml
+      Path to a yaml file that describes custom catalog source for installation Eclipse Che operator.
+                           Catalog source will be applied to the namespace with Che operator. 
+                           This parameter is used only when the installer is the 'olm'.
+
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
       Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used 
       only when the installer is the operator.

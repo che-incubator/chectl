@@ -8,19 +8,6 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-export interface OperatorSource {
-  apiVersion: string;
-  kind: string;
-  metadata: V1ObjectMeta;
-  spec: OperatorSourceSpec;
-}
-
-export interface OperatorSourceSpec {
-  endpoint: string;
-  registryNamespace: string
-  type: string;
-}
-
 export interface OperatorGroup {
   apiVersion: string;
   kind: string;
