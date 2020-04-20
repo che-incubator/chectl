@@ -291,6 +291,12 @@ export default class Start extends Command {
       if (flags.installer !== 'olm' && 'catalog-source-yaml') {
         this.error('"catalog-source-yaml" flag should be used only with "olm" installer.')
       }
+      if (flags.installer !== 'olm' && 'olm-channel') {
+        this.error('"olm-channel" flag should be used only with "olm" installer.')
+      }
+      if (flags.installer !== 'olm' && 'package-manifest-name') {
+        this.error('"package-manifest-name" flag should be used only with "olm" installer.')
+      }
     }
   }
 
