@@ -157,7 +157,7 @@ export default class Start extends Command {
     // return local templates folder if present
     const TEMPLATES = 'templates'
     const templatesDir = path.resolve(TEMPLATES)
-    const exists = fs.pathExistsSync(templatesDir)
+    const exists = fs.pathExistsSync(`${templatesDir}/che-operator`)
     if (exists) {
       return TEMPLATES
     }
