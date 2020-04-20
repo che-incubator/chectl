@@ -291,7 +291,7 @@ OPTIONS
       https://www.eclipse.org/che/docs/che-7/setup-che-in-tls-mode-with-self-signed-certificate/
 
   -t, --templates=templates
-      [default: templates] Path to the templates folder
+      Path to the templates folder
 
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
       Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used 
