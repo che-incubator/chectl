@@ -22,7 +22,6 @@ export class OLMTasks {
   private readonly customCatalogSourceName = 'eclipse-che-custom-catalog-source'
   private readonly subscriptionName = 'eclipse-che-subscription'
   private readonly operatorGroupName = 'che-operator-group'
-  private readonly packageNamePrefix = 'eclipse-che-preview-'
 
   /**
    * Returns list of tasks which perform preflight platform checks.
@@ -52,8 +51,6 @@ export class OLMTasks {
           ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOpenshiftMarketPlaceNamespace : defaultKubernetesMarketPlaceNamespace
           // Todo: should we do check for installer openshift? flags.platform === 'crc' || flags.platform === 'openshift'
           ctx.defaultCatalogSourceNamespace = flags.platform === 'crc' ? defaultOpenshiftMarketPlaceNamespace : defaultOLMKubernetesNamespace
-          // preview package name
-          ctx.packageName = this.packageNamePrefix + (ctx.isOpenShift ? 'openshift' : 'kubernetes')
           // catalog source name for stable Che version
           ctx.catalogSourceNameStable = isKubernetesPlatformFamily(flags.platform) ? 'operatorhubio-catalog' : 'community-operators'
 
@@ -90,7 +87,7 @@ export class OLMTasks {
             if (flags['catalog-source-yaml'] === '') {
               subscription = this.createSubscription(this.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, 'stable', ctx.catalogSourceNameStable, ctx.approvalStarategy, flags['starting-csv'])
             } else {
-              subscription = this.createSubscription(this.subscriptionName, ctx.packageName, flags.chenamespace, flags.chenamespace, OLM_STABLE_CHANNEL_NAME, ctx.sourceName, ctx.approvalStarategy, flags['starting-csv'])
+              subscription = this.createSubscription(this.subscriptionName, flags['package-manifest-name'], flags.chenamespace, flags.chenamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, flags['starting-csv'])
             }
             await kube.createOperatorSubscription(subscription)
             task.title = `${task.title}...created new one.`

@@ -167,6 +167,17 @@ export default class Start extends Command {
                     Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known version.
                     This parameter is used only when the installer is 'olm'.`
     }),
+    'olm-channel': string({
+      description: `Olm channel to install Eclipse Che, f.e. stable.
+                    If options was not set, will be used default version for package manifest.
+                    This parameter is used only when the installer is the 'olm'.`,
+      dependsOn: ['catalog-source-yaml']      
+    }),
+    'package-manifest-name': string({
+      description: `Package manifest name to subscribe to Eclipse Che OLM package manifest.
+                    This parameter is used only when the installer is the 'olm'.`,
+      dependsOn: ['catalog-source-yaml']
+    }),
     'catalog-source-yaml': string({
       description: `Path to a yaml file that describes custom catalog source for installation Eclipse Che operator.
                     Catalog source will be applied to the namespace with Che operator.
