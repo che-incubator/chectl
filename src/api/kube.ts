@@ -1290,6 +1290,16 @@ export class KubeHelper {
     })
   }
 
+  async deleteCatalogSource(namespace: string, catalogSourceName: string): Promise<void> {
+    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    try {
+      const options = new V1DeleteOptions()
+      await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', catalogSourceName, options)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
   async operatorGroupExists(name: string, namespace: string): Promise<boolean> {
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
     try {

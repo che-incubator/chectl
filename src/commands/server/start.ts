@@ -169,7 +169,7 @@ export default class Start extends Command {
     }),
     'catalog-source-yaml': string({
       description: `Path to a yaml file that describes custom catalog source for installation Eclipse Che operator.
-                    Catalog source will be applied to the namespace with Che operator. 
+                    Catalog source will be applied to the namespace with Che operator.
                     This parameter is used only when the installer is the 'olm'.`,
       default: ''
     })
