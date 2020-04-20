@@ -23,13 +23,6 @@ export const CHE_TLS_SECRET_NAME = 'che-tls'
 export const operatorCheCluster = 'eclipse-che'
 export const CHE_CLUSTER_CR_NAME = 'eclipse-che'
 
-export const openshiftApplicationPreviewRegistryNamespace = 'eclipse-che-operator-openshift'
-export const kubernetesApplicationPreviewRegistryNamespace = 'eclipse-che-operator-kubernetes'
-// application registry namespace from operator-hub.io
-export const applicationRegistryNamespace = 'eclipse-che'
-
 export const defaultOpenshiftMarketPlaceNamespace = 'openshift-marketplace'
 export const defaultKubernetesMarketPlaceNamespace = 'marketplace'
 export const defaultOLMKubernetesNamespace = 'olm'
-
-export const defaultApplicationRegistry = 'https://quay.io/cnr'

@@ -36,7 +36,7 @@ export class OLMTasks {
       checkTlsSertificate(flags),
       {
         title: 'Create operator group',
-        task: async (ctx: any, task: any) => {
+        task: async (_ctx: any, task: any) => {
           if (await kube.operatorGroupExists(this.operatorGroupName, flags.chenamespace)) {
             task.title = `${task.title}...It already exists.`
           } else {
@@ -85,7 +85,7 @@ export class OLMTasks {
           } else {
             let subscription: Subscription
             if (flags['catalog-source-yaml'] === '') {
-              subscription = this.createSubscription(this.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, 'stable', ctx.catalogSourceNameStable, ctx.approvalStarategy, flags['starting-csv'])
+              subscription = this.createSubscription(this.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, flags['starting-csv'])
             } else {
               subscription = this.createSubscription(this.subscriptionName, flags['package-manifest-name'], flags.chenamespace, flags.chenamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, flags['starting-csv'])
             }
@@ -128,7 +128,7 @@ export class OLMTasks {
       {
         title: 'Check if operator catalog source exists',
         enabled: () => flags['catalog-source-yaml'] !== '',
-        task: async (ctx: any, task: any) => {
+        task: async (_ctx: any, task: any) => {
           if (!await kube.catalogSourceExists(this.customCatalogSourceName, flags.chenamespace)) {
             command.error(`Unable to find custom operator catalog source ${this.customCatalogSourceName} in the namespace ${flags.chenamespace}`)
           }
@@ -137,7 +137,7 @@ export class OLMTasks {
       },
       {
         title: 'Check if operator group exists',
-        task: async (ctx: any, task: any) => {
+        task: async (_ctx: any, task: any) => {
           if (!await kube.operatorGroupExists(this.operatorGroupName, flags.chenamespace)) {
             command.error(`Unable to find operator group ${this.operatorGroupName}`)
           }
@@ -146,7 +146,7 @@ export class OLMTasks {
       },
       {
         title: 'Check if operator subscription exists',
-        task: async (ctx: any, task: any) => {
+        task: async (_ctx: any, task: any) => {
           if (!await kube.operatorSubscriptionExists(this.subscriptionName, flags.chenamespace)) {
             command.error(`Unable to find operator subscription ${this.subscriptionName}`)
           }
@@ -214,7 +214,7 @@ export class OLMTasks {
       {
         title: `Delete(OLM) operator subscription ${this.subscriptionName}`,
         enabled: ctx => ctx.isPreInstalledOLM,
-        task: async (ctx: any, task: any) => {
+        task: async (_ctx: any, task: any) => {
           if (await kube.operatorSubscriptionExists(this.subscriptionName, flags.chenamespace)) {
             await kube.deleteOperatorSubscription(this.subscriptionName, flags.chenamespace)
           }
@@ -224,7 +224,7 @@ export class OLMTasks {
       {
         title: 'Delete(OLM) Eclipse Che cluster service versions',
         enabled: ctx => ctx.isPreInstalledOLM,
-        task: async (ctx: any, task: any) => {
+        task: async (_ctx: any, task: any) => {
           const csvs = await kube.getClusterServiceVersions(flags.chenamespace)
           const csvsToDelete = csvs.items.filter(csv => csv.metadata.name.startsWith('eclipse-che'))
           csvsToDelete.forEach(csv => kube.deleteClusterServiceVersion(flags.chenamespace, csv.metadata.name))
@@ -234,7 +234,7 @@ export class OLMTasks {
       {
         title: `Delete(OLM) operator group ${this.operatorGroupName}`,
         enabled: ctx => ctx.isPreInstalledOLM,
-        task: async (ctx: any, task: any) => {
+        task: async (_ctx: any, task: any) => {
           if (await kube.operatorGroupExists(this.operatorGroupName, flags.chenamespace)) {
             await kube.deleteOperatorGroup(this.operatorGroupName, flags.chenamespace)
           }
@@ -243,7 +243,7 @@ export class OLMTasks {
       },
       {
         title: `Delete(OLM) custom catalog source ${this.customCatalogSourceName}`,
-        task: async (ctx: any, task: any) => {
+        task: async (_ctx: any, task: any) => {
           if (await kube.catalogSourceExists(this.customCatalogSourceName, flags.chenamespace)) {
             await kube.deleteCatalogSource(flags.chenamespace, this.customCatalogSourceName)
           }
@@ -256,7 +256,7 @@ export class OLMTasks {
   private isOlmPreInstalledTask(command: Command, kube: KubeHelper): Listr.ListrTask<Listr.ListrContext> {
     return {
       title: 'Check if OLM is pre-installed on the platform',
-      task: async (ctx: any, task: any) => {
+      task: async (_ctx: any, task: any) => {
         if (!await kube.isPreInstalledOLM()) {
           command.error("OLM isn't installed on your platfrom. If your platform hasn't got embedded OML, you need install it manually. You can use script https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/install.sh")
         }

@@ -171,7 +171,7 @@ export default class Start extends Command {
       description: `Olm channel to install Eclipse Che, f.e. stable.
                     If options was not set, will be used default version for package manifest.
                     This parameter is used only when the installer is the 'olm'.`,
-      dependsOn: ['catalog-source-yaml']      
+      dependsOn: ['catalog-source-yaml']
     }),
     'package-manifest-name': string({
       description: `Package manifest name to subscribe to Eclipse Che OLM package manifest.
@@ -225,7 +225,7 @@ export default class Start extends Command {
       if (flags.installer === '') {
         flags.installer = 'helm'
       }
-    } else if (flags.platform === 'crc') {
+    } else if (flags.platform === 'operator') {
       if (flags.installer === '') {
         flags.installer = 'olm'
       }

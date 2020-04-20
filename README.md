@@ -303,7 +303,7 @@ OPTIONS
 
   --catalog-source-yaml=catalog-source-yaml
       Path to a yaml file that describes custom catalog source for installation Eclipse Che operator.
-                           Catalog source will be applied to the namespace with Che operator. 
+                           Catalog source will be applied to the namespace with Che operator.
                            This parameter is used only when the installer is the 'olm'.
 
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
@@ -337,8 +337,17 @@ OPTIONS
   --listr-renderer=default|silent|verbose
       [default: default] Listr renderer
 
+  --olm-channel=olm-channel
+      Olm channel to install Eclipse Che, f.e. stable.
+                           If options was not set, will be used default version for package manifest.
+                           This parameter is used only when the installer is the 'olm'.
+
   --os-oauth
       Enable use of OpenShift credentials to log into Eclipse Che
+
+  --package-manifest-name=package-manifest-name
+      Package manifest name to subscribe to Eclipse Che OLM package manifest.
+                           This parameter is used only when the installer is the 'olm'.
 
   --plugin-registry-url=plugin-registry-url
       The URL of the external plugin registry.

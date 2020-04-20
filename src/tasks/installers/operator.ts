@@ -98,7 +98,7 @@ export class OperatorTasks {
       },
       {
         title: `Create ClusterRoleBinding ${this.operatorClusterRoleBinding}`,
-        task: async (task: any) => {
+        task: async (_ctx: any, task: any) => {
           const exist = await kube.clusterRoleBindingExist(this.operatorRoleBinding)
           if (exist) {
             task.title = `${task.title}...It already exists.`
