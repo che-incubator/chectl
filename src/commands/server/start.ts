@@ -225,9 +225,9 @@ export default class Start extends Command {
       if (flags.installer === '') {
         flags.installer = 'helm'
       }
-    } else if (flags.platform === 'operator') {
+    } else if (flags.platform === 'crc') {
       if (flags.installer === '') {
-        flags.installer = 'olm'
+        flags.installer = 'operator'
       }
     }
 
