@@ -212,22 +212,22 @@ export class OLMTasks {
         }
       },
       {
-        title: 'Delete(OLM) Eclipse Che cluster service versions',
-        enabled: ctx => ctx.isPreInstalledOLM,
-        task: async (ctx: any, task: any) => {
-          const csvs = await kube.getClusterServiceVersions(flags.chenamespace)
-          const csvsToDelete = csvs.items.filter(csv => csv.metadata.name.startsWith('eclipse-che'))
-          csvsToDelete.forEach(csv => kube.deleteClusterServiceVersion(flags.chenamespace, csv.metadata.name))
-          task.title = `${task.title}...OK`
-        }
-      },
-      {
         title: `Delete(OLM) operator subscription ${this.subscriptionName}`,
         enabled: ctx => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
           if (await kube.operatorSubscriptionExists(this.subscriptionName, flags.chenamespace)) {
             await kube.deleteOperatorSubscription(this.subscriptionName, flags.chenamespace)
           }
+          task.title = `${task.title}...OK`
+        }
+      },
+      {
+        title: 'Delete(OLM) Eclipse Che cluster service versions',
+        enabled: ctx => ctx.isPreInstalledOLM,
+        task: async (ctx: any, task: any) => {
+          const csvs = await kube.getClusterServiceVersions(flags.chenamespace)
+          const csvsToDelete = csvs.items.filter(csv => csv.metadata.name.startsWith('eclipse-che'))
+          csvsToDelete.forEach(csv => kube.deleteClusterServiceVersion(flags.chenamespace, csv.metadata.name))
           task.title = `${task.title}...OK`
         }
       },
@@ -258,7 +258,7 @@ export class OLMTasks {
       title: 'Check if OLM is pre-installed on the platform',
       task: async (ctx: any, task: any) => {
         if (!await kube.isPreInstalledOLM()) {
-          command.error("OLM isn't installed on your platfrom. If your platform hasn't got embedded OML, you need install it manually.")
+          command.error("OLM isn't installed on your platfrom. If your platform hasn't got embedded OML, you need install it manually. You can use script https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/install.sh")
         }
         task.title = `${task.title}...done.`
       }
