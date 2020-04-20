@@ -13,7 +13,7 @@ import Listr = require('listr')
 
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/typings/olm'
-import { CheOLMChannel, DEFAULT_CHE_IMAGE, defaultKubernetesMarketPlaceNamespace, defaultOLMKubernetesNamespace, defaultOpenshiftMarketPlaceNamespace, DEFAULT_CHE_OLM_PACKAGE_NAME } from '../../constants'
+import { defaultKubernetesMarketPlaceNamespace, defaultOLMKubernetesNamespace, defaultOpenshiftMarketPlaceNamespace, DEFAULT_CHE_OLM_PACKAGE_NAME, OLM_STABLE_CHANNEL_NAME } from '../../constants'
 import { isKubernetesPlatformFamily } from '../../util'
 
 import { checkPreCreatedTls, checkTlsSertificate, copyOperatorResources, createEclipeCheCluster, createNamespaceTask } from './common-tasks'
@@ -23,7 +23,6 @@ export class OLMTasks {
   private readonly subscriptionName = 'eclipse-che-subscription'
   private readonly operatorGroupName = 'che-operator-group'
   private readonly packageNamePrefix = 'eclipse-che-preview-'
-  private readonly channel = this.getDefaultChannel()
 
   /**
    * Returns list of tasks which perform preflight platform checks.
@@ -75,7 +74,7 @@ export class OLMTasks {
             customCatalogSource.metadata.namespace = flags.chenamespace
             await kube.createCatalogSource(customCatalogSource)
             await kube.waitCatalogSource(flags.chenamespace, this.customCatalogSourceName)
-            task.title = `${task.title}...created new one, but with name ${this.customCatalogSourceName} in the namespace ${flags.chenamespace}.`
+            task.title = `${task.title}...created new one, with name ${this.customCatalogSourceName} in the namespace ${flags.chenamespace}.`
           } else {
             task.title = `${task.title}...It already exists.`
           }
@@ -88,10 +87,10 @@ export class OLMTasks {
             task.title = `${task.title}...It already exists.`
           } else {
             let subscription: Subscription
-            if (this.channel === CheOLMChannel.STABLE) {
+            if (flags['catalog-source-yaml'] === '') {
               subscription = this.createSubscription(this.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, 'stable', ctx.catalogSourceNameStable, ctx.approvalStarategy, flags['starting-csv'])
             } else {
-              subscription = this.createSubscription(this.subscriptionName, ctx.packageName, flags.chenamespace, flags.chenamespace, this.channel, ctx.sourceName, ctx.approvalStarategy, flags['starting-csv'])
+              subscription = this.createSubscription(this.subscriptionName, ctx.packageName, flags.chenamespace, flags.chenamespace, OLM_STABLE_CHANNEL_NAME, ctx.sourceName, ctx.approvalStarategy, flags['starting-csv'])
             }
             await kube.createOperatorSubscription(subscription)
             task.title = `${task.title}...created new one.`
@@ -129,17 +128,16 @@ export class OLMTasks {
     const kube = new KubeHelper(flags)
     return new Listr([
       this.isOlmPreInstalledTask(command, kube),
-      // {
-      //   title: 'Check if operator catalog source exists',
-      //   enabled: () => this.channel === CheOLMChannel.NIGHTLY,
-      //   task: async (ctx: any, task: any) => {
-      //     ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOpenshiftMarketPlaceNamespace : defaultKubernetesMarketPlaceNamespace
-      //     if (!await kube.operatorSourceExists(this.operatorSourceName, ctx.marketplaceNamespace)) {
-      //       command.error(`Unable to find operator source ${this.operatorSourceName}`)
-      //     }
-      //     task.title = `${task.title}...done.`
-      //   }
-      // },
+      {
+        title: 'Check if operator catalog source exists',
+        enabled: () => flags['catalog-source-yaml'] !== '',
+        task: async (ctx: any, task: any) => {
+          if (!await kube.catalogSourceExists(this.customCatalogSourceName, flags.chenamespace)) {
+            command.error(`Unable to find custom operator catalog source ${this.customCatalogSourceName} in the namespace ${flags.chenamespace}`)
+          }
+          task.title = `${task.title}...done.`
+        }
+      },
       {
         title: 'Check if operator group exists',
         task: async (task: any) => {
@@ -171,7 +169,7 @@ export class OLMTasks {
 
           if (subscription.status) {
             if (subscription.status.state === 'AtLatestKnown') {
-              task.title = `Everything is up to date. Installed the latest known version '${subscription.status.currentCSV}' from channel '${this.channel}'.`
+              task.title = `Everything is up to date. Installed the latest known version '${subscription.status.currentCSV}'.`
               return
             }
 
@@ -250,13 +248,12 @@ export class OLMTasks {
   }
 
   // To update chectl stable channel we are patching src/constants.ts from nightly to release version.
-  // Let's use it to determine which olm channel should we use by default.
-  private getDefaultChannel(): CheOLMChannel {
-    if (DEFAULT_CHE_IMAGE.endsWith(':nightly')) {
-      return CheOLMChannel.NIGHTLY
-    }
-    return CheOLMChannel.STABLE
-  }
+  // private isNightlyChectlChannel(): boolean {
+  //   if (DEFAULT_CHE_IMAGE.endsWith(':nightly')) {
+  //     return true
+  //   }
+  //   return false
+  // }
 
   private isOlmPreInstalledTask(command: Command, kube: KubeHelper): Listr.ListrTask<Listr.ListrContext> {
     return {
