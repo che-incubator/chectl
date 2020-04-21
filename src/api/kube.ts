@@ -1137,6 +1137,10 @@ export class KubeHelper {
       const imageAndTag = cheImage.split(':', 2)
       yamlCr.spec.server.cheImage = imageAndTag[0]
       yamlCr.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
+      if (flags.installer === 'olm') {
+        // use default image tag for `olm` to install stable Che, because we don't have nightly channel for OLM catalog. 
+        yamlCr.spec.server.cheImageTag = ''
+      }
       yamlCr.spec.server.cheDebug = flags.debug ? flags.debug.toString() : 'false'
 
       yamlCr.spec.auth.openShiftoAuth = flags['os-oauth']

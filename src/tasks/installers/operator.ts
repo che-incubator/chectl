@@ -33,6 +33,7 @@ export class OperatorTasks {
    */
   startTasks(flags: any, command: Command): Listr {
     const kube = new KubeHelper(flags)
+    command.warn(`You can also use features rich 'OLM' installer to deploy Eclipse Che.`)
     return new Listr([
       copyOperatorResources(flags, command.config.cacheDir),
       createNamespaceTask(flags),

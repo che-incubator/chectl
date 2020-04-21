@@ -157,7 +157,8 @@ export default class Start extends Command {
                     By default strategy this flag is false. It requires approval from user.
                     To approve installation newer version Eclipse Che user should execute 'chectl server:update' command.
                     This parameter is used only when the installer is 'olm'.`,
-      default: false
+      default: false,
+      exclusive: ['starting-csv']
     }),
     'starting-csv': flags.string({
       description: `Starting cluster service version(CSV) for installation Eclipse Che.
