@@ -24,5 +24,4 @@ export const operatorCheCluster = 'eclipse-che'
 export const CHE_CLUSTER_CR_NAME = 'eclipse-che'
 
 export const defaultOpenshiftMarketPlaceNamespace = 'openshift-marketplace'
-export const defaultKubernetesMarketPlaceNamespace = 'marketplace'
 export const defaultOLMKubernetesNamespace = 'olm'

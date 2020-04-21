@@ -13,7 +13,7 @@ import Listr = require('listr')
 
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/typings/olm'
-import { DEFAULT_CHE_OLM_PACKAGE_NAME, defaultKubernetesMarketPlaceNamespace, defaultOLMKubernetesNamespace, defaultOpenshiftMarketPlaceNamespace, OLM_STABLE_CHANNEL_NAME } from '../../constants'
+import { DEFAULT_CHE_OLM_PACKAGE_NAME, defaultOLMKubernetesNamespace, defaultOpenshiftMarketPlaceNamespace, OLM_STABLE_CHANNEL_NAME } from '../../constants'
 import { isKubernetesPlatformFamily } from '../../util'
 
 import { checkPreCreatedTls, checkTlsSertificate, copyOperatorResources, createEclipeCheCluster, createNamespaceTask } from './common-tasks'
@@ -48,7 +48,6 @@ export class OLMTasks {
       {
         title: 'Configure context information',
         task: async (ctx: any, task: any) => {
-          ctx.marketplaceNamespace = ctx.isOpenShift ? defaultOpenshiftMarketPlaceNamespace : defaultKubernetesMarketPlaceNamespace
           // Todo: should we do check for installer openshift? flags.platform === 'crc' || flags.platform === 'openshift'
           ctx.defaultCatalogSourceNamespace = flags.platform === 'crc' ? defaultOpenshiftMarketPlaceNamespace : defaultOLMKubernetesNamespace
           // catalog source name for stable Che version
