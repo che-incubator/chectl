@@ -9,14 +9,15 @@
  **********************************************************************/
 
 import Command from '@oclif/command'
+import { cli } from 'cli-ux'
 import Listr = require('listr')
 
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/typings/olm'
-import { DEFAULT_CHE_OLM_PACKAGE_NAME, defaultOLMKubernetesNamespace, defaultOpenshiftMarketPlaceNamespace, OLM_STABLE_CHANNEL_NAME, DEFAULT_CHE_IMAGE } from '../../constants'
+import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OLM_PACKAGE_NAME, defaultOLMKubernetesNamespace, defaultOpenshiftMarketPlaceNamespace, OLM_STABLE_CHANNEL_NAME } from '../../constants'
 import { isKubernetesPlatformFamily } from '../../util'
+
 import { checkPreCreatedTls, checkTlsSertificate, copyOperatorResources, createEclipeCheCluster, createNamespaceTask } from './common-tasks'
-import { cli } from 'cli-ux'
 
 export class OLMTasks {
   private readonly customCatalogSourceName = 'eclipse-che-custom-catalog-source'
@@ -29,7 +30,7 @@ export class OLMTasks {
   startTasks(flags: any, command: Command): Listr {
     const kube = new KubeHelper(flags)
     if (this.isNightlyChectlChannel() && flags['catalog-source-yaml'] === '') {
-      command.warn(`> OLM catalog hasn't got nightly channel, that's why will be deployed stable Eclipse Che. <`)
+      command.warn('OLM catalog hasn\'t got nightly channel, that\'s why will be deployed stable Eclipse Che.')
     }
     return new Listr([
       this.isOlmPreInstalledTask(command, kube),
@@ -250,9 +251,9 @@ export class OLMTasks {
       title: 'Check if OLM is pre-installed on the platform',
       task: async (_ctx: any, task: any) => {
         if (!await kube.isPreInstalledOLM()) {
-          cli.warn(`Looks like your platform hasn't got embedded OLM, so you should install it manually. For quick start you can use: `, );
-          cli.url(`install.sh`, 'https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/install.sh')
-          command.error(`OLM is required for installation Eclipse Che with installer flag 'olm'`)
+          cli.warn('Looks like your platform hasn\'t got embedded OLM, so you should install it manually. For quick start you can use:')
+          cli.url('install.sh', 'https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/install.sh')
+          command.error('OLM is required for installation Eclipse Che with installer flag \'olm\'')
         }
         task.title = `${task.title}...done.`
       }
@@ -260,10 +261,10 @@ export class OLMTasks {
   }
 
   private isNightlyChectlChannel(): boolean {
-      if (DEFAULT_CHE_IMAGE.endsWith(':nightly')) {
-        	return true
-      }
-      return false
+    if (DEFAULT_CHE_IMAGE.endsWith(':nightly')) {
+      return true
+    }
+    return false
   }
 
   private createSubscription(name: string, packageName: string, namespace: string, sourceNamespace: string, channel: string, sourceName: string, installPlanApproval: string, startingCSV?: string): Subscription {
