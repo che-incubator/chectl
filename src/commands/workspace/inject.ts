@@ -8,7 +8,6 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { KubeConfig } from '@kubernetes/client-node'
 import { Context } from '@kubernetes/client-node/dist/config_types'
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
@@ -173,14 +172,12 @@ export default class Inject extends Command {
     }
     await execa(`${this.command} exec ${workspacePod} -n ${cheNamespace} -c ${container} -- mkdir ${containerHomeDir}.kube -p`, { timeout: 10000, shell: true })
 
-    const kc = new KubeConfig()
-    kc.loadFromDefault()
     const kubeConfigPath = path.join(os.tmpdir(), 'che-kubeconfig')
-    const cluster = kc.getCluster(contextToInject.cluster)
+    const cluster = KubeHelper.KUBE_CONFIG.getCluster(contextToInject.cluster)
     if (!cluster) {
       throw new Error(`Context ${contextToInject.name} has no cluster object`)
     }
-    const user = kc.getUser(contextToInject.user)
+    const user = KubeHelper.KUBE_CONFIG.getUser(contextToInject.user)
     if (!user) {
       throw new Error(`Context ${contextToInject.name} has no user object`)
     }

@@ -41,7 +41,6 @@ export default class Start extends Command {
     templates: string({
       char: 't',
       description: 'Path to the templates folder',
-      default: Start.getTemplatesDir(),
       env: 'CHE_TEMPLATES_FOLDER'
     }),
     'devfile-registry-url': string({
@@ -80,7 +79,7 @@ export default class Start extends Command {
                     The only exception is Helm installer. In that case the secret will be generated automatically.
                     For OpenShift, router will use default cluster certificates.
                     If the certificate is self-signed, '--self-signed-cert' option should be provided, otherwise Che won't be able to start.
-                    Please see docs for more details: https://www.eclipse.org/che/docs/che-7/setup-che-in-tls-mode-with-self-signed-certificate/`
+                    Please see docs for more details: https://www.eclipse.org/che/docs/che-7/installing-che-in-tls-mode-with-self-signed-certificates/`
     }),
     'self-signed-cert': flags.boolean({
       description: `Authorize usage of self signed certificates for encryption.
@@ -187,18 +186,6 @@ export default class Start extends Command {
     })
   }
 
-  static getTemplatesDir(): string {
-    // return local templates folder if present
-    const TEMPLATES = 'templates'
-    const templatesDir = path.resolve(TEMPLATES)
-    const exists = fs.pathExistsSync(templatesDir)
-    if (exists) {
-      return TEMPLATES
-    }
-    // else use the location from modules
-    return path.join(__dirname, '../../../templates')
-  }
-
   setPlaformDefaults(flags: any) {
     if (flags.platform === 'minishift') {
       if (!flags.multiuser && flags.installer === '') {
@@ -235,6 +222,25 @@ export default class Start extends Command {
     // TODO when tls by default is implemented for all platforms, make `tls` flag turned on by default.
     if (flags.installer === 'helm' && (flags.platform === 'k8s' || flags.platform === 'minikube' || flags.platform === 'microk8s')) {
       flags.tls = true
+    }
+
+    if (!flags.templates) {
+      // use local templates folder if present
+      const templates = 'templates'
+      const templatesDir = path.resolve(templates)
+      if (flags.installer === 'operator') {
+        if (fs.pathExistsSync(`${templatesDir}/che-operator`)) {
+          flags.templates = templatesDir
+        }
+      } else if (flags.installer === 'minishift-addon') {
+        if (fs.pathExistsSync(`${templatesDir}/minishift-addon/`)) {
+          flags.templates = templatesDir
+        }
+      }
+
+      if (!flags.templates) {
+        flags.templates = path.join(__dirname, '../../../templates')
+      }
     }
   }
 

@@ -120,7 +120,7 @@ export function checkPreCreatedTls(flags: any, kube: KubeHelper): ListrTask {
         `Che TLS mode is turned on, but required "${cheSecretName}" secret is not pre-created in "${flags.chenamespace}" namespace, so Eclipse Che cannot be started. \n` +
         'This is not bug in Eclipse Che and such behavior is expected. \n' +
         'Please refer to Che documentation for more informations: ' +
-        'https://www.eclipse.org/che/docs/che-7/setup-che-in-tls-mode-with-self-signed-certificate/'
+        'https://www.eclipse.org/che/docs/che-7/installing-che-in-tls-mode-with-self-signed-certificates/'
       throw new Error(errorMessage)
     }
   }
