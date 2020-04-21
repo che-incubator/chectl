@@ -82,6 +82,7 @@ USAGE
 # Commands
 <!-- commands -->
 * [`chectl autocomplete [SHELL]`](#chectl-autocomplete-shell)
+* [`chectl dashboard:open`](#chectl-dashboardopen)
 * [`chectl devfile:generate`](#chectl-devfilegenerate)
 * [`chectl help [COMMAND]`](#chectl-help-command)
 * [`chectl server:debug`](#chectl-serverdebug)
@@ -121,6 +122,23 @@ EXAMPLES
 ```
 
 _See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.5/src/commands/autocomplete/index.ts)_
+
+## `chectl dashboard:open`
+
+Open Eclipse Che dashboard
+
+```
+USAGE
+  $ chectl dashboard:open
+
+OPTIONS
+  -h, --help                       show CLI help
+
+  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
+                                   deployed
+```
+
+_See code: [src/commands/dashboard/open.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/dashboard/open.ts)_
 
 ## `chectl devfile:generate`
 
