@@ -1219,7 +1219,7 @@ export class KubeHelper {
   }
 
   async isPreInstalledOLM(): Promise<boolean> {
-    const apiApi = this.kc.makeApiClient(ApisApi)
+    const apiApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApisApi)
     try {
       const { body } = await apiApi.getAPIVersions()
       const OLMAPIGroup = body.groups.find(apiGroup => apiGroup.name === 'operators.coreos.com')
@@ -1230,7 +1230,7 @@ export class KubeHelper {
   }
 
   async operatorSourceExists(name: string, namespace: string): Promise<boolean> {
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorsources', name)
       return this.compare(body, name)
@@ -1240,7 +1240,7 @@ export class KubeHelper {
   }
 
   async catalogSourceExists(name: string, namespace: string): Promise<boolean> {
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', name)
       return this.compare(body, name)
@@ -1250,7 +1250,7 @@ export class KubeHelper {
   }
 
   async getCatalogSource(name: string, namespace: string): Promise<CatalogSource> {
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', name)
       return body
@@ -1264,7 +1264,7 @@ export class KubeHelper {
   }
 
   async createCatalogSource(catalogSource: CatalogSource) {
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const namespace = catalogSource.metadata.namespace
       const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', catalogSource)
@@ -1276,7 +1276,7 @@ export class KubeHelper {
 
   async waitCatalogSource(namespace: string, catalogSourceName: string, timeout = 60): Promise<CatalogSource> {
     return new Promise<CatalogSource>(async (resolve, reject) => {
-      const watcher = new Watch(this.kc)
+      const watcher = new Watch(KubeHelper.KUBE_CONFIG)
       let request: any
       request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/catalogsources`,
         { fieldSelector: `metadata.name=${catalogSourceName}` },
@@ -1297,7 +1297,7 @@ export class KubeHelper {
   }
 
   async deleteCatalogSource(namespace: string, catalogSourceName: string): Promise<void> {
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const options = new V1DeleteOptions()
       await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', catalogSourceName, options)
@@ -1307,7 +1307,7 @@ export class KubeHelper {
   }
 
   async operatorGroupExists(name: string, namespace: string): Promise<boolean> {
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorgroups', name)
       return this.compare(body, name)
@@ -1329,7 +1329,7 @@ export class KubeHelper {
       }
     }
 
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorgroups', operatorGroup)
       return body
@@ -1339,7 +1339,7 @@ export class KubeHelper {
   }
 
   async deleteOperatorGroup(operatorGroupName: string, namespace: string) {
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const options = new V1DeleteOptions()
       await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorgroups', operatorGroupName, options)
@@ -1349,7 +1349,7 @@ export class KubeHelper {
   }
 
   async createOperatorSubscription(subscription: Subscription) {
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', subscription.metadata.namespace, 'subscriptions', subscription)
       return body
@@ -1359,7 +1359,7 @@ export class KubeHelper {
   }
 
   async getOperatorSubscription(name: string, namespace: string): Promise<Subscription> {
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', name)
       return body as Subscription
@@ -1369,7 +1369,7 @@ export class KubeHelper {
   }
 
   async operatorSubscriptionExists(name: string, namespace: string): Promise<boolean> {
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', name)
       return this.compare(body, name)
@@ -1379,7 +1379,7 @@ export class KubeHelper {
   }
 
   async deleteOperatorSubscription(operatorSubscriptionName: string, namespace: string) {
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const options = new V1DeleteOptions()
       await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', operatorSubscriptionName, options)
@@ -1390,7 +1390,7 @@ export class KubeHelper {
 
   async waitOperatorSubscriptionReadyForApproval(namespace: string, subscriptionName: string, timeout = AWAIT_TIMEOUT_S): Promise<InstallPlan> {
     return new Promise<InstallPlan>(async (resolve, reject) => {
-      const watcher = new Watch(this.kc)
+      const watcher = new Watch(KubeHelper.KUBE_CONFIG)
       let request: any
       request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
         { fieldSelector: `metadata.name=${subscriptionName}` },
@@ -1418,7 +1418,7 @@ export class KubeHelper {
   }
 
   async approveOperatorInstallationPlan(name = '', namespace = '') {
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const patch: InstallPlan = {
         spec: {
@@ -1433,7 +1433,7 @@ export class KubeHelper {
 
   async waitUntilOperatorIsInstalled(installPlanName: string, namespace: string, timeout = 30) {
     return new Promise<InstallPlan>(async (resolve, reject) => {
-      const watcher = new Watch(this.kc)
+      const watcher = new Watch(KubeHelper.KUBE_CONFIG)
       let request: any
       request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`,
         { fieldSelector: `metadata.name=${installPlanName}` },
@@ -1461,7 +1461,7 @@ export class KubeHelper {
   }
 
   async getClusterServiceVersions(namespace: string): Promise<ClusterServiceVersionList> {
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions')
       return body as ClusterServiceVersionList
@@ -1471,7 +1471,7 @@ export class KubeHelper {
   }
 
   async deleteClusterServiceVersion(namespace: string, csvName: string) {
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const options = new V1DeleteOptions()
       const { body } = await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions', csvName, options)
@@ -1482,7 +1482,7 @@ export class KubeHelper {
   }
 
   async getPackageManifect(name: string): Promise<PackageManifest> {
-    const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.getNamespacedCustomObject('packages.operators.coreos.com', 'v1', 'default', 'packagemanifests', name)
       return body as PackageManifest
