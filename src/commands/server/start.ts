@@ -79,7 +79,7 @@ export default class Start extends Command {
                     The only exception is Helm installer. In that case the secret will be generated automatically.
                     For OpenShift, router will use default cluster certificates.
                     If the certificate is self-signed, '--self-signed-cert' option should be provided, otherwise Che won't be able to start.
-                    Please see docs for more details: https://www.eclipse.org/che/docs/che-7/setup-che-in-tls-mode-with-self-signed-certificate/`
+                    Please see docs for more details: https://www.eclipse.org/che/docs/che-7/installing-che-in-tls-mode-with-self-signed-certificates/`
     }),
     'self-signed-cert': flags.boolean({
       description: `Authorize usage of self signed certificates for encryption.
