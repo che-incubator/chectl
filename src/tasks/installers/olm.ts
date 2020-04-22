@@ -29,7 +29,7 @@ export class OLMTasks {
    */
   startTasks(flags: any, command: Command): Listr {
     const kube = new KubeHelper(flags)
-    if (this.isNightlyChectlChannel() && flags['catalog-source-yaml'] === '') {
+    if (this.isNightlyChectlChannel() && !flags['catalog-source-yaml']) {
       command.warn('OLM catalog hasn\'t got nightly channel, that\'s why will be deployed stable Eclipse Che.')
     }
     return new Listr([
@@ -65,7 +65,7 @@ export class OLMTasks {
         }
       },
       {
-        enabled: () => flags['catalog-source-yaml'] !== '',
+        enabled: () => flags['catalog-source-yaml'],
         title: 'Create custom catalog source from file',
         task: async (ctx: any, task: any) => {
           if (!await kube.catalogSourceExists(this.customCatalogSourceName, flags.chenamespace)) {
@@ -87,7 +87,7 @@ export class OLMTasks {
             task.title = `${task.title}...It already exists.`
           } else {
             let subscription: Subscription
-            if (flags['catalog-source-yaml'] === '') {
+            if (!flags['catalog-source-yaml']) {
               subscription = this.createSubscription(this.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, flags['starting-csv'])
             } else {
               subscription = this.createSubscription(this.subscriptionName, flags['package-manifest-name'], flags.chenamespace, flags.chenamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, flags['starting-csv'])

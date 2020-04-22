@@ -182,7 +182,6 @@ export default class Start extends Command {
       description: `Path to a yaml file that describes custom catalog source for installation Eclipse Che operator.
                     Catalog source will be applied to the namespace with Che operator.
                     This parameter is used only when the installer is the 'olm'.`,
-      default: ''
     })
   }
 
@@ -286,9 +285,11 @@ export default class Start extends Command {
           this.error(`You requested to enable OpenShift OAuth but that's only possible when using the operator as installer. The current installer is ${flags.installer}. To use the operator add parameter "--installer operator".`)
         }
       }
+
       if (flags.installer === 'olm' && flags.platform === 'minishift') {
         this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
       }
+
       if (flags.installer !== 'olm' && flags['auto-update']) {
         this.error('"auto-update" flag should be used only with "olm" installer.')
       }
@@ -303,6 +304,13 @@ export default class Start extends Command {
       }
       if (flags.installer !== 'olm' && flags['package-manifest-name']) {
         this.error('"package-manifest-name" flag should be used only with "olm" installer.')
+      }
+
+      if (!flags['package-manifest-name'] &&  flags['catalog-source-yaml']) {
+        this.error('you need define "package-manifest-name" flag to use "catalog-source-yaml".')
+      }
+      if (!flags['olm-channel'] &&  flags['catalog-source-yaml']) {
+        this.error('you need define "olm-channel" flag to use "catalog-source-yaml".')
       }
     }
   }
