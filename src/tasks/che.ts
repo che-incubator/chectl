@@ -8,11 +8,13 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 import { Command } from '@oclif/command'
+import * as fs from 'fs'
 import * as Listr from 'listr'
 
 import { CheHelper } from '../api/che'
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
+import { CHE_ROOT_CA_SECRET_NAME } from '../constants'
 
 import { KubeTasks } from './kube'
 
@@ -599,6 +601,45 @@ export class CheTasks {
         task: async (ctx: any, task: any) => {
           ctx.cheURL = await this.che.cheURL(flags.chenamespace)
           task.title = `${task.title}... ${ctx.cheURL}`
+        }
+      }
+    ]
+  }
+
+  /**
+   * Saves self-signed Che CA certificate into file. 'self-signed-certificate' secret should exist.
+   */
+  retrieveEclipseCheCaCert(flags: any): ReadonlyArray<Listr.ListrTask> {
+    return [
+      {
+        title: 'Retrieving self-signed Eclipse Che CA certificate',
+        task: async (ctx: any, task: any) => {
+          const cheCaSecret = await this.kube.getSecret(CHE_ROOT_CA_SECRET_NAME, flags.chenamespace)
+          if (!cheCaSecret) {
+            throw new Error(`Secret "${CHE_ROOT_CA_SECRET_NAME}" not found.`)
+          }
+          if (cheCaSecret.data && cheCaSecret.data['ca.crt']) {
+            ctx.cheCaCert = Buffer.from(cheCaSecret.data['ca.crt'], 'base64').toString('ascii')
+          } else {
+            throw new Error(`Secret "${CHE_ROOT_CA_SECRET_NAME}" has invalid format.`)
+          }
+
+          task.title = `${task.title}... done`
+        }
+      },
+      {
+        title: 'Saving self-signed Eclipse Che CA certificate',
+        task: async (ctx: any, task: any) => {
+          if (!ctx.cheCaCert) {
+            throw new Error('Che CA certificate is not present in the context.')
+          }
+          if (!ctx.cheCaCertFile) {
+            throw new Error('Target file for Che CA certificate is not present in the context.')
+          }
+
+          fs.writeFileSync(ctx.cheCaCertFile, ctx.cheCaCert)
+
+          task.title = `Eclipse Che self-signed CA certificate is saved at ${ctx.cheCaCertFile}`
         }
       }
     ]
