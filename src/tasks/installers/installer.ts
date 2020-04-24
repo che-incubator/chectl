@@ -13,6 +13,7 @@ import * as Listr from 'listr'
 
 import { HelmTasks } from './helm'
 import { MinishiftAddonTasks } from './minishift-addon'
+import { OLMTasks } from './olm'
 import { OperatorTasks } from './operator'
 
 /**
@@ -21,6 +22,7 @@ import { OperatorTasks } from './operator'
 export class InstallerTasks {
   updateTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     const operatorTasks = new OperatorTasks()
+    const olmTasks = new OLMTasks()
 
     let title: string
     let task: any
@@ -30,6 +32,11 @@ export class InstallerTasks {
       title = '🏃‍  Running the Eclipse Che operator Update'
       task = () => {
         return operatorTasks.updateTasks(flags, command)
+      }
+    } else if (flags.installer === 'olm') {
+      title = '🏃‍  Running the Eclipse Che operator Update using OLM'
+      task = () => {
+        return olmTasks.updateTasks(flags, command)
       }
     } else {
       title = '🏃‍  Installer preflight check'
@@ -44,6 +51,7 @@ export class InstallerTasks {
 
   preUpdateTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     const operatorTasks = new OperatorTasks()
+    const olmTasks = new OLMTasks()
 
     let title: string
     let task: any
@@ -53,6 +61,11 @@ export class InstallerTasks {
       title = '🏃‍  Running the Eclipse Che operator Update'
       task = () => {
         return operatorTasks.preUpdateTasks(flags, command)
+      }
+    } else if (flags.installer === 'olm') {
+      title = '🏃‍  Running the Eclipse Che operator Update using OLM'
+      task = () => {
+        return olmTasks.preUpdateTasks(flags, command)
       }
     } else {
       title = '🏃‍  Installer preflight check'
@@ -68,6 +81,7 @@ export class InstallerTasks {
   installTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     const helmTasks = new HelmTasks(flags)
     const operatorTasks = new OperatorTasks()
+    const olmTasks = new OLMTasks()
     const minishiftAddonTasks = new MinishiftAddonTasks()
 
     let title: string
@@ -86,6 +100,9 @@ export class InstallerTasks {
         return operatorTasks.startTasks(flags, command)
       }
     // installer.ts BEGIN CHE ONLY
+    } else if (flags.installer === 'olm') {
+      title = '🏃‍  Running Olm installaion Eclipse Che'
+      task = () => olmTasks.startTasks(flags, command)
     } else if (flags.installer === 'helm') {
       title = '🏃‍  Running Helm to install Eclipse Che'
       task = () => helmTasks.startTasks(flags, command)

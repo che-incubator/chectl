@@ -13,11 +13,11 @@ import * as Listr from 'listr'
 import { KubeHelper } from '../../api/kube'
 
 export class ApiTasks {
-   /**
-    * Returns tasks which tests if K8s or OpenShift API is configured in the current context.
-    *
-    * `isOpenShift` property is provisioned into context.
-    */
+  /**
+   * Returns tasks which tests if K8s or OpenShift API is configured in the current context.
+   *
+   * `isOpenShift` property is provisioned into context.
+   */
   testApiTasks(flags: any, command: Command): Listr.ListrTask {
     let kube = new KubeHelper(flags)
     return {

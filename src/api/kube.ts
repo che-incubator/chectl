@@ -24,6 +24,7 @@ import { DEFAULT_CHE_IMAGE } from '../constants'
 import { getClusterClientCommand } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
+import { CatalogSource, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './typings/olm'
 
 const AWAIT_TIMEOUT_S = 30
 
@@ -1138,6 +1139,10 @@ export class KubeHelper {
       const imageAndTag = cheImage.split(':', 2)
       yamlCr.spec.server.cheImage = imageAndTag[0]
       yamlCr.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
+      if ((flags.installer === 'olm' && !flags['catalog-source-yaml']) || (flags['catalog-source-yaml'] && flags['olm-channel'] === 'stable')) {
+        // use default image tag for `olm` to install stable Che, because we don't have nightly channel for OLM catalog.
+        yamlCr.spec.server.cheImageTag = ''
+      }
       yamlCr.spec.server.cheDebug = flags.debug ? flags.debug.toString() : 'false'
 
       yamlCr.spec.auth.openShiftoAuth = flags['os-oauth']
@@ -1208,6 +1213,279 @@ export class KubeHelper {
     try {
       const options = new V1DeleteOptions()
       await customObjectsApi.deleteNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name, options)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async isPreInstalledOLM(): Promise<boolean> {
+    const apiApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApisApi)
+    try {
+      const { body } = await apiApi.getAPIVersions()
+      const OLMAPIGroup = body.groups.find(apiGroup => apiGroup.name === 'operators.coreos.com')
+      return !!OLMAPIGroup
+    } catch {
+      return false
+    }
+  }
+
+  async operatorSourceExists(name: string, namespace: string): Promise<boolean> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorsources', name)
+      return this.compare(body, name)
+    } catch {
+      return false
+    }
+  }
+
+  async catalogSourceExists(name: string, namespace: string): Promise<boolean> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', name)
+      return this.compare(body, name)
+    } catch {
+      return false
+    }
+  }
+
+  async getCatalogSource(name: string, namespace: string): Promise<CatalogSource> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', name)
+      return body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  readCatalogSourceFromFile(filePath: string): CatalogSource {
+    return this.safeLoadFromYamlFile(filePath) as CatalogSource
+  }
+
+  async createCatalogSource(catalogSource: CatalogSource) {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const namespace = catalogSource.metadata.namespace
+      const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', catalogSource)
+      return body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async waitCatalogSource(namespace: string, catalogSourceName: string, timeout = 60): Promise<CatalogSource> {
+    return new Promise<CatalogSource>(async (resolve, reject) => {
+      const watcher = new Watch(KubeHelper.KUBE_CONFIG)
+      let request: any
+      request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/catalogsources`,
+        { fieldSelector: `metadata.name=${catalogSourceName}` },
+        (_phase: string, obj: any) => {
+          resolve(obj as CatalogSource)
+        },
+        error => {
+          if (error) {
+            reject(error)
+          }
+        })
+
+      setTimeout(() => {
+        request.abort()
+        reject(`Timeout reached while waiting for "${catalogSourceName}" catalog source is created.`)
+      }, timeout * 1000)
+    })
+  }
+
+  async deleteCatalogSource(namespace: string, catalogSourceName: string): Promise<void> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const options = new V1DeleteOptions()
+      await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', catalogSourceName, options)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async operatorGroupExists(name: string, namespace: string): Promise<boolean> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorgroups', name)
+      return this.compare(body, name)
+    } catch {
+      return false
+    }
+  }
+
+  async createOperatorGroup(operatorGroupName: string, namespace: string) {
+    const operatorGroup: OperatorGroup = {
+      apiVersion: 'operators.coreos.com/v1',
+      kind: 'OperatorGroup',
+      metadata: {
+        name: operatorGroupName,
+        namespace,
+      },
+      spec: {
+        targetNamespaces: [namespace]
+      }
+    }
+
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorgroups', operatorGroup)
+      return body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async deleteOperatorGroup(operatorGroupName: string, namespace: string) {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const options = new V1DeleteOptions()
+      await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorgroups', operatorGroupName, options)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async createOperatorSubscription(subscription: Subscription) {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', subscription.metadata.namespace, 'subscriptions', subscription)
+      return body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async getOperatorSubscription(name: string, namespace: string): Promise<Subscription> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', name)
+      return body as Subscription
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async operatorSubscriptionExists(name: string, namespace: string): Promise<boolean> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', name)
+      return this.compare(body, name)
+    } catch {
+      return false
+    }
+  }
+
+  async deleteOperatorSubscription(operatorSubscriptionName: string, namespace: string) {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const options = new V1DeleteOptions()
+      await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', operatorSubscriptionName, options)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async waitOperatorSubscriptionReadyForApproval(namespace: string, subscriptionName: string, timeout = AWAIT_TIMEOUT_S): Promise<InstallPlan> {
+    return new Promise<InstallPlan>(async (resolve, reject) => {
+      const watcher = new Watch(KubeHelper.KUBE_CONFIG)
+      let request: any
+      request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
+        { fieldSelector: `metadata.name=${subscriptionName}` },
+        (_phase: string, obj: any) => {
+          const subscription = obj as Subscription
+          if (subscription.status && subscription.status.conditions) {
+            for (const condition of subscription.status.conditions) {
+              if (condition.type === 'InstallPlanPending' && condition.status === 'True') {
+                resolve(subscription.status.installplan)
+              }
+            }
+          }
+        },
+        error => {
+          if (error) {
+            reject(error)
+          }
+        })
+
+      setTimeout(() => {
+        request.abort()
+        reject(`Timeout reached while waiting for "${subscriptionName}" subscription is ready.`)
+      }, timeout * 1000)
+    })
+  }
+
+  async approveOperatorInstallationPlan(name = '', namespace = '') {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const patch: InstallPlan = {
+        spec: {
+          approved: true
+        }
+      }
+      await customObjectsApi.patchNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'installplans', name, patch, { headers: { 'Content-Type': 'application/merge-patch+json' } })
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async waitUntilOperatorIsInstalled(installPlanName: string, namespace: string, timeout = 30) {
+    return new Promise<InstallPlan>(async (resolve, reject) => {
+      const watcher = new Watch(KubeHelper.KUBE_CONFIG)
+      let request: any
+      request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`,
+        { fieldSelector: `metadata.name=${installPlanName}` },
+        (_phase: string, obj: any) => {
+          const installPlan = obj as InstallPlan
+          if (installPlan.status && installPlan.status.conditions) {
+            for (const condition of installPlan.status.conditions) {
+              if (condition.type === 'Installed' && condition.status === 'True') {
+                resolve()
+              }
+            }
+          }
+        },
+        error => {
+          if (error) {
+            reject(error)
+          }
+        })
+
+      setTimeout(() => {
+        request.abort()
+        reject(`Timeout reached while waiting for "${installPlanName}" has go status 'Installed'.`)
+      }, timeout * 1000)
+    })
+  }
+
+  async getClusterServiceVersions(namespace: string): Promise<ClusterServiceVersionList> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions')
+      return body as ClusterServiceVersionList
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async deleteClusterServiceVersion(namespace: string, csvName: string) {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const options = new V1DeleteOptions()
+      const { body } = await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions', csvName, options)
+      return body as ClusterServiceVersionList
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async getPackageManifect(name: string): Promise<PackageManifest> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.getNamespacedCustomObject('packages.operators.coreos.com', 'v1', 'default', 'packagemanifests', name)
+      return body as PackageManifest
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }

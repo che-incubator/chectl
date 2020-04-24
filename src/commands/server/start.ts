@@ -95,7 +95,7 @@ export default class Start extends Command {
     installer: string({
       char: 'a',
       description: 'Installer type',
-      options: ['helm', 'operator', 'minishift-addon'],
+      options: ['helm', 'operator', 'olm', 'minishift-addon'],
       default: ''
     }),
     domain: string({
@@ -149,6 +149,40 @@ export default class Start extends Command {
     'skip-cluster-availability-check': flags.boolean({
       description: 'Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.',
       default: false
+    }),
+    'auto-update': flags.boolean({
+      description: `Auto update approval strategy for installation Eclipse Che.
+                    With this strategy will be provided auto-update Eclipse Che without any human interaction.
+                    By default strategy this flag is false. It requires approval from user.
+                    To approve installation newer version Eclipse Che user should execute 'chectl server:update' command.
+                    This parameter is used only when the installer is 'olm'.`,
+      default: false,
+      exclusive: ['starting-csv']
+    }),
+    'starting-csv': flags.string({
+      description: `Starting cluster service version(CSV) for installation Eclipse Che.
+                    Flags uses to set up start installation version Che.
+                    For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
+                    Then OLM will install Eclipse Che with version 7.10.0.
+                    Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known version.
+                    This parameter is used only when the installer is 'olm'.`
+    }),
+    'olm-channel': string({
+      description: `Olm channel to install Eclipse Che, f.e. stable.
+                    If options was not set, will be used default version for package manifest.
+                    This parameter is used only when the installer is the 'olm'.`,
+      dependsOn: ['catalog-source-yaml']
+    }),
+    'package-manifest-name': string({
+      description: `Package manifest name to subscribe to Eclipse Che OLM package manifest.
+                    This parameter is used only when the installer is the 'olm'.`,
+      dependsOn: ['catalog-source-yaml']
+    }),
+    'catalog-source-yaml': string({
+      description: `Path to a yaml file that describes custom catalog source for installation Eclipse Che operator.
+                    Catalog source will be applied to the namespace with Che operator.
+                    Also you need define 'olm-channel' name and 'package-manifest-name'.
+                    This parameter is used only when the installer is the 'olm'.`,
     })
   }
 
@@ -251,6 +285,33 @@ export default class Start extends Command {
         if (flags.installer !== 'operator') {
           this.error(`You requested to enable OpenShift OAuth but that's only possible when using the operator as installer. The current installer is ${flags.installer}. To use the operator add parameter "--installer operator".`)
         }
+      }
+
+      if (flags.installer === 'olm' && flags.platform === 'minishift') {
+        this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
+      }
+
+      if (flags.installer !== 'olm' && flags['auto-update']) {
+        this.error('"auto-update" flag should be used only with "olm" installer.')
+      }
+      if (flags.installer !== 'olm' && flags['starting-csv']) {
+        this.error('"starting-csv" flag should be used only with "olm" installer.')
+      }
+      if (flags.installer !== 'olm' && flags['catalog-source-yaml']) {
+        this.error('"catalog-source-yaml" flag should be used only with "olm" installer.')
+      }
+      if (flags.installer !== 'olm' && flags['olm-channel']) {
+        this.error('"olm-channel" flag should be used only with "olm" installer.')
+      }
+      if (flags.installer !== 'olm' && flags['package-manifest-name']) {
+        this.error('"package-manifest-name" flag should be used only with "olm" installer.')
+      }
+
+      if (!flags['package-manifest-name'] && flags['catalog-source-yaml']) {
+        this.error('you need define "package-manifest-name" flag to use "catalog-source-yaml".')
+      }
+      if (!flags['olm-channel'] && flags['catalog-source-yaml']) {
+        this.error('you need define "olm-channel" flag to use "catalog-source-yaml".')
       }
     }
   }

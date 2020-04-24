@@ -10,17 +10,14 @@
 import { V1Deployment } from '@kubernetes/client-node'
 import { Command } from '@oclif/command'
 import { cli } from 'cli-ux'
-import * as execa from 'execa'
 import * as fs from 'fs'
-import { copy, mkdirp, remove } from 'fs-extra'
 import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
-import * as path from 'path'
 
-import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { CHE_CLUSTER_CR_NAME } from '../../constants'
-import { isKubernetesPlatformFamily } from '../../util'
+
+import { checkPreCreatedTls, checkTlsSertificate, copyOperatorResources, createEclipeCheCluster, createNamespaceTask } from './common-tasks'
 
 export class OperatorTasks {
   operatorServiceAccount = 'che-operator'
@@ -30,107 +27,26 @@ export class OperatorTasks {
   operatorClusterRoleBinding = 'che-operator'
   cheClusterCrd = 'checlusters.org.eclipse.che'
   operatorName = 'che-operator'
-  resourcesPath = ''
 
   /**
    * Returns tasks list which perform preflight platform checks.
    */
   startTasks(flags: any, command: Command): Listr {
-    const che = new CheHelper(flags)
     const kube = new KubeHelper(flags)
+    command.warn('You can also use features rich \'OLM\' installer to deploy Eclipse Che.')
     return new Listr([
-      {
-        title: 'Copying operator resources',
-        task: async (_ctx: any, task: any) => {
-          this.resourcesPath = await this.copyCheOperatorResources(flags.templates, command.config.cacheDir)
-          task.title = `${task.title}...done.`
-        }
-      },
-      {
-        title: `Create Namespace (${flags.chenamespace})`,
-        task: async (_ctx: any, task: any) => {
-          const exist = await che.cheNamespaceExist(flags.chenamespace)
-          if (exist) {
-            task.title = `${task.title}...It already exists.`
-          } else if (flags.platform === 'minikube' || flags.platform === 'k8s' || flags.platform === 'microk8s') {
-            await execa(`kubectl create namespace ${flags.chenamespace}`, { shell: true })
-            task.title = `${task.title}...done.`
-          } else if (flags.platform === 'minishift' || flags.platform === 'openshift' || flags.platform === 'crc') {
-            await execa(`oc new-project ${flags.chenamespace}`, { shell: true })
-            task.title = `${task.title}...done.`
-          }
-        }
-      },
-      {
-        title: 'Checking for pre-created TLS secret',
-        // In case of Openshift infrastructure the certificate from cluster router will be used, so no need in the `che-tls` secret.
-        skip: () => !isKubernetesPlatformFamily(flags.platform),
-        task: async (_: any, task: any) => {
-          // Che is being deployed on Kubernetes infrastructure
-
-          if (! await this.checkTlsMode(flags)) {
-            // No TLS mode, skip this check
-            return
-          }
-
-          const cheSecretName = 'che-tls'
-          const cheSecret = await kube.getSecret(cheSecretName, flags.chenamespace)
-          if (cheSecret) {
-            task.title = `${task.title}... "${cheSecretName}" secret found`
-            return
-          }
-
-          // The secret is required but doesn't exist, show error message.
-          const errorMessage =
-            `Che TLS mode is turned on, but required "${cheSecretName}" secret is not pre-created in "${flags.chenamespace}" namespace, so Eclipse Che cannot be started. \n` +
-            'This is not bug in Eclipse Che and such behavior is expected. \n' +
-            'Please refer to Che documentation for more informations: ' +
-            'https://www.eclipse.org/che/docs/che-7/installing-che-in-tls-mode-with-self-signed-certificates/'
-          throw new Error(errorMessage)
-        }
-      },
-      {
-        title: 'Checking certificate',
-        // If the flag is set no need to check if it is required
-        skip: () => flags['self-signed-cert'],
-        task: async (_: any, task: any) => {
-          if (! await this.checkTlsMode(flags)) {
-            // No TLS mode, skip this check
-            return
-          }
-
-          const warningMessage = 'Self-signed certificate is used, so "--self-signed-cert" option is required. Added automatically.'
-
-          const platform = flags.platform
-          if (platform === 'minikube' || platform === 'crc' || platform === 'minishift') {
-            // There is no way to use real certificate on listed above platforms
-            cli.warn(warningMessage)
-            flags['self-signed-cert'] = true
-            task.title = `${task.title}... self-signed`
-            return
-          }
-
-          if (flags.domain && (flags.domain.endsWith('nip.io') || flags.domain.endsWith('xip.io'))) {
-            // It is not possible to use real certificate with *.nip.io and similar services
-            cli.warn(warningMessage)
-            flags['self-signed-cert'] = true
-            task.title = `${task.title}... self-signed`
-            return
-          }
-
-          // TODO check the secret certificate if it is commonly trusted.
-          cli.info('TLS mode is turned on, however we failed to determine whether self-signed certificate is used. \n\
-                   Please rerun chectl with "--self-signed-cert" option if it is the case, otherwise Eclipse Che will fail to start.')
-        }
-      },
+      copyOperatorResources(flags, command.config.cacheDir),
+      createNamespaceTask(flags),
+      checkPreCreatedTls(flags, kube),
+      checkTlsSertificate(flags),
       {
         title: `Create ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.serviceAccountExist(this.operatorServiceAccount, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            const yamlFilePath = this.resourcesPath + 'service_account.yaml'
+            const yamlFilePath = ctx.resourcesPath + 'service_account.yaml'
             await kube.createServiceAccountFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...done.`
           }
@@ -138,12 +54,12 @@ export class OperatorTasks {
       },
       {
         title: `Create Role ${this.operatorRole} in namespace ${flags.chenamespace}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.roleExist(this.operatorRole, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            const yamlFilePath = this.resourcesPath + 'role.yaml'
+            const yamlFilePath = ctx.resourcesPath + 'role.yaml'
             const statusCode = await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
             if (statusCode === 403) {
               command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
@@ -154,12 +70,12 @@ export class OperatorTasks {
       },
       {
         title: `Create ClusterRole ${this.operatorClusterRole}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.clusterRoleExist(this.operatorClusterRole)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            const yamlFilePath = this.resourcesPath + 'cluster_role.yaml'
+            const yamlFilePath = ctx.resourcesPath + 'cluster_role.yaml'
             const statusCode = await kube.createClusterRoleFromFile(yamlFilePath)
             if (statusCode === 403) {
               command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
@@ -170,12 +86,12 @@ export class OperatorTasks {
       },
       {
         title: `Create RoleBinding ${this.operatorRoleBinding} in namespace ${flags.chenamespace}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.roleBindingExist(this.operatorRoleBinding, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            const yamlFilePath = this.resourcesPath + 'role_binding.yaml'
+            const yamlFilePath = ctx.resourcesPath + 'role_binding.yaml'
             await kube.createRoleBindingFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...done.`
           }
@@ -195,12 +111,12 @@ export class OperatorTasks {
       },
       {
         title: `Create CRD ${this.cheClusterCrd}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.crdExist(this.cheClusterCrd)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            const yamlFilePath = this.resourcesPath + 'crds/org_v1_che_crd.yaml'
+            const yamlFilePath = ctx.resourcesPath + 'crds/org_v1_che_crd.yaml'
             await kube.createCrdFromFile(yamlFilePath)
             task.title = `${task.title}...done.`
           }
@@ -215,47 +131,17 @@ export class OperatorTasks {
       },
       {
         title: `Create deployment ${this.operatorName} in namespace ${flags.chenamespace}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.deploymentExist(this.operatorName, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            await kube.createDeploymentFromFile(this.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
+            await kube.createDeploymentFromFile(ctx.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
             task.title = `${task.title}...done.`
           }
         }
       },
-      {
-        title: `Create Eclipse Che cluster ${CHE_CLUSTER_CR_NAME} in namespace ${flags.chenamespace}`,
-        task: async (ctx: any, task: any) => {
-          const cheCluster = await kube.getCheCluster(CHE_CLUSTER_CR_NAME, flags.chenamespace)
-          if (cheCluster) {
-            task.title = `${task.title}...It already exists.`
-          } else {
-            // Eclipse Che operator supports only Multi-User Che
-            ctx.isCheDeployed = true
-            ctx.isPostgresDeployed = true
-            ctx.isKeycloakDeployed = true
-
-            // plugin and devfile registry will be deployed only when external ones are not configured
-            ctx.isPluginRegistryDeployed = !(flags['plugin-registry-url'] as boolean)
-            ctx.isDevfileRegistryDeployed = !(flags['devfile-registry-url'] as boolean)
-
-            const yamlFilePath = flags['che-operator-cr-yaml'] === '' ? this.resourcesPath + 'crds/org_v1_che_cr.yaml' : flags['che-operator-cr-yaml']
-            const cr = await kube.createCheClusterFromFile(yamlFilePath, flags, flags['che-operator-cr-yaml'] === '')
-            ctx.isKeycloakReady = ctx.isKeycloakReady || cr.spec.auth.externalIdentityProvider
-            ctx.isPostgresReady = ctx.isPostgresReady || cr.spec.database.externalDb
-            ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || cr.spec.server.externalDevfileRegistry
-            ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || cr.spec.server.externalPluginRegistry
-
-            if (cr.spec.server.customCheProperties && cr.spec.server.customCheProperties.CHE_MULTIUSER === 'false') {
-              flags.multiuser = false
-            }
-
-            task.title = `${task.title}...done.`
-          }
-        }
-      }
+      createEclipeCheCluster(flags, kube)
     ], { renderer: flags['listr-renderer'] as any })
   }
 
@@ -285,18 +171,12 @@ export class OperatorTasks {
   updateTasks(flags: any, command: Command): Listr {
     const kube = new KubeHelper(flags)
     return new Listr([
-      {
-        title: 'Copying operator resources',
-        task: async (_ctx: any, task: any) => {
-          this.resourcesPath = await this.copyCheOperatorResources(flags.templates, command.config.cacheDir)
-          task.title = `${task.title}...done.`
-        }
-      },
+      copyOperatorResources(flags, command.config.cacheDir),
       {
         title: `Updating ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.serviceAccountExist(this.operatorServiceAccount, flags.chenamespace)
-          const yamlFilePath = this.resourcesPath + 'service_account.yaml'
+          const yamlFilePath = ctx.resourcesPath + 'service_account.yaml'
           if (exist) {
             await kube.replaceServiceAccountFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...updated.`
@@ -308,9 +188,9 @@ export class OperatorTasks {
       },
       {
         title: `Updating Role ${this.operatorRole} in namespace ${flags.chenamespace}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.roleExist(this.operatorRole, flags.chenamespace)
-          const yamlFilePath = this.resourcesPath + 'role.yaml'
+          const yamlFilePath = ctx.resourcesPath + 'role.yaml'
           if (exist) {
             const statusCode = await kube.replaceRoleFromFile(yamlFilePath, flags.chenamespace)
             if (statusCode === 403) {
@@ -328,9 +208,9 @@ export class OperatorTasks {
       },
       {
         title: `Updating ClusterRole ${this.operatorClusterRole}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.clusterRoleExist(this.operatorClusterRole)
-          const yamlFilePath = this.resourcesPath + 'cluster_role.yaml'
+          const yamlFilePath = ctx.resourcesPath + 'cluster_role.yaml'
           if (exist) {
             const statusCode = await kube.replaceClusterRoleFromFile(yamlFilePath)
             if (statusCode === 403) {
@@ -348,9 +228,9 @@ export class OperatorTasks {
       },
       {
         title: `Updating RoleBinding ${this.operatorRoleBinding} in namespace ${flags.chenamespace}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.roleBindingExist(this.operatorRoleBinding, flags.chenamespace)
-          const yamlFilePath = this.resourcesPath + 'role_binding.yaml'
+          const yamlFilePath = ctx.resourcesPath + 'role_binding.yaml'
           if (exist) {
             await kube.replaceRoleBindingFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...updated.`
@@ -375,9 +255,9 @@ export class OperatorTasks {
       },
       {
         title: `Updating Eclipse Che cluster CRD ${this.cheClusterCrd}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const crd = await kube.getCrd(this.cheClusterCrd)
-          const yamlFilePath = this.resourcesPath + 'crds/org_v1_che_crd.yaml'
+          const yamlFilePath = ctx.resourcesPath + 'crds/org_v1_che_crd.yaml'
           if (crd) {
             if (!crd.metadata || !crd.metadata.resourceVersion) {
               throw new Error(`Fetched CRD ${this.cheClusterCrd} without resource version`)
@@ -400,13 +280,13 @@ export class OperatorTasks {
       },
       {
         title: `Updating deployment ${this.operatorName} in namespace ${flags.chenamespace}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.deploymentExist(this.operatorName, flags.chenamespace)
           if (exist) {
-            await kube.replaceDeploymentFromFile(this.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
+            await kube.replaceDeploymentFromFile(ctx.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
             task.title = `${task.title}...updated.`
           } else {
-            await kube.createDeploymentFromFile(this.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
+            await kube.createDeploymentFromFile(ctx.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
             task.title = `${task.title}...created new one.`
           }
         }
@@ -437,15 +317,6 @@ export class OperatorTasks {
         } else {
           task.title = await `${task.title}...CR not found`
         }
-      }
-    },
-    {
-      title: `Delete CRD ${this.cheClusterCrd}`,
-      task: async (_ctx: any, task: any) => {
-        if (await kh.crdExist(this.cheClusterCrd)) {
-          await kh.deleteCrd(this.cheClusterCrd)
-        }
-        task.title = await `${task.title}...OK`
       }
     },
     {
@@ -520,15 +391,6 @@ export class OperatorTasks {
     ]
   }
 
-  async copyCheOperatorResources(templatesDir: string, cacheDir: string): Promise<string> {
-    const srcDir = path.join(templatesDir, '/che-operator/')
-    const destDir = path.join(cacheDir, '/templates/che-operator/')
-    await remove(destDir)
-    await mkdirp(destDir)
-    await copy(srcDir, destDir)
-    return destDir
-  }
-
   async evaluateTemplateOperatorImage(flags: any): Promise<string> {
     if (flags['che-operator-image']) {
       return flags['che-operator-image']
@@ -559,39 +421,5 @@ export class OperatorTasks {
     }
 
     return container.image
-  }
-
-  /**
-   * Checks if TLS is disabled via operator custom resource.
-   * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
-   */
-  private async checkTlsMode(flags: any): Promise<boolean> {
-    if (flags['che-operator-cr-yaml']) {
-      const cheOperatorCrYamlPath = flags['che-operator-cr-yaml']
-      if (fs.existsSync(cheOperatorCrYamlPath)) {
-        const cr = yaml.safeLoad(fs.readFileSync(cheOperatorCrYamlPath).toString())
-        if (cr && cr.spec && cr.spec.server && cr.spec.server.tlsSupport === false) {
-          return false
-        }
-      }
-    }
-
-    if (flags['che-operator-cr-patch-yaml']) {
-      const cheOperatorCrPatchYamlPath = flags['che-operator-cr-patch-yaml']
-      if (fs.existsSync(cheOperatorCrPatchYamlPath)) {
-        const crPatch = yaml.safeLoad(fs.readFileSync(cheOperatorCrPatchYamlPath).toString())
-        if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
-          return false
-        }
-      }
-    }
-
-    // If tls flag is undefined we suppose that tls is turned on
-    if (flags.tls === false) {
-      return false
-    }
-
-    // TLS is on
-    return true
   }
 }

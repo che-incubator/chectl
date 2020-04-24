@@ -262,7 +262,7 @@ USAGE
   $ chectl server:start
 
 OPTIONS
-  -a, --installer=helm|operator|minishift-addon
+  -a, --installer=helm|operator|olm|minishift-addon
       Installer type
 
   -b, --domain=domain
@@ -311,6 +311,19 @@ OPTIONS
   -t, --templates=templates
       Path to the templates folder
 
+  --auto-update
+      Auto update approval strategy for installation Eclipse Che.
+                           With this strategy will be provided auto-update Eclipse Che without any human interaction.
+                           By default strategy this flag is false. It requires approval from user.
+                           To approve installation newer version Eclipse Che user should execute 'chectl server:update' 
+      command.
+                           This parameter is used only when the installer is 'olm'.
+
+  --catalog-source-yaml=catalog-source-yaml
+      Path to a yaml file that describes custom catalog source for installation Eclipse Che operator.
+                           Catalog source will be applied to the namespace with Che operator.
+                           This parameter is used only when the installer is the 'olm'.
+
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
       Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used 
       only when the installer is the operator.
@@ -342,8 +355,17 @@ OPTIONS
   --listr-renderer=default|silent|verbose
       [default: default] Listr renderer
 
+  --olm-channel=olm-channel
+      Olm channel to install Eclipse Che, f.e. stable.
+                           If options was not set, will be used default version for package manifest.
+                           This parameter is used only when the installer is the 'olm'.
+
   --os-oauth
       Enable use of OpenShift credentials to log into Eclipse Che
+
+  --package-manifest-name=package-manifest-name
+      Package manifest name to subscribe to Eclipse Che OLM package manifest.
+                           This parameter is used only when the installer is the 'olm'.
 
   --plugin-registry-url=plugin-registry-url
       The URL of the external plugin registry.
@@ -362,6 +384,15 @@ OPTIONS
 
   --skip-version-check
       Skip minimal versions check.
+
+  --starting-csv=starting-csv
+      Starting cluster service version(CSV) for installation Eclipse Che.
+                           Flags uses to set up start installation version Che.
+                           For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
+                           Then OLM will install Eclipse Che with version 7.10.0.
+                           Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs 
+      the latest known version.
+                           This parameter is used only when the installer is 'olm'.
 
   --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
       persistent volume(s) storage class name to use to store Eclipse Che workspaces data
@@ -403,7 +434,7 @@ USAGE
   $ chectl server:update
 
 OPTIONS
-  -a, --installer=helm|operator|minishift-addon                                Installer type
+  -a, --installer=helm|operator|minishift-addon|olm                            Installer type
   -h, --help                                                                   show CLI help
 
   -n, --chenamespace=chenamespace                                              [default: che] Kubernetes namespace where

@@ -33,6 +33,7 @@ export class HelmTasks {
    * Returns list of tasks which perform preflight platform checks.
    */
   startTasks(flags: any, command: Command): Listr {
+    command.warn('You can also use features rich \'OLM\' installer to deploy Eclipse Che.')
     return new Listr([
       {
         title: 'Verify if helm is installed',

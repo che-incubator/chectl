@@ -32,7 +32,7 @@ export default class Update extends Command {
     installer: string({
       char: 'a',
       description: 'Installer type',
-      options: ['helm', 'operator', 'minishift-addon'],
+      options: ['helm', 'operator', 'minishift-addon', 'olm'],
       default: ''
     }),
     platform: string({
@@ -78,13 +78,16 @@ export default class Update extends Command {
       this.error('🛑 --installer parameter must be specified.')
     }
 
-    if (flags.installer === 'operator') {
+    if (flags.installer === 'operator' || flags.installer === 'olm') {
       // operator already supports updating
       return
     }
 
     if (flags.installer === 'minishift-addon' || flags.installer === 'helm') {
       this.error(`🛑 The specified installer ${flags.installer} does not support updating yet.`)
+    }
+    if (flags.installer === 'olm' && flags.platform === 'minishift') {
+      this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
     }
 
     this.error(`🛑 Unknown installer ${flags.installer} is specified.`)
@@ -134,7 +137,7 @@ export default class Update extends Command {
 
         await preUpdateTasks.run(ctx)
 
-        if (!flags['skip-version-check']) {
+        if (!flags['skip-version-check'] && flags.installer !== 'olm') {
           await cli.anykey(`      Found deployed Eclipse Che with operator [${ctx.deployedCheOperatorImage}]:${ctx.deployedCheOperatorTag}.
       You are going to update it to [${ctx.newCheOperatorImage}]:${ctx.newCheOperatorTag}.
       Note that Eclipse Che operator will update component images (server, plugin registry) only if their values
