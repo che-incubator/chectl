@@ -33,7 +33,7 @@ export class KubeHelper {
   static initializeKubeConfig(): KubeConfig {
     const kc = new KubeConfig()
     kc.loadFromDefault()
-    cli.info(`Set current context to '${kc.currentContext}'`)
+    cli.info(`› Current Kubernetes context: '${kc.currentContext}'`)
     return kc
   }
 
