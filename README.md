@@ -82,10 +82,10 @@ USAGE
 # Commands
 <!-- commands -->
 * [`chectl autocomplete [SHELL]`](#chectl-autocomplete-shell)
+* [`chectl cacert:get`](#chectl-cacertget)
 * [`chectl dashboard:open`](#chectl-dashboardopen)
 * [`chectl devfile:generate`](#chectl-devfilegenerate)
 * [`chectl help [COMMAND]`](#chectl-help-command)
-* [`chectl server:certificate`](#chectl-servercertificate)
 * [`chectl server:debug`](#chectl-serverdebug)
 * [`chectl server:delete`](#chectl-serverdelete)
 * [`chectl server:logs`](#chectl-serverlogs)
@@ -123,6 +123,37 @@ EXAMPLES
 ```
 
 _See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.5/src/commands/autocomplete/index.ts)_
+
+## `chectl cacert:get`
+
+Retrieves Eclipse Che self-signed certificate
+
+```
+USAGE
+  $ chectl cacert:get
+
+OPTIONS
+  -d, --destination=destination
+      [default: ~] Destination where to store Che certificate.
+                           If the destination is a file (might not exist), then the certificate will be saved there in PEM 
+      format.
+                           If the destination is a directory, then cheCA.crt file will be created there with Che 
+      certificate in PEM format.
+                           If this option is ommited, then Che certificate will be stored in user's home directory as 
+      cheCA.crt
+
+  -h, --help
+      show CLI help
+
+  -n, --chenamespace=chenamespace
+      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
+
+  -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc
+      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc 
+      (for CodeReady Containers)", "microk8s".
+```
+
+_See code: [src/commands/cacert/get.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/cacert/get.ts)_
 
 ## `chectl dashboard:open`
 
@@ -189,40 +220,6 @@ OPTIONS
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3/src/commands/help.ts)_
-
-## `chectl server:certificate`
-
-Retrieves Eclipse Che self-signed certificate
-
-```
-USAGE
-  $ chectl server:certificate
-
-OPTIONS
-  -d, --destination=destination
-      [default: ~] Destination where to store Che certificate.
-                           If the destination is a file (might not exist), then the certificate will be saved there in PEM 
-      format.
-                           If the destination is a directory, then cheCA.crt file will be created there with Che 
-      certificate in PEM format.
-                           If this option is ommited, then Che certificate will be stored in user's home directory as 
-      cheCA.crt
-
-  -h, --help
-      show CLI help
-
-  -n, --chenamespace=chenamespace
-      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
-
-  -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc
-      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc 
-      (for CodeReady Containers)", "microk8s".
-
-  --make-path
-      Creates path specified in "destination" parameter if it doesn't exist.
-```
-
-_See code: [src/commands/server/certificate.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/certificate.ts)_
 
 ## `chectl server:debug`
 
