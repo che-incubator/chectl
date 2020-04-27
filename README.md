@@ -82,7 +82,7 @@ USAGE
 # Commands
 <!-- commands -->
 * [`chectl autocomplete [SHELL]`](#chectl-autocomplete-shell)
-* [`chectl cacert:get`](#chectl-cacertget)
+* [`chectl cacert:export`](#chectl-cacertexport)
 * [`chectl dashboard:open`](#chectl-dashboardopen)
 * [`chectl devfile:generate`](#chectl-devfilegenerate)
 * [`chectl help [COMMAND]`](#chectl-help-command)
@@ -124,13 +124,13 @@ EXAMPLES
 
 _See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.5/src/commands/autocomplete/index.ts)_
 
-## `chectl cacert:get`
+## `chectl cacert:export`
 
 Retrieves Eclipse Che self-signed certificate
 
 ```
 USAGE
-  $ chectl cacert:get
+  $ chectl cacert:export
 
 OPTIONS
   -d, --destination=destination
@@ -153,7 +153,7 @@ OPTIONS
       (for CodeReady Containers)", "microk8s".
 ```
 
-_See code: [src/commands/cacert/get.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/cacert/get.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/cacert/export.ts)_
 
 ## `chectl dashboard:open`
 

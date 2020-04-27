@@ -23,7 +23,7 @@ import { PlatformTasks } from '../../tasks/platforms/platform'
 
 const DEFAULT_CA_CERT_FILE_NAME = 'cheCA.crt'
 
-export default class Get extends Command {
+export default class Export extends Command {
   static description = 'Retrieves Eclipse Che self-signed certificate'
 
   static flags = {
@@ -46,7 +46,7 @@ export default class Get extends Command {
   }
 
   async run() {
-    const { flags } = this.parse(Get)
+    const { flags } = this.parse(Export)
     const ctx: any = {}
     const cheHelper = new CheHelper(flags)
     const platformTasks = new PlatformTasks()
