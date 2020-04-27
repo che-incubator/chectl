@@ -20,6 +20,7 @@ import * as yaml from 'js-yaml'
 import * as path from 'path'
 
 import { OpenShiftHelper } from '../api/openshift'
+import { CHE_ROOT_CA_SECRET_NAME } from '../constants'
 
 import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
@@ -105,6 +106,22 @@ export class CheHelper {
     } else {
       return this.cheK8sURL(namespace)
     }
+  }
+
+  /**
+   * Gets self-signed Che CA certificate from 'self-signed-certificate' secret. The secret should exist.
+   */
+  async retrieveEclipseCheCaCert(cheNamespace: string): Promise<string> {
+    const cheCaSecret = await this.kube.getSecret(CHE_ROOT_CA_SECRET_NAME, cheNamespace)
+    if (!cheCaSecret) {
+      throw new Error('Che CA self-signed certificate not found. Are you using self-signed certificate?')
+    }
+
+    if (cheCaSecret.data && cheCaSecret.data['ca.crt']) {
+      return Buffer.from(cheCaSecret.data['ca.crt'], 'base64').toString('ascii')
+    }
+
+    throw new Error(`Secret "${CHE_ROOT_CA_SECRET_NAME}" has invalid format: "ca.crt" key not found in data.`)
   }
 
   async cheK8sURL(namespace = ''): Promise<string> {

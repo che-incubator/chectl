@@ -19,6 +19,7 @@ export const CA_CERT_GENERATION_JOB_IMAGE = 'quay.io/eclipse/che-cert-manager-ca
 
 export const CERT_MANAGER_NAMESPACE_NAME = 'cert-manager'
 export const CHE_TLS_SECRET_NAME = 'che-tls'
+export const CHE_ROOT_CA_SECRET_NAME = 'self-signed-certificate'
 
 export const operatorCheCluster = 'eclipse-che'
 export const CHE_CLUSTER_CR_NAME = 'eclipse-che'
