@@ -36,12 +36,12 @@ export default class Export extends Command {
     }),
     destination: string({
       char: 'd',
-      description: `Destination where to store Che certificate.
+      description: `Destination where to store Che CA certificate.
                     If the destination is a file (might not exist), then the certificate will be saved there in PEM format.
                     If the destination is a directory, then ${DEFAULT_CA_CERT_FILE_NAME} file will be created there with Che certificate in PEM format.
                     If this option is ommited, then Che certificate will be stored in user's home directory as ${DEFAULT_CA_CERT_FILE_NAME}`,
       env: 'CHE_CA_CERT_LOCATION',
-      default: '~'
+      default: ''
     }),
   }
 
@@ -54,7 +54,7 @@ export default class Export extends Command {
     const apiTasks = new ApiTasks()
     const tasks = new Listr([], { renderer: 'silent' })
 
-    const targetFile = this.prepareTarget(flags.destination)
+    const targetFile = this.getTargetFile(flags.destination)
 
     tasks.add(platformTasks.preflightCheckTasks(flags, this))
     tasks.add(apiTasks.testApiTasks(flags, this))
@@ -73,8 +73,8 @@ export default class Export extends Command {
   /**
    * Handles certificate target location and returns string which points to the target file.
    */
-  private prepareTarget(destinaton: string): string {
-    if (destinaton === '~') {
+  private getTargetFile(destinaton: string): string {
+    if (!destinaton) {
       return path.join(os.homedir(), DEFAULT_CA_CERT_FILE_NAME)
     }
 
@@ -82,7 +82,7 @@ export default class Export extends Command {
       return fs.lstatSync(destinaton).isDirectory() ? path.join(destinaton, DEFAULT_CA_CERT_FILE_NAME) : destinaton
     }
 
-    throw new Error('Given certificate path doesn\'t exist.')
+    this.error(`Given path "${destinaton}" doesn\'t exist.`)
   }
 
 }

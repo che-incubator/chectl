@@ -134,7 +134,7 @@ USAGE
 
 OPTIONS
   -d, --destination=destination
-      [default: ~] Destination where to store Che certificate.
+      Destination where to store Che self-signed CA certificate.
                            If the destination is a file (might not exist), then the certificate will be saved there in PEM 
       format.
                            If the destination is a directory, then cheCA.crt file will be created there with Che 
