@@ -17,10 +17,11 @@ import * as commandExists from 'command-exists'
 import * as fs from 'fs-extra'
 import * as https from 'https'
 import * as yaml from 'js-yaml'
+import * as os from 'os'
 import * as path from 'path'
 
 import { OpenShiftHelper } from '../api/openshift'
-import { CHE_ROOT_CA_SECRET_NAME } from '../constants'
+import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../constants'
 
 import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
@@ -111,7 +112,7 @@ export class CheHelper {
   /**
    * Gets self-signed Che CA certificate from 'self-signed-certificate' secret. The secret should exist.
    */
-  async retrieveEclipseCheCaCert(cheNamespace: string): Promise<string> {
+  async retrieveCheCaCert(cheNamespace: string): Promise<string> {
     const cheCaSecret = await this.kube.getSecret(CHE_ROOT_CA_SECRET_NAME, cheNamespace)
     if (!cheCaSecret) {
       throw new Error('Che CA self-signed certificate not found. Are you using self-signed certificate?')
@@ -122,6 +123,20 @@ export class CheHelper {
     }
 
     throw new Error(`Secret "${CHE_ROOT_CA_SECRET_NAME}" has invalid format: "ca.crt" key not found in data.`)
+  }
+
+  async saveCheCaCert(cheCaCert: string, destinaton?: string): Promise<string> {
+    if (destinaton && fs.existsSync(destinaton)) {
+      if (fs.lstatSync(destinaton).isDirectory()) {
+        destinaton = path.join(destinaton, DEFAULT_CA_CERT_FILE_NAME)
+      }
+    } else {
+      // Fallback to default location
+      destinaton = path.join(os.homedir(), DEFAULT_CA_CERT_FILE_NAME)
+    }
+
+    fs.writeFileSync(destinaton, cheCaCert)
+    return destinaton
   }
 
   async cheK8sURL(namespace = ''): Promise<string> {

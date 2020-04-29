@@ -17,11 +17,10 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { cheNamespace } from '../../common-flags'
+import { DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-
-const DEFAULT_CA_CERT_FILE_NAME = 'cheCA.crt'
 
 export default class Export extends Command {
   static description = 'Retrieves Eclipse Che self-signed certificate'
@@ -36,7 +35,7 @@ export default class Export extends Command {
     }),
     destination: string({
       char: 'd',
-      description: `Destination where to store Che CA certificate.
+      description: `Destination where to store Che self-signed CA certificate.
                     If the destination is a file (might not exist), then the certificate will be saved there in PEM format.
                     If the destination is a directory, then ${DEFAULT_CA_CERT_FILE_NAME} file will be created there with Che certificate in PEM format.
                     If this option is ommited, then Che certificate will be stored in user's home directory as ${DEFAULT_CA_CERT_FILE_NAME}`,
@@ -54,16 +53,14 @@ export default class Export extends Command {
     const apiTasks = new ApiTasks()
     const tasks = new Listr([], { renderer: 'silent' })
 
-    const targetFile = this.getTargetFile(flags.destination)
-
     tasks.add(platformTasks.preflightCheckTasks(flags, this))
     tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
 
     try {
       await tasks.run(ctx)
-      const cheCaCert = await cheHelper.retrieveEclipseCheCaCert(flags.chenamespace)
-      fs.writeFileSync(targetFile, cheCaCert)
+      const cheCaCert = await cheHelper.retrieveCheCaCert(flags.chenamespace)
+      const targetFile = await cheHelper.saveCheCaCert(cheCaCert, this.getTargetFile(flags.destination))
       this.log(`Eclipse Che self-signed CA certificate is exported to ${targetFile}`)
     } catch (error) {
       this.error(error)
@@ -82,7 +79,7 @@ export default class Export extends Command {
       return fs.lstatSync(destinaton).isDirectory() ? path.join(destinaton, DEFAULT_CA_CERT_FILE_NAME) : destinaton
     }
 
-    this.error(`Given path "${destinaton}" doesn\'t exist.`)
+    this.error(`Given path "${destinaton}" doesn't exist.`)
   }
 
 }

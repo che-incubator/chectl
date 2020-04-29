@@ -78,8 +78,11 @@ export class HelmTasks {
           const cheTlsSecret = await this.kubeHelper.getSecret(CHE_TLS_SECRET_NAME, flags.chenamespace)
 
           if (cheTlsSecret && cheTlsSecret.data) {
-            if (!cheTlsSecret.data['tls.crt'] || !cheTlsSecret.data['tls.key'] || !cheTlsSecret.data['ca.crt']) {
-              throw new Error('"che-tls" secret is found but it is invalid. The valid self-signed certificate should contain "tls.crt", "tls.key" and "ca.crt" entries.')
+            if (!cheTlsSecret.data['tls.crt'] || !cheTlsSecret.data['tls.key']) {
+              throw new Error('"che-tls" secret is found but it is invalid. The valid self-signed certificate should contain "tls.crt" and "tls.key" entries.')
+            }
+            if (flags['self-signed-cert'] && !cheTlsSecret.data['ca.crt']) {
+              throw new Error(`"ca.crt" should be present in ${CHE_TLS_SECRET_NAME} secret in case of using self-signed certificate with helm installer.`)
             }
 
             ctx.cheCertificateExists = true
