@@ -1,0 +1,67 @@
+metadata:
+  name: quarkus-tests
+projects:
+  - name: quarkus-quickstarts
+    source:
+      location: 'https://github.com/quarkusio/quarkus-quickstarts.git'
+      type: git
+      sparseCheckoutDir: getting-started
+attributes:
+  persistVolumes: 'false'
+components:
+  - id: redhat/quarkus-java8/latest
+    type: chePlugin
+  - mountSources: true
+    endpoints:
+      - name: quarkus-development-server
+        port: 8080
+      - name: hello-greeting-endpoint
+        port: 8080
+        attributes:
+          path: /hello/greeting/che-user
+    memoryLimit: 512Mi
+    type: dockerimage
+    volumes:
+      - name: m2
+        containerPath: /home/user/.m2
+    image: 'quay.io/eclipse/che-quarkus:nightly'
+    alias: maven
+    env:
+      - value: >-
+          -XX:MaxRAMPercentage=50.0 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
+          -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
+          -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
+          -Xms20m -Djava.security.egd=file:/dev/./urandom -Duser.home=/home/user
+        name: JAVA_OPTS
+      - value: $(JAVA_OPTS)
+        name: MAVEN_OPTS
+apiVersion: 1.0.0
+commands:
+  - name: Package the application
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/quarkus-quickstarts/getting-started'
+        type: exec
+        command: mvn package
+        component: maven
+  - name: Start development server
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/quarkus-quickstarts/getting-started'
+        type: exec
+        command: 'mvn compile quarkus:dev'
+        component: maven
+  - name: Attach remote debugger
+    actions:
+      - referenceContent: |
+          {
+            "version": "0.2.0",
+            "configurations": [
+              {
+                "type": "java",
+                "request": "attach",
+                "name": "Attach to Remote Quarkus App",
+                "hostName": "localhost",
+                "port": 5005
+              }
+            ]
+          }
+        type: vscode-launch
