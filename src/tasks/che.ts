@@ -13,6 +13,7 @@ import * as Listr from 'listr'
 import { CheHelper } from '../api/che'
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
+import { DOCS_LINK_AUTH_TO_CHE_SERVER_VIA_OPENID } from '../constants'
 
 import { KubeTasks } from './kube'
 
@@ -255,7 +256,8 @@ export class CheTasks {
       enabled: (ctx: any) => !ctx.isCheStopped,
       task: async (ctx: any, task: any) => {
         if (ctx.isAuthEnabled && !this.cheAccessToken) {
-          command.error('E_AUTH_REQUIRED - Eclipse Che authentication is enabled and an access token need to be provided (flag --access-token).\nFor instructions to retrieve a valid access token refer to https://www.eclipse.org/che/docs/pages/che-7/administration-guide/proc_authenticating-to-the-che-server-using-openid.html')
+          command.error('E_AUTH_REQUIRED - Eclipse Che authentication is enabled and an access token need to be provided (flag --access-token). ' +
+                        `For instructions to retrieve a valid access token refer to ${DOCS_LINK_AUTH_TO_CHE_SERVER_VIA_OPENID}`)
         }
         try {
           const cheURL = await this.che.cheURL(this.cheNamespace)

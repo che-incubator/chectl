@@ -8,21 +8,23 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import * as fs from 'fs'
 import * as Listr from 'listr'
-import * as os from 'os'
 import * as path from 'path'
 
+import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { CA_CERT_GENERATION_JOB_IMAGE, CERT_MANAGER_NAMESPACE_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
+import { getMessageImportCaCertIntoBrowser } from '../installers/common-tasks'
 
 export const CERT_MANAGER_CA_SECRET_NAME = 'ca'
 
 export class CertManagerTasks {
   protected kubeHelper: KubeHelper
+  protected cheHelper: CheHelper
 
   constructor(flags: any) {
     this.kubeHelper = new KubeHelper(flags)
+    this.cheHelper = new CheHelper(flags)
   }
 
   /**
@@ -161,19 +163,15 @@ export class CertManagerTasks {
         }
       },
       {
-        title: 'Add local Eclipse Che CA certificate into browser',
+        title: 'Retrieving Che self-signed CA certificate',
         task: async (ctx: any, task: any) => {
           const cheSecret = await this.kubeHelper.getSecret(CHE_TLS_SECRET_NAME, flags.chenamespace)
           if (cheSecret && cheSecret.data) {
             const cheCaCrt = Buffer.from(cheSecret.data['ca.crt'], 'base64').toString('ascii')
-            const cheCaPublicCertPath = path.join(os.homedir(), 'cheCA.crt')
-            fs.writeFileSync(cheCaPublicCertPath, cheCaCrt)
+            const cheCaCertPath = await this.cheHelper.saveCheCaCert(cheCaCrt)
 
-            const yellow = '\x1b[33m'
-            const noColor = '\x1b[0m'
-            const message = `❗${yellow}[MANUAL ACTION REQUIRED]${noColor} Please add local Eclipse Che CA certificate into your browser: ${cheCaPublicCertPath}`
-            task.title = message
-            ctx.highlightedMessages.push(message)
+            ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(cheCaCertPath))
+            task.title = `${task.title}... is exported to ${cheCaCertPath}`
           } else {
             throw new Error('Failed to get Cert Manager CA secret')
           }

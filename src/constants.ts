@@ -20,9 +20,15 @@ export const CA_CERT_GENERATION_JOB_IMAGE = 'quay.io/eclipse/che-cert-manager-ca
 export const CERT_MANAGER_NAMESPACE_NAME = 'cert-manager'
 export const CHE_TLS_SECRET_NAME = 'che-tls'
 export const CHE_ROOT_CA_SECRET_NAME = 'self-signed-certificate'
+export const DEFAULT_CA_CERT_FILE_NAME = 'cheCA.crt'
 
 export const operatorCheCluster = 'eclipse-che'
 export const CHE_CLUSTER_CR_NAME = 'eclipse-che'
 
 export const defaultOpenshiftMarketPlaceNamespace = 'openshift-marketplace'
 export const defaultOLMKubernetesNamespace = 'olm'
+
+// Documentation links
+export const DOCS_LINK_INSTALL_TLS_WITH_SELF_SIGNED_CERT = 'https://www.eclipse.org/che/docs/che-7/installing-che-in-tls-mode-with-self-signed-certificates/'
+export const DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER = 'https://www.eclipse.org/che/docs/che-7/installing-che-in-tls-mode-with-self-signed-certificates/#using-che-with-tls_installing-che-in-tls-mode-with-self-signed-certificates'
+export const DOCS_LINK_AUTH_TO_CHE_SERVER_VIA_OPENID = ' https://www.eclipse.org/che/docs/che-7/authenticating-users/#authenticating-to-the-che-server-using-openid_authenticating-to-the-che-server'

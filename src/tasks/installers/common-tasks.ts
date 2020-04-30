@@ -10,15 +10,13 @@
 
 import { cli } from 'cli-ux'
 import * as execa from 'execa'
-import * as fs from 'fs'
 import { copy, mkdirp, remove } from 'fs-extra'
-import * as yaml from 'js-yaml'
 import { ListrTask } from 'listr'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { CHE_CLUSTER_CR_NAME } from '../../constants'
+import { CHE_CLUSTER_CR_NAME, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
 import { isKubernetesPlatformFamily, isOpenshiftPlatformFamily } from '../../util'
 
 export function createNamespaceTask(flags: any): ListrTask {
@@ -95,48 +93,14 @@ export function createEclipeCheCluster(flags: any, kube: KubeHelper): ListrTask 
   }
 }
 
-export function checkPreCreatedTls(flags: any, kube: KubeHelper): ListrTask {
-  return {
-    title: 'Checking for pre-created TLS secret',
-    // In case of Openshift infrastructure the certificate from cluster router will be used, so no need in the `che-tls` secret.
-    skip: () => !isKubernetesPlatformFamily(flags.platform),
-    task: async (_: any, task: any) => {
-      // Che is being deployed on Kubernetes infrastructure
-
-      if (! await checkTlsMode(flags)) {
-        // No TLS mode, skip this check
-        return
-      }
-
-      const cheSecretName = 'che-tls'
-      const cheSecret = await kube.getSecret(cheSecretName, flags.chenamespace)
-      if (cheSecret) {
-        task.title = `${task.title}... "${cheSecretName}" secret found`
-        return
-      }
-
-      // The secret is required but doesn't exist, show error message.
-      const errorMessage =
-        `Che TLS mode is turned on, but required "${cheSecretName}" secret is not pre-created in "${flags.chenamespace}" namespace, so Eclipse Che cannot be started. \n` +
-        'This is not bug in Eclipse Che and such behavior is expected. \n' +
-        'Please refer to Che documentation for more informations: ' +
-        'https://www.eclipse.org/che/docs/che-7/installing-che-in-tls-mode-with-self-signed-certificates/'
-      throw new Error(errorMessage)
-    }
-  }
-}
-
-export function checkTlsSertificate(flags: any): ListrTask {
+export function checkTlsCertificate(flags: any): ListrTask {
   return {
     title: 'Checking certificate',
+    // It makes sense to check whether self-signed certificate is used only if TLS mode is on
+    enabled: () => flags.tls,
     // If the flag is set no need to check if it is required
     skip: () => flags['self-signed-cert'],
     task: async (_: any, task: any) => {
-      if (! await checkTlsMode(flags)) {
-        // No TLS mode, skip this check
-        return
-      }
-
       const warningMessage = 'Self-signed certificate is used, so "--self-signed-cert" option is required. Added automatically.'
 
       const platform = flags.platform
@@ -163,36 +127,26 @@ export function checkTlsSertificate(flags: any): ListrTask {
   }
 }
 
-/**
- * Checks if TLS is disabled via operator custom resource.
- * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
- */
-async function checkTlsMode(flags: any): Promise<boolean> {
-  if (flags['che-operator-cr-yaml']) {
-    const cheOperatorCrYamlPath = flags['che-operator-cr-yaml']
-    if (fs.existsSync(cheOperatorCrYamlPath)) {
-      const cr = yaml.safeLoad(fs.readFileSync(cheOperatorCrYamlPath).toString())
-      if (cr && cr.spec && cr.spec.server && cr.spec.server.tlsSupport === false) {
-        return false
-      }
+export function retrieveCheCaCertificateTask(flags: any): ListrTask {
+  return {
+    title: 'Retrieving Che self-signed CA certificate',
+    // It makes sense to retrieve CA certificate only if self-signed certificate is used.
+    enabled: () => flags.tls && flags['self-signed-cert'] && flags.installer !== 'helm',
+    task: async (ctx: any, task: any) => {
+      const che = new CheHelper(flags)
+      const cheCaCert = await che.retrieveCheCaCert(flags.chenamespace)
+      const targetFile = await che.saveCheCaCert(cheCaCert)
+
+      task.title = `${task.title }... is exported to ${targetFile}`
+      ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(targetFile))
     }
   }
+}
 
-  if (flags['che-operator-cr-patch-yaml']) {
-    const cheOperatorCrPatchYamlPath = flags['che-operator-cr-patch-yaml']
-    if (fs.existsSync(cheOperatorCrPatchYamlPath)) {
-      const crPatch = yaml.safeLoad(fs.readFileSync(cheOperatorCrPatchYamlPath).toString())
-      if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
-        return false
-      }
-    }
-  }
-
-  // If tls flag is undefined we suppose that tls is turned on
-  if (flags.tls === false) {
-    return false
-  }
-
-  // TLS is on
-  return true
+export function getMessageImportCaCertIntoBrowser(caCertFileLocation: string): string {
+  const yellow = '\x1b[33m'
+  const noColor = '\x1b[0m'
+  const message = `❗${yellow}[MANUAL ACTION REQUIRED]${noColor} Please add Che self-signed CA certificate into your browser: ${caCertFileLocation}.\n` +
+                  `Documentaton how to add a CA certificate into a browser: ${DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER}`
+  return message
 }
