@@ -1491,6 +1491,21 @@ export class KubeHelper {
     }
   }
 
+  async getAmoutUsers(): Promise<number> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    let amountUsers: number
+    try {
+      const { body } = await customObjectsApi.listClusterCustomObject('user.openshift.io', 'v1', 'users')
+      if (!body.items) {
+        throw new Error('Unable to get list users.')
+      }
+      amountUsers = body.items.length
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+    return amountUsers
+  }
+
   async deleteNamespace(namespace: string): Promise<void> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {

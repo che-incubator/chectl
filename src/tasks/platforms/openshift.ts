@@ -13,13 +13,16 @@ import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
 
+import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
+import { HOW_TO_CREATE_USER_OS3 } from '../../constants'
 
 export class OpenshiftTasks {
   /**
    * Returns tasks list which perform preflight platform checks.
    */
   preflightCheckTasks(flags: any, command: Command): Listr {
+    let kube = new KubeHelper(flags)
     return new Listr([
       {
         title: 'Verify if oc is installed',
@@ -43,7 +46,16 @@ export class OpenshiftTasks {
         }
       },
       VersionHelper.getOpenShiftCheckVersionTask(flags),
-      VersionHelper.getK8sCheckVersionTask(flags)
+      VersionHelper.getK8sCheckVersionTask(flags),
+      {
+        title: 'Verify amount "openshift" users',
+        enabled: () => flags['os-oauth'],
+        task: async (_ctx: any, _task: any) => {
+          if (await kube.getAmoutUsers() === 0) {
+            command.error(`No real user exists in the "openshift" cluster. Either disable OpenShift OAuth integration("os-oauth" flag) or add at least one user (details in the Help link): "${HOW_TO_CREATE_USER_OS3}"`)
+          }
+        }
+      },
     ], { renderer: flags['listr-renderer'] as any })
   }
 
