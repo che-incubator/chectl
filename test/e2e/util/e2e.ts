@@ -46,14 +46,14 @@ export class E2eHelper {
     }
     try {
       if (platform === 'openshift') {
-        const keycloak_url = await this.OC_Hostname('keycloak')
+        const keycloak_url = await this.OCHostname('keycloak')
         const endpoint = `${keycloak_url}/auth/realms/che/protocol/openid-connect/token`
         const accessToken = await this.axios.post(endpoint, stringify(params))
 
         return accessToken.data.access_token
       } else {
-        const keycloak_url = await this.K8S_Hostname('keycloak')
-        const endpoint = `${keycloak_url}/auth/realms/che/protocol/openid-connect/token`
+        const keycloakUrl = await this.K8SHostname('keycloak')
+        const endpoint = `${keycloakUrl}/auth/realms/che/protocol/openid-connect/token`
         const accessToken = await this.axios.post(endpoint, stringify(params))
 
         return accessToken.data.access_token
@@ -69,10 +69,10 @@ export class E2eHelper {
     const maxItems = 30
     let skipCount = 0
     if (isOpenshiftPlatformFamily === 'openshift') {
-      const cheUrl = await this.OC_Hostname('che')
+      const cheUrl = await this.OCHostname('che')
       workspaces = await this.che.doGetWorkspaces(cheUrl, skipCount, maxItems, process.env.CHE_ACCESS_TOKEN)
     } else {
-      const cheUrl = await this.K8S_Hostname('che')
+      const cheUrl = await this.K8SHostname('che')
       workspaces = await this.che.doGetWorkspaces(cheUrl, skipCount, maxItems, process.env.CHE_ACCESS_TOKEN)
     }
 
@@ -82,22 +82,22 @@ export class E2eHelper {
   // Return an id of test workspaces(e2e-tests. Please look devfile-example.yaml file)
   async getWorkspaceId(platform: string): Promise<any> {
     const workspaces = await this.getAllWorkspaces(platform)
-    const workspace_id = workspaces.filter((wks => wks.devfile.metadata.name === this.devfileName)).map(({ id }) => id)[0]
+    const workspaceId = workspaces.filter((wks => wks.devfile.metadata.name === this.devfileName)).map(({ id }) => id)[0]
 
-    if (workspace_id === undefined || workspace_id === '') {
-      throw Error('Error getting workspace_id')
+    if (!workspaceId) {
+      throw Error('Error getting workspaceId')
 
     }
 
-    return workspace_id
+    return workspaceId
   }
 
   // Return the status of test workspaces(e2e-tests. Please look devfile-example.yaml file)
-  async GetWorkspaceStatus(platform: string): Promise<any> {
+  async getWorkspaceStatus(platform: string): Promise<any> {
     const workspaces = await this.getAllWorkspaces(platform)
     const workspaceStatus = workspaces.filter((wks => wks.devfile.metadata.name === this.devfileName)).map(({ status }) => status)[0]
 
-    if (workspaceStatus === undefined || workspaceStatus === '') {
+    if (!workspaceStatus) {
       throw Error('Error getting workspace_id')
 
     }
@@ -106,11 +106,11 @@ export class E2eHelper {
   }
 
   //Return a route from Openshift adding protocol
-  async OC_Hostname(ingress_name: string): Promise<any> {
-    if (await this.oc.routeExist(ingress_name, 'che')) {
+  async OCHostname(ingressName: string): Promise<any> {
+    if (await this.oc.routeExist(ingressName, 'che')) {
       try {
-        const protocol = await this.oc.getRouteProtocol(ingress_name, 'che')
-        const hostname = await this.oc.getRouteHost(ingress_name, 'che')
+        const protocol = await this.oc.getRouteProtocol(ingressName, 'che')
+        const hostname = await this.oc.getRouteHost(ingressName, 'che')
 
         return `${protocol}://${hostname}`
       } catch (error) {
@@ -120,11 +120,11 @@ export class E2eHelper {
   }
 
   // Return ingress and protocol from minikube platform
-  async K8S_Hostname(ingress_name: string): Promise<any> {
-    if (await this.kubeHelper.ingressExist(ingress_name, 'che')) {
+  async K8SHostname(ingressName: string): Promise<any> {
+    if (await this.kubeHelper.ingressExist(ingressName, 'che')) {
       try {
-        const protocol = await this.kubeHelper.getIngressProtocol(ingress_name, 'che')
-        const hostname = await this.kubeHelper.getIngressHost(ingress_name, 'che')
+        const protocol = await this.kubeHelper.getIngressProtocol(ingressName, 'che')
+        const hostname = await this.kubeHelper.getIngressHost(ingressName, 'che')
 
         return `${protocol}://${hostname}`
       } catch (error) {

@@ -65,7 +65,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
         console.log(stderr)
       }
 
-      const workspaceStatus = await helper.GetWorkspaceStatus(PLATFORM)
+      const workspaceStatus = await helper.getWorkspaceStatus(PLATFORM)
 
       expect(workspaceStatus).to.contain('RUNNING')
     })
