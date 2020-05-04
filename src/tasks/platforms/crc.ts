@@ -15,7 +15,7 @@ import * as Listr from 'listr'
 
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { HOW_TO_CREATE_USER_OS4 } from '../../constants'
+import { DOCS_LINK_HOW_TO_CREATE_USER_OS4, ERROR_MESSAGE_NO_REAL_USER } from '../../constants'
 
 /**
  * Helper for Code Ready Container
@@ -58,11 +58,11 @@ export class CRCHelper {
       VersionHelper.getOpenShiftCheckVersionTask(flags),
       VersionHelper.getK8sCheckVersionTask(flags),
       {
-        title: 'Verify amount "crc" users',
+        title: 'Verify the existence of users',
         enabled: () => flags['os-oauth'],
         task: async (_ctx: any, task: any) => {
           if (await kube.getAmoutUsers() === 0) {
-            command.error(`No real user exists in the "crc" cluster. Either disable OpenShift OAuth integration("os-oauth" flag) or add at least one user (details in the Help link): "${HOW_TO_CREATE_USER_OS4}"`)
+            command.error(`${ERROR_MESSAGE_NO_REAL_USER} "${DOCS_LINK_HOW_TO_CREATE_USER_OS4}"`)
           }
           task.title = `${task.title}...done.`
         }

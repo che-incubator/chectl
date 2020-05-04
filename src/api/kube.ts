@@ -1218,15 +1218,23 @@ export class KubeHelper {
     }
   }
 
-  async isPreInstalledOLM(): Promise<boolean> {
+  async apiGroupExists(apiGroup: string): Promise<boolean> {
     const apiApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApisApi)
     try {
       const { body } = await apiApi.getAPIVersions()
-      const OLMAPIGroup = body.groups.find(apiGroup => apiGroup.name === 'operators.coreos.com')
-      return !!OLMAPIGroup
+      const foundApiGroup = body.groups.find(ag => ag.name === apiGroup)
+      return !!foundApiGroup
     } catch {
       return false
     }
+  }
+
+  async isOpenshift4(): Promise<boolean> {
+    return await this.apiGroupExists('config.openshift.io')
+  }
+
+  async isPreInstalledOLM(): Promise<boolean> {
+    return await this.apiGroupExists('operators.coreos.com')
   }
 
   async operatorSourceExists(name: string, namespace: string): Promise<boolean> {
@@ -1493,17 +1501,17 @@ export class KubeHelper {
 
   async getAmoutUsers(): Promise<number> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
-    let amountUsers: number
+    let amountOfUsers: number
     try {
       const { body } = await customObjectsApi.listClusterCustomObject('user.openshift.io', 'v1', 'users')
       if (!body.items) {
         throw new Error('Unable to get list users.')
       }
-      amountUsers = body.items.length
+      amountOfUsers = body.items.length
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
-    return amountUsers
+    return amountOfUsers
   }
 
   async deleteNamespace(namespace: string): Promise<void> {

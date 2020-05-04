@@ -15,7 +15,7 @@ import * as Listr from 'listr'
 
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { HOW_TO_CREATE_USER_OS3 } from '../../constants'
+import { DOCS_LINK_HOW_TO_CREATE_USER_OS3, DOCS_LINK_HOW_TO_CREATE_USER_OS4, ERROR_MESSAGE_NO_REAL_USER } from '../../constants'
 
 export class OpenshiftTasks {
   /**
@@ -48,12 +48,17 @@ export class OpenshiftTasks {
       VersionHelper.getOpenShiftCheckVersionTask(flags),
       VersionHelper.getK8sCheckVersionTask(flags),
       {
-        title: 'Verify amount "openshift" users',
+        title: 'Verify the existence of users',
         enabled: () => flags['os-oauth'],
-        task: async (_ctx: any, _task: any) => {
+        task: async (_ctx: any, task: any) => {
           if (await kube.getAmoutUsers() === 0) {
-            command.error(`No real user exists in the "openshift" cluster. Either disable OpenShift OAuth integration("os-oauth" flag) or add at least one user (details in the Help link): "${HOW_TO_CREATE_USER_OS3}"`)
+            if (await kube.isOpenshift4()) {
+              command.error(`${ERROR_MESSAGE_NO_REAL_USER} "${DOCS_LINK_HOW_TO_CREATE_USER_OS4}"`)
+            } else {
+              command.error(`${ERROR_MESSAGE_NO_REAL_USER} "${DOCS_LINK_HOW_TO_CREATE_USER_OS3}"`)
+            }
           }
+          task.title = `${task.title}...done.`
         }
       },
     ], { renderer: flags['listr-renderer'] as any })
