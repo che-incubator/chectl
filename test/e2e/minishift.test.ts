@@ -8,13 +8,14 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 import { expect, test } from '@oclif/test'
+import * as execa from 'execa'
 
 import { E2eHelper } from './util/e2e'
 
 const helper = new E2eHelper()
 jest.setTimeout(600000)
 
-const execution_platform = 'openshift'
+const PLATFORM = 'openshift'
 
 describe('Eclipse Che deploy test suite', () => {
   describe('server:start using operator and self signed certificates', () => {
@@ -30,47 +31,99 @@ describe('Eclipse Che deploy test suite', () => {
       })
     test
       .it('Obtain access_token from keycloak and set it like environment variable.', async () => {
-        const token = await helper.Access_Token(execution_platform)
+        const token = await helper.Access_Token(PLATFORM)
         process.env.CHE_ACCESS_TOKEN = token
       })
   })
 })
 
-describe('Workspace creation, list, start, inject, delete. Support stop and delete commands for Eclipse Che server', () => {
-  const wait = (ms = 10) => new Promise(resolve => setTimeout(resolve, ms))
 
-  // !TODO ADD coverage for next commands: workspace:delete and workspace:inject
+describe('Workspace creation, list, start, inject, delete. Support stop and delete commands for Eclipse Che server', () => {
+  const binChectl = `${process.cwd()}/bin/run`
+
   describe('Create Workspace', () => {
     test
       .stdout({ print: true })
-      .command(['workspace:create', '--start', '--devfile=test/e2e/util/devfile-example.yaml'])
+      .command(['workspace:create', '--devfile=test/e2e/util/devfile-example.yaml'])
       .exit(0)
-      .it('Create a workspace and wait to be started', async () => {
-        await wait(200000)
-        const workspace = await helper.WorkspaceID(execution_platform)
-        expect(workspace[0].status).to.contain('RUNNING')
-      })
+      .it('Create a workspace and wait to be started')
   })
 
-  describe('workspace:list List info about created workspaces', () => {
+  describe('Start Workspace', () => {
+    it('Start a workspace using execa library', async () => {
+      const workspace_id = await helper.GetWorkspaceId(PLATFORM)
+      const command = `${binChectl} workspace:start ${workspace_id}`
+
+      const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
+
+      expect(exitCode).equal(0)
+      console.log(stdout)
+
+      // Sleep time to wait to workspace to be running
+      await helper.SleepTests(200000)
+      if (exitCode !== 0) {
+        console.log(stderr)
+      }
+
+      const workspace_status = await helper.GetWorkspaceStatus(PLATFORM)
+
+      expect(workspace_status).to.contain('RUNNING')
+    })
+  })
+
+  describe('List Workspace', () => {
     test
       .stdout({ print: true })
       .command(['workspace:list'])
       .it('List workspaces')
   })
 
-  describe('server:stop Stop Eclipse Che Server', () => {
+  describe('Stop Workspace', () => {
+    it('Stop a workspace using execa library', async () => {
+      const workspace_id = await helper.GetWorkspaceId(PLATFORM)
+      const command = `${binChectl} workspace:stop ${workspace_id}`
+
+      const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
+      expect(exitCode).equal(0)
+
+      console.log(stdout)
+
+      if (exitCode !== 0) {
+        console.log(stderr)
+      }
+    })
+  })
+
+  describe('Delete Workspace', () => {
+    it('Delete a workspace using execa library', async () => {
+      const workspace_id = await helper.GetWorkspaceId(PLATFORM)
+      const command = `${binChectl} workspace:delete ${workspace_id}`
+
+      const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
+      expect(exitCode).equal(0)
+
+      console.log(stdout)
+
+      if (exitCode !== 0) {
+        console.log(stderr)
+      }
+    })
+  })
+
+  describe('Stop Eclipse Che Server', () => {
     test
       .stdout({ print: true })
+      .do(async () => helper.SleepTests(30000))
       .command(['server:stop'])
       .exit(0)
-      .it('Stop Eclipse Che Server on minishift platform')
+      .it('Stop Eclipse Che Server on minikube platform')
   })
-  describe('server:delete Delete Eclipse Che Server', () => {
+
+  describe('Delete Eclipse Che Server', () => {
     test
       .stdout()
       .command(['server:delete', '--skip-deletion-check'])
       .exit(0)
-      .it('deletes Eclipse Che resources on minishift successfully')
+      .it('deletes Eclipse Che resources on minikube successfully')
   })
 })

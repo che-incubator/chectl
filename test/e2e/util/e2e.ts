@@ -21,11 +21,13 @@ export class E2eHelper {
   protected kubeHelper: KubeHelper
   protected che: CheHelper
   protected oc: OpenShiftHelper
-
+  protected devfileName: string
   private readonly axios: AxiosInstance
+
   constructor() {
     this.kubeHelper = new KubeHelper({})
     this.che = new CheHelper({})
+    this.devfileName = 'e2e-tests'
     this.oc = new OpenShiftHelper()
     const httpsAgent = new Agent({ rejectUnauthorized: false })
 
@@ -61,12 +63,12 @@ export class E2eHelper {
     }
   }
 
-  //Return all workspaces
-  async WorkspaceID(platform: string): Promise<any> {
+  //Return an array with all workspaces
+  async getAllWorkspaces(isOpenshiftPlatformFamily: string): Promise<any[]> {
     let workspaces = []
     const maxItems = 30
     let skipCount = 0
-    if (platform === 'openshift') {
+    if (isOpenshiftPlatformFamily === 'openshift') {
       const cheUrl = await this.OC_Hostname('che')
       workspaces = await this.che.doGetWorkspaces(cheUrl, skipCount, maxItems, process.env.CHE_ACCESS_TOKEN)
     } else {
@@ -75,6 +77,32 @@ export class E2eHelper {
     }
 
     return workspaces
+  }
+
+  // Return an id of test workspaces(e2e-tests. Please look devfile-example.yaml file)
+  async GetWorkspaceId(platform: string): Promise<any> {
+    const workspaces = await this.getAllWorkspaces(platform)
+    const workspace_id = workspaces.filter((wks => wks.devfile.metadata.name === this.devfileName)).map(({ id }) => id)[0]
+
+    if (workspace_id === undefined || workspace_id === '') {
+      throw Error('Error getting workspace_id')
+
+    }
+
+    return workspace_id
+  }
+
+  // Return the status of test workspaces(e2e-tests. Please look devfile-example.yaml file)
+  async GetWorkspaceStatus(platform: string): Promise<any> {
+    const workspaces = await this.getAllWorkspaces(platform)
+    const workspace_status = workspaces.filter((wks => wks.devfile.metadata.name === this.devfileName)).map(({ status }) => status)[0]
+
+    if (workspace_status === undefined || workspace_status === '') {
+      throw Error('Error getting workspace_id')
+
+    }
+
+    return workspace_status
   }
 
   //Return a route from Openshift adding protocol
@@ -103,5 +131,10 @@ export class E2eHelper {
         return error
       }
     }
+  }
+
+  // Utility to wait a time
+  SleepTests(ms: number): Promise<any> {
+    return new Promise(resolve => setTimeout(resolve, ms))
   }
 }
