@@ -20,7 +20,7 @@ describe('Eclipse Che deploy test suite', () => {
   describe('server:start using operator and self signed certificates', () => {
     test
       .stdout({ print: true })
-      .command(['server:start', '--platform=minikube', '--tls', '--self-signed-cert', '--installer=operator', '--listr-renderer=silent', '--skip-cluster-availability-check'])
+      .command(['server:start', '--platform=minikube', '--tls', '--self-signed-cert', '--installer=operator', '--skip-cluster-availability-check'])
       .exit(0)
       .it('uses minikube as platform, operator as installer and auth is enabled')
     test
@@ -58,9 +58,9 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
         console.log(stderr)
       }
 
-      const workspace_status = await helper.GetWorkspaceStatus(PLATFORM)
+      const workspaceStatus = await helper.GetWorkspaceStatus(PLATFORM)
 
-      expect(workspace_status).to.contain('RUNNING')
+      expect(workspaceStatus).to.contain('RUNNING')
     })
   })
 
@@ -100,8 +100,8 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
         console.log(stderr)
       }
 
-      const workspace_status = await helper.GetWorkspaceStatus(PLATFORM)
-      expect(workspace_status).to.contain('STOPPING')
+      const workspaceStatus = await helper.GetWorkspaceStatus(PLATFORM)
+      expect(workspaceStatus).to.contain('STOPPING')
     })
   })
 

@@ -95,14 +95,14 @@ export class E2eHelper {
   // Return the status of test workspaces(e2e-tests. Please look devfile-example.yaml file)
   async GetWorkspaceStatus(platform: string): Promise<any> {
     const workspaces = await this.getAllWorkspaces(platform)
-    const workspace_status = workspaces.filter((wks => wks.devfile.metadata.name === this.devfileName)).map(({ status }) => status)[0]
+    const workspaceStatus = workspaces.filter((wks => wks.devfile.metadata.name === this.devfileName)).map(({ status }) => status)[0]
 
-    if (workspace_status === undefined || workspace_status === '') {
+    if (workspaceStatus === undefined || workspaceStatus === '') {
       throw Error('Error getting workspace_id')
 
     }
 
-    return workspace_status
+    return workspaceStatus
   }
 
   //Return a route from Openshift adding protocol
