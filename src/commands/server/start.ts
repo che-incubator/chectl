@@ -11,14 +11,16 @@
 import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import * as fs from 'fs-extra'
+import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
 import * as os from 'os'
 import * as path from 'path'
 
 import { cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
-import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE } from '../../constants'
+import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE, DOCS_LINK_INSTALL_TLS_WITH_SELF_SIGNED_CERT } from '../../constants'
 import { CheTasks } from '../../tasks/che'
+import { retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
@@ -79,7 +81,7 @@ export default class Start extends Command {
                     The only exception is Helm installer. In that case the secret will be generated automatically.
                     For OpenShift, router will use default cluster certificates.
                     If the certificate is self-signed, '--self-signed-cert' option should be provided, otherwise Che won't be able to start.
-                    Please see docs for more details: https://www.eclipse.org/che/docs/che-7/installing-che-in-tls-mode-with-self-signed-certificates/`
+                    Please see docs for more details: ${DOCS_LINK_INSTALL_TLS_WITH_SELF_SIGNED_CERT}`
     }),
     'self-signed-cert': flags.boolean({
       description: `Authorize usage of self signed certificates for encryption.
@@ -96,7 +98,7 @@ export default class Start extends Command {
       char: 'a',
       description: 'Installer type',
       options: ['helm', 'operator', 'olm', 'minishift-addon'],
-      default: ''
+      default: 'operator'
     }),
     domain: string({
       char: 'b',
@@ -186,43 +188,8 @@ export default class Start extends Command {
     })
   }
 
-  setPlaformDefaults(flags: any) {
-    if (flags.platform === 'minishift') {
-      if (!flags.multiuser && flags.installer === '') {
-        flags.installer = 'minishift-addon'
-      }
-      if (flags.multiuser && flags.installer === '') {
-        flags.installer = 'operator'
-      }
-    } else if (flags.platform === 'minikube') {
-      if (!flags.multiuser && flags.installer === '') {
-        flags.installer = 'helm'
-      }
-      if (flags.multiuser && flags.installer === '') {
-        flags.installer = 'operator'
-      }
-    } else if (flags.platform === 'openshift') {
-      if (flags.installer === '') {
-        flags.installer = 'operator'
-      }
-    } else if (flags.platform === 'k8s') {
-      if (flags.installer === '') {
-        flags.installer = 'helm'
-      }
-    } else if (flags.platform === 'docker-desktop') {
-      if (flags.installer === '') {
-        flags.installer = 'helm'
-      }
-    } else if (flags.platform === 'crc') {
-      if (flags.installer === '') {
-        flags.installer = 'operator'
-      }
-    }
-
-    // TODO when tls by default is implemented for all platforms, make `tls` flag turned on by default.
-    if (flags.installer === 'helm' && (flags.platform === 'k8s' || flags.platform === 'minikube' || flags.platform === 'microk8s')) {
-      flags.tls = true
-    }
+  async setPlaformDefaults(flags: any): Promise<void> {
+    flags.tls = await this.checkTlsMode(flags)
 
     if (!flags.templates) {
       // use local templates folder if present
@@ -242,6 +209,34 @@ export default class Start extends Command {
         flags.templates = path.join(__dirname, '../../../templates')
       }
     }
+  }
+
+  /**
+   * Checks if TLS is disabled via operator custom resource.
+   * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
+   */
+  async checkTlsMode(flags: any): Promise<boolean> {
+    if (flags['che-operator-cr-yaml']) {
+      const cheOperatorCrYamlPath = flags['che-operator-cr-yaml']
+      if (fs.existsSync(cheOperatorCrYamlPath)) {
+        const cr = yaml.safeLoad(fs.readFileSync(cheOperatorCrYamlPath).toString())
+        if (cr && cr.spec && cr.spec.server && cr.spec.server.tlsSupport === false) {
+          return false
+        }
+      }
+    }
+
+    if (flags['che-operator-cr-patch-yaml']) {
+      const cheOperatorCrPatchYamlPath = flags['che-operator-cr-patch-yaml']
+      if (fs.existsSync(cheOperatorCrPatchYamlPath)) {
+        const crPatch = yaml.safeLoad(fs.readFileSync(cheOperatorCrPatchYamlPath).toString())
+        if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
+          return false
+        }
+      }
+    }
+
+    return true
   }
 
   checkPlatformCompatibility(flags: any) {
@@ -341,7 +336,7 @@ export default class Start extends Command {
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     })
 
-    this.setPlaformDefaults(flags)
+    await this.setPlaformDefaults(flags)
     let installTasks = new Listr(installerTasks.installTasks(flags, this), listrOptions)
 
     const startDeployedCheTasks = new Listr([{
@@ -355,6 +350,7 @@ export default class Start extends Command {
         title: '✅  Post installation checklist',
         task: () => new Listr(cheTasks.waitDeployedChe(flags, this))
       },
+      retrieveCheCaCertificateTask(flags),
       {
         title: 'Show important messages',
         enabled: ctx => ctx.highlightedMessages.length > 0,

@@ -295,7 +295,7 @@ USAGE
 
 OPTIONS
   -a, --installer=helm|operator|olm|minishift-addon
-      Installer type
+      [default: operator] Installer type
 
   -b, --domain=domain
       Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
