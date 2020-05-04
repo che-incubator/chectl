@@ -17,7 +17,7 @@ import * as Listr from 'listr'
 import { KubeHelper } from '../../api/kube'
 import { CHE_CLUSTER_CR_NAME } from '../../constants'
 
-import { checkPreCreatedTls, checkTlsSertificate, copyOperatorResources, createEclipeCheCluster, createNamespaceTask } from './common-tasks'
+import { checkTlsCertificate, copyOperatorResources, createEclipeCheCluster, createNamespaceTask } from './common-tasks'
 
 export class OperatorTasks {
   operatorServiceAccount = 'che-operator'
@@ -37,8 +37,7 @@ export class OperatorTasks {
     return new Listr([
       copyOperatorResources(flags, command.config.cacheDir),
       createNamespaceTask(flags),
-      checkPreCreatedTls(flags, kube),
-      checkTlsSertificate(flags),
+      checkTlsCertificate(flags),
       {
         title: `Create ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
