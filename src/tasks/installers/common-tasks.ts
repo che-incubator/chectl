@@ -87,6 +87,10 @@ export function createEclipeCheCluster(flags: any, kube: KubeHelper): ListrTask 
           flags.multiuser = false
         }
 
+        if (cr.spec.auth && cr.spec.auth.updateAdminPassword) {
+          ctx.highlightedMessages.push('You will be asked to change the default Che admin password on the first login.')
+        }
+
         task.title = `${task.title}...done.`
       }
     }
