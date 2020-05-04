@@ -1146,6 +1146,9 @@ export class KubeHelper {
       yamlCr.spec.server.cheDebug = flags.debug ? flags.debug.toString() : 'false'
 
       yamlCr.spec.auth.openShiftoAuth = flags['os-oauth']
+      if (!yamlCr.spec.auth.openShiftoAuth && flags.multiuser) {
+        yamlCr.spec.auth.updateAdminPassword = true
+      }
       if (flags.tls) {
         yamlCr.spec.server.tlsSupport = flags.tls
         if (!yamlCr.spec.k8s.tlsSecretName) {
