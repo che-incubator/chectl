@@ -37,7 +37,7 @@ export class E2eHelper {
   }
 
   // Return `access_token` from OC/K8s. Receive the platform where che is deployed
-  async Access_Token(platform: string): Promise<string> {
+  async getAccessToken(platform: string): Promise<string> {
     const params = {
       client_id: 'che-public',
       username: 'admin',
@@ -80,7 +80,7 @@ export class E2eHelper {
   }
 
   // Return an id of test workspaces(e2e-tests. Please look devfile-example.yaml file)
-  async GetWorkspaceId(platform: string): Promise<any> {
+  async getWorkspaceId(platform: string): Promise<any> {
     const workspaces = await this.getAllWorkspaces(platform)
     const workspace_id = workspaces.filter((wks => wks.devfile.metadata.name === this.devfileName)).map(({ id }) => id)[0]
 
