@@ -17,7 +17,7 @@ import * as notifier from 'node-notifier'
 import * as os from 'os'
 import * as path from 'path'
 
-import { cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
+import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
 import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE, DOCS_LINK_INSTALL_TLS_WITH_SELF_SIGNED_CERT } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
@@ -185,7 +185,8 @@ export default class Start extends Command {
                     Catalog source will be applied to the namespace with Che operator.
                     Also you need define 'olm-channel' name and 'package-manifest-name'.
                     This parameter is used only when the installer is the 'olm'.`,
-    })
+    }),
+    'skip-kubernetes-health-check': skipK8sHealthCheck
   }
 
   async setPlaformDefaults(flags: any): Promise<void> {

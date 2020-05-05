@@ -15,7 +15,7 @@ import * as notifier from 'node-notifier'
 import * as os from 'os'
 import * as path from 'path'
 
-import { listrRenderer } from '../../common-flags'
+import { listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 
@@ -39,7 +39,8 @@ export default class Logs extends Command {
       char: 'd',
       description: 'Directory to store logs into',
       env: 'CHE_LOGS'
-    })
+    }),
+    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
   async run() {

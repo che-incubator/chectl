@@ -33,6 +33,7 @@ export class K8sTasks {
       },
       {
         title: 'Verify remote kubernetes status',
+        skip: () => flags['skip-kubernetes-health-check'],
         task: async (_ctx: any, task: any) => {
           const kh = new KubeHelper(flags)
           try {

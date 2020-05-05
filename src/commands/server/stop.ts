@@ -11,7 +11,7 @@
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 
-import { accessToken, cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
+import { accessToken, cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 
@@ -28,7 +28,8 @@ export default class Stop extends Command {
       env: 'CHE_SELECTOR'
     }),
     'access-token': accessToken,
-    'listr-renderer': listrRenderer
+    'listr-renderer': listrRenderer,
+    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
   async run() {

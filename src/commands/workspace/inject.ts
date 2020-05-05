@@ -20,7 +20,7 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { accessToken, cheNamespace } from '../../common-flags'
+import { accessToken, cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { getClusterClientCommand, OPENSHIFT_CLI } from '../../util'
@@ -50,7 +50,8 @@ export default class Inject extends Command {
       required: false
     }),
     'access-token': accessToken,
-    chenamespace: cheNamespace
+    chenamespace: cheNamespace,
+    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
   // Holds cluster CLI tool name: kubectl or oc

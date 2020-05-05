@@ -16,7 +16,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
-import { cheNamespace } from '../../common-flags'
+import { cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
@@ -42,6 +42,7 @@ export default class Export extends Command {
       env: 'CHE_CA_CERT_LOCATION',
       default: ''
     }),
+    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
   async run() {

@@ -17,7 +17,7 @@ import * as notifier from 'node-notifier'
 import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
-import { cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
+import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CHE_CLUSTER_CR_NAME, DEFAULT_CHE_OPERATOR_IMAGE } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { InstallerTasks } from '../../tasks/installers/installer'
@@ -57,6 +57,7 @@ export default class Update extends Command {
     }),
     'deployment-name': cheDeployment,
     'listr-renderer': listrRenderer,
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
     help: flags.help({ char: 'h' }),
   }
 

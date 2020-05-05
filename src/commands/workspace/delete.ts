@@ -15,7 +15,7 @@ import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { accessToken, cheNamespace } from '../../common-flags'
+import { accessToken, cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 
@@ -29,7 +29,8 @@ export default class Delete extends Command {
       description: 'Indicates that a Kubernetes namespace where workspace was created will be deleted as well',
       default: false
     }),
-    'access-token': accessToken
+    'access-token': accessToken,
+    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
   static args = [
     {

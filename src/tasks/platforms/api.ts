@@ -22,16 +22,18 @@ export class ApiTasks {
     let kube = new KubeHelper(flags)
     return {
       title: 'Verify Kubernetes API',
+      skip: () => flags['skip-kubernetes-health-check'],
       task: async (ctx: any, task: any) => {
         try {
           await kube.checkKubeApi()
-          ctx.isOpenShift = await kube.isOpenShift()
           task.title = await `${task.title}...OK`
+
+          ctx.isOpenShift = await kube.isOpenShift()
           if (ctx.isOpenShift) {
             task.title = await `${task.title} (it's OpenShift)`
           }
         } catch (error) {
-          command.error(`Failed to connect to Kubernetes API. ${error.message}`)
+          command.error(`Failed to connect to Kubernetes API, error: ${error.message}. To bypass k8s health check use '--skip-kubernetes-health-check' flag.`)
         }
       }
     }

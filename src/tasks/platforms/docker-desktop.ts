@@ -50,6 +50,7 @@ export class DockerDesktopTasks {
       },
       {
         title: 'Verify remote kubernetes status',
+        skip: () => flags['skip-kubernetes-health-check'],
         task: async (_ctx: any, task: any) => {
           try {
             await this.kh.checkKubeApi()

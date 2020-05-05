@@ -13,7 +13,7 @@ import { cli } from 'cli-ux'
 import Listr = require('listr')
 import * as notifier from 'node-notifier'
 
-import { accessToken, cheNamespace } from '../../common-flags'
+import { accessToken, cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { WorkspaceTasks } from '../../tasks/workspace-tasks'
@@ -25,6 +25,7 @@ export default class Stop extends Command {
     help: flags.help({ char: 'h' }),
     'access-token': accessToken,
     chenamespace: cheNamespace,
+    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
   static args = [

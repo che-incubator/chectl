@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-import { string } from '@oclif/parser/lib/flags'
+import { boolean, string } from '@oclif/parser/lib/flags'
 
 export const cheNamespace = string({
   char: 'n',
@@ -31,4 +31,9 @@ export const listrRenderer = string({
 export const accessToken = string({
   description: 'Eclipse Che OIDC Access Token',
   env: 'CHE_ACCESS_TOKEN'
+})
+
+export const skipKubeHealthzCheck = boolean({
+  description: 'Skip Kubernetes health check',
+  default: false
 })
