@@ -20,13 +20,18 @@ describe('Eclipse Che deploy test suite', () => {
   describe('server:start using operator and self signed certificates', () => {
     test
       .stdout({ print: true })
-      .command(['server:start', '--platform=minikube', '--tls', '--self-signed-cert', '--installer=operator', '--skip-cluster-availability-check'])
+      .command(['server:start', '--listr-renderer=verbose', '--platform=minikube', '--tls', '--self-signed-cert', '--installer=operator', '--skip-cluster-availability-check'])
       .exit(0)
       .it('uses minikube as platform, operator as installer and auth is enabled')
     test
       .it('Obtain access_token from keycloak.', async () => {
-        const token = await helper.getAccessToken(PLATFORM)
-        process.env.CHE_ACCESS_TOKEN = token
+        try {
+          const token = await helper.getAccessToken(PLATFORM)
+          process.env.CHE_ACCESS_TOKEN = token
+          console.log(token)
+        } catch (error) {
+          console.log(error)
+        }
       })
   })
 })
@@ -125,7 +130,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
     test
       .stdout({ print: true })
       .do(async () => helper.SleepTests(30000))
-      .command(['server:stop'])
+      .command(['server:stop', '--listr-renderer=verbose'])
       .exit(0)
       .it('Stop Eclipse Che Server on minikube platform')
   })
