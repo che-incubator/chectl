@@ -31,3 +31,32 @@ export function isKubernetesPlatformFamily(platform: string): boolean {
 export function isOpenshiftPlatformFamily(platform: string): boolean {
   return platform === 'openshift' || platform === 'minishift' || platform === 'crc'
 }
+
+export function generatePassword(passwodLength: number, charactersSet = '') {
+  let dictionary: string[]
+  if (!charactersSet) {
+    const ZERO_CHAR_CODE = 48
+    const NINE_CHAR_CODE = 57
+    const A_CHAR_CODE = 65
+    const Z_CHAR_CODE = 90
+    const a_CHAR_CODE = 97
+    const z_CHAR_CODE = 122
+    const ranges = [[ZERO_CHAR_CODE, NINE_CHAR_CODE], [A_CHAR_CODE, Z_CHAR_CODE], [a_CHAR_CODE, z_CHAR_CODE]]
+
+    dictionary = []
+    for (let range of ranges) {
+      for (let charCode = range[0]; charCode <= range[1]; charCode++) {
+        dictionary.push(String.fromCharCode(charCode))
+      }
+    }
+  } else {
+    dictionary = [...charactersSet]
+  }
+
+  let generatedPassword = ''
+  for (let i = 0; i < passwodLength; i++) {
+    const randomIndex = Math.floor(Math.random() * dictionary.length)
+    generatedPassword += dictionary[randomIndex]
+  }
+  return generatedPassword
+}
