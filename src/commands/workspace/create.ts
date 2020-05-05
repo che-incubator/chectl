@@ -14,7 +14,7 @@ import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
 
-import { accessToken, cheNamespace } from '../../common-flags'
+import { accessToken, cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { WorkspaceTasks } from '../../tasks/workspace-tasks'
@@ -45,7 +45,8 @@ export default class Create extends Command {
       description: 'Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup. This flag is used in conjunction with --start flag.',
       default: false
     }),
-    'access-token': accessToken
+    'access-token': accessToken,
+    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
   async run() {

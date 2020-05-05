@@ -12,7 +12,7 @@ import { Command, flags } from '@oclif/command'
 import { integer } from '@oclif/parser/lib/flags'
 import * as Listr from 'listr'
 
-import { cheNamespace, listrRenderer } from '../../common-flags'
+import { cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 
@@ -26,7 +26,8 @@ export default class Debug extends Command {
     'debug-port': integer({
       description: 'Eclipse Che server debug port',
       default: 8000
-    })
+    }),
+    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
   async run() {

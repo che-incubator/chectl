@@ -14,7 +14,7 @@ import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
 
 import { KubeHelper } from '../../api/kube'
-import { cheNamespace, listrRenderer } from '../../common-flags'
+import { cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { HelmTasks } from '../../tasks/installers/helm'
 import { MinishiftAddonTasks } from '../../tasks/installers/minishift-addon'
@@ -33,6 +33,7 @@ export default class Delete extends Command {
       description: 'Skip user confirmation on deletion check',
       default: false
     }),
+    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
   async run() {

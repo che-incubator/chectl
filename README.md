@@ -151,6 +151,9 @@ OPTIONS
   -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc
       Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc 
       (for CodeReady Containers)", "microk8s".
+
+  --skip-kubernetes-health-check
+      Skip Kubernetes health check
 ```
 
 _See code: [src/commands/cacert/export.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/cacert/export.ts)_
@@ -238,6 +241,8 @@ OPTIONS
   --debug-port=debug-port                  [default: 8000] Eclipse Che server debug port
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+
+  --skip-kubernetes-health-check           Skip Kubernetes health check
 ```
 
 _See code: [src/commands/server/debug.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/debug.ts)_
@@ -259,6 +264,8 @@ OPTIONS
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 
   --skip-deletion-check                    Skip user confirmation on deletion check
+
+  --skip-kubernetes-health-check           Skip Kubernetes health check
 ```
 
 _See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/delete.ts)_
@@ -281,6 +288,8 @@ OPTIONS
   --deployment-name=deployment-name        [default: che] Eclipse Che deployment name
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+
+  --skip-kubernetes-health-check           Skip Kubernetes health check
 ```
 
 _See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/logs.ts)_
@@ -415,6 +424,9 @@ OPTIONS
   --skip-cluster-availability-check
       Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.
 
+  --skip-kubernetes-health-check
+      Skip Kubernetes health check
+
   --skip-version-check
       Skip minimal versions check.
 
@@ -454,6 +466,8 @@ OPTIONS
   --deployment-name=deployment-name        [default: che] Eclipse Che deployment name
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+
+  --skip-kubernetes-health-check           Skip Kubernetes health check
 ```
 
 _See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
@@ -492,6 +506,8 @@ OPTIONS
                                                                                name
 
   --listr-renderer=default|silent|verbose                                      [default: default] Listr renderer
+
+  --skip-kubernetes-health-check                                               Skip Kubernetes health check
 
   --skip-version-check                                                         Skip user confirmation on version check
 ```
@@ -534,6 +550,8 @@ OPTIONS
 
   --name=name                      Workspace name: overrides the workspace name to use instead of the one defined in the
                                    devfile.
+
+  --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
 
 _See code: [src/commands/workspace/create.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/create.ts)_
@@ -559,6 +577,8 @@ OPTIONS
 
   --delete-namespace               Indicates that a Kubernetes namespace where workspace was created will be deleted as
                                    well
+
+  --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
 
 _See code: [src/commands/workspace/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/delete.ts)_
@@ -590,6 +610,8 @@ OPTIONS
   --access-token=access-token      Eclipse Che OIDC Access Token
 
   --kube-context=kube-context      Kubeconfig context to inject
+
+  --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
 
 _See code: [src/commands/workspace/inject.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/inject.ts)_
@@ -609,6 +631,8 @@ OPTIONS
                                    deployed
 
   --access-token=access-token      Eclipse Che OIDC Access Token
+
+  --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
 
 _See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/list.ts)_
@@ -632,6 +656,8 @@ OPTIONS
                                            field.
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+
+  --skip-kubernetes-health-check           Skip Kubernetes health check
 ```
 
 _See code: [src/commands/workspace/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/logs.ts)_
@@ -657,6 +683,8 @@ OPTIONS
                                    deployed
 
   --access-token=access-token      Eclipse Che OIDC Access Token
+
+  --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
 
 _See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
@@ -679,6 +707,8 @@ OPTIONS
                                    deployed
 
   --access-token=access-token      Eclipse Che OIDC Access Token
+
+  --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
 
 _See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_

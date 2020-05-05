@@ -13,7 +13,7 @@ import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
 
 import { CheHelper } from '../../api/che'
-import { accessToken, cheNamespace } from '../../common-flags'
+import { accessToken, cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 
@@ -23,7 +23,8 @@ export default class List extends Command {
   static flags = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
-    'access-token': accessToken
+    'access-token': accessToken,
+    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
   async run() {
