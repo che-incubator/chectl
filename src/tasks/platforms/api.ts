@@ -33,7 +33,7 @@ export class ApiTasks {
             task.title = await `${task.title} (it's OpenShift)`
           }
         } catch (error) {
-          command.error(`Failed to connect to Kubernetes API, error: ${error.message}. To bypass k8s health check use '--skip-kubernetes-health-check' flag.`)
+          command.error(`Failed to connect to Kubernetes API, error: ${error.message}. If you're sure that your Kubernetes cluster is healthy - you can skip this check with '--skip-kubernetes-health-check' flag.`)
         }
       }
     }
