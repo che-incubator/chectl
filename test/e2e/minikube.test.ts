@@ -20,7 +20,7 @@ describe('Eclipse Che deploy test suite', () => {
   describe('server:start using operator and self signed certificates', () => {
     test
       .stdout({ print: true })
-      .command(['server:start', '--listr-renderer=silent', '--platform=minikube', '--tls', '--self-signed-cert', '--installer=operator', '--skip-cluster-availability-check'])
+      .command(['server:start', '--platform=minikube', '--che-operator-cr-yaml=test/e2e/util/cr-test.yaml', '--tls', '--self-signed-cert', '--installer=operator', '--skip-cluster-availability-check'])
       .exit(0)
       .it('uses minikube as platform, operator as installer and auth is enabled')
     test
