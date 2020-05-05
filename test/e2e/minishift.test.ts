@@ -21,14 +21,9 @@ describe('Eclipse Che deploy test suite', () => {
   describe('server:start using operator and self signed certificates', () => {
     test
       .stdout({ print: true })
-      .command(['server:start', '--listr-renderer=verbose', '--platform=minishift', '--tls', '--self-signed-cert', '--installer=operator'])
+      .command(['server:start', '--listr-renderer=silent', '--platform=minishift', '--tls', '--self-signed-cert', '--installer=operator'])
       .exit(0)
-      .it('uses minishift as platform, operator as installer and auth is enabled', ctx => {
-        expect(ctx.stdout).to.contain('Minishift preflight checklist')
-          .and.to.contain('Running the Eclipse Che operator')
-          .and.to.contain('Post installation checklist')
-          .and.to.contain('Command server:start has completed successfully')
-      })
+      .it('uses minishift as platform, operator as installer and auth is enabled')
     test
       .it('Obtain access_token from keycloak and set it like environment variable.', async () => {
         try {
@@ -133,7 +128,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
     test
       .stdout({ print: true })
       .do(async () => helper.SleepTests(30000))
-      .command(['server:stop', '--listr-renderer=verbose'])
+      .command(['server:stop', '--listr-renderer=silent'])
       .exit(0)
       .it('Stop Eclipse Che Server on minikube platform')
   })
