@@ -22,6 +22,7 @@ import * as path from 'path'
 
 import { OpenShiftHelper } from '../api/openshift'
 import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../constants'
+import { base64Decode } from '../util'
 
 import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
@@ -119,7 +120,7 @@ export class CheHelper {
     }
 
     if (cheCaSecret.data && cheCaSecret.data['ca.crt']) {
-      return Buffer.from(cheCaSecret.data['ca.crt'], 'base64').toString('ascii')
+      return base64Decode(cheCaSecret.data['ca.crt'])
     }
 
     throw new Error(`Secret "${CHE_ROOT_CA_SECRET_NAME}" has invalid format: "ca.crt" key not found in data.`)
@@ -137,6 +138,34 @@ export class CheHelper {
 
     fs.writeFileSync(destinaton, cheCaCert)
     return destinaton
+  }
+
+  /**
+   * Retreives Keycloak admin user credentials.
+   * Works only with installers which use Che CR (operator, olm).
+   * Returns credentials as an array of two values: [login, password]
+   * In case of an error an array with undefined values will be returned.
+   */
+  async retrieveKeycloakAdminCredentials(cheNamespace: string): Promise<string[]> {
+    let adminUsername
+    let adminPassword
+
+    const cheCluster = await this.kube.getCheCluster('eclipse-che', cheNamespace)
+    const keycloakCredentialsSecretName = cheCluster.spec.auth.identityProviderSecret
+    if (keycloakCredentialsSecretName) {
+      // Keycloak credentials are sotored in secret
+      const keycloakCredentialsSecret = await this.kube.getSecret(keycloakCredentialsSecretName, cheNamespace)
+      if (keycloakCredentialsSecret && keycloakCredentialsSecret.data) {
+        adminUsername = base64Decode(keycloakCredentialsSecret.data.user)
+        adminPassword = base64Decode(keycloakCredentialsSecret.data.password)
+      }
+    } else {
+      // Keycloak credentials are sotored in Che custom resource
+      adminUsername = cheCluster.spec.auth.identityProviderAdminUserName
+      adminPassword = cheCluster.spec.auth.identityProviderPassword
+    }
+
+    return [adminUsername, adminPassword]
   }
 
   async cheK8sURL(namespace = ''): Promise<string> {

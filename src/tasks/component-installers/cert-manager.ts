@@ -14,6 +14,7 @@ import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { CA_CERT_GENERATION_JOB_IMAGE, CERT_MANAGER_NAMESPACE_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
+import { base64Decode } from '../../util'
 import { getMessageImportCaCertIntoBrowser } from '../installers/common-tasks'
 
 export const CERT_MANAGER_CA_SECRET_NAME = 'ca'
@@ -167,7 +168,7 @@ export class CertManagerTasks {
         task: async (ctx: any, task: any) => {
           const cheSecret = await this.kubeHelper.getSecret(CHE_TLS_SECRET_NAME, flags.chenamespace)
           if (cheSecret && cheSecret.data) {
-            const cheCaCrt = Buffer.from(cheSecret.data['ca.crt'], 'base64').toString('ascii')
+            const cheCaCrt = base64Decode(cheSecret.data['ca.crt'])
             const cheCaCertPath = await this.cheHelper.saveCheCaCert(cheCaCrt)
 
             ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(cheCaCertPath))
