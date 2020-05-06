@@ -21,7 +21,7 @@ describe('Eclipse Che deploy test suite', () => {
   describe('server:start using operator and self signed certificates', () => {
     test
       .stdout({ print: true })
-      .command(['server:start', '--platform=minishift', '--che-operator-cr-yaml=test/e2e/util/cr-test.yaml', '--tls', '--self-signed-cert', '--installer=operator'])
+      .command(['server:start', '--platform=minishift', '--che-operator-cr-patch-yaml=test/e2e/util/cr-test.yaml', '--tls', '--self-signed-cert', '--installer=operator'])
       .exit(0)
       .it('uses minishift as platform, operator as installer and auth is enabled')
     test
