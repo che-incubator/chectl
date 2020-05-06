@@ -1128,7 +1128,6 @@ export class KubeHelper {
 
   async createCheClusterFromFile(filePath: string, flags: any, useDefaultCR: boolean) {
     let yamlCr = this.safeLoadFromYamlFile(filePath)
-    yamlCr = this.overrideDefaultValues(yamlCr, flags['che-operator-cr-patch-yaml'])
 
     const cheNamespace = flags.chenamespace
     if (useDefaultCR) {
@@ -1183,6 +1182,8 @@ export class KubeHelper {
         yamlCr.spec.auth.identityProviderImage = ''
       }
     }
+    yamlCr = this.overrideDefaultValues(yamlCr, flags['che-operator-cr-patch-yaml'])
+
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', cheNamespace, 'checlusters', yamlCr)
