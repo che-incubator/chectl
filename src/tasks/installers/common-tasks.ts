@@ -78,6 +78,7 @@ export function createEclipeCheCluster(flags: any, kube: KubeHelper): ListrTask 
 
         const yamlFilePath = flags['che-operator-cr-yaml'] === '' ? ctx.resourcesPath + 'crds/org_v1_che_cr.yaml' : flags['che-operator-cr-yaml']
         const cr = await kube.createCheClusterFromFile(yamlFilePath, flags, flags['che-operator-cr-yaml'] === '')
+        ctx.cr = cr
         ctx.isKeycloakReady = ctx.isKeycloakReady || cr.spec.auth.externalIdentityProvider
         ctx.isPostgresReady = ctx.isPostgresReady || cr.spec.database.externalDb
         ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || cr.spec.server.externalDevfileRegistry
@@ -158,7 +159,7 @@ export function getMessageImportCaCertIntoBrowser(caCertFileLocation: string): s
 export function getRetrieveKeycloakCredentialsTask(flags: any): ListrTask {
   return {
     title: 'Retrieving Keycloak admin credentials',
-    enabled: () => flags.multiuser && (flags.installer !== 'operator' || flags.installer !== 'olm'),
+    enabled: (ctx: any) => !ctx.cr.spec.auth.externalIdentityProvider && flags.multiuser && (flags.installer !== 'operator' || flags.installer !== 'olm'),
     task: async (ctx: any, task: any) => {
       const che = new CheHelper(flags)
       const [login, password] = await che.retrieveKeycloakAdminCredentials(flags.chenamespace)
