@@ -11,6 +11,8 @@
 import execa = require('execa')
 import Listr = require('listr')
 
+import { KubeHelper } from './kube'
+
 export namespace VersionHelper {
   export const MINIMAL_OPENSHIFT_VERSION = '3.11'
   export const MINIMAL_K8S_VERSION = '1.9'
@@ -20,11 +22,14 @@ export namespace VersionHelper {
     return {
       title: 'Check OpenShift version',
       task: async (_ctx: any, task: any) => {
+        const kubeHelper = new KubeHelper(flags)
         const actualVersion = await getOpenShiftVersion()
         if (actualVersion) {
-          task.title = `${task.title}: Found ${actualVersion}.`
+          task.title = `${task.title}: ${actualVersion}.`
+        } else if (await kubeHelper.isOpenShift4()) {
+          task.title = `${task.title}: 4.x`
         } else {
-          task.title = `${task.title}: Unknown.`
+          task.title = `${task.title}: Unknown`
         }
 
         if (!flags['skip-version-check'] && actualVersion) {

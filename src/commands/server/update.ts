@@ -23,7 +23,7 @@ import { CheTasks } from '../../tasks/che'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { isKubernetesPlatformFamily } from '../../util'
+import { isKubernetesPlatformFamily, setDefaultInstaller } from '../../util'
 
 export default class Update extends Command {
   static description = 'update Eclipse Che server'
@@ -33,7 +33,6 @@ export default class Update extends Command {
       char: 'a',
       description: 'Installer type',
       options: ['helm', 'operator', 'minishift-addon', 'olm'],
-      default: ''
     }),
     platform: string({
       char: 'p',
@@ -73,10 +72,10 @@ export default class Update extends Command {
     return path.join(__dirname, '../../../templates')
   }
 
-  checkIfInstallerSupportUpdating(flags: any) {
+  async checkIfInstallerSupportUpdating(flags: any) {
     // matrix checks
     if (!flags.installer) {
-      this.error('🛑 --installer parameter must be specified.')
+      await setDefaultInstaller(flags)
     }
 
     if (flags.installer === 'operator' || flags.installer === 'olm') {
@@ -106,7 +105,7 @@ export default class Update extends Command {
     // Platform Checks
     let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), listrOptions)
 
-    this.checkIfInstallerSupportUpdating(flags)
+    await this.checkIfInstallerSupportUpdating(flags)
 
     // Checks if Eclipse Che is already deployed
     let preInstallTasks = new Listr(undefined, listrOptions)
