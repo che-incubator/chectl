@@ -152,7 +152,7 @@ export function getMessageImportCaCertIntoBrowser(caCertFileLocation: string): s
   const yellow = '\x1b[33m'
   const noColor = '\x1b[0m'
   const message = `❗${yellow}[MANUAL ACTION REQUIRED]${noColor} Please add Che self-signed CA certificate into your browser: ${caCertFileLocation}.\n` +
-                  `Documentaton how to add a CA certificate into a browser: ${DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER}`
+                  `Documentation how to add a CA certificate into a browser: ${DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER}`
   return message
 }
 
