@@ -20,7 +20,7 @@ import * as path from 'path'
 import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
 import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE, DOCS_LINK_INSTALL_TLS_WITH_SELF_SIGNED_CERT } from '../../constants'
 import { CheTasks } from '../../tasks/che'
-import { retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
+import { getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
@@ -351,6 +351,7 @@ export default class Start extends Command {
         title: '✅  Post installation checklist',
         task: () => new Listr(cheTasks.waitDeployedChe(flags, this))
       },
+      getRetrieveKeycloakCredentialsTask(flags),
       retrieveCheCaCertificateTask(flags),
       {
         title: 'Show important messages',

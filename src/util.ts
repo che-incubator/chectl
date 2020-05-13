@@ -60,3 +60,7 @@ export function generatePassword(passwodLength: number, charactersSet = '') {
   }
   return generatedPassword
 }
+
+export function base64Decode(arg: string): string {
+  return Buffer.from(arg, 'base64').toString('ascii')
+}
