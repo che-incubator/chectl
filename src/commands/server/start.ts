@@ -24,7 +24,7 @@ import { getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { isOpenshiftPlatformFamily } from '../../util'
+import { isOpenshiftPlatformFamily, setDefaultInstaller } from '../../util'
 
 export default class Start extends Command {
   static description = 'start Eclipse Che server'
@@ -98,7 +98,6 @@ export default class Start extends Command {
       char: 'a',
       description: 'Installer type',
       options: ['helm', 'operator', 'olm', 'minishift-addon'],
-      default: 'operator'
     }),
     domain: string({
       char: 'b',
@@ -191,6 +190,10 @@ export default class Start extends Command {
 
   async setPlaformDefaults(flags: any): Promise<void> {
     flags.tls = await this.checkTlsMode(flags)
+
+    if (!flags.installer) {
+      await setDefaultInstaller(flags)
+    }
 
     if (!flags.templates) {
       // use local templates folder if present

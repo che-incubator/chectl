@@ -1714,19 +1714,19 @@ export class KubeHelper {
     throw new Error('ERR_LIST_INGRESSES')
   }
 
-  async apiVersionExist(expectedVersion: string): Promise<boolean> {
+  async isOpenShift4(): Promise<boolean> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApisApi)
 
-    // if matching APi Version
     try {
       const res = await k8sCoreApi.getAPIVersions()
       if (res && res.body && res.body.groups) {
-        return res.body.groups.some(version => version.name === expectedVersion)
+        return res.body.groups.some(group => group.name === 'route.openshift.io')
+          && res.body.groups.some(group => group.name === 'config.openshift.io')
       } else {
         return false
       }
-    } catch {
-      return false
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
     }
   }
 
