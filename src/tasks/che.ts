@@ -492,7 +492,7 @@ export class CheTasks {
     return [
       {
         title: `${follow ? 'Start following' : 'Read'} Operator logs`,
-        skip: () => flags.installer && flags.installer !== 'operator',
+        skip: () => flags.installer !== 'operator' && flags.installer !== 'olm',
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.cheOperatorSelector, ctx.directory, follow)
           task.title = `${task.title}...done`
