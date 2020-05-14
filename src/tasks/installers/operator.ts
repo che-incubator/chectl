@@ -17,7 +17,7 @@ import * as Listr from 'listr'
 import { KubeHelper } from '../../api/kube'
 import { CHE_CLUSTER_CR_NAME } from '../../constants'
 
-import { checkTlsCertificate, copyOperatorResources, createEclipeCheCluster, createNamespaceTask } from './common-tasks'
+import { checkTlsCertificate, copyOperatorResources, createEclipseCheCluster, createNamespaceTask } from './common-tasks'
 
 export class OperatorTasks {
   operatorServiceAccount = 'che-operator'
@@ -140,7 +140,7 @@ export class OperatorTasks {
           }
         }
       },
-      createEclipeCheCluster(flags, kube)
+      createEclipseCheCluster(flags, kube)
     ], { renderer: flags['listr-renderer'] as any })
   }
 

@@ -59,7 +59,7 @@ async function copyCheOperatorResources(templatesDir: string, cacheDir: string):
   return destDir
 }
 
-export function createEclipeCheCluster(flags: any, kube: KubeHelper): ListrTask {
+export function createEclipseCheCluster(flags: any, kube: KubeHelper): ListrTask {
   return {
     title: `Create Eclipse Che cluster ${CHE_CLUSTER_CR_NAME} in namespace ${flags.chenamespace}`,
     task: async (ctx: any, task: any) => {

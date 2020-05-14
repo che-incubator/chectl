@@ -17,7 +17,7 @@ import { CatalogSource, Subscription } from '../../api/typings/olm'
 import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OLM_PACKAGE_NAME, defaultOLMKubernetesNamespace, defaultOpenshiftMarketPlaceNamespace, OLM_STABLE_CHANNEL_NAME } from '../../constants'
 import { isKubernetesPlatformFamily } from '../../util'
 
-import { checkTlsCertificate, copyOperatorResources, createEclipeCheCluster, createNamespaceTask } from './common-tasks'
+import { checkTlsCertificate, copyOperatorResources, createEclipseCheCluster, createNamespaceTask } from './common-tasks'
 
 export class OLMTasks {
   private readonly customCatalogSourceName = 'eclipse-che-custom-catalog-source'
@@ -52,7 +52,7 @@ export class OLMTasks {
         title: 'Configure context information',
         task: async (ctx: any, task: any) => {
           // Todo: should we do check for installer openshift? flags.platform === 'crc' || flags.platform === 'openshift'
-          ctx.defaultCatalogSourceNamespace = flags.platform === 'crc' ? defaultOpenshiftMarketPlaceNamespace : defaultOLMKubernetesNamespace
+          ctx.defaultCatalogSourceNamespace = isKubernetesPlatformFamily(flags.platform) ? defaultOLMKubernetesNamespace : defaultOpenshiftMarketPlaceNamespace
           // catalog source name for stable Che version
           ctx.catalogSourceNameStable = isKubernetesPlatformFamily(flags.platform) ? 'operatorhubio-catalog' : 'community-operators'
 
@@ -119,7 +119,7 @@ export class OLMTasks {
           task.title = `${task.title}...done.`
         }
       },
-      createEclipeCheCluster(flags, kube)
+      createEclipseCheCluster(flags, kube)
     ], { renderer: flags['listr-renderer'] as any })
   }
 
