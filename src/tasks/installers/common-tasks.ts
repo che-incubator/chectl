@@ -159,7 +159,7 @@ export function getMessageImportCaCertIntoBrowser(caCertFileLocation: string): s
 export function getRetrieveKeycloakCredentialsTask(flags: any): ListrTask {
   return {
     title: 'Retrieving Keycloak admin credentials',
-    enabled: (ctx: any) => !ctx.cr.spec.auth.externalIdentityProvider && flags.multiuser && (flags.installer !== 'operator' || flags.installer !== 'olm'),
+    enabled: (ctx: any) => ctx.cr && !ctx.cr.spec.auth.externalIdentityProvider && flags.multiuser && (flags.installer !== 'operator' || flags.installer !== 'olm'),
     task: async (ctx: any, task: any) => {
       const che = new CheHelper(flags)
       const [login, password] = await che.retrieveKeycloakAdminCredentials(flags.chenamespace)
