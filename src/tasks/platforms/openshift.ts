@@ -15,6 +15,8 @@ import * as Listr from 'listr'
 
 import { VersionHelper } from '../../api/version'
 
+import { CommonPlatformTasks } from './common-platform-tasks'
+
 export class OpenshiftTasks {
   /**
    * Returns tasks list which perform preflight platform checks.
@@ -43,7 +45,8 @@ export class OpenshiftTasks {
         }
       },
       VersionHelper.getOpenShiftCheckVersionTask(flags),
-      VersionHelper.getK8sCheckVersionTask(flags)
+      VersionHelper.getK8sCheckVersionTask(flags),
+      CommonPlatformTasks.oAuthProvidersExists(flags)
     ], { renderer: flags['listr-renderer'] as any })
   }
 

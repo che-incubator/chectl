@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
+import ansi = require('ansi-colors')
 import { cli } from 'cli-ux'
 import * as execa from 'execa'
 import { copy, mkdirp, remove } from 'fs-extra'
@@ -77,7 +78,7 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): ListrTask
         ctx.isDevfileRegistryDeployed = !(flags['devfile-registry-url'] as boolean)
 
         const yamlFilePath = flags['che-operator-cr-yaml'] === '' ? ctx.resourcesPath + 'crds/org_v1_che_cr.yaml' : flags['che-operator-cr-yaml']
-        const cr = await kube.createCheClusterFromFile(yamlFilePath, flags, flags['che-operator-cr-yaml'] === '')
+        const cr = await kube.createCheClusterFromFile(yamlFilePath, flags, ctx, flags['che-operator-cr-yaml'] === '')
         ctx.cr = cr
         ctx.isKeycloakReady = ctx.isKeycloakReady || cr.spec.auth.externalIdentityProvider
         ctx.isPostgresReady = ctx.isPostgresReady || cr.spec.database.externalDb
@@ -149,9 +150,7 @@ export function retrieveCheCaCertificateTask(flags: any): ListrTask {
 }
 
 export function getMessageImportCaCertIntoBrowser(caCertFileLocation: string): string {
-  const yellow = '\x1b[33m'
-  const noColor = '\x1b[0m'
-  const message = `❗${yellow}[MANUAL ACTION REQUIRED]${noColor} Please add Che self-signed CA certificate into your browser: ${caCertFileLocation}.\n` +
+  const message = `❗${ansi.yellow('[MANUAL ACTION REQUIRED]')} Please add Che self-signed CA certificate into your browser: ${caCertFileLocation}.\n` +
                   `Documentation how to add a CA certificate into a browser: ${DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER}`
   return message
 }
