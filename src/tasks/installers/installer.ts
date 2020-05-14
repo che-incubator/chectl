@@ -89,7 +89,7 @@ export class InstallerTasks {
 
     // let task: Listr.ListrTask
 
-    if (flags.installer === 'operator') {
+    if (flags.installer === 'operator' || flags.installer === 'olm') {
       title = '🏃‍  Running the Eclipse Che operator'
       task = () => {
         // The operator installs Eclipse Che in multiuser mode by default
