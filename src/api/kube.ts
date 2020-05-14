@@ -25,6 +25,7 @@ import { getClusterClientCommand } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
 import { CatalogSource, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './typings/olm'
+import { IdentityProvider, OAuth } from './typings/openshift'
 
 const AWAIT_TIMEOUT_S = 30
 
@@ -1126,7 +1127,7 @@ export class KubeHelper {
     }
   }
 
-  async createCheClusterFromFile(filePath: string, flags: any, useDefaultCR: boolean) {
+  async createCheClusterFromFile(filePath: string, flags: any, ctx: any, useDefaultCR: boolean) {
     let yamlCr = this.safeLoadFromYamlFile(filePath)
 
     const cheNamespace = flags.chenamespace
@@ -1183,6 +1184,8 @@ export class KubeHelper {
       }
     }
     yamlCr = this.overrideDefaultValues(yamlCr, flags['che-operator-cr-patch-yaml'])
+    // Back off some configuration properties(chectl estimated them like not working or not desired)
+    merge(yamlCr, ctx.CROverrides)
 
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
@@ -1230,6 +1233,33 @@ export class KubeHelper {
       return !!OLMAPIGroup
     } catch {
       return false
+    }
+  }
+
+  async getAmoutUsers(): Promise<number> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    let amountOfUsers: number
+    try {
+      const { body } = await customObjectsApi.listClusterCustomObject('user.openshift.io', 'v1', 'users')
+      if (!body.items) {
+        throw new Error('Unable to get list users.')
+      }
+      amountOfUsers = body.items.length
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+    return amountOfUsers
+  }
+
+  async getOpenshiftAuthProviders(): Promise<IdentityProvider[]> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+
+    try {
+      const oAuthName = 'cluster'
+      const { body } = await customObjectsApi.getClusterCustomObject('config.openshift.io', 'v1', 'oauths', oAuthName)
+      return (body as OAuth).spec.identityProviders
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
     }
   }
 
