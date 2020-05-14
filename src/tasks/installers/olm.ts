@@ -51,7 +51,6 @@ export class OLMTasks {
       {
         title: 'Configure context information',
         task: async (ctx: any, task: any) => {
-          // Todo: should we do check for installer openshift? flags.platform === 'crc' || flags.platform === 'openshift'
           ctx.defaultCatalogSourceNamespace = isKubernetesPlatformFamily(flags.platform) ? defaultOLMKubernetesNamespace : defaultOpenshiftMarketPlaceNamespace
           // catalog source name for stable Che version
           ctx.catalogSourceNameStable = isKubernetesPlatformFamily(flags.platform) ? 'operatorhubio-catalog' : 'community-operators'
