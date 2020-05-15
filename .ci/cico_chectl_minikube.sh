@@ -17,14 +17,14 @@ trap "fail_trap" EXIT
 
 init() {
   SCRIPT=$(readlink -f "$0")
-  SCRIPTPATH=$(dirname "$SCRIPT")
+  SCRIPT_DIR=$(dirname "$SCRIPT")
   PROFILE=chectl-e2e-tests
 
   # Environment to define the project absolute path.
   if [[ ${WORKSPACE} ]] && [[ -d ${WORKSPACE} ]]; then
     CHECTL_REPO=${WORKSPACE};
   else
-    CHECTL_REPO=$(dirname "$SCRIPTPATH");
+    CHECTL_REPO=$(dirname "$SCRIPT_DIR");
   fi
 
   #Create tmp path for binaries installations.
