@@ -64,7 +64,7 @@ run() {
 
   minishift_installation
 
-  printInfo "Running e2e tests on ${platform} platform."
+  printInfo "Running e2e tests on minikube platform."
   yarn test --coverage=false --forceExit --testRegex=${CHECTL_REPO}/test/e2e/minishift.test.ts
 }
 
