@@ -15,8 +15,6 @@ import * as Listr from 'listr'
 
 import { VersionHelper } from '../../api/version'
 
-import { CommonPlatformTasks } from './common-platform-tasks'
-
 /**
  * Helper for Code Ready Container
  */
@@ -65,7 +63,6 @@ export class CRCHelper {
           task.title = `${task.title}...${flags.domain}.`
         }
       },
-      CommonPlatformTasks.oAuthProvidersExists(flags)
     ], { renderer: flags['listr-renderer'] as any })
   }
 
