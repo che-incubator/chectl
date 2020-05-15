@@ -23,6 +23,7 @@ import { CheTasks } from '../../tasks/che'
 import { getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
+import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 import { isOpenshiftPlatformFamily, setDefaultInstaller } from '../../util'
 
@@ -331,6 +332,7 @@ export default class Start extends Command {
 
     // Platform Checks
     let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), listrOptions)
+    platformCheckTasks.add(CommonPlatformTasks.oAuthProvidersExists(flags))
 
     // Checks if Eclipse Che is already deployed
     let preInstallTasks = new Listr(undefined, listrOptions)
