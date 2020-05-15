@@ -106,7 +106,7 @@ export namespace CommonPlatformTasks {
    * Checks if Openshift oAuth enabled in Che configuration.
    * Returns true if Openshift oAuth is enabled (or omitted) and false if it is explicitly disabled.
    */
-  async function isOAuthEnabled(flags: any): Promise<boolean> {
+  function isOAuthEnabled(flags: any): boolean {
     if (flags['che-operator-cr-patch-yaml']) {
       const cheOperatorCrPatchYamlPath = flags['che-operator-cr-patch-yaml']
       if (fs.existsSync(cheOperatorCrPatchYamlPath)) {

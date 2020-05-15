@@ -20,8 +20,10 @@ import { KubeHelper } from '../../api/kube'
 import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CHE_CLUSTER_CR_NAME, DEFAULT_CHE_OPERATOR_IMAGE } from '../../constants'
 import { CheTasks } from '../../tasks/che'
+import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
+import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 import { isKubernetesPlatformFamily, setDefaultInstaller } from '../../util'
 
@@ -95,7 +97,11 @@ export default class Update extends Command {
 
   async run() {
     const { flags } = this.parse(Update)
+    const ctx: any = {}
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
+    ctx.listrOptions = listrOptions
+    // Holds messages which should be printed at the end of chectl log
+    ctx.highlightedMessages = [] as string[]
 
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()
@@ -103,7 +109,8 @@ export default class Update extends Command {
     const apiTasks = new ApiTasks()
 
     // Platform Checks
-    let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), listrOptions)
+    const platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), listrOptions)
+    platformCheckTasks.add(CommonPlatformTasks.oAuthProvidersExists(flags))
 
     await this.checkIfInstallerSupportUpdating(flags)
 
@@ -115,16 +122,18 @@ export default class Update extends Command {
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     })
 
-    let preUpdateTasks = new Listr(installerTasks.preUpdateTasks(flags, this), listrOptions)
+    const preUpdateTasks = new Listr(installerTasks.preUpdateTasks(flags, this), listrOptions)
 
-    let updateTasks = new Listr(undefined, listrOptions)
+    const updateTasks = new Listr(undefined, listrOptions)
     updateTasks.add({
       title: '↺  Updating...',
       task: () => new Listr(installerTasks.updateTasks(flags, this))
     })
 
+    const postUpdateTasks = new Listr(undefined, listrOptions)
+    postUpdateTasks.add(getPrintHighlightedMessagesTask())
+
     try {
-      const ctx: any = {}
       await preInstallTasks.run(ctx)
 
       if (!ctx.isCheDeployed) {
@@ -146,6 +155,7 @@ export default class Update extends Command {
         }
 
         await updateTasks.run(ctx)
+        await postUpdateTasks.run(ctx)
       }
       this.log('Command server:update has completed successfully.')
     } catch (err) {
