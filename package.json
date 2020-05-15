@@ -47,7 +47,7 @@
     "@oclif/tslint": "^3",
     "@types/chai": "^4",
     "@types/jest": "25.1.4",
-    "@types/js-yaml": "^3.12.2",
+    "@types/js-yaml": "^3.12.4",
     "@types/listr": "^0.14.2",
     "@types/node": "^12",
     "cpx": "^1.5.0",
