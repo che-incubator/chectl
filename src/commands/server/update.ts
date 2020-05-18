@@ -22,10 +22,11 @@ import { CHE_CLUSTER_CR_NAME, DEFAULT_CHE_OPERATOR_IMAGE } from '../../constants
 import { CheTasks } from '../../tasks/che'
 import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
+import { OLMTasks } from '../../tasks/installers/olm'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { isKubernetesPlatformFamily, setDefaultInstaller } from '../../util'
+import { isKubernetesPlatformFamily } from '../../util'
 
 export default class Update extends Command {
   static description = 'update Eclipse Che server'
@@ -77,7 +78,7 @@ export default class Update extends Command {
   async checkIfInstallerSupportUpdating(flags: any) {
     // matrix checks
     if (!flags.installer) {
-      await setDefaultInstaller(flags)
+      await this.setDefaultInstaller(flags)
     }
 
     if (flags.installer === 'operator' || flags.installer === 'olm') {
@@ -176,5 +177,16 @@ export default class Update extends Command {
     if (cheCluster && cheCluster.spec.k8s && cheCluster.spec.k8s.ingressDomain) {
       flags.domain = cheCluster.spec.k8s.ingressDomain
     }
+  }
+
+  async setDefaultInstaller(flags: any): Promise<void> {
+    const kubeHelper = new KubeHelper(flags)
+    try {
+      await kubeHelper.getOperatorSubscription(OLMTasks.SUBSCRIPTION_NAME, flags.chenamespace)
+      flags.installer = 'olm'
+    } catch {
+      flags.installer = 'operator'
+    }
+    cli.info(`› Installer type is set to: '${flags.installer}'`)
   }
 }

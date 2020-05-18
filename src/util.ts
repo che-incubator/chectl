@@ -8,11 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { cli } from 'cli-ux'
 import * as commandExists from 'command-exists'
-
-import { KubeHelper } from './api/kube'
-import { DEFAULT_CHE_OPERATOR_IMAGE } from './constants'
 
 export const KUBERNETES_CLI = 'kubectl'
 export const OPENSHIFT_CLI = 'oc'
@@ -67,20 +63,4 @@ export function generatePassword(passwodLength: number, charactersSet = '') {
 
 export function base64Decode(arg: string): string {
   return Buffer.from(arg, 'base64').toString('ascii')
-}
-
-/**
- * Sets default installer which is `olm` for OpenShift 4 with stable version of chectl
- * and `operator` for other cases.
- */
-export async function setDefaultInstaller(flags: any): Promise<void> {
-  const cheVersion = DEFAULT_CHE_OPERATOR_IMAGE.split(':')[1]
-  const kubeHelper = new KubeHelper(flags)
-  if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && cheVersion !== 'nightly' && cheVersion !== 'latest') {
-    flags.installer = 'olm'
-    cli.info('OLM installer is used for OpenShift v4.x')
-  } else {
-    flags.installer = 'operator'
-    cli.info('Operator installer is used by default')
-  }
 }
