@@ -34,7 +34,7 @@ export class OperatorTasks {
    */
   startTasks(flags: any, command: Command): Listr {
     const kube = new KubeHelper(flags)
-    if (isStableVersion()) {
+    if (isStableVersion(flags)) {
       command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of Eclipse Che (--installer=olm).')
     }
     return new Listr([

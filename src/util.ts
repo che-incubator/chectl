@@ -10,8 +10,6 @@
 
 import * as commandExists from 'command-exists'
 
-import { DEFAULT_CHE_OPERATOR_IMAGE } from './constants'
-
 export const KUBERNETES_CLI = 'kubectl'
 export const OPENSHIFT_CLI = 'oc'
 
@@ -70,7 +68,8 @@ export function base64Decode(arg: string): string {
 /**
  * Indicates if stable version of `chectl` is used.
  */
-export function isStableVersion(): boolean {
-  const cheVersion = DEFAULT_CHE_OPERATOR_IMAGE.split(':')[1]
+export function isStableVersion(flags: any): boolean {
+  const operatorImage = flags['che-operator-image']
+  const cheVersion = operatorImage.split(':')[1]
   return cheVersion !== 'nightly' && cheVersion !== 'latest'
 }
