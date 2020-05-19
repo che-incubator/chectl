@@ -27,7 +27,7 @@ import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { isOpenshiftPlatformFamily } from '../../util'
+import { isOpenshiftPlatformFamily, isStableVersion } from '../../util'
 
 export default class Start extends Command {
   static description = 'start Eclipse Che server'
@@ -414,9 +414,8 @@ export default class Start extends Command {
    * and `operator` for other cases.
    */
   async setDefaultInstaller(flags: any): Promise<void> {
-    const cheVersion = DEFAULT_CHE_OPERATOR_IMAGE.split(':')[1]
     const kubeHelper = new KubeHelper(flags)
-    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && cheVersion !== 'nightly' && cheVersion !== 'latest') {
+    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isStableVersion(flags)) {
       flags.installer = 'olm'
     } else {
       flags.installer = 'operator'

@@ -16,6 +16,7 @@ import * as Listr from 'listr'
 
 import { KubeHelper } from '../../api/kube'
 import { CHE_CLUSTER_CR_NAME } from '../../constants'
+import { isStableVersion } from '../../util'
 
 import { checkTlsCertificate, copyOperatorResources, createEclipseCheCluster, createNamespaceTask } from './common-tasks'
 
@@ -33,7 +34,9 @@ export class OperatorTasks {
    */
   startTasks(flags: any, command: Command): Listr {
     const kube = new KubeHelper(flags)
-    command.warn('You can also use features rich \'OLM\' installer to deploy Eclipse Che.')
+    if (isStableVersion(flags)) {
+      command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of Eclipse Che (--installer=olm).')
+    }
     return new Listr([
       copyOperatorResources(flags, command.config.cacheDir),
       createNamespaceTask(flags),

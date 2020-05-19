@@ -21,7 +21,7 @@ import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { CHE_TLS_SECRET_NAME } from '../../constants'
 import { CertManagerTasks } from '../../tasks/component-installers/cert-manager'
-import { generatePassword } from '../../util'
+import { generatePassword, isStableVersion } from '../../util'
 
 export class HelmTasks {
   protected kubeHelper: KubeHelper
@@ -34,7 +34,9 @@ export class HelmTasks {
    * Returns list of tasks which perform preflight platform checks.
    */
   startTasks(flags: any, command: Command): Listr {
-    command.warn('You can also use features rich \'OLM\' installer to deploy Eclipse Che.')
+    if (isStableVersion(flags)) {
+      command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of Eclipse Che (--installer=olm).')
+    }
     return new Listr([
       {
         title: 'Verify if helm is installed',
