@@ -20,7 +20,7 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { DEFAULT_CHE_IMAGE } from '../constants'
+import { DEFAULT_CHE_IMAGE, OLM_STABLE_CHANNEL_NAME } from '../constants'
 import { getClusterClientCommand } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
@@ -1139,7 +1139,7 @@ export class KubeHelper {
       const imageAndTag = cheImage.split(':', 2)
       yamlCr.spec.server.cheImage = imageAndTag[0]
       yamlCr.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
-      if ((flags.installer === 'olm' && !flags['catalog-source-yaml']) || (flags['catalog-source-yaml'] && flags['olm-channel'] === 'stable')) {
+      if ((flags.installer === 'olm' && !flags['catalog-source-yaml']) || (flags['catalog-source-yaml'] && flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME)) {
         // use default image tag for `olm` to install stable Che, because we don't have nightly channel for OLM catalog.
         yamlCr.spec.server.cheImageTag = ''
       }
@@ -1149,6 +1149,9 @@ export class KubeHelper {
       if (!yamlCr.spec.auth.openShiftoAuth && flags.multiuser) {
         yamlCr.spec.auth.updateAdminPassword = true
       }
+      if (!yamlCr.spec.k8s) {
+        yamlCr.spec.k8s = {}
+      }
       if (flags.tls) {
         yamlCr.spec.server.tlsSupport = flags.tls
         if (!yamlCr.spec.k8s.tlsSecretName) {
@@ -1156,7 +1159,9 @@ export class KubeHelper {
         }
       }
       yamlCr.spec.server.selfSignedCert = flags['self-signed-cert']
-      yamlCr.spec.k8s.ingressDomain = flags.domain
+      if (flags.domain) {
+        yamlCr.spec.k8s.ingressDomain = flags.domain
+      }
       const pluginRegistryUrl = flags['plugin-registry-url']
       if (pluginRegistryUrl) {
         yamlCr.spec.server.pluginRegistryUrl = pluginRegistryUrl

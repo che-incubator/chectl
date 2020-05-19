@@ -14,16 +14,12 @@ import Listr = require('listr')
 
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/typings/olm'
-import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OLM_PACKAGE_NAME, defaultOLMKubernetesNamespace, defaultOpenshiftMarketPlaceNamespace, OLM_STABLE_CHANNEL_NAME } from '../../constants'
+import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_IMAGE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, KUBERNETES_OLM_CATALOG, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, SUBSCRIPTION_NAME } from '../../constants'
 import { isKubernetesPlatformFamily } from '../../util'
 
 import { checkTlsCertificate, copyOperatorResources, createEclipseCheCluster, createNamespaceTask } from './common-tasks'
 
 export class OLMTasks {
-  public static readonly CUSTOM_CATALOG_SOURCE_NAME = 'eclipse-che-custom-catalog-source'
-  public static readonly SUBSCRIPTION_NAME = 'eclipse-che-subscription'
-  public static readonly OPERATOR_GROUP_NAME = 'che-operator-group'
-
   /**
    * Returns list of tasks which perform preflight platform checks.
    */
@@ -40,10 +36,10 @@ export class OLMTasks {
       {
         title: 'Create operator group',
         task: async (_ctx: any, task: any) => {
-          if (await kube.operatorGroupExists(OLMTasks.OPERATOR_GROUP_NAME, flags.chenamespace)) {
+          if (await kube.operatorGroupExists(OPERATOR_GROUP_NAME, flags.chenamespace)) {
             task.title = `${task.title}...It already exists.`
           } else {
-            await kube.createOperatorGroup(OLMTasks.OPERATOR_GROUP_NAME, flags.chenamespace)
+            await kube.createOperatorGroup(OPERATOR_GROUP_NAME, flags.chenamespace)
             task.title = `${task.title}...created new one.`
           }
         }
@@ -51,13 +47,13 @@ export class OLMTasks {
       {
         title: 'Configure context information',
         task: async (ctx: any, task: any) => {
-          ctx.defaultCatalogSourceNamespace = isKubernetesPlatformFamily(flags.platform) ? defaultOLMKubernetesNamespace : defaultOpenshiftMarketPlaceNamespace
+          ctx.defaultCatalogSourceNamespace = isKubernetesPlatformFamily(flags.platform) ? DEFAULT_OLM_KUBERNETES_NAMESPACE : DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE
           // catalog source name for stable Che version
-          ctx.catalogSourceNameStable = isKubernetesPlatformFamily(flags.platform) ? 'operatorhubio-catalog' : 'community-operators'
+          ctx.catalogSourceNameStable = isKubernetesPlatformFamily(flags.platform) ? KUBERNETES_OLM_CATALOG : OPENSHIFT_OLM_CATALOG
 
           ctx.approvalStarategy = flags['auto-update'] ? 'Automatic' : 'Manual'
 
-          ctx.sourceName = OLMTasks.CUSTOM_CATALOG_SOURCE_NAME
+          ctx.sourceName = CUSTOM_CATALOG_SOURCE_NAME
 
           task.title = `${task.title}...done.`
         }
@@ -66,13 +62,13 @@ export class OLMTasks {
         enabled: () => flags['catalog-source-yaml'],
         title: 'Create custom catalog source from file',
         task: async (ctx: any, task: any) => {
-          if (!await kube.catalogSourceExists(OLMTasks.CUSTOM_CATALOG_SOURCE_NAME, flags.chenamespace)) {
+          if (!await kube.catalogSourceExists(CUSTOM_CATALOG_SOURCE_NAME, flags.chenamespace)) {
             const customCatalogSource: CatalogSource = kube.readCatalogSourceFromFile(flags['catalog-source-yaml'])
             customCatalogSource.metadata.name = ctx.sourceName
             customCatalogSource.metadata.namespace = flags.chenamespace
             await kube.createCatalogSource(customCatalogSource)
-            await kube.waitCatalogSource(flags.chenamespace, OLMTasks.CUSTOM_CATALOG_SOURCE_NAME)
-            task.title = `${task.title}...created new one, with name ${OLMTasks.CUSTOM_CATALOG_SOURCE_NAME} in the namespace ${flags.chenamespace}.`
+            await kube.waitCatalogSource(flags.chenamespace, CUSTOM_CATALOG_SOURCE_NAME)
+            task.title = `${task.title}...created new one, with name ${CUSTOM_CATALOG_SOURCE_NAME} in the namespace ${flags.chenamespace}.`
           } else {
             task.title = `${task.title}...It already exists.`
           }
@@ -81,14 +77,14 @@ export class OLMTasks {
       {
         title: 'Create operator subscription',
         task: async (ctx: any, task: any) => {
-          if (await kube.operatorSubscriptionExists(OLMTasks.SUBSCRIPTION_NAME, flags.chenamespace)) {
+          if (await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, flags.chenamespace)) {
             task.title = `${task.title}...It already exists.`
           } else {
             let subscription: Subscription
             if (!flags['catalog-source-yaml']) {
-              subscription = this.createSubscription(OLMTasks.SUBSCRIPTION_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, flags['starting-csv'])
+              subscription = this.createSubscription(SUBSCRIPTION_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, flags['starting-csv'])
             } else {
-              subscription = this.createSubscription(OLMTasks.SUBSCRIPTION_NAME, flags['package-manifest-name'], flags.chenamespace, flags.chenamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, flags['starting-csv'])
+              subscription = this.createSubscription(SUBSCRIPTION_NAME, flags['package-manifest-name'], flags.chenamespace, flags.chenamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, flags['starting-csv'])
             }
             await kube.createOperatorSubscription(subscription)
             task.title = `${task.title}...created new one.`
@@ -98,7 +94,7 @@ export class OLMTasks {
       {
         title: 'Wait while subscription is ready',
         task: async (ctx: any, task: any) => {
-          const installPlan = await kube.waitOperatorSubscriptionReadyForApproval(flags.chenamespace, OLMTasks.SUBSCRIPTION_NAME, 600)
+          const installPlan = await kube.waitOperatorSubscriptionReadyForApproval(flags.chenamespace, SUBSCRIPTION_NAME, 600)
           ctx.installPlanName = installPlan.name
           task.title = `${task.title}...done.`
         }
@@ -129,8 +125,8 @@ export class OLMTasks {
       {
         title: 'Check if operator group exists',
         task: async (_ctx: any, task: any) => {
-          if (!await kube.operatorGroupExists(OLMTasks.OPERATOR_GROUP_NAME, flags.chenamespace)) {
-            command.error(`Unable to find operator group ${OLMTasks.OPERATOR_GROUP_NAME}`)
+          if (!await kube.operatorGroupExists(OPERATOR_GROUP_NAME, flags.chenamespace)) {
+            command.error(`Unable to find operator group ${OPERATOR_GROUP_NAME}`)
           }
           task.title = `${task.title}...done.`
         }
@@ -138,8 +134,8 @@ export class OLMTasks {
       {
         title: 'Check if operator subscription exists',
         task: async (_ctx: any, task: any) => {
-          if (!await kube.operatorSubscriptionExists(OLMTasks.SUBSCRIPTION_NAME, flags.chenamespace)) {
-            command.error(`Unable to find operator subscription ${OLMTasks.SUBSCRIPTION_NAME}`)
+          if (!await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, flags.chenamespace)) {
+            command.error(`Unable to find operator subscription ${SUBSCRIPTION_NAME}`)
           }
           task.title = `${task.title}...done.`
         }
@@ -153,7 +149,7 @@ export class OLMTasks {
       {
         title: 'Get operator installation plan',
         task: async (ctx: any, task: any) => {
-          const subscription: Subscription = await kube.getOperatorSubscription(OLMTasks.SUBSCRIPTION_NAME, flags.chenamespace)
+          const subscription: Subscription = await kube.getOperatorSubscription(SUBSCRIPTION_NAME, flags.chenamespace)
 
           if (subscription.status) {
             if (subscription.status.state === 'AtLatestKnown') {
@@ -203,11 +199,11 @@ export class OLMTasks {
         }
       },
       {
-        title: `Delete(OLM) operator subscription ${OLMTasks.SUBSCRIPTION_NAME}`,
+        title: `Delete(OLM) operator subscription ${SUBSCRIPTION_NAME}`,
         enabled: ctx => ctx.isPreInstalledOLM,
         task: async (_ctx: any, task: any) => {
-          if (await kube.operatorSubscriptionExists(OLMTasks.SUBSCRIPTION_NAME, flags.chenamespace)) {
-            await kube.deleteOperatorSubscription(OLMTasks.SUBSCRIPTION_NAME, flags.chenamespace)
+          if (await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, flags.chenamespace)) {
+            await kube.deleteOperatorSubscription(SUBSCRIPTION_NAME, flags.chenamespace)
           }
           task.title = `${task.title}...OK`
         }
@@ -217,26 +213,26 @@ export class OLMTasks {
         enabled: ctx => ctx.isPreInstalledOLM,
         task: async (_ctx: any, task: any) => {
           const csvs = await kube.getClusterServiceVersions(flags.chenamespace)
-          const csvsToDelete = csvs.items.filter(csv => csv.metadata.name.startsWith('eclipse-che'))
+          const csvsToDelete = csvs.items.filter(csv => csv.metadata.name.startsWith(CVS_PREFIX))
           csvsToDelete.forEach(csv => kube.deleteClusterServiceVersion(flags.chenamespace, csv.metadata.name))
           task.title = `${task.title}...OK`
         }
       },
       {
-        title: `Delete(OLM) operator group ${OLMTasks.OPERATOR_GROUP_NAME}`,
+        title: `Delete(OLM) operator group ${OPERATOR_GROUP_NAME}`,
         enabled: ctx => ctx.isPreInstalledOLM,
         task: async (_ctx: any, task: any) => {
-          if (await kube.operatorGroupExists(OLMTasks.OPERATOR_GROUP_NAME, flags.chenamespace)) {
-            await kube.deleteOperatorGroup(OLMTasks.OPERATOR_GROUP_NAME, flags.chenamespace)
+          if (await kube.operatorGroupExists(OPERATOR_GROUP_NAME, flags.chenamespace)) {
+            await kube.deleteOperatorGroup(OPERATOR_GROUP_NAME, flags.chenamespace)
           }
           task.title = `${task.title}...OK`
         }
       },
       {
-        title: `Delete(OLM) custom catalog source ${OLMTasks.CUSTOM_CATALOG_SOURCE_NAME}`,
+        title: `Delete(OLM) custom catalog source ${CUSTOM_CATALOG_SOURCE_NAME}`,
         task: async (_ctx: any, task: any) => {
-          if (await kube.catalogSourceExists(OLMTasks.CUSTOM_CATALOG_SOURCE_NAME, flags.chenamespace)) {
-            await kube.deleteCatalogSource(flags.chenamespace, OLMTasks.CUSTOM_CATALOG_SOURCE_NAME)
+          if (await kube.catalogSourceExists(CUSTOM_CATALOG_SOURCE_NAME, flags.chenamespace)) {
+            await kube.deleteCatalogSource(flags.chenamespace, CUSTOM_CATALOG_SOURCE_NAME)
           }
           task.title = `${task.title}...OK`
         }
