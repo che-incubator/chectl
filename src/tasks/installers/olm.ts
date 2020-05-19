@@ -30,7 +30,7 @@ export class OLMTasks {
   startTasks(flags: any, command: Command): Listr {
     const kube = new KubeHelper(flags)
     if (this.isNightlyChectlChannel() && !flags['catalog-source-yaml']) {
-      command.warn('OLM catalog hasn\'t got nightly channel, that\'s why will be deployed stable Eclipse Che.')
+      command.warn('A nightly channel for Eclipse Che is not available on OpenShift OLM catalog, the latest stable release will be deployed instead. To get a nightly release of Eclipse Che use the `operator` installer (--installer=operator).')
     }
     return new Listr([
       this.isOlmPreInstalledTask(command, kube),
