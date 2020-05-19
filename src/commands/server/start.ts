@@ -284,8 +284,8 @@ export default class Start extends Command {
         if (flags.platform !== 'openshift' && flags.platform !== 'minishift' && flags.platform !== 'crc') {
           this.error(`You requested to enable OpenShift OAuth but the platform doesn\'t seem to be OpenShift. Platform is ${flags.platform}.`)
         }
-        if (flags.installer !== 'operator') {
-          this.error(`You requested to enable OpenShift OAuth but that's only possible when using the operator as installer. The current installer is ${flags.installer}. To use the operator add parameter "--installer operator".`)
+        if (flags.installer !== 'operator' && flags.installer !== 'olm') {
+          this.error(`You requested to enable OpenShift OAuth but that's only possible when using the 'operator' or 'olm' as installer. The current installer is ${flags.installer}.`)
         }
       }
 
