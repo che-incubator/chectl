@@ -1,8 +1,8 @@
 jobs:
   include:
-   - os: osx
+   - os: linux
 language: node_js
-node_js: '10'
+node_js: '12'
 before_deploy:
 - |
   if ! [ "$BEFORE_DEPLOY_DONE" ]; then
