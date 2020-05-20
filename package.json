@@ -126,6 +126,8 @@
     "test": "jest",
     "posttest": "tslint -p test -t stylish",
     "test-watch": "jest --watchAll",
+    "e2e-minikube": "jest ./test/e2e/minikube.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
+    "e2e-minishift": "jest ./test/e2e/minishift.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
     "prepack": "rm -rf lib && rm -rf tsconfig.tsbuildinfo && tsc -b && oclif-dev manifest && oclif-dev readme",
     "pack-binaries": "oclif-dev pack",
     "postpack": "rm -f oclif.manifest.json",
