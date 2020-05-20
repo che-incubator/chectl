@@ -20,6 +20,7 @@ describe('Eclipse Che deploy test suite', () => {
   describe('server:start using operator and self signed certificates', () => {
     test
       .stdout({ print: true })
+      .stderr({ print: true })
       .command(['server:start', '--platform=minikube', '--che-operator-cr-patch-yaml=test/e2e/util/cr-test.yaml', '--tls', '--self-signed-cert', '--installer=operator', '--skip-cluster-availability-check'])
       .exit(0)
       .it('uses minikube as platform, operator as installer and auth is enabled')
@@ -42,6 +43,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
   describe('Create Workspace', () => {
     test
       .stdout({ print: true })
+      .stderr({ print: true })
       .command(['workspace:create', '--devfile=test/e2e/util/devfile-example.yaml'])
       .exit(0)
       .it('Create a workspace and wait to be started')
@@ -87,6 +89,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
   describe('List Workspace', () => {
     test
       .stdout({ print: true })
+      .stderr({ print: true })
       .command(['workspace:list'])
       .it('List workspaces')
   })
@@ -129,6 +132,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
   describe('Stop Eclipse Che Server', () => {
     test
       .stdout({ print: true })
+      .stderr({ print: true })
       .do(async () => helper.SleepTests(30000))
       .command(['server:stop', '--listr-renderer=verbose'])
       .exit(0)
@@ -138,6 +142,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
   describe('Delete Eclipse Che Server', () => {
     test
       .stdout()
+      .stderr({ print: true })
       .command(['server:delete', '--skip-deletion-check'])
       .exit(0)
       .it('deletes Eclipse Che resources on minikube successfully')
