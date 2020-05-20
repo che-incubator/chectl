@@ -21,7 +21,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { OpenShiftHelper } from '../api/openshift'
-import { CHE_CLUSTER_CR_NAME, CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../constants'
+import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../constants'
 import { base64Decode } from '../util'
 
 import { Devfile } from './devfile'
@@ -150,7 +150,10 @@ export class CheHelper {
     let adminUsername
     let adminPassword
 
-    const cheCluster = await this.kube.getCheCluster(CHE_CLUSTER_CR_NAME, cheNamespace)
+    const cheCluster = await this.kube.getCheCluster(cheNamespace)
+    if (!cheCluster) {
+      return []
+    }
     const keycloakCredentialsSecretName = cheCluster.spec.auth.identityProviderSecret
     if (keycloakCredentialsSecretName) {
       // Keycloak credentials are stored in secret

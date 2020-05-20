@@ -17,7 +17,7 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { CHE_CLUSTER_CR_NAME, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
+import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
 import { isKubernetesPlatformFamily, isOpenshiftPlatformFamily } from '../../util'
 
 export function createNamespaceTask(flags: any): Listr.ListrTask {
@@ -62,9 +62,9 @@ async function copyCheOperatorResources(templatesDir: string, cacheDir: string):
 
 export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.ListrTask {
   return {
-    title: `Create Eclipse Che cluster ${CHE_CLUSTER_CR_NAME} in namespace ${flags.chenamespace}`,
+    title: `Create the Custom Resource of type ${CHE_CLUSTER_CRD} in the namespace ${flags.chenamespace}`,
     task: async (ctx: any, task: any) => {
-      const cheCluster = await kube.getCheCluster(CHE_CLUSTER_CR_NAME, flags.chenamespace)
+      const cheCluster = await kube.getCheCluster(flags.chenamespace)
       if (cheCluster) {
         task.title = `${task.title}...It already exists.`
       } else {

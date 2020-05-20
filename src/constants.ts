@@ -21,9 +21,8 @@ export const CERT_MANAGER_NAMESPACE_NAME = 'cert-manager'
 export const CHE_TLS_SECRET_NAME = 'che-tls'
 export const CHE_ROOT_CA_SECRET_NAME = 'self-signed-certificate'
 export const DEFAULT_CA_CERT_FILE_NAME = 'cheCA.crt'
-
-export const operatorCheCluster = 'eclipse-che'
 export const CHE_CLUSTER_CR_NAME = 'eclipse-che'
+export const CHE_CLUSTER_CRD = 'checlusters.org.eclipse.che'
 
 export const defaultOpenshiftMarketPlaceNamespace = 'openshift-marketplace'
 export const defaultOLMKubernetesNamespace = 'olm'

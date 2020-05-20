@@ -18,7 +18,7 @@ import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
 import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { CHE_CLUSTER_CR_NAME, DEFAULT_CHE_OPERATOR_IMAGE } from '../../constants'
+import { DEFAULT_CHE_OPERATOR_IMAGE } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
@@ -173,7 +173,7 @@ export default class Update extends Command {
 
   async setDomainFlag(flags: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
-    const cheCluster = await kubeHelper.getCheCluster(CHE_CLUSTER_CR_NAME, flags.chenamespace)
+    const cheCluster = await kubeHelper.getCheCluster(flags.chenamespace)
     if (cheCluster && cheCluster.spec.k8s && cheCluster.spec.k8s.ingressDomain) {
       flags.domain = cheCluster.spec.k8s.ingressDomain
     }

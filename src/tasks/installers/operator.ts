@@ -15,7 +15,7 @@ import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
 
 import { KubeHelper } from '../../api/kube'
-import { CHE_CLUSTER_CR_NAME } from '../../constants'
+import { CHE_CLUSTER_CRD } from '../../constants'
 import { isStableVersion } from '../../util'
 
 import { checkTlsCertificate, copyOperatorResources, createEclipseCheCluster, createNamespaceTask } from './common-tasks'
@@ -309,16 +309,11 @@ export class OperatorTasks {
   deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     let kh = new KubeHelper(flags)
     return [{
-      title: `Delete the CR ${CHE_CLUSTER_CR_NAME} of type ${this.cheClusterCrd}`,
+      title: `Delete the Custom Resource of type ${CHE_CLUSTER_CRD}`,
       task: async (_ctx: any, task: any) => {
-        if (await kh.crdExist(this.cheClusterCrd) &&
-          await kh.getCheCluster(CHE_CLUSTER_CR_NAME, flags.chenamespace)) {
-          await kh.deleteCheCluster(CHE_CLUSTER_CR_NAME, flags.chenamespace)
-          await cli.wait(2000) //wait a couple of secs for the finalizers to be executed
-          task.title = await `${task.title}...OK`
-        } else {
-          task.title = await `${task.title}...CR not found`
-        }
+        await kh.deleteCheCluster(flags.chenamespace)
+        await cli.wait(2000) //wait a couple of secs for the finalizers to be executed
+        task.title = await `${task.title}...OK`
       }
     },
     {
