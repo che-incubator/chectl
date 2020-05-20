@@ -18,11 +18,10 @@ import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
 import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_CHE_OPERATOR_IMAGE } from '../../constants'
+import { DEFAULT_CHE_OPERATOR_IMAGE, SUBSCRIPTION_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
-import { OLMTasks } from '../../tasks/installers/olm'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
@@ -182,7 +181,7 @@ export default class Update extends Command {
   async setDefaultInstaller(flags: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
     try {
-      await kubeHelper.getOperatorSubscription(OLMTasks.SUBSCRIPTION_NAME, flags.chenamespace)
+      await kubeHelper.getOperatorSubscription(SUBSCRIPTION_NAME, flags.chenamespace)
       flags.installer = 'olm'
     } catch {
       flags.installer = 'operator'

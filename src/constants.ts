@@ -10,8 +10,6 @@
 
 export const DEFAULT_CHE_IMAGE = 'quay.io/eclipse/che-server:nightly'
 export const DEFAULT_CHE_OPERATOR_IMAGE = 'quay.io/eclipse/che-operator:nightly'
-export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'eclipse-che'
-export const OLM_STABLE_CHANNEL_NAME = 'stable'
 
 // This image should be updated manually when needed.
 // Repository location: https://github.com/che-dockerfiles/che-cert-manager-ca-cert-generator-image
@@ -24,8 +22,17 @@ export const DEFAULT_CA_CERT_FILE_NAME = 'cheCA.crt'
 export const CHE_CLUSTER_CR_NAME = 'eclipse-che'
 export const CHE_CLUSTER_CRD = 'checlusters.org.eclipse.che'
 
-export const defaultOpenshiftMarketPlaceNamespace = 'openshift-marketplace'
-export const defaultOLMKubernetesNamespace = 'olm'
+// OLM
+export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'eclipse-che'
+export const OLM_STABLE_CHANNEL_NAME = 'stable'
+export const DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE = 'openshift-marketplace'
+export const DEFAULT_OLM_KUBERNETES_NAMESPACE = 'olm'
+export const CUSTOM_CATALOG_SOURCE_NAME = 'eclipse-che-custom-catalog-source'
+export const SUBSCRIPTION_NAME = 'eclipse-che-subscription'
+export const OPERATOR_GROUP_NAME = 'che-operator-group'
+export const KUBERNETES_OLM_CATALOG = 'operatorhubio-catalog'
+export const OPENSHIFT_OLM_CATALOG = 'community-operators'
+export const CVS_PREFIX = 'eclipse-che'
 
 // Documentation links
 export const DOCS_LINK_INSTALL_TLS_WITH_SELF_SIGNED_CERT = 'https://www.eclipse.org/che/docs/che-7/installing-che-in-tls-mode-with-self-signed-certificates/'
