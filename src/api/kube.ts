@@ -20,7 +20,7 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { DEFAULT_CHE_IMAGE } from '../constants'
+import { CHE_CLUSTER_CRD, DEFAULT_CHE_IMAGE } from '../constants'
 import { getClusterClientCommand } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
@@ -790,11 +790,11 @@ export class KubeHelper {
   }
 
   async createDeployment(name: string,
-                         image: string,
-                         serviceAccount: string,
-                         pullPolicy: string,
-                         configMapEnvSource: string,
-                         namespace: string) {
+    image: string,
+    serviceAccount: string,
+    pullPolicy: string,
+    configMapEnvSource: string,
+    namespace: string) {
     const k8sAppsApi = KubeHelper.KUBE_CONFIG.makeApiClient(AppsV1Api)
     let deployment = new V1Deployment()
     deployment.metadata = new V1ObjectMeta()
@@ -911,12 +911,12 @@ export class KubeHelper {
   }
 
   async createPod(name: string,
-                  image: string,
-                  serviceAccount: string,
-                  restartPolicy: string,
-                  pullPolicy: string,
-                  configMapEnvSource: string,
-                  namespace: string) {
+    image: string,
+    serviceAccount: string,
+    restartPolicy: string,
+    pullPolicy: string,
+    configMapEnvSource: string,
+    namespace: string) {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     let pod = new V1Pod()
     pod.metadata = new V1ObjectMeta()
@@ -944,11 +944,11 @@ export class KubeHelper {
   }
 
   async createJob(name: string,
-                  image: string,
-                  serviceAccount: string,
-                  namespace: string,
-                  backoffLimit = 0,
-                  restartPolicy = 'Never') {
+    image: string,
+    serviceAccount: string,
+    namespace: string,
+    backoffLimit = 0,
+    restartPolicy = 'Never') {
     const k8sBatchApi = KubeHelper.KUBE_CONFIG.makeApiClient(BatchV1Api)
 
     const job = new V1Job()
@@ -1205,21 +1205,46 @@ export class KubeHelper {
     }
   }
 
-  async getCheCluster(name: string, namespace: string): Promise<any | undefined> {
+  /**
+   * Returns `checlusters.org.eclipse.che' in the given namespace.
+   */
+  async getCheCluster(namespace: string): Promise<any | undefined> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.getNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name)
-      return body
-    } catch {
-      return
+      const { body } = await customObjectsApi.listNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters')
+      if (!body.items) {
+        return
+      }
+
+      const crs = body.items as any[]
+      if (crs.length === 0) {
+        return
+      } else if (crs.length !== 1) {
+        throw new Error(`Too many resources '${CHE_CLUSTER_CRD}' found in the namespace '${namespace}'`)
+      }
+
+      return crs[0]
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
     }
   }
 
-  async deleteCheCluster(name = '', namespace = '') {
+  /**
+   * Deletes `checlusters.org.eclipse.che' resources in the given namespace.
+   */
+  async deleteCheCluster(namespace: string) {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const options = new V1DeleteOptions()
-      await customObjectsApi.deleteNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name, options)
+      const { body } = await customObjectsApi.listNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters')
+      if (!body.items) {
+        return
+      }
+
+      const crs = body.items as any[]
+      for (const cr of crs) {
+        const options = new V1DeleteOptions()
+        await customObjectsApi.deleteNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', cr.metadata.name, options)
+      }
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
