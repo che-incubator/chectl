@@ -322,7 +322,7 @@ OPTIONS
       show CLI help
 
   -i, --cheimage=cheimage
-      [default: quay.io/eclipse/che-server:7.13.0] Eclipse Che server container image
+      [default: quay.io/eclipse/che-server:7.13.1] Eclipse Che server container image
 
   -m, --multiuser
       Starts Eclipse Che in multi-user mode
@@ -375,7 +375,7 @@ OPTIONS
       is the operator.
 
   --che-operator-image=che-operator-image
-      [default: quay.io/eclipse/che-operator:7.13.0] Container image of the operator. This parameter is used only when the 
+      [default: quay.io/eclipse/che-operator:7.13.1] Container image of the operator. This parameter is used only when the 
       installer is the operator
 
   --debug
@@ -497,7 +497,7 @@ OPTIONS
                                                                                templates folder
 
   --che-operator-image=che-operator-image                                      [default:
-                                                                               quay.io/eclipse/che-operator:7.13.0]
+                                                                               quay.io/eclipse/che-operator:7.13.1]
                                                                                Container image of the operator. This
                                                                                parameter is used only when the installer
                                                                                is the operator
