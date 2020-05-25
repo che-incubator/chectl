@@ -261,6 +261,8 @@ OPTIONS
   -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
                                            be deployed
 
+  --deployment-name=deployment-name        [default: che] Eclipse Che deployment name
+
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 
   --skip-deletion-check                    Skip user confirmation on deletion check

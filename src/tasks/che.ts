@@ -257,7 +257,7 @@ export class CheTasks {
       task: async (ctx: any, task: any) => {
         if (ctx.isAuthEnabled && !this.cheAccessToken) {
           command.error('E_AUTH_REQUIRED - Eclipse Che authentication is enabled and an access token need to be provided (flag --access-token). ' +
-                        `For instructions to retrieve a valid access token refer to ${DOCS_LINK_AUTH_TO_CHE_SERVER_VIA_OPENID}`)
+            `For instructions to retrieve a valid access token refer to ${DOCS_LINK_AUTH_TO_CHE_SERVER_VIA_OPENID}`)
         }
         try {
           const cheURL = await this.che.cheURL(this.cheNamespace)
@@ -282,14 +282,6 @@ export class CheTasks {
       }
     },
     {
-      title: 'Wait until Eclipse Che pod is deleted',
-      enabled: (ctx: any) => !ctx.isCheStopped,
-      task: async (_ctx: any, task: any) => {
-        await this.kube.waitUntilPodIsDeleted(this.cheSelector, this.cheNamespace)
-        task.title = `${task.title}...done.`
-      }
-    },
-    {
       title: 'Scale \"keycloak\" deployment to zero',
       enabled: (ctx: any) => ctx.isKeycloakDeployed && !ctx.isKeycloakStopped,
       task: async (_ctx: any, task: any) => {
@@ -299,14 +291,6 @@ export class CheTasks {
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale keycloak deployment. ${error.message}`)
         }
-      }
-    },
-    {
-      title: 'Wait until Keycloak pod is deleted',
-      enabled: (ctx: any) => ctx.isKeycloakDeployed && !ctx.isKeycloakStopped,
-      task: async (_ctx: any, task: any) => {
-        await this.kube.waitUntilPodIsDeleted(this.keycloakSelector, this.cheNamespace)
-        task.title = `${task.title}...done.`
       }
     },
     {
@@ -322,14 +306,6 @@ export class CheTasks {
       }
     },
     {
-      title: 'Wait until Postgres pod is deleted',
-      enabled: (ctx: any) => ctx.isPostgresDeployed && !ctx.isPostgresStopped,
-      task: async (_ctx: any, task: any) => {
-        await this.kube.waitUntilPodIsDeleted(this.postgresSelector, this.cheNamespace)
-        task.title = `${task.title}...done.`
-      }
-    },
-    {
       title: 'Scale \"devfile registry\" deployment to zero',
       enabled: (ctx: any) => ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryStopped,
       task: async (_ctx: any, task: any) => {
@@ -342,14 +318,6 @@ export class CheTasks {
       }
     },
     {
-      title: 'Wait until Devfile registry pod is deleted',
-      enabled: (ctx: any) => ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryStopped,
-      task: async (_ctx: any, task: any) => {
-        await this.kube.waitUntilPodIsDeleted(this.devfileRegistrySelector, this.cheNamespace)
-        task.title = `${task.title}...done.`
-      }
-    },
-    {
       title: 'Scale \"plugin registry\" deployment to zero',
       enabled: (ctx: any) => ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryStopped,
       task: async (_ctx: any, task: any) => {
@@ -359,14 +327,6 @@ export class CheTasks {
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale plugin-registry deployment. ${error.message}`)
         }
-      }
-    },
-    {
-      title: 'Wait until Plugin registry pod is deleted',
-      enabled: (ctx: any) => ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryStopped,
-      task: async (_ctx: any, task: any) => {
-        await this.kube.waitUntilPodIsDeleted(this.pluginRegistrySelector, this.cheNamespace)
-        task.title = `${task.title}...done.`
       }
     }]
   }
@@ -460,6 +420,54 @@ export class CheTasks {
           task.title = await `${task.title}...OK`
         }
       }]
+  }
+
+  /**
+   * Returns tasks which wait until pods are deleted.
+   */
+  waitPodsDeletedTasks(): ReadonlyArray<Listr.ListrTask> {
+    return [
+      {
+        title: 'Wait until Eclipse Che pod is deleted',
+        enabled: (ctx: any) => !ctx.isCheStopped,
+        task: async (_ctx: any, task: any) => {
+          await this.kube.waitUntilPodIsDeleted(this.cheSelector, this.cheNamespace)
+          task.title = `${task.title}...done.`
+        }
+      },
+      {
+        title: 'Wait until Keycloak pod is deleted',
+        enabled: (ctx: any) => ctx.isKeycloakDeployed && !ctx.isKeycloakStopped,
+        task: async (_ctx: any, task: any) => {
+          await this.kube.waitUntilPodIsDeleted(this.keycloakSelector, this.cheNamespace)
+          task.title = `${task.title}...done.`
+        }
+      },
+      {
+        title: 'Wait until Postgres pod is deleted',
+        enabled: (ctx: any) => ctx.isPostgresDeployed && !ctx.isPostgresStopped,
+        task: async (_ctx: any, task: any) => {
+          await this.kube.waitUntilPodIsDeleted(this.postgresSelector, this.cheNamespace)
+          task.title = `${task.title}...done.`
+        }
+      },
+      {
+        title: 'Wait until Devfile registry pod is deleted',
+        enabled: (ctx: any) => ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryStopped,
+        task: async (_ctx: any, task: any) => {
+          await this.kube.waitUntilPodIsDeleted(this.devfileRegistrySelector, this.cheNamespace)
+          task.title = `${task.title}...done.`
+        }
+      },
+      {
+        title: 'Wait until Plugin registry pod is deleted',
+        enabled: (ctx: any) => ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryStopped,
+        task: async (_ctx: any, task: any) => {
+          await this.kube.waitUntilPodIsDeleted(this.pluginRegistrySelector, this.cheNamespace)
+          task.title = `${task.title}...done.`
+        }
+      }
+    ]
   }
 
   verifyCheNamespaceExistsTask(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {

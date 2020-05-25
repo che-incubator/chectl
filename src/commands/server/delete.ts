@@ -14,7 +14,7 @@ import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
 
 import { KubeHelper } from '../../api/kube'
-import { cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { HelmTasks } from '../../tasks/installers/helm'
 import { MinishiftAddonTasks } from '../../tasks/installers/minishift-addon'
@@ -28,6 +28,7 @@ export default class Delete extends Command {
   static flags = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
+    'deployment-name': cheDeployment,
     'listr-renderer': listrRenderer,
     'skip-deletion-check': boolean({
       description: 'Skip user confirmation on deletion check',
@@ -53,11 +54,13 @@ export default class Delete extends Command {
     )
 
     tasks.add(apiTasks.testApiTasks(flags, this))
+    tasks.add(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     tasks.add(operatorTasks.deleteTasks(flags))
     tasks.add(olmTasks.deleteTasks(flags))
     tasks.add(cheTasks.deleteTasks(flags))
     tasks.add(helmTasks.deleteTasks(flags))
     tasks.add(minishiftAddonTasks.deleteTasks(flags))
+    tasks.add(cheTasks.waitPodsDeletedTasks())
 
     const cluster = KubeHelper.KUBE_CONFIG.getCurrentCluster()
     if (!cluster) {

@@ -70,6 +70,7 @@ export default class Stop extends Command {
       { renderer: flags['listr-renderer'] as any }
     )
     tasks.add(cheTasks.scaleCheDownTasks(this))
+    tasks.add(cheTasks.waitPodsDeletedTasks())
 
     try {
       await tasks.run()
