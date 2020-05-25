@@ -558,7 +558,7 @@ export class KubeHelper {
     return res.body.items[0].status.phase
   }
 
-  async getPodReadyConditionStatus(selector: string, namespace = ''): Promise<string> {
+  async getPodReadyConditionStatus(selector: string, namespace = ''): Promise<string | undefined> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     let res
     try {
@@ -568,24 +568,20 @@ export class KubeHelper {
     }
 
     if (!res || !res.body || !res.body.items) {
-      throw new Error(`Get pods by selector "${selector}" returned an invalid response`)
+      throw new Error(`Get pods by selector "${selector}" returned an invalid response.`)
     }
 
+    // No pods found by the specified selector. So, it's not ready.
     if (res.body.items.length < 1) {
-      // No pods found by the specified selector. So, it's not ready.
       return 'False'
     }
 
     if (res.body.items.length > 1) {
-      throw new Error(`Get pods by selector "${selector}" returned ${res.body.items.length} pods (1 was expected)`)
+      throw new Error(`Get pods by selector "${selector}" returned ${res.body.items.length} pods (1 was expected).`)
     }
 
-    if (!res.body.items[0].status) {
-      throw new Error(`Get pods by selector "${selector}" returned a pod with an invalid state`)
-    }
-
-    if (!res.body.items[0].status.conditions || !(res.body.items[0].status.conditions.length > 0)) {
-      throw new Error(`Get pods by selector "${selector}" returned a pod with an invalid status.conditions`)
+    if (!res.body.items[0].status || !res.body.items[0].status.conditions || !(res.body.items[0].status.conditions.length > 0)) {
+      return
     }
 
     const conditions = res.body.items[0].status.conditions
@@ -594,8 +590,6 @@ export class KubeHelper {
         return condition.status
       }
     }
-
-    throw new Error(`Get pods by selector "${selector}" returned a pod without a status.condition of type "Ready"`)
   }
 
   async waitForPodPhase(selector: string, targetPhase: string, namespace = '', intervalMs = 500, timeoutMs = this.podWaitTimeout) {
@@ -636,9 +630,6 @@ export class KubeHelper {
       if (readyStatus === 'True') {
         return
       }
-      if (readyStatus !== 'False') {
-        throw new Error(`ERR_BAD_READY_STATUS: ${readyStatus} (True or False expected) `)
-      }
       await cli.wait(intervalMs)
     }
     throw new Error(`ERR_TIMEOUT: Timeout set to pod ready timeout ${this.podReadyTimeout}`)
@@ -650,9 +641,6 @@ export class KubeHelper {
       let readyStatus = await this.getPodReadyConditionStatus(selector, namespace)
       if (readyStatus === 'False') {
         return
-      }
-      if (readyStatus !== 'True') {
-        throw new Error(`ERR_BAD_READY_STATUS: ${readyStatus} (True or False expected) `)
       }
       await cli.wait(intervalMs)
     }
