@@ -638,13 +638,13 @@ export class KubeHelper {
   async waitUntilPodIsDeleted(selector: string, namespace = '', intervalMs = 500, timeoutMs = this.podReadyTimeout) {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
-      let readyStatus = await this.getPodReadyConditionStatus(selector, namespace)
-      if (readyStatus === 'False') {
+      const pods = await this.listNamespacedPod(namespace, undefined, selector)
+      if (!pods.items.length) {
         return
       }
       await cli.wait(intervalMs)
     }
-    throw new Error(`ERR_TIMEOUT: Timeout set to pod ready timeout ${this.podReadyTimeout}`)
+    throw new Error('ERR_TIMEOUT: Waiting until pod is deleted took too long.')
   }
 
   async deletePod(name: string, namespace = '') {
