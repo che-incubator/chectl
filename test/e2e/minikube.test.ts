@@ -15,6 +15,7 @@ const helper = new E2eHelper()
 jest.setTimeout(600000)
 
 const PLATFORM = 'kubernetes'
+const binChectl = `${process.cwd()}/bin/run`
 
 describe('Eclipse Che deploy test suite', () => {
   describe('server:start using operator and self signed certificates', () => {
@@ -38,19 +39,21 @@ describe('Eclipse Che deploy test suite', () => {
 })
 
 describe('Export CA certificate', () => {
-  describe('Export CA certificate', () => {
-    test
-      .stdout({ print: true })
-      .stderr({ print: true })
-      .command(['cacert:export'])
-      .exit(0)
-      .it('Eclipse Che self-signed CA certificate is exported')
+  it('Export CA certificate', async () => {
+    const command = `${binChectl} cacert:export`
+
+    const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
+
+    expect(exitCode).equal(0)
+    console.log(stdout)
+
+    if (exitCode !== 0) {
+      console.log(stderr)
+    }
   })
 })
 
 describe('Workspace creation, list, start, inject, delete. Support stop and delete commands for Eclipse Che server', () => {
-  const binChectl = `${process.cwd()}/bin/run`
-
   describe('Create Workspace', () => {
     test
       .stdout({ print: true })
