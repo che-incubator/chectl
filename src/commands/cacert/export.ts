@@ -20,7 +20,6 @@ import { cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { PlatformTasks } from '../../tasks/platforms/platform'
 
 export default class Export extends Command {
   static description = 'Retrieves Eclipse Che self-signed certificate'
@@ -28,11 +27,6 @@ export default class Export extends Command {
   static flags = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
-    platform: string({
-      char: 'p',
-      description: 'Type of Kubernetes platform. Valid values are \"minikube\", \"minishift\", \"k8s (for kubernetes)\", \"openshift\", \"crc (for CodeReady Containers)\", \"microk8s\".',
-      options: ['minikube', 'minishift', 'k8s', 'openshift', 'microk8s', 'docker-desktop', 'crc'],
-    }),
     destination: string({
       char: 'd',
       description: `Destination where to store Che self-signed CA certificate.
@@ -49,12 +43,10 @@ export default class Export extends Command {
     const { flags } = this.parse(Export)
     const ctx: any = {}
     const cheHelper = new CheHelper(flags)
-    const platformTasks = new PlatformTasks()
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()
     const tasks = new Listr([], { renderer: 'silent' })
 
-    tasks.add(platformTasks.preflightCheckTasks(flags, this))
     tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
 
