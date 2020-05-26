@@ -148,10 +148,6 @@ OPTIONS
   -n, --chenamespace=chenamespace
       [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
 
-  -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc
-      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc 
-      (for CodeReady Containers)", "microk8s".
-
   --skip-kubernetes-health-check
       Skip Kubernetes health check
 ```
