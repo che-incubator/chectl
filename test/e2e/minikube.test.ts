@@ -37,6 +37,17 @@ describe('Eclipse Che deploy test suite', () => {
   })
 })
 
+describe('Export CA certificate', () => {
+  describe('Export CA certificate', () => {
+    test
+      .stdout({ print: true })
+      .stderr({ print: true })
+      .command(['cacert:export'])
+      .exit(0)
+      .it('Eclipse Che self-signed CA certificate is exported')
+  })
+})
+
 describe('Workspace creation, list, start, inject, delete. Support stop and delete commands for Eclipse Che server', () => {
   const binChectl = `${process.cwd()}/bin/run`
 
