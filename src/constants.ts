@@ -8,8 +8,8 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-export const DEFAULT_CHE_IMAGE = 'quay.io/eclipse/che-server:7.13.1'
-export const DEFAULT_CHE_OPERATOR_IMAGE = 'quay.io/eclipse/che-operator:7.13.1'
+export const DEFAULT_CHE_IMAGE = 'quay.io/eclipse/che-server:7.13.2'
+export const DEFAULT_CHE_OPERATOR_IMAGE = 'quay.io/eclipse/che-operator:7.13.2'
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'eclipse-che'
 export const OLM_STABLE_CHANNEL_NAME = 'stable'
 
