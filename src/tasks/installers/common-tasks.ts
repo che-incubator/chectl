@@ -9,7 +9,6 @@
  **********************************************************************/
 
 import ansi = require('ansi-colors')
-import { cli } from 'cli-ux'
 import * as execa from 'execa'
 import { copy, mkdirp, remove } from 'fs-extra'
 import * as Listr from 'listr'
