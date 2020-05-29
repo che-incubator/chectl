@@ -99,52 +99,23 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
   }
 }
 
-export function checkTlsCertificate(flags: any): Listr.ListrTask {
-  return {
-    title: 'Checking certificate',
-    // It makes sense to check whether self-signed certificate is used only if TLS mode is on
-    enabled: () => flags.tls,
-    // If the flag is set no need to check if it is required
-    skip: () => flags['self-signed-cert'],
-    task: async (_: any, task: any) => {
-      const warningMessage = 'Self-signed certificate is used, so "--self-signed-cert" option is required. Added automatically.'
-
-      const platform = flags.platform
-      if (platform === 'minikube' || platform === 'crc' || platform === 'minishift') {
-        // There is no way to use real certificate on listed above platforms
-        cli.warn(warningMessage)
-        flags['self-signed-cert'] = true
-        task.title = `${task.title}... self-signed`
-        return
-      }
-
-      if (flags.domain && (flags.domain.endsWith('nip.io') || flags.domain.endsWith('xip.io'))) {
-        // It is not possible to use real certificate with *.nip.io and similar services
-        cli.warn(warningMessage)
-        flags['self-signed-cert'] = true
-        task.title = `${task.title}... self-signed`
-        return
-      }
-
-      // TODO check the secret certificate if it is commonly trusted.
-      cli.info('TLS mode is turned on, however we failed to determine whether self-signed certificate is used. \n\
-               Please rerun chectl with "--self-signed-cert" option if it is the case, otherwise Eclipse Che will fail to start.')
-    }
-  }
-}
-
 export function retrieveCheCaCertificateTask(flags: any): Listr.ListrTask {
   return {
     title: 'Retrieving Che self-signed CA certificate',
     // It makes sense to retrieve CA certificate only if self-signed certificate is used.
-    enabled: () => flags.tls && flags['self-signed-cert'] && flags.installer !== 'helm',
+    enabled: () => flags.tls && flags.installer !== 'helm',
     task: async (ctx: any, task: any) => {
       const che = new CheHelper(flags)
       const cheCaCert = await che.retrieveCheCaCert(flags.chenamespace)
-      const targetFile = await che.saveCheCaCert(cheCaCert)
+      if (cheCaCert) {
+        const targetFile = await che.saveCheCaCert(cheCaCert)
 
-      task.title = `${task.title }... is exported to ${targetFile}`
-      ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(targetFile))
+        task.title = `${task.title }... is exported to ${targetFile}`
+        ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(targetFile))
+      } else {
+        task.title = `${task.title }... not found.`
+      }
+
     }
   }
 }

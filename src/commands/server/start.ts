@@ -80,16 +80,13 @@ export default class Start extends Command {
       char: 's',
       description: `Enable TLS encryption.
                     Note, this option is turned on by default.
-                    For Kubernetes infrastructure, it is required to provide own certificate: 'che-tls' secret with TLS certificate must be pre-created in the configured namespace.
-                    The only exception is Helm installer. In that case the secret will be generated automatically.
+                    To provide own certificate for Kubernetes infrastructure, 'che-tls' secret with TLS certificate must be pre-created in the configured namespace.
+                    In case of providing own self-signed certificate 'self-signed-certificate' secret should be also created.
                     For OpenShift, router will use default cluster certificates.
-                    If the certificate is self-signed, '--self-signed-cert' option should be provided, otherwise Che won't be able to start.
                     Please see docs for more details: ${DOCS_LINK_INSTALL_TLS_WITH_SELF_SIGNED_CERT}`
     }),
     'self-signed-cert': flags.boolean({
-      description: `Authorize usage of self signed certificates for encryption.
-                    This is the flag for Eclipse Che to propagate the certificate to components, so they will trust it.
-                    Note that \`che-tls\` secret with CA certificate must be created in the configured namespace.`,
+      description: 'Deprecated. The flag is ignored. Usage of self signed certificates is autodetected now.',
       default: false
     }),
     platform: string({
@@ -253,7 +250,6 @@ export default class Start extends Command {
       flags['devfile-registry-url'] && ignoredFlags.push('--devfile-registry-url')
       flags['postgres-pvc-storage-class-name'] && ignoredFlags.push('--postgres-pvc-storage-class-name')
       flags['workspace-pvc-storage-class-name'] && ignoredFlags.push('--workspace-pvc-storage-class-name')
-      flags['self-signed-cert'] && ignoredFlags.push('--self-signed-cert')
       flags['os-oauth'] && ignoredFlags.push('--os-oauth')
       flags.tls && ignoredFlags.push('--tls')
       flags.cheimage && ignoredFlags.push('--cheimage')
@@ -326,6 +322,10 @@ export default class Start extends Command {
     ctx.listrOptions = listrOptions
     // Holds messages which should be printed at the end of chectl log
     ctx.highlightedMessages = [] as string[]
+
+    if (flags['self-signed-cert']) {
+      this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
+    }
 
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()

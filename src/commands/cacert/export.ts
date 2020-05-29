@@ -53,8 +53,12 @@ export default class Export extends Command {
     try {
       await tasks.run(ctx)
       const cheCaCert = await cheHelper.retrieveCheCaCert(flags.chenamespace)
-      const targetFile = await cheHelper.saveCheCaCert(cheCaCert, this.getTargetFile(flags.destination))
-      this.log(`Eclipse Che self-signed CA certificate is exported to ${targetFile}`)
+      if (cheCaCert) {
+        const targetFile = await cheHelper.saveCheCaCert(cheCaCert, this.getTargetFile(flags.destination))
+        this.log(`Eclipse Che self-signed CA certificate is exported to ${targetFile}`)
+      } else {
+        this.error('Self-signed CA certificate not found')
+      }
     } catch (error) {
       this.error(error)
     }
