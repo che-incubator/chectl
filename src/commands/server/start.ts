@@ -86,7 +86,7 @@ export default class Start extends Command {
                     Please see docs for more details: ${DOCS_LINK_INSTALL_TLS_WITH_SELF_SIGNED_CERT}`
     }),
     'self-signed-cert': flags.boolean({
-      description: 'Deprecated. The flag is ignored. Usage of self signed certificates is autodetected now.',
+      description: 'Deprecated. The flag is ignored. Self signed certificates usage is autodetected now.',
       default: false
     }),
     platform: string({
