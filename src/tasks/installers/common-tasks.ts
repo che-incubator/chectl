@@ -112,7 +112,7 @@ export function retrieveCheCaCertificateTask(flags: any): Listr.ListrTask {
         task.title = `${task.title }... is exported to ${targetFile}`
         ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(targetFile))
       } else {
-        task.title = `${task.title }... not found.`
+        task.title = `${task.title }... commonly trusted certificate is used.`
       }
 
     }
