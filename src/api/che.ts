@@ -110,13 +110,19 @@ export class CheHelper {
     }
   }
 
+  async isSelfSignedCertificateSecretExist(namespace: string): Promise<boolean> {
+    const selfSignedCertSecret = await this.kube.getSecret(CHE_ROOT_CA_SECRET_NAME, namespace)
+    return !!selfSignedCertSecret
+  }
+
   /**
-   * Gets self-signed Che CA certificate from 'self-signed-certificate' secret. The secret should exist.
+   * Gets self-signed Che CA certificate from 'self-signed-certificate' secret.
+   * If secret doesn't exist, undefined is returned.
    */
-  async retrieveCheCaCert(cheNamespace: string): Promise<string> {
+  async retrieveCheCaCert(cheNamespace: string): Promise<string | undefined> {
     const cheCaSecret = await this.kube.getSecret(CHE_ROOT_CA_SECRET_NAME, cheNamespace)
     if (!cheCaSecret) {
-      throw new Error('Che CA self-signed certificate not found. Are you using self-signed certificate?')
+      return
     }
 
     if (cheCaSecret.data && cheCaSecret.data['ca.crt']) {

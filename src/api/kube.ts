@@ -1146,7 +1146,6 @@ export class KubeHelper {
           yamlCr.spec.k8s.tlsSecretName = 'che-tls'
         }
       }
-      yamlCr.spec.server.selfSignedCert = flags['self-signed-cert']
       if (flags.domain) {
         yamlCr.spec.k8s.ingressDomain = flags.domain
       }
@@ -1789,6 +1788,26 @@ export class KubeHelper {
       } else {
         return
       }
+    } catch {
+      return
+    }
+  }
+
+  /**
+   * Creates a secret with given name and data.
+   * Data should not be base64 encoded.
+   */
+  async createSecret(name: string, data: {[key: string]: string}, namespace: string): Promise<V1Secret | undefined> {
+    const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
+
+    const secret = new V1Secret()
+    secret.metadata = new V1ObjectMeta()
+    secret.metadata.name = name
+    secret.metadata.namespace = namespace
+    secret.stringData = data
+
+    try {
+      return (await k8sCoreApi.createNamespacedSecret(namespace, secret)).body
     } catch {
       return
     }
