@@ -22,7 +22,7 @@ describe('Eclipse Che deploy test suite', () => {
     test
       .stdout({ print: true })
       .stderr({ print: true })
-      .command(['server:start', '--platform=minikube', '--che-operator-cr-patch-yaml=test/e2e/util/cr-test.yaml', '--tls', '--self-signed-cert', '--installer=operator', '--skip-cluster-availability-check'])
+      .command(['server:start', '--platform=minikube', '--che-operator-cr-patch-yaml=test/e2e/util/cr-test.yaml', '--tls', '--installer=operator', '--skip-cluster-availability-check'])
       .exit(0)
       .it('uses minikube as platform, operator as installer and auth is enabled')
     test

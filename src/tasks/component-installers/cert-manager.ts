@@ -13,7 +13,7 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { CA_CERT_GENERATION_JOB_IMAGE, CERT_MANAGER_NAMESPACE_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
+import { CA_CERT_GENERATION_JOB_IMAGE, CERT_MANAGER_NAMESPACE_NAME, CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
 import { base64Decode } from '../../util'
 import { getMessageImportCaCertIntoBrowser } from '../installers/common-tasks'
 
@@ -170,6 +170,9 @@ export class CertManagerTasks {
           if (cheSecret && cheSecret.data) {
             const cheCaCrt = base64Decode(cheSecret.data['ca.crt'])
             const cheCaCertPath = await this.cheHelper.saveCheCaCert(cheCaCrt)
+
+            // We need to put self-signed CA certificate seprately into CHE_ROOT_CA_SECRET_NAME secret
+            await this.kubeHelper.createSecret(CHE_ROOT_CA_SECRET_NAME, { 'ca.crt': cheCaCrt }, flags.chenamespace)
 
             ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(cheCaCertPath))
             task.title = `${task.title}... is exported to ${cheCaCertPath}`

@@ -17,7 +17,7 @@ import { CatalogSource, Subscription } from '../../api/typings/olm'
 import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_IMAGE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, KUBERNETES_OLM_CATALOG, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, SUBSCRIPTION_NAME } from '../../constants'
 import { isKubernetesPlatformFamily } from '../../util'
 
-import { checkTlsCertificate, copyOperatorResources, createEclipseCheCluster, createNamespaceTask } from './common-tasks'
+import { copyOperatorResources, createEclipseCheCluster, createNamespaceTask } from './common-tasks'
 
 export class OLMTasks {
   /**
@@ -32,7 +32,6 @@ export class OLMTasks {
       this.isOlmPreInstalledTask(command, kube),
       copyOperatorResources(flags, command.config.cacheDir),
       createNamespaceTask(flags),
-      checkTlsCertificate(flags),
       {
         title: 'Create operator group',
         task: async (_ctx: any, task: any) => {
