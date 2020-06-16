@@ -19,7 +19,7 @@ import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { CHE_TLS_SECRET_NAME } from '../../constants'
+import { CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
 import { CertManagerTasks } from '../../tasks/component-installers/cert-manager'
 import { generatePassword, isStableVersion } from '../../util'
 
@@ -78,25 +78,28 @@ export class HelmTasks {
       {
         title: 'Check Eclipse Che TLS certificate',
         task: async (ctx: any, task: any) => {
-          const cheTlsSecret = await this.kubeHelper.getSecret(CHE_TLS_SECRET_NAME, flags.chenamespace)
-
           const fixErrorMessage = 'Helm installer generates secrets automatically. To fix the problem delete existed secrets in dedicated for Eclispe Che namespace and rerun the command.'
-          if (cheTlsSecret && cheTlsSecret.data) {
-            if (!cheTlsSecret.data['tls.crt'] || !cheTlsSecret.data['tls.key']) {
-              throw new Error('"che-tls" secret is found but it is invalid. The valid self-signed certificate should contain "tls.crt" and "tls.key" entries. ' + fixErrorMessage)
+
+          const cheTlsSecret = await this.kubeHelper.getSecret(CHE_TLS_SECRET_NAME, flags.chenamespace)
+          if (cheTlsSecret) {
+            if (!cheTlsSecret.data || !cheTlsSecret.data['tls.crt'] || !cheTlsSecret.data['tls.key']) {
+              throw new Error('"che-tls" secret is found but it is invalid. The valid secret should contain "tls.crt" and "tls.key" entries. ' + fixErrorMessage)
             }
-            if (flags['self-signed-cert'] && !cheTlsSecret.data['ca.crt']) {
-              throw new Error(`"ca.crt" should be present in ${CHE_TLS_SECRET_NAME} secret in case of using self-signed certificate with helm installer. ${fixErrorMessage}`)
+            const selfSignedCertSecret = await this.kubeHelper.getSecret(CHE_ROOT_CA_SECRET_NAME, flags.chenamespace)
+            if (selfSignedCertSecret && (!selfSignedCertSecret.data || !selfSignedCertSecret.data['ca.crt'])) {
+              throw new Error(`"ca.crt" should be present in ${CHE_ROOT_CA_SECRET_NAME} secret in case of using self-signed certificate with helm installer. ${fixErrorMessage}`)
             }
 
             ctx.cheCertificateExists = true
 
-            task.title = `${task.title}...self-signed certificate secret found`
+            if (selfSignedCertSecret) {
+              task.title = `${task.title}...self-signed TLS certificate secret found`
+            } else {
+              task.title = `${task.title}...TLS certificate secret found`
+            }
           } else {
             // TLS certificate for Eclipse Che hasn't been added into the cluster manually, so we need to take care about it automatically
             ctx.cheCertificateExists = false
-            // Set self-signed certificate flag to true as we are going to generate one
-            flags['self-signed-cert'] = true
 
             task.title = `${task.title}...going to generate self-signed one`
 
@@ -312,9 +315,8 @@ error: E_COMMAND_FAILED`)
       tlsFlag = `-f ${destDir}values/tls.yaml`
     }
 
-    if (flags['self-signed-cert']) {
-      setOptions.push('--set global.tls.useSelfSignedCerts=true')
-    }
+    const selfSignedCertSecretExists = !! await this.kubeHelper.getSecret(CHE_TLS_SECRET_NAME, flags.chenamespace)
+    setOptions.push(`--set global.tls.useSelfSignedCerts=${selfSignedCertSecretExists}`)
 
     if (flags['plugin-registry-url']) {
       setOptions.push(`--set che.workspace.pluginRegistryUrl=${flags['plugin-registry-url']} --set chePluginRegistry.deploy=false`)
