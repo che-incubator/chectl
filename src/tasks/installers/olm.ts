@@ -52,7 +52,7 @@ export class OLMTasks {
 
           ctx.approvalStarategy = flags['auto-update'] ? 'Automatic' : 'Manual'
 
-          ctx.sourceName = CUSTOM_CATALOG_SOURCE_NAME
+          ctx.sourceName = flags['catalog-source-name'] || CUSTOM_CATALOG_SOURCE_NAME
 
           task.title = `${task.title}...done.`
         }
@@ -80,10 +80,11 @@ export class OLMTasks {
             task.title = `${task.title}...It already exists.`
           } else {
             let subscription: Subscription
-            if (!flags['catalog-source-yaml']) {
+            if (!flags['catalog-source-yaml'] && !flags['catalog-source-name']) {
               subscription = this.createSubscription(SUBSCRIPTION_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, flags['starting-csv'])
             } else {
-              subscription = this.createSubscription(SUBSCRIPTION_NAME, flags['package-manifest-name'], flags.chenamespace, flags.chenamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, flags['starting-csv'])
+              const catalogSourceNamespace = flags['catalog-source-namespace'] || flags.chenamespace
+              subscription = this.createSubscription(SUBSCRIPTION_NAME, flags['package-manifest-name'], flags.chenamespace, catalogSourceNamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, flags['starting-csv'])
             }
             await kube.createOperatorSubscription(subscription)
             task.title = `${task.title}...created new one.`
