@@ -415,7 +415,7 @@ export default class Start extends Command {
    */
   async setDefaultInstaller(flags: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
-    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isStableVersion(flags) && kubeHelper.isPreInstalledOLM()) {
+    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isStableVersion(flags) && await kubeHelper.isPreInstalledOLM()) {
       flags.installer = 'olm'
     } else {
       flags.installer = 'operator'
