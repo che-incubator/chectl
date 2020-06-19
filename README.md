@@ -357,6 +357,14 @@ OPTIONS
       command.
                            This parameter is used only when the installer is 'olm'.
 
+  --catalog-source-name=catalog-source-name
+      OLM catalog source to install Eclipse Che operator.
+                           This parameter is used only when the installer is the 'olm'.
+
+  --catalog-source-namespace=catalog-source-namespace
+      Namespace for OLM catalog source to install Eclipse Che operator.
+                           This parameter is used only when the installer is the 'olm'.
+
   --catalog-source-yaml=catalog-source-yaml
       Path to a yaml file that describes custom catalog source for installation Eclipse Che operator.
                            Catalog source will be applied to the namespace with Che operator.
