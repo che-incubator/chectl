@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
 import { Cluster, Context } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
@@ -225,6 +225,16 @@ export class KubeHelper {
     }
   }
 
+  async getClusterRole(name: string): Promise<V1ClusterRole | undefined> {
+    const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
+    try {
+      const { body } = await k8sRbacAuthApi.readClusterRole(name)
+      return body
+    } catch {
+      return
+    }
+  }
+
   async createRoleFromFile(filePath: string, namespace = '') {
     const yamlRole = this.safeLoadFromYamlFile(filePath) as V1Role
     const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
@@ -288,6 +298,30 @@ export class KubeHelper {
         return e.response.statusCode
       } else {
         throw this.wrapK8sClientError(e)
+      }
+    }
+  }
+
+  async addClusterRoleRule(name: string, apiGroups: string[], resources: string[], verbs: string[]): Promise<V1ClusterRole | undefined> {
+    const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
+    const clusterRole = await this.getClusterRole(name)
+    if (clusterRole) {
+      // Clean up metadata, otherwise replace role call will fail
+      clusterRole.metadata = {}
+      clusterRole.metadata.name = name
+
+      // Add new policy
+      const additionaRule = new V1PolicyRule()
+      additionaRule.apiGroups = apiGroups
+      additionaRule.resources = resources
+      additionaRule.verbs = verbs
+      clusterRole.rules.push(additionaRule)
+
+      try {
+        const { body } = await k8sRbacAuthApi.replaceClusterRole(name, clusterRole)
+        return body
+      } catch {
+        return
       }
     }
   }
@@ -510,6 +544,26 @@ export class KubeHelper {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
       const res = await k8sCoreApi.readNamespacedPod(podName, namespace)
+      if (res && res.body) {
+        return res.body
+      }
+    } catch {
+      return
+    }
+  }
+
+  async patchNamespacedPod(name: string, namespace: string, patch: any): Promise<V1Pod | undefined> {
+    const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
+
+    // It is required to patch content-type, otherwise request will be rejected with 415 (Unsupported media type) error.
+    const requestOptions = {
+      headers: {
+        'content-type': 'application/strategic-merge-patch+json'
+      }
+    }
+
+    try {
+      const res = await k8sCoreApi.patchNamespacedPod(name, namespace, patch, undefined, undefined, requestOptions)
       if (res && res.body) {
         return res.body
       }
