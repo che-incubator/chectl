@@ -99,15 +99,16 @@ export class MinikubeTasks {
         // To workaround the bug, it is required to patch storage provisioner as well as its permissions.
         title: 'Patch minikube storage',
         enabled: ctx => ctx.minikubeVersionMajor && ctx.minikubeVersionMinor &&
-          ctx.minikubeVersionMajor === 1 && ctx.minikubeVersionMinor >= 9 && ctx.minikubeVersionMinor <= 11,
+          ctx.minikubeVersionMajor === 1 && ctx.minikubeVersionMinor >= 9,
         task: async (_ctx: any, task: any) => {
           // Patch storage provisioner pod to the latest version
+          const storageProvisionerImage = 'gcr.io/k8s-minikube/storage-provisioner@sha256:bb22ad560924f0f111eb30ffc2dc1315736ab09979c5e77ff9d7d3737f671ca0'
           const storageProvisionerImagePatch = {
             apiVersion: 'v1',
             kind: 'Pod',
             spec: {
               containers: [
-                { name: 'storage-provisioner', image: 'gcr.io/k8s-minikube/storage-provisioner:latest' }
+                { name: 'storage-provisioner', image: storageProvisionerImage }
               ]
             }
           }
