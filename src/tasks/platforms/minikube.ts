@@ -13,6 +13,7 @@ import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
 
+import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 
 import { CommonPlatformTasks } from './common-platform-tasks'
@@ -22,6 +23,7 @@ export class MinikubeTasks {
    * Returns tasks list which perform preflight platform checks.
    */
   preflightCheckTasks(flags: any, command: Command): Listr {
+    const kube = new KubeHelper(flags)
     return new Listr([
       {
         title: 'Verify if kubectl is installed',
@@ -79,6 +81,50 @@ export class MinikubeTasks {
           task.title = `${task.title}...${flags.domain}.`
         }
       },
+      {
+        title: 'Checking minikube version',
+        task: async (ctx: any, task: any) => {
+          const version = await this.getMinikbeVersion()
+          const versionComponents = version.split('.')
+          ctx.minikubeVersionMajor = parseInt(versionComponents[0], 10)
+          ctx.minikubeVersionMinor = parseInt(versionComponents[1], 10)
+          ctx.minikubeVersionPatch = parseInt(versionComponents[2], 10)
+
+          task.title = `${task.title}... ${version}`
+        }
+      },
+      {
+        // Starting from Minikube 1.9 there is a bug with storage provisioner which prevents Che from successful deployment.
+        // For more details see https://github.com/kubernetes/minikube/issues/7218
+        // To workaround the bug, it is required to patch storage provisioner as well as its permissions.
+        title: 'Patch minikube storage',
+        enabled: ctx => ctx.minikubeVersionMajor && ctx.minikubeVersionMinor &&
+          ctx.minikubeVersionMajor === 1 && ctx.minikubeVersionMinor >= 9,
+        task: async (_ctx: any, task: any) => {
+          // Patch storage provisioner pod to the latest version
+          const storageProvisionerImage = 'gcr.io/k8s-minikube/storage-provisioner@sha256:bb22ad560924f0f111eb30ffc2dc1315736ab09979c5e77ff9d7d3737f671ca0'
+          const storageProvisionerImagePatch = {
+            apiVersion: 'v1',
+            kind: 'Pod',
+            spec: {
+              containers: [
+                { name: 'storage-provisioner', image: storageProvisionerImage }
+              ]
+            }
+          }
+          if (! await kube.patchNamespacedPod('storage-provisioner', 'kube-system', storageProvisionerImagePatch)) {
+            throw new Error('Failed to patch storage provisioner image')
+          }
+
+          // Set required permissions for cluster role of persistent volume provisioner
+          if (! await kube.addClusterRoleRule('system:persistent-volume-provisioner',
+                                              [''], ['endpoints'], ['get', 'list', 'watch', 'create', 'patch', 'update'])) {
+            throw new Error('Failed to patch permissions for persistent-volume-provisioner')
+          }
+
+          task.title = `${task.title}... done`
+        }
+      },
       CommonPlatformTasks.getPingClusterTask(flags)
     ], { renderer: flags['listr-renderer'] as any })
   }
@@ -104,6 +150,13 @@ export class MinikubeTasks {
   async getMinikubeIP(): Promise<string> {
     const { stdout } = await execa('minikube', ['ip'], { timeout: 10000 })
     return stdout
+  }
+
+  async getMinikbeVersion(): Promise<string> {
+    const { stdout } = await execa('minikube', ['version'], { timeout: 10000 })
+    const versionLine = stdout.split('\n')[0]
+    const versionString = versionLine.trim().split(' ')[2].substr(1)
+    return versionString
   }
 
 }
