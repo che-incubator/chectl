@@ -100,8 +100,8 @@ export class InstallerTasks {
         return operatorTasks.startTasks(flags, command)
       }
     } else if (flags.installer === 'olm') {
-      title = '🏃‍  Running Olm installaion Eclipse Che'
-      // The olm installs Eclipse Che in multiuser mode by default
+      title = '🏃‍  Running OLM installation of Eclipse Che'
+      // The OLM installs Eclipse Che in multiuser mode by default
       if (!flags.multiuser) {
         flags.multiuser = true
       }
