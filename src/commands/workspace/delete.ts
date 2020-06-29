@@ -20,7 +20,7 @@ import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 
 export default class Delete extends Command {
-  static description = 'delete a user\'s workspace'
+  static description = 'delete a stopped workspace - use workspace:stop to stop the workspace before deleting it'
 
   static flags = {
     help: flags.help({ char: 'h' }),
