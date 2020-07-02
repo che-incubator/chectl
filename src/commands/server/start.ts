@@ -122,11 +122,11 @@ export default class Start extends Command {
       default: DEFAULT_CHE_OPERATOR_IMAGE
     }),
     'che-operator-cr-yaml': string({
-      description: 'Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer is the operator.',
+      description: 'Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer is the \'operator\' or the \'olm\'.',
       default: ''
     }),
     'che-operator-cr-patch-yaml': string({
-      description: 'Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used only when the installer is the operator.',
+      description: 'Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used only when the installer is the \'operator\' or the \'olm\'.',
       default: ''
     }),
     directory: string({

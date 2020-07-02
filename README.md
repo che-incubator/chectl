@@ -373,11 +373,11 @@ OPTIONS
 
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
       Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used 
-      only when the installer is the operator.
+      only when the installer is the 'operator' or the 'olm'.
 
   --che-operator-cr-yaml=che-operator-cr-yaml
       Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer 
-      is the operator.
+      is the 'operator' or the 'olm'.
 
   --che-operator-image=che-operator-image
       [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when 
