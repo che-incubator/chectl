@@ -315,7 +315,7 @@ error: E_COMMAND_FAILED`)
       tlsFlag = `-f ${destDir}values/tls.yaml`
     }
 
-    const selfSignedCertSecretExists = !! await this.kubeHelper.getSecret(CHE_TLS_SECRET_NAME, flags.chenamespace)
+    const selfSignedCertSecretExists = !! await this.kubeHelper.getSecret(CHE_ROOT_CA_SECRET_NAME, flags.chenamespace)
     setOptions.push(`--set global.tls.useSelfSignedCerts=${selfSignedCertSecretExists}`)
 
     if (flags['plugin-registry-url']) {
