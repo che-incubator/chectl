@@ -12,7 +12,7 @@
 
 set -e -x
 
-#Stop execution on any error
+# Stop execution on any error
 trap "catchFinish" EXIT SIGINT
 
 # Catch_Finish is executed after finish script.
@@ -44,7 +44,7 @@ init() {
   fi
 }
 
-# Function to get all logs and events from che deployments
+# Function to get all logs and events from Che deployments
 getCheClusterLogs() {
   mkdir -p ${ARTIFACTS_DIR}/che-logs
   cd ${ARTIFACTS_DIR}/che-logs
@@ -61,7 +61,7 @@ getCheClusterLogs() {
 }
 
 run() {
-  #Before to start to run the e2e tests we need to install all deps with yarn
+  # Before to start to run the e2e tests we need to install all deps with yarn
   yarn --cwd ${CHECTL_REPO}
 
   printInfo "Running e2e tests on openshift platform."
