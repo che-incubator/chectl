@@ -13,7 +13,7 @@ import * as execa from 'execa'
 import { E2eHelper } from './util/e2e'
 
 const helper = new E2eHelper()
-jest.setTimeout(600000)
+jest.setTimeout(1000000)
 
 const PLATFORM = 'openshift'
 const binChectl = `${process.cwd()}/bin/run`
