@@ -20,25 +20,28 @@ const binChectl = `${process.cwd()}/bin/run`
 
 describe('Eclipse Che deploy test suite', () => {
   describe('server:start using operator and self signed certificates', () => {
-    test
-      .stdout({ print: true })
-      .stderr({ print: true })
-      .command(['server:start', '--platform=minishift', '--che-operator-cr-patch-yaml=test/e2e/util/cr-test.yaml', '--tls', '--installer=operator'])
-      .exit(0)
-      .it('uses minishift as platform, operator as installer and auth is enabled')
+    it('server:start using operator and self signed certificates', async () => {
+      const command = `${binChectl} server:start --platform=minishift --che-operator-cr-patch-yaml=test/e2e/util/cr-test.yaml --tls --installer=operator`
+      const { exitCode, stdout, stderr } = await execa(command, { shell: true })
+
+      expect(exitCode).equal(0)
+      console.log(stdout)
+
+      if (exitCode !== 0) {
+        console.log(stderr)
+      }
+    })
   })
-  describe('Obtain access_token from keycloak and set it like environment variable', () => {
-    test
-      .it('Obtain access_token from keycloak and set it like environment variable.', async () => {
-        try {
-          const token = await helper.getAccessToken(PLATFORM)
-          process.env.CHE_ACCESS_TOKEN = token
-          console.log(token)
-        } catch (error) {
-          console.log(error)
-        }
-      })
-  })
+  test
+    .it('Obtain access_token from keycloak and set it like environment variable.', async () => {
+      try {
+        const token = await helper.getAccessToken(PLATFORM)
+        process.env.CHE_ACCESS_TOKEN = token
+        console.log(token)
+      } catch (error) {
+        console.log(error)
+      }
+    })
 })
 
 describe('Export CA certificate', () => {
