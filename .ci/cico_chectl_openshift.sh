@@ -12,10 +12,29 @@
 
 set -e -x
 
+#Stop execution on any error
+trap "catchFinish" EXIT SIGINT
+
+# Catch_Finish is executed after finish script.
+catchFinish() {
+  result=$?
+  if [ "$result" != "0" ]; then
+    echo "Failed on running tests. Please check logs or contact QE team (e-mail:codereadyqe-workspaces-qe@redhat.com, Slack: #che-qe-internal, Eclipse mattermost: 'Eclipse Che QE'"
+    echo "Logs should be availabe on /tmp/artifacts/che-logs"
+    getCheClusterLogs
+    exit 1
+  fi
+  exit $result
+}
+
+# Setup all necessary environments needed by e2e and Openshift CI
 init() {
   export SCRIPT=$(readlink -f "$0")
   export SCRIPT_DIR=$(dirname "$SCRIPT")
-  export PROFILE=chectl-e2e-tests
+
+  # Env necessary for openshift CI to put che logs inside
+  export ARTIFACTS_DIR="/tmp/artifacts"
+  export NAMESPACE="che"
 
   # Environment to define the project absolute path.
   if [[ ${WORKSPACE} ]] && [[ -d ${WORKSPACE} ]]; then
@@ -23,6 +42,22 @@ init() {
   else
     export CHECTL_REPO=$(dirname "$SCRIPT_DIR");
   fi
+}
+
+# Function to get all logs and events from che deployments
+getCheClusterLogs() {
+  mkdir -p ${ARTIFACTS_DIR}/che-logs
+  cd ${ARTIFACTS_DIR}/che-logs
+  for POD in $(oc get pods -o name -n ${NAMESPACE}); do
+    for CONTAINER in $(oc get -n ${NAMESPACE} ${POD} -o jsonpath="{.spec.containers[*].name}"); do
+      echo ""
+      echo "<=========================Getting logs from $POD==================================>"
+      echo ""
+      oc logs ${POD} -c ${CONTAINER} -n ${NAMESPACE} | tee $(echo ${POD}-${CONTAINER}.log | sed 's|pod/||g')
+    done
+  done
+  echo "======== oc get events ========"
+  oc get events -n ${NAMESPACE}| tee get_events.log
 }
 
 run() {
@@ -34,6 +69,4 @@ run() {
 }
 
 init
-
-source ${CHECTL_REPO}/.ci/cico_common.sh
 run
