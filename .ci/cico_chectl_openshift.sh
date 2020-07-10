@@ -64,7 +64,7 @@ run() {
   # Before to start to run the e2e tests we need to install all deps with yarn
   yarn --cwd ${CHECTL_REPO}
 
-  printInfo "Running e2e tests on openshift platform."
+  echo "[INFO] Running e2e tests on openshift platform."
   yarn test --coverage=false --forceExit --testRegex=${CHECTL_REPO}/test/e2e/minikube.test.ts
 }
 
