@@ -79,7 +79,7 @@ run() {
   yarn --cwd ${CHECTL_REPO}
 
   source ${CHECTL_REPO}/.ci/start-minikube.sh
-
+  # TEST
   sleep 60
   printInfo "Running e2e tests on minikube platform."
   yarn test --coverage=false --forceExit --testRegex=${CHECTL_REPO}/test/e2e/minikube.test.ts
