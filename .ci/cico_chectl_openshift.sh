@@ -65,7 +65,7 @@ run() {
   yarn --cwd ${CHECTL_REPO}
 
   echo "[INFO] Running e2e tests on openshift platform."
-  yarn test --coverage=false --forceExit --testRegex=${CHECTL_REPO}/test/e2e/minikube.test.ts
+  yarn test --coverage=false --forceExit --testRegex=${CHECTL_REPO}/test/e2e/openshift.test.ts
 }
 
 init
