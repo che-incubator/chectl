@@ -36,6 +36,7 @@ fail_trap() {
   result=$?
   if [ "$result" != "0" ]; then
     printError "Please check CI fail.Cleaning up minikube and minishift..."
+    getCheClusterLogs
   fi
   cleanup
   exit $result
@@ -55,6 +56,22 @@ install_utilities() {
   setup_kvm_machine_driver
   install_node_deps
   installStartDocker
+}
+
+# Function to get all logs and events from Che deployments
+getCheClusterLogs() {
+  mkdir -p /root/payload/report/che-logs
+  cd /root/payload/report/che-logs
+  for POD in $(kubectl get pods -o name -n ${NAMESPACE}); do
+    for CONTAINER in $(kubectl get -n ${NAMESPACE} ${POD} -o jsonpath="{.spec.containers[*].name}"); do
+      echo ""
+      echo "<=========================Getting logs from $POD==================================>"
+      echo ""
+      kubectl logs ${POD} -c ${CONTAINER} -n ${NAMESPACE} | tee $(echo ${POD}-${CONTAINER}.log | sed 's|pod/||g')
+    done
+  done
+  echo "======== oc get events ========"
+  kubectl get events -n ${NAMESPACE}| tee get_events.log
 }
 
 run() {
