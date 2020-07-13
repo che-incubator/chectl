@@ -1292,6 +1292,10 @@ export class KubeHelper {
         await customObjectsApi.deleteNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', cr.metadata.name, options)
       }
     } catch (e) {
+      if (e.response.statusCode === 404) {
+        // There is no CRD 'checlusters`
+        return
+      }
       throw this.wrapK8sClientError(e)
     }
   }
