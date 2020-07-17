@@ -1540,15 +1540,15 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-minishift@git://github.com/minishift/minishift#master":
   version "0.0.0"
-  resolved "git://github.com/minishift/minishift#c50597deacee626c655d8207642b343ba10839c1"
+  resolved "git://github.com/minishift/minishift#015bd7f9ec73ff38bbd8e7faa66f9ab60c5cabf6"
 
-"eclipse-che-operator@git://github.com/eclipse/che-operator#master":
+"eclipse-che-operator@git://github.com/eclipse/che-operator#7.16.0":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che-operator#fdb32622d63fba3895e173d1624dc66512375d57"
+  resolved "git://github.com/eclipse/che-operator#d6cd6ef3e1fed58d2a0c06c22852117e5a7c735e"
 
-"eclipse-che@git://github.com/eclipse/che#master":
+"eclipse-che@git://github.com/eclipse/che#7.16.0":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che#7cf97838a4492f4b20327adf0cba5f4c8033fbd7"
+  resolved "git://github.com/eclipse/che#8b14d27e9e34aba75274d16bcdadea078a4bffb6"
 
 editorconfig@^0.15.0:
   version "0.15.3"
