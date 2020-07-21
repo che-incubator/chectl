@@ -37,7 +37,7 @@
     "listr-verbose-renderer": "^0.6.0",
     "lodash": "^4.17.19",
     "mkdirp": "^1.0.4",
-    "node-notifier": "^6.0.0",
+    "node-notifier": "^7.0.2",
     "tslib": "^1"
   },
   "devDependencies": {
