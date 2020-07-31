@@ -56,6 +56,7 @@ export default class Delete extends Command {
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.retrieveEclipseCheUrl(flags))
     tasks.add(cheTasks.checkEclipseCheStatus())
+
     tasks.add({
       title: `Get workspace by id '${args.workspace}'`,
       task: async (ctx, task) => {
