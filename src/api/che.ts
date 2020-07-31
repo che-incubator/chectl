@@ -547,7 +547,7 @@ export class CheHelper {
   async getWorkspace(cheUrl: string, workspaceId: string, accessToken = ''): Promise<any> {
     const endpoint = `${cheUrl}/api/workspace/${workspaceId}`
     const headers: any = { 'Content-Type': 'text/yaml' }
-    if (accessToken && accessToken.length > 0) {
+    if (accessToken) {
       headers.Authorization = `${accessToken}`
     }
 
@@ -555,6 +555,9 @@ export class CheHelper {
       const response = await this.axios.get(endpoint, { headers })
       return response.data
     } catch (error) {
+      if (error.response.status === 404) {
+        throw new Error(`Workspace ${workspaceId} not found. Please use the command workspace:list to get list of the existed workspaces.`)
+      }
       throw this.getCheApiError(error, endpoint)
     }
   }
@@ -572,8 +575,10 @@ export class CheHelper {
     try {
       await this.axios.delete(endpoint, { headers })
     } catch (error) {
-      if (error.response.status === 409) {
-        throw new Error(`Workspace '${workspaceId}' not found`)
+      if (error.response.status === 404) {
+        throw new Error(`Workspace ${workspaceId} not found. Please use the command workspace:list to get list of the existed workspaces.`)
+      } else if (error.response.status === 409) {
+        throw new Error('Cannot delete a running workspace. Please stop it using the command workspace:stop and try again')
       }
       throw this.getCheApiError(error, endpoint)
     }
@@ -629,7 +634,7 @@ export class CheHelper {
     return fileName
   }
 
-  private getCheApiError(error: any, endpoint: string): Error {
+  getCheApiError(error: any, endpoint: string): Error {
     if (error.response) {
       const status = error.response.status
       if (status === 403) {
