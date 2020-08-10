@@ -12,3 +12,4 @@
 spec:
   auth:
     updateAdminPassword: false
+    openShiftoAuth: false
