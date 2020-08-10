@@ -122,7 +122,7 @@ EXAMPLES
   $ chectl autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.5/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.2.0/src/commands/autocomplete/index.ts)_
 
 ## `chectl cacert:export`
 
@@ -302,7 +302,7 @@ USAGE
 
 OPTIONS
   -a, --installer=helm|operator|olm|minishift-addon
-      Installer type
+      [default: operator] Installer type.
 
   -b, --domain=domain
       Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
@@ -407,9 +407,6 @@ OPTIONS
                            If options was not set, will be used default version for package manifest.
                            This parameter is used only when the installer is the 'olm'.
 
-  --os-oauth
-      Enable use of OpenShift credentials to log into Eclipse Che
-
   --package-manifest-name=package-manifest-name
       Package manifest name to subscribe to Eclipse Che OLM package manifest.
                            This parameter is used only when the installer is the 'olm'.
@@ -483,7 +480,10 @@ USAGE
   $ chectl server:update
 
 OPTIONS
-  -a, --installer=helm|operator|minishift-addon|olm                            Installer type
+  -a, --installer=operator|olm                                                 Installer type. If not set, default is
+                                                                               autodetected depending on previous
+                                                                               installation.
+
   -h, --help                                                                   show CLI help
 
   -n, --chenamespace=chenamespace                                              [default: che] Kubernetes namespace where
@@ -560,7 +560,7 @@ _See code: [src/commands/workspace/create.ts](https://github.com/che-incubator/c
 
 ## `chectl workspace:delete WORKSPACE`
 
-delete a user's workspace
+delete a stopped workspace - use workspace:stop to stop the workspace before deleting it
 
 ```
 USAGE

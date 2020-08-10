@@ -88,12 +88,12 @@ export namespace CommonPlatformTasks {
         if (await kube.isOpenShift4()) {
           const providers = await kube.getOpenshiftAuthProviders()
           if (!providers || providers.length === 0) {
-            ctx.highlightedMessages.push(`❗ ${ansi.yellow('[WARNING]')} 'os-oauth' flag was disabled, because Openshift oauth hasn't got any identity providers. ${DOCS_LINK_HOW_TO_ADD_IDENTITY_PROVIDER_OS4}`)
+            ctx.highlightedMessages.push(`❗ ${ansi.yellow('[WARNING]')} OpenShift OAuth is turned off, because there is no any identity providers configured. ${DOCS_LINK_HOW_TO_ADD_IDENTITY_PROVIDER_OS4}`)
             ctx.CROverrides = { spec: { auth: { openShiftoAuth: false } } }
           }
         } else {
           if (await kube.getAmoutUsers() === 0) {
-            ctx.highlightedMessages.push(`❗ ${ansi.yellow('[WARNING]')} 'os-oauth' flag was disabled, because Openshift oauth hasn't got any users. See: "${DOCS_LINK_HOW_TO_CREATE_USER_OS3}"`)
+            ctx.highlightedMessages.push(`❗ ${ansi.yellow('[WARNING]')} OpenShift OAuth is turned off, because there are no any users added. See: "${DOCS_LINK_HOW_TO_CREATE_USER_OS3}"`)
             ctx.CROverrides = { spec: { auth: { openShiftoAuth: false } } }
           }
         }
@@ -127,6 +127,6 @@ export namespace CommonPlatformTasks {
       }
     }
 
-    return flags['os-oauth'] ? true : false
+    return true
   }
 }

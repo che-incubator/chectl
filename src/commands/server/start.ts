@@ -114,10 +114,6 @@ export default class Start extends Command {
       description: 'Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use \'server:debug\' command.',
       default: false
     }),
-    'os-oauth': flags.boolean({
-      description: 'Enable use of OpenShift credentials to log into Eclipse Che',
-      default: false
-    }),
     'che-operator-image': string({
       description: 'Container image of the operator. This parameter is used only when the installer is the operator',
       default: DEFAULT_CHE_OPERATOR_IMAGE
@@ -258,7 +254,6 @@ export default class Start extends Command {
       flags['devfile-registry-url'] && ignoredFlags.push('--devfile-registry-url')
       flags['postgres-pvc-storage-class-name'] && ignoredFlags.push('--postgres-pvc-storage-class-name')
       flags['workspace-pvc-storage-class-name'] && ignoredFlags.push('--workspace-pvc-storage-class-name')
-      flags['os-oauth'] && ignoredFlags.push('--os-oauth')
       flags.tls && ignoredFlags.push('--tls')
       flags.cheimage && ignoredFlags.push('--cheimage')
       flags.debug && ignoredFlags.push('--debug')
@@ -282,14 +277,6 @@ export default class Start extends Command {
       } else if (flags.installer === 'helm') {
         if (flags.platform !== 'k8s' && flags.platform !== 'minikube' && flags.platform !== 'microk8s' && flags.platform !== 'docker-desktop') {
           this.error(`🛑 Current platform is ${flags.platform}. Helm installer is only available on top of Kubernetes flavor platform (including Minikube, Docker Desktop).`)
-        }
-      }
-      if (flags['os-oauth']) {
-        if (flags.platform !== 'openshift' && flags.platform !== 'minishift' && flags.platform !== 'crc') {
-          this.error(`You requested to enable OpenShift OAuth but the platform doesn\'t seem to be OpenShift. Platform is ${flags.platform}.`)
-        }
-        if (flags.installer !== 'operator' && flags.installer !== 'olm') {
-          this.error(`You requested to enable OpenShift OAuth but that's only possible when using the 'operator' or 'olm' as installer. The current installer is ${flags.installer}.`)
         }
       }
 

@@ -21,7 +21,7 @@ import * as net from 'net'
 import { Writable } from 'stream'
 
 import { CHE_CLUSTER_CRD, DEFAULT_CHE_IMAGE, OLM_STABLE_CHANNEL_NAME } from '../constants'
-import { getClusterClientCommand } from '../util'
+import { getClusterClientCommand, isKubernetesPlatformFamily } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
 import { CatalogSource, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './typings/olm'
@@ -832,11 +832,11 @@ export class KubeHelper {
   }
 
   async createDeployment(name: string,
-                         image: string,
-                         serviceAccount: string,
-                         pullPolicy: string,
-                         configMapEnvSource: string,
-                         namespace: string) {
+    image: string,
+    serviceAccount: string,
+    pullPolicy: string,
+    configMapEnvSource: string,
+    namespace: string) {
     const k8sAppsApi = KubeHelper.KUBE_CONFIG.makeApiClient(AppsV1Api)
     let deployment = new V1Deployment()
     deployment.metadata = new V1ObjectMeta()
@@ -953,12 +953,12 @@ export class KubeHelper {
   }
 
   async createPod(name: string,
-                  image: string,
-                  serviceAccount: string,
-                  restartPolicy: string,
-                  pullPolicy: string,
-                  configMapEnvSource: string,
-                  namespace: string) {
+    image: string,
+    serviceAccount: string,
+    restartPolicy: string,
+    pullPolicy: string,
+    configMapEnvSource: string,
+    namespace: string) {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     let pod = new V1Pod()
     pod.metadata = new V1ObjectMeta()
@@ -986,11 +986,11 @@ export class KubeHelper {
   }
 
   async createJob(name: string,
-                  image: string,
-                  serviceAccount: string,
-                  namespace: string,
-                  backoffLimit = 0,
-                  restartPolicy = 'Never') {
+    image: string,
+    serviceAccount: string,
+    namespace: string,
+    backoffLimit = 0,
+    restartPolicy = 'Never') {
     const k8sBatchApi = KubeHelper.KUBE_CONFIG.makeApiClient(BatchV1Api)
 
     const job = new V1Job()
@@ -1187,10 +1187,10 @@ export class KubeHelper {
       }
       yamlCr.spec.server.cheDebug = flags.debug ? flags.debug.toString() : 'false'
 
-      yamlCr.spec.auth.openShiftoAuth = flags['os-oauth']
-      if (!yamlCr.spec.auth.openShiftoAuth && flags.multiuser) {
+      if (isKubernetesPlatformFamily(flags.platform) || !yamlCr.spec.auth.openShiftoAuth) {
         yamlCr.spec.auth.updateAdminPassword = true
       }
+
       if (!yamlCr.spec.k8s) {
         yamlCr.spec.k8s = {}
       }
@@ -1855,7 +1855,7 @@ export class KubeHelper {
    * Creates a secret with given name and data.
    * Data should not be base64 encoded.
    */
-  async createSecret(name: string, data: {[key: string]: string}, namespace: string): Promise<V1Secret | undefined> {
+  async createSecret(name: string, data: { [key: string]: string }, namespace: string): Promise<V1Secret | undefined> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
 
     const secret = new V1Secret()
