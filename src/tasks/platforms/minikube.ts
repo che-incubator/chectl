@@ -139,8 +139,18 @@ export class MinikubeTasks {
   }
 
   async isIngressAddonEnabled(): Promise<boolean> {
-    const { stdout } = await execa('minikube', ['addons', 'list'], { timeout: 10000 })
-    if (stdout.includes('ingress: enabled')) { return true } else { return false }
+    // try with json output (recent minikube version)
+    const { stdout, exitCode } = await execa('minikube', ['addons', 'list', '-o', 'json'], { timeout: 10000, reject: false })
+    if (exitCode === 0) {
+      // grab json
+      const json = JSON.parse(stdout)
+      return json.ingress && json.ingress.Status === 'enabled'
+    } else {
+      // probably with old minikube, let's try with classic output
+      const { stdout } = await execa('minikube', ['addons', 'list'], { timeout: 10000 })
+      return stdout.includes('ingress: enabled')
+    }
+
   }
 
   async enableIngressAddon() {
