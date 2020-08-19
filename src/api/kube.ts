@@ -21,7 +21,7 @@ import * as net from 'net'
 import { Writable } from 'stream'
 
 import { CHE_CLUSTER_CRD, DEFAULT_CHE_IMAGE, OLM_STABLE_CHANNEL_NAME } from '../constants'
-import { getClusterClientCommand, isKubernetesPlatformFamily } from '../util'
+import { getClusterClientCommand } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
 import { CatalogSource, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './typings/olm'
@@ -269,9 +269,15 @@ export class KubeHelper {
     }
   }
 
-  async createClusterRoleFromFile(filePath: string) {
+  async createClusterRoleFromFile(filePath: string, roleName?: string) {
     const yamlRole = this.safeLoadFromYamlFile(filePath) as V1ClusterRole
     const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
+    if (!yamlRole.metadata || !yamlRole.metadata.name) {
+      throw new Error(`Cluster Role read from ${filePath} must have name specified`)
+    }
+    if (roleName) {
+      yamlRole.metadata!.name = roleName
+    }
     try {
       const res = await k8sRbacAuthApi.createClusterRole(yamlRole)
       return res.response.statusCode
@@ -284,11 +290,14 @@ export class KubeHelper {
     }
   }
 
-  async replaceClusterRoleFromFile(filePath: string) {
+  async replaceClusterRoleFromFile(filePath: string, roleName?: string) {
     const yamlRole = this.safeLoadFromYamlFile(filePath) as V1ClusterRole
     const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
     if (!yamlRole.metadata || !yamlRole.metadata.name) {
       throw new Error(`Cluster Role read from ${filePath} must have name specified`)
+    }
+    if (roleName) {
+      yamlRole.metadata!.name = roleName
     }
     try {
       const res = await k8sRbacAuthApi.replaceClusterRole(yamlRole.metadata.name, yamlRole)
@@ -832,11 +841,11 @@ export class KubeHelper {
   }
 
   async createDeployment(name: string,
-    image: string,
-    serviceAccount: string,
-    pullPolicy: string,
-    configMapEnvSource: string,
-    namespace: string) {
+                         image: string,
+                         serviceAccount: string,
+                         pullPolicy: string,
+                         configMapEnvSource: string,
+                         namespace: string) {
     const k8sAppsApi = KubeHelper.KUBE_CONFIG.makeApiClient(AppsV1Api)
     let deployment = new V1Deployment()
     deployment.metadata = new V1ObjectMeta()
@@ -953,12 +962,12 @@ export class KubeHelper {
   }
 
   async createPod(name: string,
-    image: string,
-    serviceAccount: string,
-    restartPolicy: string,
-    pullPolicy: string,
-    configMapEnvSource: string,
-    namespace: string) {
+                  image: string,
+                  serviceAccount: string,
+                  restartPolicy: string,
+                  pullPolicy: string,
+                  configMapEnvSource: string,
+                  namespace: string) {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     let pod = new V1Pod()
     pod.metadata = new V1ObjectMeta()
@@ -986,11 +995,11 @@ export class KubeHelper {
   }
 
   async createJob(name: string,
-    image: string,
-    serviceAccount: string,
-    namespace: string,
-    backoffLimit = 0,
-    restartPolicy = 'Never') {
+                  image: string,
+                  serviceAccount: string,
+                  namespace: string,
+                  backoffLimit = 0,
+                  restartPolicy = 'Never') {
     const k8sBatchApi = KubeHelper.KUBE_CONFIG.makeApiClient(BatchV1Api)
 
     const job = new V1Job()
@@ -1096,6 +1105,23 @@ export class KubeHelper {
     }
   }
 
+  async checkCRDUpdate(name: string, yamlFilePath: string) {
+    const { spec: crdFileSpec } = this.safeLoadFromYamlFile(yamlFilePath) as V1beta1CustomResourceDefinition
+    const { spec: crdClusterSpec } = await this.getCrd(name)
+    const { validation: { openAPIV3Schema : { properties: crdFileProps = '' }= {} } = {} } = crdFileSpec
+    const { validation: { openAPIV3Schema : { properties: crdClusterProps = '' }= {} } = {} } = crdClusterSpec
+
+    if (crdFileSpec.version !== crdClusterSpec.version) {
+      throw new Error(`CRD read from ${yamlFilePath} doesn't have the same version with the CRD existed in cluster.`)
+    }
+
+    if (Object.keys(crdFileProps).length !== Object.keys(crdClusterProps).length) {
+      throw new Error(`CRD read from ${yamlFilePath} contain different properties than existed in the cluster. Please update CRD.`)
+    }
+
+    return true
+  }
+
   async ingressExist(name = '', namespace = ''): Promise<boolean> {
     const k8sExtensionsApi = KubeHelper.KUBE_CONFIG.makeApiClient(ExtensionsV1beta1Api)
     try {
@@ -1187,10 +1213,10 @@ export class KubeHelper {
       }
       yamlCr.spec.server.cheDebug = flags.debug ? flags.debug.toString() : 'false'
 
-      if (isKubernetesPlatformFamily(flags.platform) || !yamlCr.spec.auth.openShiftoAuth) {
+      yamlCr.spec.auth.openShiftoAuth = flags['os-oauth']
+      if (!yamlCr.spec.auth.openShiftoAuth && flags.multiuser) {
         yamlCr.spec.auth.updateAdminPassword = true
       }
-
       if (!yamlCr.spec.k8s) {
         yamlCr.spec.k8s = {}
       }
@@ -1855,7 +1881,7 @@ export class KubeHelper {
    * Creates a secret with given name and data.
    * Data should not be base64 encoded.
    */
-  async createSecret(name: string, data: { [key: string]: string }, namespace: string): Promise<V1Secret | undefined> {
+  async createSecret(name: string, data: {[key: string]: string}, namespace: string): Promise<V1Secret | undefined> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
 
     const secret = new V1Secret()
@@ -2081,3 +2107,4 @@ class PatchedK8sAppsApi extends AppsV1Api {
     return returnValue
   }
 }
+s
