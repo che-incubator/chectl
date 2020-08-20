@@ -272,11 +272,14 @@ export class KubeHelper {
   async createClusterRoleFromFile(filePath: string, roleName?: string) {
     const yamlRole = this.safeLoadFromYamlFile(filePath) as V1ClusterRole
     const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
-    if (!yamlRole.metadata || !yamlRole.metadata.name) {
-      throw new Error(`Cluster Role read from ${filePath} must have name specified`)
+    if (!yamlRole.metadata) {
+      yamlRole.metadata = {}
     }
+
     if (roleName) {
-      yamlRole.metadata!.name = roleName
+      yamlRole.metadata.name = roleName
+    } else if (!yamlRole.metadata.name) {
+      throw new Error(`Role name is not specified in ${filePath}`)
     }
     try {
       const res = await k8sRbacAuthApi.createClusterRole(yamlRole)
