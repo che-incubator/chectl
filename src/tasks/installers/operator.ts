@@ -121,7 +121,7 @@ export class OperatorTasks {
           if (exist) {
             const checkCRD = await kube.isCRDEqual(this.cheClusterCrd, yamlFilePath)
             if (!checkCRD) {
-              cli.error(`CRD read from ${yamlFilePath} are not compatible with existed one in cluster. Please update CRD.`)
+              cli.error(`It is not possible to proceed the installation of Eclipse Che. The existed ${this.cheClusterCrd} is different from a new one. Please update it to continue the installation.`)
             }
             task.title = `${task.title}...It already exists.`
           } else {
@@ -219,16 +219,20 @@ export class OperatorTasks {
       {
         title: `Updating ClusterRole ${clusterRoleName}`,
         task: async (ctx: any, task: any) => {
-          const cRoleExist = await kube.clusterRoleExist(this.operatorClusterRole)
-          const defaultCRoleExist = await kube.clusterRoleExist(clusterRoleName)
+        // @cRoleExists checks if cluster-role exist and if yes will update it. Apply when cluster roles are created
+        // by adding the namespace name to the cluster role name EXAMPLE: <namespaceName+clusterRoleName>
+        // @legacyCRoleExists checks if cluster-role exists and if yes will update it. In some previous versions of Eclipse Che installation
+        // cluster-role are created with default name:  che-operator
+          const cRoleExists = await kube.clusterRoleExist(this.operatorClusterRole)
+          const legacyCRoleExists = await kube.clusterRoleExist(clusterRoleName)
           const yamlFilePath = ctx.resourcesPath + 'cluster_role.yaml'
-          if (cRoleExist) {
+          if (cRoleExists) {
             const statusCode = await kube.replaceClusterRoleFromFile(yamlFilePath, clusterRoleName)
             if (statusCode === 403) {
               command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
             }
             task.title = `${task.title}...updated.`
-          } else if (defaultCRoleExist) {
+          } else if (legacyCRoleExists) {
             const statusCode = await kube.replaceClusterRoleFromFile(yamlFilePath, this.operatorClusterRole)
             if (statusCode === 403) {
               command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
@@ -260,12 +264,16 @@ export class OperatorTasks {
       {
         title: `Updating ClusterRoleBinding ${clusterRoleBindingName}`,
         task: async (_ctx: any, task: any) => {
-          const cRoleBindExist = await kube.clusterRoleBindingExist(clusterRoleBindingName)
-          const defaultCRoleBindExist = await kube.clusterRoleBindingExist(this.operatorClusterRoleBinding)
-          if (cRoleBindExist) {
+          // @cRoleBindExists checks if cluster-role-binding exist and if yes will update it. Apply when cluster roles binding are created
+          // by adding the namespace name to cluster role binding name EXAMPLE: <namespaceName+clusterRoleName>
+          // @legacyCRoleBindExists checks if cluster-role-binding exists and if yes will update it. In some previous versions of Eclipse Che installation
+          // cluster-role-bindings are created with default name:  che-operator
+          const cRoleBindExists = await kube.clusterRoleBindingExist(clusterRoleBindingName)
+          const legacyCRoleBindExists = await kube.clusterRoleBindingExist(this.operatorClusterRoleBinding)
+          if (cRoleBindExists) {
             await kube.replaceClusterRoleBinding(clusterRoleBindingName, this.operatorServiceAccount, flags.chenamespace, clusterRoleName)
             task.title = `${task.title}...updated.`
-          } else if (defaultCRoleBindExist) {
+          } else if (legacyCRoleBindExists) {
             await kube.replaceClusterRoleBinding(this.operatorClusterRoleBinding, this.operatorServiceAccount, flags.chenamespace, this.operatorClusterRole)
             task.title = `${task.title}...updated.`
           } else {
@@ -358,11 +366,15 @@ export class OperatorTasks {
     {
       title: `Delete cluster role binding ${clusterRoleBindingName}`,
       task: async (_ctx: any, task: any) => {
-        const cRoleBindExist = await kh.clusterRoleExist(this.operatorClusterRoleBinding)
-        const defaultCRoleBindExist = await kh.clusterRoleExist(clusterRoleName)
-        if (cRoleBindExist) {
+        // @cRoleBindExists checks if cluster-role-binding exist and if yes will delete it. Apply when cluster roles binding are created
+        // by adding the namespace name to cluster role binding name EXAMPLE: <namespaceName+clusterRoleName>
+        // @legacyCRoleBindExists checks if cluster-role-binding exists and if yes will delete it. In some previous versions of Eclipse Che installation
+        // cluster-role-bindings are created with default name:  che-operator
+        const cRoleBindExists = await kh.clusterRoleExist(clusterRoleBindingName)
+        const legacyCRoleBindExists = await kh.clusterRoleExist(this.operatorClusterRoleBinding)
+        if (cRoleBindExists) {
           await kh.deleteClusterRole(clusterRoleName)
-        } else if (defaultCRoleBindExist) {
+        } else if (legacyCRoleBindExists) {
           await kh.deleteClusterRole(this.operatorClusterRoleBinding)
         }
         task.title = await `${task.title}...OK`
@@ -371,11 +383,15 @@ export class OperatorTasks {
     {
       title: `Delete cluster role ${clusterRoleName}`,
       task: async (_ctx: any, task: any) => {
-        const cRoleExist = await kh.clusterRoleExist(clusterRoleName)
-        const defaultCRoleExist = await kh.clusterRoleExist(this.operatorClusterRole)
-        if (cRoleExist) {
+        // @cRoleExists checks if cluster-role exist and if yes will delete it. Apply when cluster roles are created
+        // by adding the namespace name to the cluster role name EXAMPLE: <namespaceName+clusterRoleName>
+        // @legacyCRoleExists checks if cluster-role exists and if yes will delete it. In some previous versions of Eclipse Che installation
+        // cluster-role are created with default name:  che-operator
+        const cRoleExists = await kh.clusterRoleExist(clusterRoleName)
+        const legacyCRoleExists = await kh.clusterRoleExist(this.operatorClusterRole)
+        if (cRoleExists) {
           await kh.deleteClusterRole(clusterRoleName)
-        } else if (defaultCRoleExist) {
+        } else if (legacyCRoleExists) {
           await kh.deleteClusterRole(this.operatorClusterRole)
         }
         task.title = await `${task.title}...OK`
