@@ -293,11 +293,14 @@ export class KubeHelper {
   async replaceClusterRoleFromFile(filePath: string, roleName?: string) {
     const yamlRole = this.safeLoadFromYamlFile(filePath) as V1ClusterRole
     const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
-    if (!yamlRole.metadata || !yamlRole.metadata.name) {
-      throw new Error(`Cluster Role read from ${filePath} must have name specified`)
+    if (!yamlRole.metadata) {
+      yamlRole.metadata = {}
     }
+
     if (roleName) {
-      yamlRole.metadata!.name = roleName
+      yamlRole.metadata.name = roleName
+    } else if (!yamlRole.metadata.name) {
+      throw new Error(`Role name is not specified in ${filePath}`)
     }
     try {
       const res = await k8sRbacAuthApi.replaceClusterRole(yamlRole.metadata.name, yamlRole)
@@ -1105,18 +1108,24 @@ export class KubeHelper {
     }
   }
 
-  async checkCRDUpdate(name: string, yamlFilePath: string) {
-    const { spec: crdFileSpec } = this.safeLoadFromYamlFile(yamlFilePath) as V1beta1CustomResourceDefinition
-    const { spec: crdClusterSpec } = await this.getCrd(name)
-    const { validation: { openAPIV3Schema : { properties: crdFileProps = '' }= {} } = {} } = crdFileSpec
-    const { validation: { openAPIV3Schema : { properties: crdClusterProps = '' }= {} } = {} } = crdClusterSpec
+  async isCRDEqual(crdClusterName: string, crdFilePath: string): Promise<boolean> {
+    const { spec: crdFileSpec } = this.safeLoadFromYamlFile(crdFilePath) as V1beta1CustomResourceDefinition
+    const { spec: crdClusterSpec } = await this.getCrd(crdClusterName)
+    const { validation: { openAPIV3Schema : { properties: crdFileProps = '' } = {} } = {} } = crdFileSpec
+    const { validation: { openAPIV3Schema : { properties: crdClusterProps = '' } = {} } = {} } = crdClusterSpec
 
-    if (crdFileSpec.version !== crdClusterSpec.version) {
-      throw new Error(`CRD read from ${yamlFilePath} doesn't have the same version with the CRD existed in cluster.`)
+    if (crdFileSpec.versions && crdClusterSpec.versions) {
+      const [{ crdFileVersion }] = crdFileSpec.versions.map(_ => ({ crdFileVersion: _.name }))
+      const [{ crdClusterVersion }] = crdClusterSpec.versions.map(_ => ({ crdClusterVersion: _.name }))
+      if (crdFileVersion !== crdClusterVersion) {
+        return false
+      }
+    } else {
+      return false
     }
 
     if (Object.keys(crdFileProps).length !== Object.keys(crdClusterProps).length) {
-      throw new Error(`CRD read from ${yamlFilePath} contain different properties than existed in the cluster. Please update CRD.`)
+      return false
     }
 
     return true

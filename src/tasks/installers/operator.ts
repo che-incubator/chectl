@@ -117,9 +117,12 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exist = await kube.crdExist(this.cheClusterCrd)
           const yamlFilePath = ctx.resourcesPath + 'crds/org_v1_che_crd.yaml'
-          const checkCRD = await kube.checkCRDUpdate(this.cheClusterCrd, yamlFilePath)
 
-          if (exist && checkCRD) {
+          if (exist) {
+            const checkCRD = await kube.isCRDEqual(this.cheClusterCrd, yamlFilePath)
+            if (!checkCRD) {
+              cli.error(`CRD read from ${yamlFilePath} are not compatible with existed one in cluster. Please update CRD.`)
+            }
             task.title = `${task.title}...It already exists.`
           } else {
             await kube.createCrdFromFile(yamlFilePath)
@@ -216,10 +219,17 @@ export class OperatorTasks {
       {
         title: `Updating ClusterRole ${clusterRoleName}`,
         task: async (ctx: any, task: any) => {
-          const exist = await kube.clusterRoleExist(clusterRoleName)
+          const cRoleExist = await kube.clusterRoleExist(this.operatorClusterRole)
+          const defaultCRoleExist = await kube.clusterRoleExist(clusterRoleName)
           const yamlFilePath = ctx.resourcesPath + 'cluster_role.yaml'
-          if (exist) {
+          if (cRoleExist) {
             const statusCode = await kube.replaceClusterRoleFromFile(yamlFilePath, clusterRoleName)
+            if (statusCode === 403) {
+              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
+            }
+            task.title = `${task.title}...updated.`
+          } else if (defaultCRoleExist) {
+            const statusCode = await kube.replaceClusterRoleFromFile(yamlFilePath, this.operatorClusterRole)
             if (statusCode === 403) {
               command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
             }
@@ -250,9 +260,13 @@ export class OperatorTasks {
       {
         title: `Updating ClusterRoleBinding ${clusterRoleBindingName}`,
         task: async (_ctx: any, task: any) => {
-          const exist = await kube.clusterRoleBindingExist(clusterRoleBindingName)
-          if (exist) {
+          const cRoleBindExist = await kube.clusterRoleBindingExist(clusterRoleBindingName)
+          const defaultCRoleBindExist = await kube.clusterRoleBindingExist(this.operatorClusterRoleBinding)
+          if (cRoleBindExist) {
             await kube.replaceClusterRoleBinding(clusterRoleBindingName, this.operatorServiceAccount, flags.chenamespace, clusterRoleName)
+            task.title = `${task.title}...updated.`
+          } else if (defaultCRoleBindExist) {
+            await kube.replaceClusterRoleBinding(this.operatorClusterRoleBinding, this.operatorServiceAccount, flags.chenamespace, this.operatorClusterRole)
             task.title = `${task.title}...updated.`
           } else {
             await kube.createClusterRoleBinding(clusterRoleBindingName, this.operatorServiceAccount, flags.chenamespace, clusterRoleName)
@@ -344,8 +358,12 @@ export class OperatorTasks {
     {
       title: `Delete cluster role binding ${clusterRoleBindingName}`,
       task: async (_ctx: any, task: any) => {
-        if (await kh.clusterRoleBindingExist(clusterRoleBindingName)) {
-          await kh.deleteClusterRoleBinding(clusterRoleBindingName)
+        const cRoleBindExist = await kh.clusterRoleExist(this.operatorClusterRoleBinding)
+        const defaultCRoleBindExist = await kh.clusterRoleExist(clusterRoleName)
+        if (cRoleBindExist) {
+          await kh.deleteClusterRole(clusterRoleName)
+        } else if (defaultCRoleBindExist) {
+          await kh.deleteClusterRole(this.operatorClusterRoleBinding)
         }
         task.title = await `${task.title}...OK`
       }
@@ -353,8 +371,12 @@ export class OperatorTasks {
     {
       title: `Delete cluster role ${clusterRoleName}`,
       task: async (_ctx: any, task: any) => {
-        if (await kh.clusterRoleExist(clusterRoleName)) {
+        const cRoleExist = await kh.clusterRoleExist(clusterRoleName)
+        const defaultCRoleExist = await kh.clusterRoleExist(this.operatorClusterRole)
+        if (cRoleExist) {
           await kh.deleteClusterRole(clusterRoleName)
+        } else if (defaultCRoleExist) {
+          await kh.deleteClusterRole(this.operatorClusterRole)
         }
         task.title = await `${task.title}...OK`
       }
