@@ -360,13 +360,13 @@ export class OperatorTasks {
     {
       title: `Delete cluster role binding ${clusterRoleBindingName}`,
       task: async (_ctx: any, task: any) => {
-        const cRoleBindExists = await kh.clusterRoleExist(clusterRoleBindingName)
-        const legacyCRoleBindExists = await kh.clusterRoleExist(this.operatorClusterRoleBinding)
+        const cRoleBindExists = await kh.clusterRoleBindingExist(clusterRoleBindingName)
+        const legacyCRoleBindExists = await kh.clusterRoleBindingExist(this.operatorClusterRoleBinding)
         if (cRoleBindExists) {
-          await kh.deleteClusterRole(clusterRoleName)
+          await kh.deleteClusterRoleBinding(clusterRoleName)
         // it is needed to check the legacy cluster object name to be compatible with previous installations
         } else if (legacyCRoleBindExists) {
-          await kh.deleteClusterRole(this.operatorClusterRoleBinding)
+          await kh.deleteClusterRoleBinding(this.operatorClusterRoleBinding)
         }
         task.title = await `${task.title}...OK`
       }

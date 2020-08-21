@@ -1117,24 +1117,17 @@ export class KubeHelper {
     const { validation: { openAPIV3Schema : { properties: crdFileProps = '' } = {} } = {} } = crdFileSpec
     const { validation: { openAPIV3Schema : { properties: crdClusterProps = '' } = {} } = {} } = crdClusterSpec
 
-    if (crdFileSpec.versions && crdClusterSpec.versions) {
-      const crdFileVersions = crdFileSpec.versions.find(e => e.storage === true)
-      const crdClusterVersions = crdClusterSpec.versions.find(e => e.storage === true)
-
-      if (crdFileVersions && crdClusterVersions) {
-        if (crdFileVersions.name !== crdClusterVersions.name) {
-          return false
-        }
-      }
-    } else {
+    if (!crdFileSpec.versions || !crdClusterSpec.versions) {
       return false
     }
 
-    if (Object.keys(crdFileProps).length !== Object.keys(crdClusterProps).length) {
+    const crdFileVersions = crdFileSpec.versions.find(e => e.storage === true)
+    const crdClusterVersions = crdClusterSpec.versions.find(e => e.storage === true)
+    if (!crdFileVersions || !crdClusterVersions || crdFileVersions.name !== crdClusterVersions.name) {
       return false
     }
 
-    return true
+    return Object.keys(crdFileProps).length === Object.keys(crdClusterProps).length
   }
 
   async ingressExist(name = '', namespace = ''): Promise<boolean> {
