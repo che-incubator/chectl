@@ -1118,16 +1118,13 @@ export class KubeHelper {
     const { validation: { openAPIV3Schema : { properties: crdClusterProps = '' } = {} } = {} } = crdClusterSpec
 
     if (crdFileSpec.versions && crdClusterSpec.versions) {
-      const [{ name: crdFileVersion }] = crdFileSpec.versions.filter(_ => {
-        return _.storage === true
-      })
+      const crdFileVersions = crdFileSpec.versions.find(e => e.storage === true)
+      const crdClusterVersions = crdClusterSpec.versions.find(e => e.storage === true)
 
-      const [{ name: crdClusterVersion }] = crdClusterSpec.versions.filter(_ => {
-        return _.storage === true
-      })
-
-      if (crdFileVersion !== crdClusterVersion) {
-        return false
+      if (crdFileVersions && crdClusterVersions) {
+        if (crdFileVersions.name !== crdClusterVersions.name) {
+          return false
+        }
       }
     } else {
       return false
