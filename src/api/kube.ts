@@ -1111,7 +1111,7 @@ export class KubeHelper {
     }
   }
 
-  async isCRDEqual(crdClusterName: string, crdFilePath: string): Promise<boolean> {
+  async isCRDCompatible(crdClusterName: string, crdFilePath: string): Promise<boolean> {
     const { spec: crdFileSpec } = this.safeLoadFromYamlFile(crdFilePath) as V1beta1CustomResourceDefinition
     const { spec: crdClusterSpec } = await this.getCrd(crdClusterName)
     const { validation: { openAPIV3Schema : { properties: crdFileProps = '' } = {} } = {} } = crdFileSpec
