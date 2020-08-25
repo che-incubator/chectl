@@ -78,7 +78,7 @@ export default class Delete extends Command {
 
     notifier.notify({
       title: 'chectl',
-      message: 'Command server:update has completed.'
+      message: 'Command server:delete has completed.'
     })
 
     this.exit(0)
