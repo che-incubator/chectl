@@ -11,6 +11,25 @@
             ]
         },
         {
+          "type": "node",
+          "request": "launch",
+          "name": "Debug Openshift Install",
+          "program": "${workspaceFolder}/bin/run",
+          "args": [
+              "server:start",
+              "--platform",
+              "openshift",
+              "--installer",
+              "operator"
+          ],
+          "console": "integratedTerminal",
+          "internalConsoleOptions": "neverOpen",
+          "disableOptimisticBPs": true,
+          "windows": {
+              "program": "${workspaceFolder}/node_modules/jest/bin/jest",
+          }
+      },
+        {
             "type": "node",
             "request": "launch",
             "name": "Jest All",
@@ -40,6 +59,6 @@
                 "program": "${workspaceFolder}/node_modules/jest/bin/jest",
             }
         },
-        
+
     ]
 }

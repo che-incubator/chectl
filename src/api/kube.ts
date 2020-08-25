@@ -269,9 +269,18 @@ export class KubeHelper {
     }
   }
 
-  async createClusterRoleFromFile(filePath: string) {
+  async createClusterRoleFromFile(filePath: string, roleName?: string) {
     const yamlRole = this.safeLoadFromYamlFile(filePath) as V1ClusterRole
     const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
+    if (!yamlRole.metadata) {
+      yamlRole.metadata = {}
+    }
+
+    if (roleName) {
+      yamlRole.metadata.name = roleName
+    } else if (!yamlRole.metadata.name) {
+      throw new Error(`Role name is not specified in ${filePath}`)
+    }
     try {
       const res = await k8sRbacAuthApi.createClusterRole(yamlRole)
       return res.response.statusCode
@@ -284,11 +293,17 @@ export class KubeHelper {
     }
   }
 
-  async replaceClusterRoleFromFile(filePath: string) {
+  async replaceClusterRoleFromFile(filePath: string, roleName?: string) {
     const yamlRole = this.safeLoadFromYamlFile(filePath) as V1ClusterRole
     const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
-    if (!yamlRole.metadata || !yamlRole.metadata.name) {
-      throw new Error(`Cluster Role read from ${filePath} must have name specified`)
+    if (!yamlRole.metadata) {
+      yamlRole.metadata = {}
+    }
+
+    if (roleName) {
+      yamlRole.metadata.name = roleName
+    } else if (!yamlRole.metadata.name) {
+      throw new Error(`Role name is not specified in ${filePath}`)
     }
     try {
       const res = await k8sRbacAuthApi.replaceClusterRole(yamlRole.metadata.name, yamlRole)
@@ -1094,6 +1109,25 @@ export class KubeHelper {
     } else {
       return false
     }
+  }
+
+  async isCRDCompatible(crdClusterName: string, crdFilePath: string): Promise<boolean> {
+    const { spec: crdFileSpec } = this.safeLoadFromYamlFile(crdFilePath) as V1beta1CustomResourceDefinition
+    const { spec: crdClusterSpec } = await this.getCrd(crdClusterName)
+    const { validation: { openAPIV3Schema : { properties: crdFileProps = '' } = {} } = {} } = crdFileSpec
+    const { validation: { openAPIV3Schema : { properties: crdClusterProps = '' } = {} } = {} } = crdClusterSpec
+
+    if (!crdFileSpec.versions || !crdClusterSpec.versions) {
+      return false
+    }
+
+    const crdFileVersions = crdFileSpec.versions.find(e => e.storage === true)
+    const crdClusterVersions = crdClusterSpec.versions.find(e => e.storage === true)
+    if (!crdFileVersions || !crdClusterVersions || crdFileVersions.name !== crdClusterVersions.name) {
+      return false
+    }
+
+    return Object.keys(crdFileProps).length === Object.keys(crdClusterProps).length
   }
 
   async ingressExist(name = '', namespace = ''): Promise<boolean> {
