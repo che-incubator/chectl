@@ -429,7 +429,6 @@ export class CheTasks {
     return [
       {
         title: 'Wait until Eclipse Che pod is deleted',
-        enabled: (ctx: any) => !ctx.isCheStopped,
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.cheSelector, this.cheNamespace)
           task.title = `${task.title}...done.`
@@ -437,7 +436,6 @@ export class CheTasks {
       },
       {
         title: 'Wait until Keycloak pod is deleted',
-        enabled: (ctx: any) => ctx.isKeycloakDeployed && !ctx.isKeycloakStopped,
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.keycloakSelector, this.cheNamespace)
           task.title = `${task.title}...done.`
@@ -445,7 +443,6 @@ export class CheTasks {
       },
       {
         title: 'Wait until Postgres pod is deleted',
-        enabled: (ctx: any) => ctx.isPostgresDeployed && !ctx.isPostgresStopped,
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.postgresSelector, this.cheNamespace)
           task.title = `${task.title}...done.`
@@ -453,7 +450,6 @@ export class CheTasks {
       },
       {
         title: 'Wait until Devfile registry pod is deleted',
-        enabled: (ctx: any) => ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryStopped,
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.devfileRegistrySelector, this.cheNamespace)
           task.title = `${task.title}...done.`
@@ -461,7 +457,6 @@ export class CheTasks {
       },
       {
         title: 'Wait until Plugin registry pod is deleted',
-        enabled: (ctx: any) => ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryStopped,
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.pluginRegistrySelector, this.cheNamespace)
           task.title = `${task.title}...done.`
