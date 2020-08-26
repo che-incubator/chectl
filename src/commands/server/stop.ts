@@ -55,16 +55,6 @@ export default class Stop extends Command {
         task: async () => {
           await this.error(`E_BAD_DEPLOY - Deployment do not exist.\nA Deployment named "${flags['deployment-name']}" exist in namespace \"${flags.chenamespace}\", Eclipse Che server cannot be stopped.\nFix with: verify the namespace where Eclipse Che is running (oc get projects)\nhttps://github.com/eclipse/che`, { code: 'E_BAD_DEPLOY' })
         }
-      },
-      {
-        title: 'Eclipse Che server was already stopped',
-        enabled: (ctx: any) => (ctx.isStopped),
-        task: async () => { }
-      },
-      {
-        title: 'Eclipse Che server pod is not ready. It may be failing to start. Skipping shutdown request',
-        enabled: (ctx: any) => (ctx.isNotReadyYet),
-        task: async () => { }
       }
     ],
       { renderer: flags['listr-renderer'] as any }
