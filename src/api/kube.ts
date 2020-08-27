@@ -1290,7 +1290,7 @@ export class KubeHelper {
   async getCheCluster(namespace: string): Promise<any | undefined> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.listNamespacedCustomObject('org.eclipse.che', 'v1', '*', 'checlusters')
+      const { body } = await customObjectsApi.listNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters')
       if (!body.items) {
         return
       }
