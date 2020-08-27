@@ -218,7 +218,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.0/src/commands/help.ts)_
 
 ## `chectl server:debug`
 
@@ -302,7 +302,7 @@ USAGE
 
 OPTIONS
   -a, --installer=helm|operator|olm|minishift-addon
-      [default: operator] Installer type.
+      Installer type. If not set, default is "olm" for OpenShift 4.x platform otherwise "operator".
 
   -b, --domain=domain
       Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
@@ -320,7 +320,7 @@ OPTIONS
       show CLI help
 
   -i, --cheimage=cheimage
-      [default: quay.io/eclipse/che-server:nightly] Eclipse Che server container image
+      [default: quay.io/eclipse/che-server:7.18.0] Eclipse Che server container image
 
   -m, --multiuser
       Starts Eclipse Che in multi-user mode
@@ -380,8 +380,8 @@ OPTIONS
       is the 'operator' or the 'olm'.
 
   --che-operator-image=che-operator-image
-      [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when 
-      the installer is the operator
+      [default: quay.io/eclipse/che-operator:7.18.0] Container image of the operator. This parameter is used only when the 
+      installer is the operator
 
   --debug
       Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug' 
@@ -499,7 +499,7 @@ OPTIONS
                                                                                templates folder
 
   --che-operator-image=che-operator-image                                      [default:
-                                                                               quay.io/eclipse/che-operator:nightly]
+                                                                               quay.io/eclipse/che-operator:7.18.0]
                                                                                Container image of the operator. This
                                                                                parameter is used only when the installer
                                                                                is the operator
@@ -525,7 +525,7 @@ USAGE
   $ chectl update [CHANNEL]
 ```
 
-_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.3.9/src/commands/update.ts)_
+_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.3.10/src/commands/update.ts)_
 
 ## `chectl workspace:create`
 
