@@ -72,6 +72,21 @@ export function base64Decode(arg: string): string {
  */
 export function isStableVersion(flags: any): boolean {
   const operatorImage = flags['che-operator-image'] || DEFAULT_CHE_OPERATOR_IMAGE
-  const cheVersion = operatorImage.split(':')[1]
+  const cheVersion = getImageTag(operatorImage)
   return cheVersion !== 'nightly' && cheVersion !== 'latest'
+}
+
+/**
+ * Returns the tag of the image.
+ */
+export function getImageTag(image: string): string | undefined {
+  let entries = image.split('@')
+  if (entries.length === 2) {
+    // digest
+    return entries[1]
+  }
+
+  entries = image.split(':')
+  // tag
+  return entries[1]
 }

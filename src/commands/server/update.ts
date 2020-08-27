@@ -25,10 +25,10 @@ import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { isKubernetesPlatformFamily } from '../../util'
+import { getImageTag, isKubernetesPlatformFamily } from '../../util'
 
 export default class Update extends Command {
-  static description = 'update Eclipse Che server'
+  static description = `Update Eclipse Che server to ${getImageTag(DEFAULT_CHE_OPERATOR_IMAGE)} version.`
 
   static flags = {
     installer: string({
@@ -99,6 +99,7 @@ export default class Update extends Command {
     ctx.highlightedMessages = [] as string[]
 
     const cheTasks = new CheTasks(flags)
+    const kubeHelper = new KubeHelper(flags)
     const platformTasks = new PlatformTasks()
     const installerTasks = new InstallerTasks()
     const apiTasks = new ApiTasks()
@@ -132,21 +133,42 @@ export default class Update extends Command {
       await preInstallTasks.run(ctx)
 
       if (!ctx.isCheDeployed) {
-        this.error('Eclipse Che deployment is not found. Use `chectl server:start` to initiate new deployment.')
+        this.error('Eclipse Che deployment is not found. Use `chectl server:start` to initiate a new deployment.')
       } else {
         if (isKubernetesPlatformFamily(flags.platform!)) {
           await this.setDomainFlag(flags)
         }
         await platformCheckTasks.run(ctx)
-
         await preUpdateTasks.run(ctx)
 
         if (!flags['skip-version-check'] && flags.installer !== 'olm') {
-          await cli.anykey(`      Found deployed Eclipse Che with operator [${ctx.deployedCheOperatorImage}]:${ctx.deployedCheOperatorTag}.
-      You are going to update it to [${ctx.newCheOperatorImage}]:${ctx.newCheOperatorTag}.
-      Note that Eclipse Che operator will update component images (server, plugin registry) only if their values
-      are not overridden in eclipse-che Custom Resource. So, you may need to remove them manually.
-      Press q to quit or any key to continue`)
+          cli.info(`Existed Eclipse Che operator: ${ctx.deployedCheOperatorImage}:${ctx.deployedCheOperatorTag}.`)
+          cli.info(`New Eclipse Che operator    : ${ctx.newCheOperatorImage}:${ctx.newCheOperatorTag}.`)
+          if (flags['che-operator-image'] !== DEFAULT_CHE_OPERATOR_IMAGE) {
+            cli.warn('You specified non default operator image to update Eclipse Che to.')
+            cli.warn('Make sure that new version of the Eclipse Che is corresponding to the version of the cli tool you use.')
+          }
+
+          const cheCluster = await kubeHelper.getCheCluster(flags.chenamespace)
+          if (cheCluster.spec.server.cheImage
+            || cheCluster.spec.server.devfileRegistryImage
+            || cheCluster.spec.database.postgresImage
+            || cheCluster.spec.server.pluginRegistryImage
+            || cheCluster.spec.auth.identityProviderImage) {
+            cli.warn(`Eclipse Che operator won't update some components since their images are defined
+            in the '${cheCluster.metadata.name}' Custom Resource of the namespace '${flags.chenamespace}'
+            Please consider removing them from the Custom Resource when update is completed:`)
+            cheCluster.spec.server.cheImage && cli.warn(`Eclipse Che server [${cheCluster.spec.server.cheImage}:${cheCluster.spec.server.cheImageTag}]`)
+            cheCluster.spec.database.postgresImage && cli.warn(`Database [${cheCluster.spec.database.postgresImage}]`)
+            cheCluster.spec.server.devfileRegistryImage && cli.warn(`Devfile registry [${cheCluster.spec.server.devfileRegistryImage}]`)
+            cheCluster.spec.server.pluginRegistryImage && cli.warn(`Plugin registry [${cheCluster.spec.server.pluginRegistryImage}]`)
+            cheCluster.spec.auth.identityProviderImage && cli.warn(`Identity provider [${cheCluster.spec.auth.identityProviderImage}]`)
+          }
+
+          const confirmed = await cli.confirm('If you want to continue - press Y')
+          if (!confirmed) {
+            this.exit(0)
+          }
         }
 
         await updateTasks.run(ctx)
