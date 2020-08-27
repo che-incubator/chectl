@@ -228,7 +228,7 @@ export class OperatorTasks {
               command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
             }
             task.title = `${task.title}...updated.`
-          // it is needed to check the legacy cluster object name to be compatible with previous installations
+            // it is needed to check the legacy cluster object name to be compatible with previous installations
           } else if (legacyClusterRoleExists) {
             const statusCode = await kube.replaceClusterRoleFromFile(yamlFilePath, this.operatorClusterRole)
             if (statusCode === 403) {
@@ -266,7 +266,7 @@ export class OperatorTasks {
           if (clusterRoleBindExists) {
             await kube.replaceClusterRoleBinding(clusterRoleBindingName, this.operatorServiceAccount, flags.chenamespace, clusterRoleName)
             task.title = `${task.title}...updated.`
-          // it is needed to check the legacy cluster object name to be compatible with previous installations
+            // it is needed to check the legacy cluster object name to be compatible with previous installations
           } else if (legacyClusterRoleBindExists) {
             await kube.replaceClusterRoleBinding(this.operatorClusterRoleBinding, this.operatorServiceAccount, flags.chenamespace, this.operatorClusterRole)
             task.title = `Updating ClusterRoleBinding ${this.operatorClusterRoleBinding}...updated.`
@@ -335,8 +335,22 @@ export class OperatorTasks {
       title: `Delete the Custom Resource of type ${CHE_CLUSTER_CRD}`,
       task: async (_ctx: any, task: any) => {
         await kh.deleteCheCluster(flags.chenamespace)
-        await cli.wait(2000) //wait a couple of secs for the finalizers to be executed
+        do {
+          await cli.wait(2000) //wait a couple of secs for the finalizers to be executed
+        } while (await kh.getCheCluster(flags.chenamespace))
         task.title = await `${task.title}...OK`
+      }
+    },
+    {
+      title: `Delete CRD ${this.cheClusterCrd}`,
+      task: async (_ctx: any, task: any) => {
+        const checlusters = await kh.getAllCheCluster()
+        if (checlusters.length > 0) {
+          task.title = await `${task.title}...Another Eclipse Che deployments found.`
+        } else {
+          await kh.deleteCrd(this.cheClusterCrd)
+          task.title = await `${task.title}...OK`
+        }
       }
     },
     {
@@ -365,7 +379,7 @@ export class OperatorTasks {
         if (clusterRoleBindExists) {
           await kh.deleteClusterRoleBinding(clusterRoleBindingName)
           task.title = await `${task.title}...OK`
-        // it is needed to check the legacy cluster object name to be compatible with previous installations
+          // it is needed to check the legacy cluster object name to be compatible with previous installations
         } else if (legacyClusterRoleBindExists) {
           await kh.deleteClusterRoleBinding(this.operatorClusterRoleBinding)
           task.title = await `Delete cluster role binding ${this.operatorClusterRoleBinding}...OK`
@@ -380,7 +394,7 @@ export class OperatorTasks {
         if (clusterRoleExists) {
           await kh.deleteClusterRole(clusterRoleName)
           task.title = await `${task.title}...OK`
-        // it is needed to check the legacy cluster object name to be compatible with previous installations
+          // it is needed to check the legacy cluster object name to be compatible with previous installations
         } else if (legacyClusterRoleExists) {
           await kh.deleteClusterRole(this.operatorClusterRole)
           task.title = await `Delete cluster role ${this.operatorClusterRole}...OK`
