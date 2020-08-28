@@ -28,7 +28,7 @@ import { PlatformTasks } from '../../tasks/platforms/platform'
 import { getImageTag, isKubernetesPlatformFamily } from '../../util'
 
 export default class Update extends Command {
-  static description = `Update Eclipse Che server to ${getImageTag(DEFAULT_CHE_OPERATOR_IMAGE)} version.`
+  static description = `Update Eclipse Che server to version.`
 
   static flags = {
     installer: string({
@@ -141,12 +141,14 @@ export default class Update extends Command {
         await platformCheckTasks.run(ctx)
         await preUpdateTasks.run(ctx)
 
-        if (!flags['skip-version-check'] && flags.installer !== 'olm') {
+        if (!flags['skip-version-check'] && flags.installer === 'operator') {
           cli.info(`Existed Eclipse Che operator: ${ctx.deployedCheOperatorImage}:${ctx.deployedCheOperatorTag}.`)
           cli.info(`New Eclipse Che operator    : ${ctx.newCheOperatorImage}:${ctx.newCheOperatorTag}.`)
+
           if (flags['che-operator-image'] !== DEFAULT_CHE_OPERATOR_IMAGE) {
-            cli.warn('You specified non default operator image to update Eclipse Che to.')
-            cli.warn('Make sure that new version of the Eclipse Che is corresponding to the version of the cli tool you use.')
+            cli.warn(`This command updates Eclipse Che to ${getImageTag(DEFAULT_CHE_OPERATOR_IMAGE)} version, but custom operator image is specified.`)
+            cli.warn('Make sure that the new version of the Eclipse Che is corresponding to the version of the tool you use.')
+            cli.warn('Consider using \'chectl update [stable|next]\' to update to the latest version of chectl.')
           }
 
           const cheCluster = await kubeHelper.getCheCluster(flags.chenamespace)
