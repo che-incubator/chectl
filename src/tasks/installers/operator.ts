@@ -346,7 +346,7 @@ export class OperatorTasks {
       task: async (_ctx: any, task: any) => {
         const checlusters = await kh.getAllCheCluster()
         if (checlusters.length > 0) {
-          task.title = await `${task.title}...Another Eclipse Che deployment found.`
+          task.title = await `${task.title}...Skipped: another Eclipse Che deployment found.`
         } else {
           await kh.deleteCrd(this.cheClusterCrd)
           task.title = await `${task.title}...OK`
