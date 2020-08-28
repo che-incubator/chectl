@@ -28,7 +28,7 @@ import { PlatformTasks } from '../../tasks/platforms/platform'
 import { getImageTag, isKubernetesPlatformFamily } from '../../util'
 
 export default class Update extends Command {
-  static description = `Update Eclipse Che server to version.`
+  static description = 'Update Eclipse Che server.'
 
   static flags = {
     installer: string({
