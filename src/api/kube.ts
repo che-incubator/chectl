@@ -1193,11 +1193,10 @@ export class KubeHelper {
     }
   }
 
-  async deleteCrd(name = '') {
+  async deleteCrd(name: string): Promise<void> {
     const k8sApiextensionsApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApiextensionsV1beta1Api)
     try {
-      const options = new V1DeleteOptions()
-      await k8sApiextensionsApi.deleteCustomResourceDefinition(name, undefined, options)
+      await k8sApiextensionsApi.deleteCustomResourceDefinition(name)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1304,6 +1303,19 @@ export class KubeHelper {
       }
 
       return crs[0]
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  /**
+   * Returns all `checlusters.org.eclipse.che' resources
+   */
+  async getAllCheCluster(): Promise<any[]> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.listClusterCustomObject('org.eclipse.che', 'v1', 'checlusters')
+      return body.items ? body.items : []
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
