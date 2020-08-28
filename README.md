@@ -218,7 +218,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.0/src/commands/help.ts)_
 
 ## `chectl server:debug`
 
@@ -458,7 +458,11 @@ OPTIONS
   -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
                                            be deployed
 
-  --access-token=access-token              Eclipse Che OIDC Access Token
+  --access-token=access-token              Eclipse Che OIDC Access Token. See the documentation how to obtain token:
+                                           https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-to
+                                           ken-from-keycloak_authenticating-to-the-che-server and
+                                           https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-to
+                                           ken-from-openshift-token-through-keycloak_authenticating-to-the-che-server.
 
   --che-selector=che-selector              [default: app=che,component=che] Selector for Eclipse Che server resources
 
@@ -525,7 +529,7 @@ USAGE
   $ chectl update [CHANNEL]
 ```
 
-_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.3.9/src/commands/update.ts)_
+_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.3.10/src/commands/update.ts)_
 
 ## `chectl workspace:create`
 
@@ -548,7 +552,11 @@ OPTIONS
 
   -s, --start                      Starts the workspace after creation
 
-  --access-token=access-token      Eclipse Che OIDC Access Token
+  --access-token=access-token      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
+                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
+                                   -keycloak_authenticating-to-the-che-server and
+                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
+                                   -openshift-token-through-keycloak_authenticating-to-the-che-server.
 
   --name=name                      Workspace name: overrides the workspace name to use instead of the one defined in the
                                    devfile.
@@ -575,7 +583,11 @@ OPTIONS
   -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
                                    deployed
 
-  --access-token=access-token      Eclipse Che OIDC Access Token
+  --access-token=access-token      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
+                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
+                                   -keycloak_authenticating-to-the-che-server and
+                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
+                                   -openshift-token-through-keycloak_authenticating-to-the-che-server.
 
   --delete-namespace               Indicates that a Kubernetes namespace where workspace was created will be deleted as
                                    well
@@ -609,7 +621,11 @@ OPTIONS
                                    Use workspace:list command to get all workspaces and their
                                    statuses.
 
-  --access-token=access-token      Eclipse Che OIDC Access Token
+  --access-token=access-token      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
+                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
+                                   -keycloak_authenticating-to-the-che-server and
+                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
+                                   -openshift-token-through-keycloak_authenticating-to-the-che-server.
 
   --kube-context=kube-context      Kubeconfig context to inject
 
@@ -632,7 +648,11 @@ OPTIONS
   -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
                                    deployed
 
-  --access-token=access-token      Eclipse Che OIDC Access Token
+  --access-token=access-token      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
+                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
+                                   -keycloak_authenticating-to-the-che-server and
+                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
+                                   -openshift-token-through-keycloak_authenticating-to-the-che-server.
 
   --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
@@ -684,7 +704,11 @@ OPTIONS
   -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
                                    deployed
 
-  --access-token=access-token      Eclipse Che OIDC Access Token
+  --access-token=access-token      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
+                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
+                                   -keycloak_authenticating-to-the-che-server and
+                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
+                                   -openshift-token-through-keycloak_authenticating-to-the-che-server.
 
   --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
@@ -708,7 +732,11 @@ OPTIONS
   -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
                                    deployed
 
-  --access-token=access-token      Eclipse Che OIDC Access Token
+  --access-token=access-token      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
+                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
+                                   -keycloak_authenticating-to-the-che-server and
+                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
+                                   -openshift-token-through-keycloak_authenticating-to-the-che-server.
 
   --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
