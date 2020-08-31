@@ -220,6 +220,18 @@ export default class Start extends Command {
   }
 
   /**
+   * Determine if a directory is empty.
+   */
+  async isDirEmpty(dirname: string): Promise<boolean> {
+    try {
+      return fs.readdirSync(dirname).length === 0
+      // Fails in case if directory doesn't exist
+    } catch {
+      return true
+    }
+  }
+
+  /**
    * Checks if TLS is disabled via operator custom resource.
    * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
    */
@@ -383,7 +395,6 @@ export default class Start extends Command {
       if (!ctx.isCheDeployed) {
         this.checkPlatformCompatibility(flags)
         await platformCheckTasks.run(ctx)
-        this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
         await logsTasks.run(ctx)
         await eventTasks.run(ctx)
         await installTasks.run(ctx)
@@ -402,6 +413,10 @@ export default class Start extends Command {
       await postInstallTasks.run(ctx)
       this.log('Command server:start has completed successfully.')
     } catch (err) {
+      const isDirEmpty = await this.isDirEmpty(ctx.directory)
+      if (isDirEmpty) {
+        this.error(`${err}\nInstallation failed. There are no available logs.`)
+      }
       this.error(`${err}\nInstallation failed, check logs in '${ctx.directory}'`)
     }
 
