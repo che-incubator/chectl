@@ -20,7 +20,7 @@ import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
 import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE, DOCS_LINK_INSTALL_TLS_WITH_SELF_SIGNED_CERT } from '../../constants'
+import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
@@ -83,7 +83,7 @@ export default class Start extends Command {
                     To provide own certificate for Kubernetes infrastructure, 'che-tls' secret with TLS certificate must be pre-created in the configured namespace.
                     In case of providing own self-signed certificate 'self-signed-certificate' secret should be also created.
                     For OpenShift, router will use default cluster certificates.
-                    Please see docs for more details: ${DOCS_LINK_INSTALL_TLS_WITH_SELF_SIGNED_CERT}`
+                    Please see docs how to deploy Eclipse Che with on different infrastructures: ${DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY}`
     }),
     'self-signed-cert': flags.boolean({
       description: 'Deprecated. The flag is ignored. Self signed certificates usage is autodetected now.',
