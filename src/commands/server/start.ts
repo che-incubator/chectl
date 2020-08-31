@@ -395,7 +395,6 @@ export default class Start extends Command {
       if (!ctx.isCheDeployed) {
         this.checkPlatformCompatibility(flags)
         await platformCheckTasks.run(ctx)
-        this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
         await logsTasks.run(ctx)
         await eventTasks.run(ctx)
         await installTasks.run(ctx)
@@ -414,9 +413,9 @@ export default class Start extends Command {
       await postInstallTasks.run(ctx)
       this.log('Command server:start has completed successfully.')
     } catch (err) {
-      const isEmptyDir = await this.isDirEmpty(ctx.directory)
-      if (isEmptyDir) {
-        this.error('There are no any logs available for the current installation')
+      const isDirEmpty = await this.isDirEmpty(ctx.directory)
+      if (isDirEmpty) {
+        this.error(`${err}\nInstallation failed. There are no available logs.`)
       }
       this.error(`${err}\nInstallation failed, check logs in '${ctx.directory}'`)
     }
