@@ -83,7 +83,7 @@ export default class Start extends Command {
                     To provide own certificate for Kubernetes infrastructure, 'che-tls' secret with TLS certificate must be pre-created in the configured namespace.
                     In case of providing own self-signed certificate 'self-signed-certificate' secret should be also created.
                     For OpenShift, router will use default cluster certificates.
-                    Please see docs how to deploy Eclipse Che with on different infrastructures: ${DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY}`
+                    Please see the docs how to deploy Eclipse Che on different infrastructures: ${DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY}`
     }),
     'self-signed-cert': flags.boolean({
       description: 'Deprecated. The flag is ignored. Self signed certificates usage is autodetected now.',
