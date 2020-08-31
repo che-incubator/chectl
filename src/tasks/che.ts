@@ -254,7 +254,7 @@ export class CheTasks {
     return [{
       title: 'Stop Eclipse Che server and wait until it\'s ready to shutdown',
       enabled: (ctx: any) => !ctx.isCheStopped,
-      task: async (ctx: any, task: any) => {
+      task: async (task: any) => {
         try {
           const cheURL = await this.che.cheURL(this.cheNamespace)
           await this.che.startShutdown(cheURL, this.cheAccessToken)
