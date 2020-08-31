@@ -13,7 +13,7 @@ import * as Listr from 'listr'
 import { CheHelper } from '../api/che'
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
-import { DOCS_LINK_AUTH_TO_CHE_SERVER_VIA_OPENID } from '../constants'
+import { DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH } from '../constants'
 
 import { KubeTasks } from './kube'
 
@@ -254,11 +254,7 @@ export class CheTasks {
     return [{
       title: 'Stop Eclipse Che server and wait until it\'s ready to shutdown',
       enabled: (ctx: any) => !ctx.isCheStopped,
-      task: async (ctx: any, task: any) => {
-        if (ctx.isAuthEnabled && !this.cheAccessToken) {
-          command.error('E_AUTH_REQUIRED - Eclipse Che authentication is enabled and an access token need to be provided (flag --access-token). ' +
-            `For instructions to retrieve a valid access token refer to ${DOCS_LINK_AUTH_TO_CHE_SERVER_VIA_OPENID}`)
-        }
+      task: async (task: any) => {
         try {
           const cheURL = await this.che.cheURL(this.cheNamespace)
           await this.che.startShutdown(cheURL, this.cheAccessToken)
@@ -625,7 +621,8 @@ export class CheTasks {
         task: async (ctx: any, task: any) => {
           ctx.isAuthEnabled = await this.che.isAuthenticationEnabled(ctx.cheURL)
           if (ctx.isAuthEnabled && !this.cheAccessToken) {
-            throw new Error('E_AUTH_REQUIRED - Eclipse Che authentication is enabled but access token is missed. Use --access-token to provide access token.')
+            throw new Error('E_AUTH_REQUIRED - Eclipse Che authentication is enabled and an access token is needed to be provided (flag --access-token). ' +
+              `See the documentation how to obtain token: ${DOC_LINK_OBTAIN_ACCESS_TOKEN} and ${DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH}.`)
           }
           task.title = `${task.title}... ${ctx.isAuthEnabled ? '(auth enabled)' : '(auth disabled)'}`
         }

@@ -9,6 +9,8 @@
  **********************************************************************/
 import { boolean, string } from '@oclif/parser/lib/flags'
 
+import { DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH } from './constants'
+
 export const cheNamespace = string({
   char: 'n',
   description: 'Kubernetes namespace where Eclipse Che server is supposed to be deployed',
@@ -29,7 +31,7 @@ export const listrRenderer = string({
 })
 
 export const accessToken = string({
-  description: 'Eclipse Che OIDC Access Token',
+  description: `Eclipse Che OIDC Access Token. See the documentation how to obtain token: ${DOC_LINK_OBTAIN_ACCESS_TOKEN} and ${DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH}.`,
   env: 'CHE_ACCESS_TOKEN'
 })
 
