@@ -218,6 +218,18 @@ export default class Start extends Command {
       }
     }
   }
+  /**
+   * Determine if a directory is empty.
+   */
+  async isDirEmpty(dirname: string): Promise<boolean> {
+    try {
+      return await fs.readdirSync(dirname).length === 0;
+      
+      //Fails in case if directory doesn't exist
+    } catch (error) {
+      return true
+    }
+  }
 
   /**
    * Checks if TLS is disabled via operator custom resource.
@@ -402,6 +414,11 @@ export default class Start extends Command {
       await postInstallTasks.run(ctx)
       this.log('Command server:start has completed successfully.')
     } catch (err) {
+      const isEmptyDir = await this.isDirEmpty(ctx.directory)
+      if (isEmptyDir) {
+        this.error('There are not any logs available for the current installation')
+      }
+
       this.error(`${err}\nInstallation failed, check logs in '${ctx.directory}'`)
     }
 
