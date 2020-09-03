@@ -336,8 +336,8 @@ export class OperatorTasks {
       task: async (_ctx: any, task: any) => {
         const checluster = await kh.getCheCluster(flags.chenamespace)
         if (checluster && checluster.spec.auth.oAuthClientName) {
-          const oAuthClientAuthorization = await kh.getOAuthClientAuthorizations(checluster.spec.auth.oAuthClientName)
-          await kh.deleteOAuthClientAuthorizations(oAuthClientAuthorization)
+          const oAuthClientAuthorizations = await kh.getOAuthClientAuthorizations(checluster.spec.auth.oAuthClientName)
+          await kh.deleteOAuthClientAuthorizations(oAuthClientAuthorizations)
           task.title = await `${task.title}...OK`
         } else {
           task.title = await `${task.title}...Skipped: No oauthClientAuthorizations found.`
