@@ -332,7 +332,7 @@ export class OperatorTasks {
     const clusterRoleName = `${flags.chenamespace}-${this.operatorClusterRole}`
     const clusterRoleBindingName = `${flags.chenamespace}-${this.operatorClusterRoleBinding}`
     return [{
-      title: 'Delete the oauthClientAuthorizations',
+      title: 'Delete oauthClientAuthorizations',
       task: async (_ctx: any, task: any) => {
         const checluster = await kh.getCheCluster(flags.chenamespace)
         if (checluster && checluster.spec.auth.oAuthClientName) {

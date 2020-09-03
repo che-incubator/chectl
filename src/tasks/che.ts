@@ -419,7 +419,7 @@ export class CheTasks {
         }
       },
       {
-        title: `Delete console link ${this.cheConsoleLinkName}`,
+        title: `Delete consoleLink ${this.cheConsoleLinkName}`,
         task: async (_ctx: any, task: any) => {
           const consoleLinkExists = await this.kube.consoleLinkExists(this.cheConsoleLinkName)
           const checlusters = await this.kube.getAllCheCluster()
