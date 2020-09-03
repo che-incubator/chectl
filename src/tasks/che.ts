@@ -484,6 +484,7 @@ export class CheTasks {
           await this.kube.deleteNamespace(flags.chenamespace)
           task.title = await `${task.title}...OK`
         }
+        task.title = await `${task.title}...OK`
       }
     }]
   }

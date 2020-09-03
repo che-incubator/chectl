@@ -1303,8 +1303,12 @@ export class KubeHelper {
       }
 
       return crs[0]
-    } catch {
-      return
+    } catch (e) {
+      if (e.response.statusCode === 404) {
+        // There is no CRD 'checlusters`
+        return
+      }
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -1316,8 +1320,12 @@ export class KubeHelper {
     try {
       const { body } = await customObjectsApi.listClusterCustomObject('org.eclipse.che', 'v1', 'checlusters')
       return body.items ? body.items : []
-    } catch {
-      return []
+    } catch (e) {
+      if (e.response.statusCode === 404) {
+        // There is no CRD 'checlusters`
+        return []
+      }
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -1413,9 +1421,13 @@ export class KubeHelper {
         return []
       }
       const oauthClientAuthorizations = body.items as any[]
-      return oauthClientAuthorizations.filter(o => o.metadata.name && o.clientName === clientName)
-    } catch {
-      return []
+      return oauthClientAuthorizations.filter(o => o.clientName === clientName)
+    } catch (e) {
+      if (e.response.statusCode === 404) {
+        // There is no 'oauthclientauthorizations`
+        return []
+      }
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -1423,8 +1435,11 @@ export class KubeHelper {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const options = new V1DeleteOptions()
-      oAuthClientAuthorizations.forEach(e => customObjectsApi.deleteClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclientauthorizations', e.metadata.name, options))
+      oAuthClientAuthorizations.filter((e => e.metadata && e.metadata.name)).forEach(async e => {
+        await customObjectsApi.deleteClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclientauthorizations', e.metadata.name, options)
+      })
       return true
+
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1435,8 +1450,12 @@ export class KubeHelper {
     try {
       await customObjectsApi.getClusterCustomObject('console.openshift.io', 'v1', 'consolelinks', name)
       return true
-    } catch {
-      return false
+    } catch (e) {
+      if (e.response.statusCode === 404) {
+        // There are no consoleLink
+        return false
+      }
+      throw this.wrapK8sClientError(e)
     }
   }
 
