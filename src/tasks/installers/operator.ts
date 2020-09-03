@@ -358,7 +358,7 @@ export class OperatorTasks {
       title: `Delete CRD ${this.cheClusterCrd}`,
       task: async (_ctx: any, task: any) => {
         const checlusters = await kh.getAllCheCluster()
-        if (checlusters && checlusters.length > 0) {
+        if (checlusters.length > 0) {
           task.title = await `${task.title}...Skipped: another Eclipse Che deployment found.`
         } else {
           await kh.deleteCrd(this.cheClusterCrd)

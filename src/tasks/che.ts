@@ -424,7 +424,7 @@ export class CheTasks {
           const consoleLinkExists = await this.kube.consoleLinkExists(this.cheConsoleLinkName)
           const checlusters = await this.kube.getAllCheCluster()
           // Delete the consoleLink only in case if there no more checluster installed
-          if (!checlusters && consoleLinkExists) {
+          if (checlusters.length === 0 && consoleLinkExists) {
             await this.kube.deleteConsoleLink(this.cheConsoleLinkName)
           }
           task.title = `${task.title}...OK`

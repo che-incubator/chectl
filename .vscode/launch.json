@@ -38,6 +38,7 @@
                 "server:delete",
                 "--chenamespace",
                 "che",
+                "--delete-namespace"
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",

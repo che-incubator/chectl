@@ -29,7 +29,7 @@ export default class Delete extends Command {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'delete-namespace': boolean({
-      description: 'Set to true to delete namespace after removing Eclipse Che',
+      description: 'Indicates that a Eclipse Che namespace will be deleted as well',
       default: false
     }),
     'deployment-name': cheDeployment,

@@ -1303,31 +1303,21 @@ export class KubeHelper {
       }
 
       return crs[0]
-    } catch (e) {
-      if (e.response && e.response.statusCode === 404) {
-        throw this.wrapK8sClientError('Custom Resource "checlusters.org.eclipse" not found.')
-      } else if (e.response && e.response.statusCode === 403) {
-        throw this.wrapK8sClientError('It looks like you don\'t have enough privileges to delete Custom Resource "checlusters.org.eclipse"')
-      }
-
-      throw this.wrapK8sClientError(e)
+    } catch {
+      return
     }
   }
 
   /**
    * Returns all `checlusters.org.eclipse.che' resources
    */
-  async getAllCheCluster(): Promise<any[] | undefined> {
+  async getAllCheCluster(): Promise<any[]> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.listClusterCustomObject('org.eclipse.che', 'v1', 'checlusters')
       return body.items ? body.items : []
-    } catch (e) {
-      if (e.response.statusCode === 404) {
-        // There is no CRD 'checlusters`
-        return
-      }
-      throw this.wrapK8sClientError(e)
+    } catch {
+      return []
     }
   }
 
@@ -1414,7 +1404,7 @@ export class KubeHelper {
     }
   }
 
-  async getOAuthClientAuthorizations(name: string): Promise<string[]> {
+  async getOAuthClientAuthorizations(clientName: string): Promise<string[]> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.listClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclientauthorizations')
@@ -1423,7 +1413,7 @@ export class KubeHelper {
         return []
       }
       const oauthClientAuthorizations = body.items as any[]
-      return oauthClientAuthorizations.filter(o => o.metadata.name && o.clientName === name)
+      return oauthClientAuthorizations.filter(o => o.metadata.name && o.clientName === clientName)
     } catch {
       return []
     }
@@ -1443,8 +1433,8 @@ export class KubeHelper {
   async consoleLinkExists(name: string): Promise<boolean> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.getNamespacedCustomObject('console.openshift.io', 'v1', '' , 'consolelinks', name)
-      return this.compare(body, name)
+      await customObjectsApi.getClusterCustomObject('console.openshift.io', 'v1', 'consolelinks', name)
+      return true
     } catch {
       return false
     }
@@ -1454,7 +1444,7 @@ export class KubeHelper {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const options = new V1DeleteOptions()
-      await customObjectsApi.deleteNamespacedCustomObject('console.openshift.io', 'v1', '' , 'consolelinks', name, options)
+      await customObjectsApi.deleteClusterCustomObject('console.openshift.io', 'v1', 'consolelinks', name, options)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
