@@ -257,6 +257,8 @@ OPTIONS
   -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
                                            be deployed
 
+  --delete-namespace                       Set to true to delete namespace after removing Eclipse Che
+
   --deployment-name=deployment-name        [default: che] Eclipse Che deployment name
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer

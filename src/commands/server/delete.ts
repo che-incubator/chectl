@@ -28,6 +28,10 @@ export default class Delete extends Command {
   static flags = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
+    'delete-namespace': boolean({
+      description: 'Set to true to delete namespace after removing Eclipse Che',
+      default: false
+    }),
     'deployment-name': cheDeployment,
     'listr-renderer': listrRenderer,
     'skip-deletion-check': boolean({
@@ -60,6 +64,9 @@ export default class Delete extends Command {
     tasks.add(helmTasks.deleteTasks(flags))
     tasks.add(minishiftAddonTasks.deleteTasks(flags))
     tasks.add(cheTasks.waitPodsDeletedTasks())
+    if (flags['delete-namespace']) {
+      tasks.add(cheTasks.deleteNamespace(flags))
+    }
 
     const cluster = KubeHelper.KUBE_CONFIG.getCurrentCluster()
     if (!cluster) {

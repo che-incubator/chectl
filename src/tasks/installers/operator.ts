@@ -332,6 +332,19 @@ export class OperatorTasks {
     const clusterRoleName = `${flags.chenamespace}-${this.operatorClusterRole}`
     const clusterRoleBindingName = `${flags.chenamespace}-${this.operatorClusterRoleBinding}`
     return [{
+      title: 'Delete the oauthClientAuthorizations',
+      task: async (_ctx: any, task: any) => {
+        const checluster = await kh.getCheCluster(flags.chenamespace)
+        if (checluster && checluster.spec.auth.oAuthClientName) {
+          const oAuthClientAuthorization = await kh.getOAuthClientAuthorizations(checluster.spec.auth.oAuthClientName)
+          await kh.deleteOAuthClientAuthorizations(oAuthClientAuthorization)
+          task.title = await `${task.title}...OK`
+        } else {
+          task.title = await `${task.title}...Skipped: No oauthClientAuthorizations found.`
+        }
+      }
+    },
+    {
       title: `Delete the Custom Resource of type ${CHE_CLUSTER_CRD}`,
       task: async (_ctx: any, task: any) => {
         await kh.deleteCheCluster(flags.chenamespace)
@@ -345,7 +358,7 @@ export class OperatorTasks {
       title: `Delete CRD ${this.cheClusterCrd}`,
       task: async (_ctx: any, task: any) => {
         const checlusters = await kh.getAllCheCluster()
-        if (checlusters.length > 0) {
+        if (checlusters && checlusters.length > 0) {
           task.title = await `${task.title}...Skipped: another Eclipse Che deployment found.`
         } else {
           await kh.deleteCrd(this.cheClusterCrd)

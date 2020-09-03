@@ -28,7 +28,24 @@
           "windows": {
               "program": "${workspaceFolder}/node_modules/jest/bin/jest",
           }
-      },
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Openshift server:delete",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "server:delete",
+                "--chenamespace",
+                "che",
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "disableOptimisticBPs": true,
+            "windows": {
+                "program": "${workspaceFolder}/node_modules/jest/bin/jest",
+            }
+        },
         {
             "type": "node",
             "request": "launch",

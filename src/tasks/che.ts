@@ -46,6 +46,8 @@ export class CheTasks {
 
   cheOperatorSelector = 'app=che-operator'
 
+  cheConsoleLinkName = 'che'
+
   constructor(flags: any) {
     this.kube = new KubeHelper(flags)
     this.kubeTasks = new KubeTasks(flags)
@@ -415,6 +417,18 @@ export class CheTasks {
           }
           task.title = await `${task.title}...OK`
         }
+      },
+      {
+        title: `Delete console link ${this.cheConsoleLinkName}`,
+        task: async (_ctx: any, task: any) => {
+          const consoleLinkExists = await this.kube.consoleLinkExists(this.cheConsoleLinkName)
+          const checlusters = await this.kube.getAllCheCluster()
+          // Delete the consoleLink only in case if there no more checluster installed
+          if (!checlusters && consoleLinkExists) {
+            await this.kube.deleteConsoleLink(this.cheConsoleLinkName)
+          }
+          task.title = `${task.title}...OK`
+        }
       }]
   }
 
@@ -459,6 +473,19 @@ export class CheTasks {
         }
       }
     ]
+  }
+
+  deleteNamespace(flags: any): ReadonlyArray<Listr.ListrTask> {
+    return [{
+      title: `Delete namespace ${flags.chenamespace}`,
+      task: async (task: any) => {
+        const namespaceExist = await this.kube.namespaceExist(flags.chenamespace)
+        if (namespaceExist) {
+          await this.kube.deleteNamespace(flags.chenamespace)
+          task.title = await `${task.title}...OK`
+        }
+      }
+    }]
   }
 
   verifyCheNamespaceExistsTask(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
