@@ -332,6 +332,17 @@ export class OperatorTasks {
     const clusterRoleName = `${flags.chenamespace}-${this.operatorClusterRole}`
     const clusterRoleBindingName = `${flags.chenamespace}-${this.operatorClusterRoleBinding}`
     return [{
+      title: 'Delete oauthClientAuthorizations',
+      task: async (_ctx: any, task: any) => {
+        const checluster = await kh.getCheCluster(flags.chenamespace)
+        if (checluster && checluster.spec && checluster.spec.auth && checluster.spec.auth.oAuthClientName) {
+          const oAuthClientAuthorizations = await kh.getOAuthClientAuthorizations(checluster.spec.auth.oAuthClientName)
+          await kh.deleteOAuthClientAuthorizations(oAuthClientAuthorizations)
+        }
+        task.title = `${task.title}...OK`
+      }
+    },
+    {
       title: `Delete the Custom Resource of type ${CHE_CLUSTER_CRD}`,
       task: async (_ctx: any, task: any) => {
         await kh.deleteCheCluster(flags.chenamespace)

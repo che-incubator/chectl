@@ -1304,6 +1304,10 @@ export class KubeHelper {
 
       return crs[0]
     } catch (e) {
+      if (e.response.statusCode === 404) {
+        // There is no CRD 'checlusters`
+        return
+      }
       throw this.wrapK8sClientError(e)
     }
   }
@@ -1317,6 +1321,10 @@ export class KubeHelper {
       const { body } = await customObjectsApi.listClusterCustomObject('org.eclipse.che', 'v1', 'checlusters')
       return body.items ? body.items : []
     } catch (e) {
+      if (e.response.statusCode === 404) {
+        // There is no CRD 'checlusters`
+        return []
+      }
       throw this.wrapK8sClientError(e)
     }
   }
@@ -1401,6 +1409,62 @@ export class KubeHelper {
       return this.compare(body, name)
     } catch {
       return false
+    }
+  }
+
+  async getOAuthClientAuthorizations(clientName: string): Promise<string[]> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.listClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclientauthorizations')
+
+      if (!body.items) {
+        return []
+      }
+      const oauthClientAuthorizations = body.items as any[]
+      return oauthClientAuthorizations.filter(o => o.clientName === clientName)
+    } catch (e) {
+      if (e.response.statusCode === 404) {
+        // There is no 'oauthclientauthorizations`
+        return []
+      }
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async deleteOAuthClientAuthorizations(oAuthClientAuthorizations: any[]): Promise<void> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const options = new V1DeleteOptions()
+      const filetOauthAuthorizations = oAuthClientAuthorizations.filter((e => e.metadata && e.metadata.name))
+      for (let oauthAuthorization of filetOauthAuthorizations) {
+        await customObjectsApi.deleteClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclientauthorizations', oauthAuthorization.metadata.name, options)
+      }
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async consoleLinkExists(name: string): Promise<boolean> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      await customObjectsApi.getClusterCustomObject('console.openshift.io', 'v1', 'consolelinks', name)
+      return true
+    } catch (e) {
+      if (e.response.statusCode === 404) {
+        // There are no consoleLink
+        return false
+      }
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async deleteConsoleLink(name: string): Promise<void> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+    try {
+      const options = new V1DeleteOptions()
+      await customObjectsApi.deleteClusterCustomObject('console.openshift.io', 'v1', 'consolelinks', name, options)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
     }
   }
 

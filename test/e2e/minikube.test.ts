@@ -157,7 +157,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
     test
       .stdout()
       .stderr({ print: true })
-      .command(['server:delete', '--skip-deletion-check'])
+      .command(['server:delete', '--skip-deletion-check', '--delete-namespace'])
       .exit(0)
       .it('deletes Eclipse Che resources on minikube successfully')
   })
