@@ -482,9 +482,8 @@ export class CheTasks {
         const namespaceExist = await this.kube.namespaceExist(flags.chenamespace)
         if (namespaceExist) {
           await this.kube.deleteNamespace(flags.chenamespace)
-          task.title = await `${task.title}...OK`
         }
-        task.title = await `${task.title}...OK`
+        task.title = `${task.title}...OK`
       }
     }]
   }

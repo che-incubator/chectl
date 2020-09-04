@@ -1431,15 +1431,14 @@ export class KubeHelper {
     }
   }
 
-  async deleteOAuthClientAuthorizations(oAuthClientAuthorizations: any[]): Promise<boolean> {
+  async deleteOAuthClientAuthorizations(oAuthClientAuthorizations: any[]): Promise<void> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const options = new V1DeleteOptions()
-      oAuthClientAuthorizations.filter((e => e.metadata && e.metadata.name)).forEach(async e => {
-        await customObjectsApi.deleteClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclientauthorizations', e.metadata.name, options)
-      })
-      return true
-
+      const filetOauthAuthorizations = oAuthClientAuthorizations.filter((e => e.metadata && e.metadata.name))
+      for (let oauthAuthorization of filetOauthAuthorizations) {
+        await customObjectsApi.deleteClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclientauthorizations', oauthAuthorization.metadata.name, options)
+      }
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1459,7 +1458,7 @@ export class KubeHelper {
     }
   }
 
-  async deleteConsoleLink(name: string) {
+  async deleteConsoleLink(name: string): Promise<void> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const options = new V1DeleteOptions()

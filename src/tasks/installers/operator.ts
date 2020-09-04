@@ -339,7 +339,7 @@ export class OperatorTasks {
           const oAuthClientAuthorizations = await kh.getOAuthClientAuthorizations(checluster.spec.auth.oAuthClientName)
           await kh.deleteOAuthClientAuthorizations(oAuthClientAuthorizations)
         }
-        task.title = await `${task.title}...OK`
+        task.title = `${task.title}...OK`
       }
     },
     {
