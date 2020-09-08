@@ -345,8 +345,8 @@ OPTIONS
                            In case of providing own self-signed certificate 'self-signed-certificate' secret should be 
       also created.
                            For OpenShift, router will use default cluster certificates.
-                           Please see docs for more details: 
-      https://www.eclipse.org/che/docs/che-7/installing-che-in-tls-mode-with-self-signed-certificates/
+                           Please see the docs how to deploy Eclipse Che on different infrastructures: 
+      https://www.eclipse.org/che/docs/che-7/overview/running-che-locally/
 
   -t, --templates=templates
       Path to the templates folder
@@ -455,31 +455,37 @@ USAGE
   $ chectl server:stop
 
 OPTIONS
-  -h, --help                               show CLI help
+  -h, --help
+      show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
-                                           be deployed
+  -n, --chenamespace=chenamespace
+      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
 
-  --access-token=access-token              Eclipse Che OIDC Access Token. See the documentation how to obtain token:
-                                           https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-to
-                                           ken-from-keycloak_authenticating-to-the-che-server and
-                                           https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-to
-                                           ken-from-openshift-token-through-keycloak_authenticating-to-the-che-server.
+  --access-token=access-token
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
+      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
+      authenticating-to-the-che-server and 
+      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
+      -token-through-keycloak_authenticating-to-the-che-server.
 
-  --che-selector=che-selector              [default: app=che,component=che] Selector for Eclipse Che server resources
+  --che-selector=che-selector
+      [default: app=che,component=che] Selector for Eclipse Che server resources
 
-  --deployment-name=deployment-name        [default: che] Eclipse Che deployment name
+  --deployment-name=deployment-name
+      [default: che] Eclipse Che deployment name
 
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+  --listr-renderer=default|silent|verbose
+      [default: default] Listr renderer
 
-  --skip-kubernetes-health-check           Skip Kubernetes health check
+  --skip-kubernetes-health-check
+      Skip Kubernetes health check
 ```
 
 _See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
 
 ## `chectl server:update`
 
-update Eclipse Che server
+Update Eclipse Che server.
 
 ```
 USAGE
@@ -542,28 +548,34 @@ USAGE
   $ chectl workspace:create
 
 OPTIONS
-  -d, --debug                      Debug workspace start. It is useful when workspace start fails and it is needed to
-                                   print more logs on startup. This flag is used in conjunction with --start flag.
+  -d, --debug
+      Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup. This 
+      flag is used in conjunction with --start flag.
 
-  -f, --devfile=devfile            Path or URL to a valid devfile
+  -f, --devfile=devfile
+      Path or URL to a valid devfile
 
-  -h, --help                       show CLI help
+  -h, --help
+      show CLI help
 
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
-                                   deployed
+  -n, --chenamespace=chenamespace
+      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
 
-  -s, --start                      Starts the workspace after creation
+  -s, --start
+      Starts the workspace after creation
 
-  --access-token=access-token      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
-                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
-                                   -keycloak_authenticating-to-the-che-server and
-                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
-                                   -openshift-token-through-keycloak_authenticating-to-the-che-server.
+  --access-token=access-token
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
+      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
+      authenticating-to-the-che-server and 
+      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
+      -token-through-keycloak_authenticating-to-the-che-server.
 
-  --name=name                      Workspace name: overrides the workspace name to use instead of the one defined in the
-                                   devfile.
+  --name=name
+      Workspace name: overrides the workspace name to use instead of the one defined in the devfile.
 
-  --skip-kubernetes-health-check   Skip Kubernetes health check
+  --skip-kubernetes-health-check
+      Skip Kubernetes health check
 ```
 
 _See code: [src/commands/workspace/create.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/create.ts)_
@@ -580,21 +592,24 @@ ARGUMENTS
   WORKSPACE  The workspace id to delete
 
 OPTIONS
-  -h, --help                       show CLI help
+  -h, --help
+      show CLI help
 
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
-                                   deployed
+  -n, --chenamespace=chenamespace
+      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
 
-  --access-token=access-token      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
-                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
-                                   -keycloak_authenticating-to-the-che-server and
-                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
-                                   -openshift-token-through-keycloak_authenticating-to-the-che-server.
+  --access-token=access-token
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
+      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
+      authenticating-to-the-che-server and 
+      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
+      -token-through-keycloak_authenticating-to-the-che-server.
 
-  --delete-namespace               Indicates that a Kubernetes namespace where workspace was created will be deleted as
-                                   well
+  --delete-namespace
+      Indicates that a Kubernetes namespace where workspace was created will be deleted as well
 
-  --skip-kubernetes-health-check   Skip Kubernetes health check
+  --skip-kubernetes-health-check
+      Skip Kubernetes health check
 ```
 
 _See code: [src/commands/workspace/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/delete.ts)_
@@ -608,30 +623,34 @@ USAGE
   $ chectl workspace:inject
 
 OPTIONS
-  -c, --container=container        The container name. If not specified, configuration files will be injected in all
-                                   containers of the workspace pod
+  -c, --container=container
+      The container name. If not specified, configuration files will be injected in all containers of the workspace pod
 
-  -h, --help                       show CLI help
+  -h, --help
+      show CLI help
 
-  -k, --kubeconfig                 (required) Inject the local Kubernetes configuration
+  -k, --kubeconfig
+      (required) Inject the local Kubernetes configuration
 
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
-                                   deployed
+  -n, --chenamespace=chenamespace
+      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
 
-  -w, --workspace=workspace        The workspace id to inject configuration into. It can be omitted if the only one
-                                   running workspace exists.
-                                   Use workspace:list command to get all workspaces and their
-                                   statuses.
+  -w, --workspace=workspace
+      The workspace id to inject configuration into. It can be omitted if the only one running workspace exists.
+                           Use workspace:list command to get all workspaces and their statuses.
 
-  --access-token=access-token      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
-                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
-                                   -keycloak_authenticating-to-the-che-server and
-                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
-                                   -openshift-token-through-keycloak_authenticating-to-the-che-server.
+  --access-token=access-token
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
+      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
+      authenticating-to-the-che-server and 
+      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
+      -token-through-keycloak_authenticating-to-the-che-server.
 
-  --kube-context=kube-context      Kubeconfig context to inject
+  --kube-context=kube-context
+      Kubeconfig context to inject
 
-  --skip-kubernetes-health-check   Skip Kubernetes health check
+  --skip-kubernetes-health-check
+      Skip Kubernetes health check
 ```
 
 _See code: [src/commands/workspace/inject.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/inject.ts)_
@@ -645,18 +664,21 @@ USAGE
   $ chectl workspace:list
 
 OPTIONS
-  -h, --help                       show CLI help
+  -h, --help
+      show CLI help
 
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
-                                   deployed
+  -n, --chenamespace=chenamespace
+      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
 
-  --access-token=access-token      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
-                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
-                                   -keycloak_authenticating-to-the-che-server and
-                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
-                                   -openshift-token-through-keycloak_authenticating-to-the-che-server.
+  --access-token=access-token
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
+      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
+      authenticating-to-the-che-server and 
+      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
+      -token-through-keycloak_authenticating-to-the-che-server.
 
-  --skip-kubernetes-health-check   Skip Kubernetes health check
+  --skip-kubernetes-health-check
+      Skip Kubernetes health check
 ```
 
 _See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/list.ts)_
@@ -698,21 +720,24 @@ ARGUMENTS
   WORKSPACE  The workspace id to start
 
 OPTIONS
-  -d, --debug                      Debug workspace start. It is useful when workspace start fails and it is needed to
-                                   print more logs on startup.
+  -d, --debug
+      Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup.
 
-  -h, --help                       show CLI help
+  -h, --help
+      show CLI help
 
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
-                                   deployed
+  -n, --chenamespace=chenamespace
+      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
 
-  --access-token=access-token      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
-                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
-                                   -keycloak_authenticating-to-the-che-server and
-                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
-                                   -openshift-token-through-keycloak_authenticating-to-the-che-server.
+  --access-token=access-token
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
+      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
+      authenticating-to-the-che-server and 
+      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
+      -token-through-keycloak_authenticating-to-the-che-server.
 
-  --skip-kubernetes-health-check   Skip Kubernetes health check
+  --skip-kubernetes-health-check
+      Skip Kubernetes health check
 ```
 
 _See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
@@ -729,18 +754,21 @@ ARGUMENTS
   WORKSPACE  The workspace id to stop
 
 OPTIONS
-  -h, --help                       show CLI help
+  -h, --help
+      show CLI help
 
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
-                                   deployed
+  -n, --chenamespace=chenamespace
+      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
 
-  --access-token=access-token      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
-                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
-                                   -keycloak_authenticating-to-the-che-server and
-                                   https://www.eclipse.org/che/docs/che-7/authenticating-users/#obtaining-the-token-from
-                                   -openshift-token-through-keycloak_authenticating-to-the-che-server.
+  --access-token=access-token
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
+      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
+      authenticating-to-the-che-server and 
+      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
+      -token-through-keycloak_authenticating-to-the-che-server.
 
-  --skip-kubernetes-health-check   Skip Kubernetes health check
+  --skip-kubernetes-health-check
+      Skip Kubernetes health check
 ```
 
 _See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_
