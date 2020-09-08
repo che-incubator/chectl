@@ -11,13 +11,13 @@
 import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
-import * as Listr from 'listr'
+import * as fs from 'fs'
 import * as notifier from 'node-notifier'
 
-import { accessToken, cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
-import { CheTasks } from '../../tasks/che'
-import { ApiTasks } from '../../tasks/platforms/api'
-import { WorkspaceTasks } from '../../tasks/workspace-tasks'
+import { CheHelper } from '../../api/che'
+import { CheApiClient } from '../../api/che-api'
+import { KubeHelper } from '../../api/kube'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiUrl, cheNamespace, CHE_API_URL_KEY } from '../../common-flags'
 
 export default class Create extends Command {
   static description = 'Creates a workspace from a devfile'
@@ -45,41 +45,43 @@ export default class Create extends Command {
       description: 'Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup. This flag is used in conjunction with --start flag.',
       default: false
     }),
-    'access-token': accessToken,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    [CHE_API_URL_KEY]: cheApiUrl,
+    [ACCESS_TOKEN_KEY]: accessToken,
   }
 
   async run() {
     const { flags } = this.parse(Create)
-    const ctx: any = {}
 
-    const apiTasks = new ApiTasks()
-    const cheTasks = new CheTasks(flags)
-    const workspaceTasks = new WorkspaceTasks(flags)
+    const devfilePath = this.getDevfilePath(flags.devfile)
+    const accessToken = flags[ACCESS_TOKEN_KEY]
+    const cheHelper = new CheHelper(flags)
 
-    const tasks = new Listr([], { renderer: 'silent' })
-
-    tasks.add(apiTasks.testApiTasks(flags, this))
-    tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
-    tasks.add(cheTasks.retrieveEclipseCheUrl(flags))
-    tasks.add(cheTasks.checkEclipseCheStatus())
-    tasks.add(workspaceTasks.getWorkspaceCreateTask(flags.devfile, flags.name))
-    if (flags.start) {
-      tasks.add(workspaceTasks.getWorkspaceStartTask(flags.debug))
-    }
-    tasks.add(workspaceTasks.getWorkspaceIdeUrlTask())
-
-    try {
-      await tasks.run(ctx)
-      if (flags.start) {
-        this.log('Workspace has been successfully created and workspace start request has been sent')
-        this.log('Workspace will be available shortly:')
-      } else {
-        this.log('Workspace has been successfully created:')
+    let cheApiUrl = flags[CHE_API_URL_KEY]
+    if (!cheApiUrl) {
+      const kube = new KubeHelper(flags)
+      if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
+        throw new Error(`"--${CHE_API_URL_KEY}" argument is required`)
       }
-      cli.url(ctx.workspaceIdeURL, ctx.workspaceIdeURL)
-    } catch (err) {
-      this.error(err)
+      cheApiUrl = await cheHelper.cheURL(flags.chenamespace) + '/api'
+    }
+
+    const cheApiClient = CheApiClient.getInstance(cheApiUrl)
+    await cheApiClient.ensureCheApiUrlCorrect()
+
+    let workspace = await cheHelper.createWorkspaceFromDevfile(cheApiUrl, devfilePath, flags.name, accessToken)
+    const workspaceId = workspace.id!
+
+    if (flags.start) {
+      await cheApiClient.startWorkspace(workspaceId, flags.debug, accessToken)
+      this.log('Workspace has been successfully created and workspace start request has been sent.')
+      this.log('Workspace will be available shortly:')
+    } else {
+      this.log('Workspace has been successfully created:')
+    }
+    workspace = await cheApiClient.getWorkspaceById(workspaceId, accessToken)
+    if (workspace.links && workspace.links.ide) {
+      const workspaceIdeURL = await cheHelper.buildDashboardURL(workspace.links.ide)
+      cli.url(workspaceIdeURL, workspaceIdeURL)
     }
 
     notifier.notify({
@@ -89,4 +91,18 @@ export default class Create extends Command {
 
     this.exit(0)
   }
+
+  private getDevfilePath(devfilePath?: string) {
+    if (!devfilePath) {
+      if (fs.existsSync('devfile.yaml')) {
+        devfilePath = 'devfile.yaml'
+      } else if (fs.existsSync('devfile.yml')) {
+        devfilePath = 'devfile.yml'
+      } else {
+        throw new Error("E_DEVFILE_MISSING - Devfile wasn't specified via '-f' option and 'devfile.yaml' is not present in current directory.")
+      }
+    }
+    return devfilePath
+  }
+
 }

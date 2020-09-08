@@ -10,54 +10,55 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
-import * as Listrq from 'listr'
 
 import { CheHelper } from '../../api/che'
-import { accessToken, cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
-import { CheTasks } from '../../tasks/che'
-import { ApiTasks } from '../../tasks/platforms/api'
+import { CheApiClient } from '../../api/che-api'
+import { KubeHelper } from '../../api/kube'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiUrl, cheNamespace, CHE_API_URL_KEY } from '../../common-flags'
 
 export default class List extends Command {
   static description = 'list workspaces'
 
   static flags = {
     help: flags.help({ char: 'h' }),
+    quiet: flags.boolean({
+      char: 'q',
+      description: "Show workspaces ID's only",
+      default: false
+    }),
     chenamespace: cheNamespace,
-    'access-token': accessToken,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    [CHE_API_URL_KEY]: cheApiUrl,
+    [ACCESS_TOKEN_KEY]: accessToken,
   }
 
   async run() {
     const { flags } = this.parse(List)
-    const ctx: any = {}
-    ctx.workspaces = []
 
-    const apiTasks = new ApiTasks()
-    const cheTasks = new CheTasks(flags)
-    const tasks = new Listrq(undefined, { renderer: 'silent' })
-
-    tasks.add(apiTasks.testApiTasks(flags, this))
-    tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
-    tasks.add(cheTasks.retrieveEclipseCheUrl(flags))
-    tasks.add(cheTasks.checkEclipseCheStatus())
-    tasks.add({
-      title: 'Get workspaces',
-      task: async (ctx, task) => {
-        const cheHelper = new CheHelper(flags)
-        ctx.workspaces = await cheHelper.getAllWorkspaces(ctx.cheURL, flags['access-token'])
-        task.title = `${task.title}... done`
+    let workspaces = []
+    let cheApiUrl = flags[CHE_API_URL_KEY]
+    if (!cheApiUrl) {
+      const kube = new KubeHelper(flags)
+      if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
+        throw new Error(`"--${CHE_API_URL_KEY}" argument is required`)
       }
-    })
 
-    try {
-      await tasks.run(ctx)
-      this.printWorkspaces(ctx.workspaces)
-    } catch (error) {
-      this.error(error.message)
+      const cheHelper = new CheHelper(flags)
+      cheApiUrl = await cheHelper.cheURL(flags.chenamespace) + '/api'
+    }
+
+    const cheApiClient = CheApiClient.getInstance(cheApiUrl)
+    await cheApiClient.ensureCheApiUrlCorrect()
+
+    workspaces = await cheApiClient.getAllWorkspaces(flags[ACCESS_TOKEN_KEY])
+
+    if (flags.quiet) {
+      workspaces.forEach((workspace: any) => cli.info(workspace.id))
+    } else {
+      this.printWorkspaces(workspaces)
     }
   }
 
-  private printWorkspaces(workspaces: [any]): void {
+  private printWorkspaces(workspaces: any[]): void {
     const data: any[] = []
     workspaces.forEach((workspace: any) => {
       data.push({

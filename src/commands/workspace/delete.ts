@@ -10,14 +10,12 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
-import * as Listrq from 'listr'
 import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
+import { CheApiClient } from '../../api/che-api'
 import { KubeHelper } from '../../api/kube'
-import { accessToken, cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
-import { CheTasks } from '../../tasks/che'
-import { ApiTasks } from '../../tasks/platforms/api'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiUrl, cheNamespace, CHE_API_URL_KEY } from '../../common-flags'
 
 export default class Delete extends Command {
   static description = 'delete a stopped workspace - use workspace:stop to stop the workspace before deleting it'
@@ -29,8 +27,8 @@ export default class Delete extends Command {
       description: 'Indicates that a Kubernetes namespace where workspace was created will be deleted as well',
       default: false
     }),
-    'access-token': accessToken,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    [CHE_API_URL_KEY]: cheApiUrl,
+    [ACCESS_TOKEN_KEY]: accessToken,
   }
   static args = [
     {
@@ -43,70 +41,43 @@ export default class Delete extends Command {
   async run() {
     const { flags } = this.parse(Delete)
     const { args } = this.parse(Delete)
-    const ctx: any = {}
-    ctx.workspaces = []
 
-    const apiTasks = new ApiTasks()
-    const cheTasks = new CheTasks(flags)
-    const cheHelper = new CheHelper(flags)
-    const kubeHelper = new KubeHelper(flags)
-    const tasks = new Listrq(undefined, { renderer: 'silent' })
+    const workspaceId = args.workspace
 
-    tasks.add(apiTasks.testApiTasks(flags, this))
-    tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
-    tasks.add(cheTasks.retrieveEclipseCheUrl(flags))
-    tasks.add(cheTasks.checkEclipseCheStatus())
-
-    tasks.add({
-      title: `Get workspace by id '${args.workspace}'`,
-      task: async (ctx, task) => {
-        const workspace = await cheHelper.getWorkspace(ctx.cheURL, args.workspace, flags['access-token'])
-        ctx.infrastructureNamespace = workspace.attributes.infrastructureNamespace
-        task.title = `${task.title}... done`
+    let cheApiUrl = flags[CHE_API_URL_KEY]
+    if (!cheApiUrl) {
+      const kube = new KubeHelper(flags)
+      if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
+        throw new Error(`"--${CHE_API_URL_KEY}" argument is required`)
       }
-    })
-    tasks.add({
-      title: `Delete workspace by id '${args.workspace}'`,
-      task: async (ctx, task) => {
-        await cheHelper.deleteWorkspace(ctx.cheURL, args.workspace, flags['access-token'])
-        cli.log(`Workspace with id '${args.workspace}' deleted.`)
-        task.title = `${task.title}... done`
-      }
-    })
-    tasks.add({
-      title: 'Verify if namespace exists',
-      enabled: () => flags['delete-namespace'],
-      task: async (ctx, task) => {
-        task.title = `${task.title} '${ctx.infrastructureNamespace}'`
-        if (ctx.infrastructureNamespace === flags.chenamespace) {
-          cli.warn(`It is not possible to delete namespace '${ctx.infrastructureNamespace}' since it is used for Eclipse Che deployment.`)
-          return
-        }
 
-        ctx.infrastructureNamespaceExists = await kubeHelper.namespaceExist(ctx.infrastructureNamespace)
-        if (ctx.infrastructureNamespaceExists) {
-          task.title = `${task.title}... found`
+      const cheHelper = new CheHelper(flags)
+      cheApiUrl = await cheHelper.cheURL(flags.chenamespace) + '/api'
+    }
+
+    const cheApiClient = CheApiClient.getInstance(cheApiUrl)
+    await cheApiClient.ensureCheApiUrlCorrect()
+
+    const workspace = await cheApiClient.getWorkspaceById(workspaceId, flags[ACCESS_TOKEN_KEY])
+    const infrastructureNamespace = workspace!.attributes!.infrastructureNamespace
+
+    await cheApiClient.deleteWorkspaceById(workspaceId, flags[ACCESS_TOKEN_KEY])
+    cli.log(`Workspace with id '${workspaceId}' deleted.`)
+
+    if (flags['delete-namespace']) {
+      if (infrastructureNamespace === flags.chenamespace) {
+        cli.warn(`It is not possible to delete namespace '${infrastructureNamespace}' since it is used for Eclipse Che deployment.`)
+        return
+      }
+
+      const kube = new KubeHelper(flags)
+      if (await kube.namespaceExist(infrastructureNamespace)) {
+        if (await kube.deleteNamespace(infrastructureNamespace)) {
+          cli.log(`Namespace '${infrastructureNamespace}' deleted.`)
         } else {
-          task.title = `${task.title}... not found`
+          cli.warn(`It is not possible to delete namespace '${infrastructureNamespace}' because current user doesn't have required permissions.`)
         }
       }
-    })
-    tasks.add({
-      title: 'Delete namespace',
-      skip: ctx => !ctx.infrastructureNamespaceExists,
-      enabled: () => flags['delete-namespace'],
-      task: async (ctx, task) => {
-        task.title = `${task.title} '${ctx.infrastructureNamespace}'`
-        await kubeHelper.deleteNamespace(ctx.infrastructureNamespace)
-        cli.log(`Namespace '${ctx.infrastructureNamespace}' deleted.`)
-        task.title = `${task.title}... done`
-      }
-    })
-
-    try {
-      await tasks.run(ctx)
-    } catch (error) {
-      this.error(error)
     }
 
     notifier.notify({

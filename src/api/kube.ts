@@ -555,6 +555,20 @@ export class KubeHelper {
     }
   }
 
+  async hasReadPermissionsForNamespace(namespace: string): Promise<boolean> {
+    const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
+    try {
+      return !!(await k8sApi.readNamespace(namespace))
+    } catch (error) {
+      if (error.response && error.response.body) {
+        if (error.response.body.code === 403) {
+          return false
+        }
+      }
+      throw this.wrapK8sClientError(error)
+    }
+  }
+
   async readNamespacedPod(podName: string, namespace: string): Promise<V1Pod | undefined> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
@@ -1710,11 +1724,17 @@ export class KubeHelper {
     }
   }
 
-  async deleteNamespace(namespace: string): Promise<void> {
+  async deleteNamespace(namespace: string): Promise<boolean> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
       await k8sCoreApi.deleteNamespace(namespace)
+      return true
     } catch (e) {
+      if (e.response && e.response.body) {
+        if (e.response.body.code === 403) {
+          return false
+        }
+      }
       throw this.wrapK8sClientError(e)
     }
   }

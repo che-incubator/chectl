@@ -10,13 +10,12 @@
 
 import Command, { flags } from '@oclif/command'
 import { cli } from 'cli-ux'
-import Listr = require('listr')
 import * as notifier from 'node-notifier'
 
-import { accessToken, cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
-import { CheTasks } from '../../tasks/che'
-import { ApiTasks } from '../../tasks/platforms/api'
-import { WorkspaceTasks } from '../../tasks/workspace-tasks'
+import { CheHelper } from '../../api/che'
+import { CheApiClient } from '../../api/che-api'
+import { KubeHelper } from '../../api/kube'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiUrl, cheNamespace, CHE_API_URL_KEY } from '../../common-flags'
 
 export default class Start extends Command {
   static description = 'Starts a workspace'
@@ -28,9 +27,9 @@ export default class Start extends Command {
       description: 'Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup.',
       default: false
     }),
-    'access-token': accessToken,
+    [CHE_API_URL_KEY]: cheApiUrl,
+    [ACCESS_TOKEN_KEY]: accessToken,
     chenamespace: cheNamespace,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
   static args = [
@@ -44,28 +43,31 @@ export default class Start extends Command {
   async run() {
     const { flags } = this.parse(Start)
     const { args } = this.parse(Start)
-    const ctx: any = {}
 
-    const tasks = new Listr([], { renderer: 'silent' })
+    const workspaceId = args.workspace
+    const cheHelper = new CheHelper(flags)
 
-    const apiTasks = new ApiTasks()
-    const cheTasks = new CheTasks(flags)
-    const workspaceTasks = new WorkspaceTasks(flags)
+    let cheApiUrl = flags[CHE_API_URL_KEY]
+    if (!cheApiUrl) {
+      const kube = new KubeHelper(flags)
+      if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
+        throw new Error(`"--${CHE_API_URL_KEY}" argument is required`)
+      }
+      cheApiUrl = await cheHelper.cheURL(flags.chenamespace) + '/api'
+    }
 
-    ctx.workspaceId = args.workspace
-    tasks.add(apiTasks.testApiTasks(flags, this))
-    tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
-    tasks.add(cheTasks.retrieveEclipseCheUrl(flags))
-    tasks.add(cheTasks.checkEclipseCheStatus())
-    tasks.add(workspaceTasks.getWorkspaceStartTask(flags.debug))
-    tasks.add(workspaceTasks.getWorkspaceIdeUrlTask())
+    const cheApiClient = CheApiClient.getInstance(cheApiUrl)
+    await cheApiClient.ensureCheApiUrlCorrect()
 
-    try {
-      await tasks.run(ctx)
-      this.log('Workspace start request has been sent, workspace will be available shortly:')
-      cli.url(ctx.workspaceIdeURL, ctx.workspaceIdeURL)
-    } catch (err) {
-      this.error(err)
+    await cheApiClient.startWorkspace(workspaceId, flags.debug, flags[ACCESS_TOKEN_KEY])
+
+    const workspace = await cheApiClient.getWorkspaceById(workspaceId, flags[ACCESS_TOKEN_KEY])
+    if (workspace.links && workspace.links.ide) {
+      const workspaceIdeURL = await cheHelper.buildDashboardURL(workspace.links.ide)
+      cli.log('Workspace start request has been sent, workspace will be available shortly:')
+      cli.url(workspaceIdeURL, workspaceIdeURL)
+    } else {
+      cli.log('Workspace start request has been sent, workspace will be available shortly.')
     }
 
     notifier.notify({
