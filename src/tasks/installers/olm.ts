@@ -56,12 +56,12 @@ export class OLMTasks {
         }
       },
       {
-        enabled: () => !isStableVersion(flags) && !flags['catalog-source-yaml'] && !flags['catalog-source-name'],
+        enabled: () => !isStableVersion(flags),
         title: `Create nightly index CatalogSource in the namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
           if (!await kube.catalogSourceExists(NIGHTLY_CATALOG_SOURCE_NAME, flags.chenamespace)) {
             const catalogSourceImage = `quay.io/eclipse/eclipse-che-${ctx.generalPlatformName}-opm-catalog:preview`
-            const nigthlyCatalogSource = this.createIndexCatalogSource(flags.chenamespace, catalogSourceImage)
+            const nigthlyCatalogSource = this.constructIndexCatalogSource(flags.chenamespace, catalogSourceImage)
             await kube.createCatalogSource(nigthlyCatalogSource)
             await kube.waitCatalogSource(flags.chenamespace, NIGHTLY_CATALOG_SOURCE_NAME)
           } else {
@@ -94,15 +94,15 @@ export class OLMTasks {
             let subscription: Subscription
 
             // stable Che CatalogSource
-            if (!flags['catalog-source-yaml'] && !flags['catalog-source-name'] && isStableVersion(flags)) {
-              subscription = this.createSubscription(SUBSCRIPTION_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, flags['starting-csv'])
+            if (isStableVersion(flags)) {
+              subscription = this.constructSubscription(SUBSCRIPTION_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, flags['starting-csv'])
             // custom Che CatalogSource
             } else if (flags['catalog-source-yaml'] || flags['catalog-source-name']) {
               const catalogSourceNamespace = flags['catalog-source-namespace'] || flags.chenamespace
-              subscription = this.createSubscription(SUBSCRIPTION_NAME, flags['package-manifest-name'], flags.chenamespace, catalogSourceNamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, flags['starting-csv'])
+              subscription = this.constructSubscription(SUBSCRIPTION_NAME, flags['package-manifest-name'], flags.chenamespace, catalogSourceNamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, flags['starting-csv'])
             // nightly Che CatalogSource
             } else {
-              subscription = this.createSubscription(SUBSCRIPTION_NAME, `eclipse-che-preview-${ctx.generalPlatformName}`, flags.chenamespace, flags.chenamespace, OLM_NIGHTLY_CHANNEL_NAME, NIGHTLY_CATALOG_SOURCE_NAME, ctx.approvalStarategy, flags['starting-csv'])
+              subscription = this.constructSubscription(SUBSCRIPTION_NAME, `eclipse-che-preview-${ctx.generalPlatformName}`, flags.chenamespace, flags.chenamespace, OLM_NIGHTLY_CHANNEL_NAME, NIGHTLY_CATALOG_SOURCE_NAME, ctx.approvalStarategy, flags['starting-csv'])
             }
             await kube.createOperatorSubscription(subscription)
             task.title = `${task.title}...created new one.`
@@ -281,7 +281,7 @@ export class OLMTasks {
     }
   }
 
-  private createSubscription(name: string, packageName: string, namespace: string, sourceNamespace: string, channel: string, sourceName: string, installPlanApproval: string, startingCSV?: string): Subscription {
+  private constructSubscription(name: string, packageName: string, namespace: string, sourceNamespace: string, channel: string, sourceName: string, installPlanApproval: string, startingCSV?: string): Subscription {
     return {
       apiVersion: 'operators.coreos.com/v1alpha1',
       kind: 'Subscription',
@@ -300,20 +300,20 @@ export class OLMTasks {
     }
   }
 
-  private createIndexCatalogSource(namespace: string, catalogSourceImage: string): CatalogSource {
+  private constructIndexCatalogSource(namespace: string, catalogSourceImage: string): CatalogSource {
     return {
-      apiVersion: "operators.coreos.com/v1alpha1",
-      kind: "CatalogSource",
+      apiVersion: 'operators.coreos.com/v1alpha1',
+      kind: 'CatalogSource',
       metadata: {
         name: NIGHTLY_CATALOG_SOURCE_NAME,
         namespace,
       },
       spec: {
         image: catalogSourceImage,
-        sourceType: "grpc",
+        sourceType: 'grpc',
         updateStrategy: {
           registryPoll: {
-            interval: "10m"
+            interval: '15m'
           }
         }
       }
