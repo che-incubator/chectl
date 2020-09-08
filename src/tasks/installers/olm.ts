@@ -14,7 +14,7 @@ import Listr = require('listr')
 
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/typings/olm'
-import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, KUBERNETES_OLM_CATALOG, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, SUBSCRIPTION_NAME, NIGHTLY_CATALOG_SOURCE_NAME, OLM_NIGHTLY_CHANNEL_NAME } from '../../constants'
+import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, KUBERNETES_OLM_CATALOG, NIGHTLY_CATALOG_SOURCE_NAME, OLM_NIGHTLY_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, SUBSCRIPTION_NAME } from '../../constants'
 import { isKubernetesPlatformFamily, isStableVersion } from '../../util'
 
 import { copyOperatorResources, createEclipseCheCluster, createNamespaceTask } from './common-tasks'
@@ -96,11 +96,11 @@ export class OLMTasks {
             // stable Che CatalogSource
             if (isStableVersion(flags)) {
               subscription = this.constructSubscription(SUBSCRIPTION_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, flags['starting-csv'])
-            // custom Che CatalogSource
+              // custom Che CatalogSource
             } else if (flags['catalog-source-yaml'] || flags['catalog-source-name']) {
               const catalogSourceNamespace = flags['catalog-source-namespace'] || flags.chenamespace
               subscription = this.constructSubscription(SUBSCRIPTION_NAME, flags['package-manifest-name'], flags.chenamespace, catalogSourceNamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, flags['starting-csv'])
-            // nightly Che CatalogSource
+              // nightly Che CatalogSource
             } else {
               subscription = this.constructSubscription(SUBSCRIPTION_NAME, `eclipse-che-preview-${ctx.generalPlatformName}`, flags.chenamespace, flags.chenamespace, OLM_NIGHTLY_CHANNEL_NAME, NIGHTLY_CATALOG_SOURCE_NAME, ctx.approvalStarategy, flags['starting-csv'])
             }
