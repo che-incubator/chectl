@@ -23,7 +23,7 @@ import { OpenShiftHelper } from '../api/openshift'
 import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../constants'
 import { base64Decode } from '../util'
 
-import { CheApiClient } from './che-api'
+import { CheApiClient } from './che-api-client'
 import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
 

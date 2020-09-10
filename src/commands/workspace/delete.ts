@@ -13,7 +13,7 @@ import { cli } from 'cli-ux'
 import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
-import { CheApiClient } from '../../api/che-api'
+import { CheApiClient } from '../../api/che-api-client'
 import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiUrl, cheNamespace, CHE_API_URL_KEY } from '../../common-flags'
 

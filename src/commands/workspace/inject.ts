@@ -18,7 +18,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
-import { CheApiClient } from '../../api/che-api'
+import { CheApiClient } from '../../api/che-api-client'
 import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiUrl, cheNamespace, CHE_API_URL_KEY, skipKubeHealthzCheck } from '../../common-flags'
 import { getClusterClientCommand, OPENSHIFT_CLI } from '../../util'

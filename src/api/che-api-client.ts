@@ -13,6 +13,8 @@ import axios, { AxiosInstance } from 'axios'
 import { cli } from 'cli-ux'
 import * as https from 'https'
 
+import { sleep } from '../util'
+
 /**
  * Singleton responsible for calls to Che API.
  */
@@ -73,8 +75,9 @@ export class CheApiClient {
   }
 
   async isCheServerReady(responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
-    const id = await this.axios.interceptors.response.use(response => response, async (error: any) => {
+    const id = this.axios.interceptors.response.use(response => response, async (error: any) => {
       if (error.config && error.response && (error.response.status === 404 || error.response.status === 503)) {
+        await sleep(500)
         return this.axios.request(error.config)
       }
       return Promise.reject(error)
@@ -82,11 +85,11 @@ export class CheApiClient {
 
     try {
       await this.axios.get(`${this.cheApiUrl}/system/state`, { timeout: responseTimeoutMs })
-      await this.axios.interceptors.response.eject(id)
       return true
     } catch {
-      await this.axios.interceptors.response.eject(id)
       return false
+    } finally {
+      this.axios.interceptors.response.eject(id)
     }
   }
 
