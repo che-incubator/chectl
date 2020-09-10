@@ -434,13 +434,13 @@ export default class Start extends Command {
   async setDefaultInstaller(flags: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
 
-    const olmIsPreinstalled = await kubeHelper.isPreInstalledOLM()
-    if ((flags['catalog-source-name'] || flags['catalog-source-yaml']) && olmIsPreinstalled) {
+    const isOlmPreinstalled = await kubeHelper.isPreInstalledOLM()
+    if ((flags['catalog-source-name'] || flags['catalog-source-yaml']) && isOlmPreinstalled) {
       flags.installer = 'olm'
       return
     }
 
-    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && olmIsPreinstalled) {
+    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isOlmPreinstalled) {
       flags.installer = 'olm'
     } else {
       flags.installer = 'operator'
