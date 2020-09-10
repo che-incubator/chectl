@@ -21,4 +21,6 @@ jobs:
     - name: Install chectl dependencies
       run: yarn
     - name: Run e2e tests minikube
-      run: yarn test --coverage=false --forceExit --testRegex=test/e2e/minikube.test.ts
+      run: |
+        minikube addons enable ingress
+        yarn test --coverage=false --forceExit --testRegex=test/e2e/minikube.test.ts
