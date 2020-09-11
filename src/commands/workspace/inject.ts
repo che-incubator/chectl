@@ -20,7 +20,7 @@ import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
 import { KubeHelper } from '../../api/kube'
-import { accessToken, ACCESS_TOKEN_KEY, cheApiUrl, cheNamespace, CHE_API_URL_KEY, skipKubeHealthzCheck } from '../../common-flags'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
 import { getClusterClientCommand, OPENSHIFT_CLI } from '../../util'
 
 export default class Inject extends Command {
@@ -47,7 +47,7 @@ export default class Inject extends Command {
       description: 'Kubeconfig context to inject',
       required: false
     }),
-    [CHE_API_URL_KEY]: cheApiUrl,
+    [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
     chenamespace: cheNamespace,
     'skip-kubernetes-health-check': skipKubeHealthzCheck
@@ -62,17 +62,17 @@ export default class Inject extends Command {
     const notifier = require('node-notifier')
     const cheHelper = new CheHelper(flags)
 
-    let cheApiUrl = flags[CHE_API_URL_KEY]
-    if (!cheApiUrl) {
+    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
+    if (!cheApiEndpoint) {
       const kube = new KubeHelper(flags)
       if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
-        throw new Error(`"--${CHE_API_URL_KEY}" argument is required`)
+        throw new Error(`Eclipse Che API endpoint is required. Use flag --${CHE_API_ENDPOINT_KEY} to provide it.`)
       }
-      cheApiUrl = await cheHelper.cheURL(flags.chenamespace) + '/api'
+      cheApiEndpoint = await cheHelper.cheURL(flags.chenamespace) + '/api'
     }
 
-    const cheApiClient = CheApiClient.getInstance(cheApiUrl)
-    await cheApiClient.ensureCheApiUrlCorrect()
+    const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
+    await cheApiClient.checkCheApiEndpointUrl()
 
     if (!flags[ACCESS_TOKEN_KEY] && await cheApiClient.isAuthenticationEnabled()) {
       cli.error('Authentication is enabled but \'access-token\' is not provided.\nSee more details with the --help flag.')

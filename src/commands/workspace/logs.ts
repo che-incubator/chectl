@@ -15,6 +15,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
+import { skipKubeHealthzCheck } from '../../common-flags'
 
 export default class Logs extends Command {
   static description = 'Collect workspace(s) logs'
@@ -36,6 +37,7 @@ export default class Logs extends Command {
       description: 'Directory to store logs into',
       env: 'CHE_LOGS'
     }),
+    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
   async run() {

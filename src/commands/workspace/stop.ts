@@ -15,16 +15,17 @@ import * as notifier from 'node-notifier'
 import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
 import { KubeHelper } from '../../api/kube'
-import { accessToken, ACCESS_TOKEN_KEY, cheApiUrl, cheNamespace, CHE_API_URL_KEY } from '../../common-flags'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
 
 export default class Stop extends Command {
   static description = 'Stop a running workspace'
 
   static flags = {
     help: flags.help({ char: 'h' }),
-    [CHE_API_URL_KEY]: cheApiUrl,
+    [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
     chenamespace: cheNamespace,
+    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
   static args = [
@@ -41,19 +42,19 @@ export default class Stop extends Command {
 
     const workspaceId = args.workspace
 
-    let cheApiUrl = flags[CHE_API_URL_KEY]
-    if (!cheApiUrl) {
+    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
+    if (!cheApiEndpoint) {
       const kube = new KubeHelper(flags)
       if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
-        throw new Error(`"--${CHE_API_URL_KEY}" argument is required`)
+        throw new Error(`Eclipse Che API endpoint is required. Use flag --${CHE_API_ENDPOINT_KEY} to provide it.`)
       }
 
       const cheHelper = new CheHelper(flags)
-      cheApiUrl = await cheHelper.cheURL(flags.chenamespace) + '/api'
+      cheApiEndpoint = await cheHelper.cheURL(flags.chenamespace) + '/api'
     }
 
-    const cheApiClient = CheApiClient.getInstance(cheApiUrl)
-    await cheApiClient.ensureCheApiUrlCorrect()
+    const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
+    await cheApiClient.checkCheApiEndpointUrl()
 
     await cheApiClient.stopWorkspace(workspaceId, flags[ACCESS_TOKEN_KEY])
     cli.log('Workspace successfully stopped.')

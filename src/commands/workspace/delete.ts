@@ -15,7 +15,7 @@ import * as notifier from 'node-notifier'
 import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
 import { KubeHelper } from '../../api/kube'
-import { accessToken, ACCESS_TOKEN_KEY, cheApiUrl, cheNamespace, CHE_API_URL_KEY } from '../../common-flags'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
 
 export default class Delete extends Command {
   static description = 'delete a stopped workspace - use workspace:stop to stop the workspace before deleting it'
@@ -27,8 +27,9 @@ export default class Delete extends Command {
       description: 'Indicates that a Kubernetes namespace where workspace was created will be deleted as well',
       default: false
     }),
-    [CHE_API_URL_KEY]: cheApiUrl,
+    [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
+    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
   static args = [
     {
@@ -44,19 +45,19 @@ export default class Delete extends Command {
 
     const workspaceId = args.workspace
 
-    let cheApiUrl = flags[CHE_API_URL_KEY]
-    if (!cheApiUrl) {
+    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
+    if (!cheApiEndpoint) {
       const kube = new KubeHelper(flags)
       if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
-        throw new Error(`"--${CHE_API_URL_KEY}" argument is required`)
+        throw new Error(`Eclipse Che API endpoint is required. Use flag --${CHE_API_ENDPOINT_KEY} to provide it.`)
       }
 
       const cheHelper = new CheHelper(flags)
-      cheApiUrl = await cheHelper.cheURL(flags.chenamespace) + '/api'
+      cheApiEndpoint = await cheHelper.cheURL(flags.chenamespace) + '/api'
     }
 
-    const cheApiClient = CheApiClient.getInstance(cheApiUrl)
-    await cheApiClient.ensureCheApiUrlCorrect()
+    const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
+    await cheApiClient.checkCheApiEndpointUrl()
 
     const workspace = await cheApiClient.getWorkspaceById(workspaceId, flags[ACCESS_TOKEN_KEY])
     const infrastructureNamespace = workspace!.attributes!.infrastructureNamespace
@@ -72,10 +73,11 @@ export default class Delete extends Command {
 
       const kube = new KubeHelper(flags)
       if (await kube.namespaceExist(infrastructureNamespace)) {
-        if (await kube.deleteNamespace(infrastructureNamespace)) {
+        try {
+          await kube.deleteNamespace(infrastructureNamespace)
           cli.log(`Namespace '${infrastructureNamespace}' deleted.`)
-        } else {
-          cli.warn(`It is not possible to delete namespace '${infrastructureNamespace}' because current user doesn't have required permissions.`)
+        } catch (error) {
+          cli.warn(`Failed to delete namespace '${infrastructureNamespace}'. Reason: ${error.message}`)
         }
       }
     }

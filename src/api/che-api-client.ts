@@ -21,12 +21,12 @@ import { sleep } from '../util'
 let instance: CheApiClient | undefined
 export class CheApiClient {
   public defaultCheResponseTimeoutMs = 3000
-  public readonly cheApiUrl: string
+  public readonly cheApiEndpoint: string
 
   private readonly axios: AxiosInstance
 
-  private constructor(cheApiUrl: string) {
-    this.cheApiUrl = cheApiUrl
+  private constructor(cheApiEndpoint: string) {
+    this.cheApiEndpoint = cheApiEndpoint
 
     // Make axios ignore untrusted certificate error for self-signed certificate case.
     const httpsAgent = new https.Agent({ rejectUnauthorized: false })
@@ -36,15 +36,15 @@ export class CheApiClient {
     })
   }
 
-  public static getInstance(cheApiUrl: string): CheApiClient {
-    cheApiUrl = this.normalizeCheApiUrl(cheApiUrl)!
-    if (!instance || instance.cheApiUrl !== cheApiUrl) {
-      instance = new CheApiClient(cheApiUrl)
+  public static getInstance(cheApiEndpoint: string): CheApiClient {
+    cheApiEndpoint = this.normalizeCheApiEndpointUrl(cheApiEndpoint)!
+    if (!instance || instance.cheApiEndpoint !== cheApiEndpoint) {
+      instance = new CheApiClient(cheApiEndpoint)
     }
     return instance
   }
 
-  private static normalizeCheApiUrl(url: string | undefined) {
+  private static normalizeCheApiEndpointUrl(url: string | undefined) {
     if (url) {
       if (!url.includes('://')) {
         url = 'https://' + url
@@ -60,18 +60,18 @@ export class CheApiClient {
 
   /**
    * Checks whether provided url really points to Che server API.
-   * Trows an exception if not.
+   * Throws an exception if it's not.
    */
-  async ensureCheApiUrlCorrect(responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<void> {
+  async checkCheApiEndpointUrl(responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<void> {
     try {
-      const response = await this.axios.get(`${this.cheApiUrl}/system/state`, { timeout: responseTimeoutMs })
+      const response = await this.axios.get(`${this.cheApiEndpoint}/system/state`, { timeout: responseTimeoutMs })
       if (response.data && response.data.status) {
         return
       }
     } catch {
-      throw new Error(`E_CHE_API_URL_NO_RESPONSE - Failed to connect to "${this.cheApiUrl}". Is it the right url?`)
+      throw new Error(`E_CHE_API_URL_NO_RESPONSE - Failed to connect to "${this.cheApiEndpoint}". Is it the right url?`)
     }
-    throw new Error(`E_CHE_API_WRONG_URL - Provided url "${this.cheApiUrl}" is not Che API url`)
+    throw new Error(`E_CHE_API_WRONG_URL - Provided url "${this.cheApiEndpoint}" is not Che API url`)
   }
 
   async isCheServerReady(responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
@@ -84,7 +84,7 @@ export class CheApiClient {
     })
 
     try {
-      await this.axios.get(`${this.cheApiUrl}/system/state`, { timeout: responseTimeoutMs })
+      await this.axios.get(`${this.cheApiEndpoint}/system/state`, { timeout: responseTimeoutMs })
       return true
     } catch {
       return false
@@ -94,7 +94,7 @@ export class CheApiClient {
   }
 
   async getCheServerStatus(responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<string> {
-    const endpoint = `${this.cheApiUrl}/system/state`
+    const endpoint = `${this.cheApiEndpoint}/system/state`
     let response = null
     try {
       response = await this.axios.get(endpoint, { timeout: responseTimeoutMs })
@@ -108,7 +108,7 @@ export class CheApiClient {
   }
 
   async startCheServerShutdown(accessToken = '', responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<void> {
-    const endpoint = `${this.cheApiUrl}/system/stop?shutdown=true`
+    const endpoint = `${this.cheApiEndpoint}/system/stop?shutdown=true`
     const headers = accessToken ? { Authorization: accessToken } : null
     let response = null
     try {
@@ -141,24 +141,26 @@ export class CheApiClient {
    * Returns list of all workspaces of the user.
    */
   async getAllWorkspaces(accessToken?: string): Promise<chetypes.workspace.Workspace[]> {
-    const all: any[] = []
-    const maxItems = 30
-    let skipCount = 0
+    const all: chetypes.workspace.Workspace[] = []
+    const itemsPerPage = 30
 
+    let skipCount = 0
+    let workspaces: chetypes.workspace.Workspace[]
     do {
-      const workspaces = await this.getWorkspaces(skipCount, maxItems, accessToken)
+      workspaces = await this.getWorkspaces(skipCount, itemsPerPage, accessToken)
       all.push(...workspaces)
       skipCount += workspaces.length
-    } while (all.length === maxItems)
+    } while (workspaces.length === itemsPerPage)
 
     return all
   }
 
   /**
    * Returns list of workspaces in given range.
+   * If lst of all workspaces is needed, getAllWorkspaces should be used insted.
    */
-  async getWorkspaces(skipCount: number, maxItems: number, accessToken?: string): Promise<chetypes.workspace.Workspace[]> {
-    const endpoint = `${this.cheApiUrl}/workspace?skipCount=${skipCount}&maxItems=${maxItems}`
+  async getWorkspaces(skipCount = 0, maxItems = 30, accessToken?: string): Promise<chetypes.workspace.Workspace[]> {
+    const endpoint = `${this.cheApiEndpoint}/workspace?skipCount=${skipCount}&maxItems=${maxItems}`
     const headers: any = { 'Content-Type': 'text/yaml' }
     if (accessToken && accessToken.length > 0) {
       headers.Authorization = accessToken
@@ -177,7 +179,7 @@ export class CheApiClient {
   }
 
   async getWorkspaceById(workspaceId: string, accessToken?: string): Promise<chetypes.workspace.Workspace> {
-    const endpoint = `${this.cheApiUrl}/workspace/${workspaceId}`
+    const endpoint = `${this.cheApiEndpoint}/workspace/${workspaceId}`
     const headers: any = { 'Content-Type': 'text/yaml' }
     if (accessToken) {
       headers.Authorization = accessToken
@@ -195,7 +197,7 @@ export class CheApiClient {
   }
 
   async deleteWorkspaceById(workspaceId: string, accessToken?: string): Promise<void> {
-    const endpoint = `${this.cheApiUrl}/workspace/${workspaceId}`
+    const endpoint = `${this.cheApiEndpoint}/workspace/${workspaceId}`
     const headers: any = {}
     if (accessToken) {
       headers.Authorization = accessToken
@@ -214,7 +216,7 @@ export class CheApiClient {
   }
 
   async startWorkspace(workspaceId: string, debug: boolean, accessToken?: string): Promise<void> {
-    let endpoint = `${this.cheApiUrl}/workspace/${workspaceId}/runtime`
+    let endpoint = `${this.cheApiEndpoint}/workspace/${workspaceId}/runtime`
     if (debug) {
       endpoint += '?debug-workspace-start=true'
     }
@@ -240,7 +242,7 @@ export class CheApiClient {
   }
 
   async stopWorkspace(workspaceId: string, accessToken?: string): Promise<void> {
-    let endpoint = `${this.cheApiUrl}/workspace/${workspaceId}/runtime`
+    const endpoint = `${this.cheApiEndpoint}/workspace/${workspaceId}/runtime`
     let response
 
     const headers: { [key: string]: string } = {}
@@ -263,7 +265,7 @@ export class CheApiClient {
   }
 
   async createWorkspaceFromDevfile(devfileContent: string, accessToken?: string): Promise<chetypes.workspace.Workspace> {
-    let endpoint = `${this.cheApiUrl}/workspace/devfile`
+    const endpoint = `${this.cheApiEndpoint}/workspace/devfile`
     const headers: any = { 'Content-Type': 'text/yaml' }
     if (accessToken) {
       headers.Authorization = accessToken
@@ -297,7 +299,7 @@ export class CheApiClient {
   }
 
   async isAuthenticationEnabled(responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
-    const endpoint = `${this.cheApiUrl}/keycloak/settings`
+    const endpoint = `${this.cheApiEndpoint}/keycloak/settings`
     let response = null
     try {
       response = await this.axios.get(endpoint, { timeout: responseTimeoutMs })

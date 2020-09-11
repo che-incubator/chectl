@@ -237,7 +237,7 @@ export class CheHelper {
     return cheApi.isCheServerReady(responseTimeoutMs)
   }
 
-  async createWorkspaceFromDevfile(cheApiUrl: string, devfilePath: string, workspaceName?: string, accessToken?: string): Promise<chetypes.workspace.Workspace> {
+  async createWorkspaceFromDevfile(cheApiEndpoint: string, devfilePath: string, workspaceName?: string, accessToken?: string): Promise<chetypes.workspace.Workspace> {
     let devfile: string | undefined
     try {
       devfile = await this.parseDevfile(devfilePath)
@@ -252,7 +252,7 @@ export class CheHelper {
       }
     }
 
-    const cheApi = CheApiClient.getInstance(cheApiUrl)
+    const cheApi = CheApiClient.getInstance(cheApiEndpoint)
     return cheApi.createWorkspaceFromDevfile(devfile, accessToken)
   }
 

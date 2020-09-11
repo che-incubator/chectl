@@ -12,14 +12,14 @@ import { expect, fancy } from 'fancy-test'
 
 import { CheApiClient } from '../../src/api/che-api-client'
 
-const cheApiUrl = 'https://che-che.192.168.64.34.nip.io/api'
+const cheApiEndpoint = 'https://che-che.192.168.64.34.nip.io/api'
 const devfileEndpoint = '/workspace/devfile'
-let cheApiClient = CheApiClient.getInstance(cheApiUrl)
+let cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
 
 describe('Eclipse Che Server API client', () => {
   describe('isCheServerReady', () => {
     fancy
-      .nock(cheApiUrl, api => api
+      .nock(cheApiEndpoint, api => api
         .get('/system/state')
         .reply(200))
       .it('detects if Eclipse Che server is ready', async () => {
@@ -27,7 +27,7 @@ describe('Eclipse Che Server API client', () => {
         expect(res).to.equal(true)
       })
     fancy
-      .nock(cheApiUrl, api => api
+      .nock(cheApiEndpoint, api => api
         .get('/system/state')
         .delayConnection(1000)
         .reply(200))
@@ -36,7 +36,7 @@ describe('Eclipse Che Server API client', () => {
         expect(res).to.equal(false)
       })
     fancy
-      .nock(cheApiUrl, api => api
+      .nock(cheApiEndpoint, api => api
         .get('/system/state')
         .delayConnection(1000)
         .reply(200))
@@ -45,7 +45,7 @@ describe('Eclipse Che Server API client', () => {
         expect(res).to.equal(true)
       })
     fancy
-      .nock(cheApiUrl, api => api
+      .nock(cheApiEndpoint, api => api
         .get('/system/state')
         .reply(404)
         .get('/system/state')
@@ -57,7 +57,7 @@ describe('Eclipse Che Server API client', () => {
         expect(res).to.equal(true)
       })
     fancy
-      .nock(cheApiUrl, api => api
+      .nock(cheApiEndpoint, api => api
         .get('/system/state')
         .reply(404)
         .get('/system/state')
@@ -71,7 +71,7 @@ describe('Eclipse Che Server API client', () => {
   })
   describe('createWorkspaceFromDevfile', () => {
     fancy
-      .nock(cheApiUrl, api => api
+      .nock(cheApiEndpoint, api => api
         .post(devfileEndpoint)
         .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
       .it('succeds creating a workspace from a valid devfile', async () => {
@@ -79,7 +79,7 @@ describe('Eclipse Che Server API client', () => {
         expect(res.links!.ide).to.equal('https://che-che.192.168.64.39.nip.io/che/chectl')
       })
     fancy
-      .nock(cheApiUrl, api => api
+      .nock(cheApiEndpoint, api => api
         .post(devfileEndpoint)
         .replyWithFile(400, __dirname + '/replies/create-workspace-from-invalid-devfile.json', {
           'Content-Type': 'application/json'
@@ -90,7 +90,7 @@ describe('Eclipse Che Server API client', () => {
   })
   describe('isAuthenticationEnabled', () => {
     fancy
-      .nock(cheApiUrl, api => api
+      .nock(cheApiEndpoint, api => api
         .get('/keycloak/settings')
         .replyWithFile(200, __dirname + '/replies/get-keycloak-settings.json', {
           'Content-Type': 'application/json'
@@ -100,7 +100,7 @@ describe('Eclipse Che Server API client', () => {
         expect(authEnabled).to.equal(true)
       })
     fancy
-      .nock(cheApiUrl, api => api
+      .nock(cheApiEndpoint, api => api
         .get('/keycloak/settings')
         .reply(404, 'Page does not exist', {
           'Content-Type': 'text/plain'

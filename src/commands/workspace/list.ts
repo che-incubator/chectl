@@ -14,48 +14,40 @@ import { cli } from 'cli-ux'
 import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
 import { KubeHelper } from '../../api/kube'
-import { accessToken, ACCESS_TOKEN_KEY, cheApiUrl, cheNamespace, CHE_API_URL_KEY } from '../../common-flags'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY as CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
 
 export default class List extends Command {
   static description = 'list workspaces'
 
   static flags = {
     help: flags.help({ char: 'h' }),
-    quiet: flags.boolean({
-      char: 'q',
-      description: "Show workspaces ID's only",
-      default: false
-    }),
     chenamespace: cheNamespace,
-    [CHE_API_URL_KEY]: cheApiUrl,
+    [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
+    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
   async run() {
     const { flags } = this.parse(List)
 
     let workspaces = []
-    let cheApiUrl = flags[CHE_API_URL_KEY]
-    if (!cheApiUrl) {
+    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
+    if (!cheApiEndpoint) {
       const kube = new KubeHelper(flags)
       if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
-        throw new Error(`"--${CHE_API_URL_KEY}" argument is required`)
+        throw new Error(`Eclipse Che API endpoint is required. Use flag --${CHE_API_ENDPOINT_KEY} to provide it.`)
       }
 
       const cheHelper = new CheHelper(flags)
-      cheApiUrl = await cheHelper.cheURL(flags.chenamespace) + '/api'
+      cheApiEndpoint = await cheHelper.cheURL(flags.chenamespace) + '/api'
     }
 
-    const cheApiClient = CheApiClient.getInstance(cheApiUrl)
-    await cheApiClient.ensureCheApiUrlCorrect()
+    const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
+    await cheApiClient.checkCheApiEndpointUrl()
 
     workspaces = await cheApiClient.getAllWorkspaces(flags[ACCESS_TOKEN_KEY])
 
-    if (flags.quiet) {
-      workspaces.forEach((workspace: any) => cli.info(workspace.id))
-    } else {
-      this.printWorkspaces(workspaces)
-    }
+    this.printWorkspaces(workspaces)
   }
 
   private printWorkspaces(workspaces: any[]): void {

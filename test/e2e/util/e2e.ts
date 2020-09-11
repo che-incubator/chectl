@@ -67,14 +67,14 @@ export class E2eHelper {
 
   //Return an array with all workspaces
   async getAllWorkspaces(isOpenshiftPlatformFamily: string): Promise<chetypes.workspace.Workspace[]> {
-    let cheApiUrl: string
+    let cheApiEndpoint: string
     if (isOpenshiftPlatformFamily === 'openshift') {
-      cheApiUrl = await this.OCHostname('che') + '/api'
+      cheApiEndpoint = await this.OCHostname('che') + '/api'
     } else {
-      cheApiUrl = await this.K8SHostname('che') + '/api'
+      cheApiEndpoint = await this.K8SHostname('che') + '/api'
     }
 
-    return CheApiClient.getInstance(cheApiUrl).getAllWorkspaces(process.env.CHE_ACCESS_TOKEN)
+    return CheApiClient.getInstance(cheApiEndpoint).getAllWorkspaces(process.env.CHE_ACCESS_TOKEN)
   }
 
   // Return an id of test workspaces(e2e-tests. Please look devfile-example.yaml file)

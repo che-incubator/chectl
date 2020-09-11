@@ -1724,17 +1724,11 @@ export class KubeHelper {
     }
   }
 
-  async deleteNamespace(namespace: string): Promise<boolean> {
+  async deleteNamespace(namespace: string): Promise<void> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
       await k8sCoreApi.deleteNamespace(namespace)
-      return true
     } catch (e) {
-      if (e.response && e.response.body) {
-        if (e.response.body.code === 403) {
-          return false
-        }
-      }
       throw this.wrapK8sClientError(e)
     }
   }

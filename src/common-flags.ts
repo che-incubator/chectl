@@ -41,9 +41,9 @@ export const skipKubeHealthzCheck = boolean({
   default: false
 })
 
-export const CHE_API_URL_KEY = 'che-api-url'
-export const cheApiUrl = string({
-  description: 'Eclipse Che server API URL',
-  env: 'CHE_API_URL',
+export const CHE_API_ENDPOINT_KEY = 'che-api-endpoint'
+export const cheApiEndpoint = string({
+  description: 'Eclipse Che server API endpoint',
+  env: 'CHE_API_ENDPOINT',
   required: false,
 })
