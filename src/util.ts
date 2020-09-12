@@ -73,7 +73,7 @@ export function base64Decode(arg: string): string {
 export function isStableVersion(flags: any): boolean {
   const operatorImage = flags['che-operator-image'] || DEFAULT_CHE_OPERATOR_IMAGE
   const cheVersion = getImageTag(operatorImage)
-  return cheVersion !== 'nightly' && cheVersion !== 'latest'
+  return cheVersion !== 'nightly' && cheVersion !== 'latest' && !flags['catalog-source-yaml'] && !flags['catalog-source-name']
 }
 
 /**
