@@ -304,7 +304,7 @@ USAGE
 
 OPTIONS
   -a, --installer=helm|operator|olm|minishift-addon
-      [default: operator] Installer type.
+      Installer type. If not set, default is "olm" for OpenShift 4.x platform otherwise "operator".
 
   -b, --domain=domain
       Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)

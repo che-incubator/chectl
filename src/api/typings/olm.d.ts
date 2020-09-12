@@ -93,10 +93,20 @@ export interface CatalogSource {
 }
 
 export interface CatalogSourceSpec {
-  address: string
-  base64data: string
-  mediatype: string
+  address?: string
+  base64data?: string
+  mediatype?: string
   sourceType: string
+  image: string
+  updateStrategy: CatalogSourceUpdateStrategy
+}
+
+export interface CatalogSourceUpdateStrategy {
+  registryPoll: CatalogSourceRegistryPoll
+}
+
+export interface CatalogSourceRegistryPoll {
+  interval: string
 }
 
 export interface PackageManifest {

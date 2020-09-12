@@ -27,7 +27,7 @@ import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { isOpenshiftPlatformFamily, isStableVersion } from '../../util'
+import { isOpenshiftPlatformFamily } from '../../util'
 
 export default class Start extends Command {
   static description = 'start Eclipse Che server'
@@ -96,9 +96,8 @@ export default class Start extends Command {
     }),
     installer: string({
       char: 'a',
-      description: `Installer type.${isStableVersion({}) ? ' If not set, default is "olm" for OpenShift 4.x platform otherwise "operator".' : ''}`,
+      description: 'Installer type. If not set, default is "olm" for OpenShift 4.x platform otherwise "operator".',
       options: ['helm', 'operator', 'olm', 'minishift-addon'],
-      default: `${isStableVersion({}) ? '' : 'operator'}`,
     }),
     domain: string({
       char: 'b',
@@ -441,7 +440,7 @@ export default class Start extends Command {
       return
     }
 
-    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isStableVersion(flags) && olmIsPreinstalled) {
+    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && olmIsPreinstalled) {
       flags.installer = 'olm'
     } else {
       flags.installer = 'operator'

@@ -14,8 +14,8 @@ import Listr = require('listr')
 
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/typings/olm'
-import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_IMAGE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, KUBERNETES_OLM_CATALOG, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, SUBSCRIPTION_NAME } from '../../constants'
-import { isKubernetesPlatformFamily } from '../../util'
+import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, KUBERNETES_OLM_CATALOG, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, SUBSCRIPTION_NAME, NIGHTLY_CATALOG_SOURCE_NAME, OLM_NIGHTLY_CHANNEL_NAME } from '../../constants'
+import { isKubernetesPlatformFamily, isStableVersion } from '../../util'
 
 import { copyOperatorResources, createEclipseCheCluster, createNamespaceTask } from './common-tasks'
 
@@ -25,9 +25,6 @@ export class OLMTasks {
    */
   startTasks(flags: any, command: Command): Listr {
     const kube = new KubeHelper(flags)
-    if (this.isNightlyChectlChannel() && !flags['catalog-source-yaml']) {
-      command.warn('A nightly channel for Eclipse Che is not available on OpenShift OLM catalog, the latest stable release will be deployed instead. To get a nightly release of Eclipse Che use the `operator` installer (--installer=operator).')
-    }
     return new Listr([
       this.isOlmPreInstalledTask(command, kube),
       copyOperatorResources(flags, command.config.cacheDir),
@@ -53,8 +50,23 @@ export class OLMTasks {
           ctx.approvalStarategy = flags['auto-update'] ? 'Automatic' : 'Manual'
 
           ctx.sourceName = flags['catalog-source-name'] || CUSTOM_CATALOG_SOURCE_NAME
+          ctx.generalPlatformName = isKubernetesPlatformFamily(flags.platform) ? 'kubernetes' : 'openshift'
 
           task.title = `${task.title}...done.`
+        }
+      },
+      {
+        enabled: () => !isStableVersion(flags) && !flags['catalog-source-yaml'] && !flags['catalog-source-name'],
+        title: `Create nightly index CatalogSource in the namespace ${flags.chenamespace}`,
+        task: async (ctx: any, task: any) => {
+          if (!await kube.catalogSourceExists(NIGHTLY_CATALOG_SOURCE_NAME, flags.chenamespace)) {
+            const catalogSourceImage = `quay.io/eclipse/eclipse-che-${ctx.generalPlatformName}-opm-catalog:preview`
+            const nigthlyCatalogSource = this.createIndexCatalogSource(flags.chenamespace, catalogSourceImage)
+            await kube.createCatalogSource(nigthlyCatalogSource)
+            await kube.waitCatalogSource(flags.chenamespace, NIGHTLY_CATALOG_SOURCE_NAME)
+          } else {
+            task.title = `${task.title}...It already exists.`
+          }
         }
       },
       {
@@ -80,11 +92,17 @@ export class OLMTasks {
             task.title = `${task.title}...It already exists.`
           } else {
             let subscription: Subscription
-            if (!flags['catalog-source-yaml'] && !flags['catalog-source-name']) {
+
+            // stable Che CatalogSource
+            if (!flags['catalog-source-yaml'] && !flags['catalog-source-name'] && isStableVersion(flags)) {
               subscription = this.createSubscription(SUBSCRIPTION_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, flags['starting-csv'])
-            } else {
+            // custom Che CatalogSource
+            } else if (flags['catalog-source-yaml'] || flags['catalog-source-name']) {
               const catalogSourceNamespace = flags['catalog-source-namespace'] || flags.chenamespace
               subscription = this.createSubscription(SUBSCRIPTION_NAME, flags['package-manifest-name'], flags.chenamespace, catalogSourceNamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, flags['starting-csv'])
+            // nightly Che CatalogSource
+            } else {
+              subscription = this.createSubscription(SUBSCRIPTION_NAME, `eclipse-che-preview-${ctx.generalPlatformName}`, flags.chenamespace, flags.chenamespace, OLM_NIGHTLY_CHANNEL_NAME, NIGHTLY_CATALOG_SOURCE_NAME, ctx.approvalStarategy, flags['starting-csv'])
             }
             await kube.createOperatorSubscription(subscription)
             task.title = `${task.title}...created new one.`
@@ -236,6 +254,15 @@ export class OLMTasks {
           }
           task.title = `${task.title}...OK`
         }
+      },
+      {
+        title: `Delete(OLM) nigthly catalog source ${NIGHTLY_CATALOG_SOURCE_NAME}`,
+        task: async (_ctx: any, task: any) => {
+          if (await kube.catalogSourceExists(NIGHTLY_CATALOG_SOURCE_NAME, flags.chenamespace)) {
+            await kube.deleteCatalogSource(flags.chenamespace, NIGHTLY_CATALOG_SOURCE_NAME)
+          }
+          task.title = `${task.title}...OK`
+        }
       }
     ]
   }
@@ -254,13 +281,6 @@ export class OLMTasks {
     }
   }
 
-  private isNightlyChectlChannel(): boolean {
-    if (DEFAULT_CHE_IMAGE.endsWith(':nightly')) {
-      return true
-    }
-    return false
-  }
-
   private createSubscription(name: string, packageName: string, namespace: string, sourceNamespace: string, channel: string, sourceName: string, installPlanApproval: string, startingCSV?: string): Subscription {
     return {
       apiVersion: 'operators.coreos.com/v1alpha1',
@@ -276,6 +296,26 @@ export class OLMTasks {
         source: sourceName,
         sourceNamespace,
         startingCSV,
+      }
+    }
+  }
+
+  private createIndexCatalogSource(namespace: string, catalogSourceImage: string): CatalogSource {
+    return {
+      apiVersion: "operators.coreos.com/v1alpha1",
+      kind: "CatalogSource",
+      metadata: {
+        name: NIGHTLY_CATALOG_SOURCE_NAME,
+        namespace,
+      },
+      spec: {
+        image: catalogSourceImage,
+        sourceType: "grpc",
+        updateStrategy: {
+          registryPoll: {
+            interval: "10m"
+          }
+        }
       }
     }
   }
