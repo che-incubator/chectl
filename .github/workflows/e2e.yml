@@ -79,7 +79,6 @@ jobs:
         oc create namespace che
         oc project default
         oc delete secret router-certs
-        oc project che
         cat domain.crt domain.key > minishift.crt
         oc create secret tls router-certs --key=domain.key --cert=minishift.crt
         oc rollout latest router
