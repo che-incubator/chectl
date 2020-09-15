@@ -32,7 +32,7 @@ jobs:
     - name: Install and start minishift OCP 3.11 cluster
       run: |
         brew cask install minishift
-        minishift start --memory=5500 --vm-driver=virtualbox && eval $(minishift oc-env)
+        minishift start --memory=5500 --vm-driver=virtualbox
     - name: Generate minishift certificates
       run: |
         export CA_CN="Local Eclipse Che Signer"
@@ -70,9 +70,10 @@ jobs:
           -CA ca.crt \
           -CAkey ca.key \
           -CAcreateserial -out domain.crt
-    - name: Update minishift deprecated certificates
+    - name: Update minishift deprecated certificates and run e2e
       run: |
         sleep 30
+        eval $(minishift oc-env)
         oc login -u system:admin --insecure-skip-tls-verify=true
         oc create namespace che
         oc project default
@@ -82,8 +83,7 @@ jobs:
         oc create secret tls router-certs --key=domain.key --cert=minishift.crt
         oc rollout latest router
         oc create secret generic self-signed-certificate --from-file=ca.crt -n=che
-    - name: Install chectl dependencies
-      run: yarn
-    - name: Run e2e tests minishift
-      run: |
+        # RUN THE TESTS
+        yarn
         yarn test --coverage=false --forceExit --testRegex=test/e2e/minishift.test.ts
+        
