@@ -47,7 +47,11 @@ export class OLMTasks {
           // catalog source name for stable Che version
           ctx.catalogSourceNameStable = isKubernetesPlatformFamily(flags.platform) ? KUBERNETES_OLM_CATALOG : OPENSHIFT_OLM_CATALOG
 
-          ctx.approvalStarategy = flags['auto-update'] ? 'Automatic' : 'Manual'
+          if (!flags['auto-update'] && !isStableVersion(flags)) {
+            ctx.approvalStarategy = 'Automatic'
+          } else {
+            ctx.approvalStarategy = flags['auto-update'] ? 'Automatic' : 'Manual'
+          }
 
           ctx.sourceName = flags['catalog-source-name'] || CUSTOM_CATALOG_SOURCE_NAME
           ctx.generalPlatformName = isKubernetesPlatformFamily(flags.platform) ? 'kubernetes' : 'openshift'
