@@ -1,0 +1,89 @@
+#
+#  Copyright (c) 2012-2020 Red Hat, Inc.
+#    This program and the accompanying materials are made
+#    available under the terms of the Eclipse Public License 2.0
+#    which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+#  SPDX-License-Identifier: EPL-2.0
+#
+#  Contributors:
+#    Red Hat, Inc. - initial API and implementation
+name: chectl e2e tests
+on: pull_request
+jobs:
+  minikube-e2e:
+    name: Minikube
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install minikube kubernetes cluster
+      run: minikube start --memory=6000
+    - name: Install chectl dependencies
+      run: yarn
+    - name: Run e2e tests minikube
+      run: |
+        minikube addons enable ingress
+        yarn test --coverage=false --forceExit --testRegex=test/e2e/minikube.test.ts
+  minishift-e2e:
+    name: Minishift
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install and start minishift OCP 3.11 cluster
+      run: |
+        brew cask install minishift
+        export MINISHIFT_GITHUB_API_TOKEN=${{ secrets.GITHUBTOKEN }}
+        minishift start --memory=5500 --vm-driver=virtualbox
+    - name: Generate minishift certificates
+      run: |
+        export CA_CN="Local Eclipse Che Signer"
+        export DOMAIN=\*.$( minishift ip ).nip.io
+        export OPENSSL_CNF=/System/Library/OpenSSL/openssl.cnf
+
+        openssl genrsa -out ca.key 4096
+        openssl req -x509 \
+          -new -nodes \
+          -key ca.key \
+          -sha256 \
+          -days 1024 \
+          -out ca.crt \
+          -subj /CN="${CA_CN}" \
+          -reqexts SAN \
+          -extensions SAN \
+          -config <(cat ${OPENSSL_CNF} \
+              <(printf '[SAN]\nbasicConstraints=critical, CA:TRUE\nkeyUsage=keyCertSign, cRLSign, digitalSignature'))
+        openssl genrsa -out domain.key 2048
+
+        openssl req -new -sha256 \
+          -key domain.key \
+          -subj "/O=Local Eclipse Che/CN=${DOMAIN}" \
+          -reqexts SAN \
+          -config <(cat ${OPENSSL_CNF} \
+              <(printf "\n[SAN]\nsubjectAltName=DNS:${DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
+          -out domain.csr
+
+        openssl x509 \
+          -req \
+          -sha256 \
+          -extfile <(printf "subjectAltName=DNS:${DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth") \
+          -days 365 \
+          -in domain.csr \
+          -CA ca.crt \
+          -CAkey ca.key \
+          -CAcreateserial -out domain.crt
+    - name: Update minishift deprecated certificates and run e2e
+      run: |
+        sleep 30
+        eval $(minishift oc-env)
+        oc login -u system:admin --insecure-skip-tls-verify=true
+        oc create namespace che
+        oc project default
+        oc delete secret router-certs
+        cat domain.crt domain.key > minishift.crt
+        oc create secret tls router-certs --key=domain.key --cert=minishift.crt
+        oc rollout latest router
+        oc create secret generic self-signed-certificate --from-file=ca.crt -n=che
+        # RUN THE TESTS
+        yarn
+        yarn test --coverage=false --forceExit --testRegex=test/e2e/minishift.test.ts
+        
