@@ -80,7 +80,7 @@ export class E2eHelper {
   // Return an id of test workspaces(e2e-tests. Please look devfile-example.yaml file)
   async getWorkspaceId(platform: string): Promise<any> {
     const workspaces = await this.getAllWorkspaces(platform)
-    const workspaceId = workspaces.filter((wks => wks.devfile.metadata.name === this.devfileName)).map(({ id }) => id)[0]
+    const workspaceId = workspaces.filter((wks => wks!.devfile!.metadata!.name === this.devfileName)).map(({ id }) => id)[0]
 
     if (!workspaceId) {
       throw Error('Error getting workspaceId')
