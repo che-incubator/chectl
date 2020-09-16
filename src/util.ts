@@ -90,3 +90,8 @@ export function getImageTag(image: string): string | undefined {
   // tag
   return entries[1]
 }
+
+export function sleep(ms: number): Promise<void> {
+  // tslint:disable-next-line no-string-based-set-timeout
+  return new Promise(resolve => setTimeout(resolve, ms))
+}

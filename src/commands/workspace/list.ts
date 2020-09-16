@@ -10,12 +10,11 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
-import * as Listrq from 'listr'
 
 import { CheHelper } from '../../api/che'
-import { accessToken, cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
-import { CheTasks } from '../../tasks/che'
-import { ApiTasks } from '../../tasks/platforms/api'
+import { CheApiClient } from '../../api/che-api-client'
+import { KubeHelper } from '../../api/kube'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY as CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
 
 export default class List extends Command {
   static description = 'list workspaces'
@@ -23,41 +22,35 @@ export default class List extends Command {
   static flags = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
-    'access-token': accessToken,
+    [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
+    [ACCESS_TOKEN_KEY]: accessToken,
     'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
   async run() {
     const { flags } = this.parse(List)
-    const ctx: any = {}
-    ctx.workspaces = []
 
-    const apiTasks = new ApiTasks()
-    const cheTasks = new CheTasks(flags)
-    const tasks = new Listrq(undefined, { renderer: 'silent' })
-
-    tasks.add(apiTasks.testApiTasks(flags, this))
-    tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
-    tasks.add(cheTasks.retrieveEclipseCheUrl(flags))
-    tasks.add(cheTasks.checkEclipseCheStatus())
-    tasks.add({
-      title: 'Get workspaces',
-      task: async (ctx, task) => {
-        const cheHelper = new CheHelper(flags)
-        ctx.workspaces = await cheHelper.getAllWorkspaces(ctx.cheURL, flags['access-token'])
-        task.title = `${task.title}... done`
+    let workspaces = []
+    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
+    if (!cheApiEndpoint) {
+      const kube = new KubeHelper(flags)
+      if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
+        throw new Error(`Eclipse Che API endpoint is required. Use flag --${CHE_API_ENDPOINT_KEY} to provide it.`)
       }
-    })
 
-    try {
-      await tasks.run(ctx)
-      this.printWorkspaces(ctx.workspaces)
-    } catch (error) {
-      this.error(error.message)
+      const cheHelper = new CheHelper(flags)
+      cheApiEndpoint = await cheHelper.cheURL(flags.chenamespace) + '/api'
     }
+
+    const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
+    await cheApiClient.checkCheApiEndpointUrl()
+
+    workspaces = await cheApiClient.getAllWorkspaces(flags[ACCESS_TOKEN_KEY])
+
+    this.printWorkspaces(workspaces)
   }
 
-  private printWorkspaces(workspaces: [any]): void {
+  private printWorkspaces(workspaces: any[]): void {
     const data: any[] = []
     workspaces.forEach((workspace: any) => {
       data.push({

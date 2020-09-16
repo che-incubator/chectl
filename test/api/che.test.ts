@@ -11,6 +11,7 @@ import { CoreV1Api } from '@kubernetes/client-node'
 import { expect, fancy } from 'fancy-test'
 
 import { CheHelper } from '../../src/api/che'
+// import { CheApiClient } from '../../src/api/che-api-client'
 import { KubeHelper } from '../../src/api/kube'
 
 const namespace = 'che'
@@ -18,6 +19,7 @@ const workspace = 'workspace-0123'
 const cheURL = 'https://che-che.192.168.64.34.nip.io'
 const devfileServerURL = 'https://devfile-server'
 const devfileEndpoint = '/api/workspace/devfile'
+// let cheApi = CheApiClient.getInstance(cheURL + '/api')
 let ch = new CheHelper({})
 let kube = ch.kube
 let oc = ch.oc
@@ -65,58 +67,6 @@ describe('Eclipse Che helper', () => {
       .catch(err => expect(err.message).to.match(/ERR_NAMESPACE_NO_EXIST/))
       .it('fails fetching Eclipse Che URL when namespace does not exist')
   })
-  describe('isCheServerReady', () => {
-    fancy
-      .nock(cheURL, api => api
-        .get('/api/system/state')
-        .reply(200))
-      .it('detects if Eclipse Che server is ready', async () => {
-        const res = await ch.isCheServerReady(cheURL)
-        expect(res).to.equal(true)
-      })
-    fancy
-      .nock(cheURL, api => api
-        .get('/api/system/state')
-        .delayConnection(1000)
-        .reply(200))
-      .it('detects if Eclipse Che server is NOT ready', async () => {
-        const res = await ch.isCheServerReady(cheURL, 500)
-        expect(res).to.equal(false)
-      })
-    fancy
-      .nock(cheURL, api => api
-        .get('/api/system/state')
-        .delayConnection(1000)
-        .reply(200))
-      .it('waits until Eclipse Che server is ready', async () => {
-        const res = await ch.isCheServerReady(cheURL, 2000)
-        expect(res).to.equal(true)
-      })
-    fancy
-      .nock(cheURL, api => api
-        .get('/api/system/state')
-        .reply(404)
-        .get('/api/system/state')
-        .reply(503)
-        .get('/api/system/state')
-        .reply(200))
-      .it('continues requesting until Eclipse Che server is ready', async () => {
-        const res = await ch.isCheServerReady(cheURL, 2000)
-        expect(res).to.equal(true)
-      })
-    fancy
-      .nock(cheURL, api => api
-        .get('/api/system/state')
-        .reply(404)
-        .get('/api/system/state')
-        .reply(404)
-        .get('/api/system/state')
-        .reply(503))
-      .it('continues requesting but fails if Eclipse Che server is NOT ready after timeout', async () => {
-        const res = await ch.isCheServerReady(cheURL, 20)
-        expect(res).to.equal(false)
-      })
-  })
   describe('cheNamespaceExist', () => {
     fancy
       .stub(KubeHelper.KUBE_CONFIG, 'makeApiClient', () => k8sApi)
@@ -137,27 +87,6 @@ describe('Eclipse Che helper', () => {
     fancy
       .stub(ch, 'cheNamespaceExist', () => true)
       .stub(ch, 'cheURL', () => cheURL)
-      .nock(cheURL, api => api
-        .post(devfileEndpoint)
-        .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
-      .it('succeds creating a workspace from a valid devfile', async () => {
-        const res = await ch.createWorkspaceFromDevfile(namespace, __dirname + '/requests/devfile.valid', undefined)
-        expect(res.links!.ide).to.equal('https://che-che.192.168.64.39.nip.io/che/chectl')
-      })
-    fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(ch, 'cheURL', () => cheURL)
-      .nock(cheURL, api => api
-        .post(devfileEndpoint)
-        .replyWithFile(400, __dirname + '/replies/create-workspace-from-invalid-devfile.json', {
-          'Content-Type': 'application/json'
-        }))
-      .do(() => ch.createWorkspaceFromDevfile(namespace, __dirname + '/requests/devfile.invalid', undefined))
-      .catch(/E_BAD_DEVFILE_FORMAT/)
-      .it('fails creating a workspace from an invalid devfile')
-    fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(ch, 'cheURL', () => cheURL)
       .do(() => ch.createWorkspaceFromDevfile(namespace, __dirname + '/requests/devfile.inexistent', undefined))
       .catch(/E_NOT_FOUND_DEVFILE/)
       .it('fails creating a workspace from a non-existing devfile')
@@ -171,7 +100,7 @@ describe('Eclipse Che helper', () => {
         .post(devfileEndpoint)
         .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
       .it('succeeds creating a workspace from a remote devfile', async () => {
-        const res = await ch.createWorkspaceFromDevfile(namespace, devfileServerURL + '/devfile.yaml', undefined)
+        const res = await ch.createWorkspaceFromDevfile(cheURL + '/api', devfileServerURL + '/devfile.yaml')
         expect(res.links!.ide).to.equal('https://che-che.192.168.64.39.nip.io/che/chectl')
       })
     fancy
@@ -207,27 +136,5 @@ describe('Eclipse Che helper', () => {
       .do(() => ch.getWorkspacePodName(namespace, workspace))
       .catch(/Pod is not found for the given workspace ID/)
       .it('should fail if no workspace is found for the given ID')
-  })
-  describe('isAuthenticationEnabled', () => {
-    fancy
-      .nock(cheURL, api => api
-        .get('/api/keycloak/settings')
-        .replyWithFile(200, __dirname + '/replies/get-keycloak-settings.json', {
-          'Content-Type': 'application/json'
-        }))
-      .it('should return true if the api/keycloak/settings endpoint doesn\'t exist', async () => {
-        const authEnabled = await ch.isAuthenticationEnabled(cheURL)
-        expect(authEnabled).to.equal(true)
-      })
-    fancy
-      .nock(cheURL, api => api
-        .get('/api/keycloak/settings')
-        .reply(404, 'Page does not exist', {
-          'Content-Type': 'text/plain'
-        }))
-      .it('should return false if the api/keycloak/settings endpoint doesn\'t exist', async () => {
-        const authEnabled = await ch.isAuthenticationEnabled(cheURL)
-        expect(authEnabled).to.equal(false)
-      })
   })
 })

@@ -30,6 +30,7 @@ export const listrRenderer = string({
   default: 'default'
 })
 
+export const ACCESS_TOKEN_KEY = 'access-token'
 export const accessToken = string({
   description: `Eclipse Che OIDC Access Token. See the documentation how to obtain token: ${DOC_LINK_OBTAIN_ACCESS_TOKEN} and ${DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH}.`,
   env: 'CHE_ACCESS_TOKEN'
@@ -38,4 +39,11 @@ export const accessToken = string({
 export const skipKubeHealthzCheck = boolean({
   description: 'Skip Kubernetes health check',
   default: false
+})
+
+export const CHE_API_ENDPOINT_KEY = 'che-api-endpoint'
+export const cheApiEndpoint = string({
+  description: 'Eclipse Che server API endpoint',
+  env: 'CHE_API_ENDPOINT',
+  required: false,
 })

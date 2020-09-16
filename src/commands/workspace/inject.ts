@@ -14,15 +14,13 @@ import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as execa from 'execa'
 import * as fs from 'fs'
-import * as Listr from 'listr'
 import * as os from 'os'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
+import { CheApiClient } from '../../api/che-api-client'
 import { KubeHelper } from '../../api/kube'
-import { accessToken, cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
-import { CheTasks } from '../../tasks/che'
-import { ApiTasks } from '../../tasks/platforms/api'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
 import { getClusterClientCommand, OPENSHIFT_CLI } from '../../util'
 
 export default class Inject extends Command {
@@ -49,7 +47,8 @@ export default class Inject extends Command {
       description: 'Kubeconfig context to inject',
       required: false
     }),
-    'access-token': accessToken,
+    [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
+    [ACCESS_TOKEN_KEY]: accessToken,
     chenamespace: cheNamespace,
     'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
@@ -61,49 +60,51 @@ export default class Inject extends Command {
     const { flags } = this.parse(Inject)
 
     const notifier = require('node-notifier')
-    const cheTasks = new CheTasks(flags)
-    const apiTasks = new ApiTasks()
     const cheHelper = new CheHelper(flags)
 
-    const tasks = new Listr([], { renderer: 'silent' })
-    tasks.add(apiTasks.testApiTasks(flags, this))
-    tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
+    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
+    if (!cheApiEndpoint) {
+      const kube = new KubeHelper(flags)
+      if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
+        throw new Error(`Eclipse Che API endpoint is required. Use flag --${CHE_API_ENDPOINT_KEY} to provide it.`)
+      }
+      cheApiEndpoint = await cheHelper.cheURL(flags.chenamespace) + '/api'
+    }
+
+    const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
+    await cheApiClient.checkCheApiEndpointUrl()
+
+    if (!flags[ACCESS_TOKEN_KEY] && await cheApiClient.isAuthenticationEnabled()) {
+      cli.error('Authentication is enabled but \'access-token\' is not provided.\nSee more details with the --help flag.')
+    }
+
+    let workspaceId = flags.workspace
+    let workspaceNamespace = ''
+    if (!workspaceId) {
+      const workspaces = await cheApiClient.getAllWorkspaces(flags[ACCESS_TOKEN_KEY])
+      const runningWorkspaces = workspaces.filter(w => w.status === 'RUNNING')
+      if (runningWorkspaces.length === 1) {
+        workspaceId = runningWorkspaces[0].id
+        workspaceNamespace = runningWorkspaces[0].attributes!.infrastructureNamespace
+      } else if (runningWorkspaces.length === 0) {
+        cli.error('There are no running workspaces. Please start workspace first.')
+      } else {
+        cli.error('There are more than 1 running workspaces. Please, specify the workspace id by providing \'--workspace\' flag.\nSee more details with the --help flag.')
+      }
+    } else {
+      const workspace = await cheApiClient.getWorkspaceById(workspaceId, flags[ACCESS_TOKEN_KEY])
+      if (workspace.status !== 'RUNNING') {
+        cli.error(`Workspace '${workspaceId}' is not running. Please start workspace first.`)
+      }
+      workspaceNamespace = workspace.attributes!.infrastructureNamespace
+    }
+
+    const workspacePodName = await cheHelper.getWorkspacePodName(workspaceNamespace, workspaceId!)
+    if (flags.container && !await this.containerExists(workspaceNamespace, workspacePodName, flags.container)) {
+      cli.error(`The specified container '${flags.container}' doesn't exist. The configuration cannot be injected.`)
+    }
 
     try {
-      await tasks.run()
-
-      let workspaceId = flags.workspace
-      let workspaceNamespace = ''
-
-      const cheURL = await cheHelper.cheURL(flags.chenamespace)
-      if (!flags['access-token'] && await cheHelper.isAuthenticationEnabled(cheURL)) {
-        cli.error('Authentication is enabled but \'access-token\' is not provided.\nSee more details with the --help flag.')
-      }
-
-      if (!workspaceId) {
-        const workspaces = await cheHelper.getAllWorkspaces(cheURL, flags['access-token'])
-        const runningWorkspaces = workspaces.filter(w => w.status === 'RUNNING')
-        if (runningWorkspaces.length === 1) {
-          workspaceId = runningWorkspaces[0].id
-          workspaceNamespace = runningWorkspaces[0].attributes.infrastructureNamespace
-        } else if (runningWorkspaces.length === 0) {
-          cli.error('There are no running workspaces. Please start workspace first.')
-        } else {
-          cli.error('There are more than 1 running workspaces. Please, specify the workspace id by providing \'--workspace\' flag.\nSee more details with the --help flag.')
-        }
-      } else {
-        const workspace = await cheHelper.getWorkspace(cheURL, workspaceId, flags['access-token'])
-        if (workspace.status !== 'RUNNING') {
-          cli.error(`Workspace '${workspaceId}' is not running. Please start workspace first.`)
-        }
-        workspaceNamespace = workspace.attributes.infrastructureNamespace
-      }
-
-      const workspacePodName = await cheHelper.getWorkspacePodName(workspaceNamespace, workspaceId!)
-      if (flags.container && !await this.containerExists(workspaceNamespace, workspacePodName, flags.container)) {
-        cli.error(`The specified container '${flags.container}' doesn't exist. The configuration cannot be injected.`)
-      }
-
       await this.injectKubeconfig(flags, workspaceNamespace, workspacePodName, workspaceId!)
     } catch (err) {
       this.error(err)
@@ -161,17 +162,17 @@ export default class Inject extends Command {
    * Copies the local kubeconfig into the specified container.
    * If returns, it means injection was completed successfully. If throws an error, injection failed
    */
-  private async doInjectKubeconfig(cheNamespace: string, workspacePod: string, container: string, contextToInject: Context): Promise<void> {
-    const { stdout } = await execa(`${this.command} exec ${workspacePod} -n ${cheNamespace} -c ${container} env | grep ^HOME=`, { timeout: 10000, shell: true })
+  private async doInjectKubeconfig(namespace: string, workspacePod: string, container: string, contextToInject: Context): Promise<void> {
+    const { stdout } = await execa(`${this.command} exec ${workspacePod} -n ${namespace} -c ${container} env | grep ^HOME=`, { timeout: 10000, shell: true })
     let containerHomeDir = stdout.split('=')[1]
     if (!containerHomeDir.endsWith('/')) {
       containerHomeDir += '/'
     }
 
-    if (await this.fileExists(cheNamespace, workspacePod, container, `${containerHomeDir}.kube/config`)) {
+    if (await this.fileExists(namespace, workspacePod, container, `${containerHomeDir}.kube/config`)) {
       throw new Error('kubeconfig already exists in the target container')
     }
-    await execa(`${this.command} exec ${workspacePod} -n ${cheNamespace} -c ${container} -- mkdir ${containerHomeDir}.kube -p`, { timeout: 10000, shell: true })
+    await execa(`${this.command} exec ${workspacePod} -n ${namespace} -c ${container} -- mkdir ${containerHomeDir}.kube -p`, { timeout: 10000, shell: true })
 
     const kubeConfigPath = path.join(os.tmpdir(), 'che-kubeconfig')
     const cluster = KubeHelper.KUBE_CONFIG.getCluster(contextToInject.cluster)
@@ -213,10 +214,10 @@ export default class Inject extends Command {
     }
     await execa(this.command, setCredentialsArgs, { timeout: 10000 })
 
-    await execa(this.command, ['config', configPathFlag, kubeConfigPath, 'set-context', contextToInject.name, `--cluster=${contextToInject.cluster}`, `--user=${contextToInject.user}`, `--namespace=${cheNamespace}`], { timeout: 10000 })
+    await execa(this.command, ['config', configPathFlag, kubeConfigPath, 'set-context', contextToInject.name, `--cluster=${contextToInject.cluster}`, `--user=${contextToInject.user}`, `--namespace=${namespace}`], { timeout: 10000 })
     await execa(this.command, ['config', configPathFlag, kubeConfigPath, 'use-context', contextToInject.name], { timeout: 10000 })
 
-    await execa(this.command, ['cp', kubeConfigPath, `${cheNamespace}/${workspacePod}:${containerHomeDir}.kube/config`, '-c', container], { timeout: 10000 })
+    await execa(this.command, ['cp', kubeConfigPath, `${namespace}/${workspacePod}:${containerHomeDir}.kube/config`, '-c', container], { timeout: 10000 })
     return
   }
 

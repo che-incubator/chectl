@@ -10,20 +10,20 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
-import Listr = require('listr')
 import * as notifier from 'node-notifier'
 
-import { accessToken, cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
-import { CheTasks } from '../../tasks/che'
-import { ApiTasks } from '../../tasks/platforms/api'
-import { WorkspaceTasks } from '../../tasks/workspace-tasks'
+import { CheHelper } from '../../api/che'
+import { CheApiClient } from '../../api/che-api-client'
+import { KubeHelper } from '../../api/kube'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
 
 export default class Stop extends Command {
   static description = 'Stop a running workspace'
 
   static flags = {
     help: flags.help({ char: 'h' }),
-    'access-token': accessToken,
+    [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
+    [ACCESS_TOKEN_KEY]: accessToken,
     chenamespace: cheNamespace,
     'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
@@ -39,27 +39,25 @@ export default class Stop extends Command {
   async run() {
     const { flags } = this.parse(Stop)
     const { args } = this.parse(Stop)
-    const ctx: any = {}
 
-    const tasks = new Listr([], { renderer: 'silent' })
+    const workspaceId = args.workspace
 
-    const apiTasks = new ApiTasks()
-    const cheTasks = new CheTasks(flags)
-    const workspaceTasks = new WorkspaceTasks(flags)
+    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
+    if (!cheApiEndpoint) {
+      const kube = new KubeHelper(flags)
+      if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
+        throw new Error(`Eclipse Che API endpoint is required. Use flag --${CHE_API_ENDPOINT_KEY} to provide it.`)
+      }
 
-    ctx.workspaceId = args.workspace
-    tasks.add(apiTasks.testApiTasks(flags, this))
-    tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
-    tasks.add(cheTasks.retrieveEclipseCheUrl(flags))
-    tasks.add(cheTasks.checkEclipseCheStatus())
-    tasks.add(workspaceTasks.getWorkspaceStopTask())
-
-    try {
-      await tasks.run(ctx)
-      cli.log('Workspace successfully stopped.')
-    } catch (err) {
-      this.error(err)
+      const cheHelper = new CheHelper(flags)
+      cheApiEndpoint = await cheHelper.cheURL(flags.chenamespace) + '/api'
     }
+
+    const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
+    await cheApiClient.checkCheApiEndpointUrl()
+
+    await cheApiClient.stopWorkspace(workspaceId, flags[ACCESS_TOKEN_KEY])
+    cli.log('Workspace successfully stopped.')
 
     notifier.notify({
       title: 'chectl',

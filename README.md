@@ -571,6 +571,9 @@ OPTIONS
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
 
+  --che-api-endpoint=che-api-endpoint
+      Eclipse Che server API endpoint
+
   --name=name
       Workspace name: overrides the workspace name to use instead of the one defined in the devfile.
 
@@ -604,6 +607,9 @@ OPTIONS
       authenticating-to-the-che-server and 
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
+
+  --che-api-endpoint=che-api-endpoint
+      Eclipse Che server API endpoint
 
   --delete-namespace
       Indicates that a Kubernetes namespace where workspace was created will be deleted as well
@@ -646,6 +652,9 @@ OPTIONS
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
 
+  --che-api-endpoint=che-api-endpoint
+      Eclipse Che server API endpoint
+
   --kube-context=kube-context
       Kubeconfig context to inject
 
@@ -677,6 +686,9 @@ OPTIONS
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
 
+  --che-api-endpoint=che-api-endpoint
+      Eclipse Che server API endpoint
+
   --skip-kubernetes-health-check
       Skip Kubernetes health check
 ```
@@ -692,18 +704,15 @@ USAGE
   $ chectl workspace:logs
 
 OPTIONS
-  -d, --directory=directory                Directory to store logs into
-  -h, --help                               show CLI help
+  -d, --directory=directory       Directory to store logs into
+  -h, --help                      show CLI help
 
-  -n, --namespace=namespace                (required) The namespace where workspace is located. Can be found in
-                                           workspace configuration 'attributes.infrastructureNamespace' field.
+  -n, --namespace=namespace       (required) The namespace where workspace is located. Can be found in workspace
+                                  configuration 'attributes.infrastructureNamespace' field.
 
-  -w, --workspace=workspace                (required) Target workspace id. Can be found in workspace configuration 'id'
-                                           field.
+  -w, --workspace=workspace       (required) Target workspace id. Can be found in workspace configuration 'id' field.
 
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
-
-  --skip-kubernetes-health-check           Skip Kubernetes health check
+  --skip-kubernetes-health-check  Skip Kubernetes health check
 ```
 
 _See code: [src/commands/workspace/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/logs.ts)_
@@ -736,6 +745,9 @@ OPTIONS
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
 
+  --che-api-endpoint=che-api-endpoint
+      Eclipse Che server API endpoint
+
   --skip-kubernetes-health-check
       Skip Kubernetes health check
 ```
@@ -766,6 +778,9 @@ OPTIONS
       authenticating-to-the-che-server and 
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
+
+  --che-api-endpoint=che-api-endpoint
+      Eclipse Che server API endpoint
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check

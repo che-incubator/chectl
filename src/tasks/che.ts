@@ -562,18 +562,6 @@ export class CheTasks {
     ]
   }
 
-  workspaceLogsTasks(namespace: string, workspaceId: string): ReadonlyArray<Listr.ListrTask> {
-    return [
-      {
-        title: 'Read workspace logs',
-        task: async (ctx: any, task: any) => {
-          ctx['workspace-run'] = await this.che.readWorkspacePodLog(namespace, workspaceId, ctx.directory)
-          task.title = `${task.title}...done`
-        }
-      }
-    ]
-  }
-
   namespaceEventsTask(namespace: string, command: Command, follow: boolean): ReadonlyArray<Listr.ListrTask> {
     return [
       {
