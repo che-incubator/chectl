@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject, Watch, AuthorizationV1Api, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec } from '@kubernetes/client-node'
 import { Cluster, Context } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
@@ -556,9 +556,20 @@ export class KubeHelper {
   }
 
   async hasReadPermissionsForNamespace(namespace: string): Promise<boolean> {
-    const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
+    const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(AuthorizationV1Api)
+    const accessReview = new V1SelfSubjectAccessReview()
+    accessReview.spec = new V1SelfSubjectAccessReviewSpec()
+    accessReview.spec.resourceAttributes = {
+      group: '',
+      name: 'access-to-che-namespace',
+      namespace,
+      resource: 'namespaces',
+      verb: 'get'
+    }
+
     try {
-      return !!(await k8sApi.readNamespace(namespace))
+      const { body } = await k8sApi.createSelfSubjectAccessReview(accessReview)
+      return body.status!.allowed
     } catch (error) {
       if (error.response && error.response.body) {
         if (error.response.body.code === 403) {

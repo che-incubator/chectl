@@ -93,7 +93,7 @@ export class E2eHelper {
   // Return the status of test workspaces(e2e-tests. Please look devfile-example.yaml file)
   async getWorkspaceStatus(platform: string): Promise<any> {
     const workspaces = await this.getAllWorkspaces(platform)
-    const workspaceStatus = workspaces.filter((wks => wks.devfile.metadata.name === this.devfileName)).map(({ status }) => status)[0]
+    const workspaceStatus = workspaces.filter((wks => wks!.devfile!.metadata!.name === this.devfileName)).map(({ status }) => status)[0]
 
     if (!workspaceStatus) {
       throw Error('Error getting workspace_id')
