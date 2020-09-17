@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
 import { Cluster, Context } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
@@ -60,12 +60,11 @@ export class KubeHelper {
   async deleteAllServices(namespace = '') {
     const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
-      const res = await k8sApi.listNamespacedService(namespace, true)
+      const res = await k8sApi.listNamespacedService(namespace)
       if (res && res.response && res.response.statusCode === 200) {
         const serviceList = res.body
-        const options = new V1DeleteOptions()
         await serviceList.items.forEach(async service => {
-          await k8sApi.deleteNamespacedService(service.metadata!.name!, namespace, undefined, options)
+          await k8sApi.deleteNamespacedService(service.metadata!.name!, namespace)
         })
       }
     } catch (e) {
@@ -81,7 +80,7 @@ export class KubeHelper {
   async getServicesBySelector(labelSelector = '', namespace = ''): Promise<V1ServiceList> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
-      const res = await k8sCoreApi.listNamespacedService(namespace, true, 'true', undefined, undefined, labelSelector)
+      const res = await k8sCoreApi.listNamespacedService(namespace, 'true', undefined, undefined, undefined, labelSelector)
       if (res && res.body) {
         return res.body
       }
@@ -175,8 +174,7 @@ export class KubeHelper {
   async deleteServiceAccount(name = '', namespace = '') {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
-      const options = new V1DeleteOptions()
-      await k8sCoreApi.deleteNamespacedServiceAccount(name, namespace, undefined, options)
+      await k8sCoreApi.deleteNamespacedServiceAccount(name, namespace)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -330,7 +328,9 @@ export class KubeHelper {
       additionaRule.apiGroups = apiGroups
       additionaRule.resources = resources
       additionaRule.verbs = verbs
-      clusterRole.rules.push(additionaRule)
+      if (clusterRole.rules) {
+        clusterRole.rules.push(additionaRule)
+      }
 
       try {
         const { body } = await k8sRbacAuthApi.replaceClusterRole(name, clusterRole)
@@ -344,8 +344,7 @@ export class KubeHelper {
   async deleteRole(name = '', namespace = '') {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
     try {
-      const options = new V1DeleteOptions()
-      await k8sCoreApi.deleteNamespacedRole(name, namespace, undefined, options)
+      await k8sCoreApi.deleteNamespacedRole(name, namespace)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -354,8 +353,7 @@ export class KubeHelper {
   async deleteClusterRole(name = '') {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
     try {
-      const options = new V1DeleteOptions()
-      await k8sCoreApi.deleteClusterRole(name, undefined, options)
+      await k8sCoreApi.deleteClusterRole(name)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -483,8 +481,7 @@ export class KubeHelper {
   async deleteRoleBinding(name = '', namespace = '') {
     const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
     try {
-      const options = new V1DeleteOptions()
-      return await k8sRbacAuthApi.deleteNamespacedRoleBinding(name, namespace, undefined, options)
+      return await k8sRbacAuthApi.deleteNamespacedRoleBinding(name, namespace)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -493,8 +490,7 @@ export class KubeHelper {
   async deleteClusterRoleBinding(name = '') {
     const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
     try {
-      const options = new V1DeleteOptions()
-      return await k8sRbacAuthApi.deleteClusterRoleBinding(name, undefined, options)
+      return await k8sRbacAuthApi.deleteClusterRoleBinding(name)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -532,8 +528,7 @@ export class KubeHelper {
   async deleteConfigMap(name: string, namespace = '') {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
-      const options = new V1DeleteOptions()
-      await k8sCoreApi.deleteNamespacedConfigMap(name, namespace, undefined, options)
+      await k8sCoreApi.deleteNamespacedConfigMap(name, namespace)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -603,7 +598,7 @@ export class KubeHelper {
     }
 
     try {
-      const res = await k8sCoreApi.patchNamespacedPod(name, namespace, patch, undefined, undefined, requestOptions)
+      const res = await k8sCoreApi.patchNamespacedPod(name, namespace, patch, undefined, undefined, undefined, undefined, requestOptions)
       if (res && res.body) {
         return res.body
       }
@@ -616,7 +611,7 @@ export class KubeHelper {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     let res
     try {
-      res = await k8sCoreApi.listNamespacedPod(namespace, true, undefined, undefined, undefined, selector)
+      res = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, selector)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -628,25 +623,25 @@ export class KubeHelper {
     return (res.body.items.length > 0)
   }
 
-  async getPodPhase(selector: string, namespace = ''): Promise<string> {
+  async getPodPhase(labelSelector: string, namespace = ''): Promise<string> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     let res
     try {
-      res = await k8sCoreApi.listNamespacedPod(namespace, true, undefined, undefined, undefined, selector)
+      res = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, labelSelector)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
 
     if (!res || !res.body || !res.body.items) {
-      throw new Error(`Get pods by selector "${selector}" returned an invalid response`)
+      throw new Error(`Get pods by selector "${labelSelector}" returned an invalid response`)
     }
 
     if (res.body.items.length !== 1) {
-      throw new Error(`Get pods by selector "${selector}" returned ${res.body.items.length} pods (1 was expected)`)
+      throw new Error(`Get pods by selector "${labelSelector}" returned ${res.body.items.length} pods (1 was expected)`)
     }
 
     if (!res.body.items[0].status || !res.body.items[0].status.phase) {
-      throw new Error(`Get pods by selector "${selector}" returned a pod with an invalid state`)
+      throw new Error(`Get pods by selector "${labelSelector}" returned a pod with an invalid state`)
     }
 
     return res.body.items[0].status.phase
@@ -656,7 +651,7 @@ export class KubeHelper {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     let res
     try {
-      res = await k8sCoreApi.listNamespacedPod(namespace, true, undefined, undefined, undefined, selector)
+      res = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, selector)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -744,9 +739,8 @@ export class KubeHelper {
   async deletePod(name: string, namespace = '') {
     KubeHelper.KUBE_CONFIG.loadFromDefault()
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
-    const options = new V1DeleteOptions()
     try {
-      return await k8sCoreApi.deleteNamespacedPod(name, namespace, undefined, options)
+      return await k8sCoreApi.deleteNamespacedPod(name, namespace)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -966,7 +960,7 @@ export class KubeHelper {
   async getDeploymentsBySelector(labelSelector = '', namespace = ''): Promise<V1DeploymentList> {
     const k8sAppsApi = KubeHelper.KUBE_CONFIG.makeApiClient(AppsV1Api)
     try {
-      const res = await k8sAppsApi.listNamespacedDeployment(namespace, true, 'true', undefined, undefined, labelSelector)
+      const res = await k8sAppsApi.listNamespacedDeployment(namespace, 'true', undefined, undefined, undefined, labelSelector)
       if (res && res.body) {
         return res.body
       }
@@ -1227,7 +1221,7 @@ export class KubeHelper {
     }
   }
 
-  async createCheClusterFromFile(filePath: string, flags: any, ctx: any, useDefaultCR: boolean) {
+  async createCheClusterFromFile(filePath: string, flags: any, ctx: any, useDefaultCR: boolean): Promise<any> {
     let yamlCr = this.safeLoadFromYamlFile(filePath)
 
     const cheNamespace = flags.chenamespace
@@ -1316,11 +1310,11 @@ export class KubeHelper {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.listNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters')
-      if (!body.items) {
+      if (!(body as any).items) {
         return
       }
 
-      const crs = body.items as any[]
+      const crs = (body as any).items as any[]
       if (crs.length === 0) {
         return
       } else if (crs.length !== 1) {
@@ -1344,7 +1338,7 @@ export class KubeHelper {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.listClusterCustomObject('org.eclipse.che', 'v1', 'checlusters')
-      return body.items ? body.items : []
+      return (body as any).items ? (body as any).items : []
     } catch (e) {
       if (e.response.statusCode === 404) {
         // There is no CRD 'checlusters`
@@ -1361,14 +1355,13 @@ export class KubeHelper {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.listNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters')
-      if (!body.items) {
+      if (!(body as any).items) {
         return
       }
 
-      const crs = body.items as any[]
+      const crs = (body as any).items as any[]
       for (const cr of crs) {
-        const options = new V1DeleteOptions()
-        await customObjectsApi.deleteNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', cr.metadata.name, options)
+        await customObjectsApi.deleteNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', cr.metadata.name)
       }
     } catch (e) {
       if (e.response.statusCode === 404) {
@@ -1395,10 +1388,10 @@ export class KubeHelper {
     let amountOfUsers: number
     try {
       const { body } = await customObjectsApi.listClusterCustomObject('user.openshift.io', 'v1', 'users')
-      if (!body.items) {
+      if (!(body as any).items) {
         throw new Error('Unable to get list users.')
       }
-      amountOfUsers = body.items.length
+      amountOfUsers = (body as any).items.length
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1442,10 +1435,10 @@ export class KubeHelper {
     try {
       const { body } = await customObjectsApi.listClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclientauthorizations')
 
-      if (!body.items) {
+      if (!(body as any).items) {
         return []
       }
-      const oauthClientAuthorizations = body.items as any[]
+      const oauthClientAuthorizations = (body as any).items as any[]
       return oauthClientAuthorizations.filter(o => o.clientName === clientName)
     } catch (e) {
       if (e.response.statusCode === 404) {
@@ -1459,10 +1452,9 @@ export class KubeHelper {
   async deleteOAuthClientAuthorizations(oAuthClientAuthorizations: any[]): Promise<void> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const options = new V1DeleteOptions()
       const filetOauthAuthorizations = oAuthClientAuthorizations.filter((e => e.metadata && e.metadata.name))
       for (let oauthAuthorization of filetOauthAuthorizations) {
-        await customObjectsApi.deleteClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclientauthorizations', oauthAuthorization.metadata.name, options)
+        await customObjectsApi.deleteClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclientauthorizations', oauthAuthorization.metadata.name)
       }
     } catch (e) {
       throw this.wrapK8sClientError(e)
@@ -1486,8 +1478,7 @@ export class KubeHelper {
   async deleteConsoleLink(name: string): Promise<void> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const options = new V1DeleteOptions()
-      await customObjectsApi.deleteClusterCustomObject('console.openshift.io', 'v1', 'consolelinks', name, options)
+      await customObjectsApi.deleteClusterCustomObject('console.openshift.io', 'v1', 'consolelinks', name)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1497,7 +1488,7 @@ export class KubeHelper {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', name)
-      return body
+      return body as CatalogSource
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1543,8 +1534,7 @@ export class KubeHelper {
   async deleteCatalogSource(namespace: string, catalogSourceName: string): Promise<void> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const options = new V1DeleteOptions()
-      await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', catalogSourceName, options)
+      await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', catalogSourceName)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1585,8 +1575,7 @@ export class KubeHelper {
   async deleteOperatorGroup(operatorGroupName: string, namespace: string) {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const options = new V1DeleteOptions()
-      await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorgroups', operatorGroupName, options)
+      await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorgroups', operatorGroupName)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1625,8 +1614,7 @@ export class KubeHelper {
   async deleteOperatorSubscription(operatorSubscriptionName: string, namespace: string) {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const options = new V1DeleteOptions()
-      await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', operatorSubscriptionName, options)
+      await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', operatorSubscriptionName)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1717,8 +1705,7 @@ export class KubeHelper {
   async deleteClusterServiceVersion(namespace: string, csvName: string) {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const options = new V1DeleteOptions()
-      const { body } = await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions', csvName, options)
+      const { body } = await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions', csvName)
       return body as ClusterServiceVersionList
     } catch (e) {
       throw this.wrapK8sClientError(e)
@@ -1941,10 +1928,10 @@ export class KubeHelper {
     }
   }
 
-  async getIngressesBySelector(labelSelector = '', namespace = ''): Promise<V1beta1IngressList> {
+  async getIngressesBySelector(labelSelector = '', namespace = ''): Promise<ExtensionsV1beta1IngressList> {
     const k8sV1Beta = KubeHelper.KUBE_CONFIG.makeApiClient(ExtensionsV1beta1Api)
     try {
-      const res = await k8sV1Beta.listNamespacedIngress(namespace, true, 'true', undefined, undefined, labelSelector)
+      const res = await k8sV1Beta.listNamespacedIngress(namespace, 'true', undefined, undefined, undefined, labelSelector)
       if (res && res.body) {
         return res.body
       }
@@ -2075,8 +2062,7 @@ export class KubeHelper {
   async deletePersistentVolumeClaim(name = '', namespace = '') {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
-      const options = new V1DeleteOptions()
-      await k8sCoreApi.deleteNamespacedPersistentVolumeClaim(name, namespace, undefined, options)
+      await k8sCoreApi.deleteNamespacedPersistentVolumeClaim(name, namespace)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -2085,7 +2071,7 @@ export class KubeHelper {
   async getPersistentVolumeClaimsBySelector(labelSelector = '', namespace = ''): Promise<V1PersistentVolumeClaimList> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
-      const res = await k8sCoreApi.listNamespacedPersistentVolumeClaim(namespace, true, 'true', undefined, undefined, labelSelector)
+      const res = await k8sCoreApi.listNamespacedPersistentVolumeClaim(namespace, 'true', undefined, undefined, undefined, labelSelector)
       if (res && res.body) {
         return res.body
       }
@@ -2114,7 +2100,7 @@ export class KubeHelper {
   async listNamespacedPod(namespace: string, fieldSelector?: string, labelSelector?: string): Promise<V1PodList> {
     const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
-      const res = await k8sApi.listNamespacedPod(namespace, true, undefined, undefined, fieldSelector, labelSelector)
+      const res = await k8sApi.listNamespacedPod(namespace, undefined, undefined, undefined, fieldSelector, labelSelector)
       if (res && res.body) {
         return res.body
       } else {
@@ -2131,14 +2117,14 @@ export class KubeHelper {
    * Reads log by chunk and writes into a file.
    */
   async readNamespacedPodLog(pod: string, namespace: string, container: string, filename: string, follow: boolean): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       const stream = new Writable()
       stream._write = function (chunk, encoding, done) {
         fs.appendFileSync(filename, chunk, { encoding })
         done()
       }
 
-      this.logHelper.log(namespace, pod, container, stream, error => {
+      await this.logHelper.log(namespace, pod, container, stream, error => {
         stream.end()
         if (error) {
           reject(error)
