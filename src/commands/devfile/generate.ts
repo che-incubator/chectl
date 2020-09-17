@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { V1beta1Ingress, V1Deployment, V1DeploymentSpec, V1ObjectMeta, V1PersistentVolumeClaim, V1PersistentVolumeClaimSpec, V1PodTemplateSpec, V1Service, V1ServicePort, V1ServiceSpec } from '@kubernetes/client-node'
+import { ExtensionsV1beta1Ingress, V1Deployment, V1DeploymentSpec, V1ObjectMeta, V1PersistentVolumeClaim, V1PersistentVolumeClaimSpec, V1PodTemplateSpec, V1Service, V1ServicePort, V1ServiceSpec } from '@kubernetes/client-node'
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as yaml from 'js-yaml'
@@ -311,12 +311,12 @@ export default class Generate extends Command {
     return items
   }
 
-  private async getIngressesBySelector(labelSelector: string, namespace = ''): Promise<Array<V1beta1Ingress>> {
-    let items = new Array<V1beta1Ingress>()
+  private async getIngressesBySelector(labelSelector: string, namespace = ''): Promise<Array<ExtensionsV1beta1Ingress>> {
+    let items = new Array<ExtensionsV1beta1Ingress>()
 
     const k8sIngressesList = await kube.getIngressesBySelector(labelSelector, namespace)
     k8sIngressesList.items.forEach(async item => {
-      let ingress = new V1beta1Ingress()
+      let ingress = new ExtensionsV1beta1Ingress()
       ingress.kind = 'Ingress'
       ingress.apiVersion = 'extensions/v1beta1'
       ingress.metadata = new V1ObjectMeta()

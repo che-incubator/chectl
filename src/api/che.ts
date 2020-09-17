@@ -356,7 +356,7 @@ export class CheHelper {
     const processedContainers = new Map<string, Set<string>>()
 
     const watcher = new Watch(KubeHelper.KUBE_CONFIG)
-    watcher.watch(`/api/v1/namespaces/${namespace}/pods`, {},
+    return watcher.watch(`/api/v1/namespaces/${namespace}/pods`, {},
       async (_phase: string, obj: any) => {
         const pod = obj as V1Pod
         if (!pod || !pod.metadata || !pod.metadata.name) {
