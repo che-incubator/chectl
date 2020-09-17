@@ -120,6 +120,20 @@ export class CheHelper {
    * If secret doesn't exist, undefined is returned.
    */
   async retrieveCheCaCert(cheNamespace: string): Promise<string | undefined> {
+    const cheCaSecretContent = await this.getCheSelfSignedSecretContent(cheNamespace)
+    if (!cheCaSecretContent) {
+      return
+    }
+
+    const rootCertStartPos = cheCaSecretContent.lastIndexOf('-----BEGIN CERTIFICATE-----')
+    return cheCaSecretContent.substring(rootCertStartPos)
+  }
+
+  /**
+   * Retrieves content of Che self-signed-certificate secret or undefined if the secret doesn't exist.
+   * Note, it contains certificate chain in pem format.
+   */
+  private async getCheSelfSignedSecretContent(cheNamespace: string): Promise<string | undefined> {
     const cheCaSecret = await this.kube.getSecret(CHE_ROOT_CA_SECRET_NAME, cheNamespace)
     if (!cheCaSecret) {
       return
