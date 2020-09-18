@@ -35,7 +35,7 @@
     "fs-extra": "^9.0.1",
     "listr": "^0.14.3",
     "listr-verbose-renderer": "^0.6.0",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.20",
     "mkdirp": "^1.0.4",
     "node-notifier": "^6.0.0",
     "stream-buffers": "^3.0.2",
