@@ -238,7 +238,7 @@ export default class Start extends Command {
     if (flags['che-operator-cr-patch-yaml']) {
       const cheOperatorCrPatchYamlPath = flags['che-operator-cr-patch-yaml']
       if (fs.existsSync(cheOperatorCrPatchYamlPath)) {
-        const crPatch = yaml.safeLoad(fs.readFileSync(cheOperatorCrPatchYamlPath).toString())
+        const crPatch: any = yaml.safeLoad(fs.readFileSync(cheOperatorCrPatchYamlPath).toString())
         if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
           return false
         }
@@ -248,7 +248,7 @@ export default class Start extends Command {
     if (flags['che-operator-cr-yaml']) {
       const cheOperatorCrYamlPath = flags['che-operator-cr-yaml']
       if (fs.existsSync(cheOperatorCrYamlPath)) {
-        const cr = yaml.safeLoad(fs.readFileSync(cheOperatorCrYamlPath).toString())
+        const cr: any = yaml.safeLoad(fs.readFileSync(cheOperatorCrYamlPath).toString())
         if (cr && cr.spec && cr.spec.server && cr.spec.server.tlsSupport === false) {
           return false
         }
