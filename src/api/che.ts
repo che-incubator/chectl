@@ -16,6 +16,7 @@ import * as commandExists from 'command-exists'
 import * as fs from 'fs-extra'
 import * as https from 'https'
 import * as yaml from 'js-yaml'
+import * as nodeforge from 'node-forge'
 import * as os from 'os'
 import * as path from 'path'
 
@@ -125,8 +126,23 @@ export class CheHelper {
       return
     }
 
-    const rootCertStartPos = cheCaSecretContent.lastIndexOf('-----BEGIN CERTIFICATE-----')
-    return cheCaSecretContent.substring(rootCertStartPos)
+    const pemBeginHeader = '-----BEGIN CERTIFICATE-----'
+    const pemEndHeader = '-----END CERTIFICATE-----'
+    const certRegExp = new RegExp(`(^${pemBeginHeader}$(?:(?!${pemBeginHeader}).)*^${pemEndHeader}$)`, 'mgs')
+    const certsPem = cheCaSecretContent.match(certRegExp)
+
+    const caCertsPem: string[] = []
+    if (certsPem) {
+      for (const certPem of certsPem) {
+        const cert = nodeforge.pki.certificateFromPem(certPem)
+        const basicConstraintsExt = cert.getExtension('basicConstraints')
+        if (basicConstraintsExt && (basicConstraintsExt as any).cA) {
+          caCertsPem.push(certPem)
+        }
+      }
+    }
+
+    return caCertsPem.join('\n')
   }
 
   /**

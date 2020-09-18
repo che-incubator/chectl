@@ -43,7 +43,7 @@ export default class Export extends Command {
     const cheHelper = new CheHelper(flags)
 
     if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
-      throw new Error('E_PERM_DENIED - Permission for Che server namespace are required')
+      throw new Error(`E_PERM_DENIED - Permission for Che server namespace "${flags.chenamespace}" are required`)
     }
     if (!await cheHelper.cheNamespaceExist(flags.chenamespace)) {
       throw new Error(`E_BAD_NS - Namespace ${flags.chenamespace} does not exist. Please specify it with --chenamespace flag`)
@@ -55,7 +55,7 @@ export default class Export extends Command {
         const targetFile = await cheHelper.saveCheCaCert(cheCaCert, this.getTargetFile(flags.destination))
         this.log(`Eclipse Che self-signed CA certificate is exported to ${targetFile}`)
       } else {
-        this.log('Seems commonly trusted certificate is used.')
+        this.log('Self signed certificate secret not found. Is commonly trusted certificate used?')
       }
     } catch (error) {
       this.error(error)
