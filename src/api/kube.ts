@@ -1657,7 +1657,7 @@ export class KubeHelper {
           approved: true
         }
       }
-      await customObjectsApi.patchNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'installplans', name, patch, { headers: { 'Content-Type': 'application/merge-patch+json' } })
+      await customObjectsApi.patchNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'installplans', name, patch, undefined, undefined, undefined, { headers: { 'Content-Type': 'application/merge-patch+json' } })
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }

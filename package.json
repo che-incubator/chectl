@@ -8,7 +8,7 @@
   },
   "bugs": "https://github.com/che-incubator/chectl/issues",
   "dependencies": {
-    "@kubernetes/client-node": "0.11.2",
+    "@kubernetes/client-node": "0.12.1",
     "@oclif/command": "^1",
     "@oclif/config": "^1",
     "@oclif/parser": "^3.8.5",
@@ -38,6 +38,7 @@
     "lodash": "^4.17.19",
     "mkdirp": "^1.0.4",
     "node-notifier": "^6.0.0",
+    "stream-buffers": "^3.0.2",
     "tslib": "^1"
   },
   "devDependencies": {
