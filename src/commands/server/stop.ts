@@ -11,7 +11,7 @@
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 
-import { accessToken, cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { accessToken, cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 
@@ -21,6 +21,7 @@ export default class Stop extends Command {
   static flags = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
+    'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,
     'deployment-name': cheDeployment,
     'che-selector': string({
       description: 'Selector for Eclipse Che server resources',

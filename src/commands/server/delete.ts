@@ -14,8 +14,9 @@ import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
 
 import { KubeHelper } from '../../api/kube'
-import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
+import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { HelmTasks } from '../../tasks/installers/helm'
 import { MinishiftAddonTasks } from '../../tasks/installers/minishift-addon'
 import { OLMTasks } from '../../tasks/installers/olm'
@@ -28,6 +29,7 @@ export default class Delete extends Command {
   static flags = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
+    'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,
     'delete-namespace': boolean({
       description: 'Indicates that a Eclipse Che namespace will be deleted as well',
       default: false
@@ -52,6 +54,7 @@ export default class Delete extends Command {
     const operatorTasks = new OperatorTasks()
     const olmTasks = new OLMTasks()
     const cheTasks = new CheTasks(flags)
+    const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
     let tasks = new Listrq(undefined,
       { renderer: flags['listr-renderer'] as any }
@@ -61,6 +64,7 @@ export default class Delete extends Command {
     tasks.add(operatorTasks.deleteTasks(flags))
     tasks.add(olmTasks.deleteTasks(flags))
     tasks.add(cheTasks.deleteTasks(flags))
+    tasks.add(devWorkspaceTasks.getUninstallTasks())
     tasks.add(helmTasks.deleteTasks(flags))
     tasks.add(minishiftAddonTasks.deleteTasks(flags))
     tasks.add(cheTasks.waitPodsDeletedTasks())

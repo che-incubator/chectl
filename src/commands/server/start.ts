@@ -19,9 +19,10 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
-import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
+import { cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
+import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
 import { CheTasks } from '../../tasks/che'
+import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
@@ -187,7 +188,18 @@ export default class Start extends Command {
       description: `Namespace for OLM catalog source to install Eclipse Che operator.
                     This parameter is used only when the installer is the 'olm'.`
     }),
-    'skip-kubernetes-health-check': skipK8sHealthCheck
+    'skip-kubernetes-health-check': skipK8sHealthCheck,
+    'workspace-engine': string({
+      description: 'Workspace Engine. If not set, default is "legacy". "dev-workspace" is experimental.',
+      options: ['legacy', 'dev-workspace'],
+      default: 'legacy',
+    }),
+    'dev-workspace-controller-image': string({
+      description: 'Container image of the dev workspace controller. This parameter is used only when the workspace engine is the DevWorkspace',
+      default: DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE,
+      env: 'DEV_WORKSPACE_OPERATOR_IMAGE',
+    }),
+    'dev-workspace-controller-namespace': devWorkspaceControllerNamespace
   }
 
   async setPlaformDefaults(flags: any): Promise<void> {
@@ -346,6 +358,7 @@ export default class Start extends Command {
     const platformTasks = new PlatformTasks()
     const installerTasks = new InstallerTasks()
     const apiTasks = new ApiTasks()
+    const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
     // Platform Checks
     let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), listrOptions)
@@ -372,6 +385,12 @@ export default class Start extends Command {
       {
         title: '✅  Post installation checklist',
         task: () => new Listr(cheTasks.waitDeployedChe(flags, this))
+      },
+      {
+        title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
+        enabled: () => flags['workspace-engine'] === 'dev-workspace',
+        task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags, this))
+
       },
       getRetrieveKeycloakCredentialsTask(flags),
       retrieveCheCaCertificateTask(flags),

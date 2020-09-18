@@ -34,7 +34,7 @@ export class CheHelper {
 
   private readonly axios: AxiosInstance
 
-  constructor(flags: any) {
+  constructor(private readonly flags: any) {
     this.kube = new KubeHelper(flags)
 
     // Make axios ignore untrusted certificate error for self-signed certificate case.
@@ -110,6 +110,24 @@ export class CheHelper {
     }
   }
 
+  async chePluginRegistryURL(namespace = ''): Promise<string> {
+    // provided through command line ?
+    if (this.flags['plugin-registry-url']) {
+      return this.flags['plugin-registry-url']
+    }
+    // check
+    if (!await this.cheNamespaceExist(namespace)) {
+      throw new Error(`ERR_NAMESPACE_NO_EXIST - No namespace ${namespace} is found`)
+    }
+
+    // grab URL
+    if (await this.kube.isOpenShift()) {
+      return this.chePluginRegistryOpenShiftURL(namespace)
+    } else {
+      return this.chePluginRegistryK8sURL(namespace)
+    }
+  }
+
   async isSelfSignedCertificateSecretExist(namespace: string): Promise<boolean> {
     const selfSignedCertSecret = await this.kube.getSecret(CHE_ROOT_CA_SECRET_NAME, namespace)
     return !!selfSignedCertSecret
@@ -175,6 +193,24 @@ export class CheHelper {
     }
 
     return [adminUsername, adminPassword]
+  }
+
+  async chePluginRegistryK8sURL(namespace = ''): Promise<string> {
+    if (await this.kube.ingressExist('plugin-registry', namespace)) {
+      const protocol = await this.kube.getIngressProtocol('plugin-registry', namespace)
+      const hostname = await this.kube.getIngressHost('plugin-registry', namespace)
+      return `${protocol}://${hostname}`
+    }
+    throw new Error(`ERR_INGRESS_NO_EXIST - No ingress 'plugin-registry' in namespace ${namespace}`)
+  }
+
+  async chePluginRegistryOpenShiftURL(namespace = ''): Promise<string> {
+    if (await this.oc.routeExist('plugin-registry', namespace)) {
+      const protocol = await this.oc.getRouteProtocol('plugin-registry', namespace)
+      const hostname = await this.oc.getRouteHost('plugin-registry', namespace)
+      return `${protocol}://${hostname}`
+    }
+    throw new Error(`ERR_ROUTE_NO_EXIST - No route 'plugin-registry' in namespace ${namespace}`)
   }
 
   async cheK8sURL(namespace = ''): Promise<string> {

@@ -2081,6 +2081,14 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
+"eclipse-che-devfile-api@git://github.com/devfile/api#v1alpha1":
+  version "0.0.0"
+  resolved "git://github.com/devfile/api#9e2280a95680c4a042342a899311171f07fed0bf"
+
+"eclipse-che-devfile-workspace-operator@git://github.com/devfile/devworkspace-operator#master":
+  version "0.0.0"
+  resolved "git://github.com/devfile/devworkspace-operator#5022afb2eb278b2843dd9995491b685050f8c563"
+
 "eclipse-che-minishift@git://github.com/minishift/minishift#master":
   version "0.0.0"
   resolved "git://github.com/minishift/minishift#d7a01068c281c5b5dd72ff877831ca8c631d3391"
