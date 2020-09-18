@@ -252,20 +252,26 @@ USAGE
   $ chectl server:delete
 
 OPTIONS
-  -h, --help                               show CLI help
+  -h, --help                                                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
-                                           be deployed
+  -n, --chenamespace=chenamespace                                          [default: che] Kubernetes namespace where
+                                                                           Eclipse Che server is supposed to be deployed
 
-  --delete-namespace                       Indicates that a Eclipse Che namespace will be deleted as well
+  --delete-namespace                                                       Indicates that a Eclipse Che namespace will
+                                                                           be deleted as well
 
-  --deployment-name=deployment-name        [default: che] Eclipse Che deployment name
+  --deployment-name=deployment-name                                        [default: che] Eclipse Che deployment name
 
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+  --dev-workspace-controller-namespace=dev-workspace-controller-namespace  [default: devworkspace-controller] Namespace
+                                                                           for the DevWorkspace controller.  This
+                                                                           parameter is used only when the workspace
+                                                                           engine is the DevWorkspace
 
-  --skip-deletion-check                    Skip user confirmation on deletion check
+  --listr-renderer=default|silent|verbose                                  [default: default] Listr renderer
 
-  --skip-kubernetes-health-check           Skip Kubernetes health check
+  --skip-deletion-check                                                    Skip user confirmation on deletion check
+
+  --skip-kubernetes-health-check                                           Skip Kubernetes health check
 ```
 
 _See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/delete.ts)_
@@ -392,6 +398,14 @@ OPTIONS
   --deployment-name=deployment-name
       [default: che] Eclipse Che deployment name
 
+  --dev-workspace-controller-image=dev-workspace-controller-image
+      [default: quay.io/devfile/devworkspace-controller:next] Container image of the dev workspace controller. This 
+      parameter is used only when the workspace engine is the DevWorkspace
+
+  --dev-workspace-controller-namespace=dev-workspace-controller-namespace
+      [default: devworkspace-controller] Namespace for the DevWorkspace controller.  This parameter is used only when the 
+      workspace engine is the DevWorkspace
+
   --devfile-registry-url=devfile-registry-url
       The URL of the external Devfile registry.
 
@@ -440,6 +454,9 @@ OPTIONS
       the latest known version.
                            This parameter is used only when the installer is 'olm'.
 
+  --workspace-engine=legacy|dev-workspace
+      [default: legacy] Workspace Engine. If not set, default is "legacy". "dev-workspace" is experimental.
+
   --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
       persistent volume(s) storage class name to use to store Eclipse Che workspaces data
 ```
@@ -473,6 +490,10 @@ OPTIONS
 
   --deployment-name=deployment-name
       [default: che] Eclipse Che deployment name
+
+  --dev-workspace-controller-namespace=dev-workspace-controller-namespace
+      [default: devworkspace-controller] Namespace for the DevWorkspace controller.  This parameter is used only when the 
+      workspace engine is the DevWorkspace
 
   --listr-renderer=default|silent|verbose
       [default: default] Listr renderer

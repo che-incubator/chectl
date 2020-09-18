@@ -28,7 +28,7 @@ export class OLMTasks {
     return new Listr([
       this.isOlmPreInstalledTask(command, kube),
       copyOperatorResources(flags, command.config.cacheDir),
-      createNamespaceTask(flags),
+      createNamespaceTask(flags.chenamespace, flags.platform),
       {
         title: 'Create operator group',
         task: async (_ctx: any, task: any) => {

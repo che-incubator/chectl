@@ -19,19 +19,19 @@ import { KubeHelper } from '../../api/kube'
 import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
 import { isKubernetesPlatformFamily, isOpenshiftPlatformFamily } from '../../util'
 
-export function createNamespaceTask(flags: any): Listr.ListrTask {
+export function createNamespaceTask(namespace: string, platform: string): Listr.ListrTask {
   return {
-    title: `Create Namespace (${flags.chenamespace})`,
+    title: `Create Namespace (${namespace})`,
     task: async (_ctx: any, task: any) => {
-      const che = new CheHelper(flags)
-      const exist = await che.cheNamespaceExist(flags.chenamespace)
+      const kube = new KubeHelper()
+      const exist = await kube.namespaceExist(namespace)
       if (exist) {
         task.title = `${task.title}...It already exists.`
-      } else if (isKubernetesPlatformFamily(flags.platform)) {
-        await execa(`kubectl create namespace ${flags.chenamespace}`, { shell: true })
+      } else if (isKubernetesPlatformFamily(platform)) {
+        await execa(`kubectl create namespace ${namespace}`, { shell: true })
         task.title = `${task.title}...done.`
-      } else if (isOpenshiftPlatformFamily(flags.platform)) {
-        await execa(`oc new-project ${flags.chenamespace}`, { shell: true })
+      } else if (isOpenshiftPlatformFamily(platform)) {
+        await execa(`oc new-project ${namespace}`, { shell: true })
         task.title = `${task.title}...done.`
       }
     }

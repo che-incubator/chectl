@@ -11,8 +11,6 @@ coverage
 .vscode
 bin/chectl-*
 tsconfig.tsbuildinfo
-# k8s templates are added at post-install step
-templates/kubernetes
-templates/che-operator
-templates/minishift-addon
-templates/cert-manager
+# templates are added at post-install step
+templates
+

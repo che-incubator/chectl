@@ -9,13 +9,19 @@
  **********************************************************************/
 import { boolean, string } from '@oclif/parser/lib/flags'
 
-import { DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH } from './constants'
+import { DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE, DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH } from './constants'
 
 export const cheNamespace = string({
   char: 'n',
   description: 'Kubernetes namespace where Eclipse Che server is supposed to be deployed',
   default: 'che',
   env: 'CHE_NAMESPACE'
+})
+
+export const devWorkspaceControllerNamespace = string({
+  description: 'Namespace for the DevWorkspace controller.  This parameter is used only when the workspace engine is the DevWorkspace',
+  default: DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE,
+  env: 'DEV_WORKSPACE_OPERATOR_NAMESPACE',
 })
 
 export const cheDeployment = string({

@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
 import { Cluster, Context } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
@@ -44,7 +44,7 @@ export class KubeHelper {
   podWaitTimeout: number
   podReadyTimeout: number
 
-  constructor(flags: any) {
+  constructor(flags?: any) {
     if (flags && flags.k8spodwaittimeout) {
       this.podWaitTimeout = parseInt(flags.k8spodwaittimeout, 10)
     } else {
@@ -424,6 +424,16 @@ export class KubeHelper {
     }
   }
 
+  async createClusterRoleBindingFrom(yamlClusterRoleBinding: V1ClusterRoleBinding) {
+    const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
+    try {
+      return await k8sRbacAuthApi.createClusterRoleBinding(yamlClusterRoleBinding)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+
+  }
+
   async createClusterRoleBinding(name: string, saName: string, saNamespace = '', roleName = '') {
     const clusterRoleBinding = {
       apiVersion: 'rbac.authorization.k8s.io/v1',
@@ -508,9 +518,15 @@ export class KubeHelper {
 
   async createConfigMapFromFile(filePath: string, namespace = '') {
     const yamlConfigMap = this.safeLoadFromYamlFile(filePath) as V1ConfigMap
+    return this.createNamespacedConfigMap(namespace, yamlConfigMap)
+  }
+
+  public async createNamespacedConfigMap(namespace: string, configMap: V1ConfigMap) {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
+
     try {
-      return await k8sCoreApi.createNamespacedConfigMap(namespace, yamlConfigMap)
+      const { body } = await k8sCoreApi.createNamespacedConfigMap(namespace, configMap)
+      return body
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -529,6 +545,17 @@ export class KubeHelper {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
       await k8sCoreApi.deleteNamespacedConfigMap(name, namespace)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  public async replaceNamespacedConfigMap(name: string, namespace: string, configMap: V1ConfigMap) {
+    const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
+
+    try {
+      const { body } = await k8sCoreApi.replaceNamespacedConfigMap(name, namespace, configMap)
+      return body
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -907,9 +934,22 @@ export class KubeHelper {
     if (containerImage) {
       yamlDeployment.spec!.template.spec!.containers[containerIndex].image = containerImage
     }
+    return this.createDeploymentFrom(yamlDeployment, namespace)
+  }
+
+  async createDeploymentFrom(yamlDeployment: V1Deployment, namespace = '') {
     const k8sAppsApi = KubeHelper.KUBE_CONFIG.makeApiClient(AppsV1Api)
     try {
       return await k8sAppsApi.createNamespacedDeployment(namespace, yamlDeployment)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async createServiceFrom(yamlService: V1Service, namespace = '') {
+    const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
+    try {
+      return await k8sApi.createNamespacedService(namespace, yamlService)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
