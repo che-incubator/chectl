@@ -22,7 +22,7 @@
     "@types/websocket": "^1.0.1",
     "@types/ws": "^7.2.6",
     "ansi-colors": "4.1.1",
-    "axios": "^0.19.2",
+    "axios": "^0.20.0",
     "cli-ux": "^5.4.5",
     "command-exists": "^1.2.9",
     "debug": "^4.1.1",
