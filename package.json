@@ -37,8 +37,8 @@
     "listr-verbose-renderer": "^0.6.0",
     "lodash": "^4.17.20",
     "mkdirp": "^1.0.4",
-    "node-notifier": "^8.0.0",
     "node-forge": "^0.10.0",
+    "node-notifier": "^8.0.0",
     "stream-buffers": "^3.0.2",
     "tslib": "^1"
   },
