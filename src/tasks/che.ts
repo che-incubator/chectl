@@ -493,7 +493,7 @@ export class CheTasks {
       title: `Verify if namespace '${flags.chenamespace}' exists`,
       task: async () => {
         if (!await this.che.cheNamespaceExist(flags.chenamespace)) {
-          command.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist. The configuration cannot be injected.\nFix with: verify the namespace where workspace is running (kubectl get --all-namespaces deployment | grep workspace)`, { code: 'EBADNS' })
+          command.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist.`, { code: 'EBADNS' })
         }
       }
     }]

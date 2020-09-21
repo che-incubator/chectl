@@ -37,6 +37,7 @@
     "listr-verbose-renderer": "^0.6.0",
     "lodash": "^4.17.20",
     "mkdirp": "^1.0.4",
+    "node-forge": "^0.10.0",
     "node-notifier": "^8.0.0",
     "stream-buffers": "^3.0.2",
     "tslib": "^1"
@@ -51,6 +52,7 @@
     "@types/js-yaml": "^3.12.5",
     "@types/listr": "^0.14.2",
     "@types/node": "^12",
+    "@types/node-forge": "^0.9.5",
     "chai": "^4.2.0",
     "cpx": "^1.5.0",
     "globby": "^11",

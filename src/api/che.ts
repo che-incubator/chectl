@@ -16,6 +16,7 @@ import * as commandExists from 'command-exists'
 import * as fs from 'fs-extra'
 import * as https from 'https'
 import * as yaml from 'js-yaml'
+import * as nodeforge from 'node-forge'
 import * as os from 'os'
 import * as path from 'path'
 
@@ -120,6 +121,35 @@ export class CheHelper {
    * If secret doesn't exist, undefined is returned.
    */
   async retrieveCheCaCert(cheNamespace: string): Promise<string | undefined> {
+    const cheCaSecretContent = await this.getCheSelfSignedSecretContent(cheNamespace)
+    if (!cheCaSecretContent) {
+      return
+    }
+
+    const pemBeginHeader = '-----BEGIN CERTIFICATE-----'
+    const pemEndHeader = '-----END CERTIFICATE-----'
+    const certRegExp = new RegExp(`(^${pemBeginHeader}$(?:(?!${pemBeginHeader}).)*^${pemEndHeader}$)`, 'mgs')
+    const certsPem = cheCaSecretContent.match(certRegExp)
+
+    const caCertsPem: string[] = []
+    if (certsPem) {
+      for (const certPem of certsPem) {
+        const cert = nodeforge.pki.certificateFromPem(certPem)
+        const basicConstraintsExt = cert.getExtension('basicConstraints')
+        if (basicConstraintsExt && (basicConstraintsExt as any).cA) {
+          caCertsPem.push(certPem)
+        }
+      }
+    }
+
+    return caCertsPem.join('\n')
+  }
+
+  /**
+   * Retrieves content of Che self-signed-certificate secret or undefined if the secret doesn't exist.
+   * Note, it contains certificate chain in pem format.
+   */
+  private async getCheSelfSignedSecretContent(cheNamespace: string): Promise<string | undefined> {
     const cheCaSecret = await this.kube.getSecret(CHE_ROOT_CA_SECRET_NAME, cheNamespace)
     if (!cheCaSecret) {
       return

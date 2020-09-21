@@ -11,15 +11,13 @@
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as fs from 'fs'
-import * as Listr from 'listr'
 import * as os from 'os'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
+import { KubeHelper } from '../../api/kube'
 import { cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
-import { CheTasks } from '../../tasks/che'
-import { ApiTasks } from '../../tasks/platforms/api'
 
 export default class Export extends Command {
   static description = 'Retrieves Eclipse Che self-signed certificate'
@@ -41,23 +39,23 @@ export default class Export extends Command {
 
   async run() {
     const { flags } = this.parse(Export)
-    const ctx: any = {}
+    const kube = new KubeHelper(flags)
     const cheHelper = new CheHelper(flags)
-    const cheTasks = new CheTasks(flags)
-    const apiTasks = new ApiTasks()
-    const tasks = new Listr([], { renderer: 'silent' })
 
-    tasks.add(apiTasks.testApiTasks(flags, this))
-    tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
+    if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
+      throw new Error(`E_PERM_DENIED - Permission denied: no read access to '${flags.chenamespace}' namespace`)
+    }
+    if (!await cheHelper.cheNamespaceExist(flags.chenamespace)) {
+      throw new Error(`E_BAD_NS - Namespace ${flags.chenamespace} does not exist. Please specify it with --chenamespace flag`)
+    }
 
     try {
-      await tasks.run(ctx)
       const cheCaCert = await cheHelper.retrieveCheCaCert(flags.chenamespace)
       if (cheCaCert) {
         const targetFile = await cheHelper.saveCheCaCert(cheCaCert, this.getTargetFile(flags.destination))
         this.log(`Eclipse Che self-signed CA certificate is exported to ${targetFile}`)
       } else {
-        this.log('Seems commonly trusted certificate is used.')
+        this.log('Self signed certificate secret not found. Is commonly trusted certificate used?')
       }
     } catch (error) {
       this.error(error)
