@@ -38,11 +38,12 @@ export default class List extends Command {
     let isOpenshiftOauthEnabled = false
 
     let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
+    const cheUrl = await cheHelper.cheURL(flags.chenamespace)
     if (!cheApiEndpoint) {
       if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
         throw new Error(`Eclipse Che API endpoint is required. Use flag --${CHE_API_ENDPOINT_KEY} to provide it.`)
       }
-      cheApiEndpoint = await cheHelper.cheURL(flags.chenamespace) + '/api'
+      cheApiEndpoint = cheUrl + '/api'
     }
 
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
@@ -52,7 +53,6 @@ export default class List extends Command {
     let workspacesRunning = workspaces.filter(wks => wks.status === 'RUNNING')
 
     const cheServerVersion = await cheApiClient.getCheServerVersion(flags[ACCESS_TOKEN_KEY])
-    const cheUrl = await cheHelper.cheURL(flags.chenamespace)
 
     if (await kube.isOpenShift()) {
       const providers = await kube.getOpenshiftAuthProviders()

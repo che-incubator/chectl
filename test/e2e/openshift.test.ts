@@ -113,6 +113,14 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
       .it('List workspaces')
   })
 
+  describe('Server Status', () => {
+    test
+      .stdout({ print: true })
+      .stderr({ print: true })
+      .command(['server:status'])
+      .it('Get Che Server status')
+  })
+
   describe('Stop Workspace', () => {
     it('Stop a workspace using execa library', async () => {
       const workspaceId = await helper.getWorkspaceId(PLATFORM)
