@@ -90,6 +90,7 @@ USAGE
 * [`chectl server:delete`](#chectl-serverdelete)
 * [`chectl server:logs`](#chectl-serverlogs)
 * [`chectl server:start`](#chectl-serverstart)
+* [`chectl server:status`](#chectl-serverstatus)
 * [`chectl server:stop`](#chectl-serverstop)
 * [`chectl server:update`](#chectl-serverupdate)
 * [`chectl update [CHANNEL]`](#chectl-update-channel)
@@ -445,6 +446,27 @@ OPTIONS
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
+
+## `chectl server:status`
+
+status Eclipse Che server
+
+```
+USAGE
+  $ chectl server:status
+
+OPTIONS
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
+                                           be deployed
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+
+  --skip-kubernetes-health-check           Skip Kubernetes health check
+```
+
+_See code: [src/commands/server/status.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/status.ts)_
 
 ## `chectl server:stop`
 

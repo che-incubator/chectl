@@ -93,6 +93,20 @@ export class CheApiClient {
     }
   }
 
+  async getCheServerVersion(accessToken?: string): Promise<string> {
+    const headers: any = { 'Content-Type': 'application/json' }
+    if (accessToken) {
+      headers.Authorization = accessToken
+    }
+
+    try {
+      const response = await this.axios.options(this.cheApiEndpoint, { headers })
+      return response.data.implementationVersion
+    } catch (error) {
+      throw this.getCheApiError(error, this.cheApiEndpoint)
+    }
+  }
+
   async getCheServerStatus(responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<string> {
     const endpoint = `${this.cheApiEndpoint}/system/state`
     let response = null
