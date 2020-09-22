@@ -10,7 +10,6 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
-import { safeDump } from 'js-yaml'
 import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
