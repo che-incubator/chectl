@@ -53,7 +53,7 @@ export default class List extends Command {
 
     const cheServerVersion = await cheApiClient.getCheServerVersion(flags[ACCESS_TOKEN_KEY])
 
-    if (await kube.isOpenShift()) {
+    if (await kube.isOpenShift4()) {
       const providers = await kube.getOpenshiftAuthProviders()
       if (!providers || providers.length === 0) {
         isOpenshiftOauthEnabled = false
