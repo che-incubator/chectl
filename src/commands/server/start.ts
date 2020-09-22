@@ -190,9 +190,9 @@ export default class Start extends Command {
     }),
     'skip-kubernetes-health-check': skipK8sHealthCheck,
     'workspace-engine': string({
-      description: 'Workspace Engine. If not set, default is "legacy". "dev-workspace" is experimental.',
-      options: ['legacy', 'dev-workspace'],
-      default: 'legacy',
+      description: 'Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.',
+      options: ['che-server', 'dev-workspace'],
+      default: 'che-server',
     }),
     'dev-workspace-controller-image': string({
       description: 'Container image of the dev workspace controller. This parameter is used only when the workspace engine is the DevWorkspace',
