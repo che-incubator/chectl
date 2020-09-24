@@ -154,7 +154,7 @@ export class MinikubeTasks {
   }
 
   async enableIngressAddon() {
-    await execa('minikube', ['addons', 'enable', 'ingress'], { timeout: 18000 })
+    await execa('minikube', ['addons', 'enable', 'ingress'], { timeout: 60000 })
   }
 
   async getMinikubeIP(): Promise<string> {
