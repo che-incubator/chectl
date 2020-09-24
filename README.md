@@ -328,7 +328,7 @@ OPTIONS
       show CLI help
 
   -i, --cheimage=cheimage
-      [default: quay.io/eclipse/che-server:nightly] Eclipse Che server container image
+      [default: quay.io/eclipse/che-server:7.19.0] Eclipse Che server container image
 
   -m, --multiuser
       Starts Eclipse Che in multi-user mode
@@ -388,8 +388,8 @@ OPTIONS
       is the 'operator' or the 'olm'.
 
   --che-operator-image=che-operator-image
-      [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when 
-      the installer is the operator
+      [default: quay.io/eclipse/che-operator:7.19.0] Container image of the operator. This parameter is used only when the 
+      installer is the operator
 
   --debug
       Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug' 
@@ -399,7 +399,7 @@ OPTIONS
       [default: che] Eclipse Che deployment name
 
   --dev-workspace-controller-image=dev-workspace-controller-image
-      [default: quay.io/devfile/devworkspace-controller:next] Container image of the dev workspace controller. This 
+      [default: quay.io/devfile/devworkspace-controller:sha-8c503ad] Container image of the dev workspace controller. This 
       parameter is used only when the workspace engine is the DevWorkspace
 
   --dev-workspace-controller-namespace=dev-workspace-controller-namespace
@@ -454,8 +454,8 @@ OPTIONS
       the latest known version.
                            This parameter is used only when the installer is 'olm'.
 
-  --workspace-engine=legacy|dev-workspace
-      [default: legacy] Workspace Engine. If not set, default is "legacy". "dev-workspace" is experimental.
+  --workspace-engine=che-server|dev-workspace
+      [default: che-server] Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.
 
   --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
       persistent volume(s) storage class name to use to store Eclipse Che workspaces data
@@ -532,7 +532,7 @@ OPTIONS
                                                                                templates folder
 
   --che-operator-image=che-operator-image                                      [default:
-                                                                               quay.io/eclipse/che-operator:nightly]
+                                                                               quay.io/eclipse/che-operator:7.19.0]
                                                                                Container image of the operator. This
                                                                                parameter is used only when the installer
                                                                                is the operator
