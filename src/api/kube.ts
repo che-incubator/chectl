@@ -127,11 +127,9 @@ export class KubeHelper {
 
   async waitServiceAccount(name: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<void> {
     return new Promise(async (resolve, reject) => {
-      let request: any
-
       // Set up watcher
       const watcher = new Watch(KubeHelper.KUBE_CONFIG)
-      request = watcher
+      const request = await watcher
         .watch(`/api/v1/namespaces/${namespace}/serviceaccounts`, {},
           (_phase: string, obj: any) => {
             const serviceAccount = obj as V1ServiceAccount
@@ -1104,11 +1102,9 @@ export class KubeHelper {
 
   async waitJob(jobName: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<void> {
     return new Promise(async (resolve, reject) => {
-      let request: any
-
       // Set up watcher
       const watcher = new Watch(KubeHelper.KUBE_CONFIG)
-      request = watcher
+      const request = await watcher
         .watch(`/apis/batch/v1/namespaces/${namespace}/jobs/`, {},
           (_phase: string, obj: any) => {
             const job = obj as V1Job
@@ -1173,8 +1169,8 @@ export class KubeHelper {
   async isCRDCompatible(crdClusterName: string, crdFilePath: string): Promise<boolean> {
     const { spec: crdFileSpec } = this.safeLoadFromYamlFile(crdFilePath) as V1beta1CustomResourceDefinition
     const { spec: crdClusterSpec } = await this.getCrd(crdClusterName)
-    const { validation: { openAPIV3Schema : { properties: crdFileProps = '' } = {} } = {} } = crdFileSpec
-    const { validation: { openAPIV3Schema : { properties: crdClusterProps = '' } = {} } = {} } = crdClusterSpec
+    const { validation: { openAPIV3Schema: { properties: crdFileProps = '' } = {} } = {} } = crdFileSpec
+    const { validation: { openAPIV3Schema: { properties: crdClusterProps = '' } = {} } = {} } = crdClusterSpec
 
     if (!crdFileSpec.versions || !crdClusterSpec.versions) {
       return false
@@ -1552,8 +1548,7 @@ export class KubeHelper {
   async waitCatalogSource(namespace: string, catalogSourceName: string, timeout = 60): Promise<CatalogSource> {
     return new Promise<CatalogSource>(async (resolve, reject) => {
       const watcher = new Watch(KubeHelper.KUBE_CONFIG)
-      let request: any
-      request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/catalogsources`,
+      const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/catalogsources`,
         { fieldSelector: `metadata.name=${catalogSourceName}` },
         (_phase: string, obj: any) => {
           resolve(obj as CatalogSource)
@@ -1663,8 +1658,7 @@ export class KubeHelper {
   async waitOperatorSubscriptionReadyForApproval(namespace: string, subscriptionName: string, timeout = AWAIT_TIMEOUT_S): Promise<InstallPlan> {
     return new Promise<InstallPlan>(async (resolve, reject) => {
       const watcher = new Watch(KubeHelper.KUBE_CONFIG)
-      let request: any
-      request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
+      const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
         { fieldSelector: `metadata.name=${subscriptionName}` },
         (_phase: string, obj: any) => {
           const subscription = obj as Subscription
@@ -1706,8 +1700,7 @@ export class KubeHelper {
   async waitUntilOperatorIsInstalled(installPlanName: string, namespace: string, timeout = 30) {
     return new Promise<InstallPlan>(async (resolve, reject) => {
       const watcher = new Watch(KubeHelper.KUBE_CONFIG)
-      let request: any
-      request = watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`,
+      const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`,
         { fieldSelector: `metadata.name=${installPlanName}` },
         (_phase: string, obj: any) => {
           const installPlan = obj as InstallPlan
@@ -2038,11 +2031,9 @@ export class KubeHelper {
    */
   async waitSecret(secretName: string, namespace: string, dataKeys: string[] = [], timeout = AWAIT_TIMEOUT_S): Promise<void> {
     return new Promise(async (resolve, reject) => {
-      let request: any
-
       // Set up watcher
       const watcher = new Watch(KubeHelper.KUBE_CONFIG)
-      request = watcher
+      const request = await watcher
         .watch(`/api/v1/namespaces/${namespace}/secrets/`, { fieldSelector: `metadata.name=${secretName}` },
           (_phase: string, obj: any) => {
             const secret = obj as V1Secret
