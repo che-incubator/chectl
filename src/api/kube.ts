@@ -648,7 +648,7 @@ export class KubeHelper {
     return (res.body.items.length > 0)
   }
 
-  async getPodPhase(labelSelector: string, namespace = ''): Promise<string> {
+  async getPodPhase(labelSelector: string, namespace = ''): Promise<string | undefined> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     let res
     try {
@@ -657,16 +657,12 @@ export class KubeHelper {
       throw this.wrapK8sClientError(e)
     }
 
-    if (!res || !res.body || !res.body.items) {
-      throw new Error(`Get pods by selector "${labelSelector}" returned an invalid response`)
-    }
-
-    if (res.body.items.length !== 1) {
-      throw new Error(`Get pods by selector "${labelSelector}" returned ${res.body.items.length} pods (1 was expected)`)
+    if (!res || !res.body || !res.body.items || res.body.items.length !== 1) {
+      return
     }
 
     if (!res.body.items[0].status || !res.body.items[0].status.phase) {
-      throw new Error(`Get pods by selector "${labelSelector}" returned a pod with an invalid state`)
+      return
     }
 
     return res.body.items[0].status.phase
@@ -691,7 +687,8 @@ export class KubeHelper {
     }
 
     if (res.body.items.length > 1) {
-      throw new Error(`Get pods by selector "${selector}" returned ${res.body.items.length} pods (1 was expected).`)
+      // Several pods found, rolling update?
+      return
     }
 
     if (!res.body.items[0].status || !res.body.items[0].status.conditions || !(res.body.items[0].status.conditions.length > 0)) {
