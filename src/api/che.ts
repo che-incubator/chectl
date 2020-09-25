@@ -271,38 +271,6 @@ export class CheHelper {
     return this.kube.namespaceExist(namespace)
   }
 
-  /**
-   * DEPRECATED. Use CheApiClient instead.
-   */
-  async getCheServerStatus(cheURL: string, responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<string> {
-    const cheApi = CheApiClient.getInstance(cheURL + '/api')
-    return cheApi.getCheServerStatus(responseTimeoutMs)
-  }
-
-  /**
-   * DEPRECATED. Use startCheServerShutdown from CheApiClient instead.
-   */
-  async startShutdown(cheURL: string, accessToken = '', responseTimeoutMs = this.defaultCheResponseTimeoutMs) {
-    const cheApi = CheApiClient.getInstance(cheURL + '/api')
-    return cheApi.startCheServerShutdown(accessToken, responseTimeoutMs)
-  }
-
-  /**
-   * DEPRECATED. Use waitUntilCheServerReadyToShutdown from CheApiClient instead.
-   */
-  async waitUntilReadyToShutdown(cheURL: string, intervalMs = 500, timeoutMs = 60000) {
-    const cheApi = CheApiClient.getInstance(cheURL + '/api')
-    return cheApi.waitUntilCheServerReadyToShutdown(intervalMs, timeoutMs)
-  }
-
-  /**
-   * DEPRECATED. Use CheApiClient instead.
-   */
-  async isCheServerReady(cheURL: string, responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
-    const cheApi = CheApiClient.getInstance(cheURL + '/api')
-    return cheApi.isCheServerReady(responseTimeoutMs)
-  }
-
   async createWorkspaceFromDevfile(cheApiEndpoint: string, devfilePath: string, workspaceName?: string, accessToken?: string): Promise<chetypes.workspace.Workspace> {
     let devfile: string | undefined
     try {
@@ -329,14 +297,6 @@ export class CheHelper {
     } else {
       return fs.readFileSync(devfilePath, 'utf8')
     }
-  }
-
-  /**
-   * DEPRECATED. Use CheApiClient instead.
-   */
-  async isAuthenticationEnabled(cheURL: string, responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
-    const cheApi = CheApiClient.getInstance(cheURL + '/api')
-    return cheApi.isAuthenticationEnabled(responseTimeoutMs)
   }
 
   async buildDashboardURL(ideURL: string): Promise<string> {
