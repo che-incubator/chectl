@@ -11,6 +11,7 @@ import { Command } from '@oclif/command'
 import * as Listr from 'listr'
 
 import { CheHelper } from '../api/che'
+import { CheApiClient } from '../api/che-api-client'
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
 import { DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH } from '../constants'
@@ -193,8 +194,9 @@ export class CheTasks {
           let cheURL = ''
           try {
             cheURL = await this.che.cheURL(this.cheNamespace)
-            const status = await this.che.getCheServerStatus(cheURL)
-            ctx.isAuthEnabled = await this.che.isAuthenticationEnabled(cheURL)
+            const cheApi = CheApiClient.getInstance(cheURL + '/api')
+            const status = await cheApi.getCheServerStatus()
+            ctx.isAuthEnabled = await cheApi.isAuthenticationEnabled()
             const auth = ctx.isAuthEnabled ? '(auth enabled)' : '(auth disabled)'
             task.title = `${task.title}...${status} ${auth}`
           } catch (error) {
@@ -259,9 +261,10 @@ export class CheTasks {
       task: async (task: any) => {
         try {
           const cheURL = await this.che.cheURL(this.cheNamespace)
-          await this.che.startShutdown(cheURL, this.cheAccessToken)
-          await this.che.waitUntilReadyToShutdown(cheURL)
-          task.title = await `${task.title}...done`
+          const cheApi = CheApiClient.getInstance(cheURL + '/api')
+          await cheApi.startCheServerShutdown(this.cheAccessToken)
+          await cheApi.waitUntilCheServerReadyToShutdown()
+          task.title = `${task.title}...done`
         } catch (error) {
           command.error(`E_SHUTDOWN_CHE_SERVER_FAIL - Failed to shutdown Eclipse Che server. ${error.message}`)
         }
@@ -624,7 +627,10 @@ export class CheTasks {
     return [
       {
         title: 'Eclipse Che status check',
-        task: async ctx => this.che.isCheServerReady(ctx.cheURL)
+        task: async ctx => {
+          const cheApi = CheApiClient.getInstance(ctx.cheURL + '/api')
+          return cheApi.isCheServerReady()
+        }
       }
     ]
   }
@@ -634,7 +640,8 @@ export class CheTasks {
       {
         title: 'Checking authentication',
         task: async (ctx: any, task: any) => {
-          ctx.isAuthEnabled = await this.che.isAuthenticationEnabled(ctx.cheURL)
+          const cheApi = CheApiClient.getInstance(ctx.cheURL + '/api')
+          ctx.isAuthEnabled = await cheApi.isAuthenticationEnabled()
           if (ctx.isAuthEnabled && !this.cheAccessToken) {
             throw new Error('E_AUTH_REQUIRED - Eclipse Che authentication is enabled and an access token is needed to be provided (flag --access-token). ' +
               `See the documentation how to obtain token: ${DOC_LINK_OBTAIN_ACCESS_TOKEN} and ${DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH}.`)
