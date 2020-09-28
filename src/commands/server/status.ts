@@ -19,14 +19,7 @@ import { cheNamespace } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 export default class List extends Command {
   // Implementation-Version it is a property from Manifest.ml inside of che server pod which indicate Eclipse Che build version.
-  readonly chePreffixVersion = 'Implementation-Version: '
   static description = 'status Eclipse Che server'
-  openshiftOauth = 'No'
-  cheVersion = 'UNKNOWN'
-
-  kube = new KubeHelper(flags)
-  che = new CheHelper(flags)
-  cheTask = new CheTasks(flags)
 
   static flags = {
     help: flags.help({ char: 'h' }),
@@ -35,22 +28,28 @@ export default class List extends Command {
 
   async run() {
     const { flags } = this.parse(List)
-    const cr = await this.kube.getCheCluster(flags.chenamespace)
+    const kube = new KubeHelper(flags)
+    const che = new CheHelper(flags)
+    const cheTask = new CheTasks(flags)
 
-    if (cr && cr.spec && cr.spec.auth && typeof cr.spec.auth.openShiftoAuth === 'boolean') {
-      this.openshiftOauth = 'Yes'
+    let openshiftOauth = 'No'
+    let cheVersion = 'UNKNOWN'
+
+    const cr = await kube.getCheCluster(flags.chenamespace)
+    if (cr && cr.spec && cr.spec.auth && cr.spec.auth.openShiftoAuth) {
+      openshiftOauth = 'Yes'
     }
 
-    const chePodList = await this.kube.getPodListByLabel(flags.chenamespace, this.cheTask.cheSelector)
+    const chePodList = await kube.getPodListByLabel(flags.chenamespace, cheTask.cheSelector)
     const [chePodName] = chePodList.map(pod => pod.metadata && pod.metadata.name)
 
     if (chePodName) {
-      this.cheVersion = await VersionHelper.getCheVersionFromPod(flags.chenamespace, chePodName, this.chePreffixVersion)
+      cheVersion = await VersionHelper.getCheVersionFromPod(flags.chenamespace, chePodName)
     }
 
-    cli.log(`Eclipse Che Verion     : ${this.cheVersion}`)
-    cli.log(`Eclipse Che Url        : ${await this.che.cheURL(flags.chenamespace)}`)
-    cli.log(`OpenShift OAuth enabled: ${this.openshiftOauth}\n`)
+    cli.log(`Eclipse Che Verion     : ${cheVersion}`)
+    cli.log(`Eclipse Che Url        : ${await che.cheURL(flags.chenamespace)}`)
+    cli.log(`OpenShift OAuth enabled: ${openshiftOauth}\n`)
 
     notifier.notify({
       title: 'chectl',
