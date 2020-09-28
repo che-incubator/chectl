@@ -456,14 +456,10 @@ USAGE
   $ chectl server:status
 
 OPTIONS
-  -h, --help                               show CLI help
+  -h, --help                       show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
-                                           be deployed
-
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
-
-  --skip-kubernetes-health-check           Skip Kubernetes health check
+  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
+                                   deployed
 ```
 
 _See code: [src/commands/server/status.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/status.ts)_

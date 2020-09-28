@@ -11,6 +11,8 @@
 import execa = require('execa')
 import Listr = require('listr')
 
+import { getClusterClientCommand } from '../util'
+
 import { KubeHelper } from './kube'
 
 export namespace VersionHelper {
@@ -133,18 +135,15 @@ export namespace VersionHelper {
     return stdout.split('\n').filter(value => value.startsWith(versionPrefix)).map(value => value.substring(versionPrefix.length))[0]
   }
 
-  export async function getCheVersionWithKubectl(namespace: string, podName: string, versionPrefix: string): Promise<string | undefined> {
-    const command = 'kubectl'
+  export async function getCheVersionFromPod(namespace: string, podName: string, versionPrefix: string): Promise<string> {
+    const command = getClusterClientCommand()
     const args = ['exec', podName, '--namespace', namespace, 'cat', CHE_POD_MANIFEST_FILE]
-    const { stdout } = await execa(command, args, { timeout: 60000 })
-    return stdout.split('\n').filter(value => value.startsWith(versionPrefix)).map(value => value.substring(versionPrefix.length))[0]
-  }
-
-  export async function getCheVersionWithOC(podName: string, namespace: string, versionPrefix: string): Promise<string | undefined> {
-    const command = 'oc'
-    const args = ['exec', podName, '--namespace', namespace, 'cat', CHE_POD_MANIFEST_FILE]
-    const { stdout } = await execa(command, args, { timeout: 60000 })
-    return stdout.split('\n').filter(value => value.startsWith(versionPrefix)).map(value => value.substring(versionPrefix.length))[0]
+    try {
+      const { stdout } = await execa(command, args, { timeout: 60000 })
+      return stdout.split('\n').filter(value => value.startsWith(versionPrefix)).map(value => value.substring(versionPrefix.length))[0]
+    } catch (error) {
+      throw new Error(`E_COMMAND_FAILED: ${error}`)
+    }
   }
 
   function removeVPrefix(version: string): string {
