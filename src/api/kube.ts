@@ -350,6 +350,17 @@ export class KubeHelper {
     }
   }
 
+  async getPodListByLabel(namespace= '', labelSelector: string): Promise<V1Pod[]> {
+    const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
+    try {
+      const { body: podList } = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, labelSelector)
+
+      return podList.items
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
   async deleteClusterRole(name = '') {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
     try {

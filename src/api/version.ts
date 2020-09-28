@@ -17,6 +17,7 @@ export namespace VersionHelper {
   export const MINIMAL_OPENSHIFT_VERSION = '3.11'
   export const MINIMAL_K8S_VERSION = '1.9'
   export const MINIMAL_HELM_VERSION = '2.15'
+  export const CHE_POD_MANIFEST_FILE = '/home/user/eclipse-che/tomcat/webapps/ROOT/META-INF/MANIFEST.MF'
 
   export function getOpenShiftCheckVersionTask(flags: any): Listr.ListrTask {
     return {
@@ -128,6 +129,20 @@ export namespace VersionHelper {
   async function getVersionWithKubectl(versionPrefix: string): Promise<string | undefined> {
     const command = 'kubectl'
     const args = ['version', '--short']
+    const { stdout } = await execa(command, args, { timeout: 60000 })
+    return stdout.split('\n').filter(value => value.startsWith(versionPrefix)).map(value => value.substring(versionPrefix.length))[0]
+  }
+
+  export async function getCheVersionWithKubectl(namespace: string, podName: string, versionPrefix: string): Promise<string | undefined> {
+    const command = 'kubectl'
+    const args = ['exec', podName, '--namespace', namespace, 'cat', CHE_POD_MANIFEST_FILE]
+    const { stdout } = await execa(command, args, { timeout: 60000 })
+    return stdout.split('\n').filter(value => value.startsWith(versionPrefix)).map(value => value.substring(versionPrefix.length))[0]
+  }
+
+  export async function getCheVersionWithOC(podName: string, namespace: string, versionPrefix: string): Promise<string | undefined> {
+    const command = 'oc'
+    const args = ['exec', podName, '--namespace', namespace, 'cat', CHE_POD_MANIFEST_FILE]
     const { stdout } = await execa(command, args, { timeout: 60000 })
     return stdout.split('\n').filter(value => value.startsWith(versionPrefix)).map(value => value.substring(versionPrefix.length))[0]
   }

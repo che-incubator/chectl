@@ -1,5 +1,5 @@
 /*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
+ * Copyright (c) 2020 Red Hat, Inc.
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -12,64 +12,63 @@ import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
 import * as notifier from 'node-notifier'
 
-import { CheHelper } from '../../api/che'
-import { CheApiClient } from '../../api/che-api-client'
 import { KubeHelper } from '../../api/kube'
-import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY as CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
+import { VersionHelper } from '../../api/version'
+import { cheNamespace } from '../../common-flags'
 
 export default class List extends Command {
-  static description = 'list workspaces'
+  // Implementation-Version it is a property from Manifest.ml inside of che server pod which indicate Eclipse Che build version.
+  readonly chePreffixVersion = 'Implementation-Version: '
+  readonly cheServerSelector = 'app=che,component=che'
+
+  static description = 'status Eclipse Che server'
+  openshiftOauth = false
+  cheVersion = 'UNKNOWN'
+  cheUrl = 'UNKNOWN'
+
+  kube = new KubeHelper(flags)
 
   static flags = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
-    [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
-    [ACCESS_TOKEN_KEY]: accessToken,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
   async run() {
     const { flags } = this.parse(List)
-    const cheHelper = new CheHelper(flags)
-    const kube = new KubeHelper(flags)
+    const cr = await this.kube.getCheCluster(flags.chenamespace)
 
-    let workspaces = []
-    let isOpenshiftOauthEnabled = false
-
-    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
-    const cheUrl = await cheHelper.cheURL(flags.chenamespace)
-    if (!cheApiEndpoint) {
-      if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
-        throw new Error(`Eclipse Che API endpoint is required. Use flag --${CHE_API_ENDPOINT_KEY} to provide it.`)
-      }
-      cheApiEndpoint = cheUrl + '/api'
+    if (cr && cr.spec && cr.spec.auth && typeof cr.spec.auth.openShiftoAuth === 'boolean') {
+      this.openshiftOauth = true
     }
 
-    const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
-    await cheApiClient.checkCheApiEndpointUrl()
-
-    workspaces = await cheApiClient.getAllWorkspaces(flags[ACCESS_TOKEN_KEY])
-    let workspacesRunning = workspaces.filter(wks => wks.status === 'RUNNING')
-
-    const cheServerVersion = await cheApiClient.getCheServerVersion(flags[ACCESS_TOKEN_KEY])
-
-    if (await kube.isOpenShift4()) {
-      const providers = await kube.getOpenshiftAuthProviders()
-      if (!providers || providers.length === 0) {
-        isOpenshiftOauthEnabled = false
-      } else {
-        isOpenshiftOauthEnabled = true
-      }
+    if (cr && cr.status && cr.status.cheURL) {
+      this.cheUrl = cr.status.cheURL
     }
 
-    cli.log(`Version                 : ${cheServerVersion}`)
-    cli.log(`Eclipse Che Url         : ${cheUrl}`)
-    cli.log(`Workspaces              : ${workspaces.length} (${workspacesRunning.length} running)`)
-    cli.log(`OpenShift OAuth enabled : ${isOpenshiftOauthEnabled}`)
+    const chePodList = await this.kube.getPodListByLabel(flags.chenamespace, this.cheServerSelector)
+    const [chePodName] = chePodList.map(pod => pod.metadata && pod.metadata.name)
+
+    if (chePodName) {
+      await this.getCheVersionByPlatform(flags, chePodName)
+    }
+
+    cli.log(`Eclipse Che Verion     : ${this.cheVersion}`)
+    cli.log(`Eclipse Che Url        : ${this.cheUrl}`)
+    cli.log(`OpenShift OAuth enabled: ${this.openshiftOauth}\n`)
 
     notifier.notify({
       title: 'chectl',
       message: 'Command server:status has completed successfully.'
     })
+  }
+
+  private async getCheVersionByPlatform(flags: any, chePodName: string): Promise<void> {
+    try {
+      if (await this.kube.isOpenShift()) {
+        this.cheVersion = await VersionHelper.getCheVersionWithOC(flags.chenamespace, chePodName, this.chePreffixVersion) || 'UNKNOWN'
+      } else {
+        this.cheVersion = await VersionHelper.getCheVersionWithKubectl(flags.chenamespace, chePodName, this.chePreffixVersion) || 'UNKNOWN'
+      }
+    } catch {}
   }
 }
