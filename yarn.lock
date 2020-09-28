@@ -2098,7 +2098,8 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-minishift@git://github.com/minishift/minishift#master":
   version "0.0.0"
-  resolved "git://github.com/minishift/minishift#d7a01068c281c5b5dd72ff877831ca8c631d3391"
+  uid "4b58f8954421fcbb7996ca67cba7ed8c58092a88"
+  resolved "git://github.com/minishift/minishift#4b58f8954421fcbb7996ca67cba7ed8c58092a88"
 
 "eclipse-che-operator@git://github.com/eclipse/che-operator#master":
   version "0.0.0"
