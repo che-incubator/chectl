@@ -32,7 +32,7 @@ jobs:
     - name: Install and start minishift OCP 3.11 cluster
       run: |
         brew cask install minishift
-        export MINISHIFT_GITHUB_API_TOKEN=${{ secrets.GITHUBTOKEN }}
+        export MINISHIFT_GITHUB_API_TOKEN=${{ secrets.GITHUB_TOKEN }}
         minishift start --memory=5500 --vm-driver=virtualbox
     - name: Generate minishift certificates
       run: |
