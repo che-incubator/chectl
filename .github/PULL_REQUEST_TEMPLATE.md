@@ -19,7 +19,6 @@ Pull Request Policy: https://github.com/che-incubator/chectl/blob/master/CONTRIB
 ### How to test this PR?
 <!-- Please explain for example :
   - The test platform (openshift, kubernetes, minikube, CodeReady Container, docker-desktop, etc)
-  - Installation method: chectl / che-operator
   - steps to reproduce
  -->
 
