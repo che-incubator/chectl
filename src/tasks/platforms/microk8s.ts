@@ -110,7 +110,7 @@ export class MicroK8sTasks {
   }
 
   async enabledAddons(): Promise<object> {
-    const { stdout } = await execa('microk8s.status', [], { timeout: 10000 })
+    const { stdout } = await execa('microk8s.status', ['--format', 'short'], { timeout: 10000 })
     return {
       ingress: stdout.includes('ingress: enabled'),
       storage: stdout.includes('storage: enabled')
