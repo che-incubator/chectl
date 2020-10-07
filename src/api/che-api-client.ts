@@ -44,18 +44,16 @@ export class CheApiClient {
     return instance
   }
 
-  private static normalizeCheApiEndpointUrl(url: string | undefined) {
-    if (url) {
-      if (!url.includes('://')) {
-        url = 'https://' + url
-      }
-      const u = new URL(url)
-      url = 'https://' + u.host + u.pathname
-      if (url.endsWith('/')) {
-        url = url.slice(0, -1)
-      }
-      return url
+  public static normalizeCheApiEndpointUrl(url: string) {
+    if (!url.includes('://')) {
+      url = 'https://' + url
     }
+    const u = new URL(url)
+    url = 'https://' + u.host + u.pathname
+    if (url.endsWith('/')) {
+      url = url.slice(0, -1)
+    }
+    return url
   }
 
   /**
@@ -298,9 +296,33 @@ export class CheApiClient {
     }
   }
 
+  /**
+   * Returns Keycloak settings or undefined for single user mode.
+   */
+  async getKeycloakSettings(responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<any | undefined> {
+    const endpoint = `${this.cheApiEndpoint}/keycloak/settings`
+    let response
+    try {
+      response = await this.axios.get(endpoint, { timeout: responseTimeoutMs })
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        return
+      }
+      throw this.getCheApiError(error, endpoint)
+    }
+    if (!response || response.status !== 200 || !response.data) {
+      throw new Error('E_BAD_RESP_CHE_API')
+    }
+    if (!response.data['che.keycloak.auth_server_url']) {
+      // The response is not keycloak response, but a default fallback
+      throw new Error('E_BAD_CHE_API_URL')
+    }
+    return response.data
+  }
+
   async isAuthenticationEnabled(responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
     const endpoint = `${this.cheApiEndpoint}/keycloak/settings`
-    let response = null
+    let response
     try {
       response = await this.axios.get(endpoint, { timeout: responseTimeoutMs })
     } catch (error) {
@@ -312,6 +334,10 @@ export class CheApiClient {
     }
     if (!response || response.status !== 200 || !response.data) {
       throw new Error('E_BAD_RESP_CHE_API')
+    }
+    if (!response.data['che.keycloak.auth_server_url']) {
+      // The response is not keycloak response, but a default fallback
+      return false
     }
     return true
   }
@@ -325,6 +351,8 @@ export class CheApiClient {
         return new Error(`E_CHE_API_UNAUTHORIZED - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
       } else if (status === 404) {
         return new Error(`E_CHE_API_NOTFOUND - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
+      } else if (status === 503) {
+        return new Error(`E_CHE_API_UNAVAIL - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
       } else {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx

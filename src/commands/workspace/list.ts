@@ -11,10 +11,9 @@
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
 
-import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
-import { KubeHelper } from '../../api/kube'
-import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY as CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
+import { getLoginData } from '../../api/che-login-manager'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
 
 export default class List extends Command {
   static description = 'list workspaces'
@@ -29,23 +28,10 @@ export default class List extends Command {
 
   async run() {
     const { flags } = this.parse(List)
-
-    let workspaces = []
-    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
-    if (!cheApiEndpoint) {
-      const kube = new KubeHelper(flags)
-      if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
-        throw new Error(`Eclipse Che API endpoint is required. Use flag --${CHE_API_ENDPOINT_KEY} to provide it.`)
-      }
-
-      const cheHelper = new CheHelper(flags)
-      cheApiEndpoint = await cheHelper.cheURL(flags.chenamespace) + '/api'
-    }
+    const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY])
 
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
-    await cheApiClient.checkCheApiEndpointUrl()
-
-    workspaces = await cheApiClient.getAllWorkspaces(flags[ACCESS_TOKEN_KEY])
+    const workspaces = await cheApiClient.getAllWorkspaces(accessToken)
 
     this.printWorkspaces(workspaces)
   }
