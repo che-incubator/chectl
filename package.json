@@ -42,7 +42,7 @@
     "node-forge": "^0.10.0",
     "node-notifier": "^8.0.0",
     "stream-buffers": "^3.0.2",
-    "tslib": "^1"
+    "tslib": "^2"
   },
   "devDependencies": {
     "@eclipse-che/api": "latest",
