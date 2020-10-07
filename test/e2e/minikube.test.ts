@@ -18,11 +18,11 @@ const PLATFORM = 'kubernetes'
 const binChectl = `${process.cwd()}/bin/run`
 
 describe('Eclipse Che deploy test suite', () => {
-  describe('server:start using operator and self signed certificates', () => {
+  describe('server:deploy using operator and self signed certificates', () => {
     test
       .stdout({ print: true })
       .stderr({ print: true })
-      .command(['server:start', '--platform=minikube', '--che-operator-cr-patch-yaml=test/e2e/util/cr-test.yaml', '--tls', '--installer=operator', '--skip-cluster-availability-check'])
+      .command(['server:deploy', '--platform=minikube', '--che-operator-cr-patch-yaml=test/e2e/util/cr-test.yaml', '--tls', '--installer=operator', '--skip-cluster-availability-check'])
       .exit(0)
       .it('uses minikube as platform, operator as installer and auth is enabled')
     test
