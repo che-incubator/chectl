@@ -32,6 +32,7 @@ import { getCommandSuccessMessage, initializeContext, isOpenshiftPlatformFamily 
 
 export default class Start extends Command {
   static description = 'start Eclipse Che server'
+  static aliases = ['server:deploy']
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
@@ -342,6 +343,10 @@ export default class Start extends Command {
   }
 
   async run() {
+    if (process.argv.indexOf('server:start')) {
+      this.warn('\'server:start\' command is deprecated. Use \'server:deploy\' instead.')
+    }
+
     const { flags } = this.parse(Start)
     const ctx = initializeContext()
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
