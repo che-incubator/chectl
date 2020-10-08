@@ -67,13 +67,22 @@ export function isPasswordLoginData(loginData: LoginRecord): loginData is Passwo
 
 // Response structure from <che-host>/api/keycloak/settings
 interface CheKeycloakSettings {
-  'che.keycloak.token.endpoint': string
-  'che.keycloak.profile.endpoint': string
-  'che.keycloak.client_id': string
-  'che.keycloak.auth_server_url': string
-  'che.keycloak.password.endpoint': string
   'che.keycloak.logout.endpoint': string
-  'che.keycloak.realm': string
+  'che.keycloak.jwks.endpoint': string
+  'che.keycloak.token.endpoint': string
+  'che.keycloak.userinfo.endpoint': string
+  'che.keycloak.client_id': string
+  'che.keycloak.username_claim': string
+  'che.keycloak.js_adapter_url': string
+  'che.keycloak.use_nonce': string
+
+  'che.keycloak.profile.endpoint'?: string
+  'che.keycloak.auth_server_url'?: string
+  'che.keycloak.password.endpoint'?: string
+  'che.keycloak.realm'?: string
+
+  'che.keycloak.oidc_provider'?: string
+  'che.keycloak.github.endpoint'?: string
 }
 
 // Response structure from Keycloak get access token endpoint
@@ -462,20 +471,19 @@ export class CheServerLoginManager {
   }
 
   private async getCurrentUserName(cheKeycloakSettings: CheKeycloakSettings, accessToken: string): Promise<string> {
-    const keycloakAuthUrl = cheKeycloakSettings['che.keycloak.auth_server_url']
-    const realm = cheKeycloakSettings['che.keycloak.realm']
-    const endpoint = `${keycloakAuthUrl}/realms/${realm}/protocol/openid-connect/userinfo`
+    const endpoint = cheKeycloakSettings['che.keycloak.userinfo.endpoint']
     const headers = {
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: `bearer ${accessToken}`,
     }
     try {
-      const response = await this.axios.post(endpoint, querystring.stringify({ access_token: accessToken }), { headers, timeout: REQUEST_TIMEOUT_MS })
+      const response = await this.axios.get(endpoint, { headers, timeout: REQUEST_TIMEOUT_MS })
       if (!response || response.status !== 200 || !response.data) {
         throw new Error('E_BAD_RESP_KEYCLOAK')
       }
       return response.data.preferred_username
     } catch (error) {
-      throw new Error(`Failed to get access userdata from ${endpoint}. Cause: ${error.message}`)
+      throw new Error(`Failed to get userdata from ${endpoint}. Cause: ${error.message}`)
     }
   }
 
@@ -493,7 +501,7 @@ export async function getLoginData(configDir: string, cheApiEndpoint?: string, a
     await cheApiClient.checkCheApiEndpointUrl()
     if (!accessToken) {
       if (await cheApiClient.isAuthenticationEnabled()) {
-        throw new Error(`Parameter "--${ACCESS_TOKEN_KEY}" is expected`)
+        throw new Error(`Parameter "--${ACCESS_TOKEN_KEY}" is expected.`)
       }
       // Single user mode, proceed without token
     }

@@ -313,7 +313,7 @@ export class CheApiClient {
     if (!response || response.status !== 200 || !response.data) {
       throw new Error('E_BAD_RESP_CHE_API')
     }
-    if (!response.data['che.keycloak.auth_server_url']) {
+    if (!response.data['che.keycloak.token.endpoint']) {
       // The response is not keycloak response, but a default fallback
       throw new Error('E_BAD_CHE_API_URL')
     }
@@ -335,7 +335,7 @@ export class CheApiClient {
     if (!response || response.status !== 200 || !response.data) {
       throw new Error('E_BAD_RESP_CHE_API')
     }
-    if (!response.data['che.keycloak.auth_server_url']) {
+    if (!response.data['che.keycloak.token.endpoint']) {
       // The response is not keycloak response, but a default fallback
       return false
     }
