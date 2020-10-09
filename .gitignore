@@ -8,9 +8,7 @@
 node_modules
 chectl-v*.tgz
 coverage
-.vscode
 bin/chectl-*
 tsconfig.tsbuildinfo
 # templates are added at post-install step
 templates
-
