@@ -10,10 +10,12 @@
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
+import { cli } from 'cli-ux'
 
 import { accessToken, cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
+import { getCommandSuccessMessage, initializeContext } from '../../util'
 
 export default class Stop extends Command {
   static description = 'stop Eclipse Che server'
@@ -34,6 +36,7 @@ export default class Stop extends Command {
   }
 
   async run() {
+    const ctx = initializeContext()
     const { flags } = this.parse(Stop)
     const Listr = require('listr')
     const notifier = require('node-notifier')
@@ -62,16 +65,16 @@ export default class Stop extends Command {
     )
     tasks.add(cheTasks.scaleCheDownTasks(this))
     tasks.add(cheTasks.waitPodsDeletedTasks())
-
     try {
       await tasks.run()
+      cli.log(getCommandSuccessMessage(this, ctx))
     } catch (err) {
       this.error(err)
     }
 
     notifier.notify({
       title: 'chectl',
-      message: 'Command server:stop has completed.'
+      message: getCommandSuccessMessage(this, ctx)
     })
 
     this.exit(0)
