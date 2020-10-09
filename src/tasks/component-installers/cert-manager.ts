@@ -171,7 +171,7 @@ export class CertManagerTasks {
             const cheCaCrt = base64Decode(cheSecret.data['ca.crt'])
             const cheCaCertPath = await this.cheHelper.saveCheCaCert(cheCaCrt)
 
-            // We need to put self-signed CA certificate seprately into CHE_ROOT_CA_SECRET_NAME secret
+            // We need to put self-signed CA certificate separately into CHE_ROOT_CA_SECRET_NAME secret
             await this.kubeHelper.createSecret(CHE_ROOT_CA_SECRET_NAME, { 'ca.crt': cheCaCrt }, flags.chenamespace)
 
             ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(cheCaCertPath))

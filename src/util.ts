@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
+import { Command } from '@oclif/command'
 import * as commandExists from 'command-exists'
 
 import { DEFAULT_CHE_OPERATOR_IMAGE } from './constants'
@@ -94,4 +95,34 @@ export function getImageTag(image: string): string | undefined {
 export function sleep(ms: number): Promise<void> {
   // tslint:disable-next-line no-string-based-set-timeout
   return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+/**
+ * Initialize command context.
+ */
+export function initializeContext(): any {
+  const ctx: any = {}
+  ctx.highlightedMessages = [] as string[]
+  ctx.starTime = Date.now()
+  return ctx
+}
+
+/**
+ * Returns command success message with execution time.
+ */
+export function getCommandSuccessMessage(command: Command, ctx: any): string {
+  if (ctx.starTime) {
+    if (!ctx.endTime) {
+      ctx.endTime = Date.now()
+    }
+
+    const workingTimeInSeconds = Math.round((ctx.endTime - ctx.starTime) / 1000)
+    const minutes = Math.floor(workingTimeInSeconds / 60)
+    const seconds = (workingTimeInSeconds - minutes * 60) % 60
+    const minutesToStr = minutes.toLocaleString([], { minimumIntegerDigits: 2 })
+    const secondsToStr = seconds.toLocaleString([], { minimumIntegerDigits: 2 })
+    return `Command ${command.id} has completed successfully in ${minutesToStr}:${secondsToStr}.`
+  }
+
+  return `Command ${command.id} has completed successfully.`
 }

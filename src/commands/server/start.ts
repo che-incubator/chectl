@@ -28,7 +28,7 @@ import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { isOpenshiftPlatformFamily } from '../../util'
+import { getCommandSuccessMessage, initializeContext, isOpenshiftPlatformFamily } from '../../util'
 
 export default class Start extends Command {
   static description = 'start Eclipse Che server'
@@ -343,12 +343,10 @@ export default class Start extends Command {
 
   async run() {
     const { flags } = this.parse(Start)
-    const ctx: any = {}
+    const ctx = initializeContext()
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
     ctx.listrOptions = listrOptions
-    // Holds messages which should be printed at the end of chectl log
-    ctx.highlightedMessages = [] as string[]
 
     if (flags['self-signed-cert']) {
       this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
@@ -394,6 +392,7 @@ export default class Start extends Command {
       },
       getRetrieveKeycloakCredentialsTask(flags),
       retrieveCheCaCertificateTask(flags),
+      ...cheTasks.preparePostInstallationOutput(flags),
       getPrintHighlightedMessagesTask(),
     ], listrOptions)
 
@@ -429,7 +428,7 @@ export default class Start extends Command {
       }
 
       await postInstallTasks.run(ctx)
-      this.log('Command server:start has completed successfully.')
+      this.log(getCommandSuccessMessage(this, ctx))
     } catch (err) {
       const isDirEmpty = await this.isDirEmpty(ctx.directory)
       if (isDirEmpty) {
@@ -440,7 +439,7 @@ export default class Start extends Command {
 
     notifier.notify({
       title: 'chectl',
-      message: 'Command server:start has completed successfully.'
+      message: getCommandSuccessMessage(this, ctx)
     })
 
     this.exit(0)

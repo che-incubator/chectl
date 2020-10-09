@@ -11,6 +11,7 @@
 import execa = require('execa')
 import Listr = require('listr')
 
+import { CheTasks } from '../tasks/che'
 import { getClusterClientCommand } from '../util'
 
 import { KubeHelper } from './kube'
@@ -136,14 +137,30 @@ export namespace VersionHelper {
     return stdout.split('\n').filter(value => value.startsWith(versionPrefix)).map(value => value.substring(versionPrefix.length))[0]
   }
 
-  export async function getCheVersionFromPod(namespace: string, podName: string): Promise<string> {
+  /**
+   * Returns Eclipse Che version.
+   */
+  export async function getCheVersion(flags: any): Promise<string> {
+    const kube = new KubeHelper(flags)
+    const cheTasks = new CheTasks(flags)
+    const cheCluster = await kube.getCheCluster(flags.chenamespace)
+    if (cheCluster && cheCluster.spec.server.cheFlavor !== 'che') {
+      return cheCluster.status.cheVersion
+    }
+
+    const chePodList = await kube.getPodListByLabel(flags.chenamespace, cheTasks.cheSelector)
+    const [chePodName] = chePodList.map(pod => pod.metadata && pod.metadata.name)
+    if (!chePodName) {
+      return 'UNKNOWN'
+    }
+
     const command = getClusterClientCommand()
-    const args = ['exec', podName, '--namespace', namespace, 'cat', CHE_POD_MANIFEST_FILE]
+    const args = ['exec', chePodName, '--namespace', flags.chenamespace, 'cat', CHE_POD_MANIFEST_FILE]
     try {
       const { stdout } = await execa(command, args, { timeout: 60000 })
       return stdout.split('\n').filter(value => value.startsWith(CHE_PREFFIX_VERSION)).map(value => value.substring(CHE_PREFFIX_VERSION.length))[0]
-    } catch (error) {
-      throw new Error(`E_COMMAND_FAILED: ${error}`)
+    } catch {
+      return 'UNKNOWN'
     }
   }
 

@@ -22,6 +22,7 @@ import { MinishiftAddonTasks } from '../../tasks/installers/minishift-addon'
 import { OLMTasks } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { ApiTasks } from '../../tasks/platforms/api'
+import { getCommandSuccessMessage, initializeContext } from '../../util'
 
 export default class Delete extends Command {
   static description = 'delete any Eclipse Che related resource: Kubernetes/OpenShift/Helm'
@@ -44,6 +45,7 @@ export default class Delete extends Command {
   }
 
   async run() {
+    const ctx = initializeContext()
     const { flags } = this.parse(Delete)
 
     const notifier = require('node-notifier')
@@ -84,11 +86,16 @@ export default class Delete extends Command {
       }
     }
 
-    await tasks.run()
+    try {
+      await tasks.run()
+      cli.log(getCommandSuccessMessage(this, ctx))
+    } catch (error) {
+      cli.error(error)
+    }
 
     notifier.notify({
       title: 'chectl',
-      message: 'Command server:delete has completed.'
+      message: getCommandSuccessMessage(this, ctx)
     })
 
     this.exit(0)

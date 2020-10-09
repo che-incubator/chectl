@@ -25,7 +25,7 @@ import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { getImageTag, isKubernetesPlatformFamily } from '../../util'
+import { getCommandSuccessMessage, getImageTag, initializeContext, isKubernetesPlatformFamily } from '../../util'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -92,11 +92,9 @@ export default class Update extends Command {
 
   async run() {
     const { flags } = this.parse(Update)
-    const ctx: any = {}
+    const ctx = initializeContext()
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
     ctx.listrOptions = listrOptions
-    // Holds messages which should be printed at the end of chectl log
-    ctx.highlightedMessages = [] as string[]
 
     const cheTasks = new CheTasks(flags)
     const kubeHelper = new KubeHelper(flags)
@@ -176,14 +174,14 @@ export default class Update extends Command {
         await updateTasks.run(ctx)
         await postUpdateTasks.run(ctx)
       }
-      this.log('Command server:update has completed successfully.')
+      this.log(getCommandSuccessMessage(this, ctx))
     } catch (err) {
       this.error(err)
     }
 
     notifier.notify({
       title: 'chectl',
-      message: 'Command server:start has completed successfully.'
+      message: getCommandSuccessMessage(this, ctx)
     })
 
     this.exit(0)
