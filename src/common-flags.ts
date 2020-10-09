@@ -59,3 +59,11 @@ export const cheOperatorCRPatchYaml = string({
   description: 'Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used only when the installer is the \'operator\' or the \'olm\'.',
   default: ''
 })
+
+export const USERNAME_KEY = 'username'
+export const username = string({
+  char: 'u',
+  description: 'Eclipse Che user name',
+  env: 'CHE_USER_NAME',
+  required: false,
+})

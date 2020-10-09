@@ -224,7 +224,7 @@ export class CheServerLoginManager {
     // Update refresh token
     loginRecord.refreshToken = keycloakAuthData.refresh_token
 
-    this.setCurrentLoginContext(this.apiUrl, username, loginRecord)
+    this.setCurrentLoginContext(apiUrl, username, loginRecord)
     this.saveLoginData()
   }
 
@@ -235,6 +235,10 @@ export class CheServerLoginManager {
    * @param username username on the given server
    */
   public deleteLoginContext(apiUrl?: string, username?: string): void {
+    if (!this.loginData.logins) {
+      return
+    }
+
     if (!apiUrl) {
       if (!this.apiUrl) {
         // Not logged in
@@ -251,12 +255,16 @@ export class CheServerLoginManager {
       delete this.loginData.logins![apiUrl]
     } else {
       // Delete specific login record if any
-      const serverLogins = this.loginData.logins![apiUrl]
+      const serverLogins = this.loginData.logins[apiUrl]
       if (!serverLogins) {
         // No logins for specified server
         return
       }
       delete serverLogins[username]
+      if (Object.keys(serverLogins).length < 1) {
+        // Delete server without logins
+        delete this.loginData.logins[apiUrl]
+      }
     }
 
     if (apiUrl === this.apiUrl) {

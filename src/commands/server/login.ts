@@ -9,7 +9,7 @@
  **********************************************************************/
 
 import { Command, flags } from '@oclif/command'
-import { boolean, string } from '@oclif/parser/lib/flags'
+import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as execa from 'execa'
 
@@ -17,17 +17,13 @@ import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
 import { CheServerLoginManager, LoginRecord } from '../../api/che-login-manager'
 import { KubeHelper } from '../../api/kube'
-import { cheNamespace, CHE_API_ENDPOINT_KEY } from '../../common-flags'
+import { cheNamespace, CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
 import { OPENSHIFT_CLI } from '../../util'
 
 const REFRESH_TOKEN_KEY = 'refresh-token'
-const LIST_LOGINS_KEY = 'list'
-const CURRENT_LOGIN_KEY = 'whoami'
-const SWITCH_LOGIN_KEY = 'switch'
 const PASSWORD_KEY = 'password'
-export const USERNAME_KEY = 'username'
 export default class Login extends Command {
-  static description = 'log in Eclipse Che server'
+  static description = 'log into Eclipse Che server'
 
   static flags = {
     help: flags.help({ char: 'h' }),
@@ -38,36 +34,17 @@ export default class Login extends Command {
       env: 'CHE_API_ENDPOINT',
       required: false,
     }),
-    [SWITCH_LOGIN_KEY]: boolean({
-      char: 'w',
-      required: false,
-    }),
     [REFRESH_TOKEN_KEY]: string({
       char: 't',
       description: 'Keycloak refresh token',
       env: 'CHE_KEYCLOAK_REFRESH_TOKEN',
       required: false,
     }),
-    [USERNAME_KEY]: string({
-      char: 'u',
-      description: 'Eclipse Che user name',
-      env: 'CHE_USER_NAME',
-      required: false,
-    }),
+    [USERNAME_KEY]: username,
     [PASSWORD_KEY]: string({
       char: 'p',
       description: 'Eclipse Che user passowrd',
       env: 'CHE_USER_PASSWORD',
-      required: false,
-    }),
-    [LIST_LOGINS_KEY]: boolean({
-      char: 'l',
-      description: 'List all logins',
-      required: false,
-    }),
-    [CURRENT_LOGIN_KEY]: boolean({
-      char: 'i',
-      description: 'Shows current login info',
       required: false,
     }),
   }
@@ -77,25 +54,7 @@ export default class Login extends Command {
 
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
 
-    if (flags[CURRENT_LOGIN_KEY]) {
-      const currentLogin = loginManager.getCurrentLoginInfo()
-      if (currentLogin.username) {
-        cli.info(`Logged into ${currentLogin.cheApiEndpoint} as ${currentLogin.username}`)
-      } else {
-        cli.info('Not logged into any server')
-      }
-      return
-    }
-
-    if (flags[LIST_LOGINS_KEY]) {
-      const logins = loginManager.getAllLogins()
-      const currentLogin = loginManager.getCurrentLoginInfo()
-      this.printLogins(logins, currentLogin)
-      return
-    }
-
     let cheApiClient: CheApiClient
-
     let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
     if (!cheApiEndpoint) {
       const kube = new KubeHelper(flags)
@@ -112,27 +71,20 @@ export default class Login extends Command {
       cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
       try {
         await cheApiClient.checkCheApiEndpointUrl()
-      } catch {
+      } catch (error) {
         // Wrong API URL, try to guess, maybe base url is provided
-        cheApiEndpoint += cheApiEndpoint.endsWith('/') ? 'api' : '/api'
-        cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
-        await cheApiClient.checkCheApiEndpointUrl()
+        if (!cheApiEndpoint.endsWith('api')) {
+          cheApiEndpoint += '/api'
+          cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
+          await cheApiClient.checkCheApiEndpointUrl()
+        } else {
+          throw error
+        }
       }
     }
 
     if (!await cheApiClient.isAuthenticationEnabled()) {
       cli.info(`Authentication is not supported on the server: "${cheApiEndpoint}"`)
-      return
-    }
-
-    if (flags[SWITCH_LOGIN_KEY]) {
-      const username = flags[USERNAME_KEY]
-      if (!username) {
-        throw new Error(`Username on ${cheApiEndpoint} server is expected. Please provide "--${USERNAME_KEY}" parameter`)
-      }
-
-      await loginManager.switchLoginContext(cheApiEndpoint, username)
-      cli.info(`Active login: ${username} on ${cheApiEndpoint} server`)
       return
     }
 
@@ -187,27 +139,6 @@ export default class Login extends Command {
     } catch (error) {
       cli.error(error)
     }
-  }
-
-  private printLogins(allLogins: Map<string, string[]>, currentLogin: { cheApiEndpoint: string, username: string }): void {
-    const currentLoginMarker = ' * '
-    const indent = '   '
-
-    let output: string
-    if (allLogins.size > 0) {
-      output = 'Available logins:\n'
-      allLogins.forEach((serverLogins: string[], serverUrl: string) => {
-        output += indent + serverUrl + '\n'
-        for (const login of serverLogins) {
-          output += (currentLogin.cheApiEndpoint === serverUrl && currentLogin.username === login) ? currentLoginMarker : indent
-          output += indent + login + '\n'
-        }
-      })
-    } else {
-      output = 'No registered logins'
-    }
-
-    cli.info(output)
   }
 
 }

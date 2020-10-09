@@ -352,7 +352,7 @@ export class CheApiClient {
       } else if (status === 404) {
         return new Error(`E_CHE_API_NOTFOUND - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
       } else if (status === 503) {
-        return new Error(`E_CHE_API_UNAVAIL - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
+        return new Error(`E_CHE_API_UNAVAIL - Endpoint: ${endpoint} returned 503 code`)
       } else {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx

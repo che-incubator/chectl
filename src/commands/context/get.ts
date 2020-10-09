@@ -13,22 +13,17 @@ import { cli } from 'cli-ux'
 
 import { CheServerLoginManager } from '../../api/che-login-manager'
 
-export default class Logout extends Command {
-  static description = 'log out of Eclipse Che server'
+export default class Get extends Command {
+  static description = 'show current login session'
 
   async run() {
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
     const currentLogin = loginManager.getCurrentLoginInfo()
-
-    const cheApiEndpoint = currentLogin.cheApiEndpoint
-    const username = currentLogin.username
-    if (!cheApiEndpoint || !username) {
-      cli.info('Not currently logged in')
-      return
+    if (currentLogin.username) {
+      cli.info(`Logged into ${currentLogin.cheApiEndpoint} as ${currentLogin.username}`)
+    } else {
+      cli.info('Not logged into any server')
     }
-
-    loginManager.deleteLoginContext(cheApiEndpoint, username)
-    cli.info(`Succesfully logged out ${username} on ${cheApiEndpoint}`)
   }
 
 }
