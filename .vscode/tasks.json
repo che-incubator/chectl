@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Custom che operator Minikube",
+            "label": "Custom che-operator Minikube",
             "command": "./bin/run server:start -n che -m -p minikube --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly --cheimage=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-server:nightly",
             "type": "shell",
             "args": [],
@@ -28,7 +28,7 @@
             "group": "build"
         },
         {
-            "label": "Custom che operator Openshift",
+            "label": "Custom che-operator Openshift",
             "command": "./bin/run server:start -n che -m -p openshift -a operator --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly",
             "type": "shell",
             "args": [],
