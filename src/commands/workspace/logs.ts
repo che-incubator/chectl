@@ -20,7 +20,7 @@ import { skipKubeHealthzCheck } from '../../common-flags'
 export default class Logs extends Command {
   static description = 'Collect workspace(s) logs'
 
-  static flags = {
+  static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     workspace: string({
       char: 'w',

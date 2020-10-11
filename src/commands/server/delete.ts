@@ -27,7 +27,7 @@ import { getCommandSuccessMessage, initializeContext } from '../../util'
 export default class Delete extends Command {
   static description = 'delete any Eclipse Che related resource: Kubernetes/OpenShift/Helm'
 
-  static flags = {
+  static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,

@@ -19,7 +19,7 @@ import { ApiTasks } from '../../tasks/platforms/api'
 export default class Debug extends Command {
   static description = 'Enable local debug of Eclipse Che server'
 
-  static flags = {
+  static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'listr-renderer': listrRenderer,
