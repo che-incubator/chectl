@@ -19,7 +19,7 @@ import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_EN
 export default class List extends Command {
   static description = 'list workspaces'
 
-  static flags = {
+  static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,

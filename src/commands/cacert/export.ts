@@ -22,7 +22,7 @@ import { DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
 export default class Export extends Command {
   static description = 'Retrieves Eclipse Che self-signed certificate'
 
-  static flags = {
+  static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     destination: string({

@@ -18,7 +18,7 @@ import { ApiTasks } from '../../tasks/platforms/api'
 export default class Stop extends Command {
   static description = 'stop Eclipse Che server'
 
-  static flags = {
+  static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,

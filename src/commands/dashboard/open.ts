@@ -18,7 +18,7 @@ import { cheNamespace } from '../../common-flags'
 export default class Open extends Command {
   static description = 'Open Eclipse Che dashboard'
 
-  static flags = {
+  static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
   }

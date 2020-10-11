@@ -26,7 +26,7 @@ import { getClusterClientCommand, OPENSHIFT_CLI } from '../../util'
 export default class Inject extends Command {
   static description = 'inject configurations and tokens in a workspace'
 
-  static flags = {
+  static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     kubeconfig: flags.boolean({
       char: 'k',
