@@ -38,7 +38,7 @@ const EditorComponents = new Map<Editor, DevfileComponent>([
 export default class Generate extends Command {
   static description = 'generate and print a devfile to stdout given some Kubernetes resources and other workspaces features (project, language-support, commands etc...)'
 
-  static flags = {
+  static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     name: string({
       description: 'Workspace name',

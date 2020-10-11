@@ -20,7 +20,7 @@ import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_EN
 export default class Delete extends Command {
   static description = 'delete a stopped workspace - use workspace:stop to stop the workspace before deleting it'
 
-  static flags = {
+  static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'delete-namespace': flags.boolean({

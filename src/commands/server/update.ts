@@ -30,7 +30,7 @@ import { getImageTag, isKubernetesPlatformFamily } from '../../util'
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
 
-  static flags = {
+  static flags: flags.Input<any> = {
     installer: string({
       char: 'a',
       description: 'Installer type. If not set, default is autodetected depending on previous installation.',
