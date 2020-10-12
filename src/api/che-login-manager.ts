@@ -20,7 +20,7 @@ import { ACCESS_TOKEN_KEY } from '../common-flags'
 import { CheApiClient } from './che-api-client'
 
 // Represents login information to use for requests
-// accessToken is undefined for single user mode
+// Notice: accessToken is undefined for single user mode
 export interface LoginData {
   cheApiEndpoint: string
   accessToken: string | undefined
@@ -182,7 +182,7 @@ export class CheServerLoginManager {
   /**
    * Logins user in specified instance of Che Server.
    * Makes this login data default context.
-   * If acontext with the same data already exists it will be replaced.
+   * If a context with the same data already exists it will be replaced.
    * If provided data is invalid, exception will be thrown.
    * Returns username of the login.
    * @param apiUrl Che server API URL
@@ -512,12 +512,10 @@ export async function getLoginData(configDir: string, cheApiEndpoint?: string, a
     // User provides credential manually
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
     await cheApiClient.checkCheApiEndpointUrl()
-    if (!accessToken) {
-      if (await cheApiClient.isAuthenticationEnabled()) {
-        throw new Error(`Parameter "--${ACCESS_TOKEN_KEY}" is expected.`)
-      }
-      // Single user mode, proceed without token
+    if (!accessToken && await cheApiClient.isAuthenticationEnabled()) {
+      throw new Error(`Parameter "--${ACCESS_TOKEN_KEY}" is expected.`)
     }
+    // Single user mode, proceed without token
   } else {
     // Use login manager to get Che API URL and token
     const loginManager = await CheServerLoginManager.getInstance(configDir)

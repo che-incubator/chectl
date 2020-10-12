@@ -14,7 +14,7 @@ import { cli } from 'cli-ux'
 import { CheServerLoginManager } from '../../api/che-login-manager'
 
 export default class Logout extends Command {
-  static description = 'log out of Eclipse Che server'
+  static description = 'log out of the active session'
 
   async run() {
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)

@@ -23,7 +23,7 @@ import { OPENSHIFT_CLI } from '../../util'
 const REFRESH_TOKEN_KEY = 'refresh-token'
 const PASSWORD_KEY = 'password'
 export default class Login extends Command {
-  static description = 'log into Eclipse Che server'
+  static description = 'log in to Eclipse Che server'
 
   static args = [
     {
@@ -45,7 +45,7 @@ export default class Login extends Command {
     [USERNAME_KEY]: username,
     [PASSWORD_KEY]: string({
       char: 'p',
-      description: 'Eclipse Che user passowrd',
+      description: 'Eclipse Che user password',
       env: 'CHE_USER_PASSWORD',
       required: false,
     }),

@@ -32,7 +32,7 @@ export default class Use extends Command {
     [USERNAME_KEY]: username,
     interactive: flags.boolean({
       char: 'i',
-      description: 'Select context ininteractive mode',
+      description: 'Select context in interactive mode',
       required: false,
     }),
   }
@@ -113,7 +113,7 @@ export default class Use extends Command {
     let cheApiEndpoint = ''
     let username = ''
     if (allLogins.size === 0) {
-      cli.info('No ligin session exists')
+      cli.info('No login session exists')
       return
     } else if (allLogins.size === 1) {
       // Retrieve the only login info
