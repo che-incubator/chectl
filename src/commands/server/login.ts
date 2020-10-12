@@ -25,15 +25,17 @@ const PASSWORD_KEY = 'password'
 export default class Login extends Command {
   static description = 'log into Eclipse Che server'
 
-  static flags = {
-    help: flags.help({ char: 'h' }),
-    chenamespace: cheNamespace,
-    [CHE_API_ENDPOINT_KEY]: string({
-      char: 's',
+  static args = [
+    {
+      name: CHE_API_ENDPOINT_KEY,
       description: 'Eclipse Che server API endpoint',
       env: 'CHE_API_ENDPOINT',
-      required: false,
-    }),
+      required: false // In case of login via oc token with admin rights
+    }
+  ]
+  static flags: flags.Input<any> = {
+    help: flags.help({ char: 'h' }),
+    chenamespace: cheNamespace,
     [REFRESH_TOKEN_KEY]: string({
       char: 't',
       description: 'Keycloak refresh token',
@@ -49,17 +51,23 @@ export default class Login extends Command {
     }),
   }
 
+  static examples = [
+    'server:login https://che-che.apps-crc.testing/api -u <username> -p <password>',
+    'server:login che-che.apps-crc.testing -u <username>',
+    'server:login che.openshift.io -t <token>',
+  ]
+
   async run() {
-    const { flags } = this.parse(Login)
+    const { args, flags } = this.parse(Login)
 
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
 
     let cheApiClient: CheApiClient
-    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
+    let cheApiEndpoint: string | undefined = args[CHE_API_ENDPOINT_KEY]
     if (!cheApiEndpoint) {
       const kube = new KubeHelper(flags)
       if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
-        throw new Error(`Please provide server API URL using --${CHE_API_ENDPOINT_KEY} parameter`)
+        throw new Error('Please provide server API URL argument')
       }
       // Retrieve API URL from routes
       const cheHelper = new CheHelper(flags)
@@ -89,8 +97,8 @@ export default class Login extends Command {
     }
 
     // Try to login user
-    const refreshToken = flags[REFRESH_TOKEN_KEY]
-    const username = flags[USERNAME_KEY]
+    const refreshToken: string | undefined = flags[REFRESH_TOKEN_KEY]
+    const username: string | undefined = flags[USERNAME_KEY]
 
     let loginData: LoginRecord | undefined
     if (refreshToken) {

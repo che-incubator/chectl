@@ -11,58 +11,53 @@
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
 
-import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
 import { CheServerLoginManager } from '../../api/che-login-manager'
-import { KubeHelper } from '../../api/kube'
-import { cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
+import { CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
 
 export default class Delete extends Command {
   static description = 'delete specified login session(s)'
 
-  static flags = {
+  static args = [
+    {
+      name: CHE_API_ENDPOINT_KEY,
+      description: 'Eclipse Che server API endpoint',
+      env: 'CHE_API_ENDPOINT',
+      required: true
+    }
+  ]
+  static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
-    chenamespace: cheNamespace,
-    [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [USERNAME_KEY]: username,
   }
 
-  async run() {
-    const { flags } = this.parse(Delete)
+  static examples = [
+    'context:delete che-che.apps-crc.testing/api -u <username>',
+    'context:delete che-che.apps-crc.testing',
+  ]
 
-    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
-    let username = flags[USERNAME_KEY]
+  async run() {
+    const { args, flags } = this.parse(Delete)
+
+    let cheApiEndpoint = CheApiClient.normalizeCheApiEndpointUrl(args[CHE_API_ENDPOINT_KEY])
+    let username: string | undefined = flags[USERNAME_KEY]
 
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
 
-    if (!cheApiEndpoint && !username) {
-      // Logout from current Che server
-      const currentLogin = loginManager.getCurrentLoginInfo()
-      if (currentLogin.cheApiEndpoint && currentLogin.username) {
-        cheApiEndpoint = currentLogin.cheApiEndpoint
-        username = currentLogin.username
-      } else {
-        cli.info('Not currently logged in')
+    if (!loginManager.hasLoginFor(cheApiEndpoint)) {
+      // Maybe /api suffix isn't provided
+      const cheApiEndpointGuess = cheApiEndpoint + '/api'
+      if (!loginManager.hasLoginFor(cheApiEndpointGuess)) {
+        cli.info(`No registered logins on server ${cheApiEndpoint}`)
         return
       }
-    } else {
-      if (!cheApiEndpoint) {
-        // Try to get current Che server API URL
-        const kube = new KubeHelper(flags)
-        if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
-          throw new Error(`Please provide server API URL using --${CHE_API_ENDPOINT_KEY} parameter`)
-        }
-        const cheHelper = new CheHelper(flags)
-        cheApiEndpoint = await cheHelper.cheURL(flags.chenamespace) + '/api'
-      } else {
-        cheApiEndpoint = CheApiClient.normalizeCheApiEndpointUrl(cheApiEndpoint)
-      }
+      cheApiEndpoint = cheApiEndpointGuess
+    }
 
-      if (username) {
-        if (!loginManager.hasLoginFor(cheApiEndpoint, username)) {
-          cli.info(`No existing logins for ${username} on server ${cheApiEndpoint}`)
-          return
-        }
+    if (username) {
+      if (!loginManager.hasLoginFor(cheApiEndpoint, username)) {
+        cli.info(`No existing logins for ${username} on server ${cheApiEndpoint}`)
+        return
       }
     }
 

@@ -152,8 +152,13 @@ export class CheServerLoginManager {
    * @param apiUrl API URL of the Che server
    * @param username username
    */
-  public hasLoginFor(apiUrl: string, username: string): boolean {
-    return !!this.getLoginRecord(CheApiClient.normalizeCheApiEndpointUrl(apiUrl), username)
+  public hasLoginFor(apiUrl: string, username?: string): boolean {
+    apiUrl = CheApiClient.normalizeCheApiEndpointUrl(apiUrl)
+    if (username) {
+      return !!this.getLoginRecord(apiUrl, username)
+    } else {
+      return !!this.loginData.logins![apiUrl]
+    }
   }
 
   public getCurrentLoginInfo(): { cheApiEndpoint: string, username: string } {

@@ -13,29 +13,37 @@ import { cli } from 'cli-ux'
 
 import { CheApiClient } from '../../api/che-api-client'
 import { CheServerLoginManager } from '../../api/che-login-manager'
-import { cheApiEndpoint, CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
+import { username, USERNAME_KEY, CHE_API_ENDPOINT_KEY } from '../../common-flags'
 
 export default class Use extends Command {
   static description = 'set current login contex'
 
-  static flags = {
+  static args = [
+    {
+      name: CHE_API_ENDPOINT_KEY,
+      description: 'Eclipse Che server API endpoint',
+      env: 'CHE_API_ENDPOINT',
+      required: false
+    }
+  ]
+  static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
-    [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [USERNAME_KEY]: username,
   }
 
-  async run() {
-    const { flags } = this.parse(Use)
+  static examples = [
+    'context:use che-che.apps-crc.testing/api -u <username>',
+    'context:use -u <another-user-on-this-server>',
+  ]
 
-    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
-    let username = flags[USERNAME_KEY]
+  async run() {
+    const { args, flags } = this.parse(Use)
+
+    let cheApiEndpoint: string | undefined = args[CHE_API_ENDPOINT_KEY]
+    let username: string | undefined = flags[USERNAME_KEY]
 
     if (!cheApiEndpoint && !username) {
       throw new Error('No arguments provided')
-    }
-
-    if (cheApiEndpoint) {
-      cheApiEndpoint = CheApiClient.normalizeCheApiEndpointUrl(cheApiEndpoint)
     }
 
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
@@ -46,13 +54,25 @@ export default class Use extends Command {
       cheApiEndpoint = currentLogin.cheApiEndpoint
       if (!cheApiEndpoint) {
         // There is no current server to switch user on
-        throw new Error(`Error: "--${CHE_API_ENDPOINT_KEY}" parameter is not provided`)
+        throw new Error('No current login context. Please specify it directly.')
       }
 
       if (username === currentLogin.username) {
         // This is already current context
         cli.info(`Already logged in as ${username} on ${cheApiEndpoint} server`)
         return
+      }
+    } else {
+      cheApiEndpoint = CheApiClient.normalizeCheApiEndpointUrl(cheApiEndpoint)
+      // Check if any login exist for provided Che server
+      if (!loginManager.hasLoginFor(cheApiEndpoint)) {
+        // Maybe /api suffix isn't provided
+        const cheApiEndpointGuess = cheApiEndpoint + '/api'
+        if (!loginManager.hasLoginFor(cheApiEndpointGuess)) {
+          cli.info(`No registered logins on server ${cheApiEndpoint}`)
+          return
+        }
+        cheApiEndpoint = cheApiEndpointGuess
       }
     }
 
