@@ -14,7 +14,7 @@ import { cli } from 'cli-ux'
 import { CheServerLoginManager } from '../../api/che-login-manager'
 
 export default class List extends Command {
-  static description = 'shows all existing login sessions'
+  static description = 'show all existing login sessions'
 
   async run() {
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)

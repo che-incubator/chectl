@@ -14,7 +14,7 @@ import { cli } from 'cli-ux'
 import { CheServerLoginManager } from '../../api/che-login-manager'
 
 export default class Get extends Command {
-  static description = 'show current login session'
+  static description = 'display current login context'
 
   async run() {
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)

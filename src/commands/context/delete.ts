@@ -18,7 +18,7 @@ import { KubeHelper } from '../../api/kube'
 import { cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
 
 export default class Delete extends Command {
-  static description = 'switches to another login session'
+  static description = 'delete specified login session(s)'
 
   static flags = {
     help: flags.help({ char: 'h' }),

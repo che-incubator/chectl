@@ -99,9 +99,7 @@ export class CheApiClient {
     } catch (error) {
       throw this.getCheApiError(error, endpoint)
     }
-    if (!response || response.status !== 200 || !response.data || !response.data.status) {
-      throw new Error('E_BAD_RESP_CHE_API')
-    }
+    this.checkResponse(response, endpoint)
     return response.data.status
   }
 
@@ -234,9 +232,7 @@ export class CheApiClient {
       }
     }
 
-    if (!response || response.status !== 200 || !response.data) {
-      throw new Error('E_BAD_RESP_CHE_API')
-    }
+    this.checkResponse(response, endpoint)
   }
 
   async stopWorkspace(workspaceId: string, accessToken?: string): Promise<void> {
@@ -310,9 +306,7 @@ export class CheApiClient {
       }
       throw this.getCheApiError(error, endpoint)
     }
-    if (!response || response.status !== 200 || !response.data) {
-      throw new Error('E_BAD_RESP_CHE_API')
-    }
+    this.checkResponse(response, endpoint)
     if (!response.data['che.keycloak.token.endpoint']) {
       // The response is not keycloak response, but a default fallback
       throw new Error('E_BAD_CHE_API_URL')
@@ -332,9 +326,7 @@ export class CheApiClient {
         throw this.getCheApiError(error, endpoint)
       }
     }
-    if (!response || response.status !== 200 || !response.data) {
-      throw new Error('E_BAD_RESP_CHE_API')
-    }
+    this.checkResponse(response, endpoint)
     if (!response.data['che.keycloak.token.endpoint']) {
       // The response is not keycloak response, but a default fallback
       return false
@@ -342,7 +334,13 @@ export class CheApiClient {
     return true
   }
 
-  getCheApiError(error: any, endpoint: string): Error {
+  private checkResponse(response: any, endpoint?: string): void {
+    if (!response || response.status !== 200 || !response.data) {
+      throw new Error(`E_BAD_RESP_CHE_API - Response code: ${response.status}` + endpoint ? `, endpoint: ${endpoint}` : '')
+    }
+  }
+
+  private getCheApiError(error: any, endpoint: string): Error {
     if (error.response) {
       const status = error.response.status
       if (status === 403) {

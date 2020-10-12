@@ -16,7 +16,7 @@ import { CheServerLoginManager } from '../../api/che-login-manager'
 import { cheApiEndpoint, CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
 
 export default class Use extends Command {
-  static description = 'switches to another login session'
+  static description = 'set current login contex'
 
   static flags = {
     help: flags.help({ char: 'h' }),
