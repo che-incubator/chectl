@@ -10,10 +10,11 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
+import * as inquirer from 'inquirer'
 
 import { CheApiClient } from '../../api/che-api-client'
 import { CheServerLoginManager } from '../../api/che-login-manager'
-import { username, USERNAME_KEY, CHE_API_ENDPOINT_KEY } from '../../common-flags'
+import { CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
 
 export default class Use extends Command {
   static description = 'set current login contex'
@@ -29,6 +30,11 @@ export default class Use extends Command {
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     [USERNAME_KEY]: username,
+    interactive: flags.boolean({
+      char: 'i',
+      description: 'Select context ininteractive mode',
+      required: false,
+    }),
   }
 
   static examples = [
@@ -38,6 +44,11 @@ export default class Use extends Command {
 
   async run() {
     const { args, flags } = this.parse(Use)
+
+    if (flags.interactive) {
+      await this.interactiveSwitch()
+      return
+    }
 
     let cheApiEndpoint: string | undefined = args[CHE_API_ENDPOINT_KEY]
     let username: string | undefined = flags[USERNAME_KEY]
@@ -92,6 +103,64 @@ export default class Use extends Command {
 
     await loginManager.switchLoginContext(cheApiEndpoint, username)
     cli.info(`Now active login is ${username} on ${cheApiEndpoint} server`)
+  }
+
+  private async interactiveSwitch(): Promise<void> {
+    const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
+    const allLogins = loginManager.getAllLogins()
+    const currentLogin = loginManager.getCurrentLoginInfo()
+
+    let cheApiEndpoint = ''
+    let username = ''
+    if (allLogins.size === 0) {
+      cli.info('No ligin session exists')
+      return
+    } else if (allLogins.size === 1) {
+      // Retrieve the only login info
+      cheApiEndpoint = allLogins.keys().next().value
+      username = allLogins.get(cheApiEndpoint)![0]
+    } else {
+      // Ask user to interactively select
+      const choices: inquirer.Answers[] = []
+      let current: inquirer.Answers | undefined
+      allLogins.forEach((serverLogins: string[], serverUrl: string) => {
+        choices.push(new inquirer.Separator(serverUrl))
+        for (const login of serverLogins) {
+          const choise = {
+            name: `   ${login}`,
+            value: { cheApiEndpoint: serverUrl, username: login }
+          }
+          choices.push(choise)
+          if (currentLogin.cheApiEndpoint === serverUrl && currentLogin.username === login) {
+            current = choise
+          }
+        }
+      })
+
+      const userResponse = await inquirer.prompt([{
+        name: 'context',
+        type: 'list',
+        message: 'Select login context',
+        choices,
+        default: current ? current.value : undefined,
+      }])
+
+      if (userResponse && userResponse.context) {
+        cheApiEndpoint = userResponse.context.cheApiEndpoint
+        username = userResponse.context.username
+      }
+    }
+
+    if (cheApiEndpoint && username) {
+      if (currentLogin.cheApiEndpoint === cheApiEndpoint && currentLogin.username === username) {
+        cli.info(`Already logged in as ${username} on ${cheApiEndpoint} server`)
+        return
+      }
+      await loginManager.switchLoginContext(cheApiEndpoint, username)
+      cli.info(`Now active login is ${username} on ${cheApiEndpoint} server`)
+    } else {
+      cli.info('Nothing to change')
+    }
   }
 
 }
