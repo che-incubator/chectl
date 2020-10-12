@@ -24,6 +24,7 @@ import { CHE_CLUSTER_CRD, DEFAULT_CHE_IMAGE, OLM_STABLE_CHANNEL_NAME } from '../
 import { getClusterClientCommand, isKubernetesPlatformFamily } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
+import { CheCluster } from './typings/che-cluster'
 import { CatalogSource, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './typings/olm'
 import { IdentityProvider, OAuth } from './typings/openshift'
 
@@ -1350,7 +1351,7 @@ export class KubeHelper {
   /**
    * Returns `checlusters.org.eclipse.che' in the given namespace.
    */
-  async getCheCluster(namespace: string): Promise<any | undefined> {
+  async getCheCluster(namespace: string): Promise<CheCluster | undefined> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.listNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters')
@@ -1378,7 +1379,7 @@ export class KubeHelper {
   /**
    * Returns all `checlusters.org.eclipse.che' resources
    */
-  async getAllCheCluster(): Promise<any[]> {
+  async getAllCheCluster(): Promise<CheCluster[]> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.listClusterCustomObject('org.eclipse.che', 'v1', 'checlusters')

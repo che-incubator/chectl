@@ -150,19 +150,19 @@ export default class Update extends Command {
           }
 
           const cheCluster = await kubeHelper.getCheCluster(flags.chenamespace)
-          if (cheCluster.spec.server.cheImage
-            || cheCluster.spec.server.devfileRegistryImage
-            || cheCluster.spec.database.postgresImage
-            || cheCluster.spec.server.pluginRegistryImage
-            || cheCluster.spec.auth.identityProviderImage) {
+          if (cheCluster && (cheCluster.spec.server!.cheImage
+            || cheCluster.spec.server!.devfileRegistryImage
+            || cheCluster.spec.database!.postgresImage
+            || cheCluster.spec.server!.pluginRegistryImage
+            || cheCluster.spec.auth!.identityProviderImage)) {
             cli.warn(`Eclipse Che operator won't update some components since their images are defined
             in the '${cheCluster.metadata.name}' Custom Resource of the namespace '${flags.chenamespace}'
             Please consider removing them from the Custom Resource when update is completed:`)
-            cheCluster.spec.server.cheImage && cli.warn(`Eclipse Che server [${cheCluster.spec.server.cheImage}:${cheCluster.spec.server.cheImageTag}]`)
-            cheCluster.spec.database.postgresImage && cli.warn(`Database [${cheCluster.spec.database.postgresImage}]`)
-            cheCluster.spec.server.devfileRegistryImage && cli.warn(`Devfile registry [${cheCluster.spec.server.devfileRegistryImage}]`)
-            cheCluster.spec.server.pluginRegistryImage && cli.warn(`Plugin registry [${cheCluster.spec.server.pluginRegistryImage}]`)
-            cheCluster.spec.auth.identityProviderImage && cli.warn(`Identity provider [${cheCluster.spec.auth.identityProviderImage}]`)
+            cheCluster.spec.server!.cheImage && cli.warn(`Eclipse Che server [${cheCluster.spec.server!.cheImage}:${cheCluster.spec.server!.cheImageTag}]`)
+            cheCluster.spec.database!.postgresImage && cli.warn(`Database [${cheCluster.spec.database!.postgresImage}]`)
+            cheCluster.spec.server!.devfileRegistryImage && cli.warn(`Devfile registry [${cheCluster.spec.server!.devfileRegistryImage}]`)
+            cheCluster.spec.server!.pluginRegistryImage && cli.warn(`Plugin registry [${cheCluster.spec.server!.pluginRegistryImage}]`)
+            cheCluster.spec.auth!.identityProviderImage && cli.warn(`Identity provider [${cheCluster.spec.auth!.identityProviderImage}]`)
           }
 
           const confirmed = await cli.confirm('If you want to continue - press Y')

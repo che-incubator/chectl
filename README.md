@@ -455,8 +455,8 @@ OPTIONS
       the latest known version.
                            This parameter is used only when the installer is 'olm'.
 
-  --workspace-engine=legacy|dev-workspace
-      [default: legacy] Workspace Engine. If not set, default is "legacy". "dev-workspace" is experimental.
+  --workspace-engine=che-server|dev-workspace
+      [default: che-server] Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.
 
   --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
       persistent volume(s) storage class name to use to store Eclipse Che workspaces data
