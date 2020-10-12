@@ -22,7 +22,7 @@ import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_EN
 export default class Create extends Command {
   static description = 'Creates a workspace from a devfile'
 
-  static flags = {
+  static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     devfile: string({

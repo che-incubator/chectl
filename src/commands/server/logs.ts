@@ -22,7 +22,7 @@ import { ApiTasks } from '../../tasks/platforms/api'
 export default class Logs extends Command {
   static description = 'Collect Eclipse Che logs'
 
-  static flags = {
+  static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'listr-renderer': listrRenderer,

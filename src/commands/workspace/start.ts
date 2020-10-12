@@ -20,7 +20,7 @@ import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_EN
 export default class Start extends Command {
   static description = 'Starts a workspace'
 
-  static flags = {
+  static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     debug: flags.boolean({
       char: 'd',
