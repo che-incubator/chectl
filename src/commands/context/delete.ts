@@ -16,7 +16,7 @@ import { CheServerLoginManager } from '../../api/che-login-manager'
 import { CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
 
 export default class Delete extends Command {
-  static description = 'delete specified login session(s)'
+  static description = 'Delete specified login session(s)'
 
   static args = [
     {
@@ -32,7 +32,9 @@ export default class Delete extends Command {
   }
 
   static examples = [
-    'context:delete che-che.apps-crc.testing/api -u <username>',
+    '# Delete given user login information for specified cluster:\n' +
+    'context:delete che-che.apps-crc.testing/api -u username',
+    '\n# Delete all existing logins for specified cluster:\n' +
     'context:delete che-che.apps-crc.testing',
   ]
 

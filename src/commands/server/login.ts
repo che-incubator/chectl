@@ -22,8 +22,9 @@ import { OPENSHIFT_CLI } from '../../util'
 
 const REFRESH_TOKEN_KEY = 'refresh-token'
 const PASSWORD_KEY = 'password'
+
 export default class Login extends Command {
-  static description = 'log in to Eclipse Che server'
+  static description = 'Log in to Eclipse Che server'
 
   static args = [
     {
@@ -41,6 +42,7 @@ export default class Login extends Command {
       description: 'Keycloak refresh token',
       env: 'CHE_KEYCLOAK_REFRESH_TOKEN',
       required: false,
+      exclusive: [USERNAME_KEY, PASSWORD_KEY]
     }),
     [USERNAME_KEY]: username,
     [PASSWORD_KEY]: string({
@@ -48,13 +50,19 @@ export default class Login extends Command {
       description: 'Eclipse Che user password',
       env: 'CHE_USER_PASSWORD',
       required: false,
+      exclusive: [REFRESH_TOKEN_KEY]
     }),
   }
 
   static examples = [
-    'server:login https://che-che.apps-crc.testing/api -u <username> -p <password>',
-    'server:login che-che.apps-crc.testing -u <username>',
-    'server:login che.openshift.io -t <token>',
+    '# Log in with username and password (when OpenShift OAuth is not enabled):\n' +
+    'server:login https://che-che.apps-crc.testing/api -u username -p password',
+    '\n# Log in with username and password (password will be asked interactively):\n' +
+    'server:login che-che.apps-crc.testing -u username',
+    '\n# Log in with token (when OpenShift OAuth is enabled):\n' +
+    'server:login che.openshift.io -t token',
+    '\n# Log in with oc token (when logged into an OpenShift cluster with oc and OpenShift OAuth is enabled):\n' +
+    'server:login che.my.server.net',
   ]
 
   async run() {

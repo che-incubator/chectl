@@ -14,7 +14,7 @@ import { cli } from 'cli-ux'
 import { CheServerLoginManager } from '../../api/che-login-manager'
 
 export default class Logout extends Command {
-  static description = 'log out of the active session'
+  static description = 'Log out of the active session'
 
   async run() {
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
@@ -23,7 +23,7 @@ export default class Logout extends Command {
     const cheApiEndpoint = currentLogin.cheApiEndpoint
     const username = currentLogin.username
     if (!cheApiEndpoint || !username) {
-      cli.info('Not currently logged in')
+      cli.info('There is no active login session')
       return
     }
 

@@ -17,7 +17,7 @@ import { CheServerLoginManager } from '../../api/che-login-manager'
 import { CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
 
 export default class Use extends Command {
-  static description = 'set current login contex'
+  static description = 'Set current login contex'
 
   static args = [
     {
@@ -34,12 +34,19 @@ export default class Use extends Command {
       char: 'i',
       description: 'Select context in interactive mode',
       required: false,
+      exclusive: [USERNAME_KEY]
     }),
   }
 
   static examples = [
-    'context:use che-che.apps-crc.testing/api -u <username>',
-    'context:use -u <another-user-on-this-server>',
+    '# Make given user on specified cluster current:\n' +
+    'context:use che-che.apps-crc.testing/api -u username',
+    '# Switch to another user on the same cluster:\n' +
+    'context:use -u another-user-on-this-server',
+    '# Switch to the user on the given cluster (requires to have only one user logged in the given cluster):\n' +
+    'context:use my.cluster.net',
+    '# Interactively select current login:\n' +
+    'context:use -i',
   ]
 
   async run() {

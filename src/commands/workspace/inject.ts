@@ -25,7 +25,7 @@ import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_EN
 import { getClusterClientCommand, OPENSHIFT_CLI } from '../../util'
 
 export default class Inject extends Command {
-  static description = 'inject configurations and tokens in a workspace'
+  static description = 'Inject configurations and tokens in a workspace'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),

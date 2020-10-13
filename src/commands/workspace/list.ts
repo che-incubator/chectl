@@ -16,7 +16,7 @@ import { getLoginData } from '../../api/che-login-manager'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
 
 export default class List extends Command {
-  static description = 'list workspaces'
+  static description = 'List workspaces'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),

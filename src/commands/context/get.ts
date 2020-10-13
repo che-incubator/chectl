@@ -14,7 +14,7 @@ import { cli } from 'cli-ux'
 import { CheServerLoginManager } from '../../api/che-login-manager'
 
 export default class Get extends Command {
-  static description = 'display current login context'
+  static description = 'Display current login context'
 
   async run() {
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
@@ -22,7 +22,7 @@ export default class Get extends Command {
     if (currentLogin.username) {
       cli.info(`Logged into ${currentLogin.cheApiEndpoint} as ${currentLogin.username}`)
     } else {
-      cli.info('Not logged into any server')
+      cli.info('There is no active login session')
     }
   }
 

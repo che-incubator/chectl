@@ -521,7 +521,7 @@ export async function getLoginData(configDir: string, cheApiEndpoint?: string, a
     const loginManager = await CheServerLoginManager.getInstance(configDir)
     cheApiEndpoint = loginManager.getCurrentServerApiUrl()
     if (!cheApiEndpoint) {
-      throw new Error('Not currently logged into any server. Please use "server:login" first.')
+      throw new Error('There is no active login session. Please use "server:login" first.')
     }
     accessToken = await loginManager.getNewAccessToken()
   }

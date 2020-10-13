@@ -18,7 +18,7 @@ import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
 
 export default class Delete extends Command {
-  static description = 'delete a stopped workspace - use workspace:stop to stop the workspace before deleting it'
+  static description = 'Delete a stopped workspace - use workspace:stop to stop the workspace before deleting it'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
