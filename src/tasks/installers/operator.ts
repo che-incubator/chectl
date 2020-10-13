@@ -18,7 +18,7 @@ import { KubeHelper } from '../../api/kube'
 import { CHE_CLUSTER_CRD } from '../../constants'
 import { isStableVersion } from '../../util'
 
-import { copyOperatorResources, createEclipseCheCluster, createNamespaceTask } from './common-tasks'
+import { copyOperatorResources, createEclipseCheCluster, createNamespaceTask, updateEclipseCheCluster } from './common-tasks'
 
 export class OperatorTasks {
   operatorServiceAccount = 'che-operator'
@@ -320,7 +320,8 @@ export class OperatorTasks {
           await cli.wait(1000)
           await kube.waitLatestReplica(this.operatorName, flags.chenamespace)
         }
-      }
+      },
+      updateEclipseCheCluster(flags, kube, command),
     ], { renderer: flags['listr-renderer'] as any })
   }
 
@@ -356,7 +357,7 @@ export class OperatorTasks {
       title: `Delete CRD ${this.cheClusterCrd}`,
       task: async (_ctx: any, task: any) => {
         const crdExists = await kh.crdExist(this.cheClusterCrd)
-        const checlusters = await kh.getAllCheCluster()
+        const checlusters = await kh.getAllCheClusters()
         if (checlusters.length > 0) {
           task.title = await `${task.title}...Skipped: another Eclipse Che deployment found.`
         } else {

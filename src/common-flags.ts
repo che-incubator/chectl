@@ -53,3 +53,9 @@ export const cheApiEndpoint = string({
   env: 'CHE_API_ENDPOINT',
   required: false,
 })
+
+export const CHE_OPERATOR_CR_PATCH_YAML_KEY = 'che-operator-cr-patch-yaml'
+export const cheOperatorCRPatchYaml = string({
+  description: 'Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used only when the installer is the \'operator\' or the \'olm\'.',
+  default: ''
+})

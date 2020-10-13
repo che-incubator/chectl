@@ -305,7 +305,7 @@ OPTIONS
       show CLI help
 
   -i, --cheimage=cheimage
-      [default: quay.io/eclipse/che-server:nightly] Eclipse Che server container image
+      Eclipse Che server container image
 
   -m, --multiuser
       Starts Eclipse Che in multi-user mode
@@ -321,7 +321,7 @@ OPTIONS
       (for CodeReady Containers)", "microk8s".
 
   -s, --tls
-      Enable TLS encryption.
+      Deprecated. Enable TLS encryption.
                            Note, this option is turned on by default.
                            To provide own certificate for Kubernetes infrastructure, 'che-tls' secret with TLS certificate
       must be pre-created in the configured namespace.
@@ -551,6 +551,12 @@ OPTIONS
 
   -t, --templates=templates                                                    [default: templates] Path to the
                                                                                templates folder
+
+  --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml                      Path to a yaml file that overrides the
+                                                                               default values in CheCluster CR used by
+                                                                               the operator. This parameter is used only
+                                                                               when the installer is the 'operator' or
+                                                                               the 'olm'.
 
   --che-operator-image=che-operator-image                                      [default:
                                                                                quay.io/eclipse/che-operator:nightly]

@@ -9,6 +9,8 @@
  **********************************************************************/
 
 import ansi = require('ansi-colors')
+import * as fs from 'fs-extra'
+import * as yaml from 'js-yaml'
 import * as execa from 'execa'
 import { copy, mkdirp, remove } from 'fs-extra'
 import * as Listr from 'listr'
@@ -18,6 +20,8 @@ import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
 import { isKubernetesPlatformFamily, isOpenshiftPlatformFamily } from '../../util'
+import Command from '@oclif/command'
+import { CHE_OPERATOR_CR_PATCH_YAML_KEY } from '../../common-flags'
 
 export function createNamespaceTask(namespace: string, platform: string): Listr.ListrTask {
   return {
@@ -67,7 +71,6 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
       if (cheCluster) {
         task.title = `${task.title}...It already exists.`
       } else {
-        // Eclipse Che operator supports only Multi-User Che
         ctx.isCheDeployed = true
         ctx.isPostgresDeployed = true
         ctx.isKeycloakDeployed = true
@@ -89,6 +92,26 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
         }
 
         task.title = `${task.title}...done.`
+      }
+    }
+  }
+}
+
+export function updateEclipseCheCluster(flags: any, kube: KubeHelper, command: Command): Listr.ListrTask  {
+  return {
+    title: `Update the Custom Resource of type ${CHE_CLUSTER_CRD} in the namespace ${flags.chenamespace}`,
+    enabled: () => !!flags[CHE_OPERATOR_CR_PATCH_YAML_KEY],
+    task: async (ctx: any, task: any) => {
+      const cheOperatorCrPatchYamlPath = flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]
+      if (fs.existsSync(cheOperatorCrPatchYamlPath)) {
+        const crPatch: any = yaml.safeLoad(fs.readFileSync(cheOperatorCrPatchYamlPath).toString())
+        const cheCluster = await kube.getCheCluster(flags.chenamespace)
+        if (cheCluster && cheCluster.metadata.name) {
+          await kube.patchCheCluster(cheCluster.metadata.name, flags.chenamespace, crPatch, ctx)
+          task.title = `${task.title}...done.`
+        }
+      } else {
+        command.error(`Unable to find patch file defined in the flag '--${CHE_OPERATOR_CR_PATCH_YAML_KEY}'`)
       }
     }
   }

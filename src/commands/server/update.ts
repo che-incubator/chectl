@@ -17,7 +17,7 @@ import * as notifier from 'node-notifier'
 import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
-import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { cheDeployment, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_CHE_OPERATOR_IMAGE, SUBSCRIPTION_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
@@ -60,6 +60,7 @@ export default class Update extends Command {
     'listr-renderer': listrRenderer,
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
     help: flags.help({ char: 'h' }),
+    [CHE_OPERATOR_CR_PATCH_YAML_KEY]: cheOperatorCRPatchYaml,
   }
 
   static getTemplatesDir(): string {
@@ -155,7 +156,7 @@ export default class Update extends Command {
             || cheCluster.spec.database.postgresImage
             || cheCluster.spec.server.pluginRegistryImage
             || cheCluster.spec.auth.identityProviderImage) {
-            cli.warn(`Eclipse Che operator won't update some components since their images are defined
+            cli.warn(`Eclipse Che operator won't be able to update some components since their images are defined
             in the '${cheCluster.metadata.name}' Custom Resource of the namespace '${flags.chenamespace}'
             Please consider removing them from the Custom Resource when update is completed:`)
             cheCluster.spec.server.cheImage && cli.warn(`Eclipse Che server [${cheCluster.spec.server.cheImage}:${cheCluster.spec.server.cheImageTag}]`)
