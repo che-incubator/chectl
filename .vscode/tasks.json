@@ -1,0 +1,96 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Custom che-operator Minikube",
+            "command": "./bin/run server:start -n che -m -p minikube --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly --cheimage=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-server:nightly",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Custom che-operator and che-server Minikube",
+            "command": "./bin/run server:start -n che -m -p minikube --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly --cheimage=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-server:nightly",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Custom che-operator Openshift",
+            "command": "./bin/run server:start -n che -m -p openshift -a operator --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Custom che-operator and che-server Openshift",
+            "command": "./bin/run server:start -n che -m -p openshift -a operator --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly --cheimage=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-server:nightly",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Debug Che",
+            "command": "./bin/run server:debug -n che",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Delete Che",
+            "command": "echo y | ./bin/run server:delete -n che",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Export sertificate",
+            "command": "./bin/run cacert:export -n che",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        }
+    ]
+}
