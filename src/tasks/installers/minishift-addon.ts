@@ -14,9 +14,9 @@ import * as execa from 'execa'
 import { copy, mkdirp, remove } from 'fs-extra'
 import * as Listr from 'listr'
 import * as path from 'path'
-import { DEFAULT_CHE_IMAGE } from '../../constants'
 
 import { OpenShiftHelper } from '../../api/openshift'
+import { DEFAULT_CHE_IMAGE } from '../../constants'
 
 export class MinishiftAddonTasks {
   /**

@@ -14,9 +14,9 @@ import * as http from 'http'
 import * as https from 'https'
 import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
-import { CHE_OPERATOR_CR_PATCH_YAML_KEY } from '../../common-flags'
 
 import { KubeHelper } from '../../api/kube'
+import { CHE_OPERATOR_CR_PATCH_YAML_KEY } from '../../common-flags'
 import { DOCS_LINK_HOW_TO_ADD_IDENTITY_PROVIDER_OS4, DOCS_LINK_HOW_TO_CREATE_USER_OS3 } from '../../constants'
 import { isOpenshiftPlatformFamily } from '../../util'
 

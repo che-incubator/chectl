@@ -8,20 +8,19 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
+import Command from '@oclif/command'
 import ansi = require('ansi-colors')
-import * as fs from 'fs-extra'
-import * as yaml from 'js-yaml'
 import * as execa from 'execa'
-import { copy, mkdirp, remove } from 'fs-extra'
+import { copy, existsSync, mkdirp, readFileSync, remove } from 'fs-extra'
+import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
+import { CHE_OPERATOR_CR_PATCH_YAML_KEY } from '../../common-flags'
 import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
 import { isKubernetesPlatformFamily, isOpenshiftPlatformFamily } from '../../util'
-import Command from '@oclif/command'
-import { CHE_OPERATOR_CR_PATCH_YAML_KEY } from '../../common-flags'
 
 export function createNamespaceTask(namespace: string, platform: string): Listr.ListrTask {
   return {
@@ -97,14 +96,14 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
   }
 }
 
-export function updateEclipseCheCluster(flags: any, kube: KubeHelper, command: Command): Listr.ListrTask  {
+export function updateEclipseCheCluster(flags: any, kube: KubeHelper, command: Command): Listr.ListrTask {
   return {
     title: `Update the Custom Resource of type ${CHE_CLUSTER_CRD} in the namespace ${flags.chenamespace}`,
     enabled: () => !!flags[CHE_OPERATOR_CR_PATCH_YAML_KEY],
     task: async (ctx: any, task: any) => {
       const cheOperatorCrPatchYamlPath = flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]
-      if (fs.existsSync(cheOperatorCrPatchYamlPath)) {
-        const crPatch: any = yaml.safeLoad(fs.readFileSync(cheOperatorCrPatchYamlPath).toString())
+      if (existsSync(cheOperatorCrPatchYamlPath)) {
+        const crPatch: any = yaml.safeLoad(readFileSync(cheOperatorCrPatchYamlPath).toString())
         const cheCluster = await kube.getCheCluster(flags.chenamespace)
         if (cheCluster && cheCluster.metadata.name) {
           await kube.patchCheCluster(cheCluster.metadata.name, flags.chenamespace, crPatch, ctx)

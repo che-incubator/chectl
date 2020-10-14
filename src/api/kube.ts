@@ -18,9 +18,9 @@ import https = require('https')
 import * as yaml from 'js-yaml'
 import { merge } from 'lodash'
 import * as net from 'net'
-import { CHE_OPERATOR_CR_PATCH_YAML_KEY } from '../common-flags'
 import { Writable } from 'stream'
 
+import { CHE_OPERATOR_CR_PATCH_YAML_KEY } from '../common-flags'
 import { CHE_CLUSTER_CRD, DEFAULT_CHE_IMAGE, OLM_STABLE_CHANNEL_NAME } from '../constants'
 import { getClusterClientCommand, isKubernetesPlatformFamily } from '../util'
 
