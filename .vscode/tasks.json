@@ -3,7 +3,7 @@
     "tasks": [
         {
             "label": "Custom che-operator Minikube",
-            "command": "./bin/run server:start -n che -m -p minikube --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly --cheimage=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-server:nightly",
+            "command": "./bin/run server:deploy -n che -m -p minikube --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly --cheimage=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-server:nightly",
             "type": "shell",
             "args": [],
             "problemMatcher": [
@@ -16,7 +16,7 @@
         },
         {
             "label": "Custom che-operator and che-server Minikube",
-            "command": "./bin/run server:start -n che -m -p minikube --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly --cheimage=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-server:nightly",
+            "command": "./bin/run server:deploy -n che -m -p minikube --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly --cheimage=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-server:nightly",
             "type": "shell",
             "args": [],
             "problemMatcher": [
@@ -29,7 +29,7 @@
         },
         {
             "label": "Custom che-operator Openshift",
-            "command": "./bin/run server:start -n che -m -p openshift -a operator --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly",
+            "command": "./bin/run server:deploy -n che -m -p openshift -a operator --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly",
             "type": "shell",
             "args": [],
             "problemMatcher": [
@@ -42,7 +42,7 @@
         },
         {
             "label": "Custom che-operator and che-server Openshift",
-            "command": "./bin/run server:start -n che -m -p openshift -a operator --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly --cheimage=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-server:nightly",
+            "command": "./bin/run server:deploy -n che -m -p openshift -a operator --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly --cheimage=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-server:nightly",
             "type": "shell",
             "args": [],
             "problemMatcher": [
