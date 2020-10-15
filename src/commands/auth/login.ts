@@ -56,13 +56,13 @@ export default class Login extends Command {
 
   static examples = [
     '# Log in with username and password (when OpenShift OAuth is not enabled):\n' +
-    'server:login https://che-che.apps-crc.testing/api -u username -p password',
+    'auth:login https://che-che.apps-crc.testing/api -u username -p password',
     '\n# Log in with username and password (password will be asked interactively):\n' +
-    'server:login che-che.apps-crc.testing -u username',
+    'auth:login che-che.apps-crc.testing -u username',
     '\n# Log in with token (when OpenShift OAuth is enabled):\n' +
-    'server:login che.openshift.io -t token',
+    'auth:login che.openshift.io -t token',
     '\n# Log in with oc token (when logged into an OpenShift cluster with oc and OpenShift OAuth is enabled):\n' +
-    'server:login che.my.server.net',
+    'auth:login che.my.server.net',
   ]
 
   async run() {

@@ -33,9 +33,9 @@ export default class Delete extends Command {
 
   static examples = [
     '# Delete given user login information for specified cluster:\n' +
-    'context:delete che-che.apps-crc.testing/api -u username',
+    'auth:delete che-che.apps-crc.testing/api -u username',
     '\n# Delete all existing logins for specified cluster:\n' +
-    'context:delete che-che.apps-crc.testing',
+    'auth:delete che-che.apps-crc.testing',
   ]
 
   async run() {

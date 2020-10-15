@@ -14,7 +14,7 @@ import { cli } from 'cli-ux'
 import { CheServerLoginManager } from '../../api/che-login-manager'
 
 export default class Logout extends Command {
-  static description = 'Log out of the active session'
+  static description = 'Log out of the active login session'
 
   async run() {
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)

@@ -17,7 +17,7 @@ import { CheServerLoginManager } from '../../api/che-login-manager'
 import { CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
 
 export default class Use extends Command {
-  static description = 'Set current login contex'
+  static description = 'Set active login session'
 
   static args = [
     {
@@ -32,7 +32,7 @@ export default class Use extends Command {
     [USERNAME_KEY]: username,
     interactive: flags.boolean({
       char: 'i',
-      description: 'Select context in interactive mode',
+      description: 'Select active login session in interactive mode',
       required: false,
       exclusive: [USERNAME_KEY]
     }),
@@ -40,13 +40,13 @@ export default class Use extends Command {
 
   static examples = [
     '# Make given user on specified cluster current:\n' +
-    'context:use che-che.apps-crc.testing/api -u username',
+    'auth:use che-che.apps-crc.testing/api -u username',
     '# Switch to another user on the same cluster:\n' +
-    'context:use -u another-user-on-this-server',
+    'auth:use -u another-user-on-this-server',
     '# Switch to the user on the given cluster (requires to have only one user logged in the given cluster):\n' +
-    'context:use my.cluster.net',
+    'auth:use my.cluster.net',
     '# Interactively select current login:\n' +
-    'context:use -i',
+    'auth:use -i',
   ]
 
   async run() {
@@ -72,7 +72,7 @@ export default class Use extends Command {
       cheApiEndpoint = currentLogin.cheApiEndpoint
       if (!cheApiEndpoint) {
         // There is no current server to switch user on
-        throw new Error('No current login context. Please specify it directly.')
+        throw new Error('No current login session. Please specify it directly.')
       }
 
       if (username === currentLogin.username) {
@@ -147,7 +147,7 @@ export default class Use extends Command {
       const userResponse = await inquirer.prompt([{
         name: 'context',
         type: 'list',
-        message: 'Select login context',
+        message: 'Select login session',
         choices,
         default: current ? current.value : undefined,
       }])
