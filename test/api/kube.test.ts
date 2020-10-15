@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 import { expect, fancy } from 'fancy-test'
+
 import { KubeHelper } from '../../src/api/kube'
 
 const namespace = 'che'
@@ -33,58 +34,6 @@ const kube = new KubeHelper({})
 KubeHelper.KUBE_CONFIG.loadFromString(kubeContext)
 
 describe('Kube API helper', () => {
-  fancy
-    .nock(kubeClusterURL, api => api
-      .get(`/api/v1/namespaces/${namespace}/pods?labelSelector=app%3Dche`)
-      .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-running.json', { 'Content-Type': 'application/json' }))
-    .it('retrieves the phase of a pod', async () => {
-      const selector = 'app=che'
-      const res = await kube.getPodPhase(selector, namespace)
-      expect(res).to.equal('Running')
-    })
-  fancy
-    .nock(kubeClusterURL, api => api
-      .get(`/api/v1/namespaces/${namespace}/pods?labelSelector=app%3Dche`)
-      .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-pending.json', { 'Content-Type': 'application/json' })
-      .get(`/api/v1/namespaces/${namespace}/pods?labelSelector=app%3Dche`)
-      .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-pending.json', { 'Content-Type': 'application/json' })
-      .get(`/api/v1/namespaces/${namespace}/pods?labelSelector=app%3Dche`)
-      .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-running.json', { 'Content-Type': 'application/json' }))
-    .it('waits until the pod is in the "Running" phase', async () => {
-      const selector = 'app=che'
-      const phase = 'Running'
-      const interval = 10
-      const timeout = 1000
-      await kube.waitForPodPhase(selector, phase, namespace, interval, timeout)
-    })
-  fancy
-    .nock(kubeClusterURL, api => api
-      .get(`/api/v1/namespaces/${namespace}/pods?labelSelector=app%3Dche`)
-      .times(4)
-      .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-pending.json', { 'Content-Type': 'application/json' }))
-    .do(async () => {
-      const selector = 'app=che'
-      const phase = 'Running'
-      const interval = 10
-      const timeout = 40
-      await kube.waitForPodPhase(selector, phase, namespace, interval, timeout)
-    })
-    .catch(err => expect(err.message).to.match(/ERR/))
-    .it('fails if timeout is reached waiting for a pod "Running" phase')
-  fancy
-    .nock(kubeClusterURL, api => api
-      .get(`/api/v1/namespaces/${namespace}/pods?labelSelector=app%3Dche`)
-      .times(2)
-      .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-not-existing.json', { 'Content-Type': 'application/json' })
-      .get(`/api/v1/namespaces/${namespace}/pods?labelSelector=app%3Dche`)
-      .times(2)
-      .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-pending.json', { 'Content-Type': 'application/json' }))
-    .it('waits until the pod is in the "Pending" phase', async () => {
-      const selector = 'app=che'
-      const interval = 10
-      const timeout = 1000
-      await kube.waitForPodPending(selector, namespace, interval, timeout)
-    })
   fancy
     .nock(kubeClusterURL, api => api
       .get(`/api/v1/namespaces/${namespace}/pods?labelSelector=app%3Dche`)

@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1ContainerStateWaiting, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
 import { Cluster, Context } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
@@ -348,7 +348,7 @@ export class KubeHelper {
     }
   }
 
-  async getPodListByLabel(namespace= '', labelSelector: string): Promise<V1Pod[]> {
+  async getPodListByLabel(namespace = '', labelSelector: string): Promise<V1Pod[]> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
       const { body: podList } = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, labelSelector)
@@ -659,24 +659,53 @@ export class KubeHelper {
     return (res.body.items.length > 0)
   }
 
-  async getPodPhase(labelSelector: string, namespace = ''): Promise<string | undefined> {
+  /**
+   * Returns pod waiting state.
+   */
+  async getPodWaitingState(namespace: string, selector: string, desiredPhase: string): Promise<V1ContainerStateWaiting | undefined> {
+    const pods = await this.getPodListByLabel(namespace, selector)
+    if (!pods.length) {
+      return
+    }
+
+    for (const pod of pods) {
+      if (pod.status && pod.status.phase === desiredPhase) {
+        if (pod.status && pod.status.containerStatuses) {
+          for (const status of pod.status.containerStatuses) {
+            if (status.state && status.state.waiting && status.state.waiting.message && status.state.waiting.reason) {
+              return status.state.waiting
+            }
+          }
+        }
+      }
+    }
+  }
+
+  async getPodCondition(namespace: string, selector: string, conditionType: string): Promise<V1PodCondition[]> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     let res
     try {
-      res = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, labelSelector)
+      res = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, selector)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
 
-    if (!res || !res.body || !res.body.items || res.body.items.length !== 1) {
-      return
+    if (!res || !res.body || !res.body.items) {
+      return []
     }
 
-    if (!res.body.items[0].status || !res.body.items[0].status.phase) {
-      return
+    const conditions: V1PodCondition[] = []
+    for (const pod of res.body.items) {
+      if (pod.status && pod.status.conditions) {
+        for (const condition of pod.status.conditions) {
+          if (condition.type === conditionType) {
+            conditions.push(condition)
+          }
+        }
+      }
     }
 
-    return res.body.items[0].status.phase
+    return conditions
   }
 
   async getPodReadyConditionStatus(selector: string, namespace = ''): Promise<string | undefined> {
@@ -712,37 +741,6 @@ export class KubeHelper {
         return condition.status
       }
     }
-  }
-
-  async waitForPodPhase(selector: string, targetPhase: string, namespace = '', intervalMs = 500, timeoutMs = this.podWaitTimeout) {
-    const iterations = timeoutMs / intervalMs
-    for (let index = 0; index < iterations; index++) {
-      let currentPhase = await this.getPodPhase(selector, namespace)
-      if (targetPhase === currentPhase) {
-        return
-      }
-      await cli.wait(intervalMs)
-    }
-    throw new Error(`ERR_TIMEOUT: Timeout set to pod wait timeout ${this.podWaitTimeout}`)
-  }
-
-  async waitForPodPending(selector: string, namespace = '', intervalMs = 500, timeoutMs = this.podWaitTimeout) {
-    const iterations = timeoutMs / intervalMs
-    let podExist
-    let currentPhase
-    for (let index = 0; index < iterations; index++) {
-      podExist = await this.podsExistBySelector(selector, namespace)
-      if (podExist) {
-        currentPhase = await this.getPodPhase(selector, namespace)
-        if (currentPhase === 'Pending' || currentPhase === 'Running') {
-          return
-        } else {
-          throw new Error(`ERR_UNEXPECTED_PHASE: ${currentPhase} (Pending expected) `)
-        }
-      }
-      await cli.wait(intervalMs)
-    }
-    throw new Error(`ERR_TIMEOUT: Timeout set to pod wait timeout ${this.podWaitTimeout}. podExist: ${podExist}, currentPhase: ${currentPhase}`)
   }
 
   async waitForPodReady(selector: string, namespace = '', intervalMs = 500, timeoutMs = this.podReadyTimeout) {

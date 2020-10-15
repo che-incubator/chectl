@@ -17,10 +17,13 @@ import * as Listr from 'listr'
 import { KubeHelper } from '../../api/kube'
 import { CHE_CLUSTER_CRD } from '../../constants'
 import { isStableVersion } from '../../util'
+import { KubeTasks } from '../kube'
 
 import { copyOperatorResources, createEclipseCheCluster, createNamespaceTask } from './common-tasks'
 
 export class OperatorTasks {
+  public static CHE_OPERATOR_SELECTOR = 'app=che-operator'
+
   operatorServiceAccount = 'che-operator'
   operatorRole = 'che-operator'
   operatorClusterRole = 'che-operator'
@@ -36,6 +39,7 @@ export class OperatorTasks {
     const clusterRoleName = `${flags.chenamespace}-${this.operatorClusterRole}`
     const clusterRoleBindingName = `${flags.chenamespace}-${this.operatorClusterRoleBinding}`
     const kube = new KubeHelper(flags)
+    const kubeTasks = new KubeTasks(flags)
     if (isStableVersion(flags)) {
       command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of Eclipse Che (--installer=olm).')
     }
@@ -148,6 +152,10 @@ export class OperatorTasks {
             task.title = `${task.title}...done.`
           }
         }
+      },
+      {
+        title: 'Operator pod bootstrap',
+        task: () => kubeTasks.podStartTasks(OperatorTasks.CHE_OPERATOR_SELECTOR, flags.chenamespace)
       },
       createEclipseCheCluster(flags, kube)
     ], { renderer: flags['listr-renderer'] as any })
