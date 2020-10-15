@@ -438,7 +438,7 @@ OPTIONS
       persistent volume(s) storage class name to use to store Eclipse Che workspaces data
 
 ALIASES
-  $ chectl server:deploy
+  $ chectl server:start
 ```
 
 _See code: [src/commands/server/deploy.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/deploy.ts)_

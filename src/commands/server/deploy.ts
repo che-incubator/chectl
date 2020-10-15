@@ -30,9 +30,9 @@ import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks
 import { PlatformTasks } from '../../tasks/platforms/platform'
 import { getCommandSuccessMessage, initializeContext, isOpenshiftPlatformFamily } from '../../util'
 
-export default class Start extends Command {
+export default class Deploy extends Command {
   static description = 'start Eclipse Che server'
-  static aliases = ['server:deploy']
+  static aliases = ['server:start']
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
@@ -347,7 +347,7 @@ export default class Start extends Command {
       this.warn('\'server:start\' command is deprecated. Use \'server:deploy\' instead.')
     }
 
-    const { flags } = this.parse(Start)
+    const { flags } = this.parse(Deploy)
     const ctx = initializeContext()
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
