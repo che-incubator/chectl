@@ -88,8 +88,8 @@ USAGE
 * [`chectl help [COMMAND]`](#chectl-help-command)
 * [`chectl server:debug`](#chectl-serverdebug)
 * [`chectl server:delete`](#chectl-serverdelete)
+* [`chectl server:deploy`](#chectl-serverdeploy)
 * [`chectl server:logs`](#chectl-serverlogs)
-* [`chectl server:start`](#chectl-serverstart)
 * [`chectl server:status`](#chectl-serverstatus)
 * [`chectl server:stop`](#chectl-serverstop)
 * [`chectl server:update`](#chectl-serverupdate)
@@ -277,37 +277,13 @@ OPTIONS
 
 _See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/delete.ts)_
 
-## `chectl server:logs`
-
-Collect Eclipse Che logs
-
-```
-USAGE
-  $ chectl server:logs
-
-OPTIONS
-  -d, --directory=directory                Directory to store logs into
-  -h, --help                               show CLI help
-
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
-                                           be deployed
-
-  --deployment-name=deployment-name        [default: che] Eclipse Che deployment name
-
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
-
-  --skip-kubernetes-health-check           Skip Kubernetes health check
-```
-
-_See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/logs.ts)_
-
-## `chectl server:start`
+## `chectl server:deploy`
 
 start Eclipse Che server
 
 ```
 USAGE
-  $ chectl server:start
+  $ chectl server:deploy
 
 OPTIONS
   -a, --installer=helm|operator|olm|minishift-addon
@@ -455,14 +431,41 @@ OPTIONS
       the latest known version.
                            This parameter is used only when the installer is 'olm'.
 
-  --workspace-engine=legacy|dev-workspace
-      [default: legacy] Workspace Engine. If not set, default is "legacy". "dev-workspace" is experimental.
+  --workspace-engine=che-server|dev-workspace
+      [default: che-server] Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.
 
   --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
       persistent volume(s) storage class name to use to store Eclipse Che workspaces data
+
+ALIASES
+  $ chectl server:start
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/deploy.ts)_
+
+## `chectl server:logs`
+
+Collect Eclipse Che logs
+
+```
+USAGE
+  $ chectl server:logs
+
+OPTIONS
+  -d, --directory=directory                Directory to store logs into
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
+                                           be deployed
+
+  --deployment-name=deployment-name        [default: che] Eclipse Che deployment name
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+
+  --skip-kubernetes-health-check           Skip Kubernetes health check
+```
+
+_See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/logs.ts)_
 
 ## `chectl server:status`
 
