@@ -2102,7 +2102,8 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-operator@git://github.com/eclipse/che-operator#master":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che-operator#227046459c196fe8b95fd66a444a69808cac97e3"
+  uid "15e3a6e790a3dbc54b41cac44b93e9e1a0d0dbc2"
+  resolved "git://github.com/eclipse/che-operator#15e3a6e790a3dbc54b41cac44b93e9e1a0d0dbc2"
 
 "eclipse-che@git://github.com/eclipse/che#master":
   version "0.0.0"
