@@ -105,6 +105,22 @@ export function updateEclipseCheCluster(flags: any, kube: KubeHelper, command: C
       if (existsSync(cheOperatorCrPatchYamlPath)) {
         const crPatch: any = yaml.safeLoad(readFileSync(cheOperatorCrPatchYamlPath).toString())
         const cheCluster = await kube.getCheCluster(flags.chenamespace)
+        if (!cheCluster) {
+          command.error(`Eclipse Che cluster CR was not found in the namespace ${flags.chenamespace}`)
+        }
+
+        ctx.CROverrides = {
+          spec: {
+            server: {},
+            auth: {}
+          }
+        }
+        ctx.CROverrides.spec.server.cheImage = ''
+        ctx.CROverrides.spec.server.cheImageTag = ''
+        ctx.CROverrides.spec.server.pluginRegistryImage = ''
+        ctx.CROverrides.spec.server.devfileRegistryImage = ''
+        ctx.CROverrides.spec.auth.identityProviderImage = ''
+
         if (cheCluster && cheCluster.metadata.name) {
           await kube.patchCheCluster(cheCluster.metadata.name, flags.chenamespace, crPatch, ctx)
           task.title = `${task.title}...done.`
