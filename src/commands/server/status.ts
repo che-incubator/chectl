@@ -21,7 +21,7 @@ export default class List extends Command {
   // Implementation-Version it is a property from Manifest.ml inside of che server pod which indicate Eclipse Che build version.
   static description = 'status Eclipse Che server'
 
-  static flags = {
+  static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
   }
