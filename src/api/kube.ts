@@ -1351,11 +1351,8 @@ export class KubeHelper {
     }
   }
 
-  async patchCheCluster(name: string, namespace: string, patch: any, ctx: any): Promise<any> {
+  async patchCheCluster(name: string, namespace: string, patch: any): Promise<any> {
     try {
-      // Back off some configuration properties(chectl estimated them like not working or not desired)
-      merge(patch, ctx.CROverrides)
-
       const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
       const { body } = await customObjectsApi.patchNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name, patch, undefined, undefined, undefined, { headers: { 'Content-Type': 'application/merge-patch+json' } })

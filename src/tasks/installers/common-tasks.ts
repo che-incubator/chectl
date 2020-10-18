@@ -14,6 +14,7 @@ import * as execa from 'execa'
 import { copy, existsSync, mkdirp, readFileSync, remove } from 'fs-extra'
 import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
+import { merge } from 'lodash'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
@@ -109,22 +110,24 @@ export function updateEclipseCheCluster(flags: any, kube: KubeHelper, command: C
           command.error(`Eclipse Che cluster CR was not found in the namespace ${flags.chenamespace}`)
         }
 
-        ctx.CROverrides = {
-          spec: {
-            server: {},
-            auth: {}
-          }
+        if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.pluginRegistryImage) {
+          merge(crPatch, {spec: {server: { pluginRegistryImage: '' } } })
         }
-        ctx.CROverrides.spec.server.cheImage = ''
-        ctx.CROverrides.spec.server.cheImageTag = ''
-        ctx.CROverrides.spec.server.pluginRegistryImage = ''
-        ctx.CROverrides.spec.server.devfileRegistryImage = ''
-        ctx.CROverrides.spec.auth.identityProviderImage = ''
+        if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.devfileRegistryImage) {
+          merge(crPatch, {spec: {server: { devfileRegistryImage: '' } } })
+        }
+        if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.identityProviderImage) {
+          merge(crPatch, {spec: {server: { identityProviderImage: '' } } })
+        }
+        if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.cheImage) {
+          merge(crPatch, {spec: {server: { cheImage: '' } } })
+        }
+        if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.cheImageTag) {
+          merge(crPatch, {spec: {server: { cheImageTag: '' } } })
+        }
 
-        if (cheCluster && cheCluster.metadata.name) {
-          await kube.patchCheCluster(cheCluster.metadata.name, flags.chenamespace, crPatch, ctx)
-          task.title = `${task.title}...done.`
-        }
+        await kube.patchCheCluster(cheCluster.metadata.name, flags.chenamespace, crPatch)
+        task.title = `${task.title}...done.`
       } else {
         command.error(`Unable to find patch file defined in the flag '--${CHE_OPERATOR_CR_PATCH_YAML_KEY}'`)
       }

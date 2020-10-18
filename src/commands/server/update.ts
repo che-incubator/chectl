@@ -140,7 +140,7 @@ export default class Update extends Command {
         await platformCheckTasks.run(ctx)
         await preUpdateTasks.run(ctx)
 
-        if (!flags['skip-version-check'] && flags.installer === 'operator') {
+        if (!flags['skip-version-check']) {
           cli.info(`Existed Eclipse Che operator: ${ctx.deployedCheOperatorImage}:${ctx.deployedCheOperatorTag}.`)
           cli.info(`New Eclipse Che operator    : ${ctx.newCheOperatorImage}:${ctx.newCheOperatorTag}.`)
 
