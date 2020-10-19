@@ -100,37 +100,38 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
 export function updateEclipseCheCluster(flags: any, kube: KubeHelper, command: Command): Listr.ListrTask {
   return {
     title: `Update the Custom Resource of type ${CHE_CLUSTER_CRD} in the namespace ${flags.chenamespace}`,
-    enabled: () => !!flags[CHE_OPERATOR_CR_PATCH_YAML_KEY],
-    task: async (ctx: any, task: any) => {
+    task: async (_ctx: any, task: any) => {
       const cheOperatorCrPatchYamlPath = flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]
-      if (existsSync(cheOperatorCrPatchYamlPath)) {
-        const crPatch: any = yaml.safeLoad(readFileSync(cheOperatorCrPatchYamlPath).toString())
-        const cheCluster = await kube.getCheCluster(flags.chenamespace)
-        if (!cheCluster) {
-          command.error(`Eclipse Che cluster CR was not found in the namespace ${flags.chenamespace}`)
-        }
-
-        if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.pluginRegistryImage) {
-          merge(crPatch, {spec: {server: { pluginRegistryImage: '' } } })
-        }
-        if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.devfileRegistryImage) {
-          merge(crPatch, {spec: {server: { devfileRegistryImage: '' } } })
-        }
-        if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.identityProviderImage) {
-          merge(crPatch, {spec: {server: { identityProviderImage: '' } } })
-        }
-        if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.cheImage) {
-          merge(crPatch, {spec: {server: { cheImage: '' } } })
-        }
-        if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.cheImageTag) {
-          merge(crPatch, {spec: {server: { cheImageTag: '' } } })
-        }
-
-        await kube.patchCheCluster(cheCluster.metadata.name, flags.chenamespace, crPatch)
-        task.title = `${task.title}...done.`
+      let crPatch: any = {}
+      if (!!cheOperatorCrPatchYamlPath && existsSync(cheOperatorCrPatchYamlPath)) {
+        crPatch = yaml.safeLoad(readFileSync(cheOperatorCrPatchYamlPath).toString())
       } else {
         command.error(`Unable to find patch file defined in the flag '--${CHE_OPERATOR_CR_PATCH_YAML_KEY}'`)
       }
+
+      const cheCluster = await kube.getCheCluster(flags.chenamespace)
+      if (!cheCluster) {
+        command.error(`Eclipse Che cluster CR was not found in the namespace ${flags.chenamespace}`)
+      }
+
+      if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.pluginRegistryImage) {
+        merge(crPatch, {spec: {server: { pluginRegistryImage: '' } } })
+      }
+      if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.devfileRegistryImage) {
+        merge(crPatch, {spec: {server: { devfileRegistryImage: '' } } })
+      }
+      if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.identityProviderImage) {
+        merge(crPatch, {spec: {server: { identityProviderImage: '' } } })
+      }
+      if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.cheImage) {
+        merge(crPatch, {spec: {server: { cheImage: '' } } })
+      }
+      if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.cheImageTag) {
+        merge(crPatch, {spec: {server: { cheImageTag: '' } } })
+      }
+
+      await kube.patchCheCluster(cheCluster.metadata.name, flags.chenamespace, crPatch)
+      task.title = `${task.title}...done.`
     }
   }
 }
