@@ -180,22 +180,29 @@ export class CheHelper {
     throw new Error(`Secret "${CHE_ROOT_CA_SECRET_NAME}" has invalid format: "ca.crt" key not found in data.`)
   }
 
-  async saveCheCaCert(cheCaCert: string, destinaton?: string): Promise<string> {
-    if (destinaton && fs.existsSync(destinaton)) {
-      if (fs.lstatSync(destinaton).isDirectory()) {
-        destinaton = path.join(destinaton, DEFAULT_CA_CERT_FILE_NAME)
-      }
-    } else {
-      // Fallback to default location
-      destinaton = path.join(os.homedir(), DEFAULT_CA_CERT_FILE_NAME)
-    }
-
-    fs.writeFileSync(destinaton, cheCaCert)
-    return destinaton
+  async saveCheCaCert(cheCaCert: string, destination?: string): Promise<string> {
+    const cheCaCertFile = this.getTargetFile(destination)
+    fs.writeFileSync(cheCaCertFile, cheCaCert)
+    return cheCaCertFile
   }
 
   /**
-   * Retreives Keycloak admin user credentials.
+   * Handles certificate target location and returns string which points to the target file.
+   */
+  private getTargetFile(destination: string | undefined): string {
+    if (!destination) {
+      return path.join(os.tmpdir(), DEFAULT_CA_CERT_FILE_NAME)
+    }
+
+    if (fs.existsSync(destination)) {
+      return fs.lstatSync(destination).isDirectory() ? path.join(destination, DEFAULT_CA_CERT_FILE_NAME) : destination
+    }
+
+    throw new Error(`Given path \'${destination}\' doesn't exist.`)
+  }
+
+  /**
+   * Retrieves Keycloak admin user credentials.
    * Works only with installers which use Che CR (operator, olm).
    * Returns credentials as an array of two values: [login, password]
    * In case of an error an array with undefined values will be returned.
