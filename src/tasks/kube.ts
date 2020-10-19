@@ -19,7 +19,7 @@ export class KubeTasks {
     this.kubeHelper = new KubeHelper(flags)
   }
 
-  podStartTasks(selector: string, namespace = ''): Listr {
+  podStartTasks(selector: string, namespace: string): Listr {
     return new Listr([
       {
         title: 'Scheduling',

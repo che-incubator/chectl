@@ -348,7 +348,7 @@ export class KubeHelper {
     }
   }
 
-  async getPodListByLabel(namespace = '', labelSelector: string): Promise<V1Pod[]> {
+  async getPodListByLabel(namespace: string, labelSelector: string): Promise<V1Pod[]> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
       const { body: podList } = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, labelSelector)
@@ -669,12 +669,10 @@ export class KubeHelper {
     }
 
     for (const pod of pods) {
-      if (pod.status && pod.status.phase === desiredPhase) {
-        if (pod.status && pod.status.containerStatuses) {
-          for (const status of pod.status.containerStatuses) {
-            if (status.state && status.state.waiting && status.state.waiting.message && status.state.waiting.reason) {
-              return status.state.waiting
-            }
+      if (pod.status && pod.status.phase === desiredPhase && pod.status.containerStatuses) {
+        for (const status of pod.status.containerStatuses) {
+          if (status.state && status.state.waiting && status.state.waiting.message && status.state.waiting.reason) {
+            return status.state.waiting
           }
         }
       }
