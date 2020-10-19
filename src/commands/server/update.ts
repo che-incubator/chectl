@@ -159,7 +159,8 @@ export default class Update extends Command {
             || cheCluster.spec.auth.identityProviderImage) {
             cli.warn(`In order to update Eclipse Che the images defined in the '${cheCluster.metadata.name}' 
             Custom Resource of the namespace '${flags.chenamespace}' will be cleaned up:`);
-            (cheCluster.spec.server.cheImage || cheCluster.spec.server.cheImageTag) && cli.warn(`Eclipse Che server [${cheCluster.spec.server.cheImage}:${cheCluster.spec.server.cheImageTag}]`)
+            cheCluster.spec.server.cheImageTag && cli.warn(`Eclipse Che server image tag [${cheCluster.spec.server.cheImageTag}]`)
+            cheCluster.spec.server.cheImage && cli.warn(`Eclipse Che server [${cheCluster.spec.server.cheImage}]`)
             cheCluster.spec.database.postgresImage && cli.warn(`Database [${cheCluster.spec.database.postgresImage}]`)
             cheCluster.spec.server.devfileRegistryImage && cli.warn(`Devfile registry [${cheCluster.spec.server.devfileRegistryImage}]`)
             cheCluster.spec.server.pluginRegistryImage && cli.warn(`Plugin registry [${cheCluster.spec.server.pluginRegistryImage}]`)

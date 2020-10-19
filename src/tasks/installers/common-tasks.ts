@@ -103,10 +103,12 @@ export function updateEclipseCheCluster(flags: any, kube: KubeHelper, command: C
     task: async (_ctx: any, task: any) => {
       const cheOperatorCrPatchYamlPath = flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]
       let crPatch: any = {}
-      if (!!cheOperatorCrPatchYamlPath && existsSync(cheOperatorCrPatchYamlPath)) {
-        crPatch = yaml.safeLoad(readFileSync(cheOperatorCrPatchYamlPath).toString())
-      } else {
-        command.error(`Unable to find patch file defined in the flag '--${CHE_OPERATOR_CR_PATCH_YAML_KEY}'`)
+      if (cheOperatorCrPatchYamlPath) {
+        if (existsSync(cheOperatorCrPatchYamlPath)) {
+          crPatch = yaml.safeLoad(readFileSync(cheOperatorCrPatchYamlPath).toString())
+        } else {
+          command.error(`Unable to find patch file defined in the flag '--${CHE_OPERATOR_CR_PATCH_YAML_KEY}'`)
+        }
       }
 
       const cheCluster = await kube.getCheCluster(flags.chenamespace)
