@@ -117,19 +117,19 @@ export function updateEclipseCheCluster(flags: any, kube: KubeHelper, command: C
       }
 
       if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.pluginRegistryImage) {
-        merge(crPatch, {spec: {server: { pluginRegistryImage: '' } } })
+        merge(crPatch, { spec: { server: { pluginRegistryImage: '' } } })
       }
       if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.devfileRegistryImage) {
-        merge(crPatch, {spec: {server: { devfileRegistryImage: '' } } })
+        merge(crPatch, { spec: { server: { devfileRegistryImage: '' } } })
       }
       if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.identityProviderImage) {
-        merge(crPatch, {spec: {server: { identityProviderImage: '' } } })
+        merge(crPatch, { spec: { server: { identityProviderImage: '' } } })
       }
       if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.cheImage) {
-        merge(crPatch, {spec: {server: { cheImage: '' } } })
+        merge(crPatch, { spec: { server: { cheImage: '' } } })
       }
       if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.cheImageTag) {
-        merge(crPatch, {spec: {server: { cheImageTag: '' } } })
+        merge(crPatch, { spec: { server: { cheImageTag: '' } } })
       }
 
       await kube.patchCheCluster(cheCluster.metadata.name, flags.chenamespace, crPatch)
