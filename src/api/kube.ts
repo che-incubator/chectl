@@ -24,7 +24,7 @@ import { CHE_CLUSTER_CRD, DEFAULT_CHE_IMAGE, OLM_STABLE_CHANNEL_NAME } from '../
 import { getClusterClientCommand, isKubernetesPlatformFamily } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
-import { CatalogSource, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './typings/olm'
+import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './typings/olm'
 import { IdentityProvider, OAuth } from './typings/openshift'
 
 const AWAIT_TIMEOUT_S = 30
@@ -1545,7 +1545,7 @@ export class KubeHelper {
   async createCatalogSource(catalogSource: CatalogSource) {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const namespace = catalogSource.metadata.namespace
+      const namespace = catalogSource.metadata.namespace!
       const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', catalogSource)
       return body
     } catch (e) {
@@ -1625,9 +1625,11 @@ export class KubeHelper {
   }
 
   async createOperatorSubscription(subscription: Subscription) {
+    const namespace: string = subscription.metadata.namespace!
+
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', subscription.metadata.namespace, 'subscriptions', subscription)
+      const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', subscription)
       return body
     } catch (e) {
       throw this.wrapK8sClientError(e)
@@ -1738,6 +1740,22 @@ export class KubeHelper {
     try {
       const { body } = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions')
       return body as ClusterServiceVersionList
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async patchClusterServiceVersion(namespace: string, name: string, jsonPatch: any[]): Promise<ClusterServiceVersion> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+
+    const requestOptions = {
+      headers: {
+        'content-type': 'application/json-patch+json'
+      }
+    }
+    try {
+      const response = await customObjectsApi.patchNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions', name, jsonPatch, undefined, undefined, undefined, requestOptions)
+      return response.body as ClusterServiceVersion
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
