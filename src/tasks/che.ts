@@ -616,37 +616,43 @@ export class CheTasks {
       {
         title: 'Prepare post installation output',
         task: async (ctx: any, task: any) => {
+          const messages: string[] = []
+
           const version = await VersionHelper.getCheVersion(flags)
-          ctx.highlightedMessages.push(`Eclipse Che ${version.trim()} has successfully installed.`)
+          messages.push(`Eclipse Che ${version.trim()} has been successfully deployed.`)
+          messages.push(`Documentation             : ${DOC_LINK}`)
+          if (DOC_LINK_RELEASE_NOTES) {
+            messages.push(`Release Notes           : ${DOC_LINK_RELEASE_NOTES}`)
+          }
+          messages.push('')
 
           const cheUrl = await this.che.cheURL(flags.chenamespace)
-          ctx.highlightedMessages.push(`Users can access the Dashboard at   : ${cheUrl}`)
+          messages.push(`Users Dashboard           : ${cheUrl}`)
+          const cheCluster = await this.kube.getCheCluster(flags.chenamespace)
+          if (cheCluster && cheCluster.spec.auth && cheCluster.spec.auth.updateAdminPassword) {
+            messages.push('Admin user login          : "admin:admin". NOTE: must change after first login.')
+          }
+          messages.push('')
 
           const cheConfigMap = await this.kube.getConfigMap('che', flags.chenamespace)
           if (cheConfigMap && cheConfigMap.data) {
             if (cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL) {
-              ctx.highlightedMessages.push(`Plugins can be viewed at            : ${cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL}`)
+              messages.push(`Plug-in Registry          : ${cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL}`)
             }
             if (cheConfigMap.data.CHE_WORKSPACE_DEVFILE__REGISTRY__URL) {
-              ctx.highlightedMessages.push(`Devfiles can be viewed at           : ${cheConfigMap.data.CHE_WORKSPACE_DEVFILE__REGISTRY__URL}`)
+              messages.push(`Devfile Registry          : ${cheConfigMap.data.CHE_WORKSPACE_DEVFILE__REGISTRY__URL}`)
             }
+            messages.push('')
+
             if (cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL) {
-              ctx.highlightedMessages.push(`Identity provider can be accessed at: ${cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL}`)
+              messages.push(`Identity Provider URL     : ${cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL}`)
             }
-            ctx.highlightedMessages.push(`Product documentation is at         : ${DOC_LINK}`)
-            if (DOC_LINK_RELEASE_NOTES) {
-              ctx.highlightedMessages.push(`Release Notes are at                : ${DOC_LINK_RELEASE_NOTES}`)
+            if (ctx.identityProviderUsername && ctx.identityProviderPassword) {
+              messages.push(`Identity Provider login   : "${ctx.identityProviderUsername}:${ctx.identityProviderPassword}".`)
             }
+            messages.push('')
           }
-
-          const cheCluster = await this.kube.getCheCluster(flags.chenamespace)
-          if (cheCluster && cheCluster.spec.auth && cheCluster.spec.auth.updateAdminPassword) {
-            ctx.highlightedMessages.push('Eclipse Che admin credentials       : "admin:admin". You will be asked to change default Che admin password on the first login.')
-          }
-          if (ctx.identityProviderUsername && ctx.identityProviderPassword) {
-            ctx.highlightedMessages.push(`Identity Provider credentials       : "${ctx.identityProviderUsername}:${ctx.identityProviderPassword}".`)
-          }
-
+          ctx.highlightedMessages = messages.concat(ctx.highlightedMessages)
           task.title = `${task.title}...done`
         }
       }
