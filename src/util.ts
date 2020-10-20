@@ -118,7 +118,7 @@ export function initializeContext(): any {
 export function readCRPatchFile(flags: any, command: Command): any {
   const cheOperatorCrPatchYamlPath = flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]
   if (!cheOperatorCrPatchYamlPath) {
-    return undefined
+    return
   }
 
   if (existsSync(cheOperatorCrPatchYamlPath)) {
