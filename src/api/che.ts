@@ -201,14 +201,14 @@ export class CheHelper {
    * In case of an error an array with undefined values will be returned.
    */
   async retrieveKeycloakAdminCredentials(cheNamespace: string): Promise<string[]> {
-    let adminUsername
-    let adminPassword
+    let adminUsername = ""
+    let adminPassword = ""
 
     const cheCluster = await this.kube.getCheCluster(cheNamespace)
     if (!cheCluster) {
       return []
     }
-    const keycloakCredentialsSecretName = cheCluster.spec.auth.identityProviderSecret
+    const keycloakCredentialsSecretName = cheCluster.spec.auth!.identityProviderSecret
     if (keycloakCredentialsSecretName) {
       // Keycloak credentials are stored in secret
       const keycloakCredentialsSecret = await this.kube.getSecret(keycloakCredentialsSecretName, cheNamespace)
@@ -218,8 +218,8 @@ export class CheHelper {
       }
     } else {
       // Keycloak credentials are stored in Che custom resource
-      adminUsername = cheCluster.spec.auth.identityProviderAdminUserName
-      adminPassword = cheCluster.spec.auth.identityProviderPassword
+      adminUsername = cheCluster.spec.auth!.identityProviderAdminUserName
+      adminPassword = cheCluster.spec.auth!.identityProviderPassword
     }
 
     return [adminUsername, adminPassword]

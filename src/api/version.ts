@@ -144,8 +144,8 @@ export namespace VersionHelper {
     const kube = new KubeHelper(flags)
     const cheTasks = new CheTasks(flags)
     const cheCluster = await kube.getCheCluster(flags.chenamespace)
-    if (cheCluster && cheCluster.spec.server.cheFlavor !== 'che') {
-      return cheCluster.status.cheVersion
+    if (cheCluster && cheCluster.spec.server!.cheFlavor !== 'che') {
+      return cheCluster.status!.cheVersion
     }
 
     const chePodList = await kube.getPodListByLabel(flags.chenamespace, cheTasks.cheSelector)
