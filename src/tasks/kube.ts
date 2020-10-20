@@ -1,4 +1,3 @@
-import { V1ContainerStateWaiting, V1PodCondition } from '@kubernetes/client-node'
 /*********************************************************************
  * Copyright (c) 2019 Red Hat, Inc.
  *
@@ -8,6 +7,7 @@ import { V1ContainerStateWaiting, V1PodCondition } from '@kubernetes/client-node
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
+import { V1ContainerStateWaiting, V1PodCondition } from '@kubernetes/client-node'
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 
