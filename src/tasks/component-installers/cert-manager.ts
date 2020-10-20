@@ -175,7 +175,7 @@ export class CertManagerTasks {
             await this.kubeHelper.createSecret(CHE_ROOT_CA_SECRET_NAME, { 'ca.crt': cheCaCrt }, flags.chenamespace)
 
             ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(cheCaCertPath))
-            task.title = `${task.title}... is exported to ${cheCaCertPath}`
+            task.title = `${task.title}... done`
           } else {
             throw new Error('Failed to get Cert Manager CA secret')
           }

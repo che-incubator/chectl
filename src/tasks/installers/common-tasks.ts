@@ -105,10 +105,10 @@ export function retrieveCheCaCertificateTask(flags: any): Listr.ListrTask {
       if (cheCaCert) {
         const targetFile = await che.saveCheCaCert(cheCaCert)
 
-        task.title = `${task.title }... done`
+        task.title = `${task.title}... done`
         ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(targetFile))
       } else {
-        task.title = `${task.title }... commonly trusted certificate is used.`
+        task.title = `${task.title}... commonly trusted certificate is used.`
       }
 
     }
@@ -117,7 +117,7 @@ export function retrieveCheCaCertificateTask(flags: any): Listr.ListrTask {
 
 export function getMessageImportCaCertIntoBrowser(caCertFileLocation: string): string {
   const message = `${ansi.yellow('[ACTION REQUIRED]')} Please add Che self-signed CA certificate into your browser: ${caCertFileLocation}.\n` +
-                  `Documentation how to add a CA certificate into a browser: ${DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER}`
+    `Documentation how to add a CA certificate into a browser: ${DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER}`
   return message
 }
 
@@ -131,9 +131,9 @@ export function getRetrieveKeycloakCredentialsTask(flags: any): Listr.ListrTask 
       if (login && password) {
         ctx.identityProviderUsername = login
         ctx.identityProviderPassword = password
-        task.title = `${task.title }...done`
+        task.title = `${task.title}...done`
       } else {
-        task.title = `${task.title }...failed.`
+        task.title = `${task.title}...failed.`
       }
     }
   }
