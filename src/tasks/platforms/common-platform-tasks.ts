@@ -106,7 +106,6 @@ export namespace CommonPlatformTasks {
    * Checks if Openshift oAuth enabled in Che configuration.
    * Returns true if Openshift oAuth is enabled (or omitted) and false if it is explicitly disabled.
    */
-  //
   function isOAuthEnabled(flags: any, ctx: any): boolean {
     const crPatch = ctx.CRPatch
     if (crPatch && crPatch.spec && crPatch.spec.auth && typeof crPatch.spec.auth.openShiftoAuth === 'boolean') {

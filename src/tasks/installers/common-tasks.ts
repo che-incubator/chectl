@@ -98,9 +98,9 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
 /**
  * Update CheCluster CR object using CR patch file.
  * Clean up custom images if they weren't defined in the CR patch file to prevent update failing.
- * @param flags parent command flags
- * @param kube kubeHelper util
- * @param command parent command
+ * @param flags - parent command flags
+ * @param kube - kubeHelper util
+ * @param command - parent command
  */
 export function updateEclipseCheCluster(flags: any, kube: KubeHelper, command: Command): Listr.ListrTask {
   return {
