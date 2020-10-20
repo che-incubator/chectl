@@ -117,11 +117,15 @@ export function initializeContext(): any {
  */
 export function readCRPatchFile(flags: any, command: Command): any {
   const cheOperatorCrPatchYamlPath = flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]
-  if (cheOperatorCrPatchYamlPath && existsSync(cheOperatorCrPatchYamlPath)) {
-    return yaml.safeLoad(readFileSync(cheOperatorCrPatchYamlPath).toString())
-  } else {
-    command.error(`Unable to find patch file defined in the flag '--${CHE_OPERATOR_CR_PATCH_YAML_KEY}'`)
+  if (!cheOperatorCrPatchYamlPath) {
+    return undefined
   }
+
+  if (existsSync(cheOperatorCrPatchYamlPath)) {
+    return yaml.safeLoad(readFileSync(cheOperatorCrPatchYamlPath).toString())
+  }
+
+  command.error(`Unable to find patch file defined in the flag '--${CHE_OPERATOR_CR_PATCH_YAML_KEY}'`)
 }
 
 /**
