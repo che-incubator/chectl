@@ -11,15 +11,13 @@
 import Command from '@oclif/command'
 import ansi = require('ansi-colors')
 import * as execa from 'execa'
-import { copy, existsSync, mkdirp, readFileSync, remove } from 'fs-extra'
-import * as yaml from 'js-yaml'
+import { copy, mkdirp, remove } from 'fs-extra'
 import * as Listr from 'listr'
 import { merge } from 'lodash'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { CHE_OPERATOR_CR_PATCH_YAML_KEY } from '../../common-flags'
 import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
 import { isKubernetesPlatformFamily, isOpenshiftPlatformFamily } from '../../util'
 
@@ -97,19 +95,18 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
   }
 }
 
+/**
+ * Update CheCluster CR object using CR patch file. 
+ * Clean up custom images if they weren't defined in the CR patch file to prevent update failing.
+ * @param flags parent command flags
+ * @param kube kubeHelper util
+ * @param command parent command
+ */
 export function updateEclipseCheCluster(flags: any, kube: KubeHelper, command: Command): Listr.ListrTask {
   return {
     title: `Update the Custom Resource of type ${CHE_CLUSTER_CRD} in the namespace ${flags.chenamespace}`,
-    task: async (_ctx: any, task: any) => {
-      const cheOperatorCrPatchYamlPath = flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]
-      let crPatch: any = {}
-      if (cheOperatorCrPatchYamlPath) {
-        if (existsSync(cheOperatorCrPatchYamlPath)) {
-          crPatch = yaml.safeLoad(readFileSync(cheOperatorCrPatchYamlPath).toString())
-        } else {
-          command.error(`Unable to find patch file defined in the flag '--${CHE_OPERATOR_CR_PATCH_YAML_KEY}'`)
-        }
-      }
+    task: async (ctx: any, task: any) => {
+      let crPatch: any = ctx.CRPatch || {}
 
       const cheCluster = await kube.getCheCluster(flags.chenamespace)
       if (!cheCluster) {

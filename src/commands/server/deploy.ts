@@ -28,7 +28,7 @@ import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { getCommandSuccessMessage, initializeContext, isOpenshiftPlatformFamily } from '../../util'
+import { getCommandSuccessMessage, initializeContext, isOpenshiftPlatformFamily, readCRPatchFile } from '../../util'
 
 export default class Deploy extends Command {
   static description = 'start Eclipse Che server'
@@ -199,8 +199,8 @@ export default class Deploy extends Command {
     'dev-workspace-controller-namespace': devWorkspaceControllerNamespace
   }
 
-  async setPlaformDefaults(flags: any): Promise<void> {
-    flags.tls = await this.checkTlsMode(flags)
+  async setPlaformDefaults(flags: any, ctx: any): Promise<void> {
+    flags.tls = await this.checkTlsMode(flags, ctx)
 
     if (!flags.installer) {
       await this.setDefaultInstaller(flags)
@@ -243,15 +243,10 @@ export default class Deploy extends Command {
    * Checks if TLS is disabled via operator custom resource.
    * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
    */
-  async checkTlsMode(flags: any): Promise<boolean> {
-    if (flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]) {
-      const cheOperatorCrPatchYamlPath = flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]
-      if (fs.existsSync(cheOperatorCrPatchYamlPath)) {
-        const crPatch: any = yaml.safeLoad(fs.readFileSync(cheOperatorCrPatchYamlPath).toString())
-        if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
-          return false
-        }
-      }
+  async checkTlsMode(flags: any, ctx: any): Promise<boolean> {
+    const crPatch = ctx.CRPatch
+    if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
+      return false
     }
 
     if (flags['che-operator-cr-yaml']) {
@@ -348,6 +343,7 @@ export default class Deploy extends Command {
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
     ctx.listrOptions = listrOptions
+    ctx.CRPatch = readCRPatchFile(flags, this)
 
     if (flags['self-signed-cert']) {
       this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
@@ -371,7 +367,7 @@ export default class Deploy extends Command {
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     })
 
-    await this.setPlaformDefaults(flags)
+    await this.setPlaformDefaults(flags, ctx)
     let installTasks = new Listr(installerTasks.installTasks(flags, this), listrOptions)
 
     const startDeployedCheTasks = new Listr([{

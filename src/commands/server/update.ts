@@ -20,6 +20,7 @@ import { KubeHelper } from '../../api/kube'
 import { cheDeployment, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_CHE_OPERATOR_IMAGE, SUBSCRIPTION_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
+import { readCRPatchFile } from '../../util'
 import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
@@ -96,6 +97,7 @@ export default class Update extends Command {
     const ctx = initializeContext()
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
     ctx.listrOptions = listrOptions
+    ctx.CRPatch = readCRPatchFile(flags, this)
 
     const cheTasks = new CheTasks(flags)
     const kubeHelper = new KubeHelper(flags)

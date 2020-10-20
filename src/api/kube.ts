@@ -20,7 +20,6 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { CHE_OPERATOR_CR_PATCH_YAML_KEY } from '../common-flags'
 import { CHE_CLUSTER_CRD, DEFAULT_CHE_IMAGE, OLM_STABLE_CHANNEL_NAME } from '../constants'
 import { getClusterClientCommand, isKubernetesPlatformFamily } from '../util'
 
@@ -1329,7 +1328,12 @@ export class KubeHelper {
         yamlCr.spec.auth.identityProviderImage = ''
       }
     }
-    yamlCr = this.overrideDefaultValues(yamlCr, flags[CHE_OPERATOR_CR_PATCH_YAML_KEY])
+
+    // override default values
+    if (ctx.CRPatch) {
+      merge(yamlCr, ctx.CRPatch)
+    }
+    
     // Back off some configuration properties(chectl estimated them like not working or not desired)
     merge(yamlCr, ctx.CROverrides)
 
@@ -1339,15 +1343,6 @@ export class KubeHelper {
       return body
     } catch (e) {
       throw this.wrapK8sClientError(e)
-    }
-  }
-
-  overrideDefaultValues(yamlCr: any, filePath: string): any {
-    if (filePath) {
-      const patchCr = this.safeLoadFromYamlFile(filePath)
-      return merge(yamlCr, patchCr)
-    } else {
-      return yamlCr
     }
   }
 
