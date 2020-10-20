@@ -12,8 +12,8 @@ import { Command } from '@oclif/command'
 import * as commandExists from 'command-exists'
 import { existsSync, readFileSync } from 'fs-extra'
 import * as yaml from 'js-yaml'
-import { CHE_OPERATOR_CR_PATCH_YAML_KEY } from './common-flags'
 
+import { CHE_OPERATOR_CR_PATCH_YAML_KEY } from './common-flags'
 import { DEFAULT_CHE_OPERATOR_IMAGE } from './constants'
 
 export const KUBERNETES_CLI = 'kubectl'
@@ -118,7 +118,7 @@ export function initializeContext(): any {
 export function readCRPatchFile(flags: any, command: Command): any {
   const cheOperatorCrPatchYamlPath = flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]
   if (cheOperatorCrPatchYamlPath && existsSync(cheOperatorCrPatchYamlPath)) {
-    return yaml.safeLoad(readFileSync(cheOperatorCrPatchYamlPath).toString()) 
+    return yaml.safeLoad(readFileSync(cheOperatorCrPatchYamlPath).toString())
   } else {
     command.error(`Unable to find patch file defined in the flag '--${CHE_OPERATOR_CR_PATCH_YAML_KEY}'`)
   }

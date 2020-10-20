@@ -83,7 +83,7 @@ export namespace CommonPlatformTasks {
     let kube = new KubeHelper(flags)
     return {
       title: 'Verify Openshift oauth.',
-      enabled: (ctx) => isOpenshiftPlatformFamily(flags.platform) && isOAuthEnabled(flags, ctx),
+      enabled: ctx => isOpenshiftPlatformFamily(flags.platform) && isOAuthEnabled(flags, ctx),
       task: async (ctx: any, task: any) => {
         if (await kube.isOpenShift4()) {
           const providers = await kube.getOpenshiftAuthProviders()

@@ -1333,7 +1333,7 @@ export class KubeHelper {
     if (ctx.CRPatch) {
       merge(yamlCr, ctx.CRPatch)
     }
-    
+
     // Back off some configuration properties(chectl estimated them like not working or not desired)
     merge(yamlCr, ctx.CROverrides)
 
