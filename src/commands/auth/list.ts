@@ -38,7 +38,7 @@ export default class List extends Command {
         }
       })
     } else {
-      output = 'No registered logins'
+      output = 'There are no login sessions'
     }
 
     cli.info(output)

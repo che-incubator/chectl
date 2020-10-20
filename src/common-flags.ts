@@ -63,7 +63,7 @@ export const cheOperatorCRPatchYaml = string({
 export const USERNAME_KEY = 'username'
 export const username = string({
   char: 'u',
-  description: 'Eclipse Che user name',
+  description: 'Eclipse Che username',
   env: 'CHE_USER_NAME',
   required: false,
 })

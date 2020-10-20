@@ -23,7 +23,6 @@ export default class Use extends Command {
     {
       name: CHE_API_ENDPOINT_KEY,
       description: 'Eclipse Che server API endpoint',
-      env: 'CHE_API_ENDPOINT',
       required: false
     }
   ]
@@ -39,14 +38,14 @@ export default class Use extends Command {
   }
 
   static examples = [
-    '# Make given user on specified cluster current:\n' +
-    'auth:use che-che.apps-crc.testing/api -u username',
-    '# Switch to another user on the same cluster:\n' +
-    'auth:use -u another-user-on-this-server',
-    '# Switch to the user on the given cluster (requires to have only one user logged in the given cluster):\n' +
-    'auth:use my.cluster.net',
-    '# Interactively select current login:\n' +
-    'auth:use -i',
+    '# Set an active login session for the specified user on the given cluster:\n' +
+    'chectl auth:use che-che.apps-crc.testing/api -u username',
+    '\n\n# Switch to another user on the same cluster:\n' +
+    'chectl auth:use -u another-user-on-this-server',
+    '\n\n# Switch to the only user on the given cluster:\n' +
+    'chectl auth:use my.cluster.net',
+    '\n\n# Select active login session in interactive mode:\n' +
+    'chectl auth:use -i',
   ]
 
   async run() {
@@ -87,7 +86,7 @@ export default class Use extends Command {
         // Maybe /api suffix isn't provided
         const cheApiEndpointGuess = cheApiEndpoint + '/api'
         if (!loginManager.hasLoginFor(cheApiEndpointGuess)) {
-          cli.info(`No registered logins on server ${cheApiEndpoint}`)
+          cli.info(`No registered login sessions on server ${cheApiEndpoint}`)
           return
         }
         cheApiEndpoint = cheApiEndpointGuess
@@ -98,7 +97,7 @@ export default class Use extends Command {
       // Check if given server has only one login session to use
       const serverLogins = loginManager.getAllLogins().get(cheApiEndpoint)
       if (!serverLogins || (serverLogins && serverLogins.length < 1)) {
-        cli.info(`No registered logins for ${cheApiEndpoint} server`)
+        cli.info(`No registered login sessions for ${cheApiEndpoint} server`)
         return
       }
       if (serverLogins.length !== 1) {

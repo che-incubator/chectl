@@ -11,7 +11,6 @@
 import axios, { AxiosInstance } from 'axios'
 import * as fs from 'fs'
 import * as https from 'https'
-import * as jwt from 'jsonwebtoken'
 import * as path from 'path'
 import * as querystring from 'querystring'
 
@@ -28,8 +27,12 @@ export interface LoginData {
 
 // Credentials file format
 export interface CheServerLoginConfig {
+  // Defines file format version
+  version?: string
+  // Define current login session. Empty if none.
   lastLoginUrl?: string
   lastUserName?: string
+  // Registered logins
   logins?: Logins
 }
 
@@ -41,6 +44,8 @@ export type LoginRecord = RefreshTokenLoginRecord | PasswordLoginRecord | OcUser
 
 export interface RefreshTokenLoginRecord {
   refreshToken: string
+  // Expiration datetime (in seconds) for local timezone
+  expires: number
 }
 
 export interface OcUserTokenLoginRecord {
@@ -88,11 +93,11 @@ interface CheKeycloakSettings {
 // Response structure from Keycloak get access token endpoint
 interface KeycloakAuthTokenResponse {
   access_token: string
-  expires_in: number
+  expires_in: number | string
   refresh_token: string
-  refresh_expires_in: number
+  refresh_expires_in?: number | string
   token_type: string
-  scope: string
+  scope?: string
 }
 
 const REQUEST_TIMEOUT_MS = 10000
@@ -194,8 +199,14 @@ export class CheServerLoginManager {
 
     // Check whether provided login credentials valid and get refresh token.
     const keycloakAuthData = await this.keycloakAuth(apiUrl, loginRecord, cheKeycloakSettings)
+    const now = (Date.now() / 1000)
+    let refreshTokenExpiresIn: string | number = keycloakAuthData.refresh_expires_in ? keycloakAuthData.refresh_expires_in : keycloakAuthData.expires_in
+    if (typeof refreshTokenExpiresIn === 'string') {
+      refreshTokenExpiresIn = parseFloat(refreshTokenExpiresIn)
+    }
     const refreshTokenLoginRecord: RefreshTokenLoginRecord = {
       refreshToken: keycloakAuthData.refresh_token,
+      expires: now + refreshTokenExpiresIn
     }
 
     const username = isPasswordLoginData(loginRecord) ? loginRecord.username :
@@ -291,6 +302,11 @@ export class CheServerLoginManager {
     if (!this.loginData.logins) {
       this.loginData.logins = {}
     }
+
+    if (!this.loginData.version) {
+      // So far there is only one existing file format
+      this.loginData.version = 'v1'
+    }
   }
 
   private saveLoginData(): void {
@@ -347,8 +363,7 @@ export class CheServerLoginManager {
     const now = Date.now() / 1000
     for (const [apiUrl, serverLogins] of Object.entries(this.loginData.logins)) {
       for (const [username, loginRecord] of Object.entries(serverLogins)) {
-        const decodedToken = jwt.decode(loginRecord.refreshToken)
-        if (decodedToken && typeof decodedToken !== 'string' && decodedToken.exp && decodedToken.exp <= now) {
+        if (loginRecord.expires <= now) {
           // Token is expired, delete it
           delete serverLogins[username]
         }

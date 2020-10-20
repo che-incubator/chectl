@@ -22,7 +22,6 @@ export default class Delete extends Command {
     {
       name: CHE_API_ENDPOINT_KEY,
       description: 'Eclipse Che server API endpoint',
-      env: 'CHE_API_ENDPOINT',
       required: true
     }
   ]
@@ -32,17 +31,17 @@ export default class Delete extends Command {
   }
 
   static examples = [
-    '# Delete given user login information for specified cluster:\n' +
-    'auth:delete che-che.apps-crc.testing/api -u username',
-    '\n# Delete all existing logins for specified cluster:\n' +
-    'auth:delete che-che.apps-crc.testing',
+    '# Delete login session of the specified user on the cluster:\n' +
+    'chectl auth:delete che-che.apps-crc.testing/api -u username',
+    '\n\n# Delete all login sessions on the cluster:\n' +
+    'chectl auth:delete che-che.apps-crc.testing',
   ]
 
   async run() {
     const { args, flags } = this.parse(Delete)
 
     let cheApiEndpoint = CheApiClient.normalizeCheApiEndpointUrl(args[CHE_API_ENDPOINT_KEY])
-    let username: string | undefined = flags[USERNAME_KEY]
+    const username: string | undefined = flags[USERNAME_KEY]
 
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
 
@@ -50,7 +49,7 @@ export default class Delete extends Command {
       // Maybe /api suffix isn't provided
       const cheApiEndpointGuess = cheApiEndpoint + '/api'
       if (!loginManager.hasLoginFor(cheApiEndpointGuess)) {
-        cli.info(`No registered logins on server ${cheApiEndpoint}`)
+        cli.info(`No registered login sessions on server ${cheApiEndpoint}`)
         return
       }
       cheApiEndpoint = cheApiEndpointGuess
@@ -58,7 +57,7 @@ export default class Delete extends Command {
 
     if (username) {
       if (!loginManager.hasLoginFor(cheApiEndpoint, username)) {
-        cli.info(`No existing logins for ${username} on server ${cheApiEndpoint}`)
+        cli.info(`${username} is not logged in on ${cheApiEndpoint}. Nothing to delete.`)
         return
       }
     }
@@ -67,7 +66,7 @@ export default class Delete extends Command {
     if (username) {
       cli.info(`Succesfully logged out ${username} on ${cheApiEndpoint}`)
     } else {
-      cli.info(`Succesfully logged out of ${cheApiEndpoint}`)
+      cli.info(`Succesfully logged out all users on ${cheApiEndpoint}`)
     }
   }
 
