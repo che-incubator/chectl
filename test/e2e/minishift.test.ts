@@ -19,9 +19,9 @@ const PLATFORM = 'openshift'
 const binChectl = `${process.cwd()}/bin/run`
 
 describe('Eclipse Che deploy test suite', () => {
-  describe('server:start using operator and self signed certificates', () => {
-    it('server:start using operator and self signed certificates', async () => {
-      const command = `${binChectl} server:start --platform=minishift --che-operator-cr-patch-yaml=test/e2e/util/cr-test.yaml --tls --installer=operator`
+  describe('server:deploy using operator and self signed certificates', () => {
+    it('server:deploy using operator and self signed certificates', async () => {
+      const command = `${binChectl} server:deploy --platform=minishift --che-operator-cr-patch-yaml=test/e2e/util/cr-test.yaml --tls --installer=operator`
       const { exitCode, stdout, stderr } = await execa(command, { shell: true })
 
       expect(exitCode).equal(0)

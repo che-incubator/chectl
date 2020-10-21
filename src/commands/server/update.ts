@@ -131,7 +131,7 @@ export default class Update extends Command {
       await preInstallTasks.run(ctx)
 
       if (!ctx.isCheDeployed) {
-        this.error('Eclipse Che deployment is not found. Use `chectl server:start` to initiate a new deployment.')
+        this.error('Eclipse Che deployment is not found. Use `chectl server:deploy` to initiate a new deployment.')
       } else {
         if (isKubernetesPlatformFamily(flags.platform!)) {
           await this.setDomainFlag(flags)
