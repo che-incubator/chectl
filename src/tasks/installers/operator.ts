@@ -157,6 +157,23 @@ export class OperatorTasks {
         title: 'Operator pod bootstrap',
         task: () => kubeTasks.podStartTasks(OperatorTasks.CHE_OPERATOR_SELECTOR, flags.chenamespace)
       },
+      {
+        title: 'Prepare Eclipse Che cluster CR',
+        task: async (ctx: any, task: any) => {
+          const cheCluster = await kube.getCheCluster(flags.chenamespace)
+          if (cheCluster) {
+            task.title = `${task.title}...It already exists..`
+            return
+          }
+
+          if (!ctx.CustomCR) {
+            const yamlFilePath = ctx.resourcesPath + 'crds/org_v1_che_cr.yaml'
+            ctx.defaultCR = yaml.safeLoad(fs.readFileSync(yamlFilePath).toString())
+          }
+
+          task.title = `${task.title}...Done.`
+        }
+      },
       createEclipseCheCluster(flags, kube)
     ], { renderer: flags['listr-renderer'] as any })
   }

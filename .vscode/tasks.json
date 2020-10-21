@@ -2,7 +2,33 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Custom che-operator Minikube",
+            "label": "[Minikube] Install Che",
+            "command": "./bin/run server:deploy -n che -m -p minikube",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "[Minikube] Install Che with custom che-operator image",
+            "command": "./bin/run server:deploy -n che -m -p minikube --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "[Minikube] Install Che with custom che-operator and che-server images",
             "command": "./bin/run server:deploy -n che -m -p minikube --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly --cheimage=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-server:nightly",
             "type": "shell",
             "args": [],
@@ -15,8 +41,8 @@
             "group": "build"
         },
         {
-            "label": "Custom che-operator and che-server Minikube",
-            "command": "./bin/run server:deploy -n che -m -p minikube --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly --cheimage=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-server:nightly",
+            "label": "[Openshift] Install Che",
+            "command": "./bin/run server:deploy -n che -m -p openshift",
             "type": "shell",
             "args": [],
             "problemMatcher": [
@@ -28,7 +54,7 @@
             "group": "build"
         },
         {
-            "label": "Custom che-operator Openshift",
+            "label": "[Openshift] Install Che with custom che-operator image",
             "command": "./bin/run server:deploy -n che -m -p openshift -a operator --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly",
             "type": "shell",
             "args": [],
@@ -41,7 +67,7 @@
             "group": "build"
         },
         {
-            "label": "Custom che-operator and che-server Openshift",
+            "label": "[Openshift] Install Che with custom che-operator and che-server images",
             "command": "./bin/run server:deploy -n che -m -p openshift -a operator --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:nightly --cheimage=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-server:nightly",
             "type": "shell",
             "args": [],
@@ -82,6 +108,32 @@
         {
             "label": "Export sertificate",
             "command": "./bin/run cacert:export -n che",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Fix tslint",
+            "command": "yarn run tslint-fix",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Pack binaries",
+            "command": "yarn run pack-binaries",
             "type": "shell",
             "args": [],
             "problemMatcher": [

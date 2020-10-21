@@ -10,6 +10,7 @@
 
 import Command from '@oclif/command'
 import { cli } from 'cli-ux'
+import * as yaml from 'js-yaml'
 import Listr = require('listr')
 
 import { KubeHelper } from '../../api/kube'
@@ -17,7 +18,7 @@ import { CatalogSource, Subscription } from '../../api/typings/olm'
 import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, KUBERNETES_OLM_CATALOG, NIGHTLY_CATALOG_SOURCE_NAME, OLM_NIGHTLY_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, SUBSCRIPTION_NAME } from '../../constants'
 import { isKubernetesPlatformFamily, isStableVersion } from '../../util'
 
-import { copyOperatorResources, createEclipseCheCluster, createNamespaceTask, updateEclipseCheCluster } from './common-tasks'
+import { createEclipseCheCluster, createNamespaceTask, updateEclipseCheCluster } from './common-tasks'
 
 export class OLMTasks {
   /**
@@ -27,7 +28,6 @@ export class OLMTasks {
     const kube = new KubeHelper(flags)
     return new Listr([
       this.isOlmPreInstalledTask(command, kube),
-      copyOperatorResources(flags, command.config.cacheDir),
       createNamespaceTask(flags.chenamespace, flags.platform),
       {
         title: 'Create operator group',
@@ -148,6 +148,22 @@ export class OLMTasks {
           const jsonPatch = [{ op: 'replace', path: '/spec/install/spec/deployments/0/spec/template/spec/containers/0/image', value: flags['che-operator-image'] }]
           await kube.patchClusterServiceVersion(csv.metadata.namespace!, csv.metadata.name!, jsonPatch)
           task.title = `${task.title}... changed to ${flags['che-operator-image']}.`
+        }
+      },
+      {
+        title: 'Prepare Eclipse Che cluster CR',
+        task: async (ctx: any, task: any) => {
+          const cheCluster = await kube.getCheCluster(flags.chenamespace)
+          if (cheCluster) {
+            task.title = `${task.title}...It already exists..`
+            return
+          }
+
+          if (!ctx.CustomCR) {
+            ctx.defaultCR = await this.getCRFromCSV(kube, flags.chenamespace)
+          }
+
+          task.title = `${task.title}...Done.`
         }
       },
       createEclipseCheCluster(flags, kube)
@@ -336,6 +352,18 @@ export class OLMTasks {
           }
         }
       }
+    }
+  }
+
+  private async getCRFromCSV(kube: KubeHelper, cheNamespace: string): Promise<any> {
+    const subscription: Subscription = await kube.getOperatorSubscription(SUBSCRIPTION_NAME, cheNamespace)
+    const currentCSV = subscription.status!.currentCSV
+    const csv = await kube.getCSV(currentCSV, cheNamespace)
+    if (csv && csv.metadata.annotations) {
+      const CRRaw = csv.metadata.annotations!['alm-examples']
+      return (yaml.safeLoad(CRRaw) as Array<any>)[0]
+    } else {
+      throw new Error(`Unable to retrieve Che cluster CR definition from CSV: ${currentCSV}`)
     }
   }
 }

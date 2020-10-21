@@ -12,14 +12,13 @@ import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as fs from 'fs-extra'
-import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
 import * as os from 'os'
 import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
-import { cheDeployment, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
+import { cheDeployment, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
 import { DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
@@ -28,7 +27,7 @@ import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { getCommandSuccessMessage, initializeContext, isOpenshiftPlatformFamily, readCRPatchFile } from '../../util'
+import { getCommandSuccessMessage, initializeContext, isOpenshiftPlatformFamily, readCRFile } from '../../util'
 
 export default class Deploy extends Command {
   static description = 'start Eclipse Che server'
@@ -118,10 +117,7 @@ export default class Deploy extends Command {
       description: 'Container image of the operator. This parameter is used only when the installer is the operator',
       default: DEFAULT_CHE_OPERATOR_IMAGE
     }),
-    'che-operator-cr-yaml': string({
-      description: 'Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer is the \'operator\' or the \'olm\'.',
-      default: ''
-    }),
+    [CHE_OPERATOR_CR_YAML_KEY]: cheOperatorCRYaml,
     [CHE_OPERATOR_CR_PATCH_YAML_KEY]: cheOperatorCRPatchYaml,
     directory: string({
       char: 'd',
@@ -200,7 +196,7 @@ export default class Deploy extends Command {
   }
 
   async setPlaformDefaults(flags: any, ctx: any): Promise<void> {
-    flags.tls = await this.checkTlsMode(flags, ctx)
+    flags.tls = await this.checkTlsMode(ctx)
 
     if (!flags.installer) {
       await this.setDefaultInstaller(flags)
@@ -243,27 +239,22 @@ export default class Deploy extends Command {
    * Checks if TLS is disabled via operator custom resource.
    * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
    */
-  async checkTlsMode(flags: any, ctx: any): Promise<boolean> {
+  async checkTlsMode(ctx: any): Promise<boolean> {
     const crPatch = ctx.CRPatch
     if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
       return false
     }
 
-    if (flags['che-operator-cr-yaml']) {
-      const cheOperatorCrYamlPath = flags['che-operator-cr-yaml']
-      if (fs.existsSync(cheOperatorCrYamlPath)) {
-        const cr: any = yaml.safeLoad(fs.readFileSync(cheOperatorCrYamlPath).toString())
-        if (cr && cr.spec && cr.spec.server && cr.spec.server.tlsSupport === false) {
-          return false
-        }
-      }
+    const customCR = ctx.CustomCR
+    if (customCR && customCR.spec && customCR.spec.server && customCR.spec.server.tlsSupport === false) {
+      return false
     }
 
     return true
   }
 
   checkPlatformCompatibility(flags: any) {
-    if (flags.installer === 'operator' && flags['che-operator-cr-yaml']) {
+    if (flags.installer === 'operator' && flags[CHE_OPERATOR_CR_YAML_KEY]) {
       const ignoredFlags = []
       flags['plugin-registry-url'] && ignoredFlags.push('--plugin-registry-url')
       flags['devfile-registry-url'] && ignoredFlags.push('--devfile-registry-url')
@@ -276,11 +267,11 @@ export default class Deploy extends Command {
       flags.multiuser && ignoredFlags.push('--multiuser')
 
       if (ignoredFlags.length) {
-        this.warn(`--che-operator-cr-yaml is used. The following flag(s) will be ignored: ${ignoredFlags.join('\t')}`)
+        this.warn(`--${CHE_OPERATOR_CR_YAML_KEY} is used. The following flag(s) will be ignored: ${ignoredFlags.join('\t')}`)
       }
     }
 
-    if (flags.domain && !flags['che-operator-cr-yaml'] && isOpenshiftPlatformFamily(flags.platform)) {
+    if (flags.domain && !flags[CHE_OPERATOR_CR_YAML_KEY] && isOpenshiftPlatformFamily(flags.platform)) {
       this.warn('"--domain" flag is ignored for Openshift family infrastructures. It should be done on the cluster level.')
     }
 
@@ -343,7 +334,8 @@ export default class Deploy extends Command {
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
     ctx.listrOptions = listrOptions
-    ctx.CRPatch = readCRPatchFile(flags, this)
+    ctx.CustomCR = readCRFile(flags, CHE_OPERATOR_CR_YAML_KEY , this)
+    ctx.CRPatch = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY, this)
 
     if (flags['self-signed-cert']) {
       this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
