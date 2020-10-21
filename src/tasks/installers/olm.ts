@@ -136,6 +136,20 @@ export class OLMTasks {
           task.title = `${task.title}...done.`
         }
       },
+      {
+        title: 'Set custom operator image',
+        enabled: () => !!flags['che-operator-image'],
+        task: async (_ctx: any, task: any) => {
+          const csvList = await kube.getClusterServiceVersions(flags.chenamespace)
+          if (csvList.items.length < 1) {
+            throw new Error('Failed to get CSV for Che operator')
+          }
+          const csv = csvList.items[0]
+          const jsonPatch = [{ op: 'replace', path: '/spec/install/spec/deployments/0/spec/template/spec/containers/0/image', value: flags['che-operator-image'] }]
+          await kube.patchClusterServiceVersion(csv.metadata.namespace!, csv.metadata.name!, jsonPatch)
+          task.title = `${task.title}... changed to ${flags['che-operator-image']}.`
+        }
+      },
       createEclipseCheCluster(flags, kube)
     ], { renderer: flags['listr-renderer'] as any })
   }
@@ -236,8 +250,8 @@ export class OLMTasks {
         enabled: ctx => ctx.isPreInstalledOLM,
         task: async (_ctx: any, task: any) => {
           const csvs = await kube.getClusterServiceVersions(flags.chenamespace)
-          const csvsToDelete = csvs.items.filter(csv => csv.metadata.name.startsWith(CVS_PREFIX))
-          csvsToDelete.forEach(csv => kube.deleteClusterServiceVersion(flags.chenamespace, csv.metadata.name))
+          const csvsToDelete = csvs.items.filter(csv => csv.metadata.name!.startsWith(CVS_PREFIX))
+          csvsToDelete.forEach(csv => kube.deleteClusterServiceVersion(flags.chenamespace, csv.metadata.name!))
           task.title = `${task.title}...OK`
         }
       },

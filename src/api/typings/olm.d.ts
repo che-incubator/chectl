@@ -8,6 +8,8 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
+import { V1Deployment, V1ObjectMeta } from '@kubernetes/client-node'
+
 export interface OperatorGroup {
   apiVersion: string;
   kind: string;
@@ -75,12 +77,31 @@ export interface InstallPlanCondition {
 }
 
 export interface ClusterServiceVersion {
-  kind: string;
-  metadata: V1ObjectMeta;
+  apiVersion: string
+  kind: string
+  metadata: V1ObjectMeta
+  spec: ClusterServiceVersionSpec
+}
+
+export interface ClusterServiceVersionSpec {
+  displayName: string
+  install: OperatorInstall
+}
+
+export interface OperatorInstall {
+  strategy: string
+  spec: OperatorInstallSpec
+}
+
+export interface OperatorInstallSpec {
+  clusterPermissions: any
+  deployments: Array<V1Deployment>
+  permissions: any
 }
 
 export interface ClusterServiceVersionList {
   apiVersion: string
+  metadata: V1ObjectMeta
   kind: string
   items: Array<ClusterServiceVersion>
 }
