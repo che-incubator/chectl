@@ -494,7 +494,7 @@ export class CheServerLoginManager {
       if (error && error.response && error.response.data && error.response.data.error_description) {
         message = error.response.data.error_description
       }
-      throw new Error(`Failed to get access token from ${keycloakTokenUrl}. Cause: ${message}`)
+      throw new Error(`Failed to get the access token from ${keycloakTokenUrl}. Cause: ${message}`)
     }
   }
 

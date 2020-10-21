@@ -31,7 +31,7 @@ export default class Use extends Command {
     [USERNAME_KEY]: username,
     interactive: flags.boolean({
       char: 'i',
-      description: 'Select active login session in interactive mode',
+      description: 'Select an active login session in interactive mode',
       required: false,
       exclusive: [USERNAME_KEY]
     }),
@@ -44,7 +44,7 @@ export default class Use extends Command {
     'chectl auth:use -u another-user-on-this-server',
     '\n\n# Switch to the only user on the given cluster:\n' +
     'chectl auth:use my.cluster.net',
-    '\n\n# Select active login session in interactive mode:\n' +
+    '\n\n# Select an active login session in interactive mode:\n' +
     'chectl auth:use -i',
   ]
 

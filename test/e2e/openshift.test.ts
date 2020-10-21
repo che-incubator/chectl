@@ -48,7 +48,7 @@ describe('Eclipse Che deploy test suite', () => {
 })
 
 describe('Che server authentication', () => {
-  it('Should login into Che server with username and password', async () => {
+  it('Should login in to Che server with username and password', async () => {
     const cheApiEndpoint = await helper.OCHostname('che') + '/api'
 
     const command = `${binChectl} auth:login`
