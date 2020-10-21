@@ -48,7 +48,7 @@ If you're using linux or macOS, here is how to install chectl by using one singl
 ```
 $ bash <(curl -sL  https://www.eclipse.org/che/chectl/)
 ```
-
+  
 - For `next` channel:
 ```
 $ bash <(curl -sL  https://www.eclipse.org/che/chectl/) --channel=next

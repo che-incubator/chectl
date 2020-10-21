@@ -17,6 +17,7 @@ import { OpenShiftHelper } from '../api/openshift'
 import { VersionHelper } from '../api/version'
 import { DOC_LINK, DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH, DOC_LINK_RELEASE_NOTES } from '../constants'
 
+import { OperatorTasks } from './installers/operator'
 import { KubeTasks } from './kube'
 
 /**
@@ -46,8 +47,6 @@ export class CheTasks {
   pluginRegistryDeploymentName = 'plugin-registry'
   pluginRegistrySelector = 'app=che,component=plugin-registry'
 
-  cheOperatorSelector = 'app=che-operator'
-
   cheConsoleLinkName = 'che'
 
   constructor(flags: any) {
@@ -68,34 +67,34 @@ export class CheTasks {
    *
    * @see che.checkIfCheIsInstalledTasks
    */
-  waitDeployedChe(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
+  waitDeployedChe(flags: any, _command: Command): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'PostgreSQL pod bootstrap',
         skip: () => !flags.multiuser,
         enabled: ctx => ctx.isPostgresDeployed && !ctx.isPostgresReady,
-        task: () => this.kubeTasks.podStartTasks(command, this.postgresSelector, this.cheNamespace)
+        task: () => this.kubeTasks.podStartTasks(this.postgresSelector, this.cheNamespace)
       },
       {
         title: 'Keycloak pod bootstrap',
         skip: () => !flags.multiuser,
         enabled: ctx => ctx.isKeycloakDeployed && !ctx.isKeycloakReady,
-        task: () => this.kubeTasks.podStartTasks(command, this.keycloakSelector, this.cheNamespace)
+        task: () => this.kubeTasks.podStartTasks(this.keycloakSelector, this.cheNamespace)
       },
       {
         title: 'Devfile registry pod bootstrap',
         enabled: ctx => ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryReady,
-        task: () => this.kubeTasks.podStartTasks(command, this.devfileRegistrySelector, this.cheNamespace)
+        task: () => this.kubeTasks.podStartTasks(this.devfileRegistrySelector, this.cheNamespace)
       },
       {
         title: 'Plugin registry pod bootstrap',
         enabled: ctx => ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryReady,
-        task: () => this.kubeTasks.podStartTasks(command, this.pluginRegistrySelector, this.cheNamespace)
+        task: () => this.kubeTasks.podStartTasks(this.pluginRegistrySelector, this.cheNamespace)
       },
       {
         title: 'Eclipse Che pod bootstrap',
         enabled: ctx => !ctx.isCheReady,
-        task: () => this.kubeTasks.podStartTasks(command, this.cheSelector, this.cheNamespace)
+        task: () => this.kubeTasks.podStartTasks(this.cheSelector, this.cheNamespace)
       },
       ...this.checkEclipseCheStatus()
     ]
@@ -523,7 +522,7 @@ export class CheTasks {
         title: `${follow ? 'Start following' : 'Read'} Operator logs`,
         skip: () => flags.installer !== 'operator' && flags.installer !== 'olm',
         task: async (ctx: any, task: any) => {
-          await this.che.readPodLog(flags.chenamespace, this.cheOperatorSelector, ctx.directory, follow)
+          await this.che.readPodLog(flags.chenamespace, OperatorTasks.CHE_OPERATOR_SELECTOR, ctx.directory, follow)
           task.title = `${task.title}...done`
         }
       },
