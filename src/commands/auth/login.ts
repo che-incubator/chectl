@@ -110,7 +110,7 @@ export default class Login extends Command {
 
     let loginData: LoginRecord | undefined
     if (refreshToken) {
-      loginData = { refreshToken }
+      loginData = { refreshToken, expires: Date.now() / 1000 + 60 }
     } else if (username) {
       let password = flags[PASSWORD_KEY]
       if (!password) {
