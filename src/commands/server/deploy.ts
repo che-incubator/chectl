@@ -343,7 +343,7 @@ export default class Deploy extends Command {
   }
 
   async run() {
-    if (process.argv.indexOf('server:start')) {
+    if (process.argv.indexOf('server:start') > -1) {
       this.warn('\'server:start\' command is deprecated. Use \'server:deploy\' instead.')
     }
 
