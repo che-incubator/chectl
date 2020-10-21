@@ -16,6 +16,7 @@ import * as Listr from 'listr'
 import * as path from 'path'
 
 import { OpenShiftHelper } from '../../api/openshift'
+import { DEFAULT_CHE_IMAGE } from '../../constants'
 
 export class MinishiftAddonTasks {
   /**
@@ -147,8 +148,9 @@ export class MinishiftAddonTasks {
 
   private async applyAddon(flags: any, execTimeout = 120000) {
     let args = ['addon', 'apply']
-    const imageRepo = this.getImageRepository(flags.cheimage)
-    const imageTag = this.getImageTag(flags.cheimage)
+    const cheImage = flags.cheimage || DEFAULT_CHE_IMAGE
+    const imageRepo = this.getImageRepository(cheImage)
+    const imageTag = this.getImageTag(cheImage)
     args = args.concat(['--addon-env', `NAMESPACE=${flags.chenamespace}`])
     args = args.concat(['--addon-env', `CHE_IMAGE_REPO=${imageRepo}`])
     args = args.concat(['--addon-env', `CHE_IMAGE_TAG=${imageTag}`])

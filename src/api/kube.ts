@@ -1274,9 +1274,12 @@ export class KubeHelper {
       // then let's modify the default example CR with values
       // derived from the other parameters
       const cheImage = flags.cheimage
-      const imageAndTag = cheImage.split(':', 2)
-      yamlCr.spec.server.cheImage = imageAndTag[0]
-      yamlCr.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
+      if (cheImage) {
+        const imageAndTag = cheImage.split(':', 2)
+        yamlCr.spec.server.cheImage = imageAndTag[0]
+        yamlCr.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
+      }
+
       if ((flags.installer === 'olm' && !flags['catalog-source-yaml']) || (flags['catalog-source-yaml'] && flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME)) {
         // use default image tag for `olm` to install stable Che, because we don't have nightly channel for OLM catalog.
         yamlCr.spec.server.cheImageTag = ''
@@ -1325,7 +1328,12 @@ export class KubeHelper {
         yamlCr.spec.auth.identityProviderImage = ''
       }
     }
-    yamlCr = this.overrideDefaultValues(yamlCr, flags['che-operator-cr-patch-yaml'])
+
+    // override default values
+    if (ctx.CRPatch) {
+      merge(yamlCr, ctx.CRPatch)
+    }
+
     // Back off some configuration properties(chectl estimated them like not working or not desired)
     merge(yamlCr, ctx.CROverrides)
 
@@ -1338,12 +1346,14 @@ export class KubeHelper {
     }
   }
 
-  overrideDefaultValues(yamlCr: any, filePath: string): any {
-    if (filePath) {
-      const patchCr = this.safeLoadFromYamlFile(filePath)
-      return merge(yamlCr, patchCr)
-    } else {
-      return yamlCr
+  async patchCheCluster(name: string, namespace: string, patch: any): Promise<any> {
+    try {
+      const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+
+      const { body } = await customObjectsApi.patchNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name, patch, undefined, undefined, undefined, { headers: { 'Content-Type': 'application/merge-patch+json' } })
+      return body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -1368,7 +1378,7 @@ export class KubeHelper {
       return crs[0]
     } catch (e) {
       if (e.response.statusCode === 404) {
-        // There is no CRD 'checlusters`
+        // There is no CR 'checluster`
         return
       }
       throw this.wrapK8sClientError(e)
@@ -1378,7 +1388,7 @@ export class KubeHelper {
   /**
    * Returns all `checlusters.org.eclipse.che' resources
    */
-  async getAllCheCluster(): Promise<any[]> {
+  async getAllCheClusters(): Promise<any[]> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.listClusterCustomObject('org.eclipse.che', 'v1', 'checlusters')

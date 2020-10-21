@@ -19,8 +19,8 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
-import { cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
+import { cheDeployment, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
+import { DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
@@ -28,7 +28,7 @@ import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { getCommandSuccessMessage, initializeContext, isOpenshiftPlatformFamily } from '../../util'
+import { getCommandSuccessMessage, initializeContext, isOpenshiftPlatformFamily, readCRPatchFile } from '../../util'
 
 export default class Deploy extends Command {
   static description = 'start Eclipse Che server'
@@ -42,7 +42,6 @@ export default class Deploy extends Command {
     cheimage: string({
       char: 'i',
       description: 'Eclipse Che server container image',
-      default: DEFAULT_CHE_IMAGE,
       env: 'CHE_CONTAINER_IMAGE'
     }),
     templates: string({
@@ -80,7 +79,7 @@ export default class Deploy extends Command {
     }),
     tls: flags.boolean({
       char: 's',
-      description: `Enable TLS encryption.
+      description: `Deprecated. Enable TLS encryption.
                     Note, this option is turned on by default.
                     To provide own certificate for Kubernetes infrastructure, 'che-tls' secret with TLS certificate must be pre-created in the configured namespace.
                     In case of providing own self-signed certificate 'self-signed-certificate' secret should be also created.
@@ -123,10 +122,7 @@ export default class Deploy extends Command {
       description: 'Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer is the \'operator\' or the \'olm\'.',
       default: ''
     }),
-    'che-operator-cr-patch-yaml': string({
-      description: 'Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used only when the installer is the \'operator\' or the \'olm\'.',
-      default: ''
-    }),
+    [CHE_OPERATOR_CR_PATCH_YAML_KEY]: cheOperatorCRPatchYaml,
     directory: string({
       char: 'd',
       description: 'Directory to store logs into',
@@ -203,8 +199,8 @@ export default class Deploy extends Command {
     'dev-workspace-controller-namespace': devWorkspaceControllerNamespace
   }
 
-  async setPlaformDefaults(flags: any): Promise<void> {
-    flags.tls = await this.checkTlsMode(flags)
+  async setPlaformDefaults(flags: any, ctx: any): Promise<void> {
+    flags.tls = await this.checkTlsMode(flags, ctx)
 
     if (!flags.installer) {
       await this.setDefaultInstaller(flags)
@@ -247,15 +243,10 @@ export default class Deploy extends Command {
    * Checks if TLS is disabled via operator custom resource.
    * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
    */
-  async checkTlsMode(flags: any): Promise<boolean> {
-    if (flags['che-operator-cr-patch-yaml']) {
-      const cheOperatorCrPatchYamlPath = flags['che-operator-cr-patch-yaml']
-      if (fs.existsSync(cheOperatorCrPatchYamlPath)) {
-        const crPatch: any = yaml.safeLoad(fs.readFileSync(cheOperatorCrPatchYamlPath).toString())
-        if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
-          return false
-        }
-      }
+  async checkTlsMode(flags: any, ctx: any): Promise<boolean> {
+    const crPatch = ctx.CRPatch
+    if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
+      return false
     }
 
     if (flags['che-operator-cr-yaml']) {
@@ -274,7 +265,7 @@ export default class Deploy extends Command {
   checkPlatformCompatibility(flags: any) {
     if (flags.installer === 'operator' && flags['che-operator-cr-yaml']) {
       const ignoredFlags = []
-      flags['plugin-registry-url'] && ignoredFlags.push('--plugin-registry-urlomain')
+      flags['plugin-registry-url'] && ignoredFlags.push('--plugin-registry-url')
       flags['devfile-registry-url'] && ignoredFlags.push('--devfile-registry-url')
       flags['postgres-pvc-storage-class-name'] && ignoredFlags.push('--postgres-pvc-storage-class-name')
       flags['workspace-pvc-storage-class-name'] && ignoredFlags.push('--workspace-pvc-storage-class-name')
@@ -352,6 +343,7 @@ export default class Deploy extends Command {
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
     ctx.listrOptions = listrOptions
+    ctx.CRPatch = readCRPatchFile(flags, this)
 
     if (flags['self-signed-cert']) {
       this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
@@ -375,7 +367,7 @@ export default class Deploy extends Command {
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     })
 
-    await this.setPlaformDefaults(flags)
+    await this.setPlaformDefaults(flags, ctx)
     let installTasks = new Listr(installerTasks.installTasks(flags, this), listrOptions)
 
     const startDeployedCheTasks = new Listr([{

@@ -17,7 +17,7 @@ import * as notifier from 'node-notifier'
 import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
-import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { cheDeployment, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_CHE_OPERATOR_IMAGE, SUBSCRIPTION_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
@@ -25,7 +25,7 @@ import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { getCommandSuccessMessage, getImageTag, initializeContext, isKubernetesPlatformFamily } from '../../util'
+import { getCommandSuccessMessage, getImageTag, initializeContext, isKubernetesPlatformFamily, readCRPatchFile } from '../../util'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -60,6 +60,7 @@ export default class Update extends Command {
     'listr-renderer': listrRenderer,
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
     help: flags.help({ char: 'h' }),
+    [CHE_OPERATOR_CR_PATCH_YAML_KEY]: cheOperatorCRPatchYaml,
   }
 
   static getTemplatesDir(): string {
@@ -95,6 +96,7 @@ export default class Update extends Command {
     const ctx = initializeContext()
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
     ctx.listrOptions = listrOptions
+    ctx.CRPatch = readCRPatchFile(flags, this)
 
     const cheTasks = new CheTasks(flags)
     const kubeHelper = new KubeHelper(flags)
@@ -139,7 +141,7 @@ export default class Update extends Command {
         await platformCheckTasks.run(ctx)
         await preUpdateTasks.run(ctx)
 
-        if (!flags['skip-version-check'] && flags.installer === 'operator') {
+        if (!flags['skip-version-check']) {
           cli.info(`Existed Eclipse Che operator: ${ctx.deployedCheOperatorImage}:${ctx.deployedCheOperatorTag}.`)
           cli.info(`New Eclipse Che operator    : ${ctx.newCheOperatorImage}:${ctx.newCheOperatorTag}.`)
 
@@ -151,14 +153,15 @@ export default class Update extends Command {
 
           const cheCluster = await kubeHelper.getCheCluster(flags.chenamespace)
           if (cheCluster.spec.server.cheImage
+            || cheCluster.spec.server.cheImageTag
             || cheCluster.spec.server.devfileRegistryImage
             || cheCluster.spec.database.postgresImage
             || cheCluster.spec.server.pluginRegistryImage
             || cheCluster.spec.auth.identityProviderImage) {
-            cli.warn(`Eclipse Che operator won't update some components since their images are defined
-            in the '${cheCluster.metadata.name}' Custom Resource of the namespace '${flags.chenamespace}'
-            Please consider removing them from the Custom Resource when update is completed:`)
-            cheCluster.spec.server.cheImage && cli.warn(`Eclipse Che server [${cheCluster.spec.server.cheImage}:${cheCluster.spec.server.cheImageTag}]`)
+            cli.warn(`In order to update Eclipse Che the images defined in the '${cheCluster.metadata.name}'
+            Custom Resource of the namespace '${flags.chenamespace}' will be cleaned up:`)
+            cheCluster.spec.server.cheImageTag && cli.warn(`Eclipse Che server image tag [${cheCluster.spec.server.cheImageTag}]`)
+            cheCluster.spec.server.cheImage && cli.warn(`Eclipse Che server [${cheCluster.spec.server.cheImage}]`)
             cheCluster.spec.database.postgresImage && cli.warn(`Database [${cheCluster.spec.database.postgresImage}]`)
             cheCluster.spec.server.devfileRegistryImage && cli.warn(`Devfile registry [${cheCluster.spec.server.devfileRegistryImage}]`)
             cheCluster.spec.server.pluginRegistryImage && cli.warn(`Plugin registry [${cheCluster.spec.server.pluginRegistryImage}]`)

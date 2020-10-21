@@ -19,7 +19,7 @@ import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
+import { CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME, DEFAULT_CHE_IMAGE } from '../../constants'
 import { CertManagerTasks } from '../../tasks/component-installers/cert-manager'
 import { generatePassword, isStableVersion } from '../../util'
 
@@ -346,7 +346,8 @@ error: E_COMMAND_FAILED`)
     }
 
     setOptions.push(`--set global.ingressDomain=${flags.domain}`)
-    setOptions.push(`--set cheImage=${flags.cheimage}`)
+    const cheImage = flags.cheimage || DEFAULT_CHE_IMAGE
+    setOptions.push(`--set cheImage=${cheImage}`)
     setOptions.push(`--set che.disableProbes=${flags.debug}`)
 
     let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} ${setOptions.join(' ')} ${multiUserFlag} ${tlsFlag} ${destDir}`
