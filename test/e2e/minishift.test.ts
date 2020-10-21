@@ -7,6 +7,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
+
+ // tslint:disable: no-console
+
 import { expect, test } from '@oclif/test'
 import * as execa from 'execa'
 
@@ -42,6 +45,37 @@ describe('Eclipse Che deploy test suite', () => {
         console.log(error)
       }
     })
+})
+
+describe('Che server authentication', () => {
+  it('Should login in to Che server with username and password', async () => {
+    const cheApiEndpoint = await helper.OCHostname('che') + '/api'
+
+    const command = `${binChectl} auth:login`
+    const args = [cheApiEndpoint, '-u', 'admin', '-p', 'admin']
+
+    const { exitCode, stdout, stderr } = await execa(command, args, { timeout: 30000, shell: true })
+
+    expect(exitCode).equal(0)
+    console.log(stdout)
+
+    if (exitCode !== 0) {
+      console.log(stderr)
+    }
+  })
+
+  it('Should show current login session', async () => {
+    const command = `${binChectl} auth:get`
+
+    const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
+
+    expect(exitCode).equal(0)
+    console.log(stdout)
+
+    if (exitCode !== 0) {
+      console.log(stderr)
+    }
+  })
 })
 
 describe('Export CA certificate', () => {

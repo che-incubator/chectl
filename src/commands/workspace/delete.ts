@@ -12,13 +12,13 @@ import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
 import * as notifier from 'node-notifier'
 
-import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
+import { getLoginData } from '../../api/che-login-manager'
 import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
 
 export default class Delete extends Command {
-  static description = 'delete a stopped workspace - use workspace:stop to stop the workspace before deleting it'
+  static description = 'Delete a stopped workspace - use workspace:stop to stop the workspace before deleting it'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
@@ -45,27 +45,15 @@ export default class Delete extends Command {
 
     const workspaceId = args.workspace
 
-    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
-    if (!cheApiEndpoint) {
-      const kube = new KubeHelper(flags)
-      if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
-        throw new Error(`Eclipse Che API endpoint is required. Use flag --${CHE_API_ENDPOINT_KEY} to provide it.`)
-      }
-
-      const cheHelper = new CheHelper(flags)
-      cheApiEndpoint = await cheHelper.cheURL(flags.chenamespace) + '/api'
-    }
-
+    const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY])
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
-    await cheApiClient.checkCheApiEndpointUrl()
-
-    const workspace = await cheApiClient.getWorkspaceById(workspaceId, flags[ACCESS_TOKEN_KEY])
-    const infrastructureNamespace = workspace!.attributes!.infrastructureNamespace
-
-    await cheApiClient.deleteWorkspaceById(workspaceId, flags[ACCESS_TOKEN_KEY])
+    await cheApiClient.deleteWorkspaceById(workspaceId, accessToken)
     cli.log(`Workspace with id '${workspaceId}' deleted.`)
 
     if (flags['delete-namespace']) {
+      const workspace = await cheApiClient.getWorkspaceById(workspaceId, accessToken)
+      const infrastructureNamespace = workspace!.attributes!.infrastructureNamespace
+
       if (infrastructureNamespace === flags.chenamespace) {
         cli.warn(`It is not possible to delete namespace '${infrastructureNamespace}' since it is used for Eclipse Che deployment.`)
         return

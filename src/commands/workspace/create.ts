@@ -16,7 +16,7 @@ import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
-import { KubeHelper } from '../../api/kube'
+import { getLoginData } from '../../api/che-login-manager'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
 
 export default class Create extends Command {
@@ -54,20 +54,10 @@ export default class Create extends Command {
     const { flags } = this.parse(Create)
 
     const devfilePath = this.getDevfilePath(flags.devfile)
-    const accessToken = flags[ACCESS_TOKEN_KEY]
     const cheHelper = new CheHelper(flags)
 
-    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
-    if (!cheApiEndpoint) {
-      const kube = new KubeHelper(flags)
-      if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
-        throw new Error(`Eclipse Che API endpoint is required. Use flag --${CHE_API_ENDPOINT_KEY} to provide it.`)
-      }
-      cheApiEndpoint = await cheHelper.cheURL(flags.chenamespace) + '/api'
-    }
-
+    const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY])
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
-    await cheApiClient.checkCheApiEndpointUrl()
 
     let workspace = await cheHelper.createWorkspaceFromDevfile(cheApiEndpoint, devfilePath, flags.name, accessToken)
     const workspaceId = workspace.id!
