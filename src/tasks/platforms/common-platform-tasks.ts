@@ -110,7 +110,7 @@ export namespace CommonPlatformTasks {
       return crPatch.spec.auth.openShiftoAuth
     }
 
-    const customCR = ctx.CustomCR
+    const customCR = ctx.customCR
     if (customCR && customCR.spec && customCR.spec.auth && typeof customCR.spec.auth.openShiftoAuth === 'boolean') {
       return customCR.spec.auth.openShiftoAuth
     }

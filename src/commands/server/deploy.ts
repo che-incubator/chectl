@@ -245,7 +245,7 @@ export default class Deploy extends Command {
       return false
     }
 
-    const customCR = ctx.CustomCR
+    const customCR = ctx.customCR
     if (customCR && customCR.spec && customCR.spec.server && customCR.spec.server.tlsSupport === false) {
       return false
     }
@@ -334,7 +334,7 @@ export default class Deploy extends Command {
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
     ctx.listrOptions = listrOptions
-    ctx.CustomCR = readCRFile(flags, CHE_OPERATOR_CR_YAML_KEY , this)
+    ctx.customCR = readCRFile(flags, CHE_OPERATOR_CR_YAML_KEY , this)
     ctx.CRPatch = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY, this)
 
     if (flags['self-signed-cert']) {

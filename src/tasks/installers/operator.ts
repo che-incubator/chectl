@@ -166,7 +166,7 @@ export class OperatorTasks {
             return
           }
 
-          if (!ctx.CustomCR) {
+          if (!ctx.customCR) {
             const yamlFilePath = ctx.resourcesPath + 'crds/org_v1_che_cr.yaml'
             ctx.defaultCR = yaml.safeLoad(fs.readFileSync(yamlFilePath).toString())
           }

@@ -159,7 +159,7 @@ export class OLMTasks {
             return
           }
 
-          if (!ctx.CustomCR) {
+          if (!ctx.customCR) {
             ctx.defaultCR = await this.getCRFromCSV(kube, flags.chenamespace)
           }
 

@@ -64,7 +64,7 @@ async function copyCheOperatorResources(templatesDir: string, cacheDir: string):
 export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.ListrTask {
   return {
     title: `Create the Custom Resource of type ${CHE_CLUSTER_CRD} in the namespace ${flags.chenamespace}`,
-    enabled: ctx => !!ctx.CustomCR || !!ctx.defaultCR,
+    enabled: ctx => !!ctx.customCR || !!ctx.defaultCR,
     task: async (ctx: any, task: any) => {
       ctx.isCheDeployed = true
       ctx.isPostgresDeployed = true
@@ -74,8 +74,8 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
       ctx.isPluginRegistryDeployed = !(flags['plugin-registry-url'] as boolean)
       ctx.isDevfileRegistryDeployed = !(flags['devfile-registry-url'] as boolean)
 
-      const cheClusterCR = ctx.CustomCR || ctx.defaultCR
-      const cr = await kube.createCheCluster(cheClusterCR, flags, ctx, !ctx.CustomCR)
+      const cheClusterCR = ctx.customCR || ctx.defaultCR
+      const cr = await kube.createCheCluster(cheClusterCR, flags, ctx, !ctx.customCR)
 
       ctx.isKeycloakReady = ctx.isKeycloakReady || cr.spec.auth.externalIdentityProvider
       ctx.isPostgresReady = ctx.isPostgresReady || cr.spec.database.externalDb
