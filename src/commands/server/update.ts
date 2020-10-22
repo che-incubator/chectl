@@ -25,7 +25,7 @@ import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { getCommandSuccessMessage, getImageTag, initializeContext, isKubernetesPlatformFamily, readCRPatchFile } from '../../util'
+import { getCommandSuccessMessage, getImageTag, initializeContext, isKubernetesPlatformFamily, readCRFile } from '../../util'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -96,7 +96,7 @@ export default class Update extends Command {
     const ctx = initializeContext()
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
     ctx.listrOptions = listrOptions
-    ctx.CRPatch = readCRPatchFile(flags, this)
+    ctx.CRPatch = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY, this)
 
     const cheTasks = new CheTasks(flags)
     const kubeHelper = new KubeHelper(flags)

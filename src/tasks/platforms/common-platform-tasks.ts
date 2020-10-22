@@ -9,10 +9,8 @@
  **********************************************************************/
 
 import ansi = require('ansi-colors')
-import * as fs from 'fs-extra'
 import * as http from 'http'
 import * as https from 'https'
-import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
 
 import { KubeHelper } from '../../api/kube'
@@ -83,7 +81,7 @@ export namespace CommonPlatformTasks {
     let kube = new KubeHelper(flags)
     return {
       title: 'Verify Openshift oauth.',
-      enabled: ctx => isOpenshiftPlatformFamily(flags.platform) && isOAuthEnabled(flags, ctx),
+      enabled: ctx => isOpenshiftPlatformFamily(flags.platform) && isOAuthEnabled(ctx),
       task: async (ctx: any, task: any) => {
         if (await kube.isOpenShift4()) {
           const providers = await kube.getOpenshiftAuthProviders()
@@ -106,20 +104,15 @@ export namespace CommonPlatformTasks {
    * Checks if Openshift oAuth enabled in Che configuration.
    * Returns true if Openshift oAuth is enabled (or omitted) and false if it is explicitly disabled.
    */
-  function isOAuthEnabled(flags: any, ctx: any): boolean {
+  function isOAuthEnabled(ctx: any): boolean {
     const crPatch = ctx.CRPatch
     if (crPatch && crPatch.spec && crPatch.spec.auth && typeof crPatch.spec.auth.openShiftoAuth === 'boolean') {
       return crPatch.spec.auth.openShiftoAuth
     }
 
-    if (flags['che-operator-cr-yaml']) {
-      const cheOperatorCrYamlPath = flags['che-operator-cr-yaml']
-      if (fs.existsSync(cheOperatorCrYamlPath)) {
-        const cr: any = yaml.safeLoad(fs.readFileSync(cheOperatorCrYamlPath).toString())
-        if (cr && cr.spec && cr.spec.auth && typeof cr.spec.auth.openShiftoAuth === 'boolean') {
-          return cr.spec.auth.openShiftoAuth
-        }
-      }
+    const customCR = ctx.customCR
+    if (customCR && customCR.spec && customCR.spec.auth && typeof customCR.spec.auth.openShiftoAuth === 'boolean') {
+      return customCR.spec.auth.openShiftoAuth
     }
 
     return true

@@ -13,7 +13,6 @@ import * as commandExists from 'command-exists'
 import { existsSync, readFileSync } from 'fs-extra'
 import * as yaml from 'js-yaml'
 
-import { CHE_OPERATOR_CR_PATCH_YAML_KEY } from './common-flags'
 import { DEFAULT_CHE_OPERATOR_IMAGE } from './constants'
 
 export const KUBERNETES_CLI = 'kubectl'
@@ -111,21 +110,22 @@ export function initializeContext(): any {
 }
 
 /**
- * Returns CR patch file content. Throws an error, if file doesn't exist.
+ * Returns CR file content. Throws an error, if file doesn't exist.
  * @param flags - parent command flags
+ * @param CRKey - key for CR file flag
  * @param command - parent command
  */
-export function readCRPatchFile(flags: any, command: Command): any {
-  const cheOperatorCrPatchYamlPath = flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]
-  if (!cheOperatorCrPatchYamlPath) {
+export function readCRFile(flags: any, CRKey: string, command: Command): any {
+  const CRFilePath = flags[CRKey]
+  if (!CRFilePath) {
     return
   }
 
-  if (existsSync(cheOperatorCrPatchYamlPath)) {
-    return yaml.safeLoad(readFileSync(cheOperatorCrPatchYamlPath).toString())
+  if (existsSync(CRFilePath)) {
+    return yaml.safeLoad(readFileSync(CRFilePath).toString())
   }
 
-  command.error(`Unable to find patch file defined in the flag '--${CHE_OPERATOR_CR_PATCH_YAML_KEY}'`)
+  command.error(`Unable to find file defined in the flag '--${CRKey}'`)
 }
 
 /**

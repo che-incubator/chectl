@@ -60,6 +60,12 @@ export const cheOperatorCRPatchYaml = string({
   default: ''
 })
 
+export const CHE_OPERATOR_CR_YAML_KEY = 'che-operator-cr-yaml'
+export const cheOperatorCRYaml = string({
+  description: 'Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer is the \'operator\' or the \'olm\'.',
+  default: ''
+})
+
 export const USERNAME_KEY = 'username'
 export const username = string({
   char: 'u',

@@ -1261,9 +1261,7 @@ export class KubeHelper {
     }
   }
 
-  async createCheClusterFromFile(filePath: string, flags: any, ctx: any, useDefaultCR: boolean): Promise<any> {
-    let yamlCr = this.safeLoadFromYamlFile(filePath)
-
+  async createCheCluster(cheClusterCR: any, flags: any, ctx: any, useDefaultCR: boolean): Promise<any> {
     const cheNamespace = flags.chenamespace
     if (useDefaultCR) {
       // If we don't use an explicitly provided CheCluster CR,
@@ -1272,70 +1270,70 @@ export class KubeHelper {
       const cheImage = flags.cheimage
       if (cheImage) {
         const imageAndTag = cheImage.split(':', 2)
-        yamlCr.spec.server.cheImage = imageAndTag[0]
-        yamlCr.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
+        cheClusterCR.spec.server.cheImage = imageAndTag[0]
+        cheClusterCR.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
       }
 
       if ((flags.installer === 'olm' && !flags['catalog-source-yaml']) || (flags['catalog-source-yaml'] && flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME)) {
         // use default image tag for `olm` to install stable Che, because we don't have nightly channel for OLM catalog.
-        yamlCr.spec.server.cheImageTag = ''
+        cheClusterCR.spec.server.cheImageTag = ''
       }
-      yamlCr.spec.server.cheDebug = flags.debug ? flags.debug.toString() : 'false'
+      cheClusterCR.spec.server.cheDebug = flags.debug ? flags.debug.toString() : 'false'
 
-      if (isKubernetesPlatformFamily(flags.platform) || !yamlCr.spec.auth.openShiftoAuth) {
-        yamlCr.spec.auth.updateAdminPassword = true
+      if (isKubernetesPlatformFamily(flags.platform) || !cheClusterCR.spec.auth.openShiftoAuth) {
+        cheClusterCR.spec.auth.updateAdminPassword = true
       }
 
-      if (!yamlCr.spec.k8s) {
-        yamlCr.spec.k8s = {}
+      if (!cheClusterCR.spec.k8s) {
+        cheClusterCR.spec.k8s = {}
       }
       if (flags.tls) {
-        yamlCr.spec.server.tlsSupport = flags.tls
-        if (!yamlCr.spec.k8s.tlsSecretName) {
-          yamlCr.spec.k8s.tlsSecretName = 'che-tls'
+        cheClusterCR.spec.server.tlsSupport = flags.tls
+        if (!cheClusterCR.spec.k8s.tlsSecretName) {
+          cheClusterCR.spec.k8s.tlsSecretName = 'che-tls'
         }
       }
       if (flags.domain) {
-        yamlCr.spec.k8s.ingressDomain = flags.domain
+        cheClusterCR.spec.k8s.ingressDomain = flags.domain
       }
       const pluginRegistryUrl = flags['plugin-registry-url']
       if (pluginRegistryUrl) {
-        yamlCr.spec.server.pluginRegistryUrl = pluginRegistryUrl
-        yamlCr.spec.server.externalPluginRegistry = true
+        cheClusterCR.spec.server.pluginRegistryUrl = pluginRegistryUrl
+        cheClusterCR.spec.server.externalPluginRegistry = true
       }
       const devfileRegistryUrl = flags['devfile-registry-url']
       if (devfileRegistryUrl) {
-        yamlCr.spec.server.devfileRegistryUrl = devfileRegistryUrl
-        yamlCr.spec.server.externalDevfileRegistry = true
+        cheClusterCR.spec.server.devfileRegistryUrl = devfileRegistryUrl
+        cheClusterCR.spec.server.externalDevfileRegistry = true
       }
 
-      yamlCr.spec.storage.postgresPVCStorageClassName = flags['postgres-pvc-storage-class-name']
-      yamlCr.spec.storage.workspacePVCStorageClassName = flags['workspace-pvc-storage-class-name']
+      cheClusterCR.spec.storage.postgresPVCStorageClassName = flags['postgres-pvc-storage-class-name']
+      cheClusterCR.spec.storage.workspacePVCStorageClassName = flags['workspace-pvc-storage-class-name']
 
       if (flags.cheimage === DEFAULT_CHE_IMAGE &&
-        yamlCr.spec.server.cheImageTag !== 'nightly' &&
-        yamlCr.spec.server.cheImageTag !== 'latest') {
+        cheClusterCR.spec.server.cheImageTag !== 'nightly' &&
+        cheClusterCR.spec.server.cheImageTag !== 'latest') {
         // We obviously are using a release version of chectl with the default `cheimage`
         // => We should use the operator defaults for docker images
-        yamlCr.spec.server.cheImage = ''
-        yamlCr.spec.server.cheImageTag = ''
-        yamlCr.spec.server.pluginRegistryImage = ''
-        yamlCr.spec.server.devfileRegistryImage = ''
-        yamlCr.spec.auth.identityProviderImage = ''
+        cheClusterCR.spec.server.cheImage = ''
+        cheClusterCR.spec.server.cheImageTag = ''
+        cheClusterCR.spec.server.pluginRegistryImage = ''
+        cheClusterCR.spec.server.devfileRegistryImage = ''
+        cheClusterCR.spec.auth.identityProviderImage = ''
       }
     }
 
     // override default values
     if (ctx.CRPatch) {
-      merge(yamlCr, ctx.CRPatch)
+      merge(cheClusterCR, ctx.CRPatch)
     }
 
     // Back off some configuration properties(chectl estimated them like not working or not desired)
-    merge(yamlCr, ctx.CROverrides)
+    merge(cheClusterCR, ctx.CROverrides)
 
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', cheNamespace, 'checlusters', yamlCr)
+      const { body } = await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', cheNamespace, 'checlusters', cheClusterCR)
       return body
     } catch (e) {
       throw this.wrapK8sClientError(e)
@@ -1723,7 +1721,7 @@ export class KubeHelper {
           if (installPlan.status && installPlan.status.conditions) {
             for (const condition of installPlan.status.conditions) {
               if (condition.type === 'Installed' && condition.status === 'True') {
-                resolve()
+                resolve(installPlan)
               }
             }
           }
@@ -1739,6 +1737,11 @@ export class KubeHelper {
         reject(`Timeout reached while waiting for "${installPlanName}" has go status 'Installed'.`)
       }, timeout * 1000)
     })
+  }
+
+  async getCSV(csvName: string, namespace: string): Promise<ClusterServiceVersion | undefined> {
+    const csvs = await this.getClusterServiceVersions(namespace)
+    return csvs.items.find(item => item.metadata.name === csvName)
   }
 
   async getClusterServiceVersions(namespace: string): Promise<ClusterServiceVersionList> {

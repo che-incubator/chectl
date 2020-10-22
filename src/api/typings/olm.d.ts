@@ -43,6 +43,7 @@ export interface SubscriptionSpec {
 export interface SubscriptionStatus {
   conditions: SubscriptionStatusCondition[]
   currentCSV: string
+  installedCSV?: string
   installplan: InstallPlan
   state: string
 }
@@ -119,7 +120,7 @@ export interface CatalogSourceSpec {
   mediatype?: string
   sourceType: string
   image: string
-  updateStrategy: CatalogSourceUpdateStrategy
+  updateStrategy?: CatalogSourceUpdateStrategy
 }
 
 export interface CatalogSourceUpdateStrategy {

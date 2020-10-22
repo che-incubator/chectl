@@ -64,33 +64,29 @@ async function copyCheOperatorResources(templatesDir: string, cacheDir: string):
 export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.ListrTask {
   return {
     title: `Create the Custom Resource of type ${CHE_CLUSTER_CRD} in the namespace ${flags.chenamespace}`,
+    enabled: ctx => !!ctx.customCR || !!ctx.defaultCR,
     task: async (ctx: any, task: any) => {
-      const cheCluster = await kube.getCheCluster(flags.chenamespace)
-      if (cheCluster) {
-        task.title = `${task.title}...It already exists.`
-      } else {
-        ctx.isCheDeployed = true
-        ctx.isPostgresDeployed = true
-        ctx.isKeycloakDeployed = true
+      ctx.isCheDeployed = true
+      ctx.isPostgresDeployed = true
+      ctx.isKeycloakDeployed = true
 
-        // plugin and devfile registry will be deployed only when external ones are not configured
-        ctx.isPluginRegistryDeployed = !(flags['plugin-registry-url'] as boolean)
-        ctx.isDevfileRegistryDeployed = !(flags['devfile-registry-url'] as boolean)
+      // plugin and devfile registry will be deployed only when external ones are not configured
+      ctx.isPluginRegistryDeployed = !(flags['plugin-registry-url'] as boolean)
+      ctx.isDevfileRegistryDeployed = !(flags['devfile-registry-url'] as boolean)
 
-        const yamlFilePath = flags['che-operator-cr-yaml'] === '' ? ctx.resourcesPath + 'crds/org_v1_che_cr.yaml' : flags['che-operator-cr-yaml']
-        const cr = await kube.createCheClusterFromFile(yamlFilePath, flags, ctx, flags['che-operator-cr-yaml'] === '')
-        ctx.cr = cr
-        ctx.isKeycloakReady = ctx.isKeycloakReady || cr.spec.auth.externalIdentityProvider
-        ctx.isPostgresReady = ctx.isPostgresReady || cr.spec.database.externalDb
-        ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || cr.spec.server.externalDevfileRegistry
-        ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || cr.spec.server.externalPluginRegistry
+      const cheClusterCR = ctx.customCR || ctx.defaultCR
+      const cr = await kube.createCheCluster(cheClusterCR, flags, ctx, !ctx.customCR)
 
-        if (cr.spec.server.customCheProperties && cr.spec.server.customCheProperties.CHE_MULTIUSER === 'false') {
-          flags.multiuser = false
-        }
+      ctx.isKeycloakReady = ctx.isKeycloakReady || cr.spec.auth.externalIdentityProvider
+      ctx.isPostgresReady = ctx.isPostgresReady || cr.spec.database.externalDb
+      ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || cr.spec.server.externalDevfileRegistry
+      ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || cr.spec.server.externalPluginRegistry
 
-        task.title = `${task.title}...done.`
+      if (cr.spec.server.customCheProperties && cr.spec.server.customCheProperties.CHE_MULTIUSER === 'false') {
+        flags.multiuser = false
       }
+
+      task.title = `${task.title}...done.`
     }
   }
 }
