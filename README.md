@@ -81,6 +81,12 @@ USAGE
 ```
 # Commands
 <!-- commands -->
+* [`chectl auth:delete CHE-API-ENDPOINT`](#chectl-authdelete-che-api-endpoint)
+* [`chectl auth:get`](#chectl-authget)
+* [`chectl auth:list`](#chectl-authlist)
+* [`chectl auth:login [CHE-API-ENDPOINT]`](#chectl-authlogin-che-api-endpoint)
+* [`chectl auth:logout`](#chectl-authlogout)
+* [`chectl auth:use [CHE-API-ENDPOINT]`](#chectl-authuse-che-api-endpoint)
 * [`chectl autocomplete [SHELL]`](#chectl-autocomplete-shell)
 * [`chectl cacert:export`](#chectl-cacertexport)
 * [`chectl dashboard:open`](#chectl-dashboardopen)
@@ -101,6 +107,142 @@ USAGE
 * [`chectl workspace:logs`](#chectl-workspacelogs)
 * [`chectl workspace:start WORKSPACE`](#chectl-workspacestart-workspace)
 * [`chectl workspace:stop WORKSPACE`](#chectl-workspacestop-workspace)
+
+## `chectl auth:delete CHE-API-ENDPOINT`
+
+Delete specified login session(s)
+
+```
+USAGE
+  $ chectl auth:delete CHE-API-ENDPOINT
+
+ARGUMENTS
+  CHE-API-ENDPOINT  Eclipse Che server API endpoint
+
+OPTIONS
+  -h, --help               show CLI help
+  -u, --username=username  Eclipse Che username
+
+EXAMPLES
+  # Delete login session of the specified user on the cluster:
+  chectl auth:delete che-che.apps-crc.testing/api -u username
+
+
+  # Delete all login sessions on the cluster:
+  chectl auth:delete che-che.apps-crc.testing
+```
+
+_See code: [src/commands/auth/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/delete.ts)_
+
+## `chectl auth:get`
+
+Display active login session
+
+```
+USAGE
+  $ chectl auth:get
+```
+
+_See code: [src/commands/auth/get.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/get.ts)_
+
+## `chectl auth:list`
+
+Show all existing login sessions
+
+```
+USAGE
+  $ chectl auth:list
+```
+
+_See code: [src/commands/auth/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/list.ts)_
+
+## `chectl auth:login [CHE-API-ENDPOINT]`
+
+Log in to Eclipse Che server
+
+```
+USAGE
+  $ chectl auth:login [CHE-API-ENDPOINT]
+
+ARGUMENTS
+  CHE-API-ENDPOINT  Eclipse Che server API endpoint
+
+OPTIONS
+  -h, --help                         show CLI help
+
+  -n, --chenamespace=chenamespace    [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
+                                     deployed
+
+  -p, --password=password            Eclipse Che user password
+
+  -t, --refresh-token=refresh-token  Keycloak refresh token
+
+  -u, --username=username            Eclipse Che username
+
+EXAMPLES
+  # Log in with username and password (when OpenShift OAuth is not enabled):
+  chectl auth:login https://che-che.apps-crc.testing/api -u username -p password
+
+
+  # Log in with username and password (password will be asked interactively):
+  chectl auth:login che-che.apps-crc.testing -u username
+
+
+  # Log in with token (when OpenShift OAuth is enabled):
+  chectl auth:login che.openshift.io -t token
+
+
+  # Log in with oc token (when logged into an OpenShift cluster with oc and OpenShift OAuth is enabled):
+  chectl auth:login che.my.server.net
+```
+
+_See code: [src/commands/auth/login.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/login.ts)_
+
+## `chectl auth:logout`
+
+Log out of the active login session
+
+```
+USAGE
+  $ chectl auth:logout
+```
+
+_See code: [src/commands/auth/logout.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/logout.ts)_
+
+## `chectl auth:use [CHE-API-ENDPOINT]`
+
+Set active login session
+
+```
+USAGE
+  $ chectl auth:use [CHE-API-ENDPOINT]
+
+ARGUMENTS
+  CHE-API-ENDPOINT  Eclipse Che server API endpoint
+
+OPTIONS
+  -h, --help               show CLI help
+  -i, --interactive        Select an active login session in interactive mode
+  -u, --username=username  Eclipse Che username
+
+EXAMPLES
+  # Set an active login session for the specified user on the given cluster:
+  chectl auth:use che-che.apps-crc.testing/api -u username
+
+
+  # Switch to another user on the same cluster:
+  chectl auth:use -u another-user-on-this-server
+
+
+  # Switch to the only user on the given cluster:
+  chectl auth:use my.cluster.net
+
+
+  # Select an active login session in interactive mode:
+  chectl auth:use -i
+```
+
+_See code: [src/commands/auth/use.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/use.ts)_
 
 ## `chectl autocomplete [SHELL]`
 
@@ -136,12 +278,12 @@ USAGE
 OPTIONS
   -d, --destination=destination
       Destination where to store Che self-signed CA certificate.
-                           If the destination is a file (might not exist), then the certificate will be saved there in PEM
+                           If the destination is a file (might not exist), then the certificate will be saved there in PEM 
       format.
-                           If the destination is a directory, then cheCA.crt file will be created there with Che
+                           If the destination is a directory, then cheCA.crt file will be created there with Che 
       certificate in PEM format.
-                           If this option is ommited, then Che certificate will be stored in user's home directory as
-      cheCA.crt
+                           If this option is omitted, then Che certificate will be stored in a user's temporary directory 
+      as cheCA.crt.
 
   -h, --help
       show CLI help
@@ -291,7 +433,7 @@ OPTIONS
 
   -b, --domain=domain
       Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
-                           This flag makes sense only for Kubernetes family infrastructures and will be autodetected for
+                           This flag makes sense only for Kubernetes family infrastructures and will be autodetected for 
       Minikube and MicroK8s in most cases.
                            However, for Kubernetes cluster it is required to specify.
                            Please note, that just setting this flag will not likely work out of the box.
@@ -317,18 +459,18 @@ OPTIONS
       (required) [default: 40000] Eclipse Che server bootstrap timeout (in milliseconds)
 
   -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc
-      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc
+      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc 
       (for CodeReady Containers)", "microk8s".
 
   -s, --tls
       Deprecated. Enable TLS encryption.
                            Note, this option is turned on by default.
-                           To provide own certificate for Kubernetes infrastructure, 'che-tls' secret with TLS certificate
+                           To provide own certificate for Kubernetes infrastructure, 'che-tls' secret with TLS certificate 
       must be pre-created in the configured namespace.
-                           In case of providing own self-signed certificate 'self-signed-certificate' secret should be
+                           In case of providing own self-signed certificate 'self-signed-certificate' secret should be 
       also created.
                            For OpenShift, router will use default cluster certificates.
-                           Please see the docs how to deploy Eclipse Che on different infrastructures:
+                           Please see the docs how to deploy Eclipse Che on different infrastructures: 
       https://www.eclipse.org/che/docs/che-7/overview/running-che-locally/
 
   -t, --templates=templates
@@ -338,7 +480,7 @@ OPTIONS
       Auto update approval strategy for installation Eclipse Che.
                            With this strategy will be provided auto-update Eclipse Che without any human interaction.
                            By default strategy this flag is false. It requires approval from user.
-                           To approve installation newer version Eclipse Che user should execute 'chectl server:update'
+                           To approve installation newer version Eclipse Che user should execute 'chectl server:update' 
       command.
                            This parameter is used only when the installer is 'olm'.
 
@@ -357,30 +499,30 @@ OPTIONS
                            This parameter is used only when the installer is the 'olm'.
 
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
-      Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used
+      Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used 
       only when the installer is the 'operator' or the 'olm'.
 
   --che-operator-cr-yaml=che-operator-cr-yaml
-      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer
+      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer 
       is the 'operator' or the 'olm'.
 
   --che-operator-image=che-operator-image
-      [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when
+      [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when 
       the installer is the operator
 
   --debug
-      Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug'
+      Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug' 
       command.
 
   --deployment-name=deployment-name
       [default: che] Eclipse Che deployment name
 
   --dev-workspace-controller-image=dev-workspace-controller-image
-      [default: quay.io/devfile/devworkspace-controller:next] Container image of the dev workspace controller. This
+      [default: quay.io/devfile/devworkspace-controller:next] Container image of the dev workspace controller. This 
       parameter is used only when the workspace engine is the DevWorkspace
 
   --dev-workspace-controller-namespace=dev-workspace-controller-namespace
-      [default: devworkspace-controller] Namespace for the DevWorkspace controller.  This parameter is used only when the
+      [default: devworkspace-controller] Namespace for the DevWorkspace controller.  This parameter is used only when the 
       workspace engine is the DevWorkspace
 
   --devfile-registry-url=devfile-registry-url
@@ -427,7 +569,7 @@ OPTIONS
                            Flags uses to set up start installation version Che.
                            For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
                            Then OLM will install Eclipse Che with version 7.10.0.
-                           Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs
+                           Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs 
       the latest known version.
                            This parameter is used only when the installer is 'olm'.
 
@@ -500,9 +642,9 @@ OPTIONS
       [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
 
   --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and
+      authenticating-to-the-che-server and 
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
 
@@ -513,7 +655,7 @@ OPTIONS
       [default: che] Eclipse Che deployment name
 
   --dev-workspace-controller-namespace=dev-workspace-controller-namespace
-      [default: devworkspace-controller] Namespace for the DevWorkspace controller.  This parameter is used only when the
+      [default: devworkspace-controller] Namespace for the DevWorkspace controller.  This parameter is used only when the 
       workspace engine is the DevWorkspace
 
   --listr-renderer=default|silent|verbose
@@ -597,7 +739,7 @@ USAGE
 
 OPTIONS
   -d, --debug
-      Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup. This
+      Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup. This 
       flag is used in conjunction with --start flag.
 
   -f, --devfile=devfile
@@ -613,9 +755,9 @@ OPTIONS
       Starts the workspace after creation
 
   --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and
+      authenticating-to-the-che-server and 
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
 
@@ -633,7 +775,7 @@ _See code: [src/commands/workspace/create.ts](https://github.com/che-incubator/c
 
 ## `chectl workspace:delete WORKSPACE`
 
-delete a stopped workspace - use workspace:stop to stop the workspace before deleting it
+Delete a stopped workspace - use workspace:stop to stop the workspace before deleting it
 
 ```
 USAGE
@@ -650,9 +792,9 @@ OPTIONS
       [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
 
   --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and
+      authenticating-to-the-che-server and 
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
 
@@ -670,7 +812,7 @@ _See code: [src/commands/workspace/delete.ts](https://github.com/che-incubator/c
 
 ## `chectl workspace:inject`
 
-inject configurations and tokens in a workspace
+Inject configurations and tokens in a workspace
 
 ```
 USAGE
@@ -694,9 +836,9 @@ OPTIONS
                            Use workspace:list command to get all workspaces and their statuses.
 
   --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and
+      authenticating-to-the-che-server and 
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
 
@@ -714,7 +856,7 @@ _See code: [src/commands/workspace/inject.ts](https://github.com/che-incubator/c
 
 ## `chectl workspace:list`
 
-list workspaces
+List workspaces
 
 ```
 USAGE
@@ -728,9 +870,9 @@ OPTIONS
       [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
 
   --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and
+      authenticating-to-the-che-server and 
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
 
@@ -787,9 +929,9 @@ OPTIONS
       [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
 
   --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and
+      authenticating-to-the-che-server and 
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
 
@@ -821,9 +963,9 @@ OPTIONS
       [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
 
   --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token:
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and
+      authenticating-to-the-che-server and 
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
 
