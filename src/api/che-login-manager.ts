@@ -9,7 +9,7 @@
  **********************************************************************/
 
 import axios, { AxiosInstance } from 'axios'
-import * as fs from 'fs'
+import * as fs from 'fs-extra'
 import * as https from 'https'
 import * as path from 'path'
 import * as querystring from 'querystring'
@@ -141,7 +141,7 @@ export class CheServerLoginManager {
    */
   static async getInstance(configDirPath: string): Promise<CheServerLoginManager> {
     if (!fs.existsSync(configDirPath)) {
-      fs.mkdirSync(configDirPath)
+      fs.mkdirsSync(configDirPath)
     }
     const dataFilePath = path.join(configDirPath, LOGIN_DATA_FILE_NAME)
     if (loginContext && loginContext.dataFilePath === dataFilePath) {
