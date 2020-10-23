@@ -138,12 +138,16 @@ export function retrieveCheCaCertificateTask(flags: any): Listr.ListrTask {
     enabled: () => flags.tls && flags.installer !== 'helm',
     task: async (ctx: any, task: any) => {
       const che = new CheHelper(flags)
+      const kube = new KubeHelper()
       const cheCaCert = await che.retrieveCheCaCert(flags.chenamespace)
       if (cheCaCert) {
         const targetFile = await che.saveCheCaCert(cheCaCert)
 
         task.title = `${task.title}... done`
-        ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(targetFile))
+        const cheConfigMap = await kube.getConfigMap('che', flags.chenamespace)
+        if (cheConfigMap && cheConfigMap.data && cheConfigMap.data.CHE_INFRA_KUBERNETES_SERVER__STRATEGY !== 'single-host') {
+          ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(targetFile))
+        }
       } else {
         task.title = `${task.title}... commonly trusted certificate is used.`
       }
