@@ -35,16 +35,6 @@ describe('Eclipse Che deploy test suite', () => {
       }
     })
   })
-  test
-    .it('Obtain access_token from keycloak and set it like environment variable.', async () => {
-      try {
-        const token = await helper.getAccessToken(PLATFORM)
-        process.env.CHE_ACCESS_TOKEN = token
-        console.log(token)
-      } catch (error) {
-        console.log(error)
-      }
-    })
 })
 
 describe('Che server authentication', () => {
@@ -174,8 +164,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
   describe('Delete Workspace', () => {
     it('Delete a workspace using execa library', async () => {
       const workspaceId = await helper.getWorkspaceId(PLATFORM)
-      const token = await helper.getAccessToken(PLATFORM)
-      const command = `${binChectl} workspace:delete ${workspaceId} --access-token=${token}`
+      const command = `${binChectl} workspace:delete ${workspaceId}`
 
       const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
       expect(exitCode).equal(0)
@@ -190,8 +179,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
 
   describe('Stop Eclipse Che Server', () => {
     it('server:stop command coverage', async () => {
-      const token = await helper.getAccessToken(PLATFORM)
-      const command = `${binChectl} server:stop --access-token=${token} --skip-kubernetes-health-check`
+      const command = `${binChectl} server:stop --skip-kubernetes-health-check`
       const { exitCode, stdout, stderr } = await execa(command, { shell: true })
 
       expect(exitCode).equal(0)

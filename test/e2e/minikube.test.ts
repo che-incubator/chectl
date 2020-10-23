@@ -28,16 +28,6 @@ describe('Eclipse Che deploy test suite', () => {
       .command(['server:deploy', '--platform=minikube', '--che-operator-cr-patch-yaml=test/e2e/util/cr-test.yaml', '--tls', '--installer=operator', '--skip-cluster-availability-check'])
       .exit(0)
       .it('uses minikube as platform, operator as installer and auth is enabled')
-    test
-      .it('Obtain access_token from keycloak.', async () => {
-        try {
-          const token = await helper.getAccessToken(PLATFORM)
-          process.env.CHE_ACCESS_TOKEN = token
-          console.log(token)
-        } catch (error) {
-          console.log(error)
-        }
-      })
   })
 })
 

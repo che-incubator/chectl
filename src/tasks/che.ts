@@ -12,10 +12,11 @@ import * as Listr from 'listr'
 
 import { CheHelper } from '../api/che'
 import { CheApiClient } from '../api/che-api-client'
+import { CheServerLoginManager } from '../api/che-login-manager'
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
 import { VersionHelper } from '../api/version'
-import { DOC_LINK, DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH, DOC_LINK_RELEASE_NOTES } from '../constants'
+import { DOC_LINK, DOC_LINK_RELEASE_NOTES } from '../constants'
 
 import { OperatorTasks } from './installers/operator'
 import { KubeTasks } from './kube'
@@ -31,7 +32,7 @@ export class CheTasks {
 
   cheNamespace: string
 
-  cheAccessToken: string
+  cheAccessToken: string | undefined
   cheSelector = 'app=che,component=che'
   cheDeploymentName: string
 
@@ -261,7 +262,12 @@ export class CheTasks {
         try {
           const cheURL = await this.che.cheURL(this.cheNamespace)
           const cheApi = CheApiClient.getInstance(cheURL + '/api')
-          await cheApi.startCheServerShutdown(this.cheAccessToken)
+          let cheAccessToken = this.cheAccessToken
+          if (!cheAccessToken && await cheApi.isAuthenticationEnabled()) {
+            const loginManager = await CheServerLoginManager.getInstance(command.config.configDir)
+            cheAccessToken = await loginManager.getNewAccessToken()
+          }
+          await cheApi.startCheServerShutdown(cheAccessToken)
           await cheApi.waitUntilCheServerReadyToShutdown()
           task.title = `${task.title}...done`
         } catch (error) {
@@ -670,20 +676,4 @@ export class CheTasks {
     ]
   }
 
-  checkIsAuthenticationEnabled(): ReadonlyArray<Listr.ListrTask> {
-    return [
-      {
-        title: 'Checking authentication',
-        task: async (ctx: any, task: any) => {
-          const cheApi = CheApiClient.getInstance(ctx.cheURL + '/api')
-          ctx.isAuthEnabled = await cheApi.isAuthenticationEnabled()
-          if (ctx.isAuthEnabled && !this.cheAccessToken) {
-            throw new Error('E_AUTH_REQUIRED - Eclipse Che authentication is enabled and an access token is needed to be provided (flag --access-token). ' +
-              `See the documentation how to obtain token: ${DOC_LINK_OBTAIN_ACCESS_TOKEN} and ${DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH}.`)
-          }
-          task.title = `${task.title}... ${ctx.isAuthEnabled ? '(auth enabled)' : '(auth disabled)'}`
-        }
-      }
-    ]
-  }
 }

@@ -9,12 +9,10 @@
  **********************************************************************/
 
 import { che as chetypes } from '@eclipse-che/api'
-import axios, { AxiosInstance } from 'axios'
-import { Agent } from 'https'
-import { stringify } from 'querystring'
 
 import { CheHelper } from '../../../src/api/che'
 import { CheApiClient } from '../../../src/api/che-api-client'
+import { CheServerLoginManager } from '../../../src/api/che-login-manager'
 import { KubeHelper } from '../../../src/api/kube'
 import { OpenShiftHelper } from '../../../src/api/openshift'
 
@@ -24,45 +22,12 @@ export class E2eHelper {
   protected che: CheHelper
   protected oc: OpenShiftHelper
   protected devfileName: string
-  private readonly axios: AxiosInstance
 
   constructor() {
     this.kubeHelper = new KubeHelper({})
     this.che = new CheHelper({})
     this.devfileName = 'e2e-tests'
     this.oc = new OpenShiftHelper()
-    const httpsAgent = new Agent({ rejectUnauthorized: false })
-
-    this.axios = axios.create({
-      httpsAgent
-    })
-  }
-
-  // Return `access_token` from OC/K8s. Receive the platform where che is deployed
-  async getAccessToken(platform: string): Promise<string> {
-    const params = {
-      client_id: 'che-public',
-      username: 'admin',
-      password: 'admin',
-      grant_type: 'password'
-    }
-    try {
-      if (platform === 'openshift') {
-        const keycloakUrl = await this.OCHostname('keycloak')
-        const endpoint = `${keycloakUrl}/auth/realms/che/protocol/openid-connect/token`
-        const accessToken = await this.axios.post(endpoint, stringify(params))
-
-        return accessToken.data.access_token
-      } else {
-        const keycloakUrl = await this.K8SHostname('keycloak')
-        const endpoint = `${keycloakUrl}/auth/realms/che/protocol/openid-connect/token`
-        const accessToken = await this.axios.post(endpoint, stringify(params))
-
-        return accessToken.data.access_token
-      }
-    } catch (error) {
-      return error
-    }
   }
 
   //Return an array with all workspaces
@@ -74,17 +39,19 @@ export class E2eHelper {
       cheApiEndpoint = await this.K8SHostname('che') + '/api'
     }
 
-    return CheApiClient.getInstance(cheApiEndpoint).getAllWorkspaces(process.env.CHE_ACCESS_TOKEN)
+    // Login manager is always present as it is invoked first in the actual chectl command
+    const cheLoginManager = (await CheServerLoginManager.getInstance())!
+    const accessToken = await cheLoginManager.getNewAccessToken()
+    return CheApiClient.getInstance(cheApiEndpoint).getAllWorkspaces(accessToken)
   }
 
-  // Return an id of test workspaces(e2e-tests. Please look devfile-example.yaml file)
+  // Return id of test workspaces(e2e-tests. Please look devfile-example.yaml file)
   async getWorkspaceId(platform: string): Promise<any> {
     const workspaces = await this.getAllWorkspaces(platform)
     const workspaceId = workspaces.filter((wks => wks!.devfile!.metadata!.name === this.devfileName)).map(({ id }) => id)[0]
 
     if (!workspaceId) {
       throw Error('Error getting workspaceId')
-
     }
 
     return workspaceId

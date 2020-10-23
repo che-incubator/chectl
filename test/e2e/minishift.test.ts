@@ -35,16 +35,6 @@ describe('Eclipse Che deploy test suite', () => {
       }
     })
   })
-  test
-    .it('Obtain access_token from keycloak and set it like environment variable.', async () => {
-      try {
-        const token = await helper.getAccessToken(PLATFORM)
-        process.env.CHE_ACCESS_TOKEN = token
-        console.log(token)
-      } catch (error) {
-        console.log(error)
-      }
-    })
 })
 
 describe('Che server authentication', () => {
