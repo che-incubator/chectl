@@ -532,6 +532,10 @@ export async function getLoginData(configDir: string, cheApiEndpoint?: string, a
     }
     // Single user mode, proceed without token
   } else {
+    if (accessToken !== undefined) {
+      throw new Error('Eclipse Che server API endpoint is required. Use \'--che-api-endpoint\' to provide it.')
+    }
+
     // Use login manager to get Che API URL and token
     const loginManager = await CheServerLoginManager.getInstance(configDir)
     cheApiEndpoint = loginManager.getCurrentServerApiUrl()
