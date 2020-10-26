@@ -144,8 +144,8 @@ export function retrieveCheCaCertificateTask(flags: any): Listr.ListrTask {
         const targetFile = await che.saveCheCaCert(cheCaCert)
 
         task.title = `${task.title}... done`
-        const cheConfigMap = await kube.getConfigMap('che', flags.chenamespace)
-        if (cheConfigMap && cheConfigMap.data && cheConfigMap.data.CHE_INFRA_KUBERNETES_SERVER__STRATEGY !== 'single-host') {
+        const serverStrategy = await kube.getConfigMapValue('che', flags.chenamespace, 'CHE_INFRA_KUBERNETES_SERVER__STRATEGY')
+        if (serverStrategy !== 'single-host') {
           ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(targetFile))
         }
       } else {

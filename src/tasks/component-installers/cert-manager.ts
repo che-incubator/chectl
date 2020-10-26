@@ -174,8 +174,8 @@ export class CertManagerTasks {
             // We need to put self-signed CA certificate separately into CHE_ROOT_CA_SECRET_NAME secret
             await this.kubeHelper.createSecret(CHE_ROOT_CA_SECRET_NAME, { 'ca.crt': cheCaCrt }, flags.chenamespace)
 
-            const cheConfigMap = await this.kubeHelper.getConfigMap('che', flags.chenamespace)
-            if (cheConfigMap && cheConfigMap.data && cheConfigMap.data.CHE_INFRA_KUBERNETES_SERVER__STRATEGY !== 'single-host') {
+            const serverStrategy = await this.kubeHelper.getConfigMapValue('che', flags.chenamespace, 'CHE_INFRA_KUBERNETES_SERVER__STRATEGY')
+            if (serverStrategy !== 'single-host') {
               ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(cheCaCertPath))
             }
             task.title = `${task.title}... done`
