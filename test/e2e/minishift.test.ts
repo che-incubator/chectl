@@ -18,7 +18,6 @@ import { E2eHelper } from './util/e2e'
 const helper = new E2eHelper()
 jest.setTimeout(1000000)
 
-const PLATFORM = 'openshift'
 const binChectl = `${process.cwd()}/bin/run`
 
 describe('Eclipse Che deploy test suite', () => {
@@ -95,7 +94,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
 
   describe('Start Workspace', () => {
     it('Start a workspace using execa library', async () => {
-      const workspaceId = await helper.getWorkspaceId(PLATFORM)
+      const workspaceId = await helper.getWorkspaceId()
       const command = `${binChectl} workspace:start ${workspaceId}`
 
       const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
@@ -109,7 +108,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
         console.log(stderr)
       }
 
-      const workspaceStatus = await helper.getWorkspaceStatus(PLATFORM)
+      const workspaceStatus = await helper.getWorkspaceStatus()
 
       expect(workspaceStatus).to.contain('RUNNING')
     })
@@ -148,7 +147,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
 
   describe('Stop Workspace', () => {
     it('Stop a workspace using execa library', async () => {
-      const workspaceId = await helper.getWorkspaceId(PLATFORM)
+      const workspaceId = await helper.getWorkspaceId()
       const command = `${binChectl} workspace:stop ${workspaceId}`
 
       const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
@@ -164,7 +163,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
 
   describe('Delete Workspace', () => {
     it('Delete a workspace using execa library', async () => {
-      const workspaceId = await helper.getWorkspaceId(PLATFORM)
+      const workspaceId = await helper.getWorkspaceId()
       const command = `${binChectl} workspace:delete ${workspaceId}`
 
       const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })

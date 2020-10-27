@@ -137,15 +137,9 @@ export class CheServerLoginManager {
 
   /**
    * Returns Che server login sessions manager.
-   * If config path is missing, cached object is returned if any.
-   * If config path is provided, an instance always retured.
    * @param configDirPath path to chectl config folder
    */
-  static async getInstance(configDirPath?: string): Promise<CheServerLoginManager | undefined> {
-    if (!configDirPath) {
-      return loginContext
-    }
-
+  static async getInstance(configDirPath: string): Promise<CheServerLoginManager> {
     if (!fs.existsSync(configDirPath)) {
       fs.mkdirsSync(configDirPath)
     }
@@ -543,10 +537,10 @@ export async function getLoginData(configDir: string, cheApiEndpoint?: string, a
     }
 
     // Use login manager to get Che API URL and token
-    const loginManager = (await CheServerLoginManager.getInstance(configDir))!
+    const loginManager = await CheServerLoginManager.getInstance(configDir)
     cheApiEndpoint = loginManager.getCurrentServerApiUrl()
     if (!cheApiEndpoint) {
-      throw new Error('There is no active login session. Please use "server:login" first.')
+      throw new Error('There is no active login session. Please use "auth:login" first.')
     }
     accessToken = await loginManager.getNewAccessToken()
   }
