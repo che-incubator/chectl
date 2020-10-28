@@ -8,8 +8,8 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-export const DEFAULT_CHE_IMAGE = 'quay.io/eclipse/che-server:7.20.0'
-export const DEFAULT_CHE_OPERATOR_IMAGE = 'quay.io/eclipse/che-operator:7.20.0'
+export const DEFAULT_CHE_IMAGE = 'quay.io/eclipse/che-server:7.20.1'
+export const DEFAULT_CHE_OPERATOR_IMAGE = 'quay.io/eclipse/che-operator:7.20.1'
 export const DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE = 'quay.io/devfile/devworkspace-controller:sha-4ea0394'
 
 // This image should be updated manually when needed.
