@@ -98,8 +98,8 @@ export class MinikubeTasks {
         // For more details see https://github.com/kubernetes/minikube/issues/7218
         // To workaround the bug, it is required to patch storage provisioner as well as its permissions.
         title: 'Patch minikube storage',
-        enabled: ctx => ctx.minikubeVersionMajor && ctx.minikubeVersionMinor &&
-          ctx.minikubeVersionMajor === 1 && ctx.minikubeVersionMinor >= 9,
+        enabled: ctx => ctx.minikubeVersionMajor && ctx.minikubeVersionMinor && ctx.minikubeVersionMajor === 1 &&
+          ((ctx.minikubeVersionMinor >= 9 && ctx.minikubeVersionMinor <= 11) || (ctx.minikubeVersionMinor === 12 && ctx.minikubeVersionPatch <= 1)),
         task: async (_ctx: any, task: any) => {
           // Patch storage provisioner pod to the latest version
           const storageProvisionerImage = 'gcr.io/k8s-minikube/storage-provisioner@sha256:bb22ad560924f0f111eb30ffc2dc1315736ab09979c5e77ff9d7d3737f671ca0'
@@ -118,7 +118,7 @@ export class MinikubeTasks {
 
           // Set required permissions for cluster role of persistent volume provisioner
           if (! await kube.addClusterRoleRule('system:persistent-volume-provisioner',
-                                              [''], ['endpoints'], ['get', 'list', 'watch', 'create', 'patch', 'update'])) {
+            [''], ['endpoints'], ['get', 'list', 'watch', 'create', 'patch', 'update'])) {
             throw new Error('Failed to patch permissions for persistent-volume-provisioner')
           }
 
