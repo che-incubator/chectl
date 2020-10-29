@@ -17,7 +17,6 @@ import { E2eHelper } from './util/e2e'
 const helper = new E2eHelper()
 jest.setTimeout(600000)
 
-const PLATFORM = 'kubernetes'
 const binChectl = `${process.cwd()}/bin/run`
 
 describe('Eclipse Che deploy test suite', () => {
@@ -28,16 +27,6 @@ describe('Eclipse Che deploy test suite', () => {
       .command(['server:deploy', '--platform=minikube', '--che-operator-cr-patch-yaml=test/e2e/util/cr-test.yaml', '--tls', '--installer=operator', '--skip-cluster-availability-check'])
       .exit(0)
       .it('uses minikube as platform, operator as installer and auth is enabled')
-    test
-      .it('Obtain access_token from keycloak.', async () => {
-        try {
-          const token = await helper.getAccessToken(PLATFORM)
-          process.env.CHE_ACCESS_TOKEN = token
-          console.log(token)
-        } catch (error) {
-          console.log(error)
-        }
-      })
   })
 })
 
@@ -99,7 +88,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
 
   describe('Start Workspace', () => {
     it('Start a workspace using execa library', async () => {
-      const workspaceId = await helper.getWorkspaceId(PLATFORM)
+      const workspaceId = await helper.getWorkspaceId()
       const command = `${binChectl} workspace:start ${workspaceId}`
 
       const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
@@ -113,7 +102,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
         console.log(stderr)
       }
 
-      const workspaceStatus = await helper.getWorkspaceStatus(PLATFORM)
+      const workspaceStatus = await helper.getWorkspaceStatus()
 
       expect(workspaceStatus).to.contain('RUNNING')
     })
@@ -152,7 +141,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
 
   describe('Stop Workspace', () => {
     it('Stop a workspace using execa library', async () => {
-      const workspaceId = await helper.getWorkspaceId(PLATFORM)
+      const workspaceId = await helper.getWorkspaceId()
       const command = `${binChectl} workspace:stop ${workspaceId}`
 
       const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
@@ -164,14 +153,15 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
         console.log(stderr)
       }
 
-      const workspaceStatus = await helper.getWorkspaceStatus(PLATFORM)
-      expect(workspaceStatus).to.contain('STOPPING')
+      const workspaceStatus = await helper.getWorkspaceStatus()
+      // The status could be STOPPING or STOPPED
+      expect(workspaceStatus).to.contain('STOP')
     })
   })
 
   describe('Delete Workspace', () => {
     it('Delete a workspace using execa library', async () => {
-      const workspaceId = await helper.getWorkspaceId(PLATFORM)
+      const workspaceId = await helper.getWorkspaceId()
       const command = `${binChectl} workspace:delete ${workspaceId}`
 
       const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
