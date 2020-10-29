@@ -154,7 +154,8 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
       }
 
       const workspaceStatus = await helper.getWorkspaceStatus()
-      expect(workspaceStatus).to.contain('STOPPING')
+      // The status could be STOPPING or STOPPED
+      expect(workspaceStatus).to.contain('STOP')
     })
   })
 
