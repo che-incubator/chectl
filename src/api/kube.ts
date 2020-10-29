@@ -525,6 +525,18 @@ export class KubeHelper {
     }
   }
 
+  async getConfigMapValue(name: string, namespace: string, key: string): Promise<string | undefined> {
+    const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
+    try {
+      const { body } = await k8sCoreApi.readNamespacedConfigMap(name, namespace)
+      if (body.data) {
+        return body.data[key]
+      }
+    } catch {
+      return
+    }
+  }
+
   async createConfigMapFromFile(filePath: string, namespace = '') {
     const yamlConfigMap = this.safeLoadFromYamlFile(filePath) as V1ConfigMap
     return this.createNamespacedConfigMap(namespace, yamlConfigMap)
