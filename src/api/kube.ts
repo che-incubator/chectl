@@ -1301,7 +1301,9 @@ export class KubeHelper {
       }
       if (flags.tls) {
         cheClusterCR.spec.server.tlsSupport = flags.tls
-        if (!cheClusterCR.spec.k8s.tlsSecretName) {
+        if (flags['use-cluster-certificate']) {
+          cheClusterCR.spec.k8s.tlsSecretName = undefined
+        } else {
           cheClusterCR.spec.k8s.tlsSecretName = 'che-tls'
         }
       }

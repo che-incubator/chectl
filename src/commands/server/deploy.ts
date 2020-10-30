@@ -89,6 +89,9 @@ export default class Deploy extends Command {
       description: 'Deprecated. The flag is ignored. Self signed certificates usage is autodetected now.',
       default: false
     }),
+    'use-cluster-certificate': boolean({
+      description: 'Use default ingress controller TLS certificate for securing Che endpoints.'
+    }),
     platform: string({
       char: 'p',
       description: 'Type of Kubernetes platform. Valid values are \"minikube\", \"minishift\", \"k8s (for kubernetes)\", \"openshift\", \"crc (for CodeReady Containers)\", \"microk8s\".',
@@ -324,6 +327,18 @@ export default class Deploy extends Command {
     }
   }
 
+  private checkFlags(flags: { [x: string]: any }): void {
+    if (flags['self-signed-cert']) {
+      this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
+    }
+
+    if (isOpenshiftPlatformFamily(flags.platform)) {
+      if (flags['use-cluster-certificate']) {
+        this.warn('"--use-cluster-certificate" flag is always on for OpenShift platform')
+      }
+    }
+  }
+
   async run() {
     if (process.argv.indexOf('server:start') > -1) {
       this.warn('\'server:start\' command is deprecated. Use \'server:deploy\' instead.')
@@ -337,9 +352,7 @@ export default class Deploy extends Command {
     ctx.customCR = readCRFile(flags, CHE_OPERATOR_CR_YAML_KEY , this)
     ctx.CRPatch = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY, this)
 
-    if (flags['self-signed-cert']) {
-      this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
-    }
+    this.checkFlags(flags)
 
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()

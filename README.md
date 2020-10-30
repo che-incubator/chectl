@@ -573,6 +573,9 @@ OPTIONS
       the latest known version.
                            This parameter is used only when the installer is 'olm'.
 
+  --use-cluster-certificate
+      Use default ingress controller TLS certificate for securing Che endpoints.
+
   --workspace-engine=che-server|dev-workspace
       [default: che-server] Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.
 
