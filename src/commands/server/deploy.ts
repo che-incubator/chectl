@@ -144,7 +144,7 @@ export default class Deploy extends Command {
     'auto-update': flags.boolean({
       description: `Auto update approval strategy for installation Eclipse Che.
                     With this strategy will be provided auto-update Eclipse Che without any human interaction.
-                    By default strategy this flag is true.
+                    By default this flag is enabled.
                     This parameter is used only when the installer is 'olm'.`,
       default: true,
       exclusive: ['starting-csv']
@@ -302,9 +302,6 @@ export default class Deploy extends Command {
         this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
       }
 
-      if (flags.installer !== 'olm' && flags['auto-update']) {
-        this.error('"auto-update" flag should be used only with "olm" installer.')
-      }
       if (flags.installer !== 'olm' && flags['starting-csv']) {
         this.error('"starting-csv" flag should be used only with "olm" installer.')
       }
