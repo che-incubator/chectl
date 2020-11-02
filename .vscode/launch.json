@@ -18,9 +18,9 @@
           "args": [
               "server:deploy",
               "--platform",
-              "minikube",
+              "openshift",
               "--installer",
-              "olm"
+              "operator"
           ],
           "console": "integratedTerminal",
           "internalConsoleOptions": "neverOpen",
