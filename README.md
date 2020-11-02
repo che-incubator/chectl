@@ -48,7 +48,7 @@ If you're using linux or macOS, here is how to install chectl by using one singl
 ```
 $ bash <(curl -sL  https://www.eclipse.org/che/chectl/)
 ```
-  
+
 - For `next` channel:
 ```
 $ bash <(curl -sL  https://www.eclipse.org/che/chectl/) --channel=next
@@ -372,16 +372,14 @@ USAGE
   $ chectl server:debug
 
 OPTIONS
-  -h, --help                               show CLI help
+  -h, --help                       show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
-                                           be deployed
+  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
+                                   deployed
 
-  --debug-port=debug-port                  [default: 8000] Eclipse Che server debug port
+  --debug-port=debug-port          [default: 8000] Eclipse Che server debug port
 
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
-
-  --skip-kubernetes-health-check           Skip Kubernetes health check
+  --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
 
 _See code: [src/commands/server/debug.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/debug.ts)_
@@ -400,6 +398,10 @@ OPTIONS
   -n, --chenamespace=chenamespace                                          [default: che] Kubernetes namespace where
                                                                            Eclipse Che server is supposed to be deployed
 
+  -y, --yes                                                                Automatic yes to prompts; assume "yes" as
+                                                                           answer to all prompts and run
+                                                                           non-interactively
+
   --delete-namespace                                                       Indicates that a Eclipse Che namespace will
                                                                            be deleted as well
 
@@ -409,10 +411,6 @@ OPTIONS
                                                                            for the DevWorkspace controller.  This
                                                                            parameter is used only when the workspace
                                                                            engine is the DevWorkspace
-
-  --listr-renderer=default|silent|verbose                                  [default: default] Listr renderer
-
-  --skip-deletion-check                                                    Skip user confirmation on deletion check
 
   --skip-kubernetes-health-check                                           Skip Kubernetes health check
 ```
@@ -461,17 +459,6 @@ OPTIONS
   -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc
       Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc 
       (for CodeReady Containers)", "microk8s".
-
-  -s, --tls
-      Deprecated. Enable TLS encryption.
-                           Note, this option is turned on by default.
-                           To provide own certificate for Kubernetes infrastructure, 'che-tls' secret with TLS certificate 
-      must be pre-created in the configured namespace.
-                           In case of providing own self-signed certificate 'self-signed-certificate' secret should be 
-      also created.
-                           For OpenShift, router will use default cluster certificates.
-                           Please see the docs how to deploy Eclipse Che on different infrastructures: 
-      https://www.eclipse.org/che/docs/che-7/overview/running-che-locally/
 
   -t, --templates=templates
       Path to the templates folder
@@ -534,9 +521,6 @@ OPTIONS
   --k8spodwaittimeout=k8spodwaittimeout
       [default: 300000] Waiting time for Pod Wait Timeout Kubernetes (in milliseconds)
 
-  --listr-renderer=default|silent|verbose
-      [default: default] Listr renderer
-
   --olm-channel=olm-channel
       Olm channel to install Eclipse Che, f.e. stable.
                            If options was not set, will be used default version for package manifest.
@@ -551,9 +535,6 @@ OPTIONS
 
   --postgres-pvc-storage-class-name=postgres-pvc-storage-class-name
       persistent volume storage class name to use to store Eclipse Che postgres database
-
-  --self-signed-cert
-      Deprecated. The flag is ignored. Self signed certificates usage is autodetected now.
 
   --skip-cluster-availability-check
       Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.
@@ -594,17 +575,15 @@ USAGE
   $ chectl server:logs
 
 OPTIONS
-  -d, --directory=directory                Directory to store logs into
-  -h, --help                               show CLI help
+  -d, --directory=directory          Directory to store logs into
+  -h, --help                         show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where Eclipse Che server is supposed to
-                                           be deployed
+  -n, --chenamespace=chenamespace    [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
+                                     deployed
 
-  --deployment-name=deployment-name        [default: che] Eclipse Che deployment name
+  --deployment-name=deployment-name  [default: che] Eclipse Che deployment name
 
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
-
-  --skip-kubernetes-health-check           Skip Kubernetes health check
+  --skip-kubernetes-health-check     Skip Kubernetes health check
 ```
 
 _See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/logs.ts)_
@@ -658,9 +637,6 @@ OPTIONS
       [default: devworkspace-controller] Namespace for the DevWorkspace controller.  This parameter is used only when the 
       workspace engine is the DevWorkspace
 
-  --listr-renderer=default|silent|verbose
-      [default: default] Listr renderer
-
   --skip-kubernetes-health-check
       Skip Kubernetes health check
 ```
@@ -676,44 +652,27 @@ USAGE
   $ chectl server:update
 
 OPTIONS
-  -a, --installer=operator|olm                                                 Installer type. If not set, default is
-                                                                               autodetected depending on previous
-                                                                               installation.
+  -h, --help                                               show CLI help
 
-  -h, --help                                                                   show CLI help
+  -n, --chenamespace=chenamespace                          [default: che] Kubernetes namespace where Eclipse Che server
+                                                           is supposed to be deployed
 
-  -n, --chenamespace=chenamespace                                              [default: che] Kubernetes namespace where
-                                                                               Eclipse Che server is supposed to be
-                                                                               deployed
+  -t, --templates=templates                                [default: templates] Path to the templates folder
 
-  -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc  Type of Kubernetes platform. Valid values
-                                                                               are "minikube", "minishift", "k8s (for
-                                                                               kubernetes)", "openshift", "crc (for
-                                                                               CodeReady Containers)", "microk8s".
+  -y, --yes                                                Automatic yes to prompts; assume "yes" as answer to all
+                                                           prompts and run non-interactively
 
-  -t, --templates=templates                                                    [default: templates] Path to the
-                                                                               templates folder
+  --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml  Path to a yaml file that overrides the default values in
+                                                           CheCluster CR used by the operator. This parameter is used
+                                                           only when the installer is the 'operator' or the 'olm'.
 
-  --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml                      Path to a yaml file that overrides the
-                                                                               default values in CheCluster CR used by
-                                                                               the operator. This parameter is used only
-                                                                               when the installer is the 'operator' or
-                                                                               the 'olm'.
+  --che-operator-image=che-operator-image                  [default: quay.io/eclipse/che-operator:nightly] Container
+                                                           image of the operator. This parameter is used only when the
+                                                           installer is the operator
 
-  --che-operator-image=che-operator-image                                      [default:
-                                                                               quay.io/eclipse/che-operator:nightly]
-                                                                               Container image of the operator. This
-                                                                               parameter is used only when the installer
-                                                                               is the operator
+  --deployment-name=deployment-name                        [default: che] Eclipse Che deployment name
 
-  --deployment-name=deployment-name                                            [default: che] Eclipse Che deployment
-                                                                               name
-
-  --listr-renderer=default|silent|verbose                                      [default: default] Listr renderer
-
-  --skip-kubernetes-health-check                                               Skip Kubernetes health check
-
-  --skip-version-check                                                         Skip user confirmation on version check
+  --skip-kubernetes-health-check                           Skip Kubernetes health check
 ```
 
 _See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_

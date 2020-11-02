@@ -10,11 +10,11 @@
 import * as execa from 'execa'
 import { expect, fancy } from 'fancy-test'
 
-import { OpenshiftTasks } from '../../../src/tasks/platforms/openshift'
+import { OpenShiftHelper } from '../../../src/api/openshift'
 
 jest.mock('execa')
 
-let openshift = new OpenshiftTasks()
+let openShiftHelper = new OpenShiftHelper()
 
 describe('start', () => {
   fancy
@@ -37,7 +37,7 @@ describe('start', () => {
       3 infos identified, use 'oc status --suggest' to see details.`;
 
       (execa as any).mockResolvedValue({ exitCode: 0, stdout: status })
-      const res = await openshift.isOpenshiftRunning()
+      const res = await openShiftHelper.isOpenShiftRunning()
       expect(res).to.equal(true)
     })
 
@@ -47,7 +47,7 @@ describe('start', () => {
       `;
 
       (execa as any).mockResolvedValue({ exitCode: 1, stdout: status })
-      const res = await openshift.isOpenshiftRunning()
+      const res = await openShiftHelper.isOpenShiftRunning()
       expect(res).to.equal(false)
     })
 })

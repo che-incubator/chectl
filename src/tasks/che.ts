@@ -16,9 +16,8 @@ import { CheServerLoginManager } from '../api/che-login-manager'
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
 import { VersionHelper } from '../api/version'
-import { DOC_LINK, DOC_LINK_RELEASE_NOTES } from '../constants'
+import { CHE_OPERATOR_SELECTOR, DOC_LINK, DOC_LINK_RELEASE_NOTES, OUTPUT_SEPARATOR } from '../constants'
 
-import { OperatorTasks } from './installers/operator'
 import { KubeTasks } from './kube'
 
 /**
@@ -528,7 +527,7 @@ export class CheTasks {
         title: `${follow ? 'Start following' : 'Read'} Operator logs`,
         skip: () => flags.installer !== 'operator' && flags.installer !== 'olm',
         task: async (ctx: any, task: any) => {
-          await this.che.readPodLog(flags.chenamespace, OperatorTasks.CHE_OPERATOR_SELECTOR, ctx.directory, follow)
+          await this.che.readPodLog(flags.chenamespace, CHE_OPERATOR_SELECTOR, ctx.directory, follow)
           task.title = `${task.title}...done`
         }
       },
@@ -629,7 +628,7 @@ export class CheTasks {
           if (DOC_LINK_RELEASE_NOTES) {
             messages.push(`Release Notes           : ${DOC_LINK_RELEASE_NOTES}`)
           }
-          messages.push('')
+          messages.push(OUTPUT_SEPARATOR)
 
           const cheUrl = await this.che.cheURL(flags.chenamespace)
           messages.push(`Users Dashboard           : ${cheUrl}`)
@@ -637,7 +636,7 @@ export class CheTasks {
           if (cheCluster && cheCluster.spec.auth && cheCluster.spec.auth.updateAdminPassword) {
             messages.push('Admin user login          : "admin:admin". NOTE: must change after first login.')
           }
-          messages.push('')
+          messages.push(OUTPUT_SEPARATOR)
 
           const cheConfigMap = await this.kube.getConfigMap('che', flags.chenamespace)
           if (cheConfigMap && cheConfigMap.data) {
@@ -647,7 +646,7 @@ export class CheTasks {
             if (cheConfigMap.data.CHE_WORKSPACE_DEVFILE__REGISTRY__URL) {
               messages.push(`Devfile Registry          : ${cheConfigMap.data.CHE_WORKSPACE_DEVFILE__REGISTRY__URL}`)
             }
-            messages.push('')
+            messages.push(OUTPUT_SEPARATOR)
 
             if (cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL) {
               messages.push(`Identity Provider URL     : ${cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL}`)
@@ -655,7 +654,7 @@ export class CheTasks {
             if (ctx.identityProviderUsername && ctx.identityProviderPassword) {
               messages.push(`Identity Provider login   : "${ctx.identityProviderUsername}:${ctx.identityProviderPassword}".`)
             }
-            messages.push('')
+            messages.push(OUTPUT_SEPARATOR)
           }
           ctx.highlightedMessages = messages.concat(ctx.highlightedMessages)
           task.title = `${task.title}...done`

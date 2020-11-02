@@ -26,11 +26,10 @@ export class ApiTasks {
       task: async (ctx: any, task: any) => {
         try {
           await kube.checkKubeApi()
-          task.title = await `${task.title}...OK`
+          task.title = `${task.title}...OK`
 
-          ctx.isOpenShift = await kube.isOpenShift()
           if (ctx.isOpenShift) {
-            task.title = await `${task.title} (it's OpenShift)`
+            task.title = `${task.title} (it's OpenShift)`
           }
         } catch (error) {
           command.error(`Failed to connect to Kubernetes API, error: ${error.message}. If you're sure that your Kubernetes cluster is healthy - you can skip this check with '--skip-kubernetes-health-check' flag.`)

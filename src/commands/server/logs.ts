@@ -18,6 +18,7 @@ import * as path from 'path'
 import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
+import { initializeContext } from '../../util'
 
 export default class Logs extends Command {
   static description = 'Collect Eclipse Che logs'
@@ -37,7 +38,7 @@ export default class Logs extends Command {
 
   async run() {
     const { flags } = this.parse(Logs)
-    const ctx: any = {}
+    const ctx = await initializeContext(flags)
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()

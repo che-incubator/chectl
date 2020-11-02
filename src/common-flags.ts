@@ -33,7 +33,8 @@ export const cheDeployment = string({
 export const listrRenderer = string({
   description: 'Listr renderer',
   options: ['default', 'silent', 'verbose'],
-  default: 'default'
+  default: 'default',
+  hidden: true,
 })
 
 export const ACCESS_TOKEN_KEY = 'access-token'
@@ -57,7 +58,14 @@ export const cheApiEndpoint = string({
 export const CHE_OPERATOR_CR_PATCH_YAML_KEY = 'che-operator-cr-patch-yaml'
 export const cheOperatorCRPatchYaml = string({
   description: 'Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used only when the installer is the \'operator\' or the \'olm\'.',
-  default: ''
+  default: '',
+})
+
+export const assumeYes = boolean({
+  description: 'Automatic yes to prompts; assume "yes" as answer to all prompts and run non-interactively',
+  char: 'y',
+  default: false,
+  required: false,
 })
 
 export const CHE_OPERATOR_CR_YAML_KEY = 'che-operator-cr-yaml'

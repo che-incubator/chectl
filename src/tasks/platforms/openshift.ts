@@ -10,9 +10,9 @@
 
 import { Command } from '@oclif/command'
 import * as commandExists from 'command-exists'
-import * as execa from 'execa'
 import * as Listr from 'listr'
 
+import { OpenShiftHelper } from '../../api/openshift'
 import { VersionHelper } from '../../api/version'
 
 export class OpenshiftTasks {
@@ -34,9 +34,9 @@ export class OpenshiftTasks {
       {
         title: 'Verify if openshift is running',
         task: async (_ctx: any, task: any) => {
-          const openshiftIsRunning = await this.isOpenshiftRunning()
-          if (!openshiftIsRunning) {
-            command.error(`E_PLATFORM_NOT_READY: oc status command failed. If there is no project, please create it before by running "oc new-project ${flags.chenamespace}"`)
+          const openShiftHelper = new OpenShiftHelper()
+          if (!await openShiftHelper.isOpenShiftRunning()) {
+            command.error('PLATFORM_NOT_READY: \'oc status\' command failed. Please login with \'oc login\' command and try again.')
           } else {
             task.title = `${task.title}...done.`
           }
@@ -46,10 +46,4 @@ export class OpenshiftTasks {
       VersionHelper.getK8sCheckVersionTask(flags),
     ], { renderer: flags['listr-renderer'] as any })
   }
-
-  async isOpenshiftRunning(): Promise<boolean> {
-    const { exitCode } = await execa('oc', ['status'], { timeout: 60000, reject: false })
-    return exitCode === 0
-  }
-
 }

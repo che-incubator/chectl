@@ -12,7 +12,10 @@ import { Command } from '@oclif/command'
 import * as commandExists from 'command-exists'
 import { existsSync, readFileSync } from 'fs-extra'
 import * as yaml from 'js-yaml'
+import Listr = require('listr')
 
+import { KubeHelper } from './api/kube'
+import { CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY } from './common-flags'
 import { DEFAULT_CHE_OPERATOR_IMAGE } from './constants'
 
 export const KUBERNETES_CLI = 'kubectl'
@@ -102,10 +105,18 @@ export function sleep(ms: number): Promise<void> {
 /**
  * Initialize command context.
  */
-export function initializeContext(): any {
+export async function initializeContext(flags?: any): Promise<any> {
+  const kube = new KubeHelper(flags)
   const ctx: any = {}
+  ctx.isOpenShift = await kube.isOpenShift()
+  ctx.isOpenShift4 = await kube.isOpenShift4()
   ctx.highlightedMessages = [] as string[]
-  ctx.starTime = Date.now()
+  ctx.startTime = Date.now()
+  ctx.customCR = readCRFile(flags, CHE_OPERATOR_CR_YAML_KEY)
+  ctx.crPatch = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY)
+  if (flags['listr-renderer'] as any) {
+    ctx.listrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
+  }
   return ctx
 }
 
@@ -115,7 +126,7 @@ export function initializeContext(): any {
  * @param CRKey - key for CR file flag
  * @param command - parent command
  */
-export function readCRFile(flags: any, CRKey: string, command: Command): any {
+export function readCRFile(flags: any, CRKey: string): any {
   const CRFilePath = flags[CRKey]
   if (!CRFilePath) {
     return
@@ -125,19 +136,19 @@ export function readCRFile(flags: any, CRKey: string, command: Command): any {
     return yaml.safeLoad(readFileSync(CRFilePath).toString())
   }
 
-  command.error(`Unable to find file defined in the flag '--${CRKey}'`)
+  throw new Error(`Unable to find file defined in the flag '--${CRKey}'`)
 }
 
 /**
  * Returns command success message with execution time.
  */
 export function getCommandSuccessMessage(command: Command, ctx: any): string {
-  if (ctx.starTime) {
+  if (ctx.startTime) {
     if (!ctx.endTime) {
       ctx.endTime = Date.now()
     }
 
-    const workingTimeInSeconds = Math.round((ctx.endTime - ctx.starTime) / 1000)
+    const workingTimeInSeconds = Math.round((ctx.endTime - ctx.startTime) / 1000)
     const minutes = Math.floor(workingTimeInSeconds / 60)
     const seconds = (workingTimeInSeconds - minutes * 60) % 60
     const minutesToStr = minutes.toLocaleString([], { minimumIntegerDigits: 2 })

@@ -15,6 +15,7 @@ import * as Listr from 'listr'
 import { cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
+import { initializeContext } from '../../util'
 
 export default class Debug extends Command {
   static description = 'Enable local debug of Eclipse Che server'
@@ -32,7 +33,7 @@ export default class Debug extends Command {
 
   async run() {
     const { flags } = this.parse(Debug)
-    const ctx: any = {}
+    const ctx = await initializeContext(flags)
 
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()

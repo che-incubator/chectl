@@ -11,11 +11,12 @@
 import execa = require('execa')
 
 export class OpenShiftHelper {
-  async status(): Promise<boolean> {
-    const command = 'oc'
-    const args = ['status']
-    const { exitCode } = await execa(command, args, { timeout: 60000, reject: false })
-    if (exitCode === 0) { return true } else { return false }
+  /**
+   * Check status on existed `default` namespace.
+   */
+  async isOpenShiftRunning(): Promise<boolean> {
+    const { exitCode } = await execa('oc', ['status', '--namespace', 'default'], { timeout: 60000, reject: false })
+    return exitCode === 0
   }
   async getRouteHost(name: string, namespace = ''): Promise<string> {
     const command = 'oc'

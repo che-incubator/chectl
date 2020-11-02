@@ -36,8 +36,8 @@ export default class Stop extends Command {
   }
 
   async run() {
-    const ctx = initializeContext()
     const { flags } = this.parse(Stop)
+    const ctx = await initializeContext(flags)
     const Listr = require('listr')
     const notifier = require('node-notifier')
     const cheTasks = new CheTasks(flags)
