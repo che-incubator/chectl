@@ -79,6 +79,12 @@ export class KubeTasks {
               throw new Error(`Failed to start a pod, reason: ${failedState.reason}, message: ${failedState.message}`)
             }
 
+            const terminatedState = await this.kubeHelper.getPodLastTerminatedState(namespace, selector)
+            if (terminatedState) {
+              task.title = `${task.title}...failed`
+              throw new Error(`Failed to start a pod, reason: ${terminatedState.reason}, message: ${terminatedState.message}`)
+            }
+
             const allStarted = await this.isPodConditionStatusPassed(namespace, selector, 'Ready')
             if (allStarted) {
               task.title = `${task.title}...done.`
@@ -88,7 +94,7 @@ export class KubeTasks {
             await cli.wait(500)
           }
 
-          throw new Error(`Failed to download image: ${await this.getTimeOutErrorMessage(namespace, selector)}`)
+          throw new Error(`Failed to start a pod: ${await this.getTimeOutErrorMessage(namespace, selector)}`)
         }
       }
     ])

@@ -26,12 +26,11 @@ export namespace VersionHelper {
   export function getOpenShiftCheckVersionTask(flags: any): Listr.ListrTask {
     return {
       title: 'Check OpenShift version',
-      task: async (_ctx: any, task: any) => {
-        const kubeHelper = new KubeHelper(flags)
+      task: async (ctx: any, task: any) => {
         const actualVersion = await getOpenShiftVersion()
         if (actualVersion) {
           task.title = `${task.title}: ${actualVersion}.`
-        } else if (await kubeHelper.isOpenShift4()) {
+        } else if (ctx.isOpenShift4) {
           task.title = `${task.title}: 4.x`
         } else {
           task.title = `${task.title}: Unknown`

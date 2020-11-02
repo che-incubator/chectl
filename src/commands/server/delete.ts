@@ -14,7 +14,7 @@ import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
 
 import { KubeHelper } from '../../api/kube'
-import { cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { assumeYes, cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { HelmTasks } from '../../tasks/installers/helm'
@@ -39,17 +39,22 @@ export default class Delete extends Command {
     'listr-renderer': listrRenderer,
     'skip-deletion-check': boolean({
       description: 'Skip user confirmation on deletion check',
-      default: false
+      default: false,
+      hidden: true,
     }),
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    yes: assumeYes
   }
 
   async run() {
-    const ctx = initializeContext()
     const { flags } = this.parse(Delete)
+    const ctx = await initializeContext(flags)
+    if (flags['skip-deletion-check']) {
+      this.warn('\'--skip-deletion-check\' flag is deprecated, use \'--yes\' instead.')
+      flags.yes = flags['skip-deletion-check']
+    }
 
     const notifier = require('node-notifier')
-
     const apiTasks = new ApiTasks()
     const helmTasks = new HelmTasks(flags)
     const minishiftAddonTasks = new MinishiftAddonTasks()
@@ -58,9 +63,7 @@ export default class Delete extends Command {
     const cheTasks = new CheTasks(flags)
     const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
-    let tasks = new Listrq(undefined,
-      { renderer: flags['listr-renderer'] as any }
-    )
+    const tasks = new Listrq([], ctx.listrOptions)
 
     tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(operatorTasks.deleteTasks(flags))
@@ -74,23 +77,15 @@ export default class Delete extends Command {
       tasks.add(cheTasks.deleteNamespace(flags))
     }
 
-    const cluster = KubeHelper.KUBE_CONFIG.getCurrentCluster()
-    if (!cluster) {
-      throw new Error('Failed to get current Kubernetes cluster. Check if the current context is set via kubect/oc')
-    }
-
-    if (!flags['skip-deletion-check']) {
-      const confirmed = await cli.confirm(`You're going to remove Eclipse Che server in namespace '${flags.chenamespace}' on server '${cluster ? cluster.server : ''}'. If you want to continue - press Y`)
-      if (!confirmed) {
-        this.exit(0)
+    if (await this.isDeletionConfirmed(flags)) {
+      try {
+        await tasks.run()
+        cli.log(getCommandSuccessMessage(this, ctx))
+      } catch (error) {
+        cli.error(error)
       }
-    }
-
-    try {
-      await tasks.run()
-      cli.log(getCommandSuccessMessage(this, ctx))
-    } catch (error) {
-      cli.error(error)
+    } else {
+      this.exit(0)
     }
 
     notifier.notify({
@@ -99,5 +94,18 @@ export default class Delete extends Command {
     })
 
     this.exit(0)
+  }
+
+  async isDeletionConfirmed(flags: any): Promise<boolean> {
+    const cluster = KubeHelper.KUBE_CONFIG.getCurrentCluster()
+    if (!cluster) {
+      throw new Error('Failed to get current Kubernetes cluster. Check if the current context is set via kubectl/oc')
+    }
+
+    if (!flags.yes) {
+      return cli.confirm(`You're going to remove Eclipse Che server in namespace '${flags.chenamespace}' on server '${cluster ? cluster.server : ''}'. If you want to continue - press Y`)
+    }
+
+    return true
   }
 }

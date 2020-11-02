@@ -15,7 +15,6 @@ import * as Listr from 'listr'
 
 import { KubeHelper } from '../../api/kube'
 import { DOCS_LINK_HOW_TO_ADD_IDENTITY_PROVIDER_OS4, DOCS_LINK_HOW_TO_CREATE_USER_OS3 } from '../../constants'
-import { isOpenshiftPlatformFamily } from '../../util'
 
 export namespace CommonPlatformTasks {
   /**
@@ -81,16 +80,16 @@ export namespace CommonPlatformTasks {
     let kube = new KubeHelper(flags)
     return {
       title: 'Verify Openshift oauth.',
-      enabled: ctx => isOpenshiftPlatformFamily(flags.platform) && isOAuthEnabled(ctx),
+      enabled: (ctx: any) => ctx.isOpenShift && isOAuthEnabled(ctx),
       task: async (ctx: any, task: any) => {
-        if (await kube.isOpenShift4()) {
+        if (ctx.isOpenShift4) {
           const providers = await kube.getOpenshiftAuthProviders()
           if (!providers || providers.length === 0) {
             ctx.highlightedMessages.push(`❗ ${ansi.yellow('[WARNING]')} OpenShift OAuth is turned off, because there is no any identity providers configured. ${DOCS_LINK_HOW_TO_ADD_IDENTITY_PROVIDER_OS4}`)
             ctx.CROverrides = { spec: { auth: { openShiftoAuth: false } } }
           }
         } else {
-          if (await kube.getAmoutUsers() === 0) {
+          if (await kube.getUsersNumber() === 0) {
             ctx.highlightedMessages.push(`❗ ${ansi.yellow('[WARNING]')} OpenShift OAuth is turned off, because there are no any users added. See: "${DOCS_LINK_HOW_TO_CREATE_USER_OS3}"`)
             ctx.CROverrides = { spec: { auth: { openShiftoAuth: false } } }
           }
@@ -105,7 +104,7 @@ export namespace CommonPlatformTasks {
    * Returns true if Openshift oAuth is enabled (or omitted) and false if it is explicitly disabled.
    */
   function isOAuthEnabled(ctx: any): boolean {
-    const crPatch = ctx.CRPatch
+    const crPatch = ctx.crPatch
     if (crPatch && crPatch.spec && crPatch.spec.auth && typeof crPatch.spec.auth.openShiftoAuth === 'boolean') {
       return crPatch.spec.auth.openShiftoAuth
     }

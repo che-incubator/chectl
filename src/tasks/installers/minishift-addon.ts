@@ -124,7 +124,7 @@ export class MinishiftAddonTasks {
 
   private async checkLogged(command: Command) {
     const openshiftHelper = new OpenShiftHelper()
-    const ok = await openshiftHelper.status()
+    const ok = await openshiftHelper.isOpenShiftRunning()
     if (!ok) {
       command.error('Not logged with OC tool. Please log-in with oc login command')
     }

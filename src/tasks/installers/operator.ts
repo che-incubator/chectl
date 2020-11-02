@@ -15,22 +15,19 @@ import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
 
 import { KubeHelper } from '../../api/kube'
-import { CHE_CLUSTER_CRD } from '../../constants'
+import { CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME } from '../../constants'
 import { isStableVersion } from '../../util'
 import { KubeTasks } from '../kube'
 
 import { copyOperatorResources, createEclipseCheCluster, createNamespaceTask, updateEclipseCheCluster } from './common-tasks'
 
 export class OperatorTasks {
-  public static CHE_OPERATOR_SELECTOR = 'app=che-operator'
-
   operatorServiceAccount = 'che-operator'
   operatorRole = 'che-operator'
   operatorClusterRole = 'che-operator'
   operatorRoleBinding = 'che-operator'
   operatorClusterRoleBinding = 'che-operator'
   cheClusterCrd = 'checlusters.org.eclipse.che'
-  operatorName = 'che-operator'
 
   /**
    * Returns tasks list which perform preflight platform checks.
@@ -142,9 +139,9 @@ export class OperatorTasks {
         }
       },
       {
-        title: `Create deployment ${this.operatorName} in namespace ${flags.chenamespace}`,
+        title: `Create deployment ${OPERATOR_DEPLOYMENT_NAME} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
-          const exist = await kube.deploymentExist(this.operatorName, flags.chenamespace)
+          const exist = await kube.deploymentExist(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
@@ -155,7 +152,7 @@ export class OperatorTasks {
       },
       {
         title: 'Operator pod bootstrap',
-        task: () => kubeTasks.podStartTasks(OperatorTasks.CHE_OPERATOR_SELECTOR, flags.chenamespace)
+        task: () => kubeTasks.podStartTasks(CHE_OPERATOR_SELECTOR, flags.chenamespace)
       },
       {
         title: 'Prepare Eclipse Che cluster CR',
@@ -184,10 +181,9 @@ export class OperatorTasks {
       {
         title: 'Checking versions compatibility before updating',
         task: async (ctx: any, _task: any) => {
-          const operatorDeployment = await kube.getDeployment(this.operatorName, flags.chenamespace)
+          const operatorDeployment = await kube.getDeployment(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
           if (!operatorDeployment) {
-            command.error(`${this.operatorName} deployment is not found in namespace ${flags.chenamespace}.\nProbably Eclipse Che was initially deployed with another installer`)
-            return
+            command.error(`${OPERATOR_DEPLOYMENT_NAME} deployment is not found in namespace ${flags.chenamespace}.\nProbably Eclipse Che was initially deployed with another installer`)
           }
           const deployedCheOperator = this.retrieveContainerImage(operatorDeployment)
           const deployedCheOperatorImageAndTag = deployedCheOperator.split(':', 2)
@@ -327,9 +323,9 @@ export class OperatorTasks {
         }
       },
       {
-        title: `Updating deployment ${this.operatorName} in namespace ${flags.chenamespace}`,
+        title: `Updating deployment ${OPERATOR_DEPLOYMENT_NAME} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
-          const exist = await kube.deploymentExist(this.operatorName, flags.chenamespace)
+          const exist = await kube.deploymentExist(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
           if (exist) {
             await kube.replaceDeploymentFromFile(ctx.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
             task.title = `${task.title}...updated.`
@@ -343,7 +339,7 @@ export class OperatorTasks {
         title: 'Waiting newer operator to be run',
         task: async (_ctx: any, _task: any) => {
           await cli.wait(1000)
-          await kube.waitLatestReplica(this.operatorName, flags.chenamespace)
+          await kube.waitLatestReplica(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
         }
       },
       updateEclipseCheCluster(flags, kube, command),
@@ -371,6 +367,11 @@ export class OperatorTasks {
     {
       title: `Delete the Custom Resource of type ${CHE_CLUSTER_CRD}`,
       task: async (_ctx: any, task: any) => {
+        const checluster = await kh.getCheCluster(flags.chenamespace)
+        if (checluster) {
+          await kh.patchCheClusterCustomResource(checluster.metadata.name, flags.chenamespace, { metadata: { finalizers: null } })
+        }
+
         await kh.deleteCheCluster(flags.chenamespace)
         do {
           await cli.wait(2000) //wait a couple of secs for the finalizers to be executed

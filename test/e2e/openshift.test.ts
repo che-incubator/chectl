@@ -194,7 +194,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
     test
       .stdout()
       .stderr({ print: true })
-      .command(['server:delete', '--skip-deletion-check', '--delete-namespace'])
+      .command(['server:delete', '--yes', '--delete-namespace'])
       .exit(0)
       .it('deletes Eclipse Che resources on minishift successfully')
   })

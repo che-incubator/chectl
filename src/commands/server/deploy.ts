@@ -27,7 +27,7 @@ import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { getCommandSuccessMessage, initializeContext, isOpenshiftPlatformFamily, readCRFile } from '../../util'
+import { getCommandSuccessMessage, initializeContext, isOpenshiftPlatformFamily } from '../../util'
 
 export default class Deploy extends Command {
   static description = 'start Eclipse Che server'
@@ -83,11 +83,13 @@ export default class Deploy extends Command {
                     To provide own certificate for Kubernetes infrastructure, 'che-tls' secret with TLS certificate must be pre-created in the configured namespace.
                     In case of providing own self-signed certificate 'self-signed-certificate' secret should be also created.
                     For OpenShift, router will use default cluster certificates.
-                    Please see the docs how to deploy Eclipse Che on different infrastructures: ${DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY}`
+                    Please see the docs how to deploy Eclipse Che on different infrastructures: ${DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY}`,
+      hidden: true
     }),
     'self-signed-cert': flags.boolean({
       description: 'Deprecated. The flag is ignored. Self signed certificates usage is autodetected now.',
-      default: false
+      default: false,
+      hidden: true
     }),
     platform: string({
       char: 'p',
@@ -192,14 +194,14 @@ export default class Deploy extends Command {
       default: DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE,
       env: 'DEV_WORKSPACE_OPERATOR_IMAGE',
     }),
-    'dev-workspace-controller-namespace': devWorkspaceControllerNamespace
+    'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,
   }
 
   async setPlaformDefaults(flags: any, ctx: any): Promise<void> {
     flags.tls = await this.checkTlsMode(ctx)
 
     if (!flags.installer) {
-      await this.setDefaultInstaller(flags)
+      await this.setDefaultInstaller(flags, ctx)
       cli.info(`› Installer type is set to: '${flags.installer}'`)
     }
 
@@ -240,7 +242,7 @@ export default class Deploy extends Command {
    * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
    */
   async checkTlsMode(ctx: any): Promise<boolean> {
-    const crPatch = ctx.CRPatch
+    const crPatch = ctx.crPatch
     if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
       return false
     }
@@ -330,12 +332,8 @@ export default class Deploy extends Command {
     }
 
     const { flags } = this.parse(Deploy)
-    const ctx = initializeContext()
+    const ctx = await initializeContext(flags)
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
-    const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
-    ctx.listrOptions = listrOptions
-    ctx.customCR = readCRFile(flags, CHE_OPERATOR_CR_YAML_KEY , this)
-    ctx.CRPatch = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY, this)
 
     if (flags['self-signed-cert']) {
       this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
@@ -348,11 +346,11 @@ export default class Deploy extends Command {
     const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
     // Platform Checks
-    let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), listrOptions)
+    let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), ctx.listrOptions)
     platformCheckTasks.add(CommonPlatformTasks.oAuthProvidersExists(flags))
 
     // Checks if Eclipse Che is already deployed
-    let preInstallTasks = new Listr(undefined, listrOptions)
+    let preInstallTasks = new Listr(undefined, ctx.listrOptions)
     preInstallTasks.add(apiTasks.testApiTasks(flags, this))
     preInstallTasks.add({
       title: '👀  Looking for an already existing Eclipse Che instance',
@@ -360,12 +358,12 @@ export default class Deploy extends Command {
     })
 
     await this.setPlaformDefaults(flags, ctx)
-    let installTasks = new Listr(installerTasks.installTasks(flags, this), listrOptions)
+    let installTasks = new Listr(installerTasks.installTasks(flags, this), ctx.listrOptions)
 
     const startDeployedCheTasks = new Listr([{
       title: '👀  Starting already deployed Eclipse Che',
       task: () => new Listr(cheTasks.scaleCheUpTasks(this))
-    }], listrOptions)
+    }], ctx.listrOptions)
 
     // Post Install Checks
     const postInstallTasks = new Listr([
@@ -383,17 +381,17 @@ export default class Deploy extends Command {
       retrieveCheCaCertificateTask(flags),
       ...cheTasks.preparePostInstallationOutput(flags),
       getPrintHighlightedMessagesTask(),
-    ], listrOptions)
+    ], ctx.listrOptions)
 
     const logsTasks = new Listr([{
       title: 'Start following logs',
       task: () => new Listr(cheTasks.serverLogsTasks(flags, true))
-    }], listrOptions)
+    }], ctx.listrOptions)
 
     const eventTasks = new Listr([{
       title: 'Start following events',
       task: () => new Listr(cheTasks.namespaceEventsTask(flags.chenamespace, this, true))
-    }], listrOptions)
+    }], ctx.listrOptions)
 
     try {
       await preInstallTasks.run(ctx)
@@ -421,9 +419,9 @@ export default class Deploy extends Command {
     } catch (err) {
       const isDirEmpty = await this.isDirEmpty(ctx.directory)
       if (isDirEmpty) {
-        this.error(`${err}\nInstallation failed. There are no available logs.`)
+        this.error(`${err}\nInstallation failed. Error log: ${this.config.errlog}`)
       }
-      this.error(`${err}\nInstallation failed, check logs in '${ctx.directory}'`)
+      this.error(`${err}\nInstallation failed. Error log: ${this.config.errlog}. Eclipse Che logs: ${ctx.directory}`)
     }
 
     notifier.notify({
@@ -438,7 +436,7 @@ export default class Deploy extends Command {
    * Sets default installer which is `olm` for OpenShift 4 with stable version of chectl
    * and `operator` for other cases.
    */
-  async setDefaultInstaller(flags: any): Promise<void> {
+  async setDefaultInstaller(flags: any, ctx: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
 
     const isOlmPreinstalled = await kubeHelper.isPreInstalledOLM()
@@ -447,7 +445,7 @@ export default class Deploy extends Command {
       return
     }
 
-    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isOlmPreinstalled) {
+    if (flags.platform === 'openshift' && ctx.isOpenShift4 && isOlmPreinstalled) {
       flags.installer = 'olm'
     } else {
       flags.installer = 'operator'

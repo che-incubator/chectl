@@ -161,7 +161,7 @@ export class DevWorkspaceTasks {
       },
       {
         title: 'Create dev workspace controller ConfigMap',
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const yamlConfigFile = path.join(this.getTemplatePath(), 'controller_config.yaml')
           const rawYaml = await fs.readFile(yamlConfigFile, 'utf-8')
           const configMapYaml: any = yaml.safeLoad(rawYaml)
@@ -176,8 +176,7 @@ export class DevWorkspaceTasks {
 
           let webHooksValue = 'false'
           let routingClass = 'basic'
-          const isOpenShift = await this.kubeHelper.isOpenShift()
-          if (isOpenShift) {
+          if (ctx.isOpenShift) {
             routingClass = 'openshift-oauth'
             webHooksValue = 'true'
           }
@@ -197,15 +196,14 @@ export class DevWorkspaceTasks {
       },
       {
         title: 'Create dev workspace controller',
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exists = await this.kubeHelper.deploymentExist('devworkspace-controller', this.getNamespace())
           if (exists) {
             task.title = `${task.title}...It already exists.`
             return
           }
-          const isOpenShift = await this.kubeHelper.isOpenShift()
           const yamls: any[] = []
-          if (isOpenShift) {
+          if (ctx.isOpenShift) {
             const yamlControllerFile = path.join(this.getTemplatePath(), 'os', 'controller.yaml')
             const rawYaml = await fs.readFile(yamlControllerFile, 'utf-8')
             yaml.safeLoadAll(rawYaml, yaml => {

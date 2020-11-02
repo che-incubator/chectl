@@ -102,7 +102,7 @@ export function updateEclipseCheCluster(flags: any, kube: KubeHelper, command: C
   return {
     title: `Update the Custom Resource of type ${CHE_CLUSTER_CRD} in the namespace ${flags.chenamespace}`,
     task: async (ctx: any, task: any) => {
-      let crPatch: any = ctx.CRPatch || {}
+      let crPatch: any = ctx.crPatch || {}
 
       const cheCluster = await kube.getCheCluster(flags.chenamespace)
       if (!cheCluster) {

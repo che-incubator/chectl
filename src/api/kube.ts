@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1ContainerStateWaiting, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1ContainerStateTerminated, V1ContainerStateWaiting, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
 import { Cluster, Context } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
@@ -635,6 +635,26 @@ export class KubeHelper {
     }
   }
 
+  async patchCheClusterCustomResource(name: string, namespace: string, patch: any): Promise<any | undefined> {
+    const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+
+    // It is required to patch content-type, otherwise request will be rejected with 415 (Unsupported media type) error.
+    const requestOptions = {
+      headers: {
+        'content-type': 'application/merge-patch+json'
+      }
+    }
+
+    try {
+      const res = await k8sCoreApi.patchNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name, patch, undefined, undefined, undefined, requestOptions)
+      if (res && res.body) {
+        return res.body
+      }
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
   async patchNamespacedPod(name: string, namespace: string, patch: any): Promise<V1Pod | undefined> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
 
@@ -685,6 +705,26 @@ export class KubeHelper {
         for (const status of pod.status.containerStatuses) {
           if (status.state && status.state.waiting && status.state.waiting.message && status.state.waiting.reason) {
             return status.state.waiting
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns pod last terminated state.
+   */
+  async getPodLastTerminatedState(namespace: string, selector: string): Promise<V1ContainerStateTerminated | undefined> {
+    const pods = await this.getPodListByLabel(namespace, selector)
+    if (!pods.length) {
+      return
+    }
+
+    for (const pod of pods) {
+      if (pod.status && pod.status.containerStatuses) {
+        for (const status of pod.status.containerStatuses) {
+          if (status.lastState) {
+            return status.lastState.terminated
           }
         }
       }
@@ -1336,8 +1376,8 @@ export class KubeHelper {
     }
 
     // override default values
-    if (ctx.CRPatch) {
-      merge(cheClusterCR, ctx.CRPatch)
+    if (ctx.crPatch) {
+      merge(cheClusterCR, ctx.crPatch)
     }
 
     // Back off some configuration properties(chectl estimated them like not working or not desired)
@@ -1443,7 +1483,7 @@ export class KubeHelper {
     }
   }
 
-  async getAmoutUsers(): Promise<number> {
+  async getUsersNumber(): Promise<number> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     let amountOfUsers: number
     try {
@@ -1956,23 +1996,15 @@ export class KubeHelper {
   }
 
   async isOpenShift(): Promise<boolean> {
-    const k8sApiApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApisApi)
-    let res
+    const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApisApi)
+
     try {
-      res = await k8sApiApi.getAPIVersions()
+      const res = await k8sCoreApi.getAPIVersions()
+      return res && res.body && res.body.groups &&
+        res.body.groups.some(group => group.name === 'apps.openshift.io')
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
-    if (!res || !res.body) {
-      throw new Error('Get API versions returned an invalid response')
-    }
-    const v1APIGroupList = res.body
-    for (const v1APIGroup of v1APIGroupList.groups) {
-      if (v1APIGroup.name === 'apps.openshift.io') {
-        return true
-      }
-    }
-    return false
   }
 
   async getIngressHost(name = '', namespace = ''): Promise<string> {
@@ -2026,12 +2058,9 @@ export class KubeHelper {
 
     try {
       const res = await k8sCoreApi.getAPIVersions()
-      if (res && res.body && res.body.groups) {
-        return res.body.groups.some(group => group.name === 'route.openshift.io')
-          && res.body.groups.some(group => group.name === 'config.openshift.io')
-      } else {
-        return false
-      }
+      return res && res.body && res.body.groups &&
+        res.body.groups.some(group => group.name === 'route.openshift.io') &&
+        res.body.groups.some(group => group.name === 'config.openshift.io')
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
