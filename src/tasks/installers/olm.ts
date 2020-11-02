@@ -12,6 +12,7 @@ import Command from '@oclif/command'
 import { cli } from 'cli-ux'
 import * as yaml from 'js-yaml'
 import Listr = require('listr')
+import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/typings/olm'
@@ -21,6 +22,8 @@ import { isKubernetesPlatformFamily, isStableVersion } from '../../util'
 import { createEclipseCheCluster, createNamespaceTask, updateEclipseCheCluster } from './common-tasks'
 
 export class OLMTasks {
+  prometheusRoleName = 'prometheus-k8s'
+  prometheusRoleBindingName = 'prometheus-k8s'
   /**
    * Returns list of tasks which perform preflight platform checks.
    */
@@ -28,7 +31,39 @@ export class OLMTasks {
     const kube = new KubeHelper(flags)
     return new Listr([
       this.isOlmPreInstalledTask(command, kube),
-      createNamespaceTask(flags.chenamespace, flags.platform),
+      createNamespaceTask(flags.chenamespace, this.getOlmNamespaceLabels(flags)),
+      {
+        enabled: () => flags.metrics && flags.platform === 'openshift',
+        title: `Create Role ${this.prometheusRoleName} in namespace ${flags.chenamespace}`,
+        task: async (_ctx: any, task: any) => {
+          const yamlFilePath = path.join(flags.templates, '..', 'installers', 'prometheus-role.yaml')
+          const exist = await kube.roleExist(this.prometheusRoleName, flags.chenamespace)
+          if (exist) {
+            task.title = `${task.title}...It already exists.`
+          } else {
+            const statusCode = await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
+            if (statusCode === 403) {
+              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
+            }
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
+      {
+        enabled: () => flags.metrics && flags.platform === 'openshift',
+        title: `Create RoleBinding ${this.prometheusRoleBindingName} in namespace ${flags.chenamespace}`,
+        task: async (_ctx: any, task: any) => {
+          const exist = await kube.roleBindingExist(this.prometheusRoleBindingName, flags.chenamespace)
+          const yamlFilePath = path.join(flags.templates, '..', 'installers', 'prometheus-role-binding.yaml')
+
+          if (exist) {
+            task.title = `${task.title}...It already exists.`
+          } else {
+            await kube.createRoleBindingFromFile(yamlFilePath, flags.chenamespace)
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
       {
         title: 'Create operator group',
         task: async (_ctx: any, task: any) => {
@@ -47,7 +82,7 @@ export class OLMTasks {
           // catalog source name for stable Che version
           ctx.catalogSourceNameStable = isKubernetesPlatformFamily(flags.platform) ? KUBERNETES_OLM_CATALOG : OPENSHIFT_OLM_CATALOG
 
-          if (!flags['auto-update'] && !isStableVersion(flags)) {
+          if (flags['auto-update'] && !isStableVersion(flags)) {
             ctx.approvalStarategy = 'Automatic'
           } else {
             ctx.approvalStarategy = flags['auto-update'] ? 'Automatic' : 'Manual'
@@ -365,5 +400,15 @@ export class OLMTasks {
     } else {
       throw new Error(`Unable to retrieve Che cluster CR definition from CSV: ${currentCSV}`)
     }
+  }
+
+  private getOlmNamespaceLabels(flags: any) {
+    let labels = Object.create({})
+
+    //The label values must be strings
+    if (flags.metrics && flags.platform === 'openshift') {
+      labels['openshift.io/cluster-monitoring'] = 'true'
+    }
+    return labels
   }
 }

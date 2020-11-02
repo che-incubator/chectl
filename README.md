@@ -479,9 +479,7 @@ OPTIONS
   --auto-update
       Auto update approval strategy for installation Eclipse Che.
                            With this strategy will be provided auto-update Eclipse Che without any human interaction.
-                           By default strategy this flag is false. It requires approval from user.
-                           To approve installation newer version Eclipse Che user should execute 'chectl server:update' 
-      command.
+                           By default strategy this flag is true.
                            This parameter is used only when the installer is 'olm'.
 
   --catalog-source-name=catalog-source-name
@@ -572,6 +570,11 @@ OPTIONS
                            Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs 
       the latest known version.
                            This parameter is used only when the installer is 'olm'.
+
+  --[no-]suggested-namespace
+      Indicate to deploy Eclipse Che in OLM suggested namespace.
+                           This parameter is used only when the installer is 'olm'.
+                           By default it is enabled and Eclipse will be deployed in namespace "'eclipse-che'"
 
   --workspace-engine=che-server|dev-workspace
       [default: che-server] Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.

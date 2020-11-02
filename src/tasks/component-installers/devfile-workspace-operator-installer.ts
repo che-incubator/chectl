@@ -57,7 +57,7 @@ export class DevWorkspaceTasks {
    */
   getInstallTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     return [
-      createNamespaceTask(this.getNamespace(), flags.platform),
+      createNamespaceTask(this.getNamespace(), {}),
       {
         title: `Create ServiceAccount ${this.devWorkspaceServiceAccount} in namespace ${this.getNamespace()}`,
         task: async (_ctx: any, task: any) => {

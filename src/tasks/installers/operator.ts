@@ -45,7 +45,7 @@ export class OperatorTasks {
     }
     return new Listr([
       copyOperatorResources(flags, command.config.cacheDir),
-      createNamespaceTask(flags.chenamespace, flags.platform),
+      createNamespaceTask(flags.chenamespace, {}),
       {
         title: `Create ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {

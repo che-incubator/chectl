@@ -57,6 +57,25 @@ export class KubeHelper {
     }
   }
 
+  async createNamespace(namespaceName: string, labels: any): Promise<void> {
+    const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
+    const namespaceObject = {
+      apiVersion: 'v1',
+      kind: 'Namespace',
+      metadata: {
+        labels,
+        name: namespaceName
+      }
+    }
+
+    try {
+      await k8sCoreApi.createNamespace(namespaceObject)
+
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
   async deleteAllServices(namespace = '') {
     const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
