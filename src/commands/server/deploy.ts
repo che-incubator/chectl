@@ -394,7 +394,7 @@ export default class Deploy extends Command {
       {
         title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
         enabled: () => flags['workspace-engine'] === 'dev-workspace',
-        task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags, this))
+        task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags))
 
       },
       getRetrieveKeycloakCredentialsTask(flags),

@@ -8,7 +8,6 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import Command from '@oclif/command'
 import * as fs from 'fs-extra'
 import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
@@ -55,7 +54,7 @@ export class DevWorkspaceTasks {
   /**
    * Returns list of tasks which setup dev-workspace.
    */
-  getInstallTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
+  getInstallTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       createNamespaceTask(this.getNamespace(), {}),
       {
