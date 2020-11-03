@@ -212,9 +212,10 @@ export class CheHelper {
     let adminPassword
 
     const cheCluster = await this.kube.getCheCluster(cheNamespace)
-    if (!cheCluster) {
+    if (!cheCluster || cheCluster.spec.auth.externalIdentityProvider) {
       return []
     }
+
     const keycloakCredentialsSecretName = cheCluster.spec.auth.identityProviderSecret
     if (keycloakCredentialsSecretName) {
       // Keycloak credentials are stored in secret
