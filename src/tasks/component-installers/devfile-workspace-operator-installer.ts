@@ -79,10 +79,7 @@ export class DevWorkspaceTasks {
             task.title = `${task.title}...It already exists.`
           } else {
             const rolePath = path.join(this.getTemplatePath(), 'role.yaml')
-            const statusCode = await this.kubeHelper.createClusterRoleFromFile(rolePath, this.devWorkspaceRole)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await this.kubeHelper.createClusterRoleFromFile(rolePath, this.devWorkspaceRole)
             task.title = `${task.title}...done.`
           }
         }
@@ -95,10 +92,7 @@ export class DevWorkspaceTasks {
             task.title = `${task.title}...It already exists.`
           } else {
             const clusterRolePath = path.join(this.getTemplatePath(), 'edit-workspaces-cluster-role.yaml')
-            const statusCode = await this.kubeHelper.createClusterRoleFromFile(clusterRolePath, this.devWorkspaceEditWorkspaceClusterRole)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await this.kubeHelper.createClusterRoleFromFile(clusterRolePath, this.devWorkspaceEditWorkspaceClusterRole)
             task.title = `${task.title}...done.`
           }
         }
@@ -111,10 +105,7 @@ export class DevWorkspaceTasks {
             task.title = `${task.title}...It already exists.`
           } else {
             const clusterRolePath = path.join(this.getTemplatePath(), 'view-workspaces-cluster-role.yaml')
-            const statusCode = await this.kubeHelper.createClusterRoleFromFile(clusterRolePath, this.devWorkspaceViewWorkspaceClusterRole)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await this.kubeHelper.createClusterRoleFromFile(clusterRolePath, this.devWorkspaceViewWorkspaceClusterRole)
             task.title = `${task.title}...done.`
           }
         }

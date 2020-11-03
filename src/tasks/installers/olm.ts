@@ -33,7 +33,7 @@ export class OLMTasks {
       this.isOlmPreInstalledTask(command, kube),
       createNamespaceTask(flags.chenamespace, this.getOlmNamespaceLabels(flags)),
       {
-        enabled: () => flags.metrics && flags.platform === 'openshift',
+        enabled: () => flags['cluster-monitoring'] && flags.platform === 'openshift',
         title: `Create Role ${this.prometheusRoleName} in namespace ${flags.chenamespace}`,
         task: async (_ctx: any, task: any) => {
           const yamlFilePath = path.join(flags.templates, '..', 'installers', 'prometheus-role.yaml')
@@ -41,16 +41,13 @@ export class OLMTasks {
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            const statusCode = await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...done.`
           }
         }
       },
       {
-        enabled: () => flags.metrics && flags.platform === 'openshift',
+        enabled: () => flags['cluster-monitoring'] && flags.platform === 'openshift',
         title: `Create RoleBinding ${this.prometheusRoleBindingName} in namespace ${flags.chenamespace}`,
         task: async (_ctx: any, task: any) => {
           const exist = await kube.roleBindingExist(this.prometheusRoleBindingName, flags.chenamespace)
@@ -82,7 +79,7 @@ export class OLMTasks {
           // catalog source name for stable Che version
           ctx.catalogSourceNameStable = isKubernetesPlatformFamily(flags.platform) ? KUBERNETES_OLM_CATALOG : OPENSHIFT_OLM_CATALOG
 
-          if (flags['auto-update'] && !isStableVersion(flags)) {
+          if (!flags['auto-update'] && !isStableVersion(flags)) {
             ctx.approvalStarategy = 'Automatic'
           } else {
             ctx.approvalStarategy = flags['auto-update'] ? 'Automatic' : 'Manual'
@@ -333,7 +330,25 @@ export class OLMTasks {
           }
           task.title = `${task.title}...OK`
         }
-      }
+      },
+      {
+        title: `Delete role ${this.prometheusRoleName}`,
+        task: async (_ctx: any, task: any) => {
+          if (await kube.roleExist(this.prometheusRoleName, flags.chenamespace)) {
+            await kube.deleteRole(this.prometheusRoleName, flags.chenamespace)
+          }
+          task.title = await `${task.title}...OK`
+        }
+      },
+      {
+        title: `Delete role binding ${this.prometheusRoleName}`,
+        task: async (_ctx: any, task: any) => {
+          if (await kube.roleBindingExist(this.prometheusRoleName, flags.chenamespace)) {
+            await kube.deleteRoleBinding(this.prometheusRoleName, flags.chenamespace)
+          }
+          task.title = await `${task.title}...OK`
+        }
+      },
     ]
   }
 

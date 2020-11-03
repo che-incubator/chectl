@@ -67,10 +67,7 @@ export class OperatorTasks {
             task.title = `${task.title}...It already exists.`
           } else {
             const yamlFilePath = ctx.resourcesPath + 'role.yaml'
-            const statusCode = await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...done.`
           }
         }
@@ -83,10 +80,7 @@ export class OperatorTasks {
             task.title = `${task.title}...It already exists.`
           } else {
             const yamlFilePath = ctx.resourcesPath + 'cluster_role.yaml'
-            const statusCode = await kube.createClusterRoleFromFile(yamlFilePath, clusterRoleName)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.createClusterRoleFromFile(yamlFilePath, clusterRoleName)
             task.title = `${task.title}...done.`
           }
         }
@@ -227,16 +221,10 @@ export class OperatorTasks {
           const exist = await kube.roleExist(this.operatorRole, flags.chenamespace)
           const yamlFilePath = ctx.resourcesPath + 'role.yaml'
           if (exist) {
-            const statusCode = await kube.replaceRoleFromFile(yamlFilePath, flags.chenamespace)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.replaceRoleFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...updated.`
           } else {
-            const statusCode = await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...created new one.`
           }
         }
@@ -248,23 +236,14 @@ export class OperatorTasks {
           const legacyClusterRoleExists = await kube.clusterRoleExist(this.operatorClusterRole)
           const yamlFilePath = ctx.resourcesPath + 'cluster_role.yaml'
           if (clusterRoleExists) {
-            const statusCode = await kube.replaceClusterRoleFromFile(yamlFilePath, clusterRoleName)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.replaceClusterRoleFromFile(yamlFilePath, clusterRoleName)
             task.title = `${task.title}...updated.`
             // it is needed to check the legacy cluster object name to be compatible with previous installations
           } else if (legacyClusterRoleExists) {
-            const statusCode = await kube.replaceClusterRoleFromFile(yamlFilePath, this.operatorClusterRole)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.replaceClusterRoleFromFile(yamlFilePath, this.operatorClusterRole)
             task.title = `Updating ClusterRole ${this.operatorClusterRole}...updated.`
           } else {
-            const statusCode = await kube.createClusterRoleFromFile(yamlFilePath, clusterRoleName)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.createClusterRoleFromFile(yamlFilePath, clusterRoleName)
             task.title = `${task.title}...created a new one.`
           }
         }

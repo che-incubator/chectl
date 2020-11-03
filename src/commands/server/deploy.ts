@@ -147,6 +147,7 @@ export default class Deploy extends Command {
                     By default this flag is enabled.
                     This parameter is used only when the installer is 'olm'.`,
       default: true,
+      allowNo: true,
       exclusive: ['starting-csv']
     }),
     'starting-csv': flags.string({
@@ -180,7 +181,7 @@ export default class Deploy extends Command {
       description: `Namespace for OLM catalog source to install Eclipse Che operator.
                     This parameter is used only when the installer is the 'olm'.`
     }),
-    metrics: boolean({
+    'cluster-monitoring': boolean({
       default: false,
       hidden: true,
       description: `Enable cluster monitoring to scrape Eclipse Che metrics in Prometheus.
@@ -189,9 +190,9 @@ export default class Deploy extends Command {
     'suggested-namespace': boolean({
       default: true,
       allowNo: true,
-      description: `Indicate to deploy Eclipse Che in OLM suggested namespace.
-                    This parameter is used only when the installer is 'olm'.
-                    By default it is enabled and Eclipse Che will be deployed in namespace '${DEFAULT_CHE_SUGGESTED_NAMESPACE}'`
+      description: `Indicate to deploy Eclipse Che in OLM suggested namespace: '${DEFAULT_CHE_SUGGESTED_NAMESPACE}'.
+                    Flag 'chenamespace' is ignored in this case
+                    This parameter is used only when the installer is 'olm'.`
     }),
     'skip-kubernetes-health-check': skipK8sHealthCheck,
     'workspace-engine': string({
@@ -320,8 +321,8 @@ export default class Deploy extends Command {
       if (flags.installer !== 'olm' && flags['catalog-source-namespace']) {
         this.error('"package-manifest-name" flag should be used only with "olm" installer.')
       }
-      if (flags.installer !== 'olm' && flags.metrics && flags.platform !== 'openshift') {
-        this.error('"metrics" flag should be used only with "olm" installer and "openshift" platform.')
+      if (flags.installer !== 'olm' && flags['cluster-monitoring'] && flags.platform !== 'openshift') {
+        this.error('"cluster-monitoring" flag should be used only with "olm" installer and "openshift" platform.')
       }
       if (flags['catalog-source-name'] && flags['catalog-source-yaml']) {
         this.error('should be provided only one argument: "catalog-source-name" or "catalog-source-yaml"')
@@ -351,7 +352,7 @@ export default class Deploy extends Command {
 
     if (flags.installer === 'olm' && flags['suggested-namespace']) {
       flags.chenamespace = DEFAULT_CHE_SUGGESTED_NAMESPACE
-      cli.info(`  ❕suggested-namespace flag is enabled by default. Eclipse Che will be deployed in namespace: ${DEFAULT_CHE_SUGGESTED_NAMESPACE}.`)
+      cli.info(`  ❕suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_CHE_SUGGESTED_NAMESPACE}.`)
     }
 
     if (flags['self-signed-cert']) {
