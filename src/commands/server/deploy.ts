@@ -121,6 +121,10 @@ export default class Deploy extends Command {
     }),
     [CHE_OPERATOR_CR_YAML_KEY]: cheOperatorCRYaml,
     [CHE_OPERATOR_CR_PATCH_YAML_KEY]: cheOperatorCRPatchYaml,
+    'helm-patch-yaml': string({
+      description: 'Path to yaml file with Helm Chart values patch. The file format is identical to values.yaml from the chart.',
+      default: '',
+    }),
     directory: string({
       char: 'd',
       description: 'Directory to store logs into',

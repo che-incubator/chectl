@@ -515,6 +515,9 @@ OPTIONS
   --devfile-registry-url=devfile-registry-url
       The URL of the external Devfile registry.
 
+  --helm-patch-yaml=helm-patch-yaml
+      Path to yaml file with Helm Chart values patch. The file format is identical to values.yaml from the chart.
+
   --k8spodreadytimeout=k8spodreadytimeout
       [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
 

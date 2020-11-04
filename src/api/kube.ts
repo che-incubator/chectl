@@ -2269,7 +2269,7 @@ export class KubeHelper {
     else return new Error(e)
   }
 
-  private safeLoadFromYamlFile(filePath: string): any {
+  public safeLoadFromYamlFile(filePath: string): any {
     return yaml.safeLoad(fs.readFileSync(filePath).toString())
   }
 }
