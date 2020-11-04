@@ -8,22 +8,58 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
- // tslint:disable: no-console
+// tslint:disable: no-console
 
 import { expect, test } from '@oclif/test'
 import * as execa from 'execa'
 
-import { E2eHelper } from './util/e2e'
+import { isKubernetesPlatformFamily } from '../../src/util'
+
+import { E2eHelper } from './util'
 
 const helper = new E2eHelper()
 jest.setTimeout(1000000)
 
 const binChectl = `${process.cwd()}/bin/run`
 
+const PLATFORM = process.env.PLATFORM
+const INSTALLER = process.env.INSTALLER
+
+const PLATFORM_OPENSHIFT = 'openshift'
+const PLATFORM_CRC = 'crc'
+const PLATFORM_MINISHIFT = 'minishift'
+const PLATFORM_MINIKUBE = 'minikube'
+
+const INSTALLER_OPERATOR = 'operator'
+const INSTALLER_HELM = 'helm'
+
+function getDeployCommand(): string {
+  let command: string
+  switch (PLATFORM) {
+  case PLATFORM_OPENSHIFT:
+  case PLATFORM_CRC:
+  case PLATFORM_MINISHIFT:
+    if (INSTALLER !== INSTALLER_OPERATOR) {
+      throw new Error(`Unknown installer ${INSTALLER}`)
+    }
+    command = `${binChectl} server:deploy --platform=${PLATFORM} --che-operator-cr-patch-yaml=test/e2e/util/cr-patch.yaml --installer=${INSTALLER}`
+    break
+  case PLATFORM_MINIKUBE:
+    if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_HELM)) {
+      throw new Error(`Unknown installer ${INSTALLER}`)
+    }
+    command = `${binChectl} server:deploy --platform=${PLATFORM} --helm-patch-yaml=test/e2e/util/helm-patch.yaml --installer=${INSTALLER} --skip-cluster-availability-check`
+    break
+  default:
+    throw new Error(`Unknow platform: ${PLATFORM}`)
+  }
+  return command
+}
+
 describe('Eclipse Che deploy test suite', () => {
-  describe('server:deploy using operator and self signed certificates', () => {
-    it('server:deploy using operator and self signed certificates', async () => {
-      const command = `${binChectl} server:deploy --platform=minishift --che-operator-cr-patch-yaml=test/e2e/util/cr-test.yaml --tls --installer=operator`
+  describe(`server:deploy using ${INSTALLER} installer and self signed certificates`, () => {
+    it(`server:deploy using ${INSTALLER} installer and self signed certificates`, async () => {
+      const command = getDeployCommand()
       const { exitCode, stdout, stderr } = await execa(command, { shell: true })
 
       expect(exitCode).equal(0)
@@ -38,7 +74,12 @@ describe('Eclipse Che deploy test suite', () => {
 
 describe('Che server authentication', () => {
   it('Should login in to Che server with username and password', async () => {
-    const cheApiEndpoint = await helper.OCHostname('che') + '/api'
+    let cheApiEndpoint: string
+    if (isKubernetesPlatformFamily(PLATFORM)) {
+      cheApiEndpoint = await helper.K8SHostname('che') + '/api'
+    } else {
+      cheApiEndpoint = await helper.OCHostname('che') + '/api'
+    }
 
     const command = `${binChectl} auth:login`
     const args = [cheApiEndpoint, '-u', 'admin', '-p', 'admin']
@@ -158,6 +199,10 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
       if (exitCode !== 0) {
         console.log(stderr)
       }
+
+      const workspaceStatus = await helper.getWorkspaceStatus()
+      // The status could be STOPPING or STOPPED
+      expect(workspaceStatus).to.contain('STOP')
     })
   })
 
@@ -178,13 +223,17 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
   })
 
   describe('Stop Eclipse Che Server', () => {
-    test
-      .stdout({ print: true })
-      .stderr({ print: true })
-      .do(async () => helper.SleepTests(30000))
-      .command(['server:stop', '--listr-renderer=silent'])
-      .exit(0)
-      .it('Stop Eclipse Che Server on minishift platform')
+    it('server:stop command coverage', async () => {
+      const command = `${binChectl} server:stop --skip-kubernetes-health-check`
+      const { exitCode, stdout, stderr } = await execa(command, { shell: true })
+
+      expect(exitCode).equal(0)
+      console.log(stdout)
+
+      if (exitCode !== 0) {
+        console.log(stderr)
+      }
+    })
   })
 
   describe('Delete Eclipse Che Server', () => {
@@ -193,6 +242,6 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
       .stderr({ print: true })
       .command(['server:delete', '--yes', '--delete-namespace'])
       .exit(0)
-      .it('deletes Eclipse Che resources on minishift successfully')
+      .it(`deletes Eclipse Che resources on ${PLATFORM} platform successfully`)
   })
 })

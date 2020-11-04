@@ -8,12 +8,11 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-
 import * as execa from 'execa'
 
-import { CheHelper } from '../../../src/api/che'
-import { KubeHelper } from '../../../src/api/kube'
-import { OpenShiftHelper } from '../../../src/api/openshift'
+import { CheHelper } from '../../src/api/che'
+import { KubeHelper } from '../../src/api/kube'
+import { OpenShiftHelper } from '../../src/api/openshift'
 
 // Fields which chectl returns for workspace:list commands
 interface WorkspaceInfo {

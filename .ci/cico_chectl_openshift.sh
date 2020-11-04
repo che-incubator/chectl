@@ -63,8 +63,9 @@ getCheClusterLogs() {
 run() {
   # Before to start to run the e2e tests we need to install all deps with yarn
   yarn --cwd ${CHECTL_REPO}
-
-  echo "[INFO] Running e2e tests on openshift platform."
+  export PLATFORM=openshift
+  export INSTALLER=operator
+  echo "[INFO] Running e2e tests on ${PLATFORM} platform."
   yarn test --coverage=false --forceExit --testRegex=${CHECTL_REPO}/test/e2e/openshift.test.ts
 }
 
