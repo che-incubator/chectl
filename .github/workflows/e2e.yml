@@ -12,7 +12,7 @@ name: chectl e2e tests
 on: pull_request
 jobs:
   minikube-e2e:
-    name: Minikube
+    name: Minikube Operator
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
@@ -26,7 +26,7 @@ jobs:
         export INSTALLER=operator
         minikube addons enable ingress
         yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
-   minikube-e2e-helm:
+  minikube-e2e-helm:
     name: Minikube Helm
     runs-on: ubuntu-latest
     steps:
@@ -42,7 +42,7 @@ jobs:
         minikube addons enable ingress
         yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
   minishift-e2e:
-    name: Minishift
+    name: Minishift Operator
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1

@@ -22,8 +22,8 @@ jest.setTimeout(1000000)
 
 const binChectl = `${process.cwd()}/bin/run`
 
-const PLATFORM = process.env.PLATFORM
-const INSTALLER = process.env.INSTALLER
+const PLATFORM = process.env.PLATFORM || ''
+const INSTALLER = process.env.INSTALLER || ''
 
 const PLATFORM_OPENSHIFT = 'openshift'
 const PLATFORM_CRC = 'crc'
@@ -42,13 +42,13 @@ function getDeployCommand(): string {
     if (INSTALLER !== INSTALLER_OPERATOR) {
       throw new Error(`Unknown installer ${INSTALLER}`)
     }
-    command = `${binChectl} server:deploy --platform=${PLATFORM} --che-operator-cr-patch-yaml=test/e2e/util/cr-patch.yaml --installer=${INSTALLER}`
+    command = `${binChectl} server:deploy --platform=${PLATFORM} --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml --installer=${INSTALLER}`
     break
   case PLATFORM_MINIKUBE:
     if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_HELM)) {
       throw new Error(`Unknown installer ${INSTALLER}`)
     }
-    command = `${binChectl} server:deploy --platform=${PLATFORM} --helm-patch-yaml=test/e2e/util/helm-patch.yaml --installer=${INSTALLER} --skip-cluster-availability-check`
+    command = `${binChectl} server:deploy --platform=${PLATFORM} --helm-patch-yaml=test/e2e/resources/helm-patch.yaml --installer=${INSTALLER} --skip-cluster-availability-check`
     break
   default:
     throw new Error(`Unknow platform: ${PLATFORM}`)
