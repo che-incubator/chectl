@@ -42,13 +42,14 @@ function getDeployCommand(): string {
     if (INSTALLER !== INSTALLER_OPERATOR) {
       throw new Error(`Unknown installer ${INSTALLER}`)
     }
-    command = `${binChectl} server:deploy --platform=${PLATFORM} --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml --installer=${INSTALLER}`
+    command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
     break
   case PLATFORM_MINIKUBE:
     if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_HELM)) {
       throw new Error(`Unknown installer ${INSTALLER}`)
     }
-    command = `${binChectl} server:deploy --platform=${PLATFORM} --helm-patch-yaml=test/e2e/resources/helm-patch.yaml --installer=${INSTALLER} --skip-cluster-availability-check`
+    const patchOption = INSTALLER === INSTALLER_HELM ? '--helm-patch-yaml=test/e2e/resources/helm-patch.yaml' : '--che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml'
+    command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} ${patchOption} --multiuser --skip-cluster-availability-check`
     break
   default:
     throw new Error(`Unknow platform: ${PLATFORM}`)
@@ -60,6 +61,7 @@ describe('Eclipse Che deploy test suite', () => {
   describe(`server:deploy using ${INSTALLER} installer and self signed certificates`, () => {
     it(`server:deploy using ${INSTALLER} installer and self signed certificates`, async () => {
       const command = getDeployCommand()
+      console.log(command)
       const { exitCode, stdout, stderr } = await execa(command, { shell: true })
 
       expect(exitCode).equal(0)
@@ -76,7 +78,8 @@ describe('Che server authentication', () => {
   it('Should login in to Che server with username and password', async () => {
     let cheApiEndpoint: string
     if (isKubernetesPlatformFamily(PLATFORM)) {
-      cheApiEndpoint = await helper.K8SHostname('che') + '/api'
+      const ingressName = INSTALLER === INSTALLER_HELM ? 'che-ingress' : 'che'
+      cheApiEndpoint = await helper.K8SHostname(ingressName) + '/api'
     } else {
       cheApiEndpoint = await helper.OCHostname('che') + '/api'
     }
@@ -87,6 +90,7 @@ describe('Che server authentication', () => {
     const { exitCode, stdout, stderr } = await execa(command, args, { timeout: 30000, shell: true })
 
     expect(exitCode).equal(0)
+    expect(stdout).to.contain('Succesfully logged into')
     console.log(stdout)
 
     if (exitCode !== 0) {
@@ -100,6 +104,7 @@ describe('Che server authentication', () => {
     const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
 
     expect(exitCode).equal(0)
+    expect(stdout).to.contain('admin')
     console.log(stdout)
 
     if (exitCode !== 0) {
@@ -128,7 +133,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
     test
       .stdout({ print: true })
       .stderr({ print: true })
-      .command(['workspace:create', '--devfile=test/e2e/util/devfile-example.yaml'])
+      .command(['workspace:create', '--devfile=test/e2e/resources/devfile-example.yaml'])
       .exit(0)
       .it('Create a workspace and wait to be started')
   })
