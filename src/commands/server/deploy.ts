@@ -352,7 +352,7 @@ export default class Deploy extends Command {
 
     if (flags.installer === 'olm' && flags['olm-suggested-namespace']) {
       flags.chenamespace = DEFAULT_OLM_SUGGESTED_NAMESPACE
-      cli.info(`  olm-suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
+      cli.info(` ❕olm-suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
     }
 
     if (flags['self-signed-cert']) {

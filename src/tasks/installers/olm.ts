@@ -417,13 +417,11 @@ export class OLMTasks {
     }
   }
 
-  private getOlmNamespaceLabels(flags: any) {
-    let labels = Object.create({})
-
+  private getOlmNamespaceLabels(flags: any): any {
     //The label values must be strings
-    if (flags.metrics && flags.platform === 'openshift') {
-      labels['openshift.io/cluster-monitoring'] = 'true'
+    if (flags['cluster-monitoring'] && flags.platform === 'openshift') {
+      return { 'openshift.io/cluster-monitoring': 'true' }
     }
-    return labels
+    return {}
   }
 }
