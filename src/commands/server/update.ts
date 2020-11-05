@@ -110,7 +110,7 @@ export default class Update extends Command {
     try {
       await preUpdateTasks.run(ctx)
 
-      if (!flags.assumeYes) {
+      if (!flags.yes) {
         cli.info(`Existed Eclipse Che operator: ${ctx.deployedCheOperatorImage}:${ctx.deployedCheOperatorTag}.`)
         cli.info(`New Eclipse Che operator    : ${ctx.newCheOperatorImage}:${ctx.newCheOperatorTag}.`)
 
