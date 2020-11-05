@@ -12,7 +12,7 @@ name: chectl e2e tests
 on: pull_request
 jobs:
   minikube-e2e:
-    name: Minikube
+    name: Minikube Operator
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
@@ -22,10 +22,27 @@ jobs:
       run: yarn
     - name: Run e2e tests minikube
       run: |
+        export PLATFORM=minikube
+        export INSTALLER=operator
         minikube addons enable ingress
-        yarn test --coverage=false --forceExit --testRegex=test/e2e/minikube.test.ts
+        yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
+  minikube-e2e-helm:
+    name: Minikube Helm
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install minikube kubernetes cluster
+      run: minikube start --memory=6000
+    - name: Install chectl dependencies
+      run: yarn
+    - name: Run e2e tests minikube
+      run: |
+        export PLATFORM=minikube
+        export INSTALLER=helm
+        minikube addons enable ingress
+        yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
   minishift-e2e:
-    name: Minishift
+    name: Minishift Operator
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
@@ -84,6 +101,7 @@ jobs:
         oc rollout latest router
         oc create secret generic self-signed-certificate --from-file=ca.crt -n=che
         # RUN THE TESTS
+        export PLATFORM=minishift
+        export INSTALLER=operator
         yarn
-        yarn test --coverage=false --forceExit --testRegex=test/e2e/minishift.test.ts
-        
+        yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
