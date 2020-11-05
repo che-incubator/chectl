@@ -19,7 +19,7 @@ import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
 import { cheDeployment, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_CHE_SUGGESTED_NAMESPACE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
+import { DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
@@ -187,10 +187,10 @@ export default class Deploy extends Command {
       description: `Enable cluster monitoring to scrape Eclipse Che metrics in Prometheus.
                     This parameter is used only when the platform is 'openshift'.`
     }),
-    'suggested-namespace': boolean({
+    'olm-suggested-namespace': boolean({
       default: true,
       allowNo: true,
-      description: `Indicate to deploy Eclipse Che in OLM suggested namespace: '${DEFAULT_CHE_SUGGESTED_NAMESPACE}'.
+      description: `Indicate to deploy Eclipse Che in OLM suggested namespace: '${DEFAULT_OLM_SUGGESTED_NAMESPACE}'.
                     Flag 'chenamespace' is ignored in this case
                     This parameter is used only when the installer is 'olm'.`
     }),
@@ -350,9 +350,9 @@ export default class Deploy extends Command {
     ctx.customCR = readCRFile(flags, CHE_OPERATOR_CR_YAML_KEY , this)
     ctx.CRPatch = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY, this)
 
-    if (flags.installer === 'olm' && flags['suggested-namespace']) {
-      flags.chenamespace = DEFAULT_CHE_SUGGESTED_NAMESPACE
-      cli.info(`  ❕suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_CHE_SUGGESTED_NAMESPACE}.`)
+    if (flags.installer === 'olm' && flags['olm-suggested-namespace']) {
+      flags.chenamespace = DEFAULT_OLM_SUGGESTED_NAMESPACE
+      cli.info(`  olm-suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
     }
 
     if (flags['self-signed-cert']) {

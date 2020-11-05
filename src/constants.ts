@@ -36,7 +36,7 @@ export const KUBERNETES_OLM_CATALOG = 'operatorhubio-catalog'
 export const OPENSHIFT_OLM_CATALOG = 'community-operators'
 export const CVS_PREFIX = 'eclipse-che'
 export const NIGHTLY_CATALOG_SOURCE_NAME = 'eclipse-che-preview'
-export const DEFAULT_CHE_SUGGESTED_NAMESPACE = 'eclipse-che'
+export const DEFAULT_OLM_SUGGESTED_NAMESPACE = 'eclipse-che'
 
 // Documentation links
 export const DOC_LINK = 'https://www.eclipse.org/che/docs/'
