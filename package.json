@@ -21,7 +21,7 @@
     "@types/node-notifier": "^8.0.0",
     "@types/request": "^2.48.5",
     "@types/websocket": "^1.0.1",
-    "@types/ws": "^7.2.6",
+    "@types/ws": "^7.2.9",
     "ansi-colors": "4.1.1",
     "axios": "^0.19.2",
     "cli-ux": "^5.4.5",
