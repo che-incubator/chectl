@@ -57,6 +57,25 @@ export class KubeHelper {
     }
   }
 
+  async createNamespace(namespaceName: string, labels: any): Promise<void> {
+    const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
+    const namespaceObject = {
+      apiVersion: 'v1',
+      kind: 'Namespace',
+      metadata: {
+        labels,
+        name: namespaceName
+      }
+    }
+
+    try {
+      await k8sCoreApi.createNamespace(namespaceObject)
+
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
   async deleteAllServices(namespace = '') {
     const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
@@ -238,11 +257,7 @@ export class KubeHelper {
       const res = await k8sRbacAuthApi.createNamespacedRole(namespace, yamlRole)
       return res.response.statusCode
     } catch (e) {
-      if (e.response && e.response.statusCode && e.response.statusCode === 403) {
-        return e.response.statusCode
-      } else {
-        throw this.wrapK8sClientError(e)
-      }
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -257,11 +272,7 @@ export class KubeHelper {
       const res = await k8sRbacAuthApi.replaceNamespacedRole(yamlRole.metadata.name, namespace, yamlRole)
       return res.response.statusCode
     } catch (e) {
-      if (e.response && e.response.statusCode && e.response.statusCode === 403) {
-        return e.response.statusCode
-      } else {
-        throw this.wrapK8sClientError(e)
-      }
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -281,11 +292,7 @@ export class KubeHelper {
       const res = await k8sRbacAuthApi.createClusterRole(yamlRole)
       return res.response.statusCode
     } catch (e) {
-      if (e.response && e.response.statusCode && e.response.statusCode === 403) {
-        return e.response.statusCode
-      } else {
-        throw this.wrapK8sClientError(e)
-      }
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -305,11 +312,7 @@ export class KubeHelper {
       const res = await k8sRbacAuthApi.replaceClusterRole(yamlRole.metadata.name, yamlRole)
       return res.response.statusCode
     } catch (e) {
-      if (e.response && e.response.statusCode && e.response.statusCode === 403) {
-        return e.response.statusCode
-      } else {
-        throw this.wrapK8sClientError(e)
-      }
+      throw this.wrapK8sClientError(e)
     }
   }
 

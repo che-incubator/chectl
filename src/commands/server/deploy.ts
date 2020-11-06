@@ -19,7 +19,7 @@ import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
 import { cheDeployment, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
+import { DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
@@ -150,10 +150,10 @@ export default class Deploy extends Command {
     'auto-update': flags.boolean({
       description: `Auto update approval strategy for installation Eclipse Che.
                     With this strategy will be provided auto-update Eclipse Che without any human interaction.
-                    By default strategy this flag is false. It requires approval from user.
-                    To approve installation newer version Eclipse Che user should execute 'chectl server:update' command.
+                    By default this flag is enabled.
                     This parameter is used only when the installer is 'olm'.`,
-      default: false,
+      default: true,
+      allowNo: true,
       exclusive: ['starting-csv']
     }),
     'starting-csv': flags.string({
@@ -186,6 +186,19 @@ export default class Deploy extends Command {
     'catalog-source-namespace': string({
       description: `Namespace for OLM catalog source to install Eclipse Che operator.
                     This parameter is used only when the installer is the 'olm'.`
+    }),
+    'cluster-monitoring': boolean({
+      default: false,
+      hidden: true,
+      description: `Enable cluster monitoring to scrape Eclipse Che metrics in Prometheus.
+                    This parameter is used only when the platform is 'openshift'.`
+    }),
+    'olm-suggested-namespace': boolean({
+      default: true,
+      allowNo: true,
+      description: `Indicate to deploy Eclipse Che in OLM suggested namespace: '${DEFAULT_OLM_SUGGESTED_NAMESPACE}'.
+                    Flag 'chenamespace' is ignored in this case
+                    This parameter is used only when the installer is 'olm'.`
     }),
     'skip-kubernetes-health-check': skipK8sHealthCheck,
     'workspace-engine': string({
@@ -296,9 +309,6 @@ export default class Deploy extends Command {
         this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
       }
 
-      if (flags.installer !== 'olm' && flags['auto-update']) {
-        this.error('"auto-update" flag should be used only with "olm" installer.')
-      }
       if (flags.installer !== 'olm' && flags['starting-csv']) {
         this.error('"starting-csv" flag should be used only with "olm" installer.')
       }
@@ -316,6 +326,9 @@ export default class Deploy extends Command {
       }
       if (flags.installer !== 'olm' && flags['catalog-source-namespace']) {
         this.error('"package-manifest-name" flag should be used only with "olm" installer.')
+      }
+      if (flags.installer !== 'olm' && flags['cluster-monitoring'] && flags.platform !== 'openshift') {
+        this.error('"cluster-monitoring" flag should be used only with "olm" installer and "openshift" platform.')
       }
       if (flags['catalog-source-name'] && flags['catalog-source-yaml']) {
         this.error('should be provided only one argument: "catalog-source-name" or "catalog-source-yaml"')
@@ -338,6 +351,11 @@ export default class Deploy extends Command {
     const { flags } = this.parse(Deploy)
     const ctx = await initializeContext(flags)
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
+
+    if (flags.installer === 'olm' && flags['olm-suggested-namespace']) {
+      flags.chenamespace = DEFAULT_OLM_SUGGESTED_NAMESPACE
+      cli.info(` ❕olm-suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
+    }
 
     if (flags['self-signed-cert']) {
       this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
@@ -378,7 +396,7 @@ export default class Deploy extends Command {
       {
         title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
         enabled: () => flags['workspace-engine'] === 'dev-workspace',
-        task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags, this))
+        task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags))
 
       },
       getRetrieveKeycloakCredentialsTask(flags),

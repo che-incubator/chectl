@@ -463,12 +463,10 @@ OPTIONS
   -t, --templates=templates
       Path to the templates folder
 
-  --auto-update
+  --[no-]auto-update
       Auto update approval strategy for installation Eclipse Che.
                            With this strategy will be provided auto-update Eclipse Che without any human interaction.
-                           By default strategy this flag is false. It requires approval from user.
-                           To approve installation newer version Eclipse Che user should execute 'chectl server:update' 
-      command.
+                           By default this flag is enabled.
                            This parameter is used only when the installer is 'olm'.
 
   --catalog-source-name=catalog-source-name
@@ -528,6 +526,11 @@ OPTIONS
       Olm channel to install Eclipse Che, f.e. stable.
                            If options was not set, will be used default version for package manifest.
                            This parameter is used only when the installer is the 'olm'.
+
+  --[no-]olm-suggested-namespace
+      Indicate to deploy Eclipse Che in OLM suggested namespace: 'eclipse-che'.
+                           Flag 'chenamespace' is ignored in this case
+                           This parameter is used only when the installer is 'olm'.
 
   --package-manifest-name=package-manifest-name
       Package manifest name to subscribe to Eclipse Che OLM package manifest.

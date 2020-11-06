@@ -10,7 +10,6 @@
 
 import Command from '@oclif/command'
 import ansi = require('ansi-colors')
-import * as execa from 'execa'
 import { copy, mkdirp, remove } from 'fs-extra'
 import * as Listr from 'listr'
 import { merge } from 'lodash'
@@ -19,22 +18,18 @@ import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
-import { isKubernetesPlatformFamily, isOpenshiftPlatformFamily } from '../../util'
 
-export function createNamespaceTask(namespace: string, platform: string): Listr.ListrTask {
+export function createNamespaceTask(namespaceName: string, labels: {}): Listr.ListrTask {
   return {
-    title: `Create Namespace (${namespace})`,
+    title: `Create Namespace (${namespaceName})`,
     task: async (_ctx: any, task: any) => {
       const kube = new KubeHelper()
-      const exist = await kube.namespaceExist(namespace)
+      const exist = await kube.namespaceExist(namespaceName)
       if (exist) {
         task.title = `${task.title}...It already exists.`
-      } else if (isKubernetesPlatformFamily(platform)) {
-        await execa(`kubectl create namespace ${namespace}`, { shell: true })
-        task.title = `${task.title}...done.`
-      } else if (isOpenshiftPlatformFamily(platform)) {
-        await execa(`oc new-project ${namespace}`, { shell: true })
-        task.title = `${task.title}...done.`
+      } else {
+        await kube.createNamespace(namespaceName, labels)
+        task.title = `${task.title}...Done.`
       }
     }
   }
