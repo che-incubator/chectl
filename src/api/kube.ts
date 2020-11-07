@@ -1598,7 +1598,11 @@ export class KubeHelper {
   }
 
   readCatalogSourceFromFile(filePath: string): CatalogSource {
-    return this.safeLoadFromYamlFile(filePath) as CatalogSource
+    const catalogSource = this.safeLoadFromYamlFile(filePath) as CatalogSource
+    if (!catalogSource.metadata || !catalogSource.metadata.name) {
+      throw new Error(`CatalogSource from ${filePath} must have specified metadata and name`)
+    }
+    return catalogSource
   }
 
   async createCatalogSource(catalogSource: CatalogSource) {
@@ -1766,7 +1770,7 @@ export class KubeHelper {
     }
   }
 
-  async waitUntilOperatorIsInstalled(installPlanName: string, namespace: string, timeout = 30) {
+  async waitUntilOperatorIsInstalled(installPlanName: string, namespace: string, timeout = 60) {
     return new Promise<InstallPlan>(async (resolve, reject) => {
       const watcher = new Watch(KubeHelper.KUBE_CONFIG)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`,
