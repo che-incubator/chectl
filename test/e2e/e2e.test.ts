@@ -52,7 +52,7 @@ function getDeployCommand(): string {
     command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} ${patchOption} --multiuser --skip-cluster-availability-check`
     break
   default:
-    throw new Error(`Unknow platform: ${PLATFORM}`)
+    throw new Error(`Unknown platform: ${PLATFORM}`)
   }
   return command
 }
@@ -70,6 +70,9 @@ describe('Eclipse Che deploy test suite', () => {
       if (exitCode !== 0) {
         console.log(stderr)
       }
+
+      // sleep sometime after deployment
+      await helper.SleepTests(15000)
     })
   })
 })
