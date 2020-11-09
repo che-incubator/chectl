@@ -139,7 +139,7 @@
     "postinstall-cleanup": "rimraf node_modules/eclipse-che && rimraf node_modules/eclipse-che-operator && rimraf node_modules/eclipse-che-minishift",
     "test": "jest",
     "posttest": "tslint -p test -t stylish",
-    "test-watch": "jest --watchAl l",
+    "test-watch": "jest --watchAll",
     "e2e-minikube-helm": "export PLATFORM=minikube && export INSTALLER=helm && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
     "e2e-minikube-operator": "export PLATFORM=minikube && export INSTALLER=operator && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
     "e2e-minishift": "export PLATFORM=minishift && export INSTALLER=operator && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
