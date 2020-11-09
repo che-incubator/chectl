@@ -516,11 +516,17 @@ OPTIONS
   --helm-patch-yaml=helm-patch-yaml
       Path to yaml file with Helm Chart values patch. The file format is identical to values.yaml from the chart.
 
+  --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout
+      [default: 600000] Waiting time for Pod downloading image (in milliseconds)
+
+  --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout
+      [default: 15000] Waiting time for Pod rechecking error (in milliseconds)
+
   --k8spodreadytimeout=k8spodreadytimeout
-      [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
+      [default: 600000] Waiting time for Pod Ready condition (in milliseconds)
 
   --k8spodwaittimeout=k8spodwaittimeout
-      [default: 300000] Waiting time for Pod Wait Timeout Kubernetes (in milliseconds)
+      [default: 600000] Waiting time for Pod scheduled condition (in milliseconds)
 
   --olm-channel=olm-channel
       Olm channel to install Eclipse Che, f.e. stable.

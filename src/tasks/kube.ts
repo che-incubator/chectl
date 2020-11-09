@@ -14,8 +14,9 @@ import * as Listr from 'listr'
 import { KubeHelper } from '../api/kube'
 
 export class KubeTasks {
-  kubeHelper: KubeHelper
-  constructor(flags?: any) {
+  private readonly interval = 500
+  private readonly kubeHelper: KubeHelper
+  constructor(flags: any) {
     this.kubeHelper = new KubeHelper(flags)
   }
 
@@ -24,21 +25,31 @@ export class KubeTasks {
       {
         title: 'Scheduling',
         task: async (_ctx: any, task: any) => {
-          // any way use 5 minutes (600*500=5*60*1000 ms) timeout
-          for (let i = 1; i <= 600; i++) {
+          const taskTitle = task.title
+          const iterations = this.kubeHelper.podWaitTimeout / this.interval
+          for (let i = 1; i <= iterations; i++) {
+            // check 'PodScheduled' condition
             const failedCondition = await this.getFailedPodCondition(namespace, selector, 'PodScheduled')
             if (failedCondition) {
-              task.title = `${task.title}...failed`
-              throw new Error(`Failed to schedule a pod, reason: ${failedCondition.reason}, message: ${failedCondition.message}`)
+              task.title = `${taskTitle}...failed, rechecking...`
+
+              // for instance we need some time for pvc provisioning...
+              await cli.wait(this.kubeHelper.podErrorRecheckTimeout)
+
+              const failedCondition = await this.getFailedPodCondition(namespace, selector, 'PodScheduled')
+              if (failedCondition) {
+                task.title = `${taskTitle}...failed`
+                throw new Error(`Failed to schedule a pod, reason: ${failedCondition.reason}, message: ${failedCondition.message}. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
+              }
             }
 
             const allScheduled = await this.isPodConditionStatusPassed(namespace, selector, 'PodScheduled')
             if (allScheduled) {
-              task.title = `${task.title}...done.`
+              task.title = `${taskTitle}...done`
               return
             }
 
-            await cli.wait(500)
+            await cli.wait(this.interval)
           }
 
           throw new Error(`Failed to schedule a pod: ${await this.getTimeOutErrorMessage(namespace, selector)}`)
@@ -47,22 +58,29 @@ export class KubeTasks {
       {
         title: 'Downloading images',
         task: async (_ctx: any, task: any) => {
-          // any way use 5 minutes (600*500=5*60*1000 ms) timeout
-          for (let i = 1; i <= 600; i++) {
+          const taskTitle = task.title
+          const iterations = this.kubeHelper.podDownloadImageTimeout / this.interval
+          for (let i = 1; i <= iterations; i++) {
             const failedState = await this.getFailedWaitingState(namespace, selector, 'Pending')
             if (failedState) {
-              task.title = `${task.title}...failed`
-              throw new Error(`Failed to download image, reason: ${failedState.reason}, message: ${failedState.message}`)
+              task.title = `${taskTitle}...failed, rechecking...`
+              await cli.wait(this.kubeHelper.podErrorRecheckTimeout)
+
+              const failedState = await this.getFailedWaitingState(namespace, selector, 'Pending')
+              if (failedState) {
+                task.title = `${taskTitle}...failed`
+                throw new Error(`Failed to download image, reason: ${failedState.reason}, message: ${failedState.message}.`)
+              }
             }
 
             const pods = await this.kubeHelper.getPodListByLabel(namespace, selector)
             const allRunning = !pods.some(value => !value.status || value.status.phase !== 'Running')
             if (pods.length && allRunning) {
-              task.title = `${task.title}...done.`
+              task.title = `${taskTitle}...done`
               return
             }
 
-            await cli.wait(500)
+            await cli.wait(this.interval)
           }
 
           throw new Error(`Failed to download image: ${await this.getTimeOutErrorMessage(namespace, selector)}`)
@@ -71,27 +89,38 @@ export class KubeTasks {
       {
         title: 'Starting',
         task: async (_ctx: any, task: any) => {
-          // any way use 5 minutes (600*500=5*60*1000 ms) timeout
-          for (let i = 1; i <= 600; i++) {
+          const taskTitle = task.title
+          const iterations = this.kubeHelper.podReadyTimeout / this.interval
+          for (let i = 1; i <= iterations; i++) {
             const failedState = await this.getFailedWaitingState(namespace, selector, 'Running')
             if (failedState) {
-              task.title = `${task.title}...failed`
-              throw new Error(`Failed to start a pod, reason: ${failedState.reason}, message: ${failedState.message}`)
+              task.title = `${taskTitle}...failed, rechecking...`
+              await cli.wait(this.kubeHelper.podErrorRecheckTimeout)
+
+              const failedState = await this.getFailedWaitingState(namespace, selector, 'Running')
+              if (failedState) {
+                task.title = `${taskTitle}...failed`
+                throw new Error(`Failed to start a pod, reason: ${failedState.reason}, message: ${failedState.message}`)
+              }
             }
 
             const terminatedState = await this.kubeHelper.getPodLastTerminatedState(namespace, selector)
             if (terminatedState) {
-              task.title = `${task.title}...failed`
-              throw new Error(`Failed to start a pod, reason: ${terminatedState.reason}, message: ${terminatedState.message}`)
+              task.title = `${taskTitle}...failed`
+              let errorMsg = `Failed to start a pod, reason: ${terminatedState.reason}`
+              terminatedState.message && (errorMsg += `, message: ${terminatedState.message}`)
+              terminatedState.exitCode && (errorMsg += `, exitCode: ${terminatedState.exitCode}`)
+              terminatedState.signal && (errorMsg += `, signal: ${terminatedState.signal}`)
+              throw new Error(errorMsg)
             }
 
             const allStarted = await this.isPodConditionStatusPassed(namespace, selector, 'Ready')
             if (allStarted) {
-              task.title = `${task.title}...done.`
+              task.title = `${taskTitle}...done`
               return
             }
 
-            await cli.wait(500)
+            await cli.wait(this.interval)
           }
 
           throw new Error(`Failed to start a pod: ${await this.getTimeOutErrorMessage(namespace, selector)}`)
@@ -102,14 +131,7 @@ export class KubeTasks {
 
   private async getFailedPodCondition(namespace: string, selector: string, conditionType: string): Promise<V1PodCondition | undefined> {
     const status = await this.kubeHelper.getPodCondition(namespace, selector, conditionType)
-    const failedPod = status.find(s => s.status === 'False' && s.message && s.reason)
-    if (failedPod) {
-      // wait 10 sec, check again and only then fail
-      await cli.wait(10000)
-
-      const condition = await this.kubeHelper.getPodCondition(namespace, selector, conditionType)
-      return condition.find(s => s.status === 'False' && s.message && s.reason)
-    }
+    return status.find(s => s.status === 'False' && s.message && s.reason)
   }
 
   private async isPodConditionStatusPassed(namespace: string, selector: string, conditionType: string): Promise<boolean> {
@@ -124,13 +146,7 @@ export class KubeTasks {
   private async getFailedWaitingState(namespace: string, selector: string, state: string): Promise<V1ContainerStateWaiting | undefined> {
     const waitingState = await this.kubeHelper.getPodWaitingState(namespace, selector, state)
     if (waitingState && waitingState.reason && waitingState.message) {
-      // wait 10 sec, check again and only then fail
-      await cli.wait(10000)
-
-      const waitingState = await this.kubeHelper.getPodWaitingState(namespace, selector, state)
-      if (waitingState && waitingState.reason && waitingState.message) {
-        return waitingState
-      }
+      return waitingState
     }
   }
 
@@ -140,7 +156,7 @@ export class KubeTasks {
   private async getTimeOutErrorMessage(namespace: string, selector: string): Promise<string> {
     const pods = await this.kubeHelper.getPodListByLabel(namespace, selector)
     if (!pods.length) {
-      return 'Timeout: there no pods.'
+      throw new Error(`Timeout: there are no pods in the namespace: ${namespace}, selector: ${selector}. Check Eclipse Che logs for details. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
     }
 
     let errorMessage = 'Timeout:'
