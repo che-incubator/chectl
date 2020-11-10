@@ -60,7 +60,7 @@ export class OLMTasks {
         }
       },
       {
-        enabled: () => !isStableVersion(flags),
+        enabled: () => !isStableVersion(flags) && !flags['catalog-source-name'] && !flags['catalog-source-yaml'],
         title: `Create nightly index CatalogSource in the namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
           if (!await kube.catalogSourceExists(NIGHTLY_CATALOG_SOURCE_NAME, flags.chenamespace)) {
@@ -77,8 +77,8 @@ export class OLMTasks {
         enabled: () => flags['catalog-source-yaml'],
         title: 'Create custom catalog source from file',
         task: async (ctx: any, task: any) => {
-          if (!await kube.catalogSourceExists(CUSTOM_CATALOG_SOURCE_NAME, flags.chenamespace)) {
-            const customCatalogSource: CatalogSource = kube.readCatalogSourceFromFile(flags['catalog-source-yaml'])
+          const customCatalogSource: CatalogSource = kube.readCatalogSourceFromFile(flags['catalog-source-yaml'])
+          if (!await kube.catalogSourceExists(customCatalogSource.metadata!.name!, flags.chenamespace)) {
             customCatalogSource.metadata.name = ctx.sourceName
             customCatalogSource.metadata.namespace = flags.chenamespace
             await kube.createCatalogSource(customCatalogSource)

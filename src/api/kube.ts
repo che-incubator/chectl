@@ -1539,7 +1539,11 @@ export class KubeHelper {
   }
 
   readCatalogSourceFromFile(filePath: string): CatalogSource {
-    return this.safeLoadFromYamlFile(filePath) as CatalogSource
+    const catalogSource = this.safeLoadFromYamlFile(filePath) as CatalogSource
+    if (!catalogSource.metadata || !catalogSource.metadata.name) {
+      throw new Error(`CatalogSource from ${filePath} must have specified metadata and name`)
+    }
+    return catalogSource
   }
 
   async createCatalogSource(catalogSource: CatalogSource) {
@@ -1705,13 +1709,23 @@ export class KubeHelper {
     }
   }
 
-  async waitUntilOperatorIsInstalled(installPlanName: string, namespace: string, timeout = 30) {
+  async waitUntilOperatorIsInstalled(installPlanName: string, namespace: string, timeout = 240) {
     return new Promise<InstallPlan>(async (resolve, reject) => {
       const watcher = new Watch(KubeHelper.KUBE_CONFIG)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`,
         { fieldSelector: `metadata.name=${installPlanName}` },
         (_phase: string, obj: any) => {
           const installPlan = obj as InstallPlan
+          if (installPlan.status && installPlan.status.phase === 'Failed') {
+            const errorMessage = new Array()
+            for (const condition of installPlan.status.conditions) {
+              if (!condition.reason) {
+                errorMessage.push(`Reason: ${condition.reason}`)
+                errorMessage.push(!condition.message ? `Message: ${condition.message}` : '')
+              }
+            }
+            reject(errorMessage.join(' '))
+          }
           if (installPlan.status && installPlan.status.conditions) {
             for (const condition of installPlan.status.conditions) {
               if (condition.type === 'Installed' && condition.status === 'True') {

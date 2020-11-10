@@ -66,12 +66,15 @@ export interface InstallPlanSpec {
 }
 
 export interface InstallPlanStatus {
+  phase?: string
   conditions: InstallPlanCondition[]
 }
 
 export interface InstallPlanCondition {
   type: string
   status: string
+  reason: string
+  message: string
 }
 
 export interface ClusterServiceVersion {
