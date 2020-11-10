@@ -28,6 +28,8 @@ import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, Instal
 import { IdentityProvider, OAuth } from './typings/openshift'
 
 const AWAIT_TIMEOUT_S = 30
+export const DEFAULT_K8S_POD_TIMEOUT = 600000
+export const DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT = 15000
 
 export class KubeHelper {
   public static readonly KUBE_CONFIG = KubeHelper.initializeKubeConfig()
@@ -42,19 +44,15 @@ export class KubeHelper {
   logHelper = new Log(KubeHelper.KUBE_CONFIG)
 
   podWaitTimeout: number
+  podDownloadImageTimeout: number
   podReadyTimeout: number
+  podErrorRecheckTimeout: number
 
   constructor(flags?: any) {
-    if (flags && flags.k8spodwaittimeout) {
-      this.podWaitTimeout = parseInt(flags.k8spodwaittimeout, 10)
-    } else {
-      this.podWaitTimeout = 300000
-    }
-    if (flags && flags.k8spodreadytimeout) {
-      this.podReadyTimeout = parseInt(flags.k8spodreadytimeout, 10)
-    } else {
-      this.podReadyTimeout = 130000
-    }
+    this.podWaitTimeout = (flags && flags.k8spodwaittimeout) ? parseInt(flags.k8spodwaittimeout, 10) : DEFAULT_K8S_POD_TIMEOUT
+    this.podReadyTimeout = (flags && flags.k8spodreadytimeout) ? parseInt(flags.k8spodreadytimeout, 10) : DEFAULT_K8S_POD_TIMEOUT
+    this.podDownloadImageTimeout = (flags && flags.k8spoddownloadimagetimeout) ? parseInt(flags.k8spoddownloadimagetimeout, 10) : DEFAULT_K8S_POD_TIMEOUT
+    this.podErrorRecheckTimeout = (flags && flags.spoderrorrechecktimeout) ? parseInt(flags.spoderrorrechecktimeout, 10) : DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT
   }
 
   async createNamespace(namespaceName: string, labels: any): Promise<void> {

@@ -151,7 +151,7 @@ export default class Login extends Command {
 
     try {
       const username = await loginManager.setLoginContext(cheApiEndpoint, loginData)
-      cli.info(`Succesfully logged into ${cheApiEndpoint} as ${username}`)
+      cli.info(`Successfully logged into ${cheApiEndpoint} as ${username}`)
     } catch (error) {
       cli.error(error)
     }

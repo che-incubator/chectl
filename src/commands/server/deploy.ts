@@ -17,7 +17,7 @@ import * as notifier from 'node-notifier'
 import * as os from 'os'
 import * as path from 'path'
 
-import { KubeHelper } from '../../api/kube'
+import { DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_TIMEOUT, KubeHelper } from '../../api/kube'
 import { cheDeployment, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
 import { DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
 import { CheTasks } from '../../tasks/che'
@@ -64,12 +64,20 @@ export default class Deploy extends Command {
       env: 'CHE_SERVER_BOOT_TIMEOUT'
     }),
     k8spodwaittimeout: string({
-      description: 'Waiting time for Pod Wait Timeout Kubernetes (in milliseconds)',
-      default: '300000'
+      description: 'Waiting time for Pod scheduled condition (in milliseconds)',
+      default: `${DEFAULT_K8S_POD_TIMEOUT}`
+    }),
+    k8spoddownloadimagetimeout: string({
+      description: 'Waiting time for Pod downloading image (in milliseconds)',
+      default: `${DEFAULT_K8S_POD_TIMEOUT}`
     }),
     k8spodreadytimeout: string({
-      description: 'Waiting time for Pod Ready Kubernetes (in milliseconds)',
-      default: '130000'
+      description: 'Waiting time for Pod Ready condition (in milliseconds)',
+      default: `${DEFAULT_K8S_POD_TIMEOUT}`
+    }),
+    k8spoderrorrechecktimeout: string({
+      description: 'Waiting time for Pod rechecking error (in milliseconds)',
+      default: `${DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT}`
     }),
     multiuser: flags.boolean({
       char: 'm',

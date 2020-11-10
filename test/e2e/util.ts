@@ -107,7 +107,7 @@ export class E2eHelper {
   }
 
   // Utility to wait a time
-  SleepTests(ms: number): Promise<any> {
+  sleep(ms: number): Promise<any> {
     // tslint:disable-next-line no-string-based-set-timeout
     return new Promise(resolve => setTimeout(resolve, ms))
   }

@@ -36,28 +36,28 @@ const INSTALLER_HELM = 'helm'
 function getDeployCommand(): string {
   let command: string
   switch (PLATFORM) {
-  case PLATFORM_OPENSHIFT:
-  case PLATFORM_CRC:
-  case PLATFORM_MINISHIFT:
-    if (INSTALLER !== INSTALLER_OPERATOR) {
-      throw new Error(`Unknown installer ${INSTALLER}`)
-    }
-    command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
-    break
-  case PLATFORM_MINIKUBE:
-    if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_HELM)) {
-      throw new Error(`Unknown installer ${INSTALLER}`)
-    }
-    const patchOption = INSTALLER === INSTALLER_HELM ? '--helm-patch-yaml=test/e2e/resources/helm-patch.yaml' : '--che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml'
-    command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} ${patchOption} --multiuser --skip-cluster-availability-check`
-    break
-  default:
-    throw new Error(`Unknow platform: ${PLATFORM}`)
+    case PLATFORM_OPENSHIFT:
+    case PLATFORM_CRC:
+    case PLATFORM_MINISHIFT:
+      if (INSTALLER !== INSTALLER_OPERATOR) {
+        throw new Error(`Unknown installer ${INSTALLER}`)
+      }
+      command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
+      break
+    case PLATFORM_MINIKUBE:
+      if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_HELM)) {
+        throw new Error(`Unknown installer ${INSTALLER}`)
+      }
+      const patchOption = INSTALLER === INSTALLER_HELM ? '--helm-patch-yaml=test/e2e/resources/helm-patch.yaml' : '--che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml'
+      command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} ${patchOption} --multiuser --skip-cluster-availability-check`
+      break
+    default:
+      throw new Error(`Unknown platform: ${PLATFORM}`)
   }
   return command
 }
 
-describe('Eclipse Che deploy test suite', () => {
+describe('Eclipse Che deploy deployemnt', () => {
   describe(`server:deploy using ${INSTALLER} installer and self signed certificates`, () => {
     it(`server:deploy using ${INSTALLER} installer and self signed certificates`, async () => {
       const command = getDeployCommand()
@@ -70,11 +70,14 @@ describe('Eclipse Che deploy test suite', () => {
       if (exitCode !== 0) {
         console.log(stderr)
       }
+
+      // sleep after deploying
+      await execa('sleep 15s', { shell: true })
     })
   })
 })
 
-describe('Che server authentication', () => {
+describe('Eclipse Che server authentication', () => {
   it('Should login in to Che server with username and password', async () => {
     let cheApiEndpoint: string
     if (isKubernetesPlatformFamily(PLATFORM)) {
@@ -90,7 +93,7 @@ describe('Che server authentication', () => {
     const { exitCode, stdout, stderr } = await execa(command, args, { timeout: 30000, shell: true })
 
     expect(exitCode).equal(0)
-    expect(stdout).to.contain('Succesfully logged into')
+    expect(stdout).to.contain('Successfully logged into')
     console.log(stdout)
 
     if (exitCode !== 0) {
@@ -129,49 +132,45 @@ describe('Export CA certificate', () => {
 })
 
 describe('Workspace creation, list, start, inject, delete. Support stop and delete commands for Eclipse Che server', () => {
-  describe('Create Workspace', () => {
-    test
-      .stdout({ print: true })
-      .stderr({ print: true })
-      .command(['workspace:create', '--devfile=test/e2e/resources/devfile-example.yaml'])
-      .exit(0)
-      .it('Create a workspace and wait to be started')
+  describe('Create workspace', () => {
+    it('Testing workspace:create command', async () => {
+      console.log('>>> Testing workspace:create command')
+
+      const { exitCode, stdout, stderr, } = await execa(binChectl, ['workspace:create', '--devfile=test/e2e/resources/devfile-example.yaml'], { timeout: 30000, shell: true })
+
+      console.log(`stdout: ${stdout}`)
+      console.log(`stderr: ${stderr}`)
+      expect(exitCode).equal(0)
+    })
   })
 
   describe('Start Workspace', () => {
-    it('Start a workspace using execa library', async () => {
+    it('Testing workspace:start command', async () => {
+      console.log('>>> Testing workspace:start command')
+
       const workspaceId = await helper.getWorkspaceId()
-      const command = `${binChectl} workspace:start ${workspaceId}`
+      const { exitCode, stdout, stderr, } = await execa(binChectl, ['workspace:start', workspaceId], { timeout: 30000, shell: true })
 
-      const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
-
+      console.log(`stdout: ${stdout}`)
+      console.log(`stderr: ${stderr}`)
       expect(exitCode).equal(0)
-      console.log(stdout)
 
       // Sleep time to wait to workspace to be running
-      await helper.SleepTests(200000)
-      if (exitCode !== 0) {
-        console.log(stderr)
-      }
-
+      await helper.sleep(200000)
       const workspaceStatus = await helper.getWorkspaceStatus()
-
       expect(workspaceStatus).to.contain('RUNNING')
     })
   })
 
   describe('Inject kubeconfig to workspaces', () => {
-    it('Inject kubeconfig to workspaces', async () => {
-      const command = `${binChectl} workspace:inject --kubeconfig`
+    it('Testing workspace:inject command', async () => {
+      console.log('>>> Testing workspace:inject command')
 
-      const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
+      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:inject', '--kubeconfig'], { timeout: 30000, shell: true })
 
+      console.log(`stdout: ${stdout}`)
+      console.log(`stderr: ${stderr}`)
       expect(exitCode).equal(0)
-      console.log(stdout)
-
-      if (exitCode !== 0) {
-        console.log(stderr)
-      }
     })
   })
 
@@ -183,7 +182,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
       .it('List workspaces')
   })
 
-  describe('Server Status', () => {
+  describe('Get Eclipse Che server status', () => {
     test
       .stdout({ print: true })
       .stderr({ print: true })
@@ -192,18 +191,15 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
   })
 
   describe('Stop Workspace', () => {
-    it('Stop a workspace using execa library', async () => {
+    it('Testing workspace:stop command', async () => {
+      console.log('>>> Testing workspace:stop command')
+
       const workspaceId = await helper.getWorkspaceId()
-      const command = `${binChectl} workspace:stop ${workspaceId}`
+      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:stop', workspaceId], { timeout: 30000, shell: true })
 
-      const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
+      console.log(`stdout: ${stdout}`)
+      console.log(`stderr: ${stderr}`)
       expect(exitCode).equal(0)
-
-      console.log(stdout)
-
-      if (exitCode !== 0) {
-        console.log(stderr)
-      }
 
       const workspaceStatus = await helper.getWorkspaceStatus()
       // The status could be STOPPING or STOPPED
@@ -212,38 +208,33 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
   })
 
   describe('Delete Workspace', () => {
-    it('Delete a workspace using execa library', async () => {
+    it('Testing workspace:delete command', async () => {
+      console.log('>>> Testing workspace:delete command')
+
       const workspaceId = await helper.getWorkspaceId()
-      const command = `${binChectl} workspace:delete ${workspaceId}`
+      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:delete', workspaceId], { timeout: 30000, shell: true })
 
-      const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
+      console.log(`stdout: ${stdout}`)
+      console.log(`stderr: ${stderr}`)
       expect(exitCode).equal(0)
-
-      console.log(stdout)
-
-      if (exitCode !== 0) {
-        console.log(stderr)
-      }
     })
   })
 
-  describe('Stop Eclipse Che Server', () => {
+  describe('Stop Eclipse Che server', () => {
     it('server:stop command coverage', async () => {
-      const command = `${binChectl} server:stop --skip-kubernetes-health-check`
-      const { exitCode, stdout, stderr } = await execa(command, { shell: true })
+      console.log('>>> Testing server:stop command')
 
+      const { exitCode, stdout, stderr } = await execa(binChectl, ['server:stop'], { shell: true })
+
+      console.log(`stdout: ${stdout}`)
+      console.log(`stderr: ${stderr}`)
       expect(exitCode).equal(0)
-      console.log(stdout)
-
-      if (exitCode !== 0) {
-        console.log(stderr)
-      }
     })
   })
 
-  describe('Delete Eclipse Che Server', () => {
+  describe('Delete Eclipse Che server', () => {
     test
-      .stdout()
+      .stdout({ print: true })
       .stderr({ print: true })
       .command(['server:delete', '--yes', '--delete-namespace'])
       .exit(0)

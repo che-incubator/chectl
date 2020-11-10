@@ -1,0 +1,28 @@
+#
+#  Copyright (c) 2012-2020 Red Hat, Inc.
+#    This program and the accompanying materials are made
+#    available under the terms of the Eclipse Public License 2.0
+#    which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+#  SPDX-License-Identifier: EPL-2.0
+#
+#  Contributors:
+#    Red Hat, Inc. - initial API and implementation
+name: chectl e2e tests
+on: pull_request
+jobs:
+  minikube-e2e-helm:
+    name: Minikube Helm
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install minikube kubernetes cluster
+      run: minikube start --memory=6000
+    - name: Install chectl dependencies
+      run: yarn
+    - name: Run e2e tests minikube
+      run: |
+        export PLATFORM=minikube
+        export INSTALLER=helm
+        minikube addons enable ingress
+        yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
