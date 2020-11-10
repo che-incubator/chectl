@@ -360,11 +360,6 @@ export default class Deploy extends Command {
     const ctx = await initializeContext(flags)
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
 
-    if (flags.installer === 'olm' && flags['olm-suggested-namespace']) {
-      flags.chenamespace = DEFAULT_OLM_SUGGESTED_NAMESPACE
-      cli.info(` ❕olm-suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
-    }
-
     if (flags['self-signed-cert']) {
       this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
     }
@@ -388,6 +383,12 @@ export default class Deploy extends Command {
     })
 
     await this.setPlaformDefaults(flags, ctx)
+
+    if (flags.installer === 'olm' && flags['olm-suggested-namespace']) {
+      flags.chenamespace = DEFAULT_OLM_SUGGESTED_NAMESPACE
+      cli.info(` ❕olm-suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
+    }
+
     let installTasks = new Listr(installerTasks.installTasks(flags, this), ctx.listrOptions)
 
     const startDeployedCheTasks = new Listr([{
