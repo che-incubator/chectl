@@ -43,8 +43,9 @@ export default class Delete extends Command {
     const { flags } = this.parse(Delete)
     const { args } = this.parse(Delete)
 
-    const workspaceId = args.workspace
+    await this.config.runHook('analytics', { event: Delete.description, command: Delete.id, flags })
 
+    const workspaceId = args.workspace
     const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY])
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
     await cheApiClient.deleteWorkspaceById(workspaceId, accessToken)

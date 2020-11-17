@@ -60,6 +60,8 @@ export default class Inject extends Command {
   async run() {
     const { flags } = this.parse(Inject)
 
+    await this.config.runHook('analytics', { event: Inject.description, command: Inject.id, flags })
+
     const notifier = require('node-notifier')
     const cheHelper = new CheHelper(flags)
 

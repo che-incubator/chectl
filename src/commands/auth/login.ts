@@ -69,6 +69,9 @@ export default class Login extends Command {
     const { args, flags } = this.parse(Login)
     const ctx = await initializeContext(flags)
 
+    // Not recommended to track user and password in telemetry
+    await this.config.runHook('analytics', { event: Login.description, command: Login.id })
+
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
 
     let cheApiClient: CheApiClient

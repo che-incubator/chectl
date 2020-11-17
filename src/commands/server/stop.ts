@@ -43,6 +43,8 @@ export default class Stop extends Command {
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()
 
+    await this.config.runHook('analytics', { event: Stop.description, command: Stop.id, flags })
+
     let tasks = new Listr(undefined,
       {
         renderer: flags['listr-renderer'] as any,

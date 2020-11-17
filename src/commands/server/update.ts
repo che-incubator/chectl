@@ -85,6 +85,7 @@ export default class Update extends Command {
       await this.setDefaultInstaller(flags)
       cli.info(`› Installer type is set to: '${flags.installer}'`)
     }
+    await this.config.runHook('analytics', { event: Update.description, command: Update.id, flags })
 
     const kubeHelper = new KubeHelper(flags)
     const installerTasks = new InstallerTasks()

@@ -708,6 +708,14 @@
   dependencies:
     any-observable "^0.3.0"
 
+"@segment/loosely-validate-event@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@segment/loosely-validate-event/-/loosely-validate-event-2.0.0.tgz#87dfc979e5b4e7b82c5f1d8b722dfd5d77644681"
+  integrity sha512-ZMCSfztDBqwotkl848ODgVcAmN4OItEWDCkshcKz0/W6gGSQayuuCtWV/MlodFivAZD793d6UgANd6wCXUfrIw==
+  dependencies:
+    component-type "^1.2.1"
+    join-component "^1.1.0"
+
 "@sindresorhus/is@^0.7.0":
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.7.0.tgz#9a06f4f137ee84d7df0460c1fdb1135ffa6c50fd"
@@ -1045,6 +1053,20 @@ ajv@^6.12.3:
     json-schema-traverse "^0.4.1"
     uri-js "^4.2.2"
 
+analytics-node@^3.4.0-beta.3:
+  version "3.4.0-beta.3"
+  resolved "https://registry.yarnpkg.com/analytics-node/-/analytics-node-3.4.0-beta.3.tgz#5eb0694598cff493c64faf5efc1225533a253f13"
+  integrity sha512-NIdpxiwlZ4cKgs9MDlDe89b5bg/pMq2W7XTA+cjzCM66IwW3ujZhVE49vk+zG6Yrxk0s/DXmennJ+cCQIsTKMA==
+  dependencies:
+    "@segment/loosely-validate-event" "^2.0.0"
+    axios "^0.19.2"
+    axios-retry "^3.0.2"
+    lodash.isstring "^4.0.1"
+    md5 "^2.2.1"
+    ms "^2.0.0"
+    remove-trailing-slash "^0.1.0"
+    uuid "^3.2.1"
+
 ansi-colors@4.1.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/ansi-colors/-/ansi-colors-4.1.1.tgz#cbb9ae256bf750af1eab344f229aa27fe94ba348"
@@ -1236,6 +1258,13 @@ aws4@^1.8.0:
   version "1.10.1"
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.10.1.tgz#e1e82e4f3e999e2cfd61b161280d16a111f86428"
   integrity sha512-zg7Hz2k5lI8kb7U32998pRRFin7zJlkfezGJjUc2heaD4Pw2wObakCDVzkKztTm/Ln7eiVvYsjqak0Ed4LkMDA==
+
+axios-retry@^3.0.2:
+  version "3.1.9"
+  resolved "https://registry.yarnpkg.com/axios-retry/-/axios-retry-3.1.9.tgz#6c30fc9aeb4519aebaec758b90ef56fa03fe72e8"
+  integrity sha512-NFCoNIHq8lYkJa6ku4m+V1837TP6lCa7n79Iuf8/AqATAHYB0ISaAS1eyIenDOfHOLtym34W65Sjke2xjg2fsA==
+  dependencies:
+    is-retry-allowed "^1.1.0"
 
 axios@^0.19.2:
   version "0.19.2"
@@ -1604,6 +1633,11 @@ chardet@^0.7.0:
   resolved "https://registry.yarnpkg.com/chardet/-/chardet-0.7.0.tgz#90094849f0937f2eedc2425d0d28a9e5f0cbad9e"
   integrity sha512-mT8iDcrh03qDGRRmoA2hmBJnxpllMR+0/0qlzjqZES6NdiWDcZkCNAk4rPFZ9Q85r27unkiNNg8ZOiwZXBHwcA==
 
+charenc@0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/charenc/-/charenc-0.0.2.tgz#c0a1d2f3a7092e03774bfa83f14c0fc5790a8667"
+  integrity sha1-wKHS86cJLgN3S/qD8UwPxXkKhmc=
+
 check-error@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/check-error/-/check-error-1.0.2.tgz#574d312edd88bb5dd8912e9286dd6c0aed4aac82"
@@ -1856,6 +1890,11 @@ component-emitter@^1.2.1:
   resolved "https://registry.yarnpkg.com/component-emitter/-/component-emitter-1.3.0.tgz#16e4070fba8ae29b679f2215853ee181ab2eabc0"
   integrity sha512-Rd3se6QB+sO1TwqZjscQrurpEPIfO0/yYnSin6Q/rD3mOutHvUrCAhJub3r90uNb+SESBuE0QYoB90YdfatsRg==
 
+component-type@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/component-type/-/component-type-1.2.1.tgz#8a47901700238e4fc32269771230226f24b415a9"
+  integrity sha1-ikeQFwAjjk/DIml3EjAibyS0Fak=
+
 concat-map@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
@@ -1924,6 +1963,11 @@ cross-spawn@^7.0.0:
     path-key "^3.1.0"
     shebang-command "^2.0.0"
     which "^2.0.1"
+
+crypt@0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/crypt/-/crypt-0.0.2.tgz#88d7ff7ec0dfb86f713dc87bbb42d044d3e6c41b"
+  integrity sha1-iNf/fsDfuG9xPch7u0LQRNPmxBs=
 
 cssom@^0.4.4:
   version "0.4.4"
@@ -2126,7 +2170,7 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-devfile-workspace-operator@git://github.com/devfile/devworkspace-operator#master":
   version "0.0.0"
-  resolved "git://github.com/devfile/devworkspace-operator#58b0bc3a8ca3f5266bde3eb1090cf131b3d0b9cf"
+  resolved "git://github.com/devfile/devworkspace-operator#a00c5c16a36183a9092daebaf9d233c08278d54e"
 
 "eclipse-che-minishift@git://github.com/minishift/minishift#master":
   version "0.0.0"
@@ -2134,11 +2178,11 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-operator@git://github.com/eclipse/che-operator#master":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che-operator#a6c758062caa30a4244c6a28f1f6378e6ba94f06"
+  resolved "git://github.com/eclipse/che-operator#4c194ddeb57e0717b8de7083efdf40cd43634a93"
 
 "eclipse-che@git://github.com/eclipse/che#master":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che#dc43120bc53353556f647e67d2346cb1d4debf6e"
+  resolved "git://github.com/eclipse/che#b7c71e0b2b21836ff46411f973a1129fe75d69f2"
 
 editorconfig@^0.15.0:
   version "0.15.3"
@@ -2778,6 +2822,11 @@ globby@^11, globby@^11.0.1:
     merge2 "^1.3.0"
     slash "^3.0.0"
 
+gnirts@^1.1.7:
+  version "1.1.7"
+  resolved "https://registry.yarnpkg.com/gnirts/-/gnirts-1.1.7.tgz#2ac1a00c891f658374f032a5c93916a9df310f03"
+  integrity sha512-Yu4IflQT9BnLvSC3ZbxUsMdniHgy5S97+X++REsNJSSLVm+5U0W/9ViukhyLE9DZiNy/qr1ZBTEcNd3UhAr40w==
+
 got@^8.3.2:
   version "8.3.2"
   resolved "https://registry.yarnpkg.com/got/-/got-8.3.2.tgz#1d23f64390e97f776cac52e5b936e5f514d2e937"
@@ -3063,7 +3112,7 @@ is-binary-path@^1.0.0:
   dependencies:
     binary-extensions "^1.0.0"
 
-is-buffer@^1.1.5:
+is-buffer@^1.1.5, is-buffer@~1.1.6:
   version "1.1.6"
   resolved "https://registry.yarnpkg.com/is-buffer/-/is-buffer-1.1.6.tgz#efaa2ea9daa0d7ab2ea13a97b2b8ad51fefbe8be"
   integrity sha512-NcdALwpXkTm5Zvvbk7owOUSvVvBKDgKP5/ewfXEznmQFfs4ZRmanOeKBTjRVjka3QFoN6XJ+9F3USqfHqTaU5w==
@@ -3763,6 +3812,11 @@ jest@^26.4.2:
     import-local "^3.0.2"
     jest-cli "^26.4.2"
 
+join-component@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/join-component/-/join-component-1.1.0.tgz#b8417b750661a392bee2c2537c68b2a9d4977cd5"
+  integrity sha1-uEF7dQZho5K+4sJTfGiyqdSXfNU=
+
 js-tokens@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
@@ -4016,6 +4070,11 @@ lodash._reinterpolate@^3.0.0:
   resolved "https://registry.yarnpkg.com/lodash._reinterpolate/-/lodash._reinterpolate-3.0.0.tgz#0ccf2d89166af03b3663c796538b75ac6e114d9d"
   integrity sha1-DM8tiRZq8Ds2Y8eWU4t1rG4RTZ0=
 
+lodash.isstring@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/lodash.isstring/-/lodash.isstring-4.0.1.tgz#d527dfb5456eca7cc9bb95d5daeaf88ba54a5451"
+  integrity sha1-1SfftUVuynzJu5XV2ur4i6VKVFE=
+
 lodash.memoize@4.x:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/lodash.memoize/-/lodash.memoize-4.1.2.tgz#bcc6c49a42a2840ed997f323eada5ecd182e0bfe"
@@ -4134,6 +4193,15 @@ math-random@^1.0.1:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/math-random/-/math-random-1.0.4.tgz#5dd6943c938548267016d4e34f057583080c514c"
   integrity sha512-rUxjysqif/BZQH2yhd5Aaq7vXMSx9NdEsQcyA07uEzIvxgI7zIr33gGsh+RU0/XjmQpCW7RsVof1vlkvQVCK5A==
+
+md5@^2.2.1:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/md5/-/md5-2.3.0.tgz#c3da9a6aae3a30b46b7b0c349b87b110dc3bda4f"
+  integrity sha512-T1GITYmFaKuO91vxyoQMFETst+O71VUPEU3ze5GNzDm0OWdP8v1ziTaAEPUr/3kLsY3Sftgz242A1SetQiDL7g==
+  dependencies:
+    charenc "0.0.2"
+    crypt "0.0.2"
+    is-buffer "~1.1.6"
 
 merge-stream@^2.0.0:
   version "2.0.0"
@@ -4285,7 +4353,7 @@ ms@2.0.0:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
   integrity sha1-VgiurfwAvmwpAd9fmGF4jeDVl8g=
 
-ms@^2.1.1:
+ms@^2.0.0, ms@^2.1.1:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
@@ -4978,6 +5046,11 @@ remove-trailing-separator@^1.0.1:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/remove-trailing-separator/-/remove-trailing-separator-1.1.0.tgz#c24bce2a283adad5bc3f58e0d48249b92379d8ef"
   integrity sha1-wkvOKig62tW8P1jg1IJJuSN52O8=
+
+remove-trailing-slash@^0.1.0:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/remove-trailing-slash/-/remove-trailing-slash-0.1.1.tgz#be2285a59f39c74d1bce4f825950061915e3780d"
+  integrity sha512-o4S4Qh6L2jpnCy83ysZDau+VORNvnFw07CKSAymkd6ICNVEPisMyzlc00KlvvicsxKck94SEwhDnMNdICzO+tA==
 
 repeat-element@^1.1.2:
   version "1.1.3"
@@ -6042,7 +6115,7 @@ util-deprecate@^1.0.1, util-deprecate@~1.0.1:
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
   integrity sha1-RQ1Nyfpw3nMnYvvS1KKJgUGaDM8=
 
-uuid@^3.3.2, uuid@^3.3.3:
+uuid@^3.2.1, uuid@^3.3.2, uuid@^3.3.3:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.4.0.tgz#b23e4358afa8a202fe7a100af1f5f883f02007ee"
   integrity sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==

@@ -39,6 +39,8 @@ export default class Export extends Command {
     const kube = new KubeHelper(flags)
     const cheHelper = new CheHelper(flags)
 
+    await this.config.runHook('analytics', { event: Export.description, command: Export.id, flags })
+
     if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
       throw new Error(`E_PERM_DENIED - Permission denied: no read access to '${flags.chenamespace}' namespace`)
     }

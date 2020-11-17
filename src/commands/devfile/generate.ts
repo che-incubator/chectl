@@ -92,6 +92,8 @@ export default class Generate extends Command {
   async run() {
     const { flags } = this.parse(Generate)
     kube = new KubeHelper(flags)
+    await this.config.runHook('analytics', { event: Generate.description, command: Generate.id, flags })
+
     const notifier = require('node-notifier')
 
     let name = flags.name || 'chectl-generated'

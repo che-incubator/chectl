@@ -39,6 +39,7 @@ export default class Delete extends Command {
 
   async run() {
     const { args, flags } = this.parse(Delete)
+    await this.config.runHook('analytics', { event: Delete.description, command: Delete.id, flags })
 
     let cheApiEndpoint = CheApiClient.normalizeCheApiEndpointUrl(args[CHE_API_ENDPOINT_KEY])
     const username: string | undefined = flags[USERNAME_KEY]

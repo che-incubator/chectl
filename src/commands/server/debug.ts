@@ -35,6 +35,7 @@ export default class Debug extends Command {
     const { flags } = this.parse(Debug)
     const ctx = await initializeContext(flags)
 
+    await this.config.runHook('analytics', { event: Debug.description, command: Debug.id, flags })
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })

@@ -45,6 +45,7 @@ export default class Start extends Command {
     const { flags } = this.parse(Start)
     const { args } = this.parse(Start)
 
+    await this.config.runHook('analytics', { event: Start.description, command: Start.id, flags })
     const workspaceId = args.workspace
     const cheHelper = new CheHelper(flags)
 

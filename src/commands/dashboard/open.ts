@@ -27,6 +27,8 @@ export default class Open extends Command {
     const { flags } = this.parse(Open)
 
     try {
+      await this.config.runHook('analytics', { event: Open.description, command: Open.id, flags })
+
       const cheHelper = new CheHelper(flags)
       const cheURL = await cheHelper.cheURL(flags.chenamespace)
       const dashboardUrl = `${cheURL}/dashboard/`

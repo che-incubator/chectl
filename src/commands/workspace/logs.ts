@@ -44,6 +44,7 @@ export default class Logs extends Command {
     const { flags } = this.parse(Logs)
     const logsDirectory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
 
+    await this.config.runHook('analytics', { event: Logs.description, command: Logs.id, flags })
     const cheHelper = new CheHelper(flags)
     const workspaceRun = await cheHelper.readWorkspacePodLog(flags.namespace, flags.workspace, logsDirectory)
 

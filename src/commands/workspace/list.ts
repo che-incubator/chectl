@@ -29,6 +29,8 @@ export default class List extends Command {
   async run() {
     const { flags } = this.parse(List)
 
+    await this.config.runHook('analytics', { event: List.description, command: List.id, flags })
+
     const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY])
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
     const workspaces = await cheApiClient.getAllWorkspaces(accessToken)

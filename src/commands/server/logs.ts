@@ -44,6 +44,7 @@ export default class Logs extends Command {
     const apiTasks = new ApiTasks()
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
 
+    await this.config.runHook('analytics', { event: Logs.description, command: Logs.id, flags })
     tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.serverLogsTasks(flags, false))

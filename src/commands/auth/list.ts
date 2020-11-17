@@ -17,6 +17,8 @@ export default class List extends Command {
   static description = 'Show all existing login sessions'
 
   async run() {
+    await this.config.runHook('analytics', { event: List.description, command: List.id })
+
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
     const logins = loginManager.getAllLogins()
     const currentLogin = loginManager.getCurrentLoginInfo()

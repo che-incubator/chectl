@@ -17,6 +17,8 @@ export default class Get extends Command {
   static description = 'Display active login session'
 
   async run() {
+    await this.config.runHook('analytics', { event: Get.description, command: Get.id })
+
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
     const currentLogin = loginManager.getCurrentLoginInfo()
     if (currentLogin.username) {

@@ -383,6 +383,7 @@ export default class Deploy extends Command {
     })
 
     await this.setPlaformDefaults(flags, ctx)
+    await this.config.runHook('analytics', { event: Deploy.description, command: Deploy.id, flags })
 
     if (flags.installer === 'olm' && flags['olm-suggested-namespace']) {
       flags.chenamespace = DEFAULT_OLM_SUGGESTED_NAMESPACE

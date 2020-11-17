@@ -17,6 +17,8 @@ export default class Logout extends Command {
   static description = 'Log out of the active login session'
 
   async run() {
+    await this.config.runHook('analytics', { event: Logout.description, command: Logout.id })
+
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
     const currentLogin = loginManager.getCurrentLoginInfo()
 
@@ -30,5 +32,4 @@ export default class Logout extends Command {
     loginManager.deleteLoginContext(cheApiEndpoint, username)
     cli.info(`Succesfully logged out ${username} on ${cheApiEndpoint}`)
   }
-
 }

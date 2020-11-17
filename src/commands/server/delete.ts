@@ -54,6 +54,8 @@ export default class Delete extends Command {
       flags.yes = flags['skip-deletion-check']
     }
 
+    await this.config.runHook('analytics', { event: Delete.description, command: Delete.id, flags })
+
     const notifier = require('node-notifier')
     const apiTasks = new ApiTasks()
     const helmTasks = new HelmTasks(flags)

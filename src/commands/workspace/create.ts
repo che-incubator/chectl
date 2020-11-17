@@ -53,6 +53,8 @@ export default class Create extends Command {
   async run() {
     const { flags } = this.parse(Create)
 
+    await this.config.runHook('analytics', { event: Create.description, command: Create.id, flags })
+
     const devfilePath = this.getDevfilePath(flags.devfile)
     const cheHelper = new CheHelper(flags)
 

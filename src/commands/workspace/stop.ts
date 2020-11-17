@@ -39,8 +39,9 @@ export default class Stop extends Command {
     const { flags } = this.parse(Stop)
     const { args } = this.parse(Stop)
 
-    const workspaceId = args.workspace
+    await this.config.runHook('analytics', { event: Stop.description, command: Stop.id, flags })
 
+    const workspaceId = args.workspace
     const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY])
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
     await cheApiClient.stopWorkspace(workspaceId, accessToken)

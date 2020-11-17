@@ -51,6 +51,8 @@ export default class Use extends Command {
   async run() {
     const { args, flags } = this.parse(Use)
 
+    await this.config.runHook('analytics', { event: Use.description, command: Use.id, flags })
+
     if (flags.interactive) {
       await this.interactiveSwitch()
       return
