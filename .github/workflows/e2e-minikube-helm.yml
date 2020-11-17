@@ -25,4 +25,5 @@ jobs:
         export PLATFORM=minikube
         export INSTALLER=helm
         minikube addons enable ingress
+        helm repo update
         yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
