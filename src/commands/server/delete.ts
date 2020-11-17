@@ -64,7 +64,7 @@ export default class Delete extends Command {
     const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
     const tasks = new Listrq([], ctx.listrOptions)
-
+    await this.config.runHook('analytics', { event: Delete.description, command: Delete.id, flags })
     tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(operatorTasks.deleteTasks(flags))
     tasks.add(olmTasks.deleteTasks(flags))
