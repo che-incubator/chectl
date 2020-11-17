@@ -8,9 +8,9 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-export const DEFAULT_CHE_IMAGE = 'quay.io/eclipse/che-server:7.21.1'
-export const DEFAULT_CHE_OPERATOR_IMAGE = 'quay.io/eclipse/che-operator:7.21.1'
-export const DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE = 'quay.io/devfile/devworkspace-controller:sha-58b0bc3'
+export const DEFAULT_CHE_IMAGE = 'quay.io/eclipse/che-server:7.21.2'
+export const DEFAULT_CHE_OPERATOR_IMAGE = 'quay.io/eclipse/che-operator:7.21.2'
+export const DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE = 'quay.io/devfile/devworkspace-controller:sha-a00c5c1'
 
 // This image should be updated manually when needed.
 // Repository location: https://github.com/che-dockerfiles/che-cert-manager-ca-cert-generator-image
