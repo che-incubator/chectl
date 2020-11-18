@@ -65,6 +65,9 @@ run() {
   yarn --cwd ${CHECTL_REPO}
   export PLATFORM=openshift
   export INSTALLER=operator
+  export XDG_CONFIG_HOME=/tmp/chectl/config
+  export XDG_CACHE_HOME=/tmp/chectl/cache
+  export XDG_DATA_HOME=/tmp/chectl/data
   echo "[INFO] Running e2e tests on ${PLATFORM} platform."
   yarn test --coverage=false --forceExit --testRegex=${CHECTL_REPO}/test/e2e/e2e.test.ts
 }
