@@ -166,7 +166,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
     it('Testing workspace:inject command', async () => {
       console.log('>>> Testing workspace:inject command')
 
-      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:inject', '--kubeconfig'], { timeout: 30000, shell: true })
+      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:inject', '--kubeconfig'], { timeout: 60000, shell: true })
 
       console.log(`stdout: ${stdout}`)
       console.log(`stderr: ${stderr}`)
