@@ -15,8 +15,10 @@ import * as path from 'path'
 import * as querystring from 'querystring'
 
 import { ACCESS_TOKEN_KEY } from '../common-flags'
+import { CheHelper } from './che'
 
 import { CheApiClient } from './che-api-client'
+import { KubeHelper } from './kube'
 
 // Represents login information to use for requests
 // Notice: accessToken is undefined for single user mode
@@ -335,7 +337,7 @@ export class CheServerLoginManager {
    */
   private setCurrentLoginContext(apiUrl: string, username: string, loginRecord?: RefreshTokenLoginRecord): boolean {
     if (!loginRecord) {
-       // Find existing login context and make current
+      // Find existing login context and make current
       loginRecord = this.getLoginRecord(apiUrl, username)
       if (!loginRecord) {
         return false
@@ -522,7 +524,7 @@ export class CheServerLoginManager {
  * @param cheApiEndpoint user provided server API URL if any
  * @param accessToken user provied access token if any
  */
-export async function getLoginData(configDir: string, cheApiEndpoint?: string, accessToken?: string | undefined): Promise<LoginData> {
+export async function getLoginData(configDir: string, cheApiEndpoint: string, accessToken: string | undefined, flags: any): Promise<LoginData> {
   if (cheApiEndpoint) {
     // User provides credential manually
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
@@ -540,9 +542,29 @@ export async function getLoginData(configDir: string, cheApiEndpoint?: string, a
     const loginManager = await CheServerLoginManager.getInstance(configDir)
     cheApiEndpoint = loginManager.getCurrentServerApiUrl()
     if (!cheApiEndpoint) {
-      throw new Error('There is no active login session. Please use "auth:login" first.')
+      cheApiEndpoint = await getCheApiEndpoint(flags)
+      const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
+      if (await cheApiClient.isAuthenticationEnabled()) {
+        throw new Error('There is no active login session. Please use "auth:login" first.')
+      } else {
+        return { cheApiEndpoint, accessToken }
+      }
     }
     accessToken = await loginManager.getNewAccessToken()
   }
   return { cheApiEndpoint, accessToken }
+}
+
+/**
+ * Gets cheApiEndpoint for the given namespace.
+ */
+export async function getCheApiEndpoint(flags: any): Promise<string> {
+  const kube = new KubeHelper(flags)
+  if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
+    throw new Error('Please provide server API URL argument')
+  }
+
+  // Retrieve API URL from routes
+  const cheHelper = new CheHelper(flags)
+  return await cheHelper.cheURL(flags.chenamespace) + '/api'
 }

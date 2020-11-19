@@ -48,7 +48,7 @@ export default class Start extends Command {
     const workspaceId = args.workspace
     const cheHelper = new CheHelper(flags)
 
-    const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY])
+    const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
     await cheApiClient.startWorkspace(workspaceId, flags.debug, accessToken)
 
