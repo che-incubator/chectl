@@ -60,7 +60,7 @@ function getDeployCommand(): string {
       throw new Error(`Unknown installer ${INSTALLER}`)
     }
     const patchOption = INSTALLER === INSTALLER_HELM ? '--helm-patch-yaml=test/e2e/resources/helm-patch.yaml' : '--che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml'
-    command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} ${patchOption} --multiuser --skip-cluster-availability-check`
+    command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} ${patchOption} --multiuser --skip-cluster-availability-check`
     break
 
   default:
