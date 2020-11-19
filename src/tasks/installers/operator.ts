@@ -94,10 +94,7 @@ export class OperatorTasks {
             task.title = `${task.title}...It already exists.`
           } else {
             const yamlFilePath = ctx.resourcesPath + 'namespaces_cluster_role.yaml'
-            const statusCode = await kube.createClusterRoleFromFile(yamlFilePath, namespaceEditorClusterRoleName)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.createClusterRoleFromFile(yamlFilePath, namespaceEditorClusterRoleName)
             task.title = `${task.title}...done.`
           }
         }
@@ -284,16 +281,10 @@ export class OperatorTasks {
           const clusterRoleExists = await kube.clusterRoleExist(namespaceEditorClusterRoleName)
           const yamlFilePath = ctx.resourcesPath + 'namespaces_cluster_role.yaml'
           if (clusterRoleExists) {
-            const statusCode = await kube.replaceClusterRoleFromFile(yamlFilePath, namespaceEditorClusterRoleName)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.replaceClusterRoleFromFile(yamlFilePath, namespaceEditorClusterRoleName)
             task.title = `${task.title}...updated.`
           } else {
-            const statusCode = await kube.createClusterRoleFromFile(yamlFilePath, namespaceEditorClusterRoleName)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.createClusterRoleFromFile(yamlFilePath, namespaceEditorClusterRoleName)
             task.title = `${task.title}...created a new one.`
           }
         }
