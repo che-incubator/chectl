@@ -18,7 +18,7 @@ import { CheApiClient } from '../../api/che-api-client'
 import { CheServerLoginManager, LoginRecord } from '../../api/che-login-manager'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace, CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
-import { OPENSHIFT_CLI } from '../../util'
+import { initializeContext, OPENSHIFT_CLI } from '../../util'
 
 const REFRESH_TOKEN_KEY = 'refresh-token'
 const PASSWORD_KEY = 'password'
@@ -67,6 +67,7 @@ export default class Login extends Command {
 
   async run() {
     const { args, flags } = this.parse(Login)
+    const ctx = await initializeContext(flags)
 
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
 
@@ -121,6 +122,17 @@ export default class Login extends Command {
         }
       }
 
+      loginData = { username, password }
+    } else if (!ctx.isOpenShift) {
+      const username = await cli.prompt(`Username on ${cheApiEndpoint}`)
+      if (!username) {
+        throw new Error('Username is required')
+      }
+
+      const password = await cli.prompt(`Password for ${username} on ${cheApiEndpoint}`, { type: 'hide' })
+      if (!password) {
+        throw new Error('Password is required')
+      }
       loginData = { username, password }
     } else {
       // Try to login via oc login credentials
