@@ -26,7 +26,7 @@
     "axios": "^0.19.2",
     "cli-ux": "^5.4.5",
     "command-exists": "^1.2.9",
-    "debug": "^4.1.1",
+    "debug": "^4.3.0",
     "eclipse-che": "git://github.com/eclipse/che#master",
     "eclipse-che-devfile-api": "git://github.com/devfile/api#v1alpha1",
     "eclipse-che-devfile-workspace-operator": "git://github.com/devfile/devworkspace-operator#master",
