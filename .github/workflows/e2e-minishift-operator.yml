@@ -8,11 +8,11 @@
 #
 #  Contributors:
 #    Red Hat, Inc. - initial API and implementation
-name: chectl e2e tests
+name: Minishift E2E
 on: pull_request
 jobs:
   minishift-e2e:
-    name: Minishift Operator
+    name: Operator installer
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1

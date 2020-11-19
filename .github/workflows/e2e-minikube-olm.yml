@@ -8,11 +8,11 @@
 #
 #  Contributors:
 #    Red Hat, Inc. - initial API and implementation
-name: chectl e2e tests
+name: Minikube E2E
 on: pull_request
 jobs:
   minikube-e2e-helm:
-    name: Minikube OLM
+    name: OLM installer
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
