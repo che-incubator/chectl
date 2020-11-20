@@ -84,10 +84,10 @@ export class E2eHelper {
   }
 
   //Return a route from Openshift adding protocol
-  async OCHostname(ingressName: string): Promise<string> {
-    if (await this.oc.routeExist(ingressName, 'che')) {
-      const protocol = await this.oc.getRouteProtocol(ingressName, 'che')
-      const hostname = await this.oc.getRouteHost(ingressName, 'che')
+  async OCHostname(ingressName: string, namespace: string): Promise<string> {
+    if (await this.oc.routeExist(ingressName, namespace)) {
+      const protocol = await this.oc.getRouteProtocol(ingressName, namespace)
+      const hostname = await this.oc.getRouteHost(ingressName, namespace)
 
       return `${protocol}://${hostname}`
     }
@@ -95,8 +95,7 @@ export class E2eHelper {
   }
 
   // Return ingress and protocol from minikube platform
-  async K8SHostname(ingressName: string): Promise<string> {
-    const namespace = 'che'
+  async K8SHostname(ingressName: string, namespace: string): Promise<string> {
     if (await this.kubeHelper.ingressExist(ingressName, namespace)) {
       const protocol = await this.kubeHelper.getIngressProtocol(ingressName, namespace)
       const hostname = await this.kubeHelper.getIngressHost(ingressName, namespace)

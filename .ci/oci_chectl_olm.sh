@@ -24,6 +24,7 @@ catchFinish() {
     getCheClusterLogs
     exit 1
   fi
+
   exit $result
 }
 
@@ -34,7 +35,9 @@ init() {
 
   # Env necessary for openshift CI to put che logs inside
   export ARTIFACTS_DIR="/tmp/artifacts"
-  export NAMESPACE="che"
+
+  # SUGGESTED NAMESPACE
+  export NAMESPACE="eclipse-che"
 
   # Environment to define the project absolute path.
   if [[ ${WORKSPACE} ]] && [[ -d ${WORKSPACE} ]]; then
@@ -47,24 +50,14 @@ init() {
 # Function to get all logs and events from Che deployments
 getCheClusterLogs() {
   mkdir -p ${ARTIFACTS_DIR}/che-logs
-  cd ${ARTIFACTS_DIR}/che-logs
-  for POD in $(oc get pods -o name -n ${NAMESPACE}); do
-    for CONTAINER in $(oc get -n ${NAMESPACE} ${POD} -o jsonpath="{.spec.containers[*].name}"); do
-      echo ""
-      echo "<=========================Getting logs from $POD==================================>"
-      echo ""
-      oc logs ${POD} -c ${CONTAINER} -n ${NAMESPACE} | tee $(echo ${POD}-${CONTAINER}.log | sed 's|pod/||g')
-    done
-  done
-  echo "======== oc get events ========"
-  oc get events -n ${NAMESPACE}| tee get_events.log
+  ${CHECTL_REPO}/bin/run server:logs --directory=${ARTIFACTS_DIR}/che-logs
 }
 
 run() {
   # Before to start to run the e2e tests we need to install all deps with yarn
   yarn --cwd ${CHECTL_REPO}
   export PLATFORM=openshift
-  export INSTALLER=operator
+  export INSTALLER=olm
   export XDG_CONFIG_HOME=/tmp/chectl/config
   export XDG_CACHE_HOME=/tmp/chectl/cache
   export XDG_DATA_HOME=/tmp/chectl/data

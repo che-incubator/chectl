@@ -13,6 +13,7 @@
 import { expect, test } from '@oclif/test'
 import * as execa from 'execa'
 
+import { DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
 import { isKubernetesPlatformFamily } from '../../src/util'
 
 import { E2eHelper } from './util'
@@ -21,6 +22,8 @@ const helper = new E2eHelper()
 jest.setTimeout(1000000)
 
 const binChectl = `${process.cwd()}/bin/run`
+
+const NAMESPACE = DEFAULT_OLM_SUGGESTED_NAMESPACE
 
 const PLATFORM = process.env.PLATFORM || ''
 const INSTALLER = process.env.INSTALLER || ''
@@ -32,27 +35,36 @@ const PLATFORM_MINIKUBE = 'minikube'
 
 const INSTALLER_OPERATOR = 'operator'
 const INSTALLER_HELM = 'helm'
+const INSTALLER_OLM = 'olm'
 
 function getDeployCommand(): string {
   let command: string
   switch (PLATFORM) {
-    case PLATFORM_OPENSHIFT:
-    case PLATFORM_CRC:
-    case PLATFORM_MINISHIFT:
-      if (INSTALLER !== INSTALLER_OPERATOR) {
-        throw new Error(`Unknown installer ${INSTALLER}`)
-      }
-      command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
-      break
-    case PLATFORM_MINIKUBE:
-      if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_HELM)) {
-        throw new Error(`Unknown installer ${INSTALLER}`)
-      }
-      const patchOption = INSTALLER === INSTALLER_HELM ? '--helm-patch-yaml=test/e2e/resources/helm-patch.yaml' : '--che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml'
-      command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} ${patchOption} --multiuser --skip-cluster-availability-check`
-      break
-    default:
-      throw new Error(`Unknown platform: ${PLATFORM}`)
+  case PLATFORM_OPENSHIFT:
+    if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_OLM)) {
+      throw new Error(`Unknown installer ${INSTALLER}`)
+    }
+    command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
+    break
+
+  case PLATFORM_CRC:
+  case PLATFORM_MINISHIFT:
+    if (INSTALLER !== INSTALLER_OPERATOR) {
+      throw new Error(`Unknown installer ${INSTALLER}`)
+    }
+    command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
+    break
+
+  case PLATFORM_MINIKUBE:
+    if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_HELM || INSTALLER === INSTALLER_OLM)) {
+      throw new Error(`Unknown installer ${INSTALLER}`)
+    }
+    const patchOption = INSTALLER === INSTALLER_HELM ? '--helm-patch-yaml=test/e2e/resources/helm-patch.yaml' : '--che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml'
+    command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} ${patchOption} --multiuser --skip-cluster-availability-check`
+    break
+
+  default:
+    throw new Error(`Unknown platform: ${PLATFORM}`)
   }
   return command
 }
@@ -82,13 +94,13 @@ describe('Eclipse Che server authentication', () => {
     let cheApiEndpoint: string
     if (isKubernetesPlatformFamily(PLATFORM)) {
       const ingressName = INSTALLER === INSTALLER_HELM ? 'che-ingress' : 'che'
-      cheApiEndpoint = await helper.K8SHostname(ingressName) + '/api'
+      cheApiEndpoint = await helper.K8SHostname(ingressName, NAMESPACE) + '/api'
     } else {
-      cheApiEndpoint = await helper.OCHostname('che') + '/api'
+      cheApiEndpoint = await helper.OCHostname('che', NAMESPACE) + '/api'
     }
 
     const command = `${binChectl} auth:login`
-    const args = [cheApiEndpoint, '-u', 'admin', '-p', 'admin']
+    const args = [cheApiEndpoint, '-u', 'admin', '-p', 'admin', '-n', `${NAMESPACE}`]
 
     const { exitCode, stdout, stderr } = await execa(command, args, { timeout: 30000, shell: true })
 
@@ -102,7 +114,7 @@ describe('Eclipse Che server authentication', () => {
   })
 
   it('Should show current login session', async () => {
-    const command = `${binChectl} auth:get`
+    const command = `${binChectl} auth:get -n ${NAMESPACE}`
 
     const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
 
@@ -118,7 +130,7 @@ describe('Eclipse Che server authentication', () => {
 
 describe('Export CA certificate', () => {
   it('Export CA certificate', async () => {
-    const command = `${binChectl} cacert:export`
+    const command = `${binChectl} cacert:export -n ${NAMESPACE}`
 
     const { exitCode, stdout, stderr } = await execa(command, { timeout: 30000, shell: true })
 
@@ -136,7 +148,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
     it('Testing workspace:create command', async () => {
       console.log('>>> Testing workspace:create command')
 
-      const { exitCode, stdout, stderr, } = await execa(binChectl, ['workspace:create', '--devfile=test/e2e/resources/devfile-example.yaml'], { timeout: 30000, shell: true })
+      const { exitCode, stdout, stderr, } = await execa(binChectl, ['workspace:create', '--devfile=test/e2e/resources/devfile-example.yaml', `-n ${NAMESPACE}`], { timeout: 30000, shell: true })
 
       console.log(`stdout: ${stdout}`)
       console.log(`stderr: ${stderr}`)
@@ -149,7 +161,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
       console.log('>>> Testing workspace:start command')
 
       const workspaceId = await helper.getWorkspaceId()
-      const { exitCode, stdout, stderr, } = await execa(binChectl, ['workspace:start', workspaceId], { timeout: 30000, shell: true })
+      const { exitCode, stdout, stderr, } = await execa(binChectl, ['workspace:start', workspaceId, `-n ${NAMESPACE}`], { timeout: 30000, shell: true })
 
       console.log(`stdout: ${stdout}`)
       console.log(`stderr: ${stderr}`)
@@ -166,7 +178,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
     it('Testing workspace:inject command', async () => {
       console.log('>>> Testing workspace:inject command')
 
-      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:inject', '--kubeconfig'], { timeout: 60000, shell: true })
+      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:inject', '--kubeconfig', `-n ${NAMESPACE}`], { timeout: 60000, shell: true })
 
       console.log(`stdout: ${stdout}`)
       console.log(`stderr: ${stderr}`)
@@ -178,16 +190,29 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
     test
       .stdout({ print: true })
       .stderr({ print: true })
-      .command(['workspace:list'])
-      .it('List workspaces')
+      .it('List workspaces', async () => {
+        console.log('>>> Testing workspace:list command')
+        const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:list', `--chenamespace=${NAMESPACE}`], { timeout: 30000, shell: true })
+
+        console.log(`stdout: ${stdout}`)
+        console.log(`stderr: ${stderr}`)
+        expect(exitCode).equal(0)
+      })
   })
 
   describe('Get Eclipse Che server status', () => {
     test
       .stdout({ print: true })
       .stderr({ print: true })
-      .command(['server:status'])
-      .it('Get Che Server status')
+      .it('Get Che Server status', async () => {
+        console.log('>>> Testing server:status command')
+
+        const { exitCode, stdout, stderr } = await execa(binChectl, ['server:status', `--chenamespace=${NAMESPACE}`], { timeout: 30000, shell: true })
+
+        console.log(`stdout: ${stdout}`)
+        console.log(`stderr: ${stderr}`)
+        expect(exitCode).equal(0)
+      })
   })
 
   describe('Stop Workspace', () => {
@@ -195,7 +220,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
       console.log('>>> Testing workspace:stop command')
 
       const workspaceId = await helper.getWorkspaceId()
-      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:stop', workspaceId], { timeout: 30000, shell: true })
+      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:stop', workspaceId, `-n ${NAMESPACE}`], { timeout: 30000, shell: true })
 
       console.log(`stdout: ${stdout}`)
       console.log(`stderr: ${stderr}`)
@@ -212,7 +237,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
       console.log('>>> Testing workspace:delete command')
 
       const workspaceId = await helper.getWorkspaceId()
-      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:delete', workspaceId], { timeout: 30000, shell: true })
+      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:delete', workspaceId, `-n ${NAMESPACE}`], { timeout: 30000, shell: true })
 
       console.log(`stdout: ${stdout}`)
       console.log(`stderr: ${stderr}`)
@@ -224,7 +249,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
     it('server:stop command coverage', async () => {
       console.log('>>> Testing server:stop command')
 
-      const { exitCode, stdout, stderr } = await execa(binChectl, ['server:stop'], { shell: true })
+      const { exitCode, stdout, stderr } = await execa(binChectl, ['server:stop', `-n ${NAMESPACE}`], { shell: true })
 
       console.log(`stdout: ${stdout}`)
       console.log(`stderr: ${stderr}`)
@@ -236,7 +261,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
     test
       .stdout({ print: true })
       .stderr({ print: true })
-      .command(['server:delete', '--yes', '--delete-namespace'])
+      .command(['server:delete', '--yes', '--delete-namespace', '-n', `${NAMESPACE}`])
       .exit(0)
       .it(`deletes Eclipse Che resources on ${PLATFORM} platform successfully`)
   })
