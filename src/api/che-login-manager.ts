@@ -15,8 +15,8 @@ import * as path from 'path'
 import * as querystring from 'querystring'
 
 import { ACCESS_TOKEN_KEY } from '../common-flags'
-import { CheHelper } from './che'
 
+import { CheHelper } from './che'
 import { CheApiClient } from './che-api-client'
 import { KubeHelper } from './kube'
 
