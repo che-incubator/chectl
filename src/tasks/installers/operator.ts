@@ -27,6 +27,8 @@ export class OperatorTasks {
   operatorClusterRole = 'che-operator'
   operatorRoleBinding = 'che-operator'
   operatorClusterRoleBinding = 'che-operator'
+  namespaceEditorClusterRole = 'che-namespace-editor'
+  operatorNamespaceEditorClusterRoleBinding = 'che-operator-namespace-editor'
   cheClusterCrd = 'checlusters.org.eclipse.che'
 
   /**
@@ -35,6 +37,8 @@ export class OperatorTasks {
   startTasks(flags: any, command: Command): Listr {
     const clusterRoleName = `${flags.chenamespace}-${this.operatorClusterRole}`
     const clusterRoleBindingName = `${flags.chenamespace}-${this.operatorClusterRoleBinding}`
+    const namespaceEditorClusterRoleName = `${flags.chenamespace}-${this.namespaceEditorClusterRole}`
+    const operatorNamespaceEditorClusterRoleBindingName = `${flags.chenamespace}-${this.operatorNamespaceEditorClusterRoleBinding}`
     const kube = new KubeHelper(flags)
     const kubeTasks = new KubeTasks(flags)
     if (isStableVersion(flags)) {
@@ -78,6 +82,31 @@ export class OperatorTasks {
           } else {
             const yamlFilePath = ctx.resourcesPath + 'cluster_role.yaml'
             await kube.createClusterRoleFromFile(yamlFilePath, clusterRoleName)
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
+      {
+        title: `Create ClusterRole ${namespaceEditorClusterRoleName}`,
+        task: async (ctx: any, task: any) => {
+          const exist = await kube.clusterRoleExist(namespaceEditorClusterRoleName)
+          if (exist) {
+            task.title = `${task.title}...It already exists.`
+          } else {
+            const yamlFilePath = ctx.resourcesPath + 'namespaces_cluster_role.yaml'
+            await kube.createClusterRoleFromFile(yamlFilePath, namespaceEditorClusterRoleName)
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
+      {
+        title: `Create ClusterRoleBinding ${operatorNamespaceEditorClusterRoleBindingName}`,
+        task: async (_ctx: any, task: any) => {
+          const exist = await kube.clusterRoleBindingExist(operatorNamespaceEditorClusterRoleBindingName)
+          if (exist) {
+            task.title = `${task.title}...It already exists.`
+          } else {
+            await kube.createClusterRoleBinding(operatorNamespaceEditorClusterRoleBindingName, this.operatorServiceAccount, flags.chenamespace, namespaceEditorClusterRoleName)
             task.title = `${task.title}...done.`
           }
         }
@@ -195,6 +224,8 @@ export class OperatorTasks {
     const kube = new KubeHelper(flags)
     const clusterRoleName = `${flags.chenamespace}-${this.operatorClusterRole}`
     const clusterRoleBindingName = `${flags.chenamespace}-${this.operatorClusterRoleBinding}`
+    const namespaceEditorClusterRoleName = `${flags.chenamespace}-${this.namespaceEditorClusterRole}`
+    const operatorNamespaceEditorClusterRoleBindingName = `${flags.chenamespace}-${this.operatorNamespaceEditorClusterRoleBinding}`
     return new Listr([
       copyOperatorResources(flags, command.config.cacheDir),
       {
@@ -245,6 +276,20 @@ export class OperatorTasks {
         }
       },
       {
+        title: `Updating ClusterRole ${namespaceEditorClusterRoleName}`,
+        task: async (ctx: any, task: any) => {
+          const clusterRoleExists = await kube.clusterRoleExist(namespaceEditorClusterRoleName)
+          const yamlFilePath = ctx.resourcesPath + 'namespaces_cluster_role.yaml'
+          if (clusterRoleExists) {
+            await kube.replaceClusterRoleFromFile(yamlFilePath, namespaceEditorClusterRoleName)
+            task.title = `${task.title}...updated.`
+          } else {
+            await kube.createClusterRoleFromFile(yamlFilePath, namespaceEditorClusterRoleName)
+            task.title = `${task.title}...created a new one.`
+          }
+        }
+      },
+      {
         title: `Updating RoleBinding ${this.operatorRoleBinding} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
           const exist = await kube.roleBindingExist(this.operatorRoleBinding, flags.chenamespace)
@@ -272,6 +317,19 @@ export class OperatorTasks {
             task.title = `Updating ClusterRoleBinding ${this.operatorClusterRoleBinding}...updated.`
           } else {
             await kube.createClusterRoleBinding(clusterRoleBindingName, this.operatorServiceAccount, flags.chenamespace, clusterRoleName)
+            task.title = `${task.title}...created new one.`
+          }
+        }
+      },
+      {
+        title: `Updating ClusterRoleBinding ${operatorNamespaceEditorClusterRoleBindingName}`,
+        task: async (_ctx: any, task: any) => {
+          const clusterRoleBindExists = await kube.clusterRoleBindingExist(operatorNamespaceEditorClusterRoleBindingName)
+          if (clusterRoleBindExists) {
+            await kube.replaceClusterRoleBinding(operatorNamespaceEditorClusterRoleBindingName, this.operatorServiceAccount, flags.chenamespace, namespaceEditorClusterRoleName)
+            task.title = `${task.title}...updated.`
+          } else {
+            await kube.createClusterRoleBinding(operatorNamespaceEditorClusterRoleBindingName, this.operatorServiceAccount, flags.chenamespace, namespaceEditorClusterRoleName)
             task.title = `${task.title}...created new one.`
           }
         }
@@ -332,6 +390,8 @@ export class OperatorTasks {
     let kh = new KubeHelper(flags)
     const clusterRoleName = `${flags.chenamespace}-${this.operatorClusterRole}`
     const clusterRoleBindingName = `${flags.chenamespace}-${this.operatorClusterRoleBinding}`
+    const namespaceEditorClusterRoleName = `${flags.chenamespace}-${this.namespaceEditorClusterRole}`
+    const operatorNamespaceEditorClusterRoleBindingName = `${flags.chenamespace}-${this.operatorNamespaceEditorClusterRoleBinding}`
     return [{
       title: 'Delete oauthClientAuthorizations',
       task: async (_ctx: any, task: any) => {
@@ -419,6 +479,26 @@ export class OperatorTasks {
         } else if (legacyClusterRoleExists) {
           await kh.deleteClusterRole(this.operatorClusterRole)
           task.title = await `Delete cluster role ${this.operatorClusterRole}...OK`
+        }
+      }
+    },
+    {
+      title: `Delete cluster role binding ${operatorNamespaceEditorClusterRoleBindingName}`,
+      task: async (_ctx: any, task: any) => {
+        const clusterRoleBindExists = await kh.clusterRoleBindingExist(operatorNamespaceEditorClusterRoleBindingName)
+        if (clusterRoleBindExists) {
+          await kh.deleteClusterRoleBinding(operatorNamespaceEditorClusterRoleBindingName)
+          task.title = await `${task.title}...OK`
+        }
+      }
+    },
+    {
+      title: `Delete cluster role ${namespaceEditorClusterRoleName}`,
+      task: async (_ctx: any, task: any) => {
+        const clusterRoleExists = await kh.clusterRoleExist(namespaceEditorClusterRoleName)
+        if (clusterRoleExists) {
+          await kh.deleteClusterRole(namespaceEditorClusterRoleName)
+          task.title = await `${task.title}...OK`
         }
       }
     },

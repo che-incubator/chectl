@@ -12,7 +12,7 @@ name: Minikube E2E
 on: pull_request
 jobs:
   minikube-e2e-helm:
-    name: Helm installer
+    name: OLM installer
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
@@ -20,9 +20,12 @@ jobs:
       run: minikube start --memory=6000
     - name: Install chectl dependencies
       run: yarn
-    - name: Run e2e tests minikube
+    - name: Run olm e2e tests minikube
       run: |
         export PLATFORM=minikube
-        export INSTALLER=helm
+        export INSTALLER=olm
+        minikube addons enable olm
         minikube addons enable ingress
+
+        sleep 60
         yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts

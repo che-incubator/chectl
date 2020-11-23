@@ -364,6 +364,13 @@ export default class Deploy extends Command {
       this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
     }
 
+    await this.setPlaformDefaults(flags, ctx)
+
+    if (flags.installer === 'olm' && flags['olm-suggested-namespace']) {
+      flags.chenamespace = DEFAULT_OLM_SUGGESTED_NAMESPACE
+      cli.info(` ❕olm-suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
+    }
+
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()
     const installerTasks = new InstallerTasks()
@@ -381,14 +388,6 @@ export default class Deploy extends Command {
       title: '👀  Looking for an already existing Eclipse Che instance',
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     })
-
-    await this.setPlaformDefaults(flags, ctx)
-    await this.config.runHook('analytics', { event: Deploy.description, command: Deploy.id, flags })
-
-    if (flags.installer === 'olm' && flags['olm-suggested-namespace']) {
-      flags.chenamespace = DEFAULT_OLM_SUGGESTED_NAMESPACE
-      cli.info(` ❕olm-suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
-    }
 
     let installTasks = new Listr(installerTasks.installTasks(flags, this), ctx.listrOptions)
 
