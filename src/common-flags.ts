@@ -108,7 +108,7 @@ export const k8sPodErrorRecheckTimeout = string({
 })
 
 export const LOG_DIRECTORY_KEY = 'directory'
-export const directory = string({
+export const logsDirectory = string({
   char: 'd',
   description: 'Directory to store logs into',
   env: 'CHE_LOGS'

@@ -177,7 +177,7 @@ export function isDirEmpty(dirname: string): boolean {
 /**
  * Returns command success message with execution time.
  */
-export function getCommandFailMessage(command: Command, ctx: any): string {
+export function getCommandErrorMessage(command: Command, ctx: any): string {
   let message = `Command ${command.id} failed. Error log: ${command.config.errlog}`
   if (ctx.directory && isDirEmpty(ctx.directory)) {
     message += ` Eclipse Che logs: ${ctx.directory}`

@@ -13,13 +13,13 @@ import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
 
-import { cheDeployment, cheNamespace, directory, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, LOG_DIRECTORY_KEY, skipKubeHealthzCheck } from '../../common-flags'
+import { cheDeployment, cheNamespace, logsDirectory, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, LOG_DIRECTORY_KEY, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandFailMessage, getCommandSuccessMessage, initializeContext } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, initializeContext } from '../../util'
 
 export default class Start extends Command {
-  static description = 'start Eclipse Che server'
+  static description = 'Start Eclipse Che server'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
@@ -30,7 +30,7 @@ export default class Start extends Command {
     [K8SPODREADYTIMEOUT_KEY]: k8sPodReadyTimeout,
     [K8SPODDOWNLOADIMAGETIMEOUT_KEY]: k8sPodDownloadImageTimeout,
     [K8SPODERRORRECHECKTIMEOUT_KEY]: k8sPodErrorRecheckTimeout,
-    [LOG_DIRECTORY_KEY]: directory,
+    [LOG_DIRECTORY_KEY]: logsDirectory,
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
   }
 
@@ -72,7 +72,7 @@ export default class Start extends Command {
         this.log(getCommandSuccessMessage(this, ctx))
       }
     } catch (err) {
-      this.error(`${err}\n${getCommandFailMessage(this, ctx)}`)
+      this.error(`${err}\n${getCommandErrorMessage(this, ctx)}`)
     }
 
     notifier.notify({
