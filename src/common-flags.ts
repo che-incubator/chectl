@@ -81,3 +81,9 @@ export const username = string({
   env: 'CHE_USER_NAME',
   required: false,
 })
+
+export const CHE_TELEMETRY = string({
+  char: 't',
+  description: 'Enable or disable chectl telemetry. This options skip prompt question to allow chectl telemetry',
+  options: ['on', 'off']
+})

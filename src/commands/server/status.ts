@@ -15,7 +15,7 @@ import * as notifier from 'node-notifier'
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { cheNamespace } from '../../common-flags'
+import { cheNamespace, CHE_TELEMETRY } from '../../common-flags'
 import { initializeContext } from '../../util'
 
 export default class Status extends Command {
@@ -25,6 +25,7 @@ export default class Status extends Command {
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {

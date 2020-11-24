@@ -13,7 +13,7 @@ import { cli } from 'cli-ux'
 import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
-import { cheNamespace } from '../../common-flags'
+import { cheNamespace, CHE_TELEMETRY } from '../../common-flags'
 
 export default class Open extends Command {
   static description = 'Open Eclipse Che dashboard'
@@ -21,6 +21,7 @@ export default class Open extends Command {
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {

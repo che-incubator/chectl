@@ -8,13 +8,19 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { Command } from '@oclif/command'
+import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
 
 import { CheServerLoginManager } from '../../api/che-login-manager'
+import { CHE_TELEMETRY } from '../../common-flags'
 
 export default class Logout extends Command {
   static description = 'Log out of the active login session'
+
+  static flags: flags.Input<any> = {
+    help: flags.help({ char: 'h' }),
+    telemetry: CHE_TELEMETRY
+  }
 
   async run() {
     await this.config.runHook('analytics', { event: Logout.description, command: Logout.id })

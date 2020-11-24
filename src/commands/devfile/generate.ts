@@ -15,6 +15,8 @@ import * as yaml from 'js-yaml'
 
 import { Devfile, DevfileCommand, DevfileComponent, DevfileProject, ProjectSource, TheEndpointName } from '../../api/devfile'
 import { KubeHelper } from '../../api/kube'
+import { CHE_TELEMETRY } from '../../common-flags'
+
 let kube: KubeHelper
 const stringLitArray = <L extends string>(arr: L[]) => arr
 const languages = stringLitArray(['java', 'typescript', 'go', 'python', 'c#'])
@@ -87,6 +89,7 @@ export default class Generate extends Command {
       env: 'COMMAND',
       required: false,
     }),
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {

@@ -17,7 +17,7 @@ import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
 import { CheServerLoginManager, LoginRecord } from '../../api/che-login-manager'
 import { KubeHelper } from '../../api/kube'
-import { cheNamespace, CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
+import { cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, username, USERNAME_KEY } from '../../common-flags'
 import { initializeContext, OPENSHIFT_CLI } from '../../util'
 
 const REFRESH_TOKEN_KEY = 'refresh-token'
@@ -52,6 +52,7 @@ export default class Login extends Command {
       required: false,
       exclusive: [REFRESH_TOKEN_KEY]
     }),
+    telemetry: CHE_TELEMETRY
   }
 
   static examples = [

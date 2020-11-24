@@ -1,4 +1,3 @@
-'use strict'
 /*********************************************************************
  * Copyright (c) 2020 Red Hat, Inc.
  *
@@ -8,20 +7,23 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
+'use strict'
 
 const gnirts = require('gnirts');
 const fs = require('fs')
+const path = require('path')
 
 const rootDir = process.cwd()
 
 const obfuscateJSFiles = () => {
-  const dirFilesToObfuscate = [ 'lib/hooks/analytics/analytics.js' ]
+  const jsFilesToObfuscate = [ 'lib/hooks/analytics/analytics.js' ]
  
-  dirFilesToObfuscate.forEach((jsFilePath)=> {
-    if (fs.existsSync(`${rootDir}/${jsFilePath}`)) {
-      let js = fs.readFileSync(`${rootDir}/${jsFilePath}`, {encoding: 'utf8'});
+  filesReadyToObfuscate.forEach((jsFilePath)=> {
+    const fileToObfuscate = path.join(rootDir, jsFilePath)
+    if (fs.existsSync(fileToObfuscate)) {
+      let js = fs.readFileSync(fileToObfuscate, {encoding: 'utf8'});
       js = gnirts.mangle(js);
-      fs.writeFileSync(`${rootDir}/${jsFilePath}`, js);
+      fs.writeFileSync(fileToObfuscate, js);
     }
   })
 }

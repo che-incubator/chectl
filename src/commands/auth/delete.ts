@@ -13,7 +13,7 @@ import { cli } from 'cli-ux'
 
 import { CheApiClient } from '../../api/che-api-client'
 import { CheServerLoginManager } from '../../api/che-login-manager'
-import { CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
+import { CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, username, USERNAME_KEY } from '../../common-flags'
 
 export default class Delete extends Command {
   static description = 'Delete specified login session(s)'
@@ -28,6 +28,7 @@ export default class Delete extends Command {
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     [USERNAME_KEY]: username,
+    telemetry: CHE_TELEMETRY
   }
 
   static examples = [

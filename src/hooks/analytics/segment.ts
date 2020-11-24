@@ -8,6 +8,10 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 import { existsSync, readFileSync, writeFileSync } from 'fs-extra'
+import { pick } from 'lodash'
+import * as path from 'path'
+
+import { DEFAULT_CHECTL_CONFIG_FILE_NAME } from '../../constants'
 
 let Analytics = require('analytics-node')
 
@@ -19,7 +23,12 @@ export interface SegmentConfig {
 
 export interface SegmentConfigFile {
   // Get from dataDir if user allow chectl to collect anonymous data
-  allowChectlToCollectData?: boolean
+  allowTelemetry?: boolean
+}
+
+export interface Flags {
+  platform?: string
+  installer?: string
 }
 
 /**
@@ -33,24 +42,27 @@ export class SegmentAdapter {
   constructor(config: SegmentConfig) {
     const { segmentWriteKey, ...options } = config
     this.segment = new Analytics(segmentWriteKey, options)
-    this.SEGMENT_CONFIG_FILE = 'segment.json'
+    this.SEGMENT_CONFIG_FILE = DEFAULT_CHECTL_CONFIG_FILE_NAME
     this.segmentConfig = {}
   }
 
   /**
-   * 
-   * @param options 
+   * Create a segment track object which includes command properties and some chectl filtred properties
+   * @param options chectl information like command or flags.
    */
-  public onTrack(options: {event: string, command: string, flags: any}) {
+  public onTrack(options: {command: string, flags: Flags}): void {
     this.segment.track({
       anonymousId: this.generateAnonymousId(),
-      event: options.event,
+      event: options.command,
       properties: {
-        command: options.command,
-        flags: options.flags,
+        ...pick(options.flags, ['platform', 'installer']),
+        command: options.command
       },
-    } as any)
-    return this
+      // Property which indicate segment will integrate with all configured destinations.
+      integrations: {
+        All : true
+      }
+    })
   }
 
   /**
@@ -60,9 +72,11 @@ export class SegmentAdapter {
    * @param segmentCollectConfirmation Confirmation true/false of chectl collect data
    */
   public storeSegmentConfig(configDir: string, segmentCollectConfirmation: boolean): void {
-    if (!existsSync(`${configDir}/${this.SEGMENT_CONFIG_FILE}`)) {
-      this.segmentConfig.allowChectlToCollectData = segmentCollectConfirmation
-      writeFileSync(`${configDir}/${this.SEGMENT_CONFIG_FILE}`, JSON.stringify(this.segmentConfig))
+    const segmentConfigFile = path.join(configDir, this.SEGMENT_CONFIG_FILE)
+
+    if (!existsSync(segmentConfigFile)) {
+      this.segmentConfig.allowTelemetry = segmentCollectConfirmation
+      writeFileSync(segmentConfigFile, JSON.stringify(this.segmentConfig))
     }
   }
 
@@ -71,7 +85,7 @@ export class SegmentAdapter {
    * @param configDir Chectl config directory https://oclif.io/docs/config
    */
   public checkIfSegmentConfigFileExist(configDir: string) {
-    return existsSync(`${configDir}/${this.SEGMENT_CONFIG_FILE}`)
+    return existsSync(path.join(configDir, this.SEGMENT_CONFIG_FILE))
   }
 
   /**
@@ -79,10 +93,12 @@ export class SegmentAdapter {
    * @param configDir Chectl config directory https://oclif.io/docs/config
    */
   public checkIfSegmentCollectIsAllowed(configDir: string): boolean {
-    if (existsSync(`${configDir}/${this.SEGMENT_CONFIG_FILE}`)) {
-      this.segmentConfig = JSON.parse(readFileSync(`${configDir}/${this.SEGMENT_CONFIG_FILE}`).toString()) as SegmentConfigFile
+    const segmentConfigFile = path.join(configDir, this.SEGMENT_CONFIG_FILE)
 
-      return this.segmentConfig.allowChectlToCollectData || false
+    if (existsSync(segmentConfigFile)) {
+      this.segmentConfig = JSON.parse(readFileSync(segmentConfigFile).toString()) as SegmentConfigFile
+
+      return this.segmentConfig.allowTelemetry || false
     }
 
     return false

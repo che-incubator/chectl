@@ -13,7 +13,7 @@ import { string } from '@oclif/parser/lib/flags'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
+import { cheNamespace, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
 
 export default class Export extends Command {
@@ -31,7 +31,8 @@ export default class Export extends Command {
       env: 'CHE_CA_CERT_LOCATION',
       default: ''
     }),
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {

@@ -14,7 +14,7 @@ import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
 
 import { KubeHelper } from '../../api/kube'
-import { assumeYes, cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { assumeYes, cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { HelmTasks } from '../../tasks/installers/helm'
@@ -43,7 +43,8 @@ export default class Delete extends Command {
       hidden: true,
     }),
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    yes: assumeYes
+    yes: assumeYes,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {
