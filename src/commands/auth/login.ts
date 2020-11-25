@@ -13,9 +13,8 @@ import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as execa from 'execa'
 
-import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
-import { CheServerLoginManager, LoginRecord } from '../../api/che-login-manager'
+import { CheServerLoginManager, getCheApiEndpoint, LoginRecord } from '../../api/che-login-manager'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace, CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
 import { initializeContext, OPENSHIFT_CLI } from '../../util'
@@ -74,13 +73,7 @@ export default class Login extends Command {
     let cheApiClient: CheApiClient
     let cheApiEndpoint: string | undefined = args[CHE_API_ENDPOINT_KEY]
     if (!cheApiEndpoint) {
-      const kube = new KubeHelper(flags)
-      if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
-        throw new Error('Please provide server API URL argument')
-      }
-      // Retrieve API URL from routes
-      const cheHelper = new CheHelper(flags)
-      cheApiEndpoint = await cheHelper.cheURL(flags.chenamespace) + '/api'
+      cheApiEndpoint = await getCheApiEndpoint(flags)
       cli.info(`Using ${cheApiEndpoint} server API URL to log in`)
       cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
     } else {
