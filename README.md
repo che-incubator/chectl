@@ -600,7 +600,7 @@ _See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl
 
 ## `chectl server:start`
 
-start Eclipse Che server
+Start Eclipse Che server
 
 ```
 USAGE
