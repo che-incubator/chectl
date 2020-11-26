@@ -23,16 +23,7 @@ jobs:
     - name: Helm Cache Index
       run:
         #!/bin/bash
-        set -eu
-        src="$(unset HELM_REPOSITORY_CACHE && eval "$(helm env)" && echo $HELM_REPOSITORY_CACHE)"
-        LOCAL_UPDATE_OUTPUT_FILE="$(mktemp)"
-        helm repo update | tee $LOCAL_UPDATE_OUTPUT_FILE
-        echo "Copying updated indexes into non-default cache:"
-
-        for repo in $(grep Successfully "$LOCAL_UPDATE_OUTPUT_FILE"  | perl -ne 'm/the "([^"]+)" chart/; print "$1\n"'); do
-            echo "${src}/${repo}-index.yaml -> ${HELM_REPOSITORY_CACHE}/${repo}-index.yaml"
-            cp ${src}/${repo}-index.yaml ${HELM_REPOSITORY_CACHE}/
-        done
+        helm init --client-only
 
     - name: Run e2e tests minikube
       run: |
