@@ -18,6 +18,7 @@ import { CheApiClient } from '../../api/che-api-client'
 import { CheServerLoginManager, LoginRecord } from '../../api/che-login-manager'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, username, USERNAME_KEY } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { initializeContext, OPENSHIFT_CLI } from '../../util'
 
 const REFRESH_TOKEN_KEY = 'refresh-token'
@@ -71,7 +72,7 @@ export default class Login extends Command {
     const ctx = await initializeContext(flags)
 
     // Not recommended to track user and password in telemetry
-    await this.config.runHook('analytics', { event: Login.description, command: Login.id })
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Login.id, flags })
 
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
 

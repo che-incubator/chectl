@@ -14,6 +14,7 @@ import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
 import { cheNamespace, CHE_TELEMETRY } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
 export default class Open extends Command {
   static description = 'Open Eclipse Che dashboard'
@@ -28,7 +29,7 @@ export default class Open extends Command {
     const { flags } = this.parse(Open)
 
     try {
-      await this.config.runHook('analytics', { event: Open.description, command: Open.id, flags })
+      await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Open.id, flags })
 
       const cheHelper = new CheHelper(flags)
       const cheURL = await cheHelper.cheURL(flags.chenamespace)

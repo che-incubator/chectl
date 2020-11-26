@@ -15,7 +15,10 @@ import { existsSync, mkdirsSync } from 'fs-extra'
 import { SegmentAdapter } from './segment'
 
 export const hook = async (options: {event: string, flags: any, command: string, config: IConfig }) => {
-  let confirmed
+  //In case of disable telemetry by flag not additional configs are enabled.
+  if (options.flags && options.flags.telemetry === 'off') {
+    return this
+  }
 
   const segment = new SegmentAdapter({
     // tslint:disable-next-line:no-single-line-block-comment
@@ -27,24 +30,28 @@ export const hook = async (options: {event: string, flags: any, command: string,
     mkdirsSync(options.config.configDir)
   }
 
-  // In case if segment info doesn't exist ask user if allow chectl to collect data and store the confirmation in cache
-  if (!segment.checkIfSegmentConfigFileExist(options.config.configDir)) {
-    // In case of telemetry confirmation it is enabled from flags we don't store the confirmation in chectl cache config
-    if (options.flags && options.flags.telemetry === 'on') {
-      confirmed = true
-    } else if (options.flags && options.flags.telemetry === 'off') {
-      confirmed = false
-    } else {
-      confirmed = await cli.confirm('Chectl would like to collect data about how users use cli commands and his flags.Participation is voluntary and when you choose to participate chectl autmatically sends statistic usage about how you use the cli. press y/n')
-      segment.storeSegmentConfig(options.config.configDir, confirmed)
-    }
-  }
-
   try {
-    // If user allow to collect data, chectl start to send the data to segment
-    if (confirmed || segment.checkIfSegmentCollectIsAllowed(options.config.configDir)) {
-      segment.onTrack(options)
+    const chectlConfigs = segment.getChectlConfigs(options.config.configDir)
+    // Prompt question if user allow chectl to collect data anonymous data.
+    if (!options.flags.telemetry) {
+      if (!chectlConfigs.segment.telemetry) {
+        segment.confirmation = await cli.confirm('Chectl would like to collect data about how users use cli commands and his flags.Participation is voluntary and when you choose to participate chectl autmatically sends statistic usage about how you use the cli. press y/n')
+        chectlConfigs.segment.telemetry = segment.confirmation ? 'on' : 'off'
+      }
     }
+
+    // In case of negative confirmation chectl don't collect any data
+    if (chectlConfigs.segment.telemetry === 'off') {
+      return
+    }
+
+    // In case if segmentID was not generated, generate new one
+    if (!chectlConfigs.segment.segmentID) {
+      chectlConfigs.segment.segmentID = segment.generateSegmentID()
+    }
+
+    segment.storeSegmentConfigs(options.config.configDir, chectlConfigs.segment)
+    await segment.trackSegmentEvent(options, chectlConfigs.segment.segmentID)
   } catch {
     return this
   }

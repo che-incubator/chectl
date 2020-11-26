@@ -17,8 +17,8 @@ import * as notifier from 'node-notifier'
 import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
-import { assumeYes, cheDeployment, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, listrRenderer, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_CHE_OPERATOR_IMAGE, SUBSCRIPTION_NAME } from '../../constants'
+import { assumeYes, cheDeployment, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE, SUBSCRIPTION_NAME } from '../../constants'
 import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
@@ -86,7 +86,7 @@ export default class Update extends Command {
       await this.setDefaultInstaller(flags)
       cli.info(`› Installer type is set to: '${flags.installer}'`)
     }
-    await this.config.runHook('analytics', { event: Update.description, command: Update.id, flags })
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Update.id, flags })
 
     const kubeHelper = new KubeHelper(flags)
     const installerTasks = new InstallerTasks()

@@ -16,6 +16,7 @@ import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
 import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
 export default class Delete extends Command {
   static description = 'Delete a stopped workspace - use workspace:stop to stop the workspace before deleting it'
@@ -41,10 +42,9 @@ export default class Delete extends Command {
   ]
 
   async run() {
-    const { flags } = this.parse(Delete)
-    const { args } = this.parse(Delete)
+    const { flags, args } = this.parse(Delete)
 
-    await this.config.runHook('analytics', { event: Delete.description, command: Delete.id, flags })
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Delete.id, flags })
 
     const workspaceId = args.workspace
     const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY])

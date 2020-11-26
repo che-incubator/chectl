@@ -15,6 +15,7 @@ import * as notifier from 'node-notifier'
 import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
 export default class Stop extends Command {
   static description = 'Stop a running workspace'
@@ -40,7 +41,7 @@ export default class Stop extends Command {
     const { flags } = this.parse(Stop)
     const { args } = this.parse(Stop)
 
-    await this.config.runHook('analytics', { event: Stop.description, command: Stop.id, flags })
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Stop.id, flags })
 
     const workspaceId = args.workspace
     const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY])

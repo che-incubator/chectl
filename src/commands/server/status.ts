@@ -16,6 +16,7 @@ import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { cheNamespace, CHE_TELEMETRY } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { initializeContext } from '../../util'
 
 export default class Status extends Command {
@@ -36,7 +37,7 @@ export default class Status extends Command {
 
     let openshiftOauth = 'No'
 
-    await this.config.runHook('analytics', { event: Status.description, command: Status.id, flags })
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Status.id, flags })
     const cr = await kube.getCheCluster(flags.chenamespace)
     if (ctx.isOpenShift && cr && cr.spec && cr.spec.auth && cr.spec.auth.openShiftoAuth) {
       openshiftOauth = 'Yes'

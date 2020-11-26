@@ -18,8 +18,8 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_TIMEOUT, KubeHelper } from '../../api/kube'
-import { cheDeployment, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, devWorkspaceControllerNamespace, CHE_TELEMETRY ,listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
+import { cheDeployment, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, devWorkspaceControllerNamespace , listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
@@ -372,7 +372,7 @@ export default class Deploy extends Command {
       cli.info(` ❕olm-suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
     }
 
-    await this.config.runHook('analytics', { command: Deploy.id, flags })
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Deploy.id, flags })
 
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()

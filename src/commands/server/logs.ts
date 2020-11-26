@@ -15,7 +15,8 @@ import * as notifier from 'node-notifier'
 import * as os from 'os'
 import * as path from 'path'
 
-import { cheDeployment, cheNamespace, listrRenderer, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { initializeContext } from '../../util'
@@ -45,7 +46,7 @@ export default class Logs extends Command {
     const apiTasks = new ApiTasks()
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
 
-    await this.config.runHook('analytics', { event: Logs.description, command: Logs.id, flags })
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logs.id, flags })
     tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.serverLogsTasks(flags, false))

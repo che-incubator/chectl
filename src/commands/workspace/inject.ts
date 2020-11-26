@@ -22,6 +22,7 @@ import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
 import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { getClusterClientCommand, OPENSHIFT_CLI } from '../../util'
 
 export default class Inject extends Command {
@@ -61,7 +62,7 @@ export default class Inject extends Command {
   async run() {
     const { flags } = this.parse(Inject)
 
-    await this.config.runHook('analytics', { event: Inject.description, command: Inject.id, flags })
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Inject.id, flags })
 
     const notifier = require('node-notifier')
     const cheHelper = new CheHelper(flags)

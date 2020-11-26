@@ -14,7 +14,7 @@ import { string } from '@oclif/parser/lib/flags'
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
 
 export default class Export extends Command {
   static description = 'Retrieves Eclipse Che self-signed certificate'
@@ -40,7 +40,7 @@ export default class Export extends Command {
     const kube = new KubeHelper(flags)
     const cheHelper = new CheHelper(flags)
 
-    await this.config.runHook('analytics', { event: Export.description, command: Export.id, flags })
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Export.id, flags })
 
     if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
       throw new Error(`E_PERM_DENIED - Permission denied: no read access to '${flags.chenamespace}' namespace`)

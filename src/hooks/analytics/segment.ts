@@ -7,11 +7,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-import { existsSync, readFileSync, writeFileSync } from 'fs-extra'
+import { IConfig } from '@oclif/config'
 import { pick } from 'lodash'
-import * as path from 'path'
 
-import { DEFAULT_CHECTL_CONFIG_FILE_NAME } from '../../constants'
+import { ChectlConfig } from '../../config'
 
 let Analytics = require('analytics-node')
 
@@ -21,39 +20,34 @@ export interface SegmentConfig {
   flushInterval?: number
 }
 
-export interface SegmentConfigFile {
-  // Get from dataDir if user allow chectl to collect anonymous data
-  allowTelemetry?: boolean
-}
-
 export interface Flags {
   platform?: string
   installer?: string
 }
 
 /**
- * Class with help methods which help to connect to send telemetry data to segment.
+ * Class with help methods which help to connect segment and send telemetry data.
  */
-export class SegmentAdapter {
+export class SegmentAdapter extends ChectlConfig {
   private readonly segment: typeof Analytics
-  private readonly SEGMENT_CONFIG_FILE : string
-  private segmentConfig: SegmentConfigFile
+  public confirmation: boolean
 
   constructor(config: SegmentConfig) {
+    super()
     const { segmentWriteKey, ...options } = config
     this.segment = new Analytics(segmentWriteKey, options)
-    this.SEGMENT_CONFIG_FILE = DEFAULT_CHECTL_CONFIG_FILE_NAME
-    this.segmentConfig = {}
+    this.confirmation = false
   }
 
   /**
    * Create a segment track object which includes command properties and some chectl filtred properties
    * @param options chectl information like command or flags.
+   * @param segmentID chectl ID generated only if telemetry it is 'on'
    */
-  public onTrack(options: {command: string, flags: Flags}): void {
+  public async trackSegmentEvent(options: {command: string, flags: any, config: IConfig}, segmentID: string): Promise<void> {
     this.segment.track({
-      anonymousId: this.generateAnonymousId(),
-      event: options.command,
+      anonymousId: segmentID,
+      event: options.command.replace(':', ' '),
       properties: {
         ...pick(options.flags, ['platform', 'installer']),
         command: options.command
@@ -65,49 +59,7 @@ export class SegmentAdapter {
     })
   }
 
-  /**
-   * If user accept chectl to collect anonymous data will store the cli confirmation of if allow chectl to
-   * collect anonymously usage data. Is usefull to store the confirmation to run cli confirmation in every chectl command
-   * @param configDir Chectl config directory https://oclif.io/docs/config
-   * @param segmentCollectConfirmation Confirmation true/false of chectl collect data
-   */
-  public storeSegmentConfig(configDir: string, segmentCollectConfirmation: boolean): void {
-    const segmentConfigFile = path.join(configDir, this.SEGMENT_CONFIG_FILE)
-
-    if (!existsSync(segmentConfigFile)) {
-      this.segmentConfig.allowTelemetry = segmentCollectConfirmation
-      writeFileSync(segmentConfigFile, JSON.stringify(this.segmentConfig))
-    }
-  }
-
-  /**
-   * Function to check if segment configurations exist in chectl config
-   * @param configDir Chectl config directory https://oclif.io/docs/config
-   */
-  public checkIfSegmentConfigFileExist(configDir: string) {
-    return existsSync(path.join(configDir, this.SEGMENT_CONFIG_FILE))
-  }
-
-  /**
-   * Check if user confirmation is stored in chectl config dir
-   * @param configDir Chectl config directory https://oclif.io/docs/config
-   */
-  public checkIfSegmentCollectIsAllowed(configDir: string): boolean {
-    const segmentConfigFile = path.join(configDir, this.SEGMENT_CONFIG_FILE)
-
-    if (existsSync(segmentConfigFile)) {
-      this.segmentConfig = JSON.parse(readFileSync(segmentConfigFile).toString()) as SegmentConfigFile
-
-      return this.segmentConfig.allowTelemetry || false
-    }
-
-    return false
-  }
-
-  /**
-   * Generate an anonymous id for every event tracked in segment
-   */
-  private generateAnonymousId() {
+  public generateSegmentID(): string {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
   }
 }

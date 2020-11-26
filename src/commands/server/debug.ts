@@ -12,7 +12,8 @@ import { Command, flags } from '@oclif/command'
 import { integer } from '@oclif/parser/lib/flags'
 import * as Listr from 'listr'
 
-import { cheNamespace, listrRenderer, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { initializeContext } from '../../util'
@@ -36,7 +37,7 @@ export default class Debug extends Command {
     const { flags } = this.parse(Debug)
     const ctx = await initializeContext(flags)
 
-    await this.config.runHook('analytics', { event: Debug.description, command: Debug.id, flags })
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Debug.id, flags })
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })

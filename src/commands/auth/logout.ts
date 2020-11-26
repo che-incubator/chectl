@@ -13,6 +13,7 @@ import { cli } from 'cli-ux'
 
 import { CheServerLoginManager } from '../../api/che-login-manager'
 import { CHE_TELEMETRY } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
 export default class Logout extends Command {
   static description = 'Log out of the active login session'
@@ -23,7 +24,8 @@ export default class Logout extends Command {
   }
 
   async run() {
-    await this.config.runHook('analytics', { event: Logout.description, command: Logout.id })
+    const { flags } = this.parse(Logout)
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logout.id, flags })
 
     const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
     const currentLogin = loginManager.getCurrentLoginInfo()

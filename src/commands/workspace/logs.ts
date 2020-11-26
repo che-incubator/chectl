@@ -16,6 +16,7 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
 export default class Logs extends Command {
   static description = 'Collect workspace(s) logs'
@@ -45,7 +46,7 @@ export default class Logs extends Command {
     const { flags } = this.parse(Logs)
     const logsDirectory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
 
-    await this.config.runHook('analytics', { event: Logs.description, command: Logs.id, flags })
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logs.id, flags })
     const cheHelper = new CheHelper(flags)
     const workspaceRun = await cheHelper.readWorkspacePodLog(flags.namespace, flags.workspace, logsDirectory)
 

@@ -12,7 +12,8 @@ import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 
-import { accessToken, cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { accessToken, cheDeployment, cheNamespace, CHE_TELEMETRY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { getCommandSuccessMessage, initializeContext } from '../../util'
@@ -44,7 +45,7 @@ export default class Stop extends Command {
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()
 
-    await this.config.runHook('analytics', { event: Stop.description, command: Stop.id, flags })
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Stop.id, flags })
 
     let tasks = new Listr(undefined,
       {

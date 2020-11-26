@@ -16,6 +16,7 @@ import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
 export default class Start extends Command {
   static description = 'Starts a workspace'
@@ -46,7 +47,7 @@ export default class Start extends Command {
     const { flags } = this.parse(Start)
     const { args } = this.parse(Start)
 
-    await this.config.runHook('analytics', { event: Start.description, command: Start.id, flags })
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Start.id, flags })
     const workspaceId = args.workspace
     const cheHelper = new CheHelper(flags)
 

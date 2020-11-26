@@ -14,7 +14,8 @@ import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
 
 import { KubeHelper } from '../../api/kube'
-import { assumeYes, cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { assumeYes, cheDeployment, cheNamespace, CHE_TELEMETRY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { HelmTasks } from '../../tasks/installers/helm'
@@ -55,7 +56,7 @@ export default class Delete extends Command {
       flags.yes = flags['skip-deletion-check']
     }
 
-    await this.config.runHook('analytics', { event: Delete.description, command: Delete.id, flags })
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Delete.id, flags })
 
     const notifier = require('node-notifier')
     const apiTasks = new ApiTasks()

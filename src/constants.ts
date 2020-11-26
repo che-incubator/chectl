@@ -58,4 +58,7 @@ export const OUTPUT_SEPARATOR = '-----------------------------------------------
 export const DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE = 'devworkspace-controller'
 
 // configurations
-export const DEFAULT_CHECTL_CONFIG_FILE_NAME = 'configurations.json'
+export const DEFAULT_CHECTL_CONFIG_FILE_NAME = 'config.json'
+
+// HOOKS
+export const DEFAULT_ANALYTIC_HOOK_NAME = 'analytics'
