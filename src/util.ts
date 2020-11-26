@@ -10,9 +10,11 @@
 
 import { Command } from '@oclif/command'
 import * as commandExists from 'command-exists'
-import { existsSync, readFileSync } from 'fs-extra'
+import * as fs from 'fs-extra'
 import * as yaml from 'js-yaml'
 import Listr = require('listr')
+import * as os from 'os'
+import * as path from 'path'
 
 import { KubeHelper } from './api/kube'
 import { CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY } from './common-flags'
@@ -114,6 +116,7 @@ export async function initializeContext(flags?: any): Promise<any> {
   ctx.startTime = Date.now()
   ctx.customCR = readCRFile(flags, CHE_OPERATOR_CR_YAML_KEY)
   ctx.crPatch = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY)
+  ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
   if (flags['listr-renderer'] as any) {
     ctx.listrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
   }
@@ -132,8 +135,8 @@ export function readCRFile(flags: any, CRKey: string): any {
     return
   }
 
-  if (existsSync(CRFilePath)) {
-    return yaml.safeLoad(readFileSync(CRFilePath).toString())
+  if (fs.existsSync(CRFilePath)) {
+    return yaml.safeLoad(fs.readFileSync(CRFilePath).toString())
   }
 
   throw new Error(`Unable to find file defined in the flag '--${CRKey}'`)
@@ -157,4 +160,28 @@ export function getCommandSuccessMessage(command: Command, ctx: any): string {
   }
 
   return `Command ${command.id} has completed successfully.`
+}
+
+/**
+ * Determine if a directory is empty.
+ */
+export function isDirEmpty(dirname: string): boolean {
+  try {
+    return fs.readdirSync(dirname).length === 0
+    // Fails in case if directory doesn't exist
+  } catch {
+    return true
+  }
+}
+
+/**
+ * Returns command success message with execution time.
+ */
+export function getCommandErrorMessage(command: Command, ctx: any): string {
+  let message = `Command ${command.id} failed. Error log: ${command.config.errlog}`
+  if (ctx.directory && isDirEmpty(ctx.directory)) {
+    message += ` Eclipse Che logs: ${ctx.directory}`
+  }
+
+  return message
 }

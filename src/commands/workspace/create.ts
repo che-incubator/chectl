@@ -60,7 +60,7 @@ export default class Create extends Command {
     const devfilePath = this.getDevfilePath(flags.devfile)
     const cheHelper = new CheHelper(flags)
 
-    const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY])
+    const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
 
     let workspace = await cheHelper.createWorkspaceFromDevfile(cheApiEndpoint, devfilePath, flags.name, accessToken)

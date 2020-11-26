@@ -14,11 +14,10 @@ import { cli } from 'cli-ux'
 import * as fs from 'fs-extra'
 import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
-import * as os from 'os'
 import * as path from 'path'
 
-import { DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_TIMEOUT, KubeHelper } from '../../api/kube'
-import { cheDeployment, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, devWorkspaceControllerNamespace , listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
+import { KubeHelper } from '../../api/kube'
+import { cheDeployment, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, devWorkspaceControllerNamespace, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
@@ -27,11 +26,10 @@ import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { getCommandSuccessMessage, initializeContext, isOpenshiftPlatformFamily } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, initializeContext, isOpenshiftPlatformFamily } from '../../util'
 
 export default class Deploy extends Command {
-  static description = 'start Eclipse Che server'
-  static aliases = ['server:start']
+  static description = 'Deploy Eclipse Che server'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
@@ -63,22 +61,11 @@ export default class Deploy extends Command {
       required: true,
       env: 'CHE_SERVER_BOOT_TIMEOUT'
     }),
-    k8spodwaittimeout: string({
-      description: 'Waiting time for Pod scheduled condition (in milliseconds)',
-      default: `${DEFAULT_K8S_POD_TIMEOUT}`
-    }),
-    k8spoddownloadimagetimeout: string({
-      description: 'Waiting time for Pod downloading image (in milliseconds)',
-      default: `${DEFAULT_K8S_POD_TIMEOUT}`
-    }),
-    k8spodreadytimeout: string({
-      description: 'Waiting time for Pod Ready condition (in milliseconds)',
-      default: `${DEFAULT_K8S_POD_TIMEOUT}`
-    }),
-    k8spoderrorrechecktimeout: string({
-      description: 'Waiting time for Pod rechecking error (in milliseconds)',
-      default: `${DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT}`
-    }),
+    [K8SPODWAITTIMEOUT_KEY]: k8sPodWaitTimeout,
+    [K8SPODREADYTIMEOUT_KEY]: k8sPodReadyTimeout,
+    [K8SPODDOWNLOADIMAGETIMEOUT_KEY]: k8sPodDownloadImageTimeout,
+    [K8SPODERRORRECHECKTIMEOUT_KEY]: k8sPodErrorRecheckTimeout,
+    [LOG_DIRECTORY_KEY]: logsDirectory,
     multiuser: flags.boolean({
       char: 'm',
       description: 'Starts Eclipse Che in multi-user mode',
@@ -132,11 +119,6 @@ export default class Deploy extends Command {
     'helm-patch-yaml': string({
       description: 'Path to yaml file with Helm Chart values patch. The file format is identical to values.yaml from the chart.',
       default: '',
-    }),
-    directory: string({
-      char: 'd',
-      description: 'Directory to store logs into',
-      env: 'CHE_LOGS'
     }),
     'workspace-pvc-storage-class-name': string({
       description: 'persistent volume(s) storage class name to use to store Eclipse Che workspaces data',
@@ -252,18 +234,6 @@ export default class Deploy extends Command {
   }
 
   /**
-   * Determine if a directory is empty.
-   */
-  async isDirEmpty(dirname: string): Promise<boolean> {
-    try {
-      return fs.readdirSync(dirname).length === 0
-      // Fails in case if directory doesn't exist
-    } catch {
-      return true
-    }
-  }
-
-  /**
    * Checks if TLS is disabled via operator custom resource.
    * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
    */
@@ -353,13 +323,8 @@ export default class Deploy extends Command {
   }
 
   async run() {
-    if (process.argv.indexOf('server:start') > -1) {
-      this.warn('\'server:start\' command is deprecated. Use \'server:deploy\' instead.')
-    }
-
     const { flags } = this.parse(Deploy)
     const ctx = await initializeContext(flags)
-    ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
 
     if (flags['self-signed-cert']) {
       this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
@@ -394,16 +359,11 @@ export default class Deploy extends Command {
 
     let installTasks = new Listr(installerTasks.installTasks(flags, this), ctx.listrOptions)
 
-    const startDeployedCheTasks = new Listr([{
-      title: '👀  Starting already deployed Eclipse Che',
-      task: () => new Listr(cheTasks.scaleCheUpTasks(this))
-    }], ctx.listrOptions)
-
     // Post Install Checks
     const postInstallTasks = new Listr([
       {
         title: '✅  Post installation checklist',
-        task: () => new Listr(cheTasks.waitDeployedChe(flags, this))
+        task: () => new Listr(cheTasks.waitDeployedChe())
       },
       {
         title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
@@ -418,44 +378,29 @@ export default class Deploy extends Command {
     ], ctx.listrOptions)
 
     const logsTasks = new Listr([{
-      title: 'Start following logs',
+      title: 'Following Eclipse Che logs',
       task: () => new Listr(cheTasks.serverLogsTasks(flags, true))
-    }], ctx.listrOptions)
-
-    const eventTasks = new Listr([{
-      title: 'Start following events',
-      task: () => new Listr(cheTasks.namespaceEventsTask(flags.chenamespace, this, true))
     }], ctx.listrOptions)
 
     try {
       await preInstallTasks.run(ctx)
 
-      if (!ctx.isCheDeployed) {
+      if (ctx.isCheDeployed) {
+        let message = 'Eclipse Che has been already deployed.'
+        if (!ctx.isCheReady) {
+          message += ' Use server:start command to start a stopped Eclipse Che instance.'
+        }
+        cli.warn(message)
+      } else {
         this.checkPlatformCompatibility(flags)
         await platformCheckTasks.run(ctx)
         await logsTasks.run(ctx)
-        await eventTasks.run(ctx)
         await installTasks.run(ctx)
-      } else if (!ctx.isCheReady
-        || (ctx.isPostgresDeployed && !ctx.isPostgresReady)
-        || (ctx.isKeycloakDeployed && !ctx.isKeycloakReady)
-        || (ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryReady)
-        || (ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryReady)) {
-        if (flags.platform || flags.installer) {
-          this.warn('Deployed Eclipse Che is found and the specified installation parameters will be ignored')
-        }
-        // perform Eclipse Che start task if there is any component that is not ready
-        await startDeployedCheTasks.run(ctx)
+        await postInstallTasks.run(ctx)
+        this.log(getCommandSuccessMessage(this, ctx))
       }
-
-      await postInstallTasks.run(ctx)
-      this.log(getCommandSuccessMessage(this, ctx))
     } catch (err) {
-      const isDirEmpty = await this.isDirEmpty(ctx.directory)
-      if (isDirEmpty) {
-        this.error(`${err}\nInstallation failed. Error log: ${this.config.errlog}`)
-      }
-      this.error(`${err}\nInstallation failed. Error log: ${this.config.errlog}. Eclipse Che logs: ${ctx.directory}`)
+      this.error(`${err}\n${getCommandErrorMessage(this, ctx)}`)
     }
 
     notifier.notify({
