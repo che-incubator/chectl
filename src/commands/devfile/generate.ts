@@ -16,7 +16,7 @@ import * as yaml from 'js-yaml'
 import { ChectlContext } from '../../api/context'
 import { Devfile, DevfileCommand, DevfileComponent, DevfileProject, ProjectSource, TheEndpointName } from '../../api/devfile'
 import { KubeHelper } from '../../api/kube'
-import { getCommandSuccessMessage } from '../../util'
+import { notifyCommandCompletedSuccessfully } from '../../util'
 
 let kube: KubeHelper
 const stringLitArray = <L extends string>(arr: L[]) => arr
@@ -97,7 +97,6 @@ export default class Generate extends Command {
     await ChectlContext.init(flags, this)
 
     kube = new KubeHelper(flags)
-    const notifier = require('node-notifier')
 
     let name = flags.name || 'chectl-generated'
 
@@ -254,11 +253,7 @@ export default class Generate extends Command {
     this.log(`# chectl ${updatedArgs.join(' ')}`)
     this.log(yaml.safeDump(devfile))
 
-    notifier.notify({
-      title: 'chectl',
-      message: getCommandSuccessMessage()
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 

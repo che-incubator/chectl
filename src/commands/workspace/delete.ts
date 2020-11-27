@@ -10,14 +10,13 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
-import * as notifier from 'node-notifier'
 
 import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
-import { getCommandSuccessMessage } from '../../util'
+import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Delete extends Command {
   static description = 'Delete a stopped workspace - use workspace:stop to stop the workspace before deleting it'
@@ -72,11 +71,7 @@ export default class Delete extends Command {
       }
     }
 
-    notifier.notify({
-      title: 'chectl',
-      message: getCommandSuccessMessage()
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 }

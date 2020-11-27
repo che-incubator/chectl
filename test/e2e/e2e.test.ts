@@ -114,7 +114,7 @@ describe('Eclipse Che server authentication', () => {
   })
 
   it('Should show current login session', async () => {
-    const command = `${binChectl} auth:get -n ${NAMESPACE}`
+    const command = `${binChectl} auth:get`
 
     const { exitCode, stdout, stderr } = await execa(command, { shell: true })
 

@@ -10,12 +10,11 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
-import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { cheNamespace } from '../../common-flags'
-import { getCommandSuccessMessage } from '../../util'
+import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Open extends Command {
   static description = 'Open Eclipse Che dashboard'
@@ -40,11 +39,7 @@ export default class Open extends Command {
       this.error(error)
     }
 
-    notifier.notify({
-      title: 'chectl',
-      message: getCommandSuccessMessage()
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 }

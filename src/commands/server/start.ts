@@ -11,13 +11,12 @@
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
-import * as notifier from 'node-notifier'
 
 import { ChectlContext } from '../../api/context'
 import { cheDeployment, cheNamespace, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandErrorMessage, getCommandSuccessMessage } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Start extends Command {
   static description = 'Start Eclipse Che server'
@@ -76,11 +75,7 @@ export default class Start extends Command {
       this.error(getCommandErrorMessage(err))
     }
 
-    notifier.notify({
-      title: 'chectl',
-      message: getCommandSuccessMessage()
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 

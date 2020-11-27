@@ -11,6 +11,7 @@
 import * as commandExists from 'command-exists'
 import * as fs from 'fs-extra'
 import * as yaml from 'js-yaml'
+import * as notifier from 'node-notifier'
 
 import { ChectlContext } from './api/context'
 import { DEFAULT_CHE_OPERATOR_IMAGE } from './constants'
@@ -138,6 +139,13 @@ export function getCommandSuccessMessage(): string {
   }
 
   return `Command ${ctx[ChectlContext.COMMAND_ID]} has completed successfully.`
+}
+
+export function notifyCommandCompletedSuccessfully(): void {
+  notifier.notify({
+    title: 'chectl',
+    message: getCommandSuccessMessage()
+  })
 }
 
 /**

@@ -12,14 +12,13 @@ import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as fs from 'fs'
-import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
-import { getCommandSuccessMessage } from '../../util'
+import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Create extends Command {
   static description = 'Creates a workspace from a devfile'
@@ -78,11 +77,7 @@ export default class Create extends Command {
       cli.url(workspaceIdeURL, workspaceIdeURL)
     }
 
-    notifier.notify({
-      title: 'chectl',
-      message: getCommandSuccessMessage()
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 

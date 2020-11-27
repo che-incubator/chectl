@@ -16,7 +16,6 @@ import * as execa from 'execa'
 import { CheApiClient } from '../../api/che-api-client'
 import { CheServerLoginManager, getCheApiEndpoint, LoginRecord } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
-import { KubeHelper } from '../../api/kube'
 import { cheNamespace, CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
 import { getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
 
@@ -144,8 +143,7 @@ export default class Login extends Command {
           throw new Error(`No credentials provided. Please provide "--${REFRESH_TOKEN_KEY}" or "--${USERNAME_KEY}" parameter`)
         }
 
-        const kube = new KubeHelper()
-        const subjectIssuer = (await kube.isOpenShift4()) ? 'openshift-v4' : 'openshift-v3'
+        const subjectIssuer = (await ctx.isOpenShift4) ? 'openshift-v4' : 'openshift-v3'
 
         loginData = { subjectToken: ocUserToken, subjectIssuer }
       }

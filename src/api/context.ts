@@ -19,7 +19,8 @@ import { readCRFile } from '../util'
 import { KubeHelper } from './kube'
 
 /**
- * chectl context.
+ * chectl command context.
+ * Can be requested from any location with `ChectlContext#get`
  */
 export namespace ChectlContext {
   export const IS_OPENSHIFT = 'isOpenShift'
@@ -29,6 +30,8 @@ export namespace ChectlContext {
   export const CONFIG_DIR = 'configDir'
   export const ERROR_LOG = 'errorLog'
   export const COMMAND_ID = 'commandId'
+
+  // command specific attributes
   export const CUSTOM_CR = 'customCR'
   export const CR_PATCH = 'crPatch'
   export const LOGS_DIRECTORY = 'directory'
@@ -40,18 +43,20 @@ export namespace ChectlContext {
     ctx[IS_OPENSHIFT] = await kube.isOpenShift()
     ctx[IS_OPENSHIFT4] = await kube.isOpenShift4()
 
-    ctx.highlightedMessages = [] as string[]
-    ctx[START_TIME] = Date.now()
-    ctx[CUSTOM_CR] = readCRFile(flags, CHE_OPERATOR_CR_YAML_KEY)
-    ctx[CR_PATCH] = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY)
     if (flags['listr-renderer'] as any) {
       ctx.listrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
     }
+
+    ctx.highlightedMessages = [] as string[]
+    ctx[START_TIME] = Date.now()
+
     ctx[CONFIG_DIR] = command.config.configDir
     ctx[ERROR_LOG] = command.config.errlog
     ctx[COMMAND_ID] = command.id
-
     ctx[LOGS_DIRECTORY] = path.resolve(flags[LOG_DIRECTORY_KEY] ? flags[LOG_DIRECTORY_KEY] : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
+
+    ctx[CUSTOM_CR] = readCRFile(flags, CHE_OPERATOR_CR_YAML_KEY)
+    ctx[CR_PATCH] = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY)
   }
 
   export async function initAndGet(flags: any, command: Command): Promise<any> {

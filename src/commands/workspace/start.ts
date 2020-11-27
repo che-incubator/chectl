@@ -10,14 +10,13 @@
 
 import Command, { flags } from '@oclif/command'
 import { cli } from 'cli-ux'
-import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
-import { getCommandSuccessMessage } from '../../util'
+import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Start extends Command {
   static description = 'Starts a workspace'
@@ -63,11 +62,7 @@ export default class Start extends Command {
       cli.log('Workspace start request has been sent, workspace will be available shortly.')
     }
 
-    notifier.notify({
-      title: 'chectl',
-      message: getCommandSuccessMessage()
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 }

@@ -16,7 +16,7 @@ import { ChectlContext } from '../../api/context'
 import { cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandErrorMessage } from '../../util'
+import { getCommandErrorMessage, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Debug extends Command {
   static description = 'Enable local debug of Eclipse Che server'
@@ -51,5 +51,7 @@ export default class Debug extends Command {
     } catch (err) {
       this.error(getCommandErrorMessage(err))
     }
+
+    notifyCommandCompletedSuccessfully()
   }
 }

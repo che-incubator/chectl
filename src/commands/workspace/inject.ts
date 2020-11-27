@@ -23,7 +23,7 @@ import { getLoginData } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
-import { getClusterClientCommand, getCommandErrorMessage, getCommandSuccessMessage, OPENSHIFT_CLI } from '../../util'
+import { getClusterClientCommand, getCommandErrorMessage, notifyCommandCompletedSuccessfully, OPENSHIFT_CLI } from '../../util'
 
 export default class Inject extends Command {
   static description = 'Inject configurations and tokens in a workspace'
@@ -62,7 +62,6 @@ export default class Inject extends Command {
     const { flags } = this.parse(Inject)
     await ChectlContext.init(flags, this)
 
-    const notifier = require('node-notifier')
     const cheHelper = new CheHelper(flags)
 
     const { cheApiEndpoint, accessToken } = await getLoginData(flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
@@ -100,10 +99,7 @@ export default class Inject extends Command {
       this.error(getCommandErrorMessage(err))
     }
 
-    notifier.notify({
-      title: 'chectl',
-      message: getCommandSuccessMessage()
-    })
+    notifyCommandCompletedSuccessfully()
   }
 
   async injectKubeconfig(flags: any, workspaceNamespace: string, workspacePodName: string, workspaceId: string): Promise<void> {

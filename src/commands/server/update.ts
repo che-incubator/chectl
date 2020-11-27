@@ -13,7 +13,6 @@ import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as fs from 'fs-extra'
 import * as Listr from 'listr'
-import * as notifier from 'node-notifier'
 import * as path from 'path'
 
 import { ChectlContext } from '../../api/context'
@@ -24,7 +23,7 @@ import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-t
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
-import { getCommandErrorMessage, getCommandSuccessMessage, getImageTag } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, getImageTag, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -153,11 +152,7 @@ export default class Update extends Command {
       this.error(getCommandErrorMessage(err))
     }
 
-    notifier.notify({
-      title: 'chectl',
-      message: getCommandSuccessMessage()
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 

@@ -23,7 +23,7 @@ import { MinishiftAddonTasks } from '../../tasks/installers/minishift-addon'
 import { OLMTasks } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandErrorMessage, getCommandSuccessMessage } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Delete extends Command {
   static description = 'delete any Eclipse Che related resource: Kubernetes/OpenShift/Helm'
@@ -56,7 +56,6 @@ export default class Delete extends Command {
       flags.yes = flags['skip-deletion-check']
     }
 
-    const notifier = require('node-notifier')
     const apiTasks = new ApiTasks()
     const helmTasks = new HelmTasks(flags)
     const minishiftAddonTasks = new MinishiftAddonTasks()
@@ -90,11 +89,7 @@ export default class Delete extends Command {
       this.exit(0)
     }
 
-    notifier.notify({
-      title: 'chectl',
-      message: getCommandSuccessMessage()
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 

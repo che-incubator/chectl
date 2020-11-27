@@ -16,7 +16,7 @@ import { ChectlContext } from '../../api/context'
 import { accessToken, cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandErrorMessage, getCommandSuccessMessage } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Stop extends Command {
   static description = 'stop Eclipse Che server'
@@ -41,7 +41,6 @@ export default class Stop extends Command {
     await ChectlContext.init(flags, this)
 
     const Listr = require('listr')
-    const notifier = require('node-notifier')
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()
 
@@ -74,11 +73,7 @@ export default class Stop extends Command {
       this.error(getCommandErrorMessage(err))
     }
 
-    notifier.notify({
-      title: 'chectl',
-      message: getCommandSuccessMessage()
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 }

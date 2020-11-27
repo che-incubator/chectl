@@ -10,14 +10,13 @@
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
-import * as notifier from 'node-notifier'
 import * as os from 'os'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { skipKubeHealthzCheck } from '../../common-flags'
-import { getCommandSuccessMessage } from '../../util'
+import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Logs extends Command {
   static description = 'Collect workspace(s) logs'
@@ -63,9 +62,6 @@ export default class Logs extends Command {
       this.error(error)
     }
 
-    notifier.notify({
-      title: 'chectl',
-      message: getCommandSuccessMessage()
-    })
+    notifyCommandCompletedSuccessfully()
   }
 }
