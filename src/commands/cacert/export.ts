@@ -12,9 +12,11 @@ import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 
 import { CheHelper } from '../../api/che'
+import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
+import { getCommandErrorMessage } from '../../util'
 
 export default class Export extends Command {
   static description = 'Retrieves Eclipse Che self-signed certificate'
@@ -36,6 +38,8 @@ export default class Export extends Command {
 
   async run() {
     const { flags } = this.parse(Export)
+    await ChectlContext.init(flags, this)
+
     const kube = new KubeHelper(flags)
     const cheHelper = new CheHelper(flags)
 
@@ -54,8 +58,8 @@ export default class Export extends Command {
       } else {
         this.log('Self signed certificate secret not found. Is commonly trusted certificate used?')
       }
-    } catch (error) {
-      this.error(error)
+    } catch (err) {
+      this.error(getCommandErrorMessage(err))
     }
   }
 }

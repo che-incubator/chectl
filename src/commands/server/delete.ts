@@ -13,6 +13,7 @@ import { boolean } from '@oclif/command/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
 
+import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { assumeYes, cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
@@ -22,7 +23,7 @@ import { MinishiftAddonTasks } from '../../tasks/installers/minishift-addon'
 import { OLMTasks } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandSuccessMessage, initializeContext } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage } from '../../util'
 
 export default class Delete extends Command {
   static description = 'delete any Eclipse Che related resource: Kubernetes/OpenShift/Helm'
@@ -48,7 +49,8 @@ export default class Delete extends Command {
 
   async run() {
     const { flags } = this.parse(Delete)
-    const ctx = await initializeContext(flags)
+    const ctx = await ChectlContext.initAndGet(flags, this)
+
     if (flags['skip-deletion-check']) {
       this.warn('\'--skip-deletion-check\' flag is deprecated, use \'--yes\' instead.')
       flags.yes = flags['skip-deletion-check']
@@ -80,9 +82,9 @@ export default class Delete extends Command {
     if (await this.isDeletionConfirmed(flags)) {
       try {
         await tasks.run()
-        cli.log(getCommandSuccessMessage(this, ctx))
-      } catch (error) {
-        cli.error(error)
+        cli.log(getCommandSuccessMessage())
+      } catch (err) {
+        this.error(getCommandErrorMessage(err))
       }
     } else {
       this.exit(0)
@@ -90,7 +92,7 @@ export default class Delete extends Command {
 
     notifier.notify({
       title: 'chectl',
-      message: getCommandSuccessMessage(this, ctx)
+      message: getCommandSuccessMessage()
     })
 
     this.exit(0)

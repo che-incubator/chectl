@@ -18,6 +18,7 @@ import { ACCESS_TOKEN_KEY } from '../common-flags'
 
 import { CheHelper } from './che'
 import { CheApiClient } from './che-api-client'
+import { ChectlContext } from './context'
 import { KubeHelper } from './kube'
 
 // Represents login information to use for requests
@@ -139,13 +140,15 @@ export class CheServerLoginManager {
 
   /**
    * Returns Che server login sessions manager.
-   * @param configDirPath path to chectl config folder
    */
-  static async getInstance(configDirPath: string): Promise<CheServerLoginManager> {
-    if (!fs.existsSync(configDirPath)) {
-      fs.mkdirsSync(configDirPath)
+  static async getInstance(): Promise<CheServerLoginManager> {
+    const ctx = ChectlContext.get()
+    const configDir = ctx[ChectlContext.CONFIG_DIR]
+
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirsSync(configDir)
     }
-    const dataFilePath = path.join(configDirPath, LOGIN_DATA_FILE_NAME)
+    const dataFilePath = path.join(configDir, LOGIN_DATA_FILE_NAME)
     if (loginContext && loginContext.dataFilePath === dataFilePath) {
       return loginContext
     }
@@ -524,7 +527,7 @@ export class CheServerLoginManager {
  * @param cheApiEndpoint user provided server API URL if any
  * @param accessToken user provied access token if any
  */
-export async function getLoginData(configDir: string, cheApiEndpoint: string, accessToken: string | undefined, flags: any): Promise<LoginData> {
+export async function getLoginData(cheApiEndpoint: string, accessToken: string | undefined, flags: any): Promise<LoginData> {
   if (cheApiEndpoint) {
     // User provides credential manually
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
@@ -539,7 +542,7 @@ export async function getLoginData(configDir: string, cheApiEndpoint: string, ac
     }
 
     // Use login manager to get Che API URL and token
-    const loginManager = await CheServerLoginManager.getInstance(configDir)
+    const loginManager = await CheServerLoginManager.getInstance()
     cheApiEndpoint = loginManager.getCurrentServerApiUrl()
     if (!cheApiEndpoint) {
       cheApiEndpoint = await getCheApiEndpoint(flags)

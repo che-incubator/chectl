@@ -14,8 +14,10 @@ import * as notifier from 'node-notifier'
 
 import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
+import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
+import { getCommandSuccessMessage } from '../../util'
 
 export default class Delete extends Command {
   static description = 'Delete a stopped workspace - use workspace:stop to stop the workspace before deleting it'
@@ -40,12 +42,12 @@ export default class Delete extends Command {
   ]
 
   async run() {
-    const { flags } = this.parse(Delete)
-    const { args } = this.parse(Delete)
+    const { flags, args } = this.parse(Delete)
+    await ChectlContext.init(flags, this)
 
     const workspaceId = args.workspace
 
-    const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
+    const { cheApiEndpoint, accessToken } = await getLoginData(flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
     await cheApiClient.deleteWorkspaceById(workspaceId, accessToken)
     cli.log(`Workspace with id '${workspaceId}' deleted.`)
@@ -72,7 +74,7 @@ export default class Delete extends Command {
 
     notifier.notify({
       title: 'chectl',
-      message: 'Command workspace:delete has completed successfully.'
+      message: getCommandSuccessMessage()
     })
 
     this.exit(0)

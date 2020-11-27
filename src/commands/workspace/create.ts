@@ -17,7 +17,9 @@ import * as notifier from 'node-notifier'
 import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
+import { ChectlContext } from '../../api/context'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
+import { getCommandSuccessMessage } from '../../util'
 
 export default class Create extends Command {
   static description = 'Creates a workspace from a devfile'
@@ -52,11 +54,12 @@ export default class Create extends Command {
 
   async run() {
     const { flags } = this.parse(Create)
+    await ChectlContext.init(flags, this)
 
     const devfilePath = this.getDevfilePath(flags.devfile)
     const cheHelper = new CheHelper(flags)
 
-    const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
+    const { cheApiEndpoint, accessToken } = await getLoginData(flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
 
     let workspace = await cheHelper.createWorkspaceFromDevfile(cheApiEndpoint, devfilePath, flags.name, accessToken)
@@ -77,7 +80,7 @@ export default class Create extends Command {
 
     notifier.notify({
       title: 'chectl',
-      message: 'Command workspace:create has completed successfully.'
+      message: getCommandSuccessMessage()
     })
 
     this.exit(0)

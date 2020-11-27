@@ -13,14 +13,15 @@ import { cli } from 'cli-ux'
 import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
+import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { cheNamespace } from '../../common-flags'
-import { initializeContext } from '../../util'
+import { getCommandSuccessMessage } from '../../util'
 
 export default class Status extends Command {
   // Implementation-Version it is a property from Manifest.ml inside of che server pod which indicate Eclipse Che build version.
-  static description = 'status Eclipse Che server'
+  static description = 'Status Eclipse Che server'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
@@ -29,7 +30,8 @@ export default class Status extends Command {
 
   async run() {
     const { flags } = this.parse(Status)
-    const ctx = await initializeContext(flags)
+    const ctx = await ChectlContext.initAndGet(flags, this)
+
     const kube = new KubeHelper(flags)
     const che = new CheHelper(flags)
 
@@ -48,7 +50,7 @@ export default class Status extends Command {
 
     notifier.notify({
       title: 'chectl',
-      message: 'Command server:status has completed successfully.'
+      message: getCommandSuccessMessage()
     })
   }
 }

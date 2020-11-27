@@ -13,7 +13,9 @@ import { cli } from 'cli-ux'
 import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
+import { ChectlContext } from '../../api/context'
 import { cheNamespace } from '../../common-flags'
+import { getCommandSuccessMessage } from '../../util'
 
 export default class Open extends Command {
   static description = 'Open Eclipse Che dashboard'
@@ -25,6 +27,7 @@ export default class Open extends Command {
 
   async run() {
     const { flags } = this.parse(Open)
+    await ChectlContext.init(flags, this)
 
     try {
       const cheHelper = new CheHelper(flags)
@@ -39,7 +42,7 @@ export default class Open extends Command {
 
     notifier.notify({
       title: 'chectl',
-      message: 'Command dashboard:open has completed successfully.'
+      message: getCommandSuccessMessage()
     })
 
     this.exit(0)

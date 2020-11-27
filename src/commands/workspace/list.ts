@@ -13,6 +13,7 @@ import { cli } from 'cli-ux'
 
 import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
+import { ChectlContext } from '../../api/context'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
 
 export default class List extends Command {
@@ -28,8 +29,9 @@ export default class List extends Command {
 
   async run() {
     const { flags } = this.parse(List)
+    await ChectlContext.init(flags, this)
 
-    const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
+    const { cheApiEndpoint, accessToken } = await getLoginData(flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
     const workspaces = await cheApiClient.getAllWorkspaces(accessToken)
 

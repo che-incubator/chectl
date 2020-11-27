@@ -15,9 +15,10 @@ import * as execa from 'execa'
 
 import { CheApiClient } from '../../api/che-api-client'
 import { CheServerLoginManager, getCheApiEndpoint, LoginRecord } from '../../api/che-login-manager'
+import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace, CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
-import { initializeContext, OPENSHIFT_CLI } from '../../util'
+import { getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
 
 const REFRESH_TOKEN_KEY = 'refresh-token'
 const PASSWORD_KEY = 'password'
@@ -66,9 +67,9 @@ export default class Login extends Command {
 
   async run() {
     const { args, flags } = this.parse(Login)
-    const ctx = await initializeContext(flags)
+    const ctx = await ChectlContext.initAndGet(flags, this)
 
-    const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
+    const loginManager = await CheServerLoginManager.getInstance()
 
     let cheApiClient: CheApiClient
     let cheApiEndpoint: string | undefined = args[CHE_API_ENDPOINT_KEY]
@@ -157,9 +158,8 @@ export default class Login extends Command {
     try {
       const username = await loginManager.setLoginContext(cheApiEndpoint, loginData)
       cli.info(`Successfully logged into ${cheApiEndpoint} as ${username}`)
-    } catch (error) {
-      cli.error(error)
+    } catch (err) {
+      this.error(getCommandErrorMessage(err))
     }
   }
-
 }

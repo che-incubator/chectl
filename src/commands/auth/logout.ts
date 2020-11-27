@@ -8,16 +8,24 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { Command } from '@oclif/command'
+import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
 
 import { CheServerLoginManager } from '../../api/che-login-manager'
+import { ChectlContext } from '../../api/context'
 
 export default class Logout extends Command {
   static description = 'Log out of the active login session'
 
+  static flags: flags.Input<any> = {
+    help: flags.help({ char: 'h' }),
+  }
+
   async run() {
-    const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
+    const { flags } = this.parse(Logout)
+    await ChectlContext.init(flags, this)
+
+    const loginManager = await CheServerLoginManager.getInstance()
     const currentLogin = loginManager.getCurrentLoginInfo()
 
     const cheApiEndpoint = currentLogin.cheApiEndpoint

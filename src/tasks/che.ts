@@ -272,7 +272,7 @@ export class CheTasks {
           const cheApi = CheApiClient.getInstance(cheURL + '/api')
           let cheAccessToken = this.cheAccessToken
           if (!cheAccessToken && await cheApi.isAuthenticationEnabled()) {
-            const loginManager = await CheServerLoginManager.getInstance(command.config.configDir)
+            const loginManager = await CheServerLoginManager.getInstance()
             cheAccessToken = await loginManager.getNewAccessToken()
           }
           await cheApi.startCheServerShutdown(cheAccessToken)

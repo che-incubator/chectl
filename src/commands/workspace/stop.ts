@@ -14,7 +14,9 @@ import * as notifier from 'node-notifier'
 
 import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
+import { ChectlContext } from '../../api/context'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
+import { getCommandSuccessMessage } from '../../util'
 
 export default class Stop extends Command {
   static description = 'Stop a running workspace'
@@ -36,19 +38,19 @@ export default class Stop extends Command {
   ]
 
   async run() {
-    const { flags } = this.parse(Stop)
-    const { args } = this.parse(Stop)
+    const { flags, args } = this.parse(Stop)
+    await ChectlContext.init(flags, this)
 
     const workspaceId = args.workspace
 
-    const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
+    const { cheApiEndpoint, accessToken } = await getLoginData(flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
     await cheApiClient.stopWorkspace(workspaceId, accessToken)
-    cli.log('Workspace successfully stopped.')
+    cli.log(`Workspace ${workspaceId} successfully stopped.`)
 
     notifier.notify({
       title: 'chectl',
-      message: 'Command workspace:stop has completed successfully.'
+      message: getCommandSuccessMessage()
     })
 
     this.exit(0)

@@ -12,10 +12,11 @@ import { Command, flags } from '@oclif/command'
 import { integer } from '@oclif/parser/lib/flags'
 import * as Listr from 'listr'
 
+import { ChectlContext } from '../../api/context'
 import { cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { initializeContext } from '../../util'
+import { getCommandErrorMessage } from '../../util'
 
 export default class Debug extends Command {
   static description = 'Enable local debug of Eclipse Che server'
@@ -33,7 +34,7 @@ export default class Debug extends Command {
 
   async run() {
     const { flags } = this.parse(Debug)
-    const ctx = await initializeContext(flags)
+    const ctx = await ChectlContext.initAndGet(flags, this)
 
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()
@@ -47,8 +48,8 @@ export default class Debug extends Command {
       await tasks.run(ctx)
       this.log(`Eclipse Che server debug is available on localhost:${flags['debug-port']}.`)
       this.log('The program keeps running to enable port forwarding.')
-    } catch (error) {
-      this.error(error)
+    } catch (err) {
+      this.error(getCommandErrorMessage(err))
     }
   }
 }

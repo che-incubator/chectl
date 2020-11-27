@@ -16,6 +16,7 @@ import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
 import * as path from 'path'
 
+import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { cheDeployment, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, devWorkspaceControllerNamespace, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
 import { DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
@@ -26,7 +27,7 @@ import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { getCommandErrorMessage, getCommandSuccessMessage, initializeContext, isOpenshiftPlatformFamily } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, isOpenshiftPlatformFamily } from '../../util'
 
 export default class Deploy extends Command {
   static description = 'Deploy Eclipse Che server'
@@ -323,7 +324,7 @@ export default class Deploy extends Command {
 
   async run() {
     const { flags } = this.parse(Deploy)
-    const ctx = await initializeContext(flags)
+    const ctx = await ChectlContext.initAndGet(flags, this)
 
     if (flags['self-signed-cert']) {
       this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
@@ -394,15 +395,18 @@ export default class Deploy extends Command {
         await logsTasks.run(ctx)
         await installTasks.run(ctx)
         await postInstallTasks.run(ctx)
-        this.log(getCommandSuccessMessage(this, ctx))
+        this.log(getCommandSuccessMessage())
       }
+
+      await postInstallTasks.run(ctx)
+      this.log(getCommandSuccessMessage())
     } catch (err) {
-      this.error(`${err}\n${getCommandErrorMessage(this, ctx)}`)
+      this.error(getCommandErrorMessage(err))
     }
 
     notifier.notify({
       title: 'chectl',
-      message: getCommandSuccessMessage(this, ctx)
+      message: getCommandSuccessMessage()
     })
 
     this.exit(0)

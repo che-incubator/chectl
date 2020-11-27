@@ -15,7 +15,9 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
+import { ChectlContext } from '../../api/context'
 import { skipKubeHealthzCheck } from '../../common-flags'
+import { getCommandSuccessMessage } from '../../util'
 
 export default class Logs extends Command {
   static description = 'Collect workspace(s) logs'
@@ -42,6 +44,8 @@ export default class Logs extends Command {
 
   async run() {
     const { flags } = this.parse(Logs)
+    await ChectlContext.init(flags, this)
+
     const logsDirectory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
 
     const cheHelper = new CheHelper(flags)
@@ -61,7 +65,7 @@ export default class Logs extends Command {
 
     notifier.notify({
       title: 'chectl',
-      message: 'Command workspace:logs has completed successfully.'
+      message: getCommandSuccessMessage()
     })
   }
 }
