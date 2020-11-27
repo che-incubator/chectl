@@ -10,7 +10,7 @@
 import { IConfig } from '@oclif/config'
 import { pick } from 'lodash'
 
-import { ChectlConfig } from '../../config'
+import { ChectlConfig } from '../../api/config/config'
 
 let Analytics = require('analytics-node')
 

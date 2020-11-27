@@ -124,6 +124,9 @@ OPTIONS
   -h, --help               show CLI help
   -u, --username=username  Eclipse Che username
 
+  --telemetry=on|off       Enable or disable chectl telemetry. This flag skips a prompt and enable/disable chectl
+                           telemetry
+
 EXAMPLES
   # Delete login session of the specified user on the cluster:
   chectl auth:delete che-che.apps-crc.testing/api -u username
@@ -142,6 +145,10 @@ Display active login session
 ```
 USAGE
   $ chectl auth:get
+
+OPTIONS
+  -h, --help          show CLI help
+  --telemetry=on|off  Enable or disable chectl telemetry. This flag skips a prompt and enable/disable chectl telemetry
 ```
 
 _See code: [src/commands/auth/get.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/get.ts)_
@@ -153,6 +160,10 @@ Show all existing login sessions
 ```
 USAGE
   $ chectl auth:list
+
+OPTIONS
+  -h, --help          show CLI help
+  --telemetry=on|off  Enable or disable chectl telemetry. This flag skips a prompt and enable/disable chectl telemetry
 ```
 
 _See code: [src/commands/auth/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/list.ts)_
@@ -180,6 +191,9 @@ OPTIONS
 
   -u, --username=username            Eclipse Che username
 
+  --telemetry=on|off                 Enable or disable chectl telemetry. This flag skips a prompt and enable/disable
+                                     chectl telemetry
+
 EXAMPLES
   # Log in with username and password (when OpenShift OAuth is not enabled):
   chectl auth:login https://che-che.apps-crc.testing/api -u username -p password
@@ -206,6 +220,10 @@ Log out of the active login session
 ```
 USAGE
   $ chectl auth:logout
+
+OPTIONS
+  -h, --help          show CLI help
+  --telemetry=on|off  Enable or disable chectl telemetry. This flag skips a prompt and enable/disable chectl telemetry
 ```
 
 _See code: [src/commands/auth/logout.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/logout.ts)_
@@ -225,6 +243,9 @@ OPTIONS
   -h, --help               show CLI help
   -i, --interactive        Select an active login session in interactive mode
   -u, --username=username  Eclipse Che username
+
+  --telemetry=on|off       Enable or disable chectl telemetry. This flag skips a prompt and enable/disable chectl
+                           telemetry
 
 EXAMPLES
   # Set an active login session for the specified user on the given cluster:
@@ -294,6 +315,9 @@ OPTIONS
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
+
+  --telemetry=on|off
+      Enable or disable chectl telemetry. This flag skips a prompt and enable/disable chectl telemetry
 ```
 
 _See code: [src/commands/cacert/export.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/cacert/export.ts)_
@@ -311,6 +335,9 @@ OPTIONS
 
   -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
                                    deployed
+
+  --telemetry=on|off               Enable or disable chectl telemetry. This flag skips a prompt and enable/disable
+                                   chectl telemetry
 ```
 
 _See code: [src/commands/dashboard/open.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/dashboard/open.ts)_
@@ -343,6 +370,9 @@ OPTIONS
 
   --selector=selector        label selector to filter the Kubernetes resources. For example
                              --selector="app.kubernetes.io/name=employee-manager"
+
+  --telemetry=on|off         Enable or disable chectl telemetry. This flag skips a prompt and enable/disable chectl
+                             telemetry
 ```
 
 _See code: [src/commands/devfile/generate.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/devfile/generate.ts)_
@@ -381,6 +411,9 @@ OPTIONS
   --debug-port=debug-port          [default: 8000] Eclipse Che server debug port
 
   --skip-kubernetes-health-check   Skip Kubernetes health check
+
+  --telemetry=on|off               Enable or disable chectl telemetry. This flag skips a prompt and enable/disable
+                                   chectl telemetry
 ```
 
 _See code: [src/commands/server/debug.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/debug.ts)_
@@ -414,6 +447,10 @@ OPTIONS
                                                                            engine is the DevWorkspace
 
   --skip-kubernetes-health-check                                           Skip Kubernetes health check
+
+  --telemetry=on|off                                                       Enable or disable chectl telemetry. This flag
+                                                                           skips a prompt and enable/disable chectl
+                                                                           telemetry
 ```
 
 _See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/delete.ts)_
@@ -567,6 +604,9 @@ OPTIONS
       the latest known version.
                            This parameter is used only when the installer is 'olm'.
 
+  --telemetry=on|off
+      Enable or disable chectl telemetry. This flag skips a prompt and enable/disable chectl telemetry
+
   --workspace-engine=che-server|dev-workspace
       [default: che-server] Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.
 
@@ -594,6 +634,9 @@ OPTIONS
   --deployment-name=deployment-name  [default: che] Eclipse Che deployment name
 
   --skip-kubernetes-health-check     Skip Kubernetes health check
+
+  --telemetry=on|off                 Enable or disable chectl telemetry. This flag skips a prompt and enable/disable
+                                     chectl telemetry
 ```
 
 _See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/logs.ts)_
@@ -645,6 +688,9 @@ OPTIONS
 
   -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
                                    deployed
+
+  --telemetry=on|off               Enable or disable chectl telemetry. This flag skips a prompt and enable/disable
+                                   chectl telemetry
 ```
 
 _See code: [src/commands/server/status.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/status.ts)_
@@ -683,6 +729,9 @@ OPTIONS
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
+
+  --telemetry=on|off
+      Enable or disable chectl telemetry. This flag skips a prompt and enable/disable chectl telemetry
 ```
 
 _See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
@@ -717,6 +766,9 @@ OPTIONS
   --deployment-name=deployment-name                        [default: che] Eclipse Che deployment name
 
   --skip-kubernetes-health-check                           Skip Kubernetes health check
+
+  --telemetry=on|off                                       Enable or disable chectl telemetry. This flag skips a prompt
+                                                           and enable/disable chectl telemetry
 ```
 
 _See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_
@@ -772,6 +824,9 @@ OPTIONS
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
+
+  --telemetry=on|off
+      Enable or disable chectl telemetry. This flag skips a prompt and enable/disable chectl telemetry
 ```
 
 _See code: [src/commands/workspace/create.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/create.ts)_
@@ -809,6 +864,9 @@ OPTIONS
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
+
+  --telemetry=on|off
+      Enable or disable chectl telemetry. This flag skips a prompt and enable/disable chectl telemetry
 ```
 
 _See code: [src/commands/workspace/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/delete.ts)_
@@ -853,6 +911,9 @@ OPTIONS
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
+
+  --telemetry=on|off
+      Enable or disable chectl telemetry. This flag skips a prompt and enable/disable chectl telemetry
 ```
 
 _See code: [src/commands/workspace/inject.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/inject.ts)_
@@ -884,6 +945,9 @@ OPTIONS
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
+
+  --telemetry=on|off
+      Enable or disable chectl telemetry. This flag skips a prompt and enable/disable chectl telemetry
 ```
 
 _See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/list.ts)_
@@ -906,6 +970,9 @@ OPTIONS
   -w, --workspace=workspace       (required) Target workspace id. Can be found in workspace configuration 'id' field.
 
   --skip-kubernetes-health-check  Skip Kubernetes health check
+
+  --telemetry=on|off              Enable or disable chectl telemetry. This flag skips a prompt and enable/disable chectl
+                                  telemetry
 ```
 
 _See code: [src/commands/workspace/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/logs.ts)_
@@ -943,6 +1010,9 @@ OPTIONS
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
+
+  --telemetry=on|off
+      Enable or disable chectl telemetry. This flag skips a prompt and enable/disable chectl telemetry
 ```
 
 _See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
@@ -977,6 +1047,9 @@ OPTIONS
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
+
+  --telemetry=on|off
+      Enable or disable chectl telemetry. This flag skips a prompt and enable/disable chectl telemetry
 ```
 
 _See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_

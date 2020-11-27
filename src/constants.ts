@@ -57,11 +57,9 @@ export const OUTPUT_SEPARATOR = '-----------------------------------------------
 // DevWorkspace
 export const DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE = 'devworkspace-controller'
 
-// configurations
-export const DEFAULT_CHECTL_CONFIG_FILE_NAME = 'config.json'
-
 // HOOKS
 export const DEFAULT_ANALYTIC_HOOK_NAME = 'analytics'
+
 // Timeouts
 export const DEFAULT_K8S_POD_WAIT_TIMEOUT = 600000
 export const DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT = 15000

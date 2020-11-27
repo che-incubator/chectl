@@ -18,7 +18,7 @@ const rootDir = process.cwd()
 const obfuscateJSFiles = () => {
   const jsFilesToObfuscate = [ 'lib/hooks/analytics/analytics.js' ]
  
-  filesReadyToObfuscate.forEach((jsFilePath)=> {
+  jsFilesToObfuscate.forEach((jsFilePath)=> {
     const fileToObfuscate = path.join(rootDir, jsFilePath)
     if (fs.existsSync(fileToObfuscate)) {
       let js = fs.readFileSync(fileToObfuscate, {encoding: 'utf8'});

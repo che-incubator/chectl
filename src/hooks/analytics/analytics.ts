@@ -14,7 +14,7 @@ import { existsSync, mkdirsSync } from 'fs-extra'
 
 import { SegmentAdapter } from './segment'
 
-export const hook = async (options: {event: string, flags: any, command: string, config: IConfig }) => {
+export const hook = async (options: {command: string, flags: any, config: IConfig }) => {
   //In case of disable telemetry by flag not additional configs are enabled.
   if (options.flags && options.flags.telemetry === 'off') {
     return this
@@ -31,13 +31,11 @@ export const hook = async (options: {event: string, flags: any, command: string,
   }
 
   try {
-    const chectlConfigs = segment.getChectlConfigs(options.config.configDir)
+    const chectlConfigs = segment.readChectlConfigs(options.config.configDir)
     // Prompt question if user allow chectl to collect data anonymous data.
-    if (!options.flags.telemetry) {
-      if (!chectlConfigs.segment.telemetry) {
-        segment.confirmation = await cli.confirm('Chectl would like to collect data about how users use cli commands and his flags.Participation is voluntary and when you choose to participate chectl autmatically sends statistic usage about how you use the cli. press y/n')
-        chectlConfigs.segment.telemetry = segment.confirmation ? 'on' : 'off'
-      }
+    if (!options.flags.telemetry && !chectlConfigs.segment.telemetry) {
+      segment.confirmation = await cli.confirm('Chectl would like to collect data about how users use cli commands and his flags.Participation is voluntary and when you choose to participate chectl autmatically sends statistic usage about how you use the cli. press y/n')
+      chectlConfigs.segment.telemetry = segment.confirmation ? 'on' : 'off'
     }
 
     // In case of negative confirmation chectl don't collect any data
@@ -50,7 +48,7 @@ export const hook = async (options: {event: string, flags: any, command: string,
       chectlConfigs.segment.segmentID = segment.generateSegmentID()
     }
 
-    segment.storeSegmentConfigs(options.config.configDir, chectlConfigs.segment)
+    segment.writeSegmentConfigs(options.config.configDir, chectlConfigs)
     await segment.trackSegmentEvent(options, chectlConfigs.segment.segmentID)
   } catch {
     return this

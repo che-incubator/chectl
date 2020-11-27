@@ -11,31 +11,41 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs-extra'
 import * as path from 'path'
 
-import { DEFAULT_CHECTL_CONFIG_FILE_NAME } from '../constants'
+export interface ChectlConfigs {
+  // Segment related configurations
+  segment: Segment
+}
 
-import { ChectlConfigs, Segment } from './typings/config'
+export interface Segment {
+// Unique ID of chectl. It is created only in case if telemetry it is enabled
+  segmentID?: string
+
+// Indicate if user confirm or not telemetry in chectl
+  telemetry?: string
+}
 
 /**
  * ChectlConfig contains necessary methods to interact with cache configDir of chectl.
  */
 export class ChectlConfig {
   private readonly CHECTL_CONFIG_FILE_NAME : string
-  private readonly chectlConfig: ChectlConfigs
+  private chectlConfig: ChectlConfigs
 
   constructor() {
-    this.CHECTL_CONFIG_FILE_NAME = DEFAULT_CHECTL_CONFIG_FILE_NAME
+    this.CHECTL_CONFIG_FILE_NAME = 'config.json'
     this.chectlConfig = {
       segment: {},
     }
   }
-/**
- * Store segment related configurations like if user enable telemetry or segment ID.
- * @param configDir Configuration directory of chectl. EX. $HOME/.config/chectl
- * @param segmentConfigs Object with neccessary segment configurations
- */
-  public storeSegmentConfigs(configDir: string, segmentConfigs: Segment): void {
+
+  /**
+   * Store segment related configurations like if user enable telemetry or segment ID.
+   * @param configDir Configuration directory of chectl. EX. $HOME/.config/chectl
+   * @param segmentConfigs Object with neccessary segment configurations
+   */
+  public writeSegmentConfigs(configDir: string, chectlConfigs: ChectlConfigs): void {
     const chectlConfigFile = path.join(configDir, this.CHECTL_CONFIG_FILE_NAME)
-    this.chectlConfig.segment = segmentConfigs
+    this.chectlConfig = chectlConfigs
 
     writeFileSync(chectlConfigFile, JSON.stringify(this.chectlConfig))
   }
@@ -44,7 +54,7 @@ export class ChectlConfig {
    * Get all chectl stored configurations
    * @param configDir Configuration directory of chectl. EX. $HOME/.config/chectl
    */
-  public getChectlConfigs(configDir: string): ChectlConfigs {
+  public readChectlConfigs(configDir: string): ChectlConfigs {
     const chectlConfigFile = path.join(configDir, this.CHECTL_CONFIG_FILE_NAME)
     if (!existsSync(chectlConfigFile)) {
       return this.chectlConfig
