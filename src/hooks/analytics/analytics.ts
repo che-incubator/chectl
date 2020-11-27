@@ -34,7 +34,7 @@ export const hook = async (options: {command: string, flags: any, config: IConfi
     const chectlConfigs = segment.readChectlConfigs(options.config.configDir)
     // Prompt question if user allow chectl to collect data anonymous data.
     if (!options.flags.telemetry && !chectlConfigs.segment.telemetry) {
-      segment.confirmation = await cli.confirm('Chectl would like to collect data about how users use cli commands and his flags.Participation is voluntary and when you choose to participate chectl autmatically sends statistic usage about how you use the cli. press y/n')
+      segment.confirmation = await cli.confirm('Chectl would like to collect data about how users use cli commands and his flags. Participation is voluntary and when you choose to participate chectl autmatically sends statistic usage about how you use the cli. press y/n')
       chectlConfigs.segment.telemetry = segment.confirmation ? 'on' : 'off'
     }
 
@@ -48,7 +48,7 @@ export const hook = async (options: {command: string, flags: any, config: IConfi
       chectlConfigs.segment.segmentID = segment.generateSegmentID()
     }
 
-    segment.writeSegmentConfigs(options.config.configDir, chectlConfigs)
+    segment.writeChectlConfigs(options.config.configDir, chectlConfigs)
     await segment.trackSegmentEvent(options, chectlConfigs.segment.segmentID)
   } catch {
     return this

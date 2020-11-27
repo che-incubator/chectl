@@ -41,9 +41,9 @@ export class ChectlConfig {
   /**
    * Store segment related configurations like if user enable telemetry or segment ID.
    * @param configDir Configuration directory of chectl. EX. $HOME/.config/chectl
-   * @param segmentConfigs Object with neccessary segment configurations
+   * @param chectlConfigs Object with neccessary chectl configurations to store
    */
-  public writeSegmentConfigs(configDir: string, chectlConfigs: ChectlConfigs): void {
+  public writeChectlConfigs(configDir: string, chectlConfigs: ChectlConfigs): void {
     const chectlConfigFile = path.join(configDir, this.CHECTL_CONFIG_FILE_NAME)
     this.chectlConfig = chectlConfigs
 
