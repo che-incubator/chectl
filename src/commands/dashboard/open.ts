@@ -10,10 +10,11 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
-import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
+import { ChectlContext } from '../../api/context'
 import { cheNamespace } from '../../common-flags'
+import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Open extends Command {
   static description = 'Open Eclipse Che dashboard'
@@ -25,6 +26,7 @@ export default class Open extends Command {
 
   async run() {
     const { flags } = this.parse(Open)
+    await ChectlContext.init(flags, this)
 
     try {
       const cheHelper = new CheHelper(flags)
@@ -37,11 +39,7 @@ export default class Open extends Command {
       this.error(error)
     }
 
-    notifier.notify({
-      title: 'chectl',
-      message: 'Command dashboard:open has completed successfully.'
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 }

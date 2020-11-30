@@ -10,12 +10,13 @@
 
 import Command, { flags } from '@oclif/command'
 import { cli } from 'cli-ux'
-import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
+import { ChectlContext } from '../../api/context'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
+import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Start extends Command {
   static description = 'Starts a workspace'
@@ -42,13 +43,13 @@ export default class Start extends Command {
   ]
 
   async run() {
-    const { flags } = this.parse(Start)
-    const { args } = this.parse(Start)
+    const { flags, args } = this.parse(Start)
+    await ChectlContext.init(flags, this)
 
     const workspaceId = args.workspace
     const cheHelper = new CheHelper(flags)
 
-    const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
+    const { cheApiEndpoint, accessToken } = await getLoginData(flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
     await cheApiClient.startWorkspace(workspaceId, flags.debug, accessToken)
 
@@ -61,11 +62,7 @@ export default class Start extends Command {
       cli.log('Workspace start request has been sent, workspace will be available shortly.')
     }
 
-    notifier.notify({
-      title: 'chectl',
-      message: 'Command workspace:start has completed successfully.'
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 }

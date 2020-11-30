@@ -142,6 +142,9 @@ Display active login session
 ```
 USAGE
   $ chectl auth:get
+
+OPTIONS
+  -h, --help  show CLI help
 ```
 
 _See code: [src/commands/auth/get.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/get.ts)_
@@ -153,6 +156,9 @@ Show all existing login sessions
 ```
 USAGE
   $ chectl auth:list
+
+OPTIONS
+  -h, --help  show CLI help
 ```
 
 _See code: [src/commands/auth/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/list.ts)_
@@ -206,6 +212,9 @@ Log out of the active login session
 ```
 USAGE
   $ chectl auth:logout
+
+OPTIONS
+  -h, --help  show CLI help
 ```
 
 _See code: [src/commands/auth/logout.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/logout.ts)_
@@ -634,7 +643,7 @@ _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chect
 
 ## `chectl server:status`
 
-status Eclipse Che server
+Status Eclipse Che server
 
 ```
 USAGE

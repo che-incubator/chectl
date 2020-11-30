@@ -11,6 +11,7 @@ import { CoreV1Api } from '@kubernetes/client-node'
 import { expect, fancy } from 'fancy-test'
 
 import { CheHelper } from '../../src/api/che'
+import { ChectlContext } from '../../src/api/context'
 // import { CheApiClient } from '../../src/api/che-api-client'
 import { KubeHelper } from '../../src/api/kube'
 
@@ -22,6 +23,7 @@ const devfileEndpoint = '/api/workspace/devfile'
 // let cheApi = CheApiClient.getInstance(cheURL + '/api')
 let ch = new CheHelper({})
 let kube = ch.kube
+let ctx = ChectlContext
 let oc = ch.oc
 let k8sApi = new CoreV1Api()
 
@@ -29,7 +31,6 @@ describe('Eclipse Che helper', () => {
   describe('cheURL', () => {
     fancy
       .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(kube, 'isOpenShift', () => false)
       .stub(kube, 'ingressExist', () => true)
       .stub(kube, 'getIngressProtocol', () => 'https')
       .stub(kube, 'getIngressHost', () => 'example.org')
@@ -39,14 +40,13 @@ describe('Eclipse Che helper', () => {
       })
     fancy
       .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(kube, 'isOpenShift', () => false)
       .stub(kube, 'ingressExist', () => false)
       .do(() => ch.cheURL('che-namespace'))
       .catch(err => expect(err.message).to.match(/ERR_INGRESS_NO_EXIST/))
       .it('fails fetching Eclipse Che URL when ingress does not exist')
     fancy
       .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(kube, 'isOpenShift', () => true)
+      .stub(ctx, 'get', () => ({ isOpenShift: true }))
       .stub(oc, 'routeExist', () => true)
       .stub(oc, 'getRouteProtocol', () => 'https')
       .stub(oc, 'getRouteHost', () => 'example.org')
@@ -56,7 +56,7 @@ describe('Eclipse Che helper', () => {
       })
     fancy
       .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(kube, 'isOpenShift', () => true)
+      .stub(ctx, 'get', () => ({ isOpenShift: true }))
       .stub(oc, 'routeExist', () => false)
       .do(() => ch.cheURL('che-namespace'))
       .catch(/ERR_ROUTE_NO_EXIST/)
