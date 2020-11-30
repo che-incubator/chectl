@@ -56,3 +56,7 @@ export const OUTPUT_SEPARATOR = '-----------------------------------------------
 
 // DevWorkspace
 export const DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE = 'devworkspace-controller'
+
+// Timeouts
+export const DEFAULT_K8S_POD_WAIT_TIMEOUT = 600000
+export const DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT = 15000

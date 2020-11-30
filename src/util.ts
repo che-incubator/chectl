@@ -8,14 +8,12 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { Command } from '@oclif/command'
 import * as commandExists from 'command-exists'
-import { existsSync, readFileSync } from 'fs-extra'
+import * as fs from 'fs-extra'
 import * as yaml from 'js-yaml'
-import Listr = require('listr')
+import * as notifier from 'node-notifier'
 
-import { KubeHelper } from './api/kube'
-import { CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY } from './common-flags'
+import { ChectlContext } from './api/context'
 import { DEFAULT_CHE_OPERATOR_IMAGE } from './constants'
 
 export const KUBERNETES_CLI = 'kubectl'
@@ -103,24 +101,6 @@ export function sleep(ms: number): Promise<void> {
 }
 
 /**
- * Initialize command context.
- */
-export async function initializeContext(flags?: any): Promise<any> {
-  const kube = new KubeHelper(flags)
-  const ctx: any = {}
-  ctx.isOpenShift = await kube.isOpenShift()
-  ctx.isOpenShift4 = await kube.isOpenShift4()
-  ctx.highlightedMessages = [] as string[]
-  ctx.startTime = Date.now()
-  ctx.customCR = readCRFile(flags, CHE_OPERATOR_CR_YAML_KEY)
-  ctx.crPatch = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY)
-  if (flags['listr-renderer'] as any) {
-    ctx.listrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
-  }
-  return ctx
-}
-
-/**
  * Returns CR file content. Throws an error, if file doesn't exist.
  * @param flags - parent command flags
  * @param CRKey - key for CR file flag
@@ -132,8 +112,8 @@ export function readCRFile(flags: any, CRKey: string): any {
     return
   }
 
-  if (existsSync(CRFilePath)) {
-    return yaml.safeLoad(readFileSync(CRFilePath).toString())
+  if (fs.existsSync(CRFilePath)) {
+    return yaml.safeLoad(fs.readFileSync(CRFilePath).toString())
   }
 
   throw new Error(`Unable to find file defined in the flag '--${CRKey}'`)
@@ -142,19 +122,55 @@ export function readCRFile(flags: any, CRKey: string): any {
 /**
  * Returns command success message with execution time.
  */
-export function getCommandSuccessMessage(command: Command, ctx: any): string {
-  if (ctx.startTime) {
-    if (!ctx.endTime) {
-      ctx.endTime = Date.now()
+export function getCommandSuccessMessage(): string {
+  const ctx = ChectlContext.get()
+
+  if (ctx[ChectlContext.START_TIME]) {
+    if (!ctx[ChectlContext.END_TIME]) {
+      ctx[ChectlContext.END_TIME] = Date.now()
     }
 
-    const workingTimeInSeconds = Math.round((ctx.endTime - ctx.startTime) / 1000)
+    const workingTimeInSeconds = Math.round((ctx[ChectlContext.END_TIME] - ctx[ChectlContext.START_TIME]) / 1000)
     const minutes = Math.floor(workingTimeInSeconds / 60)
     const seconds = (workingTimeInSeconds - minutes * 60) % 60
     const minutesToStr = minutes.toLocaleString([], { minimumIntegerDigits: 2 })
     const secondsToStr = seconds.toLocaleString([], { minimumIntegerDigits: 2 })
-    return `Command ${command.id} has completed successfully in ${minutesToStr}:${secondsToStr}.`
+    return `Command ${ctx[ChectlContext.COMMAND_ID]} has completed successfully in ${minutesToStr}:${secondsToStr}.`
   }
 
-  return `Command ${command.id} has completed successfully.`
+  return `Command ${ctx[ChectlContext.COMMAND_ID]} has completed successfully.`
+}
+
+export function notifyCommandCompletedSuccessfully(): void {
+  notifier.notify({
+    title: 'chectl',
+    message: getCommandSuccessMessage()
+  })
+}
+
+/**
+ * Determine if a directory is empty.
+ */
+export function isDirEmpty(dirname: string): boolean {
+  try {
+    return fs.readdirSync(dirname).length === 0
+    // Fails in case if directory doesn't exist
+  } catch {
+    return true
+  }
+}
+
+/**
+ * Returns command success message with execution time.
+ */
+export function getCommandErrorMessage(err: Error): string {
+  const ctx = ChectlContext.get()
+  const logDirectory = ctx[ChectlContext.LOGS_DIRECTORY]
+
+  let message = `${err}\nCommand ${ctx[ChectlContext.COMMAND_ID]} failed. Error log: ${ctx[ChectlContext.ERROR_LOG]}`
+  if (logDirectory && isDirEmpty(logDirectory)) {
+    message += ` Eclipse Che logs: ${logDirectory}`
+  }
+
+  return message
 }

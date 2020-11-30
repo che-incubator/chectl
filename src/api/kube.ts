@@ -20,7 +20,7 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { CHE_CLUSTER_CRD, DEFAULT_CHE_IMAGE, OLM_STABLE_CHANNEL_NAME } from '../constants'
+import { CHE_CLUSTER_CRD, DEFAULT_CHE_IMAGE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
 import { getClusterClientCommand, isKubernetesPlatformFamily } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
@@ -28,8 +28,6 @@ import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, Instal
 import { IdentityProvider, OAuth } from './typings/openshift'
 
 const AWAIT_TIMEOUT_S = 30
-export const DEFAULT_K8S_POD_TIMEOUT = 600000
-export const DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT = 15000
 
 export class KubeHelper {
   public static readonly KUBE_CONFIG = KubeHelper.initializeKubeConfig()
@@ -49,9 +47,9 @@ export class KubeHelper {
   podErrorRecheckTimeout: number
 
   constructor(flags?: any) {
-    this.podWaitTimeout = (flags && flags.k8spodwaittimeout) ? parseInt(flags.k8spodwaittimeout, 10) : DEFAULT_K8S_POD_TIMEOUT
-    this.podReadyTimeout = (flags && flags.k8spodreadytimeout) ? parseInt(flags.k8spodreadytimeout, 10) : DEFAULT_K8S_POD_TIMEOUT
-    this.podDownloadImageTimeout = (flags && flags.k8spoddownloadimagetimeout) ? parseInt(flags.k8spoddownloadimagetimeout, 10) : DEFAULT_K8S_POD_TIMEOUT
+    this.podWaitTimeout = (flags && flags.k8spodwaittimeout) ? parseInt(flags.k8spodwaittimeout, 10) : DEFAULT_K8S_POD_WAIT_TIMEOUT
+    this.podReadyTimeout = (flags && flags.k8spodreadytimeout) ? parseInt(flags.k8spodreadytimeout, 10) : DEFAULT_K8S_POD_WAIT_TIMEOUT
+    this.podDownloadImageTimeout = (flags && flags.k8spoddownloadimagetimeout) ? parseInt(flags.k8spoddownloadimagetimeout, 10) : DEFAULT_K8S_POD_WAIT_TIMEOUT
     this.podErrorRecheckTimeout = (flags && flags.spoderrorrechecktimeout) ? parseInt(flags.spoderrorrechecktimeout, 10) : DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT
   }
 

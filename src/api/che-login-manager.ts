@@ -16,7 +16,10 @@ import * as querystring from 'querystring'
 
 import { ACCESS_TOKEN_KEY } from '../common-flags'
 
+import { CheHelper } from './che'
 import { CheApiClient } from './che-api-client'
+import { ChectlContext } from './context'
+import { KubeHelper } from './kube'
 
 // Represents login information to use for requests
 // Notice: accessToken is undefined for single user mode
@@ -137,13 +140,15 @@ export class CheServerLoginManager {
 
   /**
    * Returns Che server login sessions manager.
-   * @param configDirPath path to chectl config folder
    */
-  static async getInstance(configDirPath: string): Promise<CheServerLoginManager> {
-    if (!fs.existsSync(configDirPath)) {
-      fs.mkdirsSync(configDirPath)
+  static async getInstance(): Promise<CheServerLoginManager> {
+    const ctx = ChectlContext.get()
+    const configDir = ctx[ChectlContext.CONFIG_DIR]
+
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirsSync(configDir)
     }
-    const dataFilePath = path.join(configDirPath, LOGIN_DATA_FILE_NAME)
+    const dataFilePath = path.join(configDir, LOGIN_DATA_FILE_NAME)
     if (loginContext && loginContext.dataFilePath === dataFilePath) {
       return loginContext
     }
@@ -335,7 +340,7 @@ export class CheServerLoginManager {
    */
   private setCurrentLoginContext(apiUrl: string, username: string, loginRecord?: RefreshTokenLoginRecord): boolean {
     if (!loginRecord) {
-       // Find existing login context and make current
+      // Find existing login context and make current
       loginRecord = this.getLoginRecord(apiUrl, username)
       if (!loginRecord) {
         return false
@@ -522,7 +527,7 @@ export class CheServerLoginManager {
  * @param cheApiEndpoint user provided server API URL if any
  * @param accessToken user provied access token if any
  */
-export async function getLoginData(configDir: string, cheApiEndpoint?: string, accessToken?: string | undefined): Promise<LoginData> {
+export async function getLoginData(cheApiEndpoint: string, accessToken: string | undefined, flags: any): Promise<LoginData> {
   if (cheApiEndpoint) {
     // User provides credential manually
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
@@ -537,12 +542,32 @@ export async function getLoginData(configDir: string, cheApiEndpoint?: string, a
     }
 
     // Use login manager to get Che API URL and token
-    const loginManager = await CheServerLoginManager.getInstance(configDir)
+    const loginManager = await CheServerLoginManager.getInstance()
     cheApiEndpoint = loginManager.getCurrentServerApiUrl()
     if (!cheApiEndpoint) {
-      throw new Error('There is no active login session. Please use "auth:login" first.')
+      cheApiEndpoint = await getCheApiEndpoint(flags)
+      const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
+      if (await cheApiClient.isAuthenticationEnabled()) {
+        throw new Error('There is no active login session. Please use "auth:login" first.')
+      } else {
+        return { cheApiEndpoint, accessToken }
+      }
     }
     accessToken = await loginManager.getNewAccessToken()
   }
   return { cheApiEndpoint, accessToken }
+}
+
+/**
+ * Gets cheApiEndpoint for the given namespace.
+ */
+export async function getCheApiEndpoint(flags: any): Promise<string> {
+  const kube = new KubeHelper(flags)
+  if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
+    throw new Error('Please provide server API URL argument')
+  }
+
+  // Retrieve API URL from routes
+  const cheHelper = new CheHelper(flags)
+  return await cheHelper.cheURL(flags.chenamespace) + '/api'
 }

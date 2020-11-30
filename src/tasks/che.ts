@@ -67,17 +67,15 @@ export class CheTasks {
    *
    * @see che.checkIfCheIsInstalledTasks
    */
-  waitDeployedChe(flags: any, _command: Command): ReadonlyArray<Listr.ListrTask> {
+  waitDeployedChe(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'PostgreSQL pod bootstrap',
-        skip: () => !flags.multiuser,
         enabled: ctx => ctx.isPostgresDeployed && !ctx.isPostgresReady,
         task: () => this.kubeTasks.podStartTasks(this.postgresSelector, this.cheNamespace)
       },
       {
         title: 'Keycloak pod bootstrap',
-        skip: () => !flags.multiuser,
         enabled: ctx => ctx.isKeycloakDeployed && !ctx.isKeycloakReady,
         task: () => this.kubeTasks.podStartTasks(this.keycloakSelector, this.cheNamespace)
       },
@@ -207,43 +205,54 @@ export class CheTasks {
   }
 
   /**
-   * Returns tasks list which scale down all Eclipse Che components which are deployed.
+   * Returns tasks list which scale up all Eclipse Che components which are deployed.
    * It requires {@link this#checkIfCheIsInstalledTasks} to be executed before.
    *
    * @see [CheTasks](#checkIfCheIsInstalledTasks)
    */
-  scaleCheUpTasks(_command: Command): ReadonlyArray<Listr.ListrTask> {
+  scaleCheUpTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Scaling up Eclipse Che Deployments',
-        enabled: (ctx: any) => ctx.isCheDeployed,
-        task: async (ctx: any, task: any) => {
-          if (ctx.isPostgresDeployed) {
-            await this.kube.scaleDeployment(this.postgresDeploymentName, this.cheNamespace, 1)
-          }
-          if (ctx.isKeycloakDeployed) {
-            await this.kube.scaleDeployment(this.keycloakDeploymentName, this.cheNamespace, 1)
-          }
-          if (ctx.isPluginRegistryDeployed) {
-            await this.kube.scaleDeployment(this.pluginRegistryDeploymentName, this.cheNamespace, 1)
-          }
-          if (ctx.isDevfileRegistryDeployed) {
-            await this.kube.scaleDeployment(this.devfileRegistryDeploymentName, this.cheNamespace, 1)
-          }
-          await this.kube.scaleDeployment(this.cheDeploymentName, this.cheNamespace, 1)
-          task.title = `${task.title}...done.`
+        title: 'PostgreSQL pod bootstrap',
+        enabled: ctx => ctx.isPostgresDeployed && !ctx.isPostgresReady,
+        task: async () => {
+          await this.kube.scaleDeployment(this.postgresDeploymentName, this.cheNamespace, 1)
+          return this.kubeTasks.podStartTasks(this.postgresSelector, this.cheNamespace)
         }
       },
       {
-        title: `Eclipse Che is already running in namespace \"${this.cheNamespace}\".`,
-        enabled: (ctx: any) => (ctx.isCheDeployed && ctx.isCheAvailable),
-        task: async (ctx: any, task: any) => {
-          ctx.cheDeploymentExist = true
-          ctx.cheIsAlreadyRunning = true
-          ctx.cheURL = await this.che.cheURL(this.cheNamespace)
-          task.title = await `${task.title}...it's URL is ${ctx.cheURL}`
+        title: 'Keycloak pod bootstrap',
+        enabled: ctx => ctx.isKeycloakDeployed && !ctx.isKeycloakReady,
+        task: async () => {
+          await this.kube.scaleDeployment(this.keycloakDeploymentName, this.cheNamespace, 1)
+          return this.kubeTasks.podStartTasks(this.keycloakSelector, this.cheNamespace)
         }
-      }
+      },
+      {
+        title: 'Devfile registry pod bootstrap',
+        enabled: ctx => ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryReady,
+        task: async () => {
+          await this.kube.scaleDeployment(this.devfileRegistryDeploymentName, this.cheNamespace, 1)
+          return this.kubeTasks.podStartTasks(this.devfileRegistrySelector, this.cheNamespace)
+        }
+      },
+      {
+        title: 'Plugin registry pod bootstrap',
+        enabled: ctx => ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryReady,
+        task: async () => {
+          await this.kube.scaleDeployment(this.pluginRegistryDeploymentName, this.cheNamespace, 1)
+          return this.kubeTasks.podStartTasks(this.pluginRegistrySelector, this.cheNamespace)
+        }
+      },
+      {
+        title: 'Eclipse Che pod bootstrap',
+        enabled: ctx => ctx.isCheDeployed && !ctx.isCheReady,
+        task: async () => {
+          await this.kube.scaleDeployment(this.cheDeploymentName, this.cheNamespace, 1)
+          return this.kubeTasks.podStartTasks(this.cheSelector, this.cheNamespace)
+        }
+      },
+      ...this.checkEclipseCheStatus()
     ]
   }
 
@@ -263,7 +272,7 @@ export class CheTasks {
           const cheApi = CheApiClient.getInstance(cheURL + '/api')
           let cheAccessToken = this.cheAccessToken
           if (!cheAccessToken && await cheApi.isAuthenticationEnabled()) {
-            const loginManager = await CheServerLoginManager.getInstance(command.config.configDir)
+            const loginManager = await CheServerLoginManager.getInstance()
             cheAccessToken = await loginManager.getNewAccessToken()
           }
           await cheApi.startCheServerShutdown(cheAccessToken)
@@ -525,14 +534,14 @@ export class CheTasks {
     return [
       {
         title: `${follow ? 'Start following' : 'Read'} Operator logs`,
-        skip: () => flags.installer !== 'operator' && flags.installer !== 'olm',
+        skip: () => flags.installer === 'helm',
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, CHE_OPERATOR_SELECTOR, ctx.directory, follow)
           task.title = `${task.title}...done`
         }
       },
       {
-        title: `${follow ? 'Start following' : 'Read'} Eclipse Che logs`,
+        title: `${follow ? 'Start following' : 'Read'} Eclipse Che server logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.cheSelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
@@ -565,16 +574,11 @@ export class CheTasks {
           await this.che.readPodLog(flags.chenamespace, this.devfileRegistrySelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
         }
-      }
-    ]
-  }
-
-  namespaceEventsTask(namespace: string, command: Command, follow: boolean): ReadonlyArray<Listr.ListrTask> {
-    return [
+      },
       {
         title: `${follow ? 'Start following' : 'Read'} namespace events`,
         task: async (ctx: any, task: any) => {
-          await this.che.readNamespaceEvents(namespace, ctx.directory, follow).catch(e => command.error(e.message))
+          await this.che.readNamespaceEvents(flags.chenamespace, ctx.directory, follow)
           task.title = await `${task.title}...done`
         }
       }
@@ -667,8 +671,9 @@ export class CheTasks {
     return [
       {
         title: 'Eclipse Che status check',
-        task: async ctx => {
+        task: async (ctx, task) => {
           const cheApi = CheApiClient.getInstance(ctx.cheURL + '/api')
+          task.title = `${task.title}...done`
           return cheApi.isCheServerReady()
         }
       }

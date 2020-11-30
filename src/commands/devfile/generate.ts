@@ -13,8 +13,11 @@ import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as yaml from 'js-yaml'
 
+import { ChectlContext } from '../../api/context'
 import { Devfile, DevfileCommand, DevfileComponent, DevfileProject, ProjectSource, TheEndpointName } from '../../api/devfile'
 import { KubeHelper } from '../../api/kube'
+import { notifyCommandCompletedSuccessfully } from '../../util'
+
 let kube: KubeHelper
 const stringLitArray = <L extends string>(arr: L[]) => arr
 const languages = stringLitArray(['java', 'typescript', 'go', 'python', 'c#'])
@@ -91,8 +94,9 @@ export default class Generate extends Command {
 
   async run() {
     const { flags } = this.parse(Generate)
+    await ChectlContext.init(flags, this)
+
     kube = new KubeHelper(flags)
-    const notifier = require('node-notifier')
 
     let name = flags.name || 'chectl-generated'
 
@@ -249,11 +253,7 @@ export default class Generate extends Command {
     this.log(`# chectl ${updatedArgs.join(' ')}`)
     this.log(yaml.safeDump(devfile))
 
-    notifier.notify({
-      title: 'chectl',
-      message: 'Command devfile:generate has completed successfully.'
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 

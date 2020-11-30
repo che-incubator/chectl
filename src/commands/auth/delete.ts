@@ -13,6 +13,7 @@ import { cli } from 'cli-ux'
 
 import { CheApiClient } from '../../api/che-api-client'
 import { CheServerLoginManager } from '../../api/che-login-manager'
+import { ChectlContext } from '../../api/context'
 import { CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
 
 export default class Delete extends Command {
@@ -39,11 +40,12 @@ export default class Delete extends Command {
 
   async run() {
     const { args, flags } = this.parse(Delete)
+    await ChectlContext.init(flags, this)
 
     let cheApiEndpoint = CheApiClient.normalizeCheApiEndpointUrl(args[CHE_API_ENDPOINT_KEY])
     const username: string | undefined = flags[USERNAME_KEY]
 
-    const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
+    const loginManager = await CheServerLoginManager.getInstance()
 
     if (!loginManager.hasLoginFor(cheApiEndpoint)) {
       // Maybe /api suffix isn't provided

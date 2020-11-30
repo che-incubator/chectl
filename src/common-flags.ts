@@ -9,7 +9,7 @@
  **********************************************************************/
 import { boolean, string } from '@oclif/parser/lib/flags'
 
-import { DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE, DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH } from './constants'
+import { DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH } from './constants'
 
 export const cheNamespace = string({
   char: 'n',
@@ -80,4 +80,35 @@ export const username = string({
   description: 'Eclipse Che username',
   env: 'CHE_USER_NAME',
   required: false,
+})
+
+export const K8SPODWAITTIMEOUT_KEY = 'k8spodwaittimeout'
+export const k8sPodWaitTimeout = string({
+  description: 'Waiting time for Pod scheduled condition (in milliseconds)',
+  default: `${DEFAULT_K8S_POD_WAIT_TIMEOUT}`
+})
+
+export const K8SPODDOWNLOADIMAGETIMEOUT_KEY = 'k8spoddownloadimagetimeout'
+export const k8sPodDownloadImageTimeout = string({
+  description: 'Waiting time for Pod downloading image (in milliseconds)',
+  default: `${DEFAULT_K8S_POD_WAIT_TIMEOUT}`
+})
+
+export const K8SPODREADYTIMEOUT_KEY = 'k8spodreadytimeout'
+export const k8sPodReadyTimeout = string({
+  description: 'Waiting time for Pod Ready condition (in milliseconds)',
+  default: `${DEFAULT_K8S_POD_WAIT_TIMEOUT}`
+})
+
+export const K8SPODERRORRECHECKTIMEOUT_KEY = 'k8spoderrorrechecktimeout'
+export const k8sPodErrorRecheckTimeout = string({
+  description: 'Waiting time for Pod rechecking error (in milliseconds)',
+  default: `${DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT}`
+})
+
+export const LOG_DIRECTORY_KEY = 'directory'
+export const logsDirectory = string({
+  char: 'd',
+  description: 'Directory to store logs into',
+  env: 'CHE_LOGS'
 })

@@ -96,6 +96,7 @@ USAGE
 * [`chectl server:delete`](#chectl-serverdelete)
 * [`chectl server:deploy`](#chectl-serverdeploy)
 * [`chectl server:logs`](#chectl-serverlogs)
+* [`chectl server:start`](#chectl-serverstart)
 * [`chectl server:status`](#chectl-serverstatus)
 * [`chectl server:stop`](#chectl-serverstop)
 * [`chectl server:update`](#chectl-serverupdate)
@@ -141,6 +142,9 @@ Display active login session
 ```
 USAGE
   $ chectl auth:get
+
+OPTIONS
+  -h, --help  show CLI help
 ```
 
 _See code: [src/commands/auth/get.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/get.ts)_
@@ -152,6 +156,9 @@ Show all existing login sessions
 ```
 USAGE
   $ chectl auth:list
+
+OPTIONS
+  -h, --help  show CLI help
 ```
 
 _See code: [src/commands/auth/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/list.ts)_
@@ -205,6 +212,9 @@ Log out of the active login session
 ```
 USAGE
   $ chectl auth:logout
+
+OPTIONS
+  -h, --help  show CLI help
 ```
 
 _See code: [src/commands/auth/logout.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/logout.ts)_
@@ -419,7 +429,7 @@ _See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chec
 
 ## `chectl server:deploy`
 
-start Eclipse Che server
+Deploy Eclipse Che server
 
 ```
 USAGE
@@ -571,9 +581,6 @@ OPTIONS
 
   --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
       persistent volume(s) storage class name to use to store Eclipse Che workspaces data
-
-ALIASES
-  $ chectl server:start
 ```
 
 _See code: [src/commands/server/deploy.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/deploy.ts)_
@@ -600,9 +607,43 @@ OPTIONS
 
 _See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/logs.ts)_
 
+## `chectl server:start`
+
+Start Eclipse Che server
+
+```
+USAGE
+  $ chectl server:start
+
+OPTIONS
+  -d, --directory=directory                                Directory to store logs into
+  -h, --help                                               show CLI help
+
+  -n, --chenamespace=chenamespace                          [default: che] Kubernetes namespace where Eclipse Che server
+                                                           is supposed to be deployed
+
+  --deployment-name=deployment-name                        [default: che] Eclipse Che deployment name
+
+  --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 600000] Waiting time for Pod downloading image (in
+                                                           milliseconds)
+
+  --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout    [default: 15000] Waiting time for Pod rechecking error (in
+                                                           milliseconds)
+
+  --k8spodreadytimeout=k8spodreadytimeout                  [default: 600000] Waiting time for Pod Ready condition (in
+                                                           milliseconds)
+
+  --k8spodwaittimeout=k8spodwaittimeout                    [default: 600000] Waiting time for Pod scheduled condition
+                                                           (in milliseconds)
+
+  --skip-kubernetes-health-check                           Skip Kubernetes health check
+```
+
+_See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
+
 ## `chectl server:status`
 
-status Eclipse Che server
+Status Eclipse Che server
 
 ```
 USAGE

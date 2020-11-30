@@ -11,14 +11,12 @@
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as Listr from 'listr'
-import * as notifier from 'node-notifier'
-import * as os from 'os'
-import * as path from 'path'
 
+import { ChectlContext } from '../../api/context'
 import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { initializeContext } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Logs extends Command {
   static description = 'Collect Eclipse Che logs'
@@ -38,8 +36,8 @@ export default class Logs extends Command {
 
   async run() {
     const { flags } = this.parse(Logs)
-    const ctx = await initializeContext(flags)
-    ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
+    const ctx = await ChectlContext.initAndGet(flags, this)
+
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
@@ -47,21 +45,16 @@ export default class Logs extends Command {
     tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.serverLogsTasks(flags, false))
-    tasks.add(cheTasks.namespaceEventsTask(flags.chenamespace, this, false))
 
     try {
       this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
       await tasks.run(ctx)
-      this.log('Command server:logs has completed successfully.')
-    } catch (error) {
-      this.error(error)
+      this.log(getCommandSuccessMessage())
+    } catch (err) {
+      this.error(getCommandErrorMessage(err))
     }
 
-    notifier.notify({
-      title: 'chectl',
-      message: 'Command server:logs has completed successfully.'
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 }
