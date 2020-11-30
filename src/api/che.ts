@@ -25,6 +25,7 @@ import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../constants
 import { base64Decode } from '../util'
 
 import { CheApiClient } from './che-api-client'
+import { ChectlContext } from './context'
 import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
 
@@ -104,7 +105,8 @@ export class CheHelper {
       throw new Error(`ERR_NAMESPACE_NO_EXIST - No namespace ${namespace} is found`)
     }
 
-    if (await this.kube.isOpenShift()) {
+    const ctx = ChectlContext.get()
+    if (ctx.isOpenShift) {
       return this.cheOpenShiftURL(namespace)
     } else {
       return this.cheK8sURL(namespace)
@@ -122,7 +124,8 @@ export class CheHelper {
     }
 
     // grab URL
-    if (await this.kube.isOpenShift()) {
+    const ctx = ChectlContext.get()
+    if (ctx.isOpenShift) {
       return this.chePluginRegistryOpenShiftURL(namespace)
     } else {
       return this.chePluginRegistryK8sURL(namespace)

@@ -14,6 +14,7 @@ import * as inquirer from 'inquirer'
 
 import { CheApiClient } from '../../api/che-api-client'
 import { CheServerLoginManager } from '../../api/che-login-manager'
+import { ChectlContext } from '../../api/context'
 import { CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, username, USERNAME_KEY } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
@@ -52,6 +53,7 @@ export default class Use extends Command {
 
   async run() {
     const { args, flags } = this.parse(Use)
+    await ChectlContext.init(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Use.id, flags })
 
@@ -67,7 +69,7 @@ export default class Use extends Command {
       throw new Error('No arguments provided')
     }
 
-    const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
+    const loginManager = await CheServerLoginManager.getInstance()
 
     if (!cheApiEndpoint) {
       // Try to use current server
@@ -116,7 +118,7 @@ export default class Use extends Command {
   }
 
   private async interactiveSwitch(): Promise<void> {
-    const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
+    const loginManager = await CheServerLoginManager.getInstance()
     const allLogins = loginManager.getAllLogins()
     const currentLogin = loginManager.getCurrentLoginInfo()
 

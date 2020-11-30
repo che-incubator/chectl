@@ -41,12 +41,16 @@ export default class Delete extends Command {
 
   async run() {
     const { args, flags } = this.parse(Delete)
+<<<<<<< HEAD
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Delete.id, flags })
+=======
+    await ChectlContext.init(flags, this)
+>>>>>>> master
 
     let cheApiEndpoint = CheApiClient.normalizeCheApiEndpointUrl(args[CHE_API_ENDPOINT_KEY])
     const username: string | undefined = flags[USERNAME_KEY]
 
-    const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
+    const loginManager = await CheServerLoginManager.getInstance()
 
     if (!loginManager.hasLoginFor(cheApiEndpoint)) {
       // Maybe /api suffix isn't provided

@@ -13,9 +13,9 @@ import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as fs from 'fs-extra'
 import * as Listr from 'listr'
-import * as notifier from 'node-notifier'
 import * as path from 'path'
 
+import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { assumeYes, cheDeployment, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE, SUBSCRIPTION_NAME } from '../../constants'
@@ -23,7 +23,7 @@ import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-t
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
-import { getCommandSuccessMessage, getImageTag, initializeContext } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, getImageTag, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -80,7 +80,8 @@ export default class Update extends Command {
 
   async run() {
     const { flags } = this.parse(Update)
-    const ctx = await initializeContext(flags)
+    const ctx = await ChectlContext.initAndGet(flags, this)
+
     await this.setDomainFlag(flags)
     if (!flags.installer) {
       await this.setDefaultInstaller(flags)
@@ -148,16 +149,12 @@ export default class Update extends Command {
       await updateTasks.run(ctx)
       await postUpdateTasks.run(ctx)
 
-      this.log(getCommandSuccessMessage(this, ctx))
+      this.log(getCommandSuccessMessage())
     } catch (err) {
-      this.error(err)
+      this.error(getCommandErrorMessage(err))
     }
 
-    notifier.notify({
-      title: 'chectl',
-      message: getCommandSuccessMessage(this, ctx)
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 

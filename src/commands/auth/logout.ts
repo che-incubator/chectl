@@ -12,6 +12,7 @@ import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
 
 import { CheServerLoginManager } from '../../api/che-login-manager'
+import { ChectlContext } from '../../api/context'
 import { CHE_TELEMETRY } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
@@ -25,9 +26,11 @@ export default class Logout extends Command {
 
   async run() {
     const { flags } = this.parse(Logout)
+
+    await ChectlContext.init(flags, this)
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logout.id, flags })
 
-    const loginManager = await CheServerLoginManager.getInstance(this.config.configDir)
+    const loginManager = await CheServerLoginManager.getInstance()
     const currentLogin = loginManager.getCurrentLoginInfo()
 
     const cheApiEndpoint = currentLogin.cheApiEndpoint

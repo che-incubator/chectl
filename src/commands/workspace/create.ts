@@ -12,13 +12,14 @@ import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as fs from 'fs'
-import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
+import { ChectlContext } from '../../api/context'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Create extends Command {
   static description = 'Creates a workspace from a devfile'
@@ -54,13 +55,14 @@ export default class Create extends Command {
 
   async run() {
     const { flags } = this.parse(Create)
+    await ChectlContext.init(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Create.id, flags })
 
     const devfilePath = this.getDevfilePath(flags.devfile)
     const cheHelper = new CheHelper(flags)
 
-    const { cheApiEndpoint, accessToken } = await getLoginData(this.config.configDir, flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
+    const { cheApiEndpoint, accessToken } = await getLoginData(flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
 
     let workspace = await cheHelper.createWorkspaceFromDevfile(cheApiEndpoint, devfilePath, flags.name, accessToken)
@@ -79,11 +81,7 @@ export default class Create extends Command {
       cli.url(workspaceIdeURL, workspaceIdeURL)
     }
 
-    notifier.notify({
-      title: 'chectl',
-      message: 'Command workspace:create has completed successfully.'
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 

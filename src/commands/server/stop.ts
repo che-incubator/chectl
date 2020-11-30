@@ -12,11 +12,12 @@ import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 
+import { ChectlContext } from '../../api/context'
 import { accessToken, cheDeployment, cheNamespace, CHE_TELEMETRY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandSuccessMessage, initializeContext } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Stop extends Command {
   static description = 'stop Eclipse Che server'
@@ -39,9 +40,9 @@ export default class Stop extends Command {
 
   async run() {
     const { flags } = this.parse(Stop)
-    const ctx = await initializeContext(flags)
+    await ChectlContext.init(flags, this)
+
     const Listr = require('listr')
-    const notifier = require('node-notifier')
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()
 
@@ -71,16 +72,12 @@ export default class Stop extends Command {
     tasks.add(cheTasks.waitPodsDeletedTasks())
     try {
       await tasks.run()
-      cli.log(getCommandSuccessMessage(this, ctx))
+      cli.log(getCommandSuccessMessage())
     } catch (err) {
-      this.error(err)
+      this.error(getCommandErrorMessage(err))
     }
 
-    notifier.notify({
-      title: 'chectl',
-      message: getCommandSuccessMessage(this, ctx)
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 }

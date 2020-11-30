@@ -677,7 +677,7 @@ _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chect
 
 ## `chectl server:status`
 
-status Eclipse Che server
+Status Eclipse Che server
 
 ```
 USAGE

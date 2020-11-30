@@ -10,13 +10,14 @@
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
-import * as notifier from 'node-notifier'
 import * as os from 'os'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
+import { ChectlContext } from '../../api/context'
 import { CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Logs extends Command {
   static description = 'Collect workspace(s) logs'
@@ -44,6 +45,8 @@ export default class Logs extends Command {
 
   async run() {
     const { flags } = this.parse(Logs)
+    await ChectlContext.init(flags, this)
+
     const logsDirectory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logs.id, flags })
@@ -62,9 +65,6 @@ export default class Logs extends Command {
       this.error(error)
     }
 
-    notifier.notify({
-      title: 'chectl',
-      message: 'Command workspace:logs has completed successfully.'
-    })
+    notifyCommandCompletedSuccessfully()
   }
 }
