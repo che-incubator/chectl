@@ -12,9 +12,9 @@ import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
 
 import { CheServerLoginManager } from '../../api/che-login-manager'
+import { ChectlContext } from '../../api/context'
 import { CHE_TELEMETRY } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import { ChectlContext } from '../../api/context'
 
 export default class List extends Command {
   static description = 'Show all existing login sessions'
