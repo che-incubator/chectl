@@ -1,3 +1,4 @@
+import { IConfig } from '@oclif/config'
 /*********************************************************************
  * Copyright (c) 2020 Red Hat, Inc.
  *
@@ -30,21 +31,22 @@ export interface Segment {
 export class ChectlConfig {
   private readonly CHECTL_CONFIG_FILE_NAME : string
   private chectlConfig: ChectlConfigs
+  private readonly config: IConfig
 
-  constructor() {
+  constructor(config: IConfig) {
     this.CHECTL_CONFIG_FILE_NAME = 'config.json'
     this.chectlConfig = {
       segment: {},
     }
+    this.config = config
   }
 
   /**
    * Store segment related configurations like if user enable telemetry or segment ID.
-   * @param configDir Configuration directory of chectl. EX. $HOME/.config/chectl
    * @param chectlConfigs Object with neccessary chectl configurations to store
    */
-  public writeChectlConfigs(configDir: string, chectlConfigs: ChectlConfigs): void {
-    const chectlConfigFile = path.join(configDir, this.CHECTL_CONFIG_FILE_NAME)
+  public writeChectlConfigs(chectlConfigs: ChectlConfigs): void {
+    const chectlConfigFile = path.join(this.config.configDir, this.CHECTL_CONFIG_FILE_NAME)
     this.chectlConfig = chectlConfigs
 
     writeFileSync(chectlConfigFile, JSON.stringify(this.chectlConfig))
@@ -52,10 +54,9 @@ export class ChectlConfig {
 
   /**
    * Get all chectl stored configurations
-   * @param configDir Configuration directory of chectl. EX. $HOME/.config/chectl
    */
-  public readChectlConfigs(configDir: string): ChectlConfigs {
-    const chectlConfigFile = path.join(configDir, this.CHECTL_CONFIG_FILE_NAME)
+  public readChectlConfigs(): ChectlConfigs {
+    const chectlConfigFile = path.join(this.config.configDir, this.CHECTL_CONFIG_FILE_NAME)
     if (!existsSync(chectlConfigFile)) {
       return this.chectlConfig
     }

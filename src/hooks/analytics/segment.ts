@@ -32,9 +32,9 @@ export class SegmentAdapter extends ChectlConfig {
   private readonly segment: typeof Analytics
   public confirmation: boolean
 
-  constructor(config: SegmentConfig) {
-    super()
-    const { segmentWriteKey, ...options } = config
+  constructor(segmentConfig: SegmentConfig, chectlConfig: IConfig) {
+    super(chectlConfig)
+    const { segmentWriteKey, ...options } = segmentConfig
     this.segment = new Analytics(segmentWriteKey, options)
     this.confirmation = false
   }
@@ -44,7 +44,7 @@ export class SegmentAdapter extends ChectlConfig {
    * @param options chectl information like command or flags.
    * @param segmentID chectl ID generated only if telemetry it is 'on'
    */
-  public async trackSegmentEvent(options: {command: string, flags: any, config: IConfig}, segmentID: string): Promise<void> {
+  public async trackSegmentEvent(options: {command: string, flags: any}, segmentID: string): Promise<void> {
     this.segment.track({
       anonymousId: segmentID,
       event: options.command.replace(':', ' '),
