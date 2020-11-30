@@ -14,7 +14,7 @@ import { existsSync, mkdirsSync } from 'fs-extra'
 
 import { SegmentAdapter } from './segment'
 
-export const hook = async (options: {command: string, flags: any, chectlConfig: IConfig }) => {
+export const hook = async (options: {command: string, flags: any, config: IConfig }) => {
   //In case of disable telemetry by flag not additional configs are enabled.
   if (options.flags && options.flags.telemetry === 'off') {
     return this
@@ -25,12 +25,11 @@ export const hook = async (options: {command: string, flags: any, chectlConfig: 
     segmentWriteKey: /* @mangle */'INSERT-KEY-HERE' /* @/mangle */,
   },
   // Pass chectl configurations to the constructor which extend to config class(src/api/config/config.ts)
-  options.chectlConfig
+  options.config
   )
-
   // Check if exist config dir and if not procceed to create it
-  if (!existsSync(options.chectlConfig.configDir)) {
-    mkdirsSync(options.chectlConfig.configDir)
+  if (!existsSync(options.config.configDir)) {
+    mkdirsSync(options.config.configDir)
   }
 
   try {
