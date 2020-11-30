@@ -53,6 +53,8 @@ export default class Delete extends Command {
     const { flags } = this.parse(Delete)
     const ctx = await ChectlContext.initAndGet(flags, this)
 
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Delete.id, flags })
+
     if (flags['skip-deletion-check']) {
       this.warn('\'--skip-deletion-check\' flag is deprecated, use \'--yes\' instead.')
       flags.yes = flags['skip-deletion-check']

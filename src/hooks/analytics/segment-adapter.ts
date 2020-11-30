@@ -7,10 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-import { IConfig } from '@oclif/config'
 import { pick } from 'lodash'
-
-import { ChectlConfig } from '../../api/config/config'
 
 let Analytics = require('analytics-node')
 
@@ -25,18 +22,22 @@ export interface Flags {
   installer?: string
 }
 
+export namespace SegmentProperties {
+  export const Telemetry = 'segment.telemetry'
+  export const ID = 'segment.id'
+}
+
 /**
  * Class with help methods which help to connect segment and send telemetry data.
  */
-export class SegmentAdapter extends ChectlConfig {
+export class SegmentAdapter {
   private readonly segment: typeof Analytics
-  public confirmation: boolean
+  private readonly id: string
 
-  constructor(segmentConfig: SegmentConfig, chectlConfig: IConfig) {
-    super(chectlConfig)
+  constructor(segmentConfig: SegmentConfig, segmentId: string) {
     const { segmentWriteKey, ...options } = segmentConfig
     this.segment = new Analytics(segmentWriteKey, options)
-    this.confirmation = false
+    this.id = segmentId
   }
 
   /**
@@ -44,9 +45,9 @@ export class SegmentAdapter extends ChectlConfig {
    * @param options chectl information like command or flags.
    * @param segmentID chectl ID generated only if telemetry it is 'on'
    */
-  public async trackSegmentEvent(options: {command: string, flags: any}, segmentID: string): Promise<void> {
+  public async trackSegmentEvent(options: { command: string, flags: any }): Promise<void> {
     this.segment.track({
-      anonymousId: segmentID,
+      anonymousId: this.id,
       event: options.command.replace(':', ' '),
       properties: {
         ...pick(options.flags, ['platform', 'installer']),
@@ -54,12 +55,8 @@ export class SegmentAdapter extends ChectlConfig {
       },
       // Property which indicate segment will integrate with all configured destinations.
       integrations: {
-        All : true
+        All: true
       }
     })
-  }
-
-  public generateSegmentID(): string {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
   }
 }

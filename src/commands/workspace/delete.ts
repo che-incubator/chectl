@@ -50,7 +50,6 @@ export default class Delete extends Command {
 
     const workspaceId = args.workspace
     const { cheApiEndpoint, accessToken } = await getLoginData(flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
-
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
     await cheApiClient.deleteWorkspaceById(workspaceId, accessToken)
     cli.log(`Workspace with id '${workspaceId}' deleted.`)

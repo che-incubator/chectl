@@ -10,49 +10,51 @@
 
 import { IConfig } from '@oclif/config'
 import { cli } from 'cli-ux'
-import { existsSync, mkdirsSync } from 'fs-extra'
 
-import { SegmentAdapter } from './segment'
+import { ConfigManager } from '../../api/config-manager'
 
-export const hook = async (options: {command: string, flags: any, config: IConfig }) => {
-  //In case of disable telemetry by flag not additional configs are enabled.
+import { SegmentAdapter, SegmentProperties } from './segment-adapter'
+
+export const hook = async (options: { command: string, flags: any, config: IConfig }) => {
+  // In case of disable telemetry by flag not additional configs are enabled.
   if (options.flags && options.flags.telemetry === 'off') {
     return this
   }
 
-  const segment = new SegmentAdapter({
-    // tslint:disable-next-line:no-single-line-block-comment
-    segmentWriteKey: /* @mangle */'INSERT-KEY-HERE' /* @/mangle */,
-  },
-  // Pass chectl configurations to the constructor which extend to config class(src/api/config/config.ts)
-  options.config
-  )
-  // Check if exist config dir and if not procceed to create it
-  if (!existsSync(options.config.configDir)) {
-    mkdirsSync(options.config.configDir)
-  }
-
   try {
-    const chectlConfigs = segment.readChectlConfigs()
+    const configManager = ConfigManager.getInstance()
+    let segmentTelemetry = configManager.getProperty(SegmentProperties.Telemetry)
+    let segmentId = configManager.getProperty(SegmentProperties.ID)
+
     // Prompt question if user allow chectl to collect data anonymous data.
-    if (!options.flags.telemetry && !chectlConfigs.segment.telemetry) {
-      segment.confirmation = await cli.confirm('Chectl would like to collect data about how users use cli commands and his flags. Participation is voluntary and when you choose to participate chectl autmatically sends statistic usage about how you use the cli. press y/n')
-      chectlConfigs.segment.telemetry = segment.confirmation ? 'on' : 'off'
+    if (!options.flags.telemetry && !segmentTelemetry) {
+      const confirmed = await cli.confirm('Chectl would like to collect data about how users use cli commands. Participation is voluntary and when you choose to participate chectl automatically sends statistic usage about how you use the cli [y/n]:')
+      segmentTelemetry = confirmed ? 'on' : 'off'
+      configManager.setProperty(SegmentProperties.Telemetry, segmentTelemetry)
     }
 
     // In case of negative confirmation chectl don't collect any data
-    if (chectlConfigs.segment.telemetry === 'off') {
+    if (segmentTelemetry === 'off') {
       return
     }
 
     // In case if segmentID was not generated, generate new one
-    if (!chectlConfigs.segment.segmentID) {
-      chectlConfigs.segment.segmentID = segment.generateSegmentID()
+    if (!segmentId) {
+      segmentId = generateSegmentID()
+      configManager.setProperty(SegmentProperties.ID, segmentId)
     }
 
-    segment.writeChectlConfigs(chectlConfigs)
-    await segment.trackSegmentEvent(options, chectlConfigs.segment.segmentID)
+    const segment = new SegmentAdapter({
+      // tslint:disable-next-line:no-single-line-block-comment
+      segmentWriteKey: /* @mangle */'INSERT-KEY-HERE' /* @/mangle */,
+    }, segmentId)
+    await segment.trackSegmentEvent(options)
+
   } catch {
     return this
   }
+}
+
+function generateSegmentID(): string {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 }
