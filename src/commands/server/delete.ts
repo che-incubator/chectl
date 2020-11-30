@@ -60,8 +60,6 @@ export default class Delete extends Command {
       flags.yes = flags['skip-deletion-check']
     }
 
-    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Delete.id, flags })
-
     const apiTasks = new ApiTasks()
     const helmTasks = new HelmTasks(flags)
     const minishiftAddonTasks = new MinishiftAddonTasks()
