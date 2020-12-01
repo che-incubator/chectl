@@ -293,7 +293,7 @@ error: E_COMMAND_FAILED`)
 
   private async updateCheHelmChartDependencies(cacheDir: string, execTimeout = 120000) {
     const destDir = path.join(cacheDir, '/templates/kubernetes/helm/che/')
-    await execa(`helm dependencies update --skip-refresh ${destDir}`, { timeout: execTimeout, shell: true })
+    await execa(`helm dependencies update ${destDir}`, { timeout: execTimeout, shell: true })
   }
 
   private async upgradeCheHelmChart(ctx: any, flags: any, cacheDir: string, execTimeout = 120000) {
