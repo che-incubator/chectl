@@ -21,7 +21,7 @@ export class ConfigManager {
   private static configManager: ConfigManager
   private static readonly CHECTL_CONFIG_FILE_NAME = 'config.json'
 
-  private readonly data: any
+  private data: any
   private readonly configPath: string
 
   private constructor(configDir: string) {
@@ -46,8 +46,8 @@ export class ConfigManager {
   }
 
   public setProperty(name: string, value: any): void {
-    merge(this.data, { [name]: value })
-    fs.writeFileSync(this.configPath, this.data)
+    this.data = merge(this.data, { [name]: value })
+    fs.writeFileSync(this.configPath, JSON.stringify(this.data))
   }
 
   public getProperty(name: string): any {
@@ -59,6 +59,6 @@ export class ConfigManager {
       return {}
     }
 
-    return fs.readFileSync(this.configPath).toJSON()
+    return JSON.parse(fs.readFileSync(this.configPath, 'utf8'))
   }
 }

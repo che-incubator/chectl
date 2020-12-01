@@ -13,7 +13,7 @@ import * as execa from 'execa'
 import { CheHelper } from '../../src/api/che'
 import { KubeHelper } from '../../src/api/kube'
 import { OpenShiftHelper } from '../../src/api/openshift'
-
+import { DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
 // Fields which chectl returns for workspace:list commands
 interface WorkspaceInfo {
   id: string
@@ -42,7 +42,7 @@ export class E2eHelper {
   // async getAllWorkspaces(isOpenshiftPlatformFamily: string): Promise<chetypes.workspace.Workspace[]> {
   private async getAllWorkspaces(): Promise<WorkspaceInfo[]> {
     const workspaces: WorkspaceInfo[] = []
-    const { stdout } = await execa(binChectl, ['workspace:list', '--telemetry=off'], { timeout: 10000 })
+    const { stdout } = await execa(binChectl, ['workspace:list', `--chenamespace=${DEFAULT_OLM_SUGGESTED_NAMESPACE}`, '--telemetry=off'], { shell: true })
     const regEx = new RegExp('[A-Za-z0-9_-]+', 'g')
     for (const line of stdout.split('\n')) {
       const items = line.match(regEx)
