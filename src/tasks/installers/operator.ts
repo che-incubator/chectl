@@ -89,6 +89,7 @@ export class OperatorTasks {
       {
         title: `Create ClusterRole ${namespaceEditorClusterRoleName}`,
         task: async (ctx: any, task: any) => {
+          ctx.namespaceEditorClusterRoleName = namespaceEditorClusterRoleName
           const exist = await kube.clusterRoleExist(namespaceEditorClusterRoleName)
           if (exist) {
             task.title = `${task.title}...It already exists.`
