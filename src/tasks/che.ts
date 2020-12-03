@@ -495,7 +495,7 @@ export class CheTasks {
     return [{
       title: `Delete namespace ${flags.chenamespace}`,
       task: async (task: any) => {
-        const namespaceExist = await this.kube.namespaceExist(flags.chenamespace)
+        const namespaceExist = await this.kube.getNamespace(flags.chenamespace)
         if (namespaceExist) {
           await this.kube.deleteNamespace(flags.chenamespace)
         }
@@ -508,7 +508,7 @@ export class CheTasks {
     return [{
       title: `Verify if namespace '${flags.chenamespace}' exists`,
       task: async () => {
-        if (!await this.che.cheNamespaceExist(flags.chenamespace)) {
+        if (!await this.kube.getNamespace(flags.chenamespace)) {
           command.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist.`, { code: 'EBADNS' })
         }
       }
@@ -636,10 +636,7 @@ export class CheTasks {
 
           const cheUrl = await this.che.cheURL(flags.chenamespace)
           messages.push(`Users Dashboard           : ${cheUrl}`)
-          const cheCluster = await this.kube.getCheCluster(flags.chenamespace)
-          if (cheCluster && cheCluster.spec.auth && cheCluster.spec.auth.updateAdminPassword) {
-            messages.push('Admin user login          : "admin:admin". NOTE: must change after first login.')
-          }
+          messages.push('Admin user login          : "admin:admin". NOTE: must change after first login.')
           messages.push(OUTPUT_SEPARATOR)
 
           const cheConfigMap = await this.kube.getConfigMap('che', flags.chenamespace)

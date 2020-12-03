@@ -24,11 +24,15 @@ export function createNamespaceTask(namespaceName: string, labels: {}): Listr.Li
     title: `Create Namespace (${namespaceName})`,
     task: async (_ctx: any, task: any) => {
       const kube = new KubeHelper()
-      const exist = await kube.namespaceExist(namespaceName)
-      if (exist) {
+      const che = new CheHelper({})
+
+      const namespace = await kube.getNamespace(namespaceName)
+      if (namespace) {
+        await che.waitNamespaceActive(namespaceName)
         task.title = `${task.title}...It already exists.`
       } else {
         await kube.createNamespace(namespaceName, labels)
+        await che.waitNamespaceActive(namespaceName)
         task.title = `${task.title}...Done.`
       }
     }

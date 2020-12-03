@@ -12,6 +12,7 @@ import { che as chetypes } from '@eclipse-che/api'
 import { CoreV1Api, V1Pod, Watch } from '@kubernetes/client-node'
 import axios, { AxiosInstance } from 'axios'
 import * as cp from 'child_process'
+import { cli } from 'cli-ux'
 import * as commandExists from 'command-exists'
 import * as fs from 'fs-extra'
 import * as https from 'https'
@@ -101,7 +102,7 @@ export class CheHelper {
   }
 
   async cheURL(namespace = ''): Promise<string> {
-    if (!await this.cheNamespaceExist(namespace)) {
+    if (!await this.kube.getNamespace(namespace)) {
       throw new Error(`ERR_NAMESPACE_NO_EXIST - No namespace ${namespace} is found`)
     }
 
@@ -119,7 +120,7 @@ export class CheHelper {
       return this.flags['plugin-registry-url']
     }
     // check
-    if (!await this.cheNamespaceExist(namespace)) {
+    if (!await this.kube.getNamespace(namespace)) {
       throw new Error(`ERR_NAMESPACE_NO_EXIST - No namespace ${namespace} is found`)
     }
 
@@ -278,10 +279,6 @@ export class CheHelper {
     throw new Error(`ERR_ROUTE_NO_EXIST - No route ${route_names} in namespace ${namespace}`)
   }
 
-  async cheNamespaceExist(namespace = '') {
-    return this.kube.namespaceExist(namespace)
-  }
-
   async createWorkspaceFromDevfile(cheApiEndpoint: string, devfilePath: string, workspaceName?: string, accessToken?: string): Promise<chetypes.workspace.Workspace> {
     let devfile: string | undefined
     try {
@@ -419,6 +416,22 @@ export class CheHelper {
       },
       // ignore errors
       () => { })
+  }
+
+  /**
+   * Wait until workspace is in 'Active` state.
+   */
+  async waitNamespaceActive(namespaceName: string, intervalMs = 500, timeoutMs = 60000) {
+    const iterations = timeoutMs / intervalMs
+    for (let index = 0; index < iterations; index++) {
+      const namespace = await this.kube.getNamespace(namespaceName)
+      if (namespace && namespace.status && namespace.status.phase && namespace.status.phase === 'Active') {
+        return
+      }
+      await cli.wait(intervalMs)
+    }
+
+    throw new Error(`ERR_TIMEOUT: ${namespaceName} is not 'Active'.`)
   }
 
   /**

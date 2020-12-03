@@ -46,7 +46,7 @@ export default class Export extends Command {
     if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
       throw new Error(`E_PERM_DENIED - Permission denied: no read access to '${flags.chenamespace}' namespace`)
     }
-    if (!await cheHelper.cheNamespaceExist(flags.chenamespace)) {
+    if (!await kube.getNamespace(flags.chenamespace)) {
       throw new Error(`E_BAD_NS - Namespace ${flags.chenamespace} does not exist. Please specify it with --chenamespace flag`)
     }
 
