@@ -13,17 +13,25 @@
 set -e
 set -u
 
-init() {
-  RELEASE="$1"
-  BRANCH=$(echo $RELEASE | sed 's/.$/x/')
-  GIT_REMOTE_UPSTREAM="git@github.com:che-incubator/chectl.git"
+usage ()
+{   echo "Usage: ./make-release.sh <version>"
+    exit
 }
 
-check() {
-  if [[ $# -lt 1 ]]; then
-    echo "[ERROR] Wrong number of parameters.\nUsage: ./make-release.sh <version>"
-    exit 1
-  fi
+if [[ $# -lt 1 ]]; then usage; fi
+
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+    '--release') RELEASE="$1"; shift 1;;
+    *) RELEASE="$1"; shift 0;;
+    '--help'|'-h') usage;;
+  esac
+  shift 1
+done
+
+init() {
+  BRANCH=$(echo $RELEASE | sed 's/.$/x/')
+  GIT_REMOTE_UPSTREAM="git@github.com:che-incubator/chectl.git"
 }
 
 apply_sed() {
@@ -108,6 +116,5 @@ run() {
   createPR
 }
 
-init $@
-check $@
-run $@
+init
+run
