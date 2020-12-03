@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
       # - name: Login to docker.io
       #   uses: docker/login-action@v1
       #   with:
@@ -34,4 +36,4 @@ jobs:
           git config --global user.name "Mykhailo Kuznietsov"
           git config --global user.email "mkuznets@redhat.com"
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          /bin/bash -x make-release.sh ${{ github.event.inputs.version }}
+          /bin/bash -x make-release.sh --version ${{ github.event.inputs.version }}
