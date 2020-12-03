@@ -1,0 +1,25 @@
+# This Workflow performs a full release of chectl
+
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'version'
+        default: '7.y.z'
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+        with: 
+          fetch-depth: 0
+      - uses: actions/setup-node@v2.1.2
+        with:
+          node-version: 12.18.2
+      - run: yarn install
+      - name: Run make-release.sh script
+        run: |
+          ./make-release.sh ${{ github.event.inputs.version }}
