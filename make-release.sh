@@ -103,7 +103,7 @@ createReleaseBranch() {
 
 createPR() {
   echo "[INFO] Creating a PR"
-  hub pull-request --base ${BRANCH} --head ${VERSION} --browse -m "Release version ${VERSION}"
+  hub pull-request --base ${BRANCH} --head ${VERSION} -m "Release version ${VERSION}"
 }
 
 run() {
