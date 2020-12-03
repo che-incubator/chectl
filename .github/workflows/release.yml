@@ -19,10 +19,11 @@ jobs:
       - uses: actions/setup-node@v2.1.2
         with:
           node-version: 12.18.2
-      - run: yarn install
       - name: Run make-release.sh script
         run: |
-          git config --global user.name "Mykhailo Kuznietsov"
-          git config --global user.email "mkuznets@redhat.com"
+          # since we're using Flavius' token below to generate PRs, should also make tags/branches/commits by same owner
+          # see https://github.com/che-incubator/chectl/settings/secrets/actions for the token used
+          git config --global user.name "Flavius Lacatusu"
+          git config --global user.email "flacatus@redhat.com"
           export GITHUB_TOKEN=${{ secrets.ACTIONS_TOKEN }}
           /bin/bash -x make-release.sh --version ${{ github.event.inputs.version }}
