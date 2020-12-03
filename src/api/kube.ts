@@ -1325,8 +1325,6 @@ export class KubeHelper {
         cheClusterCR.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
       }
 
-      cheClusterCR.spec.server.cheClusterRoles = ctx.namespaceEditorClusterRoleName
-
       if ((flags.installer === 'olm' && !flags['catalog-source-yaml']) || (flags['catalog-source-yaml'] && flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME)) {
         // use default image tag for `olm` to install stable Che, because we don't have nightly channel for OLM catalog.
         cheClusterCR.spec.server.cheImageTag = ''
@@ -1375,6 +1373,8 @@ export class KubeHelper {
         cheClusterCR.spec.auth.identityProviderImage = ''
       }
     }
+
+    cheClusterCR.spec.server.cheClusterRoles = ctx.namespaceEditorClusterRoleName
 
     // override default values
     if (ctx.crPatch) {
