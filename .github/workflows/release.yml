@@ -1,7 +1,5 @@
 # This Workflow performs a full release of chectl
-
-name: release
-
+name: Release chectl
 on:
   workflow_dispatch:
     inputs:
@@ -11,12 +9,10 @@ on:
         default: '7.y.z'
 jobs:
   build:
-    runs-on: ubuntu-20.04
-
+    name: Create Release
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with: 
-          fetch-depth: 0
       # - name: Login to docker.io
       #   uses: docker/login-action@v1
       #   with:

@@ -31,7 +31,6 @@ done
 
 init() {
   BRANCH=$(echo $RELEASE | sed 's/.$/x/')
-  GIT_REMOTE_UPSTREAM="git@github.com:che-incubator/chectl.git"
 }
 
 apply_sed() {
@@ -47,8 +46,8 @@ resetChanges() {
   echo "[INFO] Reset changes in $1 branch"
   git reset --hard
   git checkout $1
-  git fetch ${GIT_REMOTE_UPSTREAM} --prune
-  git pull ${GIT_REMOTE_UPSTREAM} $1
+  git fetch origin --prune
+  git pull origin $1
 }
 
 checkoutToReleaseBranch() {
