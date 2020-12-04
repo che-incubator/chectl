@@ -61,7 +61,7 @@ export default class Delete extends Command {
       }
 
       const kube = new KubeHelper(flags)
-      if (await kube.namespaceExist(infrastructureNamespace)) {
+      if (await kube.getNamespace(infrastructureNamespace)) {
         try {
           await kube.deleteNamespace(infrastructureNamespace)
           cli.log(`Namespace '${infrastructureNamespace}' deleted.`)

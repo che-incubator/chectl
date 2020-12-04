@@ -396,9 +396,6 @@ export default class Deploy extends Command {
         await postInstallTasks.run(ctx)
         this.log(getCommandSuccessMessage())
       }
-
-      await postInstallTasks.run(ctx)
-      this.log(getCommandSuccessMessage())
     } catch (err) {
       this.error(getCommandErrorMessage(err))
     }

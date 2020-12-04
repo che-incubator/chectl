@@ -16,7 +16,6 @@ import { copy, mkdirp, remove } from 'fs-extra'
 import * as Listr from 'listr'
 import * as path from 'path'
 
-import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME, DEFAULT_CHE_IMAGE } from '../../constants'
@@ -65,9 +64,8 @@ export class HelmTasks {
       {
         title: `Create Namespace (${flags.chenamespace})`,
         task: async (_ctx: any, task: any) => {
-          const che = new CheHelper(flags)
-          const exist = await che.cheNamespaceExist(flags.chenamespace)
-          if (exist) {
+          const kube = new KubeHelper(flags)
+          if (await kube.getNamespace(flags.chenamespace)) {
             task.title = `${task.title}...does already exist.`
           } else {
             await execa(`kubectl create namespace ${flags.chenamespace}`, { shell: true })
