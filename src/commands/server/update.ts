@@ -23,10 +23,19 @@ import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-t
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
-import { getCommandErrorMessage, getCommandSuccessMessage, getImageTag, notifyCommandCompletedSuccessfully } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, getCurrentChectlVersion, getImageTag, getLatestChectlVersion, isStableVersion, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
+
+  static examples = [
+    '# Update Eclipse Che:\n' +
+    'chectl server:update',
+    '\n\n# Update Eclipse Che in \'eclipse-che\' namespace:' +
+    'chectl server:update -n eclipse-che',
+    '\n\n# Update Eclipse Che and update its configuration in the custom resource:' +
+    `chectl server:update --${CHE_OPERATOR_CR_PATCH_YAML_KEY} patch.yaml`,
+  ]
 
   static flags: flags.Input<any> = {
     installer: string({
@@ -110,40 +119,67 @@ export default class Update extends Command {
 
     try {
       await preUpdateTasks.run(ctx)
+    } catch (err) {
+      this.error(getCommandErrorMessage(err))
+    }
 
-      if (!flags.yes) {
-        cli.info(`Existed Eclipse Che operator: ${ctx.deployedCheOperatorImage}:${ctx.deployedCheOperatorTag}.`)
-        cli.info(`New Eclipse Che operator    : ${ctx.newCheOperatorImage}:${ctx.newCheOperatorTag}.`)
+    if (!flags.yes) {
+      const existedOperatorImage = `${ctx.deployedCheOperatorImage}:${ctx.deployedCheOperatorTag}`
+      const newOperatorImage = `${ctx.newCheOperatorImage}:${ctx.newCheOperatorTag}`
+      cli.info(`Existed Eclipse Che operator: ${existedOperatorImage}.`)
+      cli.info(`New Eclipse Che operator    : ${newOperatorImage}.`)
 
-        if (flags['che-operator-image'] !== DEFAULT_CHE_OPERATOR_IMAGE) {
-          cli.warn(`This command updates Eclipse Che to ${getImageTag(DEFAULT_CHE_OPERATOR_IMAGE)} version, but custom operator image is specified.`)
-          cli.warn('Make sure that the new version of the Eclipse Che is corresponding to the version of the tool you use.')
-          cli.warn('Consider using \'chectl update [stable|next]\' to update to the latest version of chectl.')
-        }
+      if (flags.installer === 'operator') {
+        const operatorImageTag = getImageTag(DEFAULT_CHE_OPERATOR_IMAGE)
+        const chectlChannel = operatorImageTag === 'nightly' ? 'next' : 'stable'
+        const currentChectlVersion = getCurrentChectlVersion()
+        const latestChectlVersion = await getLatestChectlVersion(chectlChannel)
 
-        const cheCluster = await kubeHelper.getCheCluster(flags.chenamespace)
-        if (cheCluster.spec.server.cheImage
-          || cheCluster.spec.server.cheImageTag
-          || cheCluster.spec.server.devfileRegistryImage
-          || cheCluster.spec.database.postgresImage
-          || cheCluster.spec.server.pluginRegistryImage
-          || cheCluster.spec.auth.identityProviderImage) {
-          cli.warn(`In order to update Eclipse Che the images defined in the '${cheCluster.metadata.name}'
-            Custom Resource of the namespace '${flags.chenamespace}' will be cleaned up:`)
-          cheCluster.spec.server.cheImageTag && cli.warn(`Eclipse Che server image tag [${cheCluster.spec.server.cheImageTag}]`)
-          cheCluster.spec.server.cheImage && cli.warn(`Eclipse Che server [${cheCluster.spec.server.cheImage}]`)
-          cheCluster.spec.database.postgresImage && cli.warn(`Database [${cheCluster.spec.database.postgresImage}]`)
-          cheCluster.spec.server.devfileRegistryImage && cli.warn(`Devfile registry [${cheCluster.spec.server.devfileRegistryImage}]`)
-          cheCluster.spec.server.pluginRegistryImage && cli.warn(`Plugin registry [${cheCluster.spec.server.pluginRegistryImage}]`)
-          cheCluster.spec.auth.identityProviderImage && cli.warn(`Identity provider [${cheCluster.spec.auth.identityProviderImage}]`)
-        }
-
-        const confirmed = await cli.confirm('If you want to continue - press Y')
-        if (!confirmed) {
-          this.exit(0)
+        // Warn user to update chectl to update Eclipse Che to the latest version
+        if (newOperatorImage === existedOperatorImage) {
+          // suggest update chectl first
+          if (currentChectlVersion !== latestChectlVersion) {
+            cli.warn(`'chectl' tool is not up to date.
+Update 'chectl' first: 'chectl update ${chectlChannel}' and then try again.`)
+          } else {
+            // same image, no patch
+            if (!flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]) {
+              cli.info('Eclipse Che is already up to date.')
+              this.exit(0)
+            }
+          }
+          // custom operator image is used
+        } else if (newOperatorImage !== DEFAULT_CHE_OPERATOR_IMAGE) {
+          cli.warn(`Eclipse Che operator deployment will be updated with the provided image,
+but other Eclipse Che components will be updated to the ${operatorImageTag} version.
+Consider removing '--che-operator-image' to update Eclipse Che operator to the same version.`)
         }
       }
 
+      const cheCluster = await kubeHelper.getCheCluster(flags.chenamespace)
+      if (cheCluster.spec.server.cheImage
+        || cheCluster.spec.server.cheImageTag
+        || cheCluster.spec.server.devfileRegistryImage
+        || cheCluster.spec.database.postgresImage
+        || cheCluster.spec.server.pluginRegistryImage
+        || cheCluster.spec.auth.identityProviderImage) {
+        cli.warn(`In order to update Eclipse Che the images defined in the '${cheCluster.metadata.name}'
+            Custom Resource of the namespace '${flags.chenamespace}' will be cleaned up:`)
+        cheCluster.spec.server.cheImageTag && cli.warn(`Eclipse Che server image tag [${cheCluster.spec.server.cheImageTag}]`)
+        cheCluster.spec.server.cheImage && cli.warn(`Eclipse Che server [${cheCluster.spec.server.cheImage}]`)
+        cheCluster.spec.database.postgresImage && cli.warn(`Database [${cheCluster.spec.database.postgresImage}]`)
+        cheCluster.spec.server.devfileRegistryImage && cli.warn(`Devfile registry [${cheCluster.spec.server.devfileRegistryImage}]`)
+        cheCluster.spec.server.pluginRegistryImage && cli.warn(`Plugin registry [${cheCluster.spec.server.pluginRegistryImage}]`)
+        cheCluster.spec.auth.identityProviderImage && cli.warn(`Identity provider [${cheCluster.spec.auth.identityProviderImage}]`)
+      }
+
+      const confirmed = await cli.confirm('If you want to continue - press Y')
+      if (!confirmed) {
+        this.exit(0)
+      }
+    }
+
+    try {
       await updateTasks.run(ctx)
       await postUpdateTasks.run(ctx)
 
