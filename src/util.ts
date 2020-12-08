@@ -197,6 +197,10 @@ export function getCurrentChectlName(): string {
  * Returns latest chectl version for the given channel.
  */
 export async function getLatestChectlVersion(channel: string): Promise<string | undefined> {
+  if (getCurrentChectlName() !== 'chectl') {
+    return
+  }
+
   const axiosInstance = axios.create({
     httpsAgent: new https.Agent({})
   })
