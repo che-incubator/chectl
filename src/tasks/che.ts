@@ -35,6 +35,9 @@ export class CheTasks {
   cheSelector = 'app=che,component=che'
   cheDeploymentName: string
 
+  dashboardDeploymentName = 'che-dashboard'
+  dashboardSelector = 'app=che,component=che-dashboard'
+
   keycloakDeploymentName = 'keycloak'
   keycloakSelector = 'app=che,component=keycloak'
 
@@ -116,6 +119,14 @@ export class CheTasks {
             ctx.isCheReady = await this.kube.deploymentReady(this.cheDeploymentName, this.cheNamespace)
             if (!ctx.isCheReady) {
               ctx.isCheStopped = await this.kube.deploymentStopped(this.cheDeploymentName, this.cheNamespace)
+            }
+
+            ctx.isDashboardDeployed = await this.kube.deploymentExist(this.dashboardDeploymentName, this.cheNamespace)
+            if (ctx.isDashboardDeployed) {
+              ctx.isDashboardReady = await this.kube.deploymentReady(this.dashboardDeploymentName, this.cheNamespace)
+              if (!ctx.isDashboardReady) {
+                ctx.isDashboardStopped = await this.kube.deploymentStopped(this.dashboardDeploymentName, this.cheNamespace)
+              }
             }
 
             ctx.isKeycloakDeployed = await this.kube.deploymentExist(this.keycloakDeploymentName, this.cheNamespace)
@@ -252,6 +263,14 @@ export class CheTasks {
           return this.kubeTasks.podStartTasks(this.cheSelector, this.cheNamespace)
         }
       },
+      {
+        title: 'Eclipse Che dashboard pod bootstrap',
+        enabled: ctx => ctx.isDashboardDeployed && !ctx.isDashboardReady,
+        task: async () => {
+          await this.kube.scaleDeployment(this.dashboardDeploymentName, this.cheNamespace, 1)
+          return this.kubeTasks.podStartTasks(this.dashboardSelector, this.cheNamespace)
+        }
+      },
       ...this.checkEclipseCheStatus()
     ]
   }
@@ -292,6 +311,18 @@ export class CheTasks {
           task.title = await `${task.title}...done`
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale deployment. ${error.message}`)
+        }
+      }
+    },
+    {
+      title: 'Scale \"dashboard\" deployment to zero',
+      enabled: (ctx: any) => ctx.isDashboardDeployed && !ctx.isDashboardStopped,
+      task: async (_ctx: any, task: any) => {
+        try {
+          await this.kube.scaleDeployment(this.dashboardDeploymentName, this.cheNamespace, 0)
+          task.title = await `${task.title}...done`
+        } catch (error) {
+          command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale dashboard deployment. ${error.message}`)
         }
       }
     },
