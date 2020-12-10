@@ -55,8 +55,8 @@ export namespace ChectlContext {
     ctx[COMMAND_ID] = command.id
     ctx[LOGS_DIRECTORY] = path.resolve(flags[LOG_DIRECTORY_KEY] ? flags[LOG_DIRECTORY_KEY] : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
 
-    ctx[CUSTOM_CR] = readCRFile(flags, CHE_OPERATOR_CR_YAML_KEY) || {}
-    ctx[CR_PATCH] = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY) || {}
+    ctx[CUSTOM_CR] = readCRFile(flags, CHE_OPERATOR_CR_YAML_KEY)
+    ctx[CR_PATCH] = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY)
   }
 
   export async function initAndGet(flags: any, command: Command): Promise<any> {

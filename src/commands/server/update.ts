@@ -180,42 +180,43 @@ Consider removing '--che-operator-image' to update Eclipse Che operator to the s
       || cheCluster.spec.auth.identityProviderImage) {
       let imagesListMsg = ''
 
-      const crPatch = ctx[ChectlContext.CR_PATCH]
+      const crPatch = ctx[ChectlContext.CR_PATCH] || {}
       if (cheCluster.spec.server.pluginRegistryImage
         && (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.pluginRegistryImage)) {
         imagesListMsg += `\n - Plugin registry image: ${cheCluster.spec.server.pluginRegistryImage}`
-        merge(ctx[ChectlContext.CR_PATCH], { spec: { server: { pluginRegistryImage: '' } } })
+        merge(crPatch, { spec: { server: { pluginRegistryImage: '' } } })
       }
 
       if (cheCluster.spec.server.devfileRegistryImage
         && (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.devfileRegistryImage)) {
         imagesListMsg += `\n - Devfile registry image: ${cheCluster.spec.server.devfileRegistryImage}`
-        merge(ctx[ChectlContext.CR_PATCH], { spec: { server: { devfileRegistryImage: '' } } })
+        merge(crPatch, { spec: { server: { devfileRegistryImage: '' } } })
       }
 
       if (cheCluster.spec.server.postgresImage
         && (!crPatch.spec || !crPatch.spec.database || !crPatch.spec.database.postgresImage)) {
         imagesListMsg += `\n - Postgres image: ${cheCluster.spec.database.postgresImage}`
-        merge(ctx[ChectlContext.CR_PATCH], { spec: { database: { postgresImage: '' } } })
+        merge(crPatch, { spec: { database: { postgresImage: '' } } })
       }
 
       if (cheCluster.spec.server.identityProviderImage
         && (!crPatch.spec || !crPatch.spec.auth || !crPatch.spec.auth.identityProviderImage)) {
         imagesListMsg += `\n - Identity provider image: ${cheCluster.spec.auth.identityProviderImage}`
-        merge(ctx[ChectlContext.CR_PATCH], { spec: { auth: { identityProviderImage: '' } } })
+        merge(crPatch, { spec: { auth: { identityProviderImage: '' } } })
       }
 
       if (cheCluster.spec.server.cheImage
         && (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.cheImage)) {
         imagesListMsg += `\n - Eclipse Che server image name: ${cheCluster.spec.server.cheImage}`
-        merge(ctx[ChectlContext.CR_PATCH], { spec: { server: { cheImage: '' } } })
+        merge(crPatch, { spec: { server: { cheImage: '' } } })
       }
 
       if (cheCluster.spec.server.cheImageTag
         && (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.cheImageTag)) {
         imagesListMsg += `\n - Eclipse Che server image tag: ${cheCluster.spec.server.cheImageTag}`
-        merge(ctx[ChectlContext.CR_PATCH], { spec: { server: { cheImageTag: '' } } })
+        merge(crPatch, { spec: { server: { cheImageTag: '' } } })
       }
+      ctx[ChectlContext.CR_PATCH] = crPatch
 
       if (imagesListMsg) {
         cli.warn(`In order to update Eclipse Che to a newer version the fields defining the images in the '${cheCluster.metadata.name}'
