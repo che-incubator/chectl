@@ -348,18 +348,9 @@ error: E_COMMAND_FAILED`)
     setOptions.push(`--set cheImage=${cheImage}`)
     setOptions.push(`--set che.disableProbes=${flags.debug}`)
 
-    if (flags['helm-patch-yaml']) {
-      // Read patch yaml. Has format the same as values.yaml
-      const patchTree: { [key: string]: any } = await this.kubeHelper.safeLoadFromYamlFile(flags['helm-patch-yaml'])
-      // Flat the yaml tree into key-value format
-      const patchProperties = this.prepareYamlPatch(patchTree)
-      // Add patch properties to the command
-      for (const property of patchProperties) {
-        setOptions.push(`--set ${property}`)
-      }
-    }
+    const patchFlags = flags['helm-patch-yaml'] ? '-f ' + flags['helm-patch-yaml'] : ''
 
-    let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} ${setOptions.join(' ')} ${multiUserFlag} ${tlsFlag} ${destDir}`
+    let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} ${setOptions.join(' ')} ${multiUserFlag} ${tlsFlag} ${patchFlags} ${destDir}`
 
     let { exitCode, stderr } = await execa(command, { timeout: execTimeout, reject: false, shell: true })
     // if process failed, check the following
@@ -387,27 +378,6 @@ error: E_COMMAND_FAILED`)
       await execa(command, { timeout: execTimeout, shell: true })
 
     }
-  }
-
-  /**
-   * Returns flaten key=value structure of the given object.
-   * Nested object keys are separated by dot.
-   * @param patchTree object with properties and nested objects
-   */
-  private prepareYamlPatch(patchTree: { [key: string]: any }): string[] {
-    const patches: string[] = []
-    for (const key of Object.keys(patchTree)) {
-      const value = patchTree[key]
-      if (typeof value !== 'object') {
-        patches.push(`${key}=${value}`)
-      } else {
-        const subProperties = this.prepareYamlPatch(value)
-        for (const subProperty of subProperties) {
-          patches.push(`${key}.${subProperty}`)
-        }
-      }
-    }
-    return patches
   }
 
 }
