@@ -258,11 +258,14 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
   })
 
   describe('Delete Eclipse Che server', () => {
-    test
-      .stdout({ print: true })
-      .stderr({ print: true })
-      .command(['server:delete', '--yes', '--delete-namespace', '-n', `${NAMESPACE}`])
-      .exit(0)
-      .it(`deletes Eclipse Che resources on ${PLATFORM} platform successfully`)
+    it('server:delete command coverage', async () => {
+      console.log('>>> Testing server:delete command')
+
+      const { exitCode, stdout, stderr } = await execa(binChectl, ['server:delete', `-n ${NAMESPACE}`, '--delete-namespace', '--yes'], { shell: true })
+
+      console.log(`stdout: ${stdout}`)
+      console.log(`stderr: ${stderr}`)
+      expect(exitCode).equal(0)
+    })
   })
 })
