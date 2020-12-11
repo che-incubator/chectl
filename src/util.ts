@@ -15,8 +15,6 @@ import * as https from 'https'
 import * as yaml from 'js-yaml'
 import * as notifier from 'node-notifier'
 
-import * as pjson from '../package.json'
-
 import { ChectlContext } from './api/context'
 import { DEFAULT_CHE_OPERATOR_IMAGE } from './constants'
 
@@ -183,14 +181,20 @@ export function getCommandErrorMessage(err: Error): string {
  * Returns current chectl version defined in package.json.
  */
 export function getCurrentChectlVersion(): string {
-  return pjson.version
+  const { version } = readPackageJson()
+  return version
 }
 
 /**
  * Returns current chectl version defined in package.json.
  */
 export function getCurrentChectlName(): string {
-  return pjson.name
+  const { name } = readPackageJson()
+  return name
+}
+
+export function readPackageJson(): any {
+  return JSON.parse(fs.readFileSync('../package.json').toString())
 }
 
 /**

@@ -726,6 +726,16 @@ OPTIONS
   --deployment-name=deployment-name                        [default: che] Eclipse Che deployment name
 
   --skip-kubernetes-health-check                           Skip Kubernetes health check
+
+EXAMPLES
+  # Update Eclipse Che:
+  chectl server:update
+
+  # Update Eclipse Che in 'eclipse-che' namespace:
+  chectl server:update -n eclipse-che
+
+  # Update Eclipse Che and update its configuration in the custom resource:
+  chectl server:update --che-operator-cr-patch-yaml patch.yaml
 ```
 
 _See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_

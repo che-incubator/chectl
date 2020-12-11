@@ -32,9 +32,9 @@ export default class Update extends Command {
   static examples = [
     '# Update Eclipse Che:\n' +
     'chectl server:update',
-    '\n\n# Update Eclipse Che in \'eclipse-che\' namespace:' +
+    '\n# Update Eclipse Che in \'eclipse-che\' namespace:\n' +
     'chectl server:update -n eclipse-che',
-    '\n\n# Update Eclipse Che and update its configuration in the custom resource:' +
+    '\n# Update Eclipse Che and update its configuration in the custom resource:\n' +
     `chectl server:update --${CHE_OPERATOR_CR_PATCH_YAML_KEY} patch.yaml`,
   ]
 
