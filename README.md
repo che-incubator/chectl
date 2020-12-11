@@ -524,7 +524,9 @@ OPTIONS
       The URL of the external Devfile registry.
 
   --helm-patch-yaml=helm-patch-yaml
-      Path to yaml file with Helm Chart values patch. The file format is identical to values.yaml from the chart.
+      Path to yaml file with Helm Chart values patch.
+                           The file format is identical to values.yaml from the chart.
+                           Note, Provided command line arguments take precedence over patch file.
 
   --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout
       [default: 600000] Waiting time for Pod downloading image (in milliseconds)
