@@ -260,8 +260,8 @@ export default class Deploy extends Command {
       flags.tls && ignoredFlags.push('--tls')
       flags.cheimage && ignoredFlags.push('--cheimage')
       flags.debug && ignoredFlags.push('--debug')
-      flags.domain && ignoredFlags.push('--domain')
       flags.multiuser && ignoredFlags.push('--multiuser')
+      ignoredFlags.push('--domain')
 
       if (ignoredFlags.length) {
         this.warn(`--${CHE_OPERATOR_CR_YAML_KEY} is used. The following flag(s) will be ignored: ${ignoredFlags.join('\t')}`)
