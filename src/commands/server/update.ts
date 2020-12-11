@@ -138,7 +138,7 @@ export default class Update extends Command {
 
       // the same version is already installed
       if (newOperatorImage === existedOperatorImage) {
-        if (chectlName === 'chectl' && !!latestChectlVersion) {
+        if (chectlName === 'chectl' && latestChectlVersion) {
           // suggest update chectl first
           if (currentChectlVersion !== latestChectlVersion) {
             cli.warn(`It is not possible to update Eclipse Che to a newer version
