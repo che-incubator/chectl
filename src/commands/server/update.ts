@@ -134,11 +134,11 @@ export default class Update extends Command {
       const chectlChannel = defaultOperatorImageTag === 'nightly' ? 'next' : 'stable'
       const currentChectlVersion = getCurrentChectlVersion()
       const latestChectlVersion = await getLatestChectlVersion(chectlChannel)
-      const projectName = getCurrentChectlName()
+      const chectlName = getCurrentChectlName()
 
       // the same version is already installed
       if (newOperatorImage === existedOperatorImage) {
-        if (projectName === 'chectl' && latestChectlVersion) {
+        if (chectlName === 'chectl' && !!latestChectlVersion) {
           // suggest update chectl first
           if (currentChectlVersion !== latestChectlVersion) {
             cli.warn(`It is not possible to update Eclipse Che to a newer version
@@ -167,6 +167,7 @@ Consider removing '--che-operator-image' to update Eclipse Che operator to the s
       }
 
       if (!flags.yes && !await cli.confirm('If you want to continue - press Y')) {
+        cli.info('Update cancelled by user.')
         this.exit(0)
       }
     }
@@ -222,6 +223,7 @@ Consider removing '--che-operator-image' to update Eclipse Che operator to the s
         cli.warn(`In order to update Eclipse Che to a newer version the fields defining the images in the '${cheCluster.metadata.name}'
 Custom Resource in the '${flags.chenamespace}' namespace will be cleaned up:${imagesListMsg}`)
         if (!flags.yes && !await cli.confirm('If you want to continue - press Y')) {
+          cli.info('Update cancelled by user.')
           this.exit(0)
         }
       }
