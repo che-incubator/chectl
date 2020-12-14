@@ -45,7 +45,7 @@ jobs:
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: 0.0.${{ steps.vars.outputs.sha_short }}-next.${{ steps.vars.outputs.sha_short }}
+          automatic_release_tag: ${{ steps.vars.outputs.tag_value }}
           prerelease: false
-          title: 0.0.${{ steps.vars.outputs.sha_short }}-next.${{ steps.vars.outputs.sha_short }}
+          title: 0.0.${{ steps.vars.outputs.tag_value }}-next.${{ steps.vars.outputs.sha_short }}
           files: "./dist/channels/**/chectl-*.gz"
