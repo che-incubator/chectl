@@ -103,6 +103,8 @@ createReleaseBranch() {
 
 createPR() {
   echo "[INFO] Creating a PR"
+  GITHUB_TOKEN=$GITHUB_TOKEN
+  echo $GITHUB_TOKEN
   hub pull-request --base ${BRANCH} --head ${VERSION} -m "Release version ${VERSION}"
 }
 
