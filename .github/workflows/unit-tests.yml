@@ -8,10 +8,10 @@
 #
 #  Contributors:
 #    Red Hat, Inc. - initial API and implementation
-name: Chectl Unit Tests ⌛
 on: [pull_request, push]
 jobs:
   build-and-deploy:
+    name: Run unit tests
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout 🛎️
