@@ -1,0 +1,64 @@
+#
+#  Copyright (c) 2012-2020 Red Hat, Inc.
+#    This program and the accompanying materials are made
+#    available under the terms of the Eclipse Public License 2.0
+#    which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+#  SPDX-License-Identifier: EPL-2.0
+#
+#  Contributors:
+#    Red Hat, Inc. - initial API and implementation
+name: Build and Deploy
+on:
+  # Trigger the workflow on push only for the master branch
+  push:
+    branches:
+      - master
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2.3.1 # If you're using actions/checkout@v2 you must set persist-credentials to false in most cases for the deployment to work correctly.
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '10'
+      - name: Generate tag utilities
+        id: TAG_UTIL
+        run: |
+          echo "::set-output name=short_sha::$(git rev-parse --short HEAD)"
+          echo "::set-output name=current_hour::$(date +'%Y%m%d%H%M%S')"
+          echo "::set-output name=current_date::$(date +'%Y%m%d')"
+      - name: Install and Build 🔧 # This example project is built using npm and outputs the result to the 'build' folder. Replace with the commands required to build your project, or remove this step entirely if your site is pre-built.
+        run: |
+          yarn
+          git config --local user.name "Flavius Lacatusu"
+          git config --local user.email "flacatus@redhat.com"
+
+          export CHECTL_VERSION=0.0.${{ steps.TAG_UTIL.outputs.current_date }}-next.${{ steps.TAG_UTIL.outputs.short_sha }}
+          sed -i  "s#version\":\ \"\(.*\)\",#version\":\ \"$CHECTL_VERSION\",#g" package.json
+          git tag ${{ steps.TAG_UTIL.outputs.short_sha }}
+
+          TARGETS=linux-arm,linux-x64,linux-s390x,linux-ppc64le,darwin-x64,win32-x64,win32-x86
+          npx oclif-dev pack --targets=$TARGETS
+
+          git clone https://github.com/flacatus/chectl -b gh-pages --single-branch gh-pages
+          rm -rf gh-pages/.git
+          echo $(date +%s) > gh-pages/update
+          env
+      - name: Deploy pages 🚀
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: gh-pages # The folder the action should deploy.
+          CLEAN: true # Automatically remove deleted files from the deploy branch
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: ${{ steps.TAG_UTIL.outputs.current_hour }}
+          prerelease: false
+          title: 0.0.${{ steps.TAG_UTIL.outputs.current_date }}-next.${{ steps.TAG_UTIL.outputs.short_sha }}
+          files: "./dist/channels/**/chectl-*.gz"
