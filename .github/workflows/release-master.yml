@@ -22,7 +22,10 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          Branch: master
+          BASE_BRANCH: master
+          BRANCH: gh-pages
+          FOLDER: build
+          CLEAN: true
           publish_dir: dist/channels
           tag_name: ${{ steps.prepare_tag.outputs.deploy_tag_name }}
           tag_message: 'Deployment ${{ steps.prepare_tag.outputs.tag_name }}'
