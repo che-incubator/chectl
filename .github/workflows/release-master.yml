@@ -24,7 +24,7 @@ jobs:
           export CHECTL_VERSION="UNKNOWN"
 
           echo "Branch is master branch..."
-          echo ${{ steps.vars.outputs.tag_value }}
+          echo ${{ steps.vars.outputs.sha_short }}
           echo ${{ steps.vars.outputs.tag_value }}
           exit 0
           git tag ${{ steps.vars.outputs.sha_short }}
