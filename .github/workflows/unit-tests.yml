@@ -1,0 +1,27 @@
+#
+#  Copyright (c) 2012-2020 Red Hat, Inc.
+#    This program and the accompanying materials are made
+#    available under the terms of the Eclipse Public License 2.0
+#    which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+#  SPDX-License-Identifier: EPL-2.0
+#
+#  Contributors:
+#    Red Hat, Inc. - initial API and implementation
+name: Chectl Unit Tests ⌛
+on: [pull_request, push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2.3.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12'
+      - name: Install chectl dependencies 🔧
+        run: yarn
+      - name: Run unit tests 🩺
+        run: yarn test
