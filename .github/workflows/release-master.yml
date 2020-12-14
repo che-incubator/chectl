@@ -25,7 +25,7 @@ jobs:
         run: |
           git config --local user.name "Flavius Lacatusu"
           git config --local user.email "flacatus@redhat.com"
-          echo -e 0.0.${{ steps.TAG_UTIL.outputs.current_date }}-next.${{ steps.TAG_UTIL.outputs.short_sha }}
+
           export CHECTL_VERSION=0.0.${{ steps.TAG_UTIL.outputs.current_date }}-next
           sed -i  "s#version\":\ \"\(.*\)\",#version\":\ \"$CHECTL_VERSION\",#g" package.json
 
@@ -45,10 +45,18 @@ jobs:
           BRANCH: gh-pages # The branch the action should deploy to.
           FOLDER: gh-pages # The folder the action should deploy.
           CLEAN: true # Automatically remove deleted files from the deploy branch
-      - uses: "marvinpinto/action-automatic-releases@latest"
+      - name: Release
+        uses: softprops/action-gh-release@v1
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: ${{ steps.TAG_UTIL.outputs.current_hour }}
-          prerelease: false
-          title: 0.0.${{ steps.TAG_UTIL.outputs.current_date }}-next.${{ steps.TAG_UTIL.outputs.short_sha }}
+          name: 0.0.${{ steps.TAG_UTIL.outputs.current_date }}-next.${{ steps.TAG_UTIL.outputs.short_sha }}
+          tag_name: ${{ steps.TAG_UTIL.outputs.current_hour }}
           files: "./dist/channels/**/chectl-*.gz"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      - uses: "marvinpinto/action-automatic-releases@latest"
+#        with:
+#          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+#          automatic_release_tag: ${{ steps.TAG_UTIL.outputs.current_hour }}
+#          prerelease: false
+#          title: 0.0.${{ steps.TAG_UTIL.outputs.current_date }}-next.${{ steps.TAG_UTIL.outputs.short_sha }}
+#          files: "./dist/channels/**/chectl-*.gz"
