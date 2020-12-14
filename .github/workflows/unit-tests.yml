@@ -9,7 +9,7 @@
 #  Contributors:
 #    Red Hat, Inc. - initial API and implementation
 name: Chectl
-on: [pull_request, push]
+on: [pull_request]
 jobs:
   build-and-deploy:
     runs-on: ubuntu-20.04
