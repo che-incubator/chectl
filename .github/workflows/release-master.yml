@@ -22,11 +22,12 @@ jobs:
           echo "::set-output name=gh_tag::$(date +'%Y%m%d%H%M%S')"
 
           if [[ ${GITHUB_REF#refs/heads/} =~ 7.* ]]; 
-          then 
+          then
             echo "::set-output name=chectl_version::$(cat VERSION)" 
+            echo "::set-output name=gh_release_name::$(cat VERSION)"
           fi
           if [[ ${GITHUB_REF#refs/heads/} =~ master ]]; 
-          then 
+          then
             CURRENT_DAY=$(date +'%Y%m%d')
             SHORT_SHA1=$(git rev-parse --short HEAD)
             export CHECTL_VERSION=0.0.$CURRENT_DAY-next
