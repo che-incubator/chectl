@@ -3,6 +3,9 @@ on: [push]
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      SHA_LONG: ${{ github.sha }}
+      CURRENT_DAY: $(date +'%Y%m%d')
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v2.3.1 # If you're using actions/checkout@v2 you must set persist-credentials to false in most cases for the deployment to work correctly.
@@ -19,14 +22,13 @@ jobs:
           export GITHUB_RELEASE_NAME=5456weqw
 
           echo "Branch is master branch..."
-          CURRENT_DAY=$(date +'%Y%m%d')
           SHORT_SHA1=$(git rev-parse --short HEAD)
-          export CHECTL_VERSION=0.0.$CURRENT_DAY-next
-          export GITHUB_RELEASE_NAME=0.0.$CURRENT_DAY-next.$SHORT_SHA1
+          export GITHUB_RELEASE_NAME=0.0.$CURRENT_DAY-next.${{ github.sha }}
 
-          git tag tag
-          TARGETS=linux-arm,linux-x64,linux-s390x,linux-ppc64le,darwin-x64,win32-x64,win32-x86
+          git tag ${{ github.sha }}
           yarn
+
+          TARGETS=linux-arm,linux-x64,linux-s390x,linux-ppc64le,darwin-x64,win32-x64,win32-x86
           npx oclif-dev pack --targets=$TARGETS
           git clone https://github.com/flacatus/chectl -b gh-pages --single-branch gh-pages
           rm -rf gh-pages/.git
@@ -45,5 +47,5 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
           prerelease: false
-          title: "Development Build"
+          title: 0.0.$CURRENT_DAY-next.${{ github.sha }}
           files: "./dist/channels/**/chectl-*.gz"
