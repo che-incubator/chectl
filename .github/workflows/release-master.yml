@@ -47,23 +47,10 @@ jobs:
           BRANCH: gh-pages # The branch the action should deploy to.
           FOLDER: gh-pages # The folder the action should deploy.
           CLEAN: true # Automatically remove deleted files from the deploy branch
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      - uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          tag_name: ${{ steps.TAG.outputs.VALUE_TAG }}
-          release_name: 0.0.${{ steps.CURRENT_DATE.outputs.VALUE }}-next.${{ steps.SHA_SHORT.outputs.VALUE }}
-          draft: false
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: ${{ steps.TAG.outputs.VALUE_TAG }}
           prerelease: false
-      - name: Upload Release Asset
-        id: upload-release-asset 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/channels/next/chectl-*.gz
-          asset_name: chectl-*.gz
-          asset_content_type: application/gzip
+          title: 0.0.${{ steps.CURRENT_DATE.outputs.VALUE }}-next.${{ steps.SHA_SHORT.outputs.VALUE }}
+          files: "./dist/channels/**/chectl-*.gz"
