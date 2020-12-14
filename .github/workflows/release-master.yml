@@ -25,7 +25,7 @@ jobs:
         run: |
           git config --local user.name "Flavius Lacatusu"
           git config --local user.email "flacatus@redhat.com"
-          echo -e ${{ steps.TAG_UTIL.outputs.short_sha }}
+          echo -e 0.0.${{ steps.TAG_UTIL.outputs.current_date }}-next.${{ steps.TAG_UTIL.outputs.short_sha }}
           exit 1
           export CHECTL_VERSION=0.0.${{ steps.TAG_UTIL.outputs.current_date }}-next.${{ steps.TAG_UTIL.outputs.short_sha }}
           sed -i  "s#version\":\ \"\(.*\)\",#version\":\ \"$CHECTL_VERSION\",#g" package.json
