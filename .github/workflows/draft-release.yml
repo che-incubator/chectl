@@ -1,0 +1,29 @@
+# This Workflow performs a full release of chectl
+name: Release chectl
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The version that is going to be released. Should be in format 7.y.z'
+        required: true
+        default: '7.y.z'
+jobs:
+  build:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.ACTIONS_TOKEN }}
+      - uses: actions/setup-node@v2.1.2
+        with:
+          node-version: 12.18.2
+      - name: Run make-release.sh script
+        run: |
+          # since we're using Flavius' token below to generate PRs, should also make tags/branches/commits by same owner
+          # see https://github.com/che-incubator/chectl/settings/secrets/actions for the token used
+          git config --global user.name "Flavius Lacatusu"
+          git config --global user.email "flacatus@redhat.com"
+          export GITHUB_TOKEN=${{ secrets.ACTIONS_TOKEN }}
+          /bin/bash -x make-release.sh --version ${{ github.event.inputs.version }}
