@@ -49,7 +49,7 @@ jobs:
         run: yarn test
       - name: Pack chectl
         run: |
-          git config --local user.name {{ github.actor }}
+          git config --local user.name ${{ github.actor }}
 
           sed -i  "s#version\":\ \"\(.*\)\",#version\":\ \"${{ steps.TAG_UTIL.outputs.chectl_version }}\",#g" package.json
           git tag ${{ steps.TAG_UTIL.outputs.gh_tag }}
