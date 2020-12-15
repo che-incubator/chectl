@@ -1,5 +1,5 @@
 # This Workflow performs a full release of chectl
-name: Release chectl
+name: Release
 on:
   workflow_dispatch:
     inputs:
@@ -9,7 +9,7 @@ on:
         default: '7.y.z'
 jobs:
   build:
-    name: Create Release
+    name: Create stable release Pull Request
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
