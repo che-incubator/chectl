@@ -13,7 +13,7 @@ on:
   # Trigger the workflow on push only for the master branch
   push:
     branches:
-      - '7.*.x' # Push events to matching 7.* branches
+      - '7*' # Push events to matching 7.* branches
       - 'master'
 jobs:
   build-and-deploy:
@@ -54,14 +54,14 @@ jobs:
           git tag ${{ steps.TAG_UTIL.outputs.gh_tag }}
           TARGETS=linux-arm,linux-x64,linux-s390x,linux-ppc64le,darwin-x64,win32-x64,win32-x86
           npx oclif-dev pack --targets=$TARGETS
-          git clone https://github.com/che-incubator/chectl -b gh-pages --single-branch gh-pages
+          git clone https://github.com/flacatus/chectl -b gh-pages --single-branch gh-pages
           rm -rf gh-pages/.git
           echo $(date +%s) > gh-pages/update
           env
       - name: Deploy to github pages
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
           BRANCH: gh-pages
           FOLDER: gh-pages
           CLEAN: true # Automatically remove deleted files from the deploy branch
@@ -72,4 +72,4 @@ jobs:
           tag_name: ${{ steps.TAG_UTIL.outputs.gh_tag }}
           files: "./dist/channels/**/chectl-*.gz"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
