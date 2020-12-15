@@ -502,8 +502,8 @@ OPTIONS
       is the 'operator' or the 'olm'.
 
   --che-operator-image=che-operator-image
-      [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when 
-      the installer is the operator
+      [default: quay.io/eclipse/che-operator:7.23.0] Container image of the operator. This parameter is used only when the 
+      installer is the operator
 
   --debug
       Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug' 
@@ -513,7 +513,7 @@ OPTIONS
       [default: che] Eclipse Che deployment name
 
   --dev-workspace-controller-image=dev-workspace-controller-image
-      [default: quay.io/devfile/devworkspace-controller:next] Container image of the dev workspace controller. This 
+      [default: quay.io/devfile/devworkspace-controller:sha-e07ba5b] Container image of the dev workspace controller. This 
       parameter is used only when the workspace engine is the DevWorkspace
 
   --dev-workspace-controller-namespace=dev-workspace-controller-namespace
@@ -721,7 +721,7 @@ OPTIONS
                                                            CheCluster CR used by the operator. This parameter is used
                                                            only when the installer is the 'operator' or the 'olm'.
 
-  --che-operator-image=che-operator-image                  [default: quay.io/eclipse/che-operator:nightly] Container
+  --che-operator-image=che-operator-image                  [default: quay.io/eclipse/che-operator:7.23.0] Container
                                                            image of the operator. This parameter is used only when the
                                                            installer is the operator
 
