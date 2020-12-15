@@ -30,7 +30,7 @@ jobs:
         id: TAG_UTIL
         run: |
           echo "::set-output name=gh_tag::$(date +'%Y%m%d%H%M%S')"
-          if [[ ${GITHUB_REF#refs/heads/} =~ 7.* ]];s
+          if [[ ${GITHUB_REF#refs/heads/} =~ 7.* ]];
           then
             echo "::set-output name=chectl_version::$(cat VERSION)" 
             echo "::set-output name=gh_release_name::$(cat VERSION)"
@@ -49,8 +49,7 @@ jobs:
         run: yarn test
       - name: Pack chectl
         run: |
-          git config --local user.name "Flavius Lacatusu"
-          git config --local user.email "flacatus@redhat.com"
+          git config --local user.name {{ github.actor }}
 
           sed -i  "s#version\":\ \"\(.*\)\",#version\":\ \"${{ steps.TAG_UTIL.outputs.chectl_version }}\",#g" package.json
           git tag ${{ steps.TAG_UTIL.outputs.gh_tag }}
