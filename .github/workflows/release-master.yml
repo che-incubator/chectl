@@ -8,7 +8,7 @@
 #
 #  Contributors:
 #    Red Hat, Inc. - initial API and implementation
-name: Build and Deploy release artifacts ⌛
+name: Create release and push to github pages
 on:
   # Trigger the workflow on push only for the master branch
   push:
@@ -19,14 +19,14 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout 🛎️
+      - name: Checkout
         uses: actions/checkout@v2.3.1
         with:
           persist-credentials: false
       - uses: actions/setup-node@v1
         with:
           node-version: '12'
-      - name: Generate tag utilities 📜
+      - name: Generate tag utilities
         id: TAG_UTIL
         run: |
           echo "::set-output name=gh_tag::$(date +'%Y%m%d%H%M%S')"
@@ -43,33 +43,30 @@ jobs:
             echo "::set-output name=chectl_version::0.0.$CURRENT_DAY-next"
             echo "::set-output name=gh_release_name::0.0.$CURRENT_DAY-next.$SHORT_SHA1"
           fi
-      - name: Install chectl dependencies 🔧
+      - name: Install chectl dependencies
         run: yarn
-      - name: Run unit tests 🩺
+      - name: Run unit tests
         run: yarn test
-      - name: Pack chectl 🎒
+      - name: Pack chectl
         run: |
           git config --local user.name "Flavius Lacatusu"
           git config --local user.email "flacatus@redhat.com"
-
           sed -i  "s#version\":\ \"\(.*\)\",#version\":\ \"${{ steps.TAG_UTIL.outputs.chectl_version }}\",#g" package.json
           git tag ${{ steps.TAG_UTIL.outputs.gh_tag }}
-
           TARGETS=linux-arm,linux-x64,linux-s390x,linux-ppc64le,darwin-x64,win32-x64,win32-x86
           npx oclif-dev pack --targets=$TARGETS
-
           git clone https://github.com/che-incubator/chectl -b gh-pages --single-branch gh-pages
           rm -rf gh-pages/.git
           echo $(date +%s) > gh-pages/update
           env
-      - name: Deploy to github pages 📈
+      - name: Deploy to github pages
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages # The branch the action should deploy to.
-          FOLDER: gh-pages # The folder the action should deploy.
+          BRANCH: gh-pages
+          FOLDER: gh-pages
           CLEAN: true # Automatically remove deleted files from the deploy branch
-      - name: Create Release and push artifacts 🚀
+      - name: Create Release and push artifacts
         uses: softprops/action-gh-release@v1
         with:
           name: ${{ steps.TAG_UTIL.outputs.gh_release_name }}
