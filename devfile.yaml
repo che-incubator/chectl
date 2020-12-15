@@ -36,7 +36,7 @@ commands:
                  yarn
         workdir: /projects/chectl
 
-  - name: Test
+  - name: Tests
     actions:
       - type: exec
         component: dev
