@@ -30,7 +30,7 @@ jobs:
         id: TAG_UTIL
         run: |
           echo "::set-output name=gh_tag::$(date +'%Y%m%d%H%M%S')"
-          if [[ ${GITHUB_REF#refs/heads/} =~ 7.* ]];s
+          if [[ ${GITHUB_REF#refs/heads/} =~ 7.* ]];
           then
             echo "::set-output name=chectl_version::$(cat VERSION)" 
             echo "::set-output name=gh_release_name::$(cat VERSION)"
