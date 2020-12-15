@@ -8,12 +8,12 @@
 #
 #  Contributors:
 #    Red Hat, Inc. - initial API and implementation
-name: Create release and push to github pages
+name: Release - generate release and push artifacts to github pages (after PR approved)
 on:
-  # Trigger the workflow on push only for the master branch
+  # Trigger the workflow on push only for the master and 7.y.x branches
   push:
     branches:
-      - '7.*.x' # Push events to matching 7.*.x branches
+      - '7.*.x'
       - 'master'
 jobs:
   build-and-deploy:

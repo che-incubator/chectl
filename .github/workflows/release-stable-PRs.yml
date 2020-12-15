@@ -1,5 +1,5 @@
 # This Workflow performs a full release of chectl
-name: Release
+name: Release - create pull request for upcoming release
 on:
   workflow_dispatch:
     inputs:
@@ -9,7 +9,7 @@ on:
         default: '7.y.z'
 jobs:
   build:
-    name: Create stable release Pull Request
+    name: Create pull request for upcoming release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-node@v2.1.2
         with:
           node-version: 12.18.2
-      - name: Run make-release.sh script
+      - name: Run make-release.sh script (commit changes, create branch, create PR)
         run: |
           # since we're using Flavius' token below to generate PRs, should also make tags/branches/commits by same owner
           # see https://github.com/che-incubator/chectl/settings/secrets/actions for the token used
