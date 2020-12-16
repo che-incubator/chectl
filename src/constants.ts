@@ -8,6 +8,9 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
+// labels
+export const CHE_RELATED_COMPONENT_LABEL = 'app=che'
+
  // images
 export const DEFAULT_CHE_IMAGE = 'quay.io/eclipse/che-server:nightly'
 export const DEFAULT_CHE_OPERATOR_IMAGE = 'quay.io/eclipse/che-operator:nightly'
