@@ -23,7 +23,6 @@ import { DEFAULT_CHE_OPERATOR_IMAGE, SUBSCRIPTION_NAME } from '../../constants'
 import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { getCommandErrorMessage, getCommandSuccessMessage, getCurrentChectlName, getCurrentChectlVersion, getImageTag, getLatestChectlVersion, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Update extends Command {
@@ -104,7 +103,6 @@ export default class Update extends Command {
     const apiTasks = new ApiTasks()
     const preUpdateTasks = new Listr([], ctx.listrOptions)
     preUpdateTasks.add(apiTasks.testApiTasks(flags, this))
-    preUpdateTasks.add(CommonPlatformTasks.oAuthProvidersExists(flags))
     preUpdateTasks.add(installerTasks.preUpdateTasks(flags, this))
 
     // update tasks
