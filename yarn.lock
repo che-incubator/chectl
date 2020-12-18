@@ -2126,7 +2126,7 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-devfile-workspace-operator@git://github.com/devfile/devworkspace-operator#master":
   version "0.0.0"
-  resolved "git://github.com/devfile/devworkspace-operator#488c2a00590dab1378e4eb498ff889021c4268ba"
+  resolved "git://github.com/devfile/devworkspace-operator#1440f0a6306142afc82258100fe6671fcb382281"
 
 "eclipse-che-minishift@git://github.com/minishift/minishift#master":
   version "0.0.0"
@@ -2134,11 +2134,11 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-operator@git://github.com/eclipse/che-operator#master":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che-operator#9eee2bfc6f7791e85675bc95d76d556025132cb5"
+  resolved "git://github.com/eclipse/che-operator#cdb613a73da93629bb20bbe36b959a8f3747a27b"
 
 "eclipse-che@git://github.com/eclipse/che#master":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che#7061f06ab1e13b947967878b0a96391ad29d7e59"
+  resolved "git://github.com/eclipse/che#08868bf99f15493f91656674c758e233c2b53e61"
 
 editorconfig@^0.15.0:
   version "0.15.3"
