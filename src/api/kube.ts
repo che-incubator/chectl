@@ -1374,9 +1374,6 @@ export class KubeHelper {
       merge(cheClusterCR, ctx.crPatch)
     }
 
-    // Back off some configuration properties(chectl estimated them like not working or not desired)
-    merge(cheClusterCR, ctx.CROverrides)
-
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', cheNamespace, 'checlusters', cheClusterCR)
