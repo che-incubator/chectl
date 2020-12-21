@@ -20,7 +20,7 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { CHE_CLUSTER_CRD, DEFAULT_CHE_IMAGE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
+import { CERT_MANAGER_CRD_DEFAULT_VERSION, CHE_CLUSTER_CRD, DEFAULT_CHE_IMAGE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
 import { getClusterClientCommand, isKubernetesPlatformFamily } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
@@ -1859,12 +1859,20 @@ export class KubeHelper {
     }
   }
 
-  async clusterIssuerExists(name: string): Promise<boolean> {
+  /**
+   * Returns CRD version of Cert Manager
+   */
+  async getCertManagerK8sApiVersion(): Promise<string> {
+    const certManagerCRD = await this.getCrd('certificates.cert-manager.io')
+    return certManagerCRD.spec.version ? certManagerCRD.spec.version : CERT_MANAGER_CRD_DEFAULT_VERSION
+  }
+
+  async clusterIssuerExists(name: string, crdVersion = CERT_MANAGER_CRD_DEFAULT_VERSION): Promise<boolean> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
     try {
       // If cluster issuers doesn't exist an exception will be thrown
-      await customObjectsApi.getClusterCustomObject('cert-manager.io', 'v1alpha2', 'clusterissuers', name)
+      await customObjectsApi.getClusterCustomObject('cert-manager.io', crdVersion, 'clusterissuers', name)
       return true
     } catch (e) {
       if (e.response.statusCode === 404) {
@@ -1875,12 +1883,12 @@ export class KubeHelper {
     }
   }
 
-  async listClusterIssuers(labelSelector?: string): Promise<any[]> {
+  async listClusterIssuers(labelSelector?: string, crdVersion = CERT_MANAGER_CRD_DEFAULT_VERSION): Promise<any[]> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
     let res
     try {
-      res = await customObjectsApi.listClusterCustomObject('cert-manager.io', 'v1alpha2', 'clusterissuers', undefined, undefined, undefined, labelSelector)
+      res = await customObjectsApi.listClusterCustomObject('cert-manager.io', crdVersion, 'clusterissuers', undefined, undefined, undefined, labelSelector)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1896,22 +1904,22 @@ export class KubeHelper {
     return clusterIssuersList.items
   }
 
-  async createCheClusterIssuer(cheClusterIssuerYamlPath: string): Promise<void> {
+  async createCheClusterIssuer(cheClusterIssuerYamlPath: string, crdVersion = CERT_MANAGER_CRD_DEFAULT_VERSION): Promise<void> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
     const cheClusterIssuer = this.safeLoadFromYamlFile(cheClusterIssuerYamlPath)
     try {
-      await customObjectsApi.createClusterCustomObject('cert-manager.io', 'v1alpha2', 'clusterissuers', cheClusterIssuer)
+      await customObjectsApi.createClusterCustomObject('cert-manager.io', crdVersion, 'clusterissuers', cheClusterIssuer)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async createCheClusterCertificate(certificateYaml: V1alpha2Certificate): Promise<void> {
+  async createCheClusterCertificate(certificateYaml: V1alpha2Certificate, crdVersion = CERT_MANAGER_CRD_DEFAULT_VERSION): Promise<void> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
     try {
-      await customObjectsApi.createNamespacedCustomObject('cert-manager.io', 'v1alpha2', certificateYaml.metadata.namespace, 'certificates', certificateYaml)
+      await customObjectsApi.createNamespacedCustomObject('cert-manager.io', crdVersion, certificateYaml.metadata.namespace, 'certificates', certificateYaml)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }

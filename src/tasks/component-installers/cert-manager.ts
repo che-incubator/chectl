@@ -67,6 +67,8 @@ export class CertManagerTasks {
             throw new Error('Cert Manager should be deployed before.')
           }
 
+          ctx.certManagerK8sApiVersion = await this.kubeHelper.getCertManagerK8sApiVersion()
+
           const timeout = 5 * 60 * 1000
           await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cert-manager', CERT_MANAGER_NAMESPACE_NAME, 1000, timeout)
           await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=webhook', CERT_MANAGER_NAMESPACE_NAME, 1000, timeout)
@@ -132,7 +134,7 @@ export class CertManagerTasks {
       {
         title: 'Set up Eclipse Che certificates issuer',
         task: async (ctx: any, task: any) => {
-          const clusterIssuers = await this.kubeHelper.listClusterIssuers(CHE_RELATED_COMPONENT_LABEL)
+          const clusterIssuers = await this.kubeHelper.listClusterIssuers(CHE_RELATED_COMPONENT_LABEL, ctx.certManagerK8sApiVersion)
           if (clusterIssuers.length > 1) {
             throw new Error(`Found more than one cluster issuer with "${CHE_RELATED_COMPONENT_LABEL}" label`)
           } else if (clusterIssuers.length === 1) {
@@ -143,10 +145,10 @@ export class CertManagerTasks {
           }
 
           ctx.clusterIssuersName = DEFAULT_CHE_CLUSTER_ISSUER_NAME
-          const cheClusterIssuerExists = await this.kubeHelper.clusterIssuerExists(DEFAULT_CHE_CLUSTER_ISSUER_NAME)
+          const cheClusterIssuerExists = await this.kubeHelper.clusterIssuerExists(DEFAULT_CHE_CLUSTER_ISSUER_NAME, ctx.certManagerK8sApiVersion)
           if (!cheClusterIssuerExists) {
             const cheCertificateClusterIssuerTemplatePath = path.join(flags.templates, '/cert-manager/che-cluster-issuer.yml')
-            await this.kubeHelper.createCheClusterIssuer(cheCertificateClusterIssuerTemplatePath)
+            await this.kubeHelper.createCheClusterIssuer(cheCertificateClusterIssuerTemplatePath, ctx.certManagerK8sApiVersion)
 
             task.title = `${task.title}...done`
           } else {
@@ -176,7 +178,7 @@ export class CertManagerTasks {
 
           certifiateYaml.metadata.namespace = flags.chenamespace
 
-          await this.kubeHelper.createCheClusterCertificate(certifiateYaml)
+          await this.kubeHelper.createCheClusterCertificate(certifiateYaml, ctx.certManagerK8sApiVersion)
           ctx.cheCertificateExists = true
 
           task.title = `${task.title}...done`
