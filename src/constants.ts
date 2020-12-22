@@ -9,7 +9,7 @@
  **********************************************************************/
 
 // labels
-export const CHE_RELATED_COMPONENT_LABEL = 'app=che'
+export const CHE_RELATED_COMPONENT_LABEL = 'client/org.eclipse.che=true'
 
  // images
 export const DEFAULT_CHE_IMAGE = 'quay.io/eclipse/che-server:nightly'
