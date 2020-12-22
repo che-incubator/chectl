@@ -1296,6 +1296,17 @@ export class KubeHelper {
     }
   }
 
+  async getCrdApiVersion(crdName: string): Promise<string> {
+    const crd = await this.getCrd(crdName)
+    if (!crd.spec.versions) {
+      // Should never happen
+      return 'v1'
+    }
+
+    const crdv = crd.spec.versions.find(version => version.storage)
+    return crdv ? crdv.name : 'v1'
+  }
+
   async deleteCrd(name: string): Promise<void> {
     const k8sApiextensionsApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApiextensionsV1beta1Api)
     try {
@@ -1863,14 +1874,7 @@ export class KubeHelper {
    * Returns CRD version of Cert Manager
    */
   async getCertManagerK8sApiVersion(): Promise<string> {
-    const certManagerCRD = await this.getCrd('certificates.cert-manager.io')
-    if (!certManagerCRD.spec.versions) {
-      // should never happen
-      throw new Error('"spec.versions" is empty')
-    }
-
-    const crdv = certManagerCRD.spec.versions.find(version => version.storage)
-    return crdv ? crdv.name : 'v1'
+    return this.getCrdApiVersion('certificates.cert-manager.io')
   }
 
   async clusterIssuerExists(name: string, version: string): Promise<boolean> {
