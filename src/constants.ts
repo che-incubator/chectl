@@ -20,7 +20,6 @@ export const DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE = 'quay.io/devfile/devworksp
 export const CA_CERT_GENERATION_JOB_IMAGE = 'quay.io/eclipse/che-cert-manager-ca-cert-generator:671342c'
 
 export const CERT_MANAGER_NAMESPACE_NAME = 'cert-manager'
-export const CERT_MANAGER_CRD_DEFAULT_VERSION = 'v1alpha2'
 export const CHE_TLS_SECRET_NAME = 'che-tls'
 export const CHE_ROOT_CA_SECRET_NAME = 'self-signed-certificate'
 export const DEFAULT_CA_CERT_FILE_NAME = 'cheCA.crt'

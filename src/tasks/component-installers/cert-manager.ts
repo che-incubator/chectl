@@ -134,11 +134,20 @@ export class CertManagerTasks {
       {
         title: 'Set up Eclipse Che certificates issuer',
         task: async (ctx: any, task: any) => {
-          const clusterIssuers = await this.kubeHelper.listClusterIssuers(CHE_RELATED_COMPONENT_LABEL, ctx.certManagerK8sApiVersion)
+          let clusterIssuers = await this.kubeHelper.listClusterIssuers(ctx.certManagerK8sApiVersion, CHE_RELATED_COMPONENT_LABEL)
           if (clusterIssuers.length > 1) {
             throw new Error(`Found more than one cluster issuer with "${CHE_RELATED_COMPONENT_LABEL}" label`)
           } else if (clusterIssuers.length === 1) {
             // Found already configured cluster issuer
+            ctx.clusterIssuersName = clusterIssuers[0].metadata.name
+            task.title = `${task.title}...found existing one: ${ctx.clusterIssuersName}`
+            return
+          }
+
+          // There is no labeled cluster issuers, check if there is only one configured
+          clusterIssuers = await this.kubeHelper.listClusterIssuers(ctx.certManagerK8sApiVersion)
+          if (clusterIssuers.length === 1) {
+            // Using the cluster issuer
             ctx.clusterIssuersName = clusterIssuers[0].metadata.name
             task.title = `${task.title}...found existing one: ${ctx.clusterIssuersName}`
             return

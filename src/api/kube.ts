@@ -20,7 +20,7 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { CERT_MANAGER_CRD_DEFAULT_VERSION, CHE_CLUSTER_CRD, DEFAULT_CHE_IMAGE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
+import { CHE_CLUSTER_CRD, DEFAULT_CHE_IMAGE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
 import { getClusterClientCommand, isKubernetesPlatformFamily } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
@@ -1864,15 +1864,21 @@ export class KubeHelper {
    */
   async getCertManagerK8sApiVersion(): Promise<string> {
     const certManagerCRD = await this.getCrd('certificates.cert-manager.io')
-    return certManagerCRD.spec.version ? certManagerCRD.spec.version : CERT_MANAGER_CRD_DEFAULT_VERSION
+    if (!certManagerCRD.spec.versions) {
+      // should never happen
+      throw new Error('"spec.versions" is empty')
+    }
+
+    const crdv = certManagerCRD.spec.versions.find(version => version.storage)
+    return crdv ? crdv.name : 'v1'
   }
 
-  async clusterIssuerExists(name: string, crdVersion = CERT_MANAGER_CRD_DEFAULT_VERSION): Promise<boolean> {
+  async clusterIssuerExists(name: string, version: string): Promise<boolean> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
     try {
       // If cluster issuers doesn't exist an exception will be thrown
-      await customObjectsApi.getClusterCustomObject('cert-manager.io', crdVersion, 'clusterissuers', name)
+      await customObjectsApi.getClusterCustomObject('cert-manager.io', version, 'clusterissuers', name)
       return true
     } catch (e) {
       if (e.response.statusCode === 404) {
@@ -1883,12 +1889,12 @@ export class KubeHelper {
     }
   }
 
-  async listClusterIssuers(labelSelector?: string, crdVersion = CERT_MANAGER_CRD_DEFAULT_VERSION): Promise<any[]> {
+  async listClusterIssuers(version: string, labelSelector?: string): Promise<any[]> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
     let res
     try {
-      res = await customObjectsApi.listClusterCustomObject('cert-manager.io', crdVersion, 'clusterissuers', undefined, undefined, undefined, labelSelector)
+      res = await customObjectsApi.listClusterCustomObject('cert-manager.io', version, 'clusterissuers', undefined, undefined, undefined, labelSelector)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1898,28 +1904,25 @@ export class KubeHelper {
     }
     const clusterIssuersList: {items?: any[]} = res.body
 
-    if (!clusterIssuersList.items) {
-      return []
-    }
-    return clusterIssuersList.items
+    return clusterIssuersList.items || []
   }
 
-  async createCheClusterIssuer(cheClusterIssuerYamlPath: string, crdVersion = CERT_MANAGER_CRD_DEFAULT_VERSION): Promise<void> {
+  async createCheClusterIssuer(cheClusterIssuerYamlPath: string, version: string): Promise<void> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
     const cheClusterIssuer = this.safeLoadFromYamlFile(cheClusterIssuerYamlPath)
     try {
-      await customObjectsApi.createClusterCustomObject('cert-manager.io', crdVersion, 'clusterissuers', cheClusterIssuer)
+      await customObjectsApi.createClusterCustomObject('cert-manager.io', version, 'clusterissuers', cheClusterIssuer)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async createCheClusterCertificate(certificateYaml: V1alpha2Certificate, crdVersion = CERT_MANAGER_CRD_DEFAULT_VERSION): Promise<void> {
+  async createCheClusterCertificate(certificateYaml: V1alpha2Certificate, version: string): Promise<void> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
     try {
-      await customObjectsApi.createNamespacedCustomObject('cert-manager.io', crdVersion, certificateYaml.metadata.namespace, 'certificates', certificateYaml)
+      await customObjectsApi.createNamespacedCustomObject('cert-manager.io', version, certificateYaml.metadata.namespace, 'certificates', certificateYaml)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
