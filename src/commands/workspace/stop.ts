@@ -15,7 +15,6 @@ import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
-import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Stop extends Command {
   static description = 'Stop a running workspace'
@@ -47,7 +46,6 @@ export default class Stop extends Command {
     await cheApiClient.stopWorkspace(workspaceId, accessToken)
     cli.log(`Workspace ${workspaceId} successfully stopped.`)
 
-    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 }
