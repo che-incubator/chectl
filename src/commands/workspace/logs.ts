@@ -16,7 +16,6 @@ import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { skipKubeHealthzCheck } from '../../common-flags'
-import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Logs extends Command {
   static description = 'Collect workspace(s) logs'
@@ -61,7 +60,5 @@ export default class Logs extends Command {
     } catch (error) {
       this.error(error)
     }
-
-    notifyCommandCompletedSuccessfully()
   }
 }

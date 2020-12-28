@@ -16,7 +16,6 @@ import { getLoginData } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
-import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Delete extends Command {
   static description = 'Delete a stopped workspace - use workspace:stop to stop the workspace before deleting it'
@@ -71,7 +70,6 @@ export default class Delete extends Command {
       }
     }
 
-    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 }

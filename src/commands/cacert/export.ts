@@ -16,7 +16,7 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
-import { getCommandErrorMessage, notifyCommandCompletedSuccessfully } from '../../util'
+import { getCommandErrorMessage } from '../../util'
 
 export default class Export extends Command {
   static description = 'Retrieves Eclipse Che self-signed certificate'
@@ -61,7 +61,5 @@ export default class Export extends Command {
     } catch (err) {
       this.error(getCommandErrorMessage(err))
     }
-
-    notifyCommandCompletedSuccessfully()
   }
 }

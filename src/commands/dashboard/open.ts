@@ -14,7 +14,6 @@ import { cli } from 'cli-ux'
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { cheNamespace } from '../../common-flags'
-import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Open extends Command {
   static description = 'Open Eclipse Che dashboard'
@@ -39,7 +38,6 @@ export default class Open extends Command {
       this.error(error)
     }
 
-    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 }

@@ -16,7 +16,6 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { cheNamespace } from '../../common-flags'
-import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Status extends Command {
   // Implementation-Version it is a property from Manifest.ml inside of che server pod which indicate Eclipse Che build version.
@@ -47,6 +46,5 @@ export default class Status extends Command {
     cli.log(`Eclipse Che Url        : ${await che.cheURL(flags.chenamespace)}`)
     cli.log(`OpenShift OAuth enabled: ${openshiftOauth}\n`)
 
-    notifyCommandCompletedSuccessfully()
   }
 }

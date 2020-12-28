@@ -23,7 +23,7 @@ import { getLoginData } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
-import { getClusterClientCommand, getCommandErrorMessage, notifyCommandCompletedSuccessfully, OPENSHIFT_CLI } from '../../util'
+import { getClusterClientCommand, getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
 
 export default class Inject extends Command {
   static description = 'Inject configurations and tokens in a workspace'
@@ -98,8 +98,6 @@ export default class Inject extends Command {
     } catch (err) {
       this.error(getCommandErrorMessage(err))
     }
-
-    notifyCommandCompletedSuccessfully()
   }
 
   async injectKubeconfig(flags: any, workspaceNamespace: string, workspacePodName: string, workspaceId: string): Promise<void> {
