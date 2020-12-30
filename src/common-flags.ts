@@ -112,3 +112,11 @@ export const logsDirectory = string({
   description: 'Directory to store logs into',
   env: 'CHE_LOGS'
 })
+
+export const DEPLOY_VERSION_KEY = 'version'
+export const cheDeployVersion = string({
+  char: 'v',
+  description: 'Version to deploy. Should be version (e.g. 7.15.2) or "stable" or "next"',
+  env: 'CHE_DEPLOY_VERSION',
+  default: 'latest',
+})

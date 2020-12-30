@@ -20,10 +20,12 @@ import * as yaml from 'js-yaml'
 import * as nodeforge from 'node-forge'
 import * as os from 'os'
 import * as path from 'path'
+import * as rimraf from 'rimraf'
+import * as unzipper from 'unzipper'
 
 import { OpenShiftHelper } from '../api/openshift'
 import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../constants'
-import { base64Decode } from '../util'
+import { base64Decode, downloadFile } from '../util'
 
 import { CheApiClient } from './che-api-client'
 import { ChectlContext } from './context'
@@ -482,6 +484,71 @@ export class CheHelper {
     fs.ensureFileSync(fileName)
 
     return fileName
+  }
+
+  /**
+   * Gets install templates for given installer.
+   * @param installer Che installer
+   * @param url link to zip archive with sources of Che operator
+   * @param destDir destination directory into which the templates should be unpacked
+   */
+  async getAndPrepareInstallerTemplates(installer: string, url: string, destDir: string): Promise<void> {
+    // Add che-operator folder for operator templates
+    if (installer === 'operator') {
+      destDir = path.join(destDir, 'che-operator')
+    }
+    // No need to add kubernetes folder for Helm installer as it already present in the archive
+
+    const tempDir = path.join(os.tmpdir(), Date.now().toString())
+    await fs.mkdirp(tempDir)
+    const zipFile = path.join(tempDir, `che-templates-${installer}.zip`)
+    await downloadFile(url, zipFile)
+    await this.unzipTemplates(zipFile, destDir)
+    // Clean up zip. Do not wait when finishes.
+    rimraf(tempDir, () => {})
+  }
+
+  /**
+   * Unpacks repository deploy templates into specified folder
+   * @param zipFile path to zip archive with source code
+   * @param destDir target directory into which templates should be unpacked
+   */
+  private async unzipTemplates(zipFile: string, destDir: string) {
+    // Gets path from: repo-name/deploy/path
+    const deployDirRegex = new RegExp('(?:^[\\\w-]*\\\/deploy\\\/)(.*)')
+
+    const zip = fs.createReadStream(zipFile).pipe(unzipper.Parse({ forceStream: true }))
+    for await (const entry of zip) {
+      const entryPathInZip: string = entry.path
+      const templatesPathMatch = entryPathInZip.match(deployDirRegex)
+      if (templatesPathMatch && templatesPathMatch.length > 1 && templatesPathMatch[1]) {
+        // Remove prefix from in-zip path
+        const entryPathWhenExtracted = templatesPathMatch[1]
+        // Path to the item in target location
+        const dest = path.join(destDir, entryPathWhenExtracted)
+
+        // Extract item
+        if (entry.type === 'File') {
+          const parentDirName = path.dirname(dest)
+          if (!fs.existsSync(parentDirName)) {
+            await fs.mkdirp(parentDirName)
+          }
+          entry.pipe(fs.createWriteStream(dest))
+        } else if (entry.type === 'Directory') {
+          if (!fs.existsSync(dest)) {
+            await fs.mkdirp(dest)
+          }
+          // The folder is created above
+          entry.autodrain()
+        } else {
+          // Ignore the item as we do not need to handle links and etc.
+          entry.autodrain()
+        }
+      } else {
+        // No need to extract this item
+        entry.autodrain()
+      }
+    }
   }
 
 }

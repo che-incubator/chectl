@@ -10,13 +10,15 @@
 
 import Command from '@oclif/command'
 import ansi = require('ansi-colors')
-import { copy, mkdirp, remove } from 'fs-extra'
+import * as fs from 'fs-extra'
 import * as Listr from 'listr'
 import { isEmpty } from 'lodash'
 import * as path from 'path'
+import * as rimraf from 'rimraf'
 
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
+import { CheGithubClient } from '../../api/github-client'
 import { KubeHelper } from '../../api/kube'
 import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
 
@@ -40,25 +42,80 @@ export function createNamespaceTask(namespaceName: string, labels: {}): Listr.Li
   }
 }
 
-export function copyOperatorResources(flags: any, cacheDir: string): Listr.ListrTask {
+/**
+ * Sets flags.templates based on required version and installer.
+ * Does not support OLM.
+ */
+export function prepareTemplates(flags: any): Listr.ListrTask {
   return {
-    title: 'Copying operator resources',
+    title: 'Prepare templates',
+    enabled: () => !flags.templates && flags.installer !== 'olm',
     task: async (ctx: any, task: any) => {
-      ctx.resourcesPath = await copyCheOperatorResources(flags.templates, cacheDir)
-      task.title = `${task.title}...done.`
+      // All templates are stored in the cache directory
+      // Example path: ~/.cache/chectl/templates/7.15.1/
+      const templatesRootDir = path.join(ctx[ChectlContext.CACHE_DIR], 'templates')
+
+      let installerTemplatesSubDir: string
+      switch (flags.installer) {
+      case 'operator':
+        installerTemplatesSubDir = 'che-operator'
+        break
+      case 'helm':
+        installerTemplatesSubDir = 'kubernetes'
+        break
+      case 'olm':
+        // Should be handled on install phase when catalog source is deployed
+        return
+      default:
+        throw new Error(`Unknow installer ${flags.installer}`)
+      }
+
+      const githubClient = new CheGithubClient()
+      const cheHelper = new CheHelper(flags)
+
+      // 'nightly' is an alias for 'next'. As we use version as part of templates path it should be converted.
+      if (flags.version === 'nightly') {
+        flags.version = 'next'
+      }
+      const verInfo = await githubClient.getTemplatesTagInfo(flags.installer, flags.version)
+      if (!verInfo) {
+        throw new Error(`Version ${flags.version} does not exist`)
+      }
+
+      const versionTemplatesDirPath = path.join(templatesRootDir, verInfo.name)
+      flags.templates = versionTemplatesDirPath
+
+      const installerTemplatesDirPath = path.join(versionTemplatesDirPath, installerTemplatesSubDir)
+      const commitHashFilePath = path.join(installerTemplatesDirPath, 'commit-hash.txt')
+      if (fs.existsSync(installerTemplatesDirPath)) {
+        if (flags.version === 'next') {
+          // Check commit hash
+          try {
+            const commitHash = (await fs.readFile(commitHashFilePath)).toString()
+            if (commitHash === verInfo.commit.sha) {
+              task.title = `${task.title}... found up to date cached version: ${verInfo.name}`
+              return
+            }
+          } catch {
+            // Failed to compare commits hashes.
+            // Suppose they are different
+          }
+          // Delete old templates and download newer
+          rimraf.sync(versionTemplatesDirPath)
+        } else {
+          // Use cahced templates
+          task.title = `${task.title}... found cache for version ${verInfo.name}`
+          return
+        }
+      }
+
+      // Download templates
+      task.title = `${task.title} for version ${verInfo.name}`
+      await cheHelper.getAndPrepareInstallerTemplates(flags.installer, verInfo.zipball_url, versionTemplatesDirPath)
+      // Save commit hash
+      await fs.writeFile(commitHashFilePath, verInfo.commit.sha)
     }
   }
-}
-
-async function copyCheOperatorResources(templatesDir: string, cacheDir: string): Promise<string> {
-  const srcDir = path.join(templatesDir, '/che-operator/')
-  const destDir = path.join(cacheDir, '/templates/che-operator/')
-
-  await remove(destDir)
-  await mkdirp(destDir)
-  await copy(srcDir, destDir)
-
-  return destDir
 }
 
 export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.ListrTask {

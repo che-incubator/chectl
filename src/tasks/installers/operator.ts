@@ -13,13 +13,15 @@ import { cli } from 'cli-ux'
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
+import * as path from 'path'
 
+import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME } from '../../constants'
 import { isStableVersion } from '../../util'
 import { KubeTasks } from '../kube'
 
-import { copyOperatorResources, createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
+import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
 
 export class OperatorTasks {
   operatorServiceAccount = 'che-operator'
@@ -41,11 +43,12 @@ export class OperatorTasks {
     const operatorNamespaceEditorClusterRoleBindingName = `${flags.chenamespace}-${this.operatorNamespaceEditorClusterRoleBinding}`
     const kube = new KubeHelper(flags)
     const kubeTasks = new KubeTasks(flags)
+    const ctx = ChectlContext.get()
+    ctx.resourcesPath = path.join(flags.templates, 'che-operator')
     if (isStableVersion(flags)) {
       command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of Eclipse Che (--installer=olm).')
     }
     return new Listr([
-      copyOperatorResources(flags, command.config.cacheDir),
       createNamespaceTask(flags.chenamespace, {}),
       {
         title: `Create ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
@@ -54,7 +57,7 @@ export class OperatorTasks {
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            const yamlFilePath = ctx.resourcesPath + 'service_account.yaml'
+            const yamlFilePath = path.join(ctx.resourcesPath, 'service_account.yaml')
             await kube.createServiceAccountFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...done.`
           }
@@ -67,7 +70,7 @@ export class OperatorTasks {
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            const yamlFilePath = ctx.resourcesPath + 'role.yaml'
+            const yamlFilePath = path.join(ctx.resourcesPath, 'role.yaml')
             await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...done.`
           }
@@ -80,7 +83,7 @@ export class OperatorTasks {
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            const yamlFilePath = ctx.resourcesPath + 'cluster_role.yaml'
+            const yamlFilePath = path.join(ctx.resourcesPath, 'cluster_role.yaml')
             await kube.createClusterRoleFromFile(yamlFilePath, clusterRoleName)
             task.title = `${task.title}...done.`
           }
@@ -94,7 +97,7 @@ export class OperatorTasks {
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            const yamlFilePath = ctx.resourcesPath + 'namespaces_cluster_role.yaml'
+            const yamlFilePath = path.join(ctx.resourcesPath, 'namespaces_cluster_role.yaml')
             await kube.createClusterRoleFromFile(yamlFilePath, namespaceEditorClusterRoleName)
             task.title = `${task.title}...done.`
           }
@@ -119,7 +122,7 @@ export class OperatorTasks {
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            const yamlFilePath = ctx.resourcesPath + 'role_binding.yaml'
+            const yamlFilePath = path.join(ctx.resourcesPath, 'role_binding.yaml')
             await kube.createRoleBindingFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...done.`
           }
@@ -141,7 +144,7 @@ export class OperatorTasks {
         title: `Create CRD ${this.cheClusterCrd}`,
         task: async (ctx: any, task: any) => {
           const exist = await kube.crdExist(this.cheClusterCrd)
-          const yamlFilePath = ctx.resourcesPath + 'crds/org_v1_che_crd.yaml'
+          const yamlFilePath = path.join(ctx.resourcesPath, 'crds', 'org_v1_che_crd.yaml')
 
           if (exist) {
             const checkCRD = await kube.isCRDCompatible(this.cheClusterCrd, yamlFilePath)
@@ -169,7 +172,7 @@ export class OperatorTasks {
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            await kube.createDeploymentFromFile(ctx.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
+            await kube.createDeploymentFromFile(path.join(ctx.resourcesPath, 'operator.yaml'), flags.chenamespace, flags['che-operator-image'])
             task.title = `${task.title}...done.`
           }
         }
@@ -188,7 +191,7 @@ export class OperatorTasks {
           }
 
           if (!ctx.customCR) {
-            const yamlFilePath = ctx.resourcesPath + 'crds/org_v1_che_cr.yaml'
+            const yamlFilePath = path.join(ctx.resourcesPath, 'crds', 'org_v1_che_cr.yaml')
             ctx.defaultCR = yaml.safeLoad(fs.readFileSync(yamlFilePath).toString())
           }
 
@@ -228,12 +231,11 @@ export class OperatorTasks {
     const namespaceEditorClusterRoleName = `${flags.chenamespace}-${this.namespaceEditorClusterRole}`
     const operatorNamespaceEditorClusterRoleBindingName = `${flags.chenamespace}-${this.operatorNamespaceEditorClusterRoleBinding}`
     return new Listr([
-      copyOperatorResources(flags, command.config.cacheDir),
       {
         title: `Updating ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
           const exist = await kube.serviceAccountExist(this.operatorServiceAccount, flags.chenamespace)
-          const yamlFilePath = ctx.resourcesPath + 'service_account.yaml'
+          const yamlFilePath = path.join(ctx.resourcesPath, 'service_account.yaml')
           if (exist) {
             await kube.replaceServiceAccountFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...updated.`
@@ -247,7 +249,7 @@ export class OperatorTasks {
         title: `Updating Role ${this.operatorRole} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
           const exist = await kube.roleExist(this.operatorRole, flags.chenamespace)
-          const yamlFilePath = ctx.resourcesPath + 'role.yaml'
+          const yamlFilePath = path.join(ctx.resourcesPath, 'role.yaml')
           if (exist) {
             await kube.replaceRoleFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...updated.`
@@ -262,7 +264,7 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const clusterRoleExists = await kube.clusterRoleExist(clusterRoleName)
           const legacyClusterRoleExists = await kube.clusterRoleExist(this.operatorClusterRole)
-          const yamlFilePath = ctx.resourcesPath + 'cluster_role.yaml'
+          const yamlFilePath = path.join(ctx.resourcesPath, 'cluster_role.yaml')
           if (clusterRoleExists) {
             await kube.replaceClusterRoleFromFile(yamlFilePath, clusterRoleName)
             task.title = `${task.title}...updated.`
@@ -280,7 +282,7 @@ export class OperatorTasks {
         title: `Updating ClusterRole ${namespaceEditorClusterRoleName}`,
         task: async (ctx: any, task: any) => {
           const clusterRoleExists = await kube.clusterRoleExist(namespaceEditorClusterRoleName)
-          const yamlFilePath = ctx.resourcesPath + 'namespaces_cluster_role.yaml'
+          const yamlFilePath = path.join(ctx.resourcesPath, 'namespaces_cluster_role.yaml')
           if (clusterRoleExists) {
             await kube.replaceClusterRoleFromFile(yamlFilePath, namespaceEditorClusterRoleName)
             task.title = `${task.title}...updated.`
@@ -294,7 +296,7 @@ export class OperatorTasks {
         title: `Updating RoleBinding ${this.operatorRoleBinding} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
           const exist = await kube.roleBindingExist(this.operatorRoleBinding, flags.chenamespace)
-          const yamlFilePath = ctx.resourcesPath + 'role_binding.yaml'
+          const yamlFilePath = path.join(ctx.resourcesPath, 'role_binding.yaml')
           if (exist) {
             await kube.replaceRoleBindingFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...updated.`
@@ -339,7 +341,7 @@ export class OperatorTasks {
         title: `Updating Eclipse Che cluster CRD ${this.cheClusterCrd}`,
         task: async (ctx: any, task: any) => {
           const crd = await kube.getCrd(this.cheClusterCrd)
-          const yamlFilePath = ctx.resourcesPath + 'crds/org_v1_che_crd.yaml'
+          const yamlFilePath = path.join(ctx.resourcesPath, 'crds', 'org_v1_che_crd.yaml')
           if (crd) {
             if (!crd.metadata || !crd.metadata.resourceVersion) {
               throw new Error(`Fetched CRD ${this.cheClusterCrd} without resource version`)
@@ -364,11 +366,12 @@ export class OperatorTasks {
         title: `Updating deployment ${OPERATOR_DEPLOYMENT_NAME} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
           const exist = await kube.deploymentExist(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
+          const deploymentPath = path.join(ctx.resourcesPath, 'operator.yaml')
           if (exist) {
-            await kube.replaceDeploymentFromFile(ctx.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
+            await kube.replaceDeploymentFromFile(deploymentPath, flags.chenamespace, flags['che-operator-image'])
             task.title = `${task.title}...updated.`
           } else {
-            await kube.createDeploymentFromFile(ctx.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
+            await kube.createDeploymentFromFile(deploymentPath, flags.chenamespace, flags['che-operator-image'])
             task.title = `${task.title}...created new one.`
           }
         }

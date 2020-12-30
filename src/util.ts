@@ -169,7 +169,7 @@ export function isDirEmpty(dirname: string): boolean {
  */
 export function getCommandErrorMessage(err: Error): string {
   const ctx = ChectlContext.get()
-  const logDirectory = ctx[ChectlContext.LOGS_DIRECTORY]
+  const logDirectory = ctx[ChectlContext.LOGS_DIR]
 
   let message = `${err}\nCommand ${ctx[ChectlContext.COMMAND_ID]} failed. Error log: ${ctx[ChectlContext.ERROR_LOG]}`
   if (logDirectory && isDirEmpty(logDirectory)) {
@@ -215,4 +215,19 @@ export async function getLatestChectlVersion(channel: string): Promise<string | 
   } catch {
     return
   }
+}
+
+/**
+ * Downloads file by given url into provided location
+ * @param url link to file to download
+ * @param dest path where to save downloaded file
+ */
+export async function downloadFile(url: string, dest: string): Promise<void> {
+  const streamWriter = fs.createWriteStream(dest)
+  const response = await axios({ url, method: 'GET', responseType: 'stream' })
+  response.data.pipe(streamWriter)
+  return new Promise((resolve, reject) => {
+    streamWriter.on('finish', resolve)
+    streamWriter.on('error', reject)
+  })
 }

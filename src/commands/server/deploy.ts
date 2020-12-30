@@ -11,17 +11,15 @@
 import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
-import * as fs from 'fs-extra'
 import * as Listr from 'listr'
-import * as path from 'path'
 
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { cheDeployment, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, devWorkspaceControllerNamespace, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
+import { cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, DEPLOY_VERSION_KEY, devWorkspaceControllerNamespace, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
 import { DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
-import { getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
+import { getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, prepareTemplates, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
@@ -203,6 +201,7 @@ export default class Deploy extends Command {
       env: 'DEV_WORKSPACE_OPERATOR_IMAGE',
     }),
     'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,
+    [DEPLOY_VERSION_KEY]: cheDeployVersion,
   }
 
   async setPlaformDefaults(flags: any, ctx: any): Promise<void> {
@@ -211,25 +210,6 @@ export default class Deploy extends Command {
     if (!flags.installer) {
       await this.setDefaultInstaller(flags, ctx)
       cli.info(`› Installer type is set to: '${flags.installer}'`)
-    }
-
-    if (!flags.templates) {
-      // use local templates folder if present
-      const templates = 'templates'
-      const templatesDir = path.resolve(templates)
-      if (flags.installer === 'operator') {
-        if (fs.pathExistsSync(`${templatesDir}/che-operator`)) {
-          flags.templates = templatesDir
-        }
-      } else if (flags.installer === 'minishift-addon') {
-        if (fs.pathExistsSync(`${templatesDir}/minishift-addon/`)) {
-          flags.templates = templatesDir
-        }
-      }
-
-      if (!flags.templates) {
-        flags.templates = path.join(__dirname, '../../../templates')
-      }
     }
   }
 
@@ -353,6 +333,7 @@ export default class Deploy extends Command {
       title: '👀  Looking for an already existing Eclipse Che instance',
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     })
+    preInstallTasks.add(prepareTemplates(flags))
 
     let installTasks = new Listr(installerTasks.installTasks(flags, this), ctx.listrOptions)
 
