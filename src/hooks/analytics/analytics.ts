@@ -12,6 +12,7 @@ import { IConfig } from '@oclif/config'
 import { cli } from 'cli-ux'
 
 import { ConfigManager } from '../../api/config-manager'
+import { getProjectlName } from '../../util'
 
 import { SegmentAdapter, SegmentProperties } from './segment-adapter'
 
@@ -28,7 +29,7 @@ export const hook = async (options: { command: string, flags: any, config: IConf
 
     // Prompt question if user allow chectl to collect data anonymous data.
     if (!options.flags.telemetry && !segmentTelemetry) {
-      const confirmed = await cli.confirm('Chectl would like to collect data about how users use cli commands. Participation is voluntary and when you choose to participate chectl automatically sends statistic usage about how you use the cli [y/n]:')
+      const confirmed = await cli.confirm(`${getProjectlName()} would like to collect data about how users use cli commands. Participation is voluntary and when you choose to participate chectl automatically sends statistic usage about how you use the cli [y/n]:`)
       segmentTelemetry = confirmed ? 'on' : 'off'
       configManager.setProperty(SegmentProperties.Telemetry, segmentTelemetry)
     }

@@ -23,7 +23,7 @@ import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE, SUBSCRIPTION_NA
 import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandErrorMessage, getCommandSuccessMessage, getCurrentChectlName, getCurrentChectlVersion, getImageTag, getLatestChectlVersion, notifyCommandCompletedSuccessfully } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, getImageTag, getLatestChectlVersion, getProjectlName, getProjectVersion, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -132,9 +132,9 @@ export default class Update extends Command {
 
       const defaultOperatorImageTag = getImageTag(DEFAULT_CHE_OPERATOR_IMAGE)
       const chectlChannel = defaultOperatorImageTag === 'nightly' ? 'next' : 'stable'
-      const currentChectlVersion = getCurrentChectlVersion()
+      const currentChectlVersion = getProjectVersion()
       const latestChectlVersion = await getLatestChectlVersion(chectlChannel)
-      const chectlName = getCurrentChectlName()
+      const chectlName = getProjectlName()
 
       // the same version is already installed
       if (newOperatorImage === existedOperatorImage) {
@@ -154,8 +154,8 @@ and then try again.`)
           // unknown project, no patch file then suggest to update
           if (!flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]) {
             cli.warn(`It is not possible to update Eclipse Che to a newer version
-using the current '${currentChectlVersion}' version of '${getCurrentChectlName()}'.
-Please, update '${getCurrentChectlName()}' and then try again.`)
+using the current '${currentChectlVersion}' version of '${getProjectlName()}'.
+Please, update '${getProjectlName()}' and then try again.`)
             this.exit(0)
           }
         }

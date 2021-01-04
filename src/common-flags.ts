@@ -114,6 +114,6 @@ export const logsDirectory = string({
 })
 
 export const CHE_TELEMETRY = string({
-  description: 'Enable or disable chectl telemetry. This flag skips a prompt and enable/disable chectl telemetry',
+  description: 'Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry',
   options: ['on', 'off']
 })
