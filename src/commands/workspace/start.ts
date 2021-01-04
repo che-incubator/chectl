@@ -17,7 +17,6 @@ import { getLoginData } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Start extends Command {
   static description = 'Starts a workspace'
@@ -65,7 +64,6 @@ export default class Start extends Command {
       cli.log('Workspace start request has been sent, workspace will be available shortly.')
     }
 
-    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 }

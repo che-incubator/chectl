@@ -24,7 +24,6 @@ import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-work
 import { getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 import { getCommandErrorMessage, getCommandSuccessMessage, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully } from '../../util'
 
@@ -117,7 +116,9 @@ export default class Deploy extends Command {
     [CHE_OPERATOR_CR_YAML_KEY]: cheOperatorCRYaml,
     [CHE_OPERATOR_CR_PATCH_YAML_KEY]: cheOperatorCRPatchYaml,
     'helm-patch-yaml': string({
-      description: 'Path to yaml file with Helm Chart values patch. The file format is identical to values.yaml from the chart.',
+      description: `Path to yaml file with Helm Chart values patch.
+                    The file format is identical to values.yaml from the chart.
+                    Note, Provided command line arguments take precedence over patch file.`,
       default: '',
     }),
     'workspace-pvc-storage-class-name': string({
@@ -347,7 +348,6 @@ export default class Deploy extends Command {
 
     // Platform Checks
     let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), ctx.listrOptions)
-    platformCheckTasks.add(CommonPlatformTasks.oAuthProvidersExists(flags))
 
     // Checks if Eclipse Che is already deployed
     let preInstallTasks = new Listr(undefined, ctx.listrOptions)
@@ -399,9 +399,6 @@ export default class Deploy extends Command {
         await postInstallTasks.run(ctx)
         this.log(getCommandSuccessMessage())
       }
-
-      await postInstallTasks.run(ctx)
-      this.log(getCommandSuccessMessage())
     } catch (err) {
       this.error(getCommandErrorMessage(err))
     }

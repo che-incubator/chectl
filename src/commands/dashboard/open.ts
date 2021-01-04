@@ -15,7 +15,6 @@ import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { cheNamespace, CHE_TELEMETRY } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Open extends Command {
   static description = 'Open Eclipse Che dashboard'
@@ -43,7 +42,6 @@ export default class Open extends Command {
       this.error(error)
     }
 
-    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 }

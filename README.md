@@ -81,33 +81,40 @@ USAGE
 ```
 # Commands
 <!-- commands -->
-* [`chectl auth:delete CHE-API-ENDPOINT`](#chectl-authdelete-che-api-endpoint)
-* [`chectl auth:get`](#chectl-authget)
-* [`chectl auth:list`](#chectl-authlist)
-* [`chectl auth:login [CHE-API-ENDPOINT]`](#chectl-authlogin-che-api-endpoint)
-* [`chectl auth:logout`](#chectl-authlogout)
-* [`chectl auth:use [CHE-API-ENDPOINT]`](#chectl-authuse-che-api-endpoint)
-* [`chectl autocomplete [SHELL]`](#chectl-autocomplete-shell)
-* [`chectl cacert:export`](#chectl-cacertexport)
-* [`chectl dashboard:open`](#chectl-dashboardopen)
-* [`chectl devfile:generate`](#chectl-devfilegenerate)
-* [`chectl help [COMMAND]`](#chectl-help-command)
-* [`chectl server:debug`](#chectl-serverdebug)
-* [`chectl server:delete`](#chectl-serverdelete)
-* [`chectl server:deploy`](#chectl-serverdeploy)
-* [`chectl server:logs`](#chectl-serverlogs)
-* [`chectl server:start`](#chectl-serverstart)
-* [`chectl server:status`](#chectl-serverstatus)
-* [`chectl server:stop`](#chectl-serverstop)
-* [`chectl server:update`](#chectl-serverupdate)
-* [`chectl update [CHANNEL]`](#chectl-update-channel)
-* [`chectl workspace:create`](#chectl-workspacecreate)
-* [`chectl workspace:delete WORKSPACE`](#chectl-workspacedelete-workspace)
-* [`chectl workspace:inject`](#chectl-workspaceinject)
-* [`chectl workspace:list`](#chectl-workspacelist)
-* [`chectl workspace:logs`](#chectl-workspacelogs)
-* [`chectl workspace:start WORKSPACE`](#chectl-workspacestart-workspace)
-* [`chectl workspace:stop WORKSPACE`](#chectl-workspacestop-workspace)
+- [chectl](#chectl)
+  - [Report issues](#report-issues)
+  - [Table Of Contents](#table-of-contents)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Commands](#commands)
+  - [`chectl auth:delete CHE-API-ENDPOINT`](#chectl-authdelete-che-api-endpoint)
+  - [`chectl auth:get`](#chectl-authget)
+  - [`chectl auth:list`](#chectl-authlist)
+  - [`chectl auth:login [CHE-API-ENDPOINT]`](#chectl-authlogin-che-api-endpoint)
+  - [`chectl auth:logout`](#chectl-authlogout)
+  - [`chectl auth:use [CHE-API-ENDPOINT]`](#chectl-authuse-che-api-endpoint)
+  - [`chectl autocomplete [SHELL]`](#chectl-autocomplete-shell)
+  - [`chectl cacert:export`](#chectl-cacertexport)
+  - [`chectl dashboard:open`](#chectl-dashboardopen)
+  - [`chectl devfile:generate`](#chectl-devfilegenerate)
+  - [`chectl help [COMMAND]`](#chectl-help-command)
+  - [`chectl server:debug`](#chectl-serverdebug)
+  - [`chectl server:delete`](#chectl-serverdelete)
+  - [`chectl server:deploy`](#chectl-serverdeploy)
+  - [`chectl server:logs`](#chectl-serverlogs)
+  - [`chectl server:start`](#chectl-serverstart)
+  - [`chectl server:status`](#chectl-serverstatus)
+  - [`chectl server:stop`](#chectl-serverstop)
+  - [`chectl server:update`](#chectl-serverupdate)
+  - [`chectl update [CHANNEL]`](#chectl-update-channel)
+  - [`chectl workspace:create`](#chectl-workspacecreate)
+  - [`chectl workspace:delete WORKSPACE`](#chectl-workspacedelete-workspace)
+  - [`chectl workspace:inject`](#chectl-workspaceinject)
+  - [`chectl workspace:list`](#chectl-workspacelist)
+  - [`chectl workspace:logs`](#chectl-workspacelogs)
+  - [`chectl workspace:start WORKSPACE`](#chectl-workspacestart-workspace)
+  - [`chectl workspace:stop WORKSPACE`](#chectl-workspacestop-workspace)
+- [Contributing](#contributing)
 
 ## `chectl auth:delete CHE-API-ENDPOINT`
 
@@ -552,7 +559,9 @@ OPTIONS
       The URL of the external Devfile registry.
 
   --helm-patch-yaml=helm-patch-yaml
-      Path to yaml file with Helm Chart values patch. The file format is identical to values.yaml from the chart.
+      Path to yaml file with Helm Chart values patch.
+                           The file format is identical to values.yaml from the chart.
+                           Note, Provided command line arguments take precedence over patch file.
 
   --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout
       [default: 600000] Waiting time for Pod downloading image (in milliseconds)
@@ -769,6 +778,15 @@ OPTIONS
 
   --telemetry=on|off                                       Enable or disable chectl telemetry. This flag skips a prompt
                                                            and enable/disable chectl telemetry
+EXAMPLES
+  # Update Eclipse Che:
+  chectl server:update
+
+  # Update Eclipse Che in 'eclipse-che' namespace:
+  chectl server:update -n eclipse-che
+
+  # Update Eclipse Che and update its configuration in the custom resource:
+  chectl server:update --che-operator-cr-patch-yaml patch.yaml
 ```
 
 _See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_

@@ -16,7 +16,7 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
-import { getCommandErrorMessage, notifyCommandCompletedSuccessfully } from '../../util'
+import { getCommandErrorMessage } from '../../util'
 
 export default class Export extends Command {
   static description = 'Retrieves Eclipse Che self-signed certificate'
@@ -49,7 +49,7 @@ export default class Export extends Command {
     if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
       throw new Error(`E_PERM_DENIED - Permission denied: no read access to '${flags.chenamespace}' namespace`)
     }
-    if (!await cheHelper.cheNamespaceExist(flags.chenamespace)) {
+    if (!await kube.getNamespace(flags.chenamespace)) {
       throw new Error(`E_BAD_NS - Namespace ${flags.chenamespace} does not exist. Please specify it with --chenamespace flag`)
     }
 
@@ -64,7 +64,5 @@ export default class Export extends Command {
     } catch (err) {
       this.error(getCommandErrorMessage(err))
     }
-
-    notifyCommandCompletedSuccessfully()
   }
 }

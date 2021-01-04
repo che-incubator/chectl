@@ -12,10 +12,11 @@ import Command from '@oclif/command'
 import ansi = require('ansi-colors')
 import { copy, mkdirp, remove } from 'fs-extra'
 import * as Listr from 'listr'
-import { merge } from 'lodash'
+import { isEmpty } from 'lodash'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
+import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
 
@@ -24,11 +25,15 @@ export function createNamespaceTask(namespaceName: string, labels: {}): Listr.Li
     title: `Create Namespace (${namespaceName})`,
     task: async (_ctx: any, task: any) => {
       const kube = new KubeHelper()
-      const exist = await kube.namespaceExist(namespaceName)
-      if (exist) {
+      const che = new CheHelper({})
+
+      const namespace = await kube.getNamespace(namespaceName)
+      if (namespace) {
+        await che.waitNamespaceActive(namespaceName)
         task.title = `${task.title}...It already exists.`
       } else {
         await kube.createNamespace(namespaceName, labels)
+        await che.waitNamespaceActive(namespaceName)
         task.title = `${task.title}...Done.`
       }
     }
@@ -93,34 +98,16 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
  * @param kube - kubeHelper util
  * @param command - parent command
  */
-export function updateEclipseCheCluster(flags: any, kube: KubeHelper, command: Command): Listr.ListrTask {
+export function patchingEclipseCheCluster(flags: any, kube: KubeHelper, command: Command): Listr.ListrTask {
   return {
-    title: `Update the Custom Resource of type ${CHE_CLUSTER_CRD} in the namespace ${flags.chenamespace}`,
+    title: `Patching the Custom Resource of type '${CHE_CLUSTER_CRD}' in the namespace '${flags.chenamespace}'`,
+    skip: (ctx: any) => isEmpty(ctx[ChectlContext.CR_PATCH]),
     task: async (ctx: any, task: any) => {
-      let crPatch: any = ctx.crPatch || {}
-
       const cheCluster = await kube.getCheCluster(flags.chenamespace)
       if (!cheCluster) {
-        command.error(`Eclipse Che cluster CR was not found in the namespace ${flags.chenamespace}`)
+        command.error(`Eclipse Che cluster CR is not found in the namespace '${flags.chenamespace}'`)
       }
-
-      if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.pluginRegistryImage) {
-        merge(crPatch, { spec: { server: { pluginRegistryImage: '' } } })
-      }
-      if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.devfileRegistryImage) {
-        merge(crPatch, { spec: { server: { devfileRegistryImage: '' } } })
-      }
-      if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.identityProviderImage) {
-        merge(crPatch, { spec: { server: { identityProviderImage: '' } } })
-      }
-      if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.cheImage) {
-        merge(crPatch, { spec: { server: { cheImage: '' } } })
-      }
-      if (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.cheImageTag) {
-        merge(crPatch, { spec: { server: { cheImageTag: '' } } })
-      }
-
-      await kube.patchCheCluster(cheCluster.metadata.name, flags.chenamespace, crPatch)
+      await kube.patchCheCluster(cheCluster.metadata.name, flags.chenamespace, ctx[ChectlContext.CR_PATCH])
       task.title = `${task.title}...done.`
     }
   }

@@ -1,0 +1,80 @@
+#
+#  Copyright (c) 2012-2020 Red Hat, Inc.
+#    This program and the accompanying materials are made
+#    available under the terms of the Eclipse Public License 2.0
+#    which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+#  SPDX-License-Identifier: EPL-2.0
+#
+#  Contributors:
+#    Red Hat, Inc. - initial API and implementation
+name: Release - generate release and push artifacts to github pages (after PR approved)
+on:
+  # Trigger the workflow on push only for the master and 7.y.x branches
+  push:
+    branches:
+      - '7.*.x'
+      - 'master'
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.3.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12'
+      - name: Generate tag utilities
+        id: TAG_UTIL
+        run: |
+          echo "::set-output name=gh_tag::$(date +'%Y%m%d%H%M%S')"
+          if [[ ${GITHUB_REF#refs/heads/} =~ 7.* ]];
+          then
+            echo "::set-output name=chectl_version::$(cat VERSION)" 
+            echo "::set-output name=gh_release_name::$(cat VERSION)"
+          fi
+          if [[ ${GITHUB_REF#refs/heads/} =~ master ]];
+          then
+            CURRENT_DAY=$(date +'%Y%m%d')
+            SHORT_SHA1=$(git rev-parse --short HEAD)
+            export CHECTL_VERSION=0.0.$CURRENT_DAY-next
+            echo "::set-output name=chectl_version::0.0.$CURRENT_DAY-next"
+            echo "::set-output name=gh_release_name::0.0.$CURRENT_DAY-next.$SHORT_SHA1"
+          fi
+      - name: Install chectl dependencies
+        run: yarn
+      - name: Run unit tests
+        run: yarn test
+      - name: Pack chectl
+        run: |
+          git config --local user.name ${{ github.actor }}
+
+          sed -i  "s#version\":\ \"\(.*\)\",#version\":\ \"${{ steps.TAG_UTIL.outputs.chectl_version }}\",#g" package.json
+          sed -i "s|INSERT-KEY-HERE|${{ secrets.SEGMENT_WRITE_KEY }}|g" src/hooks/analytics/analytics.ts
+
+          git tag ${{ steps.TAG_UTIL.outputs.gh_tag }}
+
+          TARGETS=linux-arm,linux-x64,linux-s390x,linux-ppc64le,darwin-x64,win32-x64,win32-x86
+          npx oclif-dev pack --targets=$TARGETS
+
+          git clone https://github.com/che-incubator/chectl -b gh-pages --single-branch gh-pages
+          rm -rf gh-pages/.git
+          echo $(date +%s) > gh-pages/update
+          env
+      - name: Deploy to github pages
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: gh-pages
+          CLEAN: true # Automatically remove deleted files from the deploy branch
+      - name: Create Release and push artifacts
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ steps.TAG_UTIL.outputs.gh_release_name }}
+          tag_name: ${{ steps.TAG_UTIL.outputs.gh_tag }}
+          files: "./dist/channels/**/chectl-*.gz"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

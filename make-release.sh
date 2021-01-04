@@ -13,17 +13,23 @@
 set -e
 set -u
 
-init() {
-  RELEASE="$1"
-  BRANCH=$(echo $RELEASE | sed 's/.$/x/')
-  GIT_REMOTE_UPSTREAM="git@github.com:che-incubator/chectl.git"
+usage ()
+{   echo "Usage: ./make-release.sh <version>"
+    exit
 }
 
-check() {
-  if [[ $# -lt 1 ]]; then
-    echo "[ERROR] Wrong number of parameters.\nUsage: ./make-release.sh <version>"
-    exit 1
-  fi
+if [[ $# -lt 1 ]]; then usage; fi
+
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+    '-v'|'--version') VERSION="$2"; shift 1;;
+    '--help'|'-h') usage;;
+  esac
+  shift 1
+done
+
+init() {
+  BRANCH=$(echo $VERSION | sed 's/.$/x/')
 }
 
 apply_sed() {
@@ -39,8 +45,8 @@ resetChanges() {
   echo "[INFO] Reset changes in $1 branch"
   git reset --hard
   git checkout $1
-  git fetch ${GIT_REMOTE_UPSTREAM} --prune
-  git pull ${GIT_REMOTE_UPSTREAM} $1
+  git fetch origin --prune
+  git pull origin $1
 }
 
 checkoutToReleaseBranch() {
@@ -54,27 +60,27 @@ checkoutToReleaseBranch() {
     resetChanges master
     git push origin master:$BRANCH
   fi
-  git checkout -B $RELEASE
+  git checkout -B $VERSION
 }
 
 release() {
-  echo "[INFO] Releasing a new $RELEASE version"
+  echo "[INFO] Releasing a new $VERSION version"
 
   # Create VERSION file
-  echo "$RELEASE" > VERSION
+  echo "$VERSION" > VERSION
 
   # Get DevWorkspace operator latest commit
   SHA1_DEV_WORKSPACE_OPERATOR=$(git ls-remote https://github.com/devfile/devworkspace-operator HEAD | cut -f1)
   SHORT_SHA1_DEV_WORKSPACE_OPERATOR=$(echo ${SHA1_DEV_WORKSPACE_OPERATOR} | cut -c1-7)
 
   # replace nightly versions by release version
-  apply_sed "s#quay.io/eclipse/che-server:.*#quay.io/eclipse/che-server:${RELEASE}'#g" src/constants.ts
-  apply_sed "s#quay.io/eclipse/che-operator:.*#quay.io/eclipse/che-operator:${RELEASE}'#g" src/constants.ts
+  apply_sed "s#quay.io/eclipse/che-server:.*#quay.io/eclipse/che-server:${VERSION}'#g" src/constants.ts
+  apply_sed "s#quay.io/eclipse/che-operator:.*#quay.io/eclipse/che-operator:${VERSION}'#g" src/constants.ts
   apply_sed "s#quay.io/devfile/devworkspace-controller:.*#quay.io/devfile/devworkspace-controller:sha-${SHORT_SHA1_DEV_WORKSPACE_OPERATOR}'#g" src/constants.ts
 
   # now replace package.json dependencies
-  apply_sed "s;github.com/eclipse/che#\(.*\)\",;github.com/eclipse/che#${RELEASE}\",;g" package.json
-  apply_sed "s;github.com/eclipse/che-operator#\(.*\)\",;github.com/eclipse/che-operator#${RELEASE}\",;g" package.json
+  apply_sed "s;github.com/eclipse/che#\(.*\)\",;github.com/eclipse/che#${VERSION}\",;g" package.json
+  apply_sed "s;github.com/eclipse/che-operator#\(.*\)\",;github.com/eclipse/che-operator#${VERSION}\",;g" package.json
   apply_sed "s;git://github.com/devfile/devworkspace-operator#\(.*\)\",;git://github.com/devfile/devworkspace-operator#${SHA1_DEV_WORKSPACE_OPERATOR}\",;g" package.json
 
   # build
@@ -84,20 +90,20 @@ release() {
 }
 
 commitChanges() {
-  echo "[INFO] Pushing changes to $RELEASE branch"
+  echo "[INFO] Pushing changes to $VERSION branch"
   git add -A
-  git commit -s -m "chore(release): release version ${RELEASE}"
-  git push origin $RELEASE
+  git commit -s -m "chore(release): release version ${VERSION}"
+  git push origin $VERSION
 }
 
 createReleaseBranch() {
-  echo "[INFO] Create the release branch based on $RELEASE"
-  git push origin $RELEASE:release -f
+  echo "[INFO] Create the release branch based on $VERSION"
+  git push origin $VERSION:release -f
 }
 
 createPR() {
   echo "[INFO] Creating a PR"
-  hub pull-request --base ${BRANCH} --head ${RELEASE} --browse -m "Release version ${RELEASE}"
+  hub pull-request --base ${BRANCH} --head ${VERSION} -m "Release version ${VERSION}"
 }
 
 run() {
@@ -108,6 +114,5 @@ run() {
   createPR
 }
 
-init $@
-check $@
-run $@
+init
+run

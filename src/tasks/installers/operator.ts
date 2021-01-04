@@ -19,7 +19,7 @@ import { CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME } from
 import { isStableVersion } from '../../util'
 import { KubeTasks } from '../kube'
 
-import { copyOperatorResources, createEclipseCheCluster, createNamespaceTask, updateEclipseCheCluster } from './common-tasks'
+import { copyOperatorResources, createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
 
 export class OperatorTasks {
   operatorServiceAccount = 'che-operator'
@@ -89,6 +89,7 @@ export class OperatorTasks {
       {
         title: `Create ClusterRole ${namespaceEditorClusterRoleName}`,
         task: async (ctx: any, task: any) => {
+          ctx.namespaceEditorClusterRoleName = namespaceEditorClusterRoleName
           const exist = await kube.clusterRoleExist(namespaceEditorClusterRoleName)
           if (exist) {
             task.title = `${task.title}...It already exists.`
@@ -379,7 +380,7 @@ export class OperatorTasks {
           await kube.waitLatestReplica(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
         }
       },
-      updateEclipseCheCluster(flags, kube, command),
+      patchingEclipseCheCluster(flags, kube, command),
     ], { renderer: flags['listr-renderer'] as any })
   }
 

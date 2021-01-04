@@ -17,7 +17,6 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Delete extends Command {
   static description = 'Delete a stopped workspace - use workspace:stop to stop the workspace before deleting it'
@@ -64,7 +63,7 @@ export default class Delete extends Command {
       }
 
       const kube = new KubeHelper(flags)
-      if (await kube.namespaceExist(infrastructureNamespace)) {
+      if (await kube.getNamespace(infrastructureNamespace)) {
         try {
           await kube.deleteNamespace(infrastructureNamespace)
           cli.log(`Namespace '${infrastructureNamespace}' deleted.`)
@@ -74,7 +73,6 @@ export default class Delete extends Command {
       }
     }
 
-    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 }

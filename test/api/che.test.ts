@@ -30,7 +30,7 @@ let k8sApi = new CoreV1Api()
 describe('Eclipse Che helper', () => {
   describe('cheURL', () => {
     fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
+      .stub(kube, 'getNamespace', () => ({}))
       .stub(kube, 'ingressExist', () => true)
       .stub(kube, 'getIngressProtocol', () => 'https')
       .stub(kube, 'getIngressHost', () => 'example.org')
@@ -39,13 +39,13 @@ describe('Eclipse Che helper', () => {
         expect(cheURL).to.equals('https://example.org')
       })
     fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
+      .stub(kube, 'getNamespace', () => ({}))
       .stub(kube, 'ingressExist', () => false)
       .do(() => ch.cheURL('che-namespace'))
       .catch(err => expect(err.message).to.match(/ERR_INGRESS_NO_EXIST/))
       .it('fails fetching Eclipse Che URL when ingress does not exist')
     fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
+      .stub(kube, 'getNamespace', () => ({}))
       .stub(ctx, 'get', () => ({ isOpenShift: true }))
       .stub(oc, 'routeExist', () => true)
       .stub(oc, 'getRouteProtocol', () => 'https')
@@ -55,14 +55,14 @@ describe('Eclipse Che helper', () => {
         expect(cheURL).to.equals('https://example.org')
       })
     fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
+      .stub(kube, 'getNamespace', () => ({}))
       .stub(ctx, 'get', () => ({ isOpenShift: true }))
       .stub(oc, 'routeExist', () => false)
       .do(() => ch.cheURL('che-namespace'))
       .catch(/ERR_ROUTE_NO_EXIST/)
       .it('fails fetching Eclipse Che URL when route does not exist')
     fancy
-      .stub(ch, 'cheNamespaceExist', () => false)
+      .stub(kube, 'getNamespace', () => undefined)
       .do(() => ch.cheURL('che-namespace'))
       .catch(err => expect(err.message).to.match(/ERR_NAMESPACE_NO_EXIST/))
       .it('fails fetching Eclipse Che URL when namespace does not exist')
@@ -72,14 +72,14 @@ describe('Eclipse Che helper', () => {
       .stub(KubeHelper.KUBE_CONFIG, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'readNamespace', jest.fn().mockImplementation(() => { throw new Error() }))
       .it('founds out that a namespace doesn\'t exist', async () => {
-        const res = await ch.cheNamespaceExist(namespace)
+        const res = !!await kube.getNamespace(namespace)
         expect(res).to.equal(false)
       })
     fancy
       .stub(KubeHelper.KUBE_CONFIG, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'readNamespace', () => ({ response: '', body: { metadata: { name: `${namespace}` } } }))
       .it('founds out that a namespace does exist', async () => {
-        const res = await ch.cheNamespaceExist(namespace)
+        const res = !!await kube.getNamespace(namespace)
         expect(res).to.equal(true)
       })
   })

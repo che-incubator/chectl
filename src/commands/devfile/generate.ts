@@ -18,7 +18,6 @@ import { Devfile, DevfileCommand, DevfileComponent, DevfileProject, ProjectSourc
 import { KubeHelper } from '../../api/kube'
 import { CHE_TELEMETRY } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import { notifyCommandCompletedSuccessfully } from '../../util'
 
 let kube: KubeHelper
 const stringLitArray = <L extends string>(arr: L[]) => arr
@@ -257,7 +256,6 @@ export default class Generate extends Command {
     this.log(`# chectl ${updatedArgs.join(' ')}`)
     this.log(yaml.safeDump(devfile))
 
-    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 

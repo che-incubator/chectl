@@ -13,11 +13,13 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { CA_CERT_GENERATION_JOB_IMAGE, CERT_MANAGER_NAMESPACE_NAME, CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
+import { V1alpha2Certificate } from '../../api/typings/cert-manager'
+import { CA_CERT_GENERATION_JOB_IMAGE, CERT_MANAGER_NAMESPACE_NAME, CHE_RELATED_COMPONENT_LABEL, CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
 import { base64Decode } from '../../util'
 import { getMessageImportCaCertIntoBrowser } from '../installers/common-tasks'
 
 export const CERT_MANAGER_CA_SECRET_NAME = 'ca'
+export const DEFAULT_CHE_CLUSTER_ISSUER_NAME = 'che-cluster-issuer'
 
 export class CertManagerTasks {
   protected kubeHelper: KubeHelper
@@ -37,7 +39,7 @@ export class CertManagerTasks {
         title: 'Check Cert Manager deployment',
         task: async (ctx: any, task: any) => {
           // Check only one CRD of cert-manager assuming that it is installed or not.
-          ctx.certManagerInstalled = await this.kubeHelper.namespaceExist(CERT_MANAGER_NAMESPACE_NAME) && await this.kubeHelper.crdExist('certificates.cert-manager.io')
+          ctx.certManagerInstalled = await this.kubeHelper.getNamespace(CERT_MANAGER_NAMESPACE_NAME) && await this.kubeHelper.crdExist('certificates.cert-manager.io')
           if (ctx.certManagerInstalled) {
             task.title = `${task.title}...already deployed`
           } else {
@@ -64,6 +66,8 @@ export class CertManagerTasks {
           if (!ctx.certManagerInstalled) {
             throw new Error('Cert Manager should be deployed before.')
           }
+
+          ctx.certManagerK8sApiVersion = await this.kubeHelper.getCertManagerK8sApiVersion()
 
           const timeout = 5 * 60 * 1000
           await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cert-manager', CERT_MANAGER_NAMESPACE_NAME, 1000, timeout)
@@ -129,11 +133,31 @@ export class CertManagerTasks {
       },
       {
         title: 'Set up Eclipse Che certificates issuer',
-        task: async (_ctx: any, task: any) => {
-          const cheClusterIssuerExists = await this.kubeHelper.clusterIssuerExists('che-cluster-issuer')
+        task: async (ctx: any, task: any) => {
+          let clusterIssuers = await this.kubeHelper.listClusterIssuers(ctx.certManagerK8sApiVersion, CHE_RELATED_COMPONENT_LABEL)
+          if (clusterIssuers.length > 1) {
+            throw new Error(`Found more than one cluster issuer with "${CHE_RELATED_COMPONENT_LABEL}" label`)
+          } else if (clusterIssuers.length === 1) {
+            // Found already configured cluster issuer
+            ctx.clusterIssuersName = clusterIssuers[0].metadata.name
+            task.title = `${task.title}...found existing one: ${ctx.clusterIssuersName}`
+            return
+          }
+
+          // There is no labeled cluster issuers, check if there is only one configured
+          clusterIssuers = await this.kubeHelper.listClusterIssuers(ctx.certManagerK8sApiVersion)
+          if (clusterIssuers.length === 1) {
+            // Using the cluster issuer
+            ctx.clusterIssuersName = clusterIssuers[0].metadata.name
+            task.title = `${task.title}...found existing one: ${ctx.clusterIssuersName}`
+            return
+          }
+
+          ctx.clusterIssuersName = DEFAULT_CHE_CLUSTER_ISSUER_NAME
+          const cheClusterIssuerExists = await this.kubeHelper.clusterIssuerExists(DEFAULT_CHE_CLUSTER_ISSUER_NAME, ctx.certManagerK8sApiVersion)
           if (!cheClusterIssuerExists) {
             const cheCertificateClusterIssuerTemplatePath = path.join(flags.templates, '/cert-manager/che-cluster-issuer.yml')
-            await this.kubeHelper.createCheClusterIssuer(cheCertificateClusterIssuerTemplatePath)
+            await this.kubeHelper.createCheClusterIssuer(cheCertificateClusterIssuerTemplatePath, ctx.certManagerK8sApiVersion)
 
             task.title = `${task.title}...done`
           } else {
@@ -142,30 +166,52 @@ export class CertManagerTasks {
         }
       },
       {
-        title: 'Request self-signed certificate',
+        title: 'Request certificate',
         task: async (ctx: any, task: any) => {
           if (ctx.cheCertificateExists) {
             throw new Error('Eclipse Che certificate already exists.')
           }
+          if (ctx.clusterIssuersName === DEFAULT_CHE_CLUSTER_ISSUER_NAME) {
+            task.title = 'Request self-signed certificate'
+          }
 
           const certificateTemplatePath = path.join(flags.templates, '/cert-manager/che-certificate.yml')
-          await this.kubeHelper.createCheClusterCertificate(certificateTemplatePath, flags.domain, flags.chenamespace)
+          const certifiateYaml = this.kubeHelper.safeLoadFromYamlFile(certificateTemplatePath) as V1alpha2Certificate
+
+          const CN = '*.' + flags.domain
+          certifiateYaml.spec.commonName = CN
+          certifiateYaml.spec.dnsNames = [flags.domain, CN]
+          if (ctx.clusterIssuersName) {
+            certifiateYaml.spec.issuerRef.name = ctx.clusterIssuersName
+          }
+
+          certifiateYaml.metadata.namespace = flags.chenamespace
+
+          await this.kubeHelper.createCheClusterCertificate(certifiateYaml, ctx.certManagerK8sApiVersion)
           ctx.cheCertificateExists = true
 
           task.title = `${task.title}...done`
         }
       },
       {
-        title: 'Wait for self-signed certificate',
-        task: async (_ctx: any, task: any) => {
+        title: 'Wait for certificate',
+        task: async (ctx: any, task: any) => {
+          if (ctx.clusterIssuersName === DEFAULT_CHE_CLUSTER_ISSUER_NAME) {
+            task.title = 'Wait for self-signed certificate'
+          }
+
           await this.kubeHelper.waitSecret(CHE_TLS_SECRET_NAME, flags.chenamespace, ['tls.key', 'tls.crt', 'ca.crt'])
 
           task.title = `${task.title}...ready`
         }
       },
       {
-        title: 'Retrieving Che self-signed CA certificate',
+        title: 'Retrieving Che CA certificate',
         task: async (ctx: any, task: any) => {
+          if (ctx.clusterIssuersName === DEFAULT_CHE_CLUSTER_ISSUER_NAME) {
+            task.title = 'Retrieving Che self-signed CA certificate'
+          }
+
           const cheSecret = await this.kubeHelper.getSecret(CHE_TLS_SECRET_NAME, flags.chenamespace)
           if (cheSecret && cheSecret.data) {
             const cheCaCrt = base64Decode(cheSecret.data['ca.crt'])

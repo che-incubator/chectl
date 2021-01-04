@@ -17,7 +17,6 @@ import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Logs extends Command {
   static description = 'Collect workspace(s) logs'
@@ -64,7 +63,5 @@ export default class Logs extends Command {
     } catch (error) {
       this.error(error)
     }
-
-    notifyCommandCompletedSuccessfully()
   }
 }

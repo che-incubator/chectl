@@ -17,7 +17,7 @@ import { cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHeal
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage } from '../../util'
 
 export default class Logs extends Command {
   static description = 'Collect Eclipse Che logs'
@@ -57,7 +57,6 @@ export default class Logs extends Command {
       this.error(getCommandErrorMessage(err))
     }
 
-    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 }
