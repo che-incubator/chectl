@@ -29,19 +29,18 @@ jobs:
       - name: Generate tag utilities
         id: TAG_UTIL
         run: |
+          echo "::set-output name=gh_tag::$(date +'%Y%m%d%H%M%S')"
           if [[ ${GITHUB_REF#refs/heads/} =~ 7.* ]];
           then
-            export STABLE_VERSION=$(cat VERSION)"
-            echo "::set-output name=chectl_version::$STABLE_VERSION"
-            echo "::set-output name=gh_tag::$STABLE_VERSION" 
-            echo "::set-output name=gh_release_name::$STABLE_VERSION"
+            echo "::set-output name=chectl_version::$(cat VERSION)" 
+            echo "::set-output name=gh_release_name::$(cat VERSION)"
           fi
           if [[ ${GITHUB_REF#refs/heads/} =~ master ]];
           then
             CURRENT_DAY=$(date +'%Y%m%d')
             SHORT_SHA1=$(git rev-parse --short HEAD)
+            export CHECTL_VERSION=0.0.$CURRENT_DAY-next
             echo "::set-output name=chectl_version::0.0.$CURRENT_DAY-next"
-            echo "::set-output name=gh_tag::$(date +'%Y%m%d%H%M%S')"
             echo "::set-output name=gh_release_name::0.0.$CURRENT_DAY-next.$SHORT_SHA1"
           fi
       - name: Install chectl dependencies
