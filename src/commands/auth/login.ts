@@ -16,7 +16,8 @@ import * as execa from 'execa'
 import { CheApiClient } from '../../api/che-api-client'
 import { CheServerLoginManager, getCheApiEndpoint, LoginRecord } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
-import { cheNamespace, CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
+import { cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, username, USERNAME_KEY } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
 
 const REFRESH_TOKEN_KEY = 'refresh-token'
@@ -51,6 +52,7 @@ export default class Login extends Command {
       required: false,
       exclusive: [REFRESH_TOKEN_KEY]
     }),
+    telemetry: CHE_TELEMETRY
   }
 
   static examples = [
@@ -67,6 +69,9 @@ export default class Login extends Command {
   async run() {
     const { args, flags } = this.parse(Login)
     const ctx = await ChectlContext.initAndGet(flags, this)
+
+    // Not recommended to track user and password in telemetry
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Login.id, flags })
 
     const loginManager = await CheServerLoginManager.getInstance()
 
