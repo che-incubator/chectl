@@ -15,7 +15,6 @@ import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
-import { notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class List extends Command {
   static description = 'List workspaces'
@@ -37,7 +36,6 @@ export default class List extends Command {
     const workspaces = await cheApiClient.getAllWorkspaces(accessToken)
 
     this.printWorkspaces(workspaces)
-    notifyCommandCompletedSuccessfully()
   }
 
   private printWorkspaces(workspaces: any[]): void {

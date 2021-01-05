@@ -9,5 +9,7 @@
 #  Contributors:
 #    Red Hat, Inc. - initial API and implementation
 
+global:
+  useInternalClusterSVCNames: false
 che-keycloak:
   requireAdminPasswordChange: false

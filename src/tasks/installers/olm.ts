@@ -19,7 +19,7 @@ import { CatalogSource, Subscription } from '../../api/typings/olm'
 import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, KUBERNETES_OLM_CATALOG, NIGHTLY_CATALOG_SOURCE_NAME, OLM_NIGHTLY_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, SUBSCRIPTION_NAME } from '../../constants'
 import { isKubernetesPlatformFamily, isStableVersion } from '../../util'
 
-import { createEclipseCheCluster, createNamespaceTask, updateEclipseCheCluster } from './common-tasks'
+import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
 
 export class OLMTasks {
   prometheusRoleName = 'prometheus-k8s'
@@ -269,7 +269,7 @@ export class OLMTasks {
           task.title = `${task.title}...done.`
         }
       },
-      updateEclipseCheCluster(flags, kube, command)
+      patchingEclipseCheCluster(flags, kube, command)
     ], { renderer: flags['listr-renderer'] as any })
   }
 

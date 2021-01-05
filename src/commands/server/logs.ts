@@ -16,7 +16,7 @@ import { ChectlContext } from '../../api/context'
 import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage } from '../../util'
 
 export default class Logs extends Command {
   static description = 'Collect Eclipse Che logs'
@@ -54,7 +54,6 @@ export default class Logs extends Command {
       this.error(getCommandErrorMessage(err))
     }
 
-    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 }

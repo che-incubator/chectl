@@ -42,7 +42,7 @@ export class E2eHelper {
   // async getAllWorkspaces(isOpenshiftPlatformFamily: string): Promise<chetypes.workspace.Workspace[]> {
   private async getAllWorkspaces(): Promise<WorkspaceInfo[]> {
     const workspaces: WorkspaceInfo[] = []
-    const { stdout } = await execa(binChectl, ['workspace:list'], { timeout: 10000 })
+    const { stdout } = await execa(binChectl, ['workspace:list'])
     const regEx = new RegExp('[A-Za-z0-9_-]+', 'g')
     for (const line of stdout.split('\n')) {
       const items = line.match(regEx)

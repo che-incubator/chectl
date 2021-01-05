@@ -524,7 +524,9 @@ OPTIONS
       The URL of the external Devfile registry.
 
   --helm-patch-yaml=helm-patch-yaml
-      Path to yaml file with Helm Chart values patch. The file format is identical to values.yaml from the chart.
+      Path to yaml file with Helm Chart values patch.
+                           The file format is identical to values.yaml from the chart.
+                           Note, Provided command line arguments take precedence over patch file.
 
   --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout
       [default: 600000] Waiting time for Pod downloading image (in milliseconds)
@@ -726,6 +728,16 @@ OPTIONS
   --deployment-name=deployment-name                        [default: che] Eclipse Che deployment name
 
   --skip-kubernetes-health-check                           Skip Kubernetes health check
+
+EXAMPLES
+  # Update Eclipse Che:
+  chectl server:update
+
+  # Update Eclipse Che in 'eclipse-che' namespace:
+  chectl server:update -n eclipse-che
+
+  # Update Eclipse Che and update its configuration in the custom resource:
+  chectl server:update --che-operator-cr-patch-yaml patch.yaml
 ```
 
 _See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_
