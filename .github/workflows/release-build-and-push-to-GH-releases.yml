@@ -40,7 +40,6 @@ jobs:
             CURRENT_DAY=$(date +'%Y%m%d')
             SHORT_SHA1=$(git rev-parse --short HEAD)
             echo "::set-output name=gh_tag::$(date +'%Y%m%d%H%M%S')"
-            export CHECTL_VERSION=0.0.$CURRENT_DAY-next
             echo "::set-output name=chectl_version::0.0.$CURRENT_DAY-next"
             echo "::set-output name=gh_release_name::0.0.$CURRENT_DAY-next.$SHORT_SHA1"
           fi
