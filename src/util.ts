@@ -182,14 +182,14 @@ export function getCommandErrorMessage(err: Error): string {
 /**
  * Returns current chectl version defined in package.json.
  */
-export function getCurrentChectlVersion(): string {
+export function getProjectVersion(): string {
   return pkjson.version
 }
 
 /**
  * Returns current chectl version defined in package.json.
  */
-export function getCurrentChectlName(): string {
+export function getProjectlName(): string {
   return pkjson.name
 }
 
@@ -201,7 +201,7 @@ export function readPackageJson(): any {
  * Returns latest chectl version for the given channel.
  */
 export async function getLatestChectlVersion(channel: string): Promise<string | undefined> {
-  if (getCurrentChectlName() !== 'chectl') {
+  if (getProjectlName() !== 'chectl') {
     return
   }
 
