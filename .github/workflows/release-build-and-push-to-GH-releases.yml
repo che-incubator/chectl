@@ -29,16 +29,17 @@ jobs:
       - name: Generate tag utilities
         id: TAG_UTIL
         run: |
-          echo "::set-output name=gh_tag::$(date +'%Y%m%d%H%M%S')"
           if [[ ${GITHUB_REF#refs/heads/} =~ 7.* ]];
           then
             echo "::set-output name=chectl_version::$(cat VERSION)" 
             echo "::set-output name=gh_release_name::$(cat VERSION)"
+            echo "::set-output name=gh_tag::$(cat VERSION)"
           fi
           if [[ ${GITHUB_REF#refs/heads/} =~ master ]];
           then
             CURRENT_DAY=$(date +'%Y%m%d')
             SHORT_SHA1=$(git rev-parse --short HEAD)
+            echo "::set-output name=gh_tag::$(date +'%Y%m%d%H%M%S')"
             export CHECTL_VERSION=0.0.$CURRENT_DAY-next
             echo "::set-output name=chectl_version::0.0.$CURRENT_DAY-next"
             echo "::set-output name=gh_release_name::0.0.$CURRENT_DAY-next.$SHORT_SHA1"
@@ -52,7 +53,7 @@ jobs:
           git config --local user.name ${{ github.actor }}
 
           sed -i  "s#version\":\ \"\(.*\)\",#version\":\ \"${{ steps.TAG_UTIL.outputs.chectl_version }}\",#g" package.json
-          sed -i "s|INSERT-KEY-HERE|${{ secrets.SEGMENT_WRITE_KEY }}|g" src/hooks/analytics/analytics.ts
+          #sed -i "s|INSERT-KEY-HERE|${{ secrets.SEGMENT_WRITE_KEY }}|g" src/hooks/analytics/analytics.ts
 
           git tag ${{ steps.TAG_UTIL.outputs.gh_tag }}
 
