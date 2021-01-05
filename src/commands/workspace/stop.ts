@@ -14,7 +14,8 @@ import { cli } from 'cli-ux'
 import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
-import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
 export default class Stop extends Command {
   static description = 'Stop a running workspace'
@@ -24,7 +25,8 @@ export default class Stop extends Command {
     [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
     chenamespace: cheNamespace,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    telemetry: CHE_TELEMETRY
   }
 
   static args = [
@@ -38,6 +40,7 @@ export default class Stop extends Command {
   async run() {
     const { flags, args } = this.parse(Stop)
     await ChectlContext.init(flags, this)
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Stop.id, flags })
 
     const workspaceId = args.workspace
 

@@ -13,7 +13,8 @@ import { string } from '@oclif/parser/lib/flags'
 import * as Listr from 'listr'
 
 import { ChectlContext } from '../../api/context'
-import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { getCommandErrorMessage, getCommandSuccessMessage } from '../../util'
@@ -31,7 +32,8 @@ export default class Logs extends Command {
       description: 'Directory to store logs into',
       env: 'CHE_LOGS'
     }),
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {
@@ -42,6 +44,7 @@ export default class Logs extends Command {
     const apiTasks = new ApiTasks()
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
 
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logs.id, flags })
     tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.serverLogsTasks(flags, false))

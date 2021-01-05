@@ -15,7 +15,8 @@ import * as Listrq from 'listr'
 
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { assumeYes, cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { assumeYes, cheDeployment, cheNamespace, CHE_TELEMETRY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { HelmTasks } from '../../tasks/installers/helm'
@@ -44,12 +45,15 @@ export default class Delete extends Command {
       hidden: true,
     }),
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    yes: assumeYes
+    yes: assumeYes,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {
     const { flags } = this.parse(Delete)
     const ctx = await ChectlContext.initAndGet(flags, this)
+
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Delete.id, flags })
 
     if (flags['skip-deletion-check']) {
       this.warn('\'--skip-deletion-check\' flag is deprecated, use \'--yes\' instead.')

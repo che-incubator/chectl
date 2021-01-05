@@ -22,6 +22,7 @@
     "@types/request": "^2.48.5",
     "@types/websocket": "^1.0.1",
     "@types/ws": "^7.2.6",
+    "analytics-node": "^3.4.0-beta.3",
     "ansi-colors": "4.1.1",
     "axios": "^0.19.2",
     "cli-ux": "^5.4.5",
@@ -36,6 +37,7 @@
     "execa": "^4.0.3",
     "fancy-test": "^1.4.9",
     "fs-extra": "^9.0.1",
+    "gnirts": "^1.1.7",
     "inquirer": "^7.3.3",
     "js-yaml": "^3.14.0",
     "listr": "^0.14.3",
@@ -92,6 +94,9 @@
     "macos": {
       "identifier": "che-incubator.chectl"
     },
+    "hooks": {
+      "analytics": "./lib/hooks/analytics/analytics"
+    },
     "plugins": [
       "@oclif/plugin-autocomplete",
       "@oclif/plugin-help",
@@ -144,7 +149,8 @@
     "e2e-minikube-operator": "export PLATFORM=minikube && export INSTALLER=operator && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
     "e2e-minishift": "export PLATFORM=minishift && export INSTALLER=operator && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
     "e2e-openshift": "export PLATFORM=openshift && export INSTALLER=operator && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
-    "prepack": "rm -rf lib && rm -rf tsconfig.tsbuildinfo && tsc -b && oclif-dev manifest && oclif-dev readme",
+    "gnirts-ci": "node .ci/obfuscate/gnirts.js",
+    "prepack": "rm -rf lib && rm -rf tsconfig.tsbuildinfo && tsc -b && oclif-dev manifest && oclif-dev readme && yarn gnirts-ci",
     "pack-binaries": "oclif-dev pack",
     "postpack": "rm -f oclif.manifest.json",
     "format": "tsfmt -r --useTsfmt tsfmt.json",
