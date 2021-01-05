@@ -304,7 +304,7 @@ error: E_COMMAND_FAILED`)
     ctx.isCheDeployed = true
     if (flags.multiuser) {
       ctx.isPostgresDeployed = true
-      ctx.isKeaycloakDeployed = true
+      ctx.isKeycloakDeployed = true
       multiUserFlag = `-f ${destDir}values/multi-user.yaml`
     }
 
