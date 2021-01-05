@@ -112,3 +112,8 @@ export const logsDirectory = string({
   description: 'Directory to store logs into',
   env: 'CHE_LOGS'
 })
+
+export const CHE_TELEMETRY = string({
+  description: 'Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry',
+  options: ['on', 'off']
+})

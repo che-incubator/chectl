@@ -15,7 +15,8 @@ import * as inquirer from 'inquirer'
 import { CheApiClient } from '../../api/che-api-client'
 import { CheServerLoginManager } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
-import { CHE_API_ENDPOINT_KEY, username, USERNAME_KEY } from '../../common-flags'
+import { CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, username, USERNAME_KEY } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
 export default class Use extends Command {
   static description = 'Set active login session'
@@ -36,6 +37,7 @@ export default class Use extends Command {
       required: false,
       exclusive: [USERNAME_KEY]
     }),
+    telemetry: CHE_TELEMETRY
   }
 
   static examples = [
@@ -52,6 +54,8 @@ export default class Use extends Command {
   async run() {
     const { args, flags } = this.parse(Use)
     await ChectlContext.init(flags, this)
+
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Use.id, flags })
 
     if (flags.interactive) {
       await this.interactiveSwitch()

@@ -14,8 +14,8 @@ import { string } from '@oclif/parser/lib/flags'
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
+import { cheNamespace, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
 import { getCommandErrorMessage } from '../../util'
 
 export default class Export extends Command {
@@ -33,7 +33,8 @@ export default class Export extends Command {
       env: 'CHE_CA_CERT_LOCATION',
       default: ''
     }),
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {
@@ -42,6 +43,7 @@ export default class Export extends Command {
 
     const kube = new KubeHelper(flags)
     const cheHelper = new CheHelper(flags)
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Export.id, flags })
 
     if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
       throw new Error(`E_PERM_DENIED - Permission denied: no read access to '${flags.chenamespace}' namespace`)

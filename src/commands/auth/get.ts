@@ -13,17 +13,21 @@ import { cli } from 'cli-ux'
 
 import { CheServerLoginManager } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
+import { CHE_TELEMETRY } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
 export default class Get extends Command {
   static description = 'Display active login session'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
+    telemetry: CHE_TELEMETRY
   }
-
   async run() {
     const { flags } = this.parse(Get)
     await ChectlContext.init(flags, this)
+
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Get.id, flags })
 
     const loginManager = await CheServerLoginManager.getInstance()
     const currentLogin = loginManager.getCurrentLoginInfo()

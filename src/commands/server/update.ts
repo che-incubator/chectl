@@ -18,12 +18,12 @@ import * as path from 'path'
 
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { assumeYes, cheDeployment, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_CHE_OPERATOR_IMAGE, SUBSCRIPTION_NAME } from '../../constants'
+import { assumeYes, cheDeployment, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE, SUBSCRIPTION_NAME } from '../../constants'
 import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandErrorMessage, getCommandSuccessMessage, getCurrentChectlName, getCurrentChectlVersion, getImageTag, getLatestChectlVersion, notifyCommandCompletedSuccessfully } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, getImageTag, getLatestChectlVersion, getProjectlName, getProjectVersion, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -72,6 +72,7 @@ export default class Update extends Command {
     yes: assumeYes,
     help: flags.help({ char: 'h' }),
     [CHE_OPERATOR_CR_PATCH_YAML_KEY]: cheOperatorCRPatchYaml,
+    telemetry: CHE_TELEMETRY
   }
 
   static getTemplatesDir(): string {
@@ -95,6 +96,7 @@ export default class Update extends Command {
       await this.setDefaultInstaller(flags)
       cli.info(`› Installer type is set to: '${flags.installer}'`)
     }
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Update.id, flags })
 
     const kubeHelper = new KubeHelper(flags)
     const installerTasks = new InstallerTasks()
@@ -130,9 +132,9 @@ export default class Update extends Command {
 
       const defaultOperatorImageTag = getImageTag(DEFAULT_CHE_OPERATOR_IMAGE)
       const chectlChannel = defaultOperatorImageTag === 'nightly' ? 'next' : 'stable'
-      const currentChectlVersion = getCurrentChectlVersion()
+      const currentChectlVersion = getProjectVersion()
       const latestChectlVersion = await getLatestChectlVersion(chectlChannel)
-      const chectlName = getCurrentChectlName()
+      const chectlName = getProjectlName()
 
       // the same version is already installed
       if (newOperatorImage === existedOperatorImage) {
@@ -152,8 +154,8 @@ and then try again.`)
           // unknown project, no patch file then suggest to update
           if (!flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]) {
             cli.warn(`It is not possible to update Eclipse Che to a newer version
-using the current '${currentChectlVersion}' version of '${getCurrentChectlName()}'.
-Please, update '${getCurrentChectlName()}' and then try again.`)
+using the current '${currentChectlVersion}' version of '${getProjectlName()}'.
+Please, update '${getProjectlName()}' and then try again.`)
             this.exit(0)
           }
         }
