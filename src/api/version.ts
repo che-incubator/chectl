@@ -166,4 +166,49 @@ export namespace VersionHelper {
   function removeVPrefix(version: string): string {
     return version.startsWith('v') ? version.substring(1) : version
   }
+
+  /**
+   * Compares versions in format: x.y.z.w...
+   * Prefix 'v' is automatically deleted if any.
+   * If a part of a version is not a number then string rules to compare applies. So:
+   * - if one of the arguments is a text it will be greater
+   * - if a part of a version has suffix (for example '-RC2') it will be greater
+   * - if an argument has more version parts and first n are equal, then longer is greater
+   * | Arguments | Returns |
+   * | --------  | ------- |
+   *    a > b    |    1
+   *    a = b    |    0
+   *    a < b    |   -1
+   */
+  export function compareVersions(a: string, b: string): number {
+    if (a.startsWith('v')) {
+      a = a.substring(1)
+    }
+    if (b.startsWith('v')) {
+      b = b.substring(1)
+    }
+
+    const aParts = a.split('.')
+    const bParts = b.split('.')
+    const length = aParts.length > bParts.length ? bParts.length : aParts.length
+    for (let i = 0; i < length; i++) {
+      if (aParts[i] !== bParts[i]) {
+        const ai = parseInt(aParts[i], 10)
+        const bi = parseInt(bParts[i], 10)
+        if (isNaN(ai) || isNaN(bi)) {
+          // At least one part starts with a letter
+          return aParts[i] > bParts[i] ? 1 : -1
+        } else {
+          if (ai !== bi) {
+            return ai > bi ? 1 : -1
+          } else {
+            // Prefixes are equal, compare suffix as strings (e.g. 7.1-RC1 with 7.1-RC2)
+            return aParts[i] > bParts[i] ? 1 : -1
+          }
+        }
+      }
+    }
+    return aParts.length - bParts.length
+  }
+
 }

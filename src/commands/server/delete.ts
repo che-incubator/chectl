@@ -19,7 +19,6 @@ import { assumeYes, cheDeployment, cheNamespace, devWorkspaceControllerNamespace
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { HelmTasks } from '../../tasks/installers/helm'
-import { MinishiftAddonTasks } from '../../tasks/installers/minishift-addon'
 import { OLMTasks } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { ApiTasks } from '../../tasks/platforms/api'
@@ -58,7 +57,6 @@ export default class Delete extends Command {
 
     const apiTasks = new ApiTasks()
     const helmTasks = new HelmTasks(flags)
-    const minishiftAddonTasks = new MinishiftAddonTasks()
     const operatorTasks = new OperatorTasks()
     const olmTasks = new OLMTasks()
     const cheTasks = new CheTasks(flags)
@@ -72,7 +70,6 @@ export default class Delete extends Command {
     tasks.add(cheTasks.deleteTasks(flags))
     tasks.add(devWorkspaceTasks.getUninstallTasks())
     tasks.add(helmTasks.deleteTasks(flags))
-    tasks.add(minishiftAddonTasks.deleteTasks(flags))
     tasks.add(cheTasks.waitPodsDeletedTasks())
     if (flags['delete-namespace']) {
       tasks.add(cheTasks.deleteNamespace(flags))

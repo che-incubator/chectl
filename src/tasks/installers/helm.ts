@@ -12,15 +12,21 @@ import { Command } from '@oclif/command'
 import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as fs from 'fs'
-import { copy, mkdirp, remove } from 'fs-extra'
 import * as Listr from 'listr'
 import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME, DEFAULT_CHE_IMAGE } from '../../constants'
+import { CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
 import { CertManagerTasks } from '../../tasks/component-installers/cert-manager'
-import { generatePassword, isStableVersion } from '../../util'
+import { generatePassword, isStableVersion, safeSaveYamlToFile } from '../../util'
+
+interface HelmChartDependency {
+  name: string
+  repository: string
+  version: string
+  condition: string
+}
 
 export class HelmTasks {
   protected kubeHelper: KubeHelper
@@ -32,7 +38,7 @@ export class HelmTasks {
   /**
    * Returns list of tasks which perform preflight platform checks.
    */
-  startTasks(flags: any, command: Command): Listr {
+  deployTasks(flags: any, command: Command): Listr {
     if (isStableVersion(flags)) {
       command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of Eclipse Che (--installer=olm).')
     }
@@ -169,23 +175,21 @@ export class HelmTasks {
         }
       },
       {
-        title: 'Preparing Eclipse Che Helm Chart',
-        task: async (_ctx: any, task: any) => {
-          await this.prepareCheHelmChart(flags, command.config.cacheDir)
-          task.title = `${task.title}...done.`
-        }
-      },
-      {
         title: 'Updating Helm Chart dependencies',
         task: async (_ctx: any, task: any) => {
-          await this.updateCheHelmChartDependencies(command.config.cacheDir)
+          if (VersionHelper.compareVersions('7.23.2', flags.version) === 1) {
+            // Current version is below 7.23.2
+            // Fix moved external depenency
+            await this.pathcCheHelmChartPrometheusAndGrafanaDependencies(flags)
+          }
+          await this.updateCheHelmChartDependencies(flags)
           task.title = `${task.title}...done.`
         }
       },
       {
         title: 'Deploying Eclipse Che Helm Chart',
         task: async (ctx: any, task: any) => {
-          await this.upgradeCheHelmChart(ctx, flags, command.config.cacheDir)
+          await this.upgradeCheHelmChart(ctx, flags)
           task.title = `${task.title}...done.`
         }
       },
@@ -201,10 +205,10 @@ export class HelmTasks {
       enabled: (ctx: any) => !ctx.isOpenShift,
       task: async (_ctx: any, task: any) => {
         if (await !commandExists.sync('helm')) {
-          task.title = await `${task.title}...OK (Helm not found)`
+          task.title = `${task.title}...OK (Helm not found)`
         } else {
           await this.purgeHelmChart('che')
-          task.title = await `${task.title}...OK`
+          task.title = `${task.title}...OK`
         }
       }
     }]
@@ -281,21 +285,32 @@ error: E_COMMAND_FAILED`)
     await execa('helm', ['delete', name, '--purge'], { timeout: execTimeout, reject: false })
   }
 
-  private async prepareCheHelmChart(flags: any, cacheDir: string) {
-    const srcDir = path.join(flags.templates, '/kubernetes/helm/che/')
-    const destDir = path.join(cacheDir, '/templates/kubernetes/helm/che/')
-    await remove(destDir)
-    await mkdirp(destDir)
-    await copy(srcDir, destDir)
+  private async pathcCheHelmChartPrometheusAndGrafanaDependencies(flags: any): Promise<void> {
+    const helmChartDependenciesYamlPath = path.join(flags.templates, 'kubernetes', 'helm', 'che', 'requirements.yaml')
+    const helmChartDependenciesYaml = this.kubeHelper.safeLoadFromYamlFile(helmChartDependenciesYamlPath)
+    const deps: HelmChartDependency[] = helmChartDependenciesYaml && helmChartDependenciesYaml.dependencies || []
+    let shouldReplaceYamlFile = false
+    for (const dep of deps) {
+      if (dep.name === 'prometheus' && dep.repository.startsWith('https://kubernetes-charts.storage.googleapis.com')) {
+        dep.repository = 'https://prometheus-community.github.io/helm-charts'
+        shouldReplaceYamlFile = true
+      } else if (dep.name === 'grafana' && dep.repository.startsWith('https://kubernetes-charts.storage.googleapis.com')) {
+        dep.repository = 'https://grafana.github.io/helm-charts'
+        shouldReplaceYamlFile = true
+      }
+    }
+    if (shouldReplaceYamlFile) {
+      safeSaveYamlToFile(helmChartDependenciesYaml, helmChartDependenciesYamlPath)
+    }
   }
 
-  private async updateCheHelmChartDependencies(cacheDir: string, execTimeout = 120000) {
-    const destDir = path.join(cacheDir, '/templates/kubernetes/helm/che/')
+  private async updateCheHelmChartDependencies(flags: any, execTimeout = 120000) {
+    const destDir = path.join(flags.templates, 'kubernetes', 'helm', 'che')
     await execa(`helm dependencies update ${destDir}`, { timeout: execTimeout, shell: true })
   }
 
-  private async upgradeCheHelmChart(ctx: any, flags: any, cacheDir: string, execTimeout = 120000) {
-    const destDir = path.join(cacheDir, '/templates/kubernetes/helm/che/')
+  private async upgradeCheHelmChart(ctx: any, flags: any, execTimeout = 120000) {
+    const destDir = path.join(flags.templates, '/kubernetes/helm/che/')
 
     let multiUserFlag = ''
     let tlsFlag = ''
@@ -343,9 +358,11 @@ error: E_COMMAND_FAILED`)
       setOptions.push(`--set che-keycloak.keycloakAdminUserPassword=${ctx.identityProviderPassword}`)
     }
 
+    if (flags.cheimage) {
+      setOptions.push(`--set cheImage=${flags.cheimage}`)
+    }
+
     setOptions.push(`--set global.ingressDomain=${flags.domain}`)
-    const cheImage = flags.cheimage || DEFAULT_CHE_IMAGE
-    setOptions.push(`--set cheImage=${cheImage}`)
     setOptions.push(`--set che.disableProbes=${flags.debug}`)
 
     const patchFlags = flags['helm-patch-yaml'] ? '-f ' + flags['helm-patch-yaml'] : ''

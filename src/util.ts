@@ -18,7 +18,6 @@ import * as notifier from 'node-notifier'
 const pkjson = require('../package.json')
 
 import { ChectlContext } from './api/context'
-import { DEFAULT_CHE_OPERATOR_IMAGE } from './constants'
 
 export const KUBERNETES_CLI = 'kubectl'
 export const OPENSHIFT_CLI = 'oc'
@@ -79,9 +78,10 @@ export function base64Decode(arg: string): string {
  * Indicates if stable version of `chectl` is used.
  */
 export function isStableVersion(flags: any): boolean {
-  const operatorImage = flags['che-operator-image'] || DEFAULT_CHE_OPERATOR_IMAGE
-  const cheVersion = getImageTag(operatorImage)
-  return cheVersion !== 'nightly' && cheVersion !== 'latest' && !flags['catalog-source-yaml'] && !flags['catalog-source-name']
+  if (!flags.version || flags.version === 'next' || flags.version === 'nightly') {
+    return false
+  }
+  return true
 }
 
 /**
@@ -117,7 +117,7 @@ export function readCRFile(flags: any, CRKey: string): any {
   }
 
   if (fs.existsSync(CRFilePath)) {
-    return yaml.safeLoad(fs.readFileSync(CRFilePath).toString())
+    return safeLoadFromYamlFile(CRFilePath)
   }
 
   throw new Error(`Unable to find file defined in the flag '--${CRKey}'`)
@@ -195,6 +195,14 @@ export function getCurrentChectlName(): string {
 
 export function readPackageJson(): any {
   return JSON.parse(fs.readFileSync('../package.json').toString())
+}
+
+export function safeLoadFromYamlFile(filePath: string): any {
+  return yaml.safeLoad(fs.readFileSync(filePath).toString())
+}
+
+export function safeSaveYamlToFile(yamlObject: any, filePath: string): void {
+  fs.writeFileSync(filePath, yaml.safeDump(yamlObject))
 }
 
 /**

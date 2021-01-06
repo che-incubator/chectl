@@ -10,7 +10,6 @@
 
 import { Octokit } from '@octokit/rest'
 
-const MIN_VERSION = '7' // TODO
 const OWNER = 'eclipse'
 export const CHE_REPO = 'che'
 export const CHE_OPERATOR_REPO = 'che-operator'

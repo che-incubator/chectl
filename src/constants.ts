@@ -8,11 +8,14 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
+// minimal installable versions by current chectl
+export const MIN_CHE_OPERATOR_INSTALLER_VERSION = '7.12.2'
+export const MIN_HELM_INSTALLER_VERSION = '7.10.0'
+
 // labels
 export const CHE_RELATED_COMPONENT_LABEL = 'client/org.eclipse.che=true'
 
- // images
-export const DEFAULT_CHE_IMAGE = 'quay.io/eclipse/che-server:nightly'
+// images
 export const DEFAULT_CHE_OPERATOR_IMAGE = 'quay.io/eclipse/che-operator:nightly'
 export const DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE = 'quay.io/devfile/devworkspace-controller:next'
 // This image should be updated manually when needed.

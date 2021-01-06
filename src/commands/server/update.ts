@@ -59,7 +59,6 @@ export default class Update extends Command {
     }),
     'che-operator-image': string({
       description: 'Container image of the operator. This parameter is used only when the installer is the operator',
-      default: DEFAULT_CHE_OPERATOR_IMAGE
     }),
     'skip-version-check': flags.boolean({
       description: 'Skip minimal versions check.',
