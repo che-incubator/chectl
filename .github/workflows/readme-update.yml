@@ -1,0 +1,22 @@
+name: Lint source code
+on: [pull_request]
+
+jobs:
+  run:
+    name: Check readme
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - name: Pack chectl
+        run: yarn pack
+      - name: Commit Readme changes to the PR
+        uses: EndBug/add-and-commit@v6
+        with:
+          add: 'README.md'
+          cwd: go/src/github.com/che-incubator/${{ github.repository }}
+          message: "Update Readme"
