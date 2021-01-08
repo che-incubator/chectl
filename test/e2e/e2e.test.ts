@@ -260,6 +260,9 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
     it('server:delete command coverage', async () => {
       console.log('>>> Testing server:delete command')
 
+      // Sleep time to wait to workspace to be running
+      await helper.sleep(10 * 1000)
+
       const { exitCode, stdout, stderr } = await execa(binChectl, ['server:delete', `-n ${NAMESPACE}`, '--telemetry=off', '--delete-namespace', '--yes'], { shell: true })
 
       console.log(`stdout: ${stdout}`)
