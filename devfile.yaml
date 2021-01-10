@@ -22,7 +22,7 @@ components:
     type: chePlugin
     memoryLimit: 128M
 
-  - id: che-incubator/typescript/latest
+  - id: vscode/typescript-language-features/latest
     type: chePlugin
     memoryLimit: 1G
 
