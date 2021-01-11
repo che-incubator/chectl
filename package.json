@@ -32,7 +32,7 @@
     "eclipse-che-devfile-api": "git://github.com/devfile/api#v1alpha1",
     "eclipse-che-devfile-workspace-operator": "git://github.com/devfile/devworkspace-operator#master",
     "eclipse-che-minishift": "git://github.com/minishift/minishift#master",
-    "eclipse-che-operator": "git://github.com/eclipse/che-operator#master",
+    "eclipse-che-operator": "git://github.com/eclipse/che-operator#1c4030a696b046a89a9ce66d72f3392e1cc33212",
     "esprima": "^4.0.1",
     "execa": "^4.0.3",
     "fancy-test": "^1.4.9",
