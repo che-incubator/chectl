@@ -1405,11 +1405,11 @@ export class KubeHelper {
   async createCheCluster(cheClusterCR: any, flags: any, ctx: any, useDefaultCR: boolean): Promise<any> {
     const cheNamespace = flags.chenamespace
     if (useDefaultCR) {
-      // If we don't use an explicitly provided CheCluster CR,
-      // then let's modify the default example CR with values
-      // derived from the other parameters
+      // If CheCluster CR is not explicitly provided, then modify the default example CR
+      // with values derived from the other parameters
+
       if (isStableVersion(flags)) {
-        // Operator defaults for images should be used in case of a release version
+        // Use images from operator defaults in case of a stable version
         cheClusterCR.spec.server.cheImage = ''
         cheClusterCR.spec.server.cheImageTag = ''
         cheClusterCR.spec.server.pluginRegistryImage = ''
@@ -1458,6 +1458,10 @@ export class KubeHelper {
 
       cheClusterCR.spec.storage.postgresPVCStorageClassName = flags['postgres-pvc-storage-class-name']
       cheClusterCR.spec.storage.workspacePVCStorageClassName = flags['workspace-pvc-storage-class-name']
+
+      // Use self-signed TLS certificate by default (for versions before 7.14.3).
+      // In modern versions of Che this field is ignored.
+      cheClusterCR.spec.server.selfSignedCert = true
     }
 
     cheClusterCR.spec.server.cheClusterRoles = ctx.namespaceEditorClusterRoleName

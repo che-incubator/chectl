@@ -111,7 +111,7 @@ export class OperatorTasks {
 
         for (const clusterRole of ctx.clusterRoles as V1ClusterRole[]) {
           const clusterRoleName = clusterObjectNamePrefix + clusterRole.metadata!.name
-          if (await kube.clusterRoleExist(clusterRole.metadata!.name)) {
+          if (await kube.clusterRoleExist(clusterRoleName)) {
             if (shouldUpdate) {
               await kube.replaceClusterRoleFrom(clusterRole, clusterRoleName)
             }
@@ -124,10 +124,7 @@ export class OperatorTasks {
           clusterRoleBinding.metadata!.name = clusterObjectNamePrefix + clusterRoleBinding.metadata!.name
           clusterRoleBinding.roleRef.name = clusterObjectNamePrefix + clusterRoleBinding.roleRef.name
           for (const subj of clusterRoleBinding.subjects || []) {
-            subj.name = clusterObjectNamePrefix + subj.name
-            if (subj.namespace) {
-              subj.namespace = clusterObjectNamePrefix + subj.namespace
-            }
+            subj.namespace = flags.chenamespace
           }
           if (await kube.clusterRoleBindingExist(clusterRoleBinding.metadata!.name)) {
             if (shouldUpdate) {
