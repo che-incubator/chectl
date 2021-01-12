@@ -26,7 +26,6 @@ export class InstallerTasks {
     let title: string
     let task: any
 
-    // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the Eclipse Che operator Update'
       task = () => {
@@ -55,7 +54,6 @@ export class InstallerTasks {
     let title: string
     let task: any
 
-    // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the Eclipse Che operator Update'
       task = () => {
@@ -84,8 +82,6 @@ export class InstallerTasks {
 
     let title: string
     let task: any
-
-    // let task: Listr.ListrTask
 
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the Eclipse Che operator'

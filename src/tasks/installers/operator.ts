@@ -234,26 +234,46 @@ export class OperatorTasks {
     const kube = new KubeHelper(flags)
     return new Listr([
       {
-        title: 'Checking versions compatibility before updating',
-        task: async (ctx: any, _task: any) => {
+        title: 'Checking existing operator deployment before update',
+        task: async (ctx: any, task: any) => {
           const operatorDeployment = await kube.getDeployment(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
           if (!operatorDeployment) {
             command.error(`${OPERATOR_DEPLOYMENT_NAME} deployment is not found in namespace ${flags.chenamespace}.\nProbably Eclipse Che was initially deployed with another installer`)
           }
-          const deployedCheOperator = this.retrieveContainerImage(operatorDeployment)
-          const deployedCheOperatorImageAndTag = deployedCheOperator.split(':', 2)
-          ctx.deployedCheOperatorImage = deployedCheOperatorImageAndTag[0]
-          ctx.deployedCheOperatorTag = deployedCheOperatorImageAndTag.length === 2 ? deployedCheOperatorImageAndTag[1] : 'latest'
+          ctx.deployedCheOperatorYaml = operatorDeployment
+          task.title = `${task.title}...done`
+        }
+      },
+      {
+        title: 'Gathering versions info...',
+        task: async (ctx: any, task: any) => {
+          ctx.deployedCheOperatorImage = this.retrieveContainerImage(ctx.deployedCheOperatorYaml)
+          const deployedCheOperatorImageAndTag = ctx.deployedCheOperatorImage.split(':', 2)
+          ctx.deployedCheOperatorImageName = deployedCheOperatorImageAndTag[0]
+          ctx.deployedCheOperatorImageTag = deployedCheOperatorImageAndTag.length === 2 ? deployedCheOperatorImageAndTag[1] : 'latest'
+          ctx.deployedCheOperatorImage = ctx.deployedCheOperatorImageName + ':' + ctx.deployedCheOperatorImageTag
 
-          const newCheOperatorImageAndTag = flags['che-operator-image'].split(':', 2)
-          ctx.newCheOperatorImage = newCheOperatorImageAndTag[0]
-          ctx.newCheOperatorTag = newCheOperatorImageAndTag.length === 2 ? newCheOperatorImageAndTag[1] : 'latest'
+          if (flags['che-operator-image']) {
+            ctx.newCheOperatorImage = flags['che-operator-image']
+          } else {
+            // Load new operator image from templates
+            const newCheOperatorYaml = safeLoadFromYamlFile(path.join(flags.templates, 'che-operator', 'operator.yaml')) as V1Deployment
+            ctx.newCheOperatorImage = this.retrieveContainerImage(newCheOperatorYaml)
+          }
+          const newCheOperatorImageAndTag = ctx.newCheOperatorImage.split(':', 2)
+          ctx.newCheOperatorImageName = newCheOperatorImageAndTag[0]
+          ctx.newCheOperatorImageTag = newCheOperatorImageAndTag.length === 2 ? newCheOperatorImageAndTag[1] : 'latest'
+          ctx.newCheOperatorImage = ctx.newCheOperatorImageName + ':' + ctx.newCheOperatorImageTag
+
+          task.title = `${task.title} ${ctx.deployedCheOperatorImageTag} -> ${ctx.newCheOperatorImageTag}`
         }
       }])
   }
 
   updateTasks(flags: any, command: Command): Listr {
     const kube = new KubeHelper(flags)
+    const ctx = ChectlContext.get()
+    ctx.resourcesPath = path.join(flags.templates, 'che-operator')
     return new Listr([
       {
         title: `Updating ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
@@ -433,16 +453,6 @@ export class OperatorTasks {
       }
     },
     ]
-  }
-
-  async evaluateTemplateOperatorImage(flags: any): Promise<string> {
-    if (flags['che-operator-image']) {
-      return flags['che-operator-image']
-    } else {
-      const filePath = path.join(flags.templates, 'che-operator', 'operator.yaml')
-      const yamlDeployment = safeLoadFromYamlFile(filePath) as V1Deployment
-      return yamlDeployment.spec!.template.spec!.containers[0].image!
-    }
   }
 
   retrieveContainerImage(deployment: V1Deployment) {

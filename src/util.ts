@@ -75,7 +75,7 @@ export function base64Decode(arg: string): string {
 }
 
 /**
- * Indicates if stable version of `chectl` is used.
+ * Indicates if stable version of Eclispe Che is used.
  */
 export function isStableVersion(flags: any): boolean {
   if (!flags.version || flags.version === 'next' || flags.version === 'nightly') {
@@ -145,6 +145,21 @@ export function getCommandSuccessMessage(): string {
   return `Command ${ctx[ChectlContext.COMMAND_ID]} has completed successfully.`
 }
 
+/**
+ * Returns command success message with execution time.
+ */
+export function getCommandErrorMessage(err: Error): string {
+  const ctx = ChectlContext.get()
+  const logDirectory = ctx[ChectlContext.LOGS_DIR]
+
+  let message = `${err}\nCommand ${ctx[ChectlContext.COMMAND_ID]} failed. Error log: ${ctx[ChectlContext.ERROR_LOG]}`
+  if (logDirectory && isDirEmpty(logDirectory)) {
+    message += ` Eclipse Che logs: ${logDirectory}`
+  }
+
+  return message
+}
+
 export function notifyCommandCompletedSuccessfully(): void {
   notifier.notify({
     title: 'chectl',
@@ -165,44 +180,10 @@ export function isDirEmpty(dirname: string): boolean {
 }
 
 /**
- * Returns command success message with execution time.
- */
-export function getCommandErrorMessage(err: Error): string {
-  const ctx = ChectlContext.get()
-  const logDirectory = ctx[ChectlContext.LOGS_DIR]
-
-  let message = `${err}\nCommand ${ctx[ChectlContext.COMMAND_ID]} failed. Error log: ${ctx[ChectlContext.ERROR_LOG]}`
-  if (logDirectory && isDirEmpty(logDirectory)) {
-    message += ` Eclipse Che logs: ${logDirectory}`
-  }
-
-  return message
-}
-
-/**
  * Returns current chectl version defined in package.json.
  */
 export function getCurrentChectlVersion(): string {
   return pkjson.version
-}
-
-/**
- * Returns current chectl version defined in package.json.
- */
-export function getCurrentChectlName(): string {
-  return pkjson.name
-}
-
-export function readPackageJson(): any {
-  return JSON.parse(fs.readFileSync('../package.json').toString())
-}
-
-export function safeLoadFromYamlFile(filePath: string): any {
-  return yaml.safeLoad(fs.readFileSync(filePath).toString())
-}
-
-export function safeSaveYamlToFile(yamlObject: any, filePath: string): void {
-  fs.writeFileSync(filePath, yaml.safeDump(yamlObject))
 }
 
 /**
@@ -223,6 +204,25 @@ export async function getLatestChectlVersion(channel: string): Promise<string | 
   } catch {
     return
   }
+}
+
+/**
+ * Returns current chectl version defined in package.json.
+ */
+export function getCurrentChectlName(): string {
+  return pkjson.name
+}
+
+export function readPackageJson(): any {
+  return JSON.parse(fs.readFileSync('../package.json').toString())
+}
+
+export function safeLoadFromYamlFile(filePath: string): any {
+  return yaml.safeLoad(fs.readFileSync(filePath).toString())
+}
+
+export function safeSaveYamlToFile(yamlObject: any, filePath: string): void {
+  fs.writeFileSync(filePath, yaml.safeDump(yamlObject))
 }
 
 /**

@@ -103,7 +103,7 @@ export function prepareTemplates(flags: any): Listr.ListrTask {
           // Delete old templates and download newer
           rimraf.sync(versionTemplatesDirPath)
         } else {
-          // Use cahced templates
+          // Use cached templates
           task.title = `${task.title}... found cache for version ${verInfo.name}`
           return
         }
@@ -112,6 +112,7 @@ export function prepareTemplates(flags: any): Listr.ListrTask {
       // Download templates
       task.title = `${task.title} for version ${verInfo.name}`
       await cheHelper.getAndPrepareInstallerTemplates(flags.installer, verInfo.zipball_url, versionTemplatesDirPath)
+      ctx.downloadedNewTemplates = true
       // Save commit hash
       await fs.writeFile(commitHashFilePath, verInfo.commit.sha)
     }

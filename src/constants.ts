@@ -16,7 +16,7 @@ export const MIN_HELM_INSTALLER_VERSION = '7.10.0'
 export const CHE_RELATED_COMPONENT_LABEL = 'client/org.eclipse.che=true'
 
 // images
-export const DEFAULT_CHE_OPERATOR_IMAGE = 'quay.io/eclipse/che-operator:nightly'
+export const DEFAULT_CHE_OPERATOR_IMAGE_NAME = 'quay.io/eclipse/che-operator'
 export const DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE = 'quay.io/devfile/devworkspace-controller:next'
 // This image should be updated manually when needed.
 // Repository location: https://github.com/che-dockerfiles/che-cert-manager-ca-cert-generator-image
