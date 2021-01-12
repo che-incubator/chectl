@@ -12,7 +12,7 @@ import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as os from 'os'
 import * as path from 'path'
-
+import { detectWorkingNamespace } from '../../util'
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
@@ -44,6 +44,7 @@ export default class Logs extends Command {
 
   async run() {
     const { flags } = this.parse(Logs)
+    flags.chenamespace = await detectWorkingNamespace()
     await ChectlContext.init(flags, this)
 
     const logsDirectory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))

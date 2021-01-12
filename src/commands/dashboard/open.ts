@@ -10,6 +10,7 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
+import { detectWorkingNamespace } from '../../util'
 
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
@@ -27,6 +28,7 @@ export default class Open extends Command {
 
   async run() {
     const { flags } = this.parse(Open)
+    flags.chenamespace = await detectWorkingNamespace()
     await ChectlContext.init(flags, this)
 
     try {

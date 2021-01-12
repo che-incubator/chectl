@@ -12,6 +12,7 @@ import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as fs from 'fs'
+import { detectWorkingNamespace } from '../../util'
 
 import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
@@ -54,6 +55,7 @@ export default class Create extends Command {
 
   async run() {
     const { flags } = this.parse(Create)
+    flags.chenamespace = await detectWorkingNamespace()
     await ChectlContext.init(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Create.id, flags })

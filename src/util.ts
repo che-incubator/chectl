@@ -18,7 +18,8 @@ import * as notifier from 'node-notifier'
 const pkjson = require('../package.json')
 
 import { ChectlContext } from './api/context'
-import { DEFAULT_CHE_OPERATOR_IMAGE } from './constants'
+import { KubeHelper } from './api/kube'
+import { DEFAULT_CHE_OPERATOR_IMAGE, ECLIPSE_CHE_NAMESPACE, LEGACY_NAMESPACE } from './constants'
 
 export const KUBERNETES_CLI = 'kubectl'
 export const OPENSHIFT_CLI = 'oc'
@@ -215,4 +216,16 @@ export async function getLatestChectlVersion(channel: string): Promise<string | 
   } catch {
     return
   }
+}
+
+/**
+ * Detects current working namespace. The default namespace has been changed from
+ * `che` to `eclipse-che`. For backward compatibility we detects if legacy namespace
+ * exists then all commands will be done against that namespace otherwise
+ * the new namespace `eclipse-che` will be used.
+ */
+export async function detectWorkingNamespace(): Promise<string> {
+  const kubeHelper = new KubeHelper({})
+  const legacyNamespace = await kubeHelper.getNamespace(LEGACY_NAMESPACE)
+  return legacyNamespace ? LEGACY_NAMESPACE : ECLIPSE_CHE_NAMESPACE
 }

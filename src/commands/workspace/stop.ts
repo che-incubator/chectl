@@ -10,6 +10,7 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
+import { detectWorkingNamespace } from '../../util'
 
 import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
@@ -39,7 +40,9 @@ export default class Stop extends Command {
 
   async run() {
     const { flags, args } = this.parse(Stop)
+    flags.chenamespace = await detectWorkingNamespace()
     await ChectlContext.init(flags, this)
+
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Stop.id, flags })
 
     const workspaceId = args.workspace

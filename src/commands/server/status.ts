@@ -10,6 +10,7 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
+import { detectWorkingNamespace } from '../../util'
 
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
@@ -30,6 +31,7 @@ export default class Status extends Command {
 
   async run() {
     const { flags } = this.parse(Status)
+    flags.chenamespace = await detectWorkingNamespace()
     const ctx = await ChectlContext.initAndGet(flags, this)
 
     const kube = new KubeHelper(flags)

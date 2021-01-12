@@ -16,6 +16,7 @@ import * as execa from 'execa'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
+import { detectWorkingNamespace } from '../../util'
 
 import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
@@ -62,6 +63,7 @@ export default class Inject extends Command {
 
   async run() {
     const { flags } = this.parse(Inject)
+    flags.chenamespace = await detectWorkingNamespace()
     await ChectlContext.init(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Inject.id, flags })

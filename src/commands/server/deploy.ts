@@ -333,7 +333,7 @@ export default class Deploy extends Command {
 
     await this.setPlaformDefaults(flags, ctx)
 
-    if (flags.installer === 'olm' && flags['olm-suggested-namespace']) {
+    if (flags.installer === 'olm' && flags['olm-suggested-namespace'] && flags.chenamespace !== DEFAULT_OLM_SUGGESTED_NAMESPACE) {
       flags.chenamespace = DEFAULT_OLM_SUGGESTED_NAMESPACE
       cli.info(` ❕olm-suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
     }
