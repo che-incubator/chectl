@@ -220,8 +220,8 @@ export async function getLatestChectlVersion(channel: string): Promise<string | 
 
 /**
  * Detects current working namespace. The default namespace has been changed from
- * `che` to `eclipse-che`. For backward compatibility we detects if legacy namespace
- * exists then all commands will be done against that namespace otherwise
+ * `che` to `eclipse-che`. For backward compatibility we detect if legacy namespace
+ * exists then all commands will be run against that namespace otherwise
  * the new namespace `eclipse-che` will be used.
  */
 export async function detectWorkingNamespace(): Promise<string> {
