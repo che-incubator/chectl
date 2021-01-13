@@ -16,7 +16,6 @@ import * as execa from 'execa'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import { detectWorkingNamespace } from '../../util'
 
 import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
@@ -25,7 +24,7 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import { getClusterClientCommand, getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
+import { detectWorkingNamespace, getClusterClientCommand, getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
 
 export default class Inject extends Command {
   static description = 'Inject configurations and tokens in a workspace'

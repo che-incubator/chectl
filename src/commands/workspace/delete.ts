@@ -10,7 +10,6 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
-import { detectWorkingNamespace } from '../../util'
 
 import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
@@ -18,6 +17,7 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { detectWorkingNamespace } from '../../util'
 
 export default class Delete extends Command {
   static description = 'Delete a stopped workspace - use workspace:stop to stop the workspace before deleting it'

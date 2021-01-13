@@ -12,11 +12,12 @@ import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as os from 'os'
 import * as path from 'path'
-import { detectWorkingNamespace } from '../../util'
+
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { detectWorkingNamespace } from '../../util'
 
 export default class Logs extends Command {
   static description = 'Collect workspace(s) logs'

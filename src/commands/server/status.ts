@@ -10,7 +10,6 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
-import { detectWorkingNamespace } from '../../util'
 
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
@@ -18,6 +17,7 @@ import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { cheNamespace, CHE_TELEMETRY } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { detectWorkingNamespace } from '../../util'
 
 export default class Status extends Command {
   // Implementation-Version it is a property from Manifest.ml inside of che server pod which indicate Eclipse Che build version.

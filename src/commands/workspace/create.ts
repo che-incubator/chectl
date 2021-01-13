@@ -12,7 +12,6 @@ import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as fs from 'fs'
-import { detectWorkingNamespace } from '../../util'
 
 import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
@@ -20,6 +19,7 @@ import { getLoginData } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { detectWorkingNamespace } from '../../util'
 
 export default class Create extends Command {
   static description = 'Creates a workspace from a devfile'
