@@ -1,0 +1,24 @@
+name: Chectl
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-20.04
+    name: Upload chectl test coverage to codecov
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.3.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12'
+      - name: Install chectl dependencies
+        run: yarn
+      - name: Install codecov
+        run: npm install codecov -g
+      - name: Run unit tests
+        run: yarn test
+      - name: Upoad coverage test results
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: bash <(curl -s https://codecov.io/bash)
