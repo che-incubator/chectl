@@ -17,7 +17,7 @@ import { cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { detectWorkingNamespace, getCommandErrorMessage } from '../../util'
+import { findWorkingNamespace, getCommandErrorMessage } from '../../util'
 
 export default class Debug extends Command {
   static description = 'Enable local debug of Eclipse Che server'
@@ -36,7 +36,7 @@ export default class Debug extends Command {
 
   async run() {
     const { flags } = this.parse(Debug)
-    flags.chenamespace = await detectWorkingNamespace(flags)
+    flags.chenamespace = await findWorkingNamespace(flags)
     const ctx = await ChectlContext.initAndGet(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Debug.id, flags })

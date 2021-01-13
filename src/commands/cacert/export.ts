@@ -16,7 +16,7 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
-import { detectWorkingNamespace, getCommandErrorMessage } from '../../util'
+import { findWorkingNamespace, getCommandErrorMessage } from '../../util'
 
 export default class Export extends Command {
   static description = 'Retrieves Eclipse Che self-signed certificate'
@@ -39,7 +39,7 @@ export default class Export extends Command {
 
   async run() {
     const { flags } = this.parse(Export)
-    flags.chenamespace = await detectWorkingNamespace(flags)
+    flags.chenamespace = await findWorkingNamespace(flags)
     await ChectlContext.init(flags, this)
 
     const kube = new KubeHelper(flags)

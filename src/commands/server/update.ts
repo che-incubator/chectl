@@ -23,7 +23,7 @@ import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE, SUBSCRIPTION_NA
 import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { detectWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, getImageTag, getLatestChectlVersion, getProjectName, getProjectVersion, notifyCommandCompletedSuccessfully } from '../../util'
+import { findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, getImageTag, getLatestChectlVersion, getProjectName, getProjectVersion, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -89,7 +89,7 @@ export default class Update extends Command {
 
   async run() {
     const { flags } = this.parse(Update)
-    flags.chenamespace = await detectWorkingNamespace(flags)
+    flags.chenamespace = await findWorkingNamespace(flags)
     const ctx = await ChectlContext.initAndGet(flags, this)
 
     await this.setDomainFlag(flags)

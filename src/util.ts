@@ -19,7 +19,7 @@ const pkjson = require('../package.json')
 
 import { ChectlContext } from './api/context'
 import { KubeHelper } from './api/kube'
-import { DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_OLM_SUGGESTED_NAMESPACE } from './constants'
+import { DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OPERATOR_IMAGE, LEGACY_CHE_NAMESPACE } from './constants'
 
 export const KUBERNETES_CLI = 'kubectl'
 export const OPENSHIFT_CLI = 'oc'
@@ -219,20 +219,23 @@ export async function getLatestChectlVersion(channel: string): Promise<string | 
 }
 
 /**
- * Finds out a current working namespace.
- * There two different default namespaces depending on installation type.
- * `--installer operator`: che
- * `--installer olm`: eclipse-che
- * detectWorkingNamespace checks if 'eclipse-che' namespace exists then all commands
- * will launched against this namespace otherwise default 'che' namespace
- * will be used for chectl commands.
+ * The default Eclipse Che namespace has been changed from 'che' to 'eclipse-che'.
+ * It checks if legacy namespace 'che' exists. If so all chectl commands
+ * will launched against that namespace otherwise default 'eclipse-che' namespace will be used.
  */
-export async function detectWorkingNamespace(flags: any): Promise<string> {
-  if (flags.chenamespace !== DEFAULT_CHE_NAMESPACE) {
+export async function findWorkingNamespace(flags: any): Promise<string> {
+  if (flags.chenamespace) {
+    // use user specified namespace
     return flags.chenamespace
   }
 
   const kubeHelper = new KubeHelper(flags)
-  const olmNamespace = await kubeHelper.getNamespace(DEFAULT_OLM_SUGGESTED_NAMESPACE)
-  return olmNamespace ? DEFAULT_OLM_SUGGESTED_NAMESPACE : DEFAULT_CHE_NAMESPACE
+  const defaultNamespace = await kubeHelper.getNamespace(DEFAULT_CHE_NAMESPACE)
+  const legacyNamespace = await kubeHelper.getNamespace(LEGACY_CHE_NAMESPACE)
+
+  if (defaultNamespace || !legacyNamespace) {
+    return DEFAULT_CHE_NAMESPACE
+  }
+
+  return LEGACY_CHE_NAMESPACE
 }
