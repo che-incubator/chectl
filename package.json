@@ -142,7 +142,7 @@
     "postinstall-operator": "rimraf templates/che-operator && cpx 'node_modules/eclipse-che-operator/deploy/**' 'templates/che-operator'",
     "postinstall-repositories": "yarn upgrade eclipse-che eclipse-che-operator eclipse-che-minishift eclipse-che-devfile-api eclipse-che-devfile-workspace-operator",
     "postinstall-cleanup": "rimraf node_modules/eclipse-che && rimraf node_modules/eclipse-che-operator && rimraf node_modules/eclipse-che-minishift",
-    "test": "jest",
+    "test": "jest --collect-coverage",
     "posttest": "tslint -p test -t stylish",
     "test-watch": "jest --watchAll",
     "e2e-minikube-helm": "export PLATFORM=minikube && export INSTALLER=helm && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
@@ -161,6 +161,7 @@
   "types": "lib/index.d.ts",
   "jest": {
     "collectCoverage": true,
+    "coverageReporters": ["json"],
     "collectCoverageFrom": [
       "src/**/*.ts"
     ],
