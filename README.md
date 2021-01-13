@@ -521,7 +521,7 @@ OPTIONS
       is the 'operator' or the 'olm'.
 
   --che-operator-image=che-operator-image
-      [default: quay.io/eclipse/che-operator:7.24.0] Container image of the operator. This parameter is used only when the 
+      [default: quay.io/eclipse/che-operator:7.24.1] Container image of the operator. This parameter is used only when the 
       installer is the operator
 
   --debug
@@ -532,7 +532,7 @@ OPTIONS
       [default: che] Eclipse Che deployment name
 
   --dev-workspace-controller-image=dev-workspace-controller-image
-      [default: quay.io/devfile/devworkspace-controller:sha-252745a] Container image of the dev workspace controller. This 
+      [default: quay.io/devfile/devworkspace-controller:sha-2b0293f] Container image of the dev workspace controller. This 
       parameter is used only when the workspace engine is the DevWorkspace
 
   --dev-workspace-controller-namespace=dev-workspace-controller-namespace
@@ -750,7 +750,7 @@ OPTIONS
                                                            CheCluster CR used by the operator. This parameter is used
                                                            only when the installer is the 'operator' or the 'olm'.
 
-  --che-operator-image=che-operator-image                  [default: quay.io/eclipse/che-operator:7.24.0] Container
+  --che-operator-image=che-operator-image                  [default: quay.io/eclipse/che-operator:7.24.1] Container
                                                            image of the operator. This parameter is used only when the
                                                            installer is the operator
 
