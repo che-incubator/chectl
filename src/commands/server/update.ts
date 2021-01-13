@@ -23,7 +23,7 @@ import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE, SUBSCRIPTION_NA
 import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { detectWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, getImageTag, getLatestChectlVersion, getProjectlName, getProjectVersion, notifyCommandCompletedSuccessfully } from '../../util'
+import { detectWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, getImageTag, getLatestChectlVersion, getProjectName, getProjectVersion, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -89,7 +89,7 @@ export default class Update extends Command {
 
   async run() {
     const { flags } = this.parse(Update)
-    flags.chenamespace = await detectWorkingNamespace()
+    flags.chenamespace = await detectWorkingNamespace(flags)
     const ctx = await ChectlContext.initAndGet(flags, this)
 
     await this.setDomainFlag(flags)
@@ -135,7 +135,7 @@ export default class Update extends Command {
       const chectlChannel = defaultOperatorImageTag === 'nightly' ? 'next' : 'stable'
       const currentChectlVersion = getProjectVersion()
       const latestChectlVersion = await getLatestChectlVersion(chectlChannel)
-      const chectlName = getProjectlName()
+      const chectlName = getProjectName()
 
       // the same version is already installed
       if (newOperatorImage === existedOperatorImage) {
@@ -155,8 +155,8 @@ and then try again.`)
           // unknown project, no patch file then suggest to update
           if (!flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]) {
             cli.warn(`It is not possible to update Eclipse Che to a newer version
-using the current '${currentChectlVersion}' version of '${getProjectlName()}'.
-Please, update '${getProjectlName()}' and then try again.`)
+using the current '${currentChectlVersion}' version of '${getProjectName()}'.
+Please, update '${getProjectName()}' and then try again.`)
             this.exit(0)
           }
         }

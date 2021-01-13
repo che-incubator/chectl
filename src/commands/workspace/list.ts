@@ -32,7 +32,7 @@ export default class List extends Command {
 
   async run() {
     const { flags } = this.parse(List)
-    flags.chenamespace = await detectWorkingNamespace()
+    flags.chenamespace = await detectWorkingNamespace(flags)
     await ChectlContext.init(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: List.id, flags })

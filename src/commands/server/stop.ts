@@ -40,7 +40,7 @@ export default class Stop extends Command {
 
   async run() {
     const { flags } = this.parse(Stop)
-    flags.chenamespace = await detectWorkingNamespace()
+    flags.chenamespace = await detectWorkingNamespace(flags)
     await ChectlContext.init(flags, this)
 
     const Listr = require('listr')

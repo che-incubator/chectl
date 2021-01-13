@@ -40,7 +40,7 @@ export default class Stop extends Command {
 
   async run() {
     const { flags, args } = this.parse(Stop)
-    flags.chenamespace = await detectWorkingNamespace()
+    flags.chenamespace = await detectWorkingNamespace(flags)
     await ChectlContext.init(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Stop.id, flags })

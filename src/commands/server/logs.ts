@@ -38,7 +38,7 @@ export default class Logs extends Command {
 
   async run() {
     const { flags } = this.parse(Logs)
-    flags.chenamespace = await detectWorkingNamespace()
+    flags.chenamespace = await detectWorkingNamespace(flags)
     const ctx = await ChectlContext.initAndGet(flags, this)
 
     const cheTasks = new CheTasks(flags)

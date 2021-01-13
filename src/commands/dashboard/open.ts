@@ -28,7 +28,7 @@ export default class Open extends Command {
 
   async run() {
     const { flags } = this.parse(Open)
-    flags.chenamespace = await detectWorkingNamespace()
+    flags.chenamespace = await detectWorkingNamespace(flags)
     await ChectlContext.init(flags, this)
 
     try {

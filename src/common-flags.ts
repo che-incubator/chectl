@@ -9,12 +9,12 @@
  **********************************************************************/
 import { boolean, string } from '@oclif/parser/lib/flags'
 
-import { DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH, ECLIPSE_CHE_NAMESPACE } from './constants'
+import { DEFAULT_CHE_NAMESPACE, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH } from './constants'
 
 export const cheNamespace = string({
   char: 'n',
   description: 'Kubernetes namespace where Eclipse Che server is supposed to be deployed',
-  default: ECLIPSE_CHE_NAMESPACE,
+  default: DEFAULT_CHE_NAMESPACE,
   env: 'CHE_NAMESPACE'
 })
 

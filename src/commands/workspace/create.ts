@@ -55,7 +55,7 @@ export default class Create extends Command {
 
   async run() {
     const { flags } = this.parse(Create)
-    flags.chenamespace = await detectWorkingNamespace()
+    flags.chenamespace = await detectWorkingNamespace(flags)
     await ChectlContext.init(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Create.id, flags })

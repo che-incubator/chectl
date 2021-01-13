@@ -68,7 +68,7 @@ export default class Login extends Command {
 
   async run() {
     const { args, flags } = this.parse(Login)
-    flags.chenamespace = await detectWorkingNamespace()
+    flags.chenamespace = await detectWorkingNamespace(flags)
     const ctx = await ChectlContext.initAndGet(flags, this)
 
     // Not recommended to track user and password in telemetry
