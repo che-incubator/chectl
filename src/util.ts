@@ -230,12 +230,14 @@ export async function findWorkingNamespace(flags: any): Promise<string> {
   }
 
   const kubeHelper = new KubeHelper(flags)
-  const defaultNamespace = await kubeHelper.getNamespace(DEFAULT_CHE_NAMESPACE)
-  const legacyNamespace = await kubeHelper.getNamespace(LEGACY_CHE_NAMESPACE)
 
-  if (defaultNamespace || !legacyNamespace) {
+  if (await kubeHelper.getNamespace(DEFAULT_CHE_NAMESPACE)) {
     return DEFAULT_CHE_NAMESPACE
   }
 
-  return LEGACY_CHE_NAMESPACE
+  if (await kubeHelper.getNamespace(LEGACY_CHE_NAMESPACE)) {
+    return LEGACY_CHE_NAMESPACE
+  }
+
+  return DEFAULT_CHE_NAMESPACE
 }
