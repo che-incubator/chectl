@@ -15,6 +15,7 @@ import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { cheNamespace, CHE_TELEMETRY } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { findWorkingNamespace } from '../../util'
 
 export default class Open extends Command {
   static description = 'Open Eclipse Che dashboard'
@@ -27,6 +28,7 @@ export default class Open extends Command {
 
   async run() {
     const { flags } = this.parse(Open)
+    flags.chenamespace = await findWorkingNamespace(flags)
     await ChectlContext.init(flags, this)
 
     try {

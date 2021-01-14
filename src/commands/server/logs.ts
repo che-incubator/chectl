@@ -17,7 +17,7 @@ import { cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHeal
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandErrorMessage, getCommandSuccessMessage } from '../../util'
+import { findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage } from '../../util'
 
 export default class Logs extends Command {
   static description = 'Collect Eclipse Che logs'
@@ -38,6 +38,7 @@ export default class Logs extends Command {
 
   async run() {
     const { flags } = this.parse(Logs)
+    flags.chenamespace = await findWorkingNamespace(flags)
     const ctx = await ChectlContext.initAndGet(flags, this)
 
     const cheTasks = new CheTasks(flags)

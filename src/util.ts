@@ -18,7 +18,8 @@ import * as notifier from 'node-notifier'
 const pkjson = require('../package.json')
 
 import { ChectlContext } from './api/context'
-import { DEFAULT_CHE_OPERATOR_IMAGE } from './constants'
+import { KubeHelper } from './api/kube'
+import { DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OPERATOR_IMAGE, LEGACY_CHE_NAMESPACE } from './constants'
 
 export const KUBERNETES_CLI = 'kubectl'
 export const OPENSHIFT_CLI = 'oc'
@@ -189,7 +190,7 @@ export function getProjectVersion(): string {
 /**
  * Returns current chectl version defined in package.json.
  */
-export function getProjectlName(): string {
+export function getProjectName(): string {
   return pkjson.name
 }
 
@@ -201,7 +202,7 @@ export function readPackageJson(): any {
  * Returns latest chectl version for the given channel.
  */
 export async function getLatestChectlVersion(channel: string): Promise<string | undefined> {
-  if (getProjectlName() !== 'chectl') {
+  if (getProjectName() !== 'chectl') {
     return
   }
 
@@ -215,4 +216,28 @@ export async function getLatestChectlVersion(channel: string): Promise<string | 
   } catch {
     return
   }
+}
+
+/**
+ * The default Eclipse Che namespace has been changed from 'che' to 'eclipse-che'.
+ * It checks if legacy namespace 'che' exists. If so all chectl commands
+ * will launched against that namespace otherwise default 'eclipse-che' namespace will be used.
+ */
+export async function findWorkingNamespace(flags: any): Promise<string> {
+  if (flags.chenamespace) {
+    // use user specified namespace
+    return flags.chenamespace
+  }
+
+  const kubeHelper = new KubeHelper(flags)
+
+  if (await kubeHelper.getNamespace(DEFAULT_CHE_NAMESPACE)) {
+    return DEFAULT_CHE_NAMESPACE
+  }
+
+  if (await kubeHelper.getNamespace(LEGACY_CHE_NAMESPACE)) {
+    return LEGACY_CHE_NAMESPACE
+  }
+
+  return DEFAULT_CHE_NAMESPACE
 }

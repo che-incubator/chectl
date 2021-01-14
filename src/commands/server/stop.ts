@@ -17,7 +17,7 @@ import { accessToken, cheDeployment, cheNamespace, CHE_TELEMETRY, devWorkspaceCo
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
+import { findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Stop extends Command {
   static description = 'stop Eclipse Che server'
@@ -40,6 +40,7 @@ export default class Stop extends Command {
 
   async run() {
     const { flags } = this.parse(Stop)
+    flags.chenamespace = await findWorkingNamespace(flags)
     await ChectlContext.init(flags, this)
 
     const Listr = require('listr')

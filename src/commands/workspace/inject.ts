@@ -24,7 +24,7 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import { getClusterClientCommand, getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
+import { findWorkingNamespace, getClusterClientCommand, getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
 
 export default class Inject extends Command {
   static description = 'Inject configurations and tokens in a workspace'
@@ -62,6 +62,7 @@ export default class Inject extends Command {
 
   async run() {
     const { flags } = this.parse(Inject)
+    flags.chenamespace = await findWorkingNamespace(flags)
     await ChectlContext.init(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Inject.id, flags })

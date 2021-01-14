@@ -41,6 +41,6 @@ export default class Logout extends Command {
     }
 
     loginManager.deleteLoginContext(cheApiEndpoint, username)
-    cli.info(`Succesfully logged out ${username} on ${cheApiEndpoint}`)
+    cli.info(`Successfully logged out ${username} on ${cheApiEndpoint}`)
   }
 }

@@ -69,9 +69,9 @@ export default class Delete extends Command {
 
     loginManager.deleteLoginContext(cheApiEndpoint, username)
     if (username) {
-      cli.info(`Succesfully logged out ${username} on ${cheApiEndpoint}`)
+      cli.info(`Successfully logged out ${username} on ${cheApiEndpoint}`)
     } else {
-      cli.info(`Succesfully logged out all users on ${cheApiEndpoint}`)
+      cli.info(`Successfully logged out all users on ${cheApiEndpoint}`)
     }
   }
 
