@@ -13,7 +13,7 @@ import { DEFAULT_CHE_NAMESPACE, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE, DEFA
 
 export const cheNamespace = string({
   char: 'n',
-  description: `Eclipse Che Kubernetes namespace. Default to '${DEFAULT_CHE_NAMESPACE};`,
+  description: `Eclipse Che Kubernetes namespace. Default to '${DEFAULT_CHE_NAMESPACE}'`,
   env: 'CHE_NAMESPACE'
 })
 
