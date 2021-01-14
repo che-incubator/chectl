@@ -179,16 +179,10 @@ ARGUMENTS
 
 OPTIONS
   -h, --help                         show CLI help
-
-  -n, --chenamespace=chenamespace    [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
-                                     deployed
-
+  -n, --chenamespace=chenamespace    Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
   -p, --password=password            Eclipse Che user password
-
   -t, --refresh-token=refresh-token  Keycloak refresh token
-
   -u, --username=username            Eclipse Che username
-
   --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 
 EXAMPLES
@@ -306,7 +300,7 @@ OPTIONS
       show CLI help
 
   -n, --chenamespace=chenamespace
-      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
+      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
@@ -327,10 +321,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
-                                   deployed
-
+  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
@@ -397,14 +388,9 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
-                                   deployed
-
+  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
   --debug-port=debug-port          [default: 8000] Eclipse Che server debug port
-
   --skip-kubernetes-health-check   Skip Kubernetes health check
-
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
@@ -421,8 +407,8 @@ USAGE
 OPTIONS
   -h, --help                                                               show CLI help
 
-  -n, --chenamespace=chenamespace                                          [default: che] Kubernetes namespace where
-                                                                           Eclipse Che server is supposed to be deployed
+  -n, --chenamespace=chenamespace                                          Eclipse Che Kubernetes namespace. Default to
+                                                                           'eclipse-che'
 
   -y, --yes                                                                Automatic yes to prompts; assume "yes" as
                                                                            answer to all prompts and run
@@ -480,7 +466,7 @@ OPTIONS
       Starts Eclipse Che in multi-user mode
 
   -n, --chenamespace=chenamespace
-      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
+      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
 
   -o, --cheboottimeout=cheboottimeout
       (required) [default: 40000] Eclipse Che server bootstrap timeout (in milliseconds)
@@ -620,14 +606,9 @@ USAGE
 OPTIONS
   -d, --directory=directory          Directory to store logs into
   -h, --help                         show CLI help
-
-  -n, --chenamespace=chenamespace    [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
-                                     deployed
-
+  -n, --chenamespace=chenamespace    Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
   --deployment-name=deployment-name  [default: che] Eclipse Che deployment name
-
   --skip-kubernetes-health-check     Skip Kubernetes health check
-
   --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
@@ -644,10 +625,7 @@ USAGE
 OPTIONS
   -d, --directory=directory                                Directory to store logs into
   -h, --help                                               show CLI help
-
-  -n, --chenamespace=chenamespace                          [default: che] Kubernetes namespace where Eclipse Che server
-                                                           is supposed to be deployed
-
+  -n, --chenamespace=chenamespace                          Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
   --deployment-name=deployment-name                        [default: che] Eclipse Che deployment name
 
   --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 600000] Waiting time for Pod downloading image (in
@@ -677,10 +655,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Eclipse Che server is supposed to be
-                                   deployed
-
+  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
@@ -699,7 +674,7 @@ OPTIONS
       show CLI help
 
   -n, --chenamespace=chenamespace
-      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
+      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
 
   --access-token=access-token
       Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
@@ -737,10 +712,7 @@ USAGE
 
 OPTIONS
   -h, --help                                               show CLI help
-
-  -n, --chenamespace=chenamespace                          [default: che] Kubernetes namespace where Eclipse Che server
-                                                           is supposed to be deployed
-
+  -n, --chenamespace=chenamespace                          Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
   -t, --templates=templates                                [default: templates] Path to the templates folder
 
   -y, --yes                                                Automatic yes to prompts; assume "yes" as answer to all
@@ -805,7 +777,7 @@ OPTIONS
       show CLI help
 
   -n, --chenamespace=chenamespace
-      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
+      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
 
   -s, --start
       Starts the workspace after creation
@@ -848,7 +820,7 @@ OPTIONS
       show CLI help
 
   -n, --chenamespace=chenamespace
-      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
+      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
 
   --access-token=access-token
       Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
@@ -891,7 +863,7 @@ OPTIONS
       (required) Inject the local Kubernetes configuration
 
   -n, --chenamespace=chenamespace
-      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
+      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
 
   -w, --workspace=workspace
       The workspace id to inject configuration into. It can be omitted if the only one running workspace exists.
@@ -932,7 +904,7 @@ OPTIONS
       show CLI help
 
   -n, --chenamespace=chenamespace
-      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
+      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
 
   --access-token=access-token
       Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
@@ -996,7 +968,7 @@ OPTIONS
       show CLI help
 
   -n, --chenamespace=chenamespace
-      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
+      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
 
   --access-token=access-token
       Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
@@ -1033,7 +1005,7 @@ OPTIONS
       show CLI help
 
   -n, --chenamespace=chenamespace
-      [default: che] Kubernetes namespace where Eclipse Che server is supposed to be deployed
+      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
 
   --access-token=access-token
       Eclipse Che OIDC Access Token. See the documentation how to obtain token: 

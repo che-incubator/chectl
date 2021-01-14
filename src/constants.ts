@@ -29,6 +29,8 @@ export const CHE_CLUSTER_CRD = 'checlusters.org.eclipse.che'
 // operator
 export const OPERATOR_DEPLOYMENT_NAME = 'che-operator'
 export const CHE_OPERATOR_SELECTOR = 'app=che-operator'
+export const DEFAULT_CHE_NAMESPACE = 'eclipse-che'
+export const LEGACY_CHE_NAMESPACE = 'che'
 
 // OLM
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'eclipse-che'

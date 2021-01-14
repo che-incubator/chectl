@@ -17,6 +17,7 @@ import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { cheNamespace, CHE_TELEMETRY } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { findWorkingNamespace } from '../../util'
 
 export default class Status extends Command {
   // Implementation-Version it is a property from Manifest.ml inside of che server pod which indicate Eclipse Che build version.
@@ -30,6 +31,7 @@ export default class Status extends Command {
 
   async run() {
     const { flags } = this.parse(Status)
+    flags.chenamespace = await findWorkingNamespace(flags)
     const ctx = await ChectlContext.initAndGet(flags, this)
 
     const kube = new KubeHelper(flags)
