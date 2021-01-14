@@ -37,7 +37,7 @@ const INSTALLER_OPERATOR = 'operator'
 const INSTALLER_HELM = 'helm'
 const INSTALLER_OLM = 'olm'
 
-const DEVFILE_URL= 'https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml'
+const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml'
 
 function getDeployCommand(): string {
   let command: string
@@ -169,7 +169,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
       expect(exitCode).equal(0)
 
       // Sleep time to wait to workspace to be running
-      await helper.sleep(200000)
+      await helper.sleep(300000)
       const workspaceStatus = await helper.getWorkspaceStatus()
       expect(workspaceStatus).to.contain('RUNNING')
     })
