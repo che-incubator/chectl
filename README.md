@@ -4,7 +4,7 @@ chectl
 [Eclipse Che](https://github.com/eclipse/che/) CLI
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
-[![Codecov](https://img.shields.io/codecov/c/github/che-incubator/chectl)](https://github.com/che-incubator/chectl)
+[![codecov](https://codecov.io/gh/che-incubator/chectl/branch/master/graph/badge.svg?token=ZBQtKMeiYu)](https://codecov.io/gh/che-incubator/chectl)
 [![Build Status](https://travis-ci.org/che-incubator/chectl.svg?branch=master)](https://travis-ci.org/che-incubator/chectl)
 ![](https://img.shields.io/david/che-incubator/chectl.svg)
 

@@ -161,7 +161,9 @@
   "types": "lib/index.d.ts",
   "jest": {
     "collectCoverage": true,
-    "coverageReporters": ["json"],
+    "coverageReporters": [
+      "json"
+    ],
     "collectCoverageFrom": [
       "src/**/*.ts"
     ],

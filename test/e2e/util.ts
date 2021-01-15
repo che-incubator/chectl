@@ -35,7 +35,8 @@ export class E2eHelper {
   constructor() {
     this.kubeHelper = new KubeHelper({})
     this.che = new CheHelper({})
-    this.devfileName = 'e2e-tests'
+    // generate-name from https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml
+    this.devfileName = 'quarkus-'
     this.oc = new OpenShiftHelper()
   }
 
@@ -62,7 +63,7 @@ export class E2eHelper {
   // Return id of test workspaces(e2e-tests. Please look devfile-example.yaml file)
   async getWorkspaceId(): Promise<any> {
     const workspaces = await this.getAllWorkspaces()
-    const workspaceId = workspaces.filter((wks => wks.name === this.devfileName)).map(({ id }) => id)[0]
+    const workspaceId = workspaces.filter((wks => wks.name.match(this.devfileName))).map(({ id }) => id)[0]
 
     if (!workspaceId) {
       throw Error('Error getting workspaceId')
@@ -74,7 +75,7 @@ export class E2eHelper {
   // Return the status of test workspaces(e2e-tests. Please look devfile-example.yaml file)
   async getWorkspaceStatus(): Promise<any> {
     const workspaces = await this.getAllWorkspaces()
-    const workspaceStatus = workspaces.filter((wks => wks.name === this.devfileName)).map(({ status }) => status)[0]
+    const workspaceStatus = workspaces.filter((wks => wks.name.match(this.devfileName))).map(({ status }) => status)[0]
 
     if (!workspaceStatus) {
       throw Error('Error getting workspace_id')

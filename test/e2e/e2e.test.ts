@@ -37,6 +37,8 @@ const INSTALLER_OPERATOR = 'operator'
 const INSTALLER_HELM = 'helm'
 const INSTALLER_OLM = 'olm'
 
+const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml'
+
 function getDeployCommand(): string {
   let command: string
   switch (PLATFORM) {
@@ -148,7 +150,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
     it('Testing workspace:create command', async () => {
       console.log('>>> Testing workspace:create command')
 
-      const { exitCode, stdout, stderr, } = await execa(binChectl, ['workspace:create', '--devfile=test/e2e/resources/devfile-example.yaml', '--telemetry=off', `-n ${NAMESPACE}`], { shell: true })
+      const { exitCode, stdout, stderr, } = await execa(binChectl, ['workspace:create', `--devfile=${DEVFILE_URL}`, '--telemetry=off', `-n ${NAMESPACE}`], { shell: true })
       console.log(`stdout: ${stdout}`)
       console.log(`stderr: ${stderr}`)
       expect(exitCode).equal(0)
@@ -167,7 +169,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
       expect(exitCode).equal(0)
 
       // Sleep time to wait to workspace to be running
-      await helper.sleep(200000)
+      await helper.sleep(300000)
       const workspaceStatus = await helper.getWorkspaceStatus()
       expect(workspaceStatus).to.contain('RUNNING')
     })
