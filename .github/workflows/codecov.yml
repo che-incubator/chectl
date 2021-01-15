@@ -12,7 +12,7 @@
 name: Code Coverage Report
 on: [push]
 jobs:
-  build-and-deploy:
+  code-coverage-report:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
