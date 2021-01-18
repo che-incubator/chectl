@@ -163,17 +163,50 @@ export namespace VersionHelper {
     }
   }
 
-  function removeVPrefix(version: string): string {
-    return version.startsWith('v') ? version.substring(1) : version
+  /**
+   * Indicates if stable version of Eclispe Che is specified.
+   */
+  export function isStableVersion(flags: any): boolean {
+    if (!flags.version || flags.version === 'next' || flags.version === 'nightly') {
+      return false
+    }
+    return true
+  }
+
+  /**
+   * Indicates if the newest stable or nightly version is specified by its alias.
+   */
+  export function isTopVersion(flags: any): boolean {
+    return !flags.version || flags.version === 'next' || flags.version === 'nightly' || flags.version === 'latest' || flags.version === 'stable'
+  }
+
+  /**
+   * Removes 'v' prefix from version string.
+   * @param version version to process
+   * @param checkForNumber if true remove prefix only if a numeric version follow it (e.g. v7.x -> 7.x, vNext -> vNext)
+   */
+  export function removeVPrefix(version: string, checkForNumber = false): string {
+    if (version.startsWith('v') && version.length > 1) {
+      if (checkForNumber) {
+        const char2 = version.charAt(1)
+        if (char2 >= '0' && char2 <= '9') {
+          return version.substr(1)
+        }
+      }
+      return version.substr(1)
+    }
+    return version
   }
 
   /**
    * Compares versions in format: x.y.z.w...
-   * Prefix 'v' is automatically deleted if any.
-   * If a part of a version is not a number then string rules to compare applies. So:
-   * - if one of the arguments is a text it will be greater
-   * - if a part of a version has suffix (for example '-RC2') it will be greater
-   * - if an argument has more version parts and first n are equal, then longer is greater
+   * Prefix 'v' is automatically deleted if in preceeds numeric version (e.g. v7.15.2 or v7.x).
+   * The following rules applies to the comparison:
+   * - if one of the arguments is a text it will be greater (e.g. 7.15 is less than latest)
+   * - if both arguments are text, then string comparison is applied (e.g. nightly greater than next)
+   * - if a part of a version has suffix, but another don't have it, version with suffix will be lesser (e.g. 7.15 is greater than 7.15-RC2)
+   * - if both version have suffixes, they are compared as strings (e.g. 7.15-RZ is greater than 7.15-RA)
+   * - if an argument has more version parts and first n are equal, then longer is lesser (e.g. 7.15 is greater than 7.15.1)
    * | Arguments | Returns |
    * | --------  | ------- |
    *    a > b    |    1
@@ -181,12 +214,8 @@ export namespace VersionHelper {
    *    a < b    |   -1
    */
   export function compareVersions(a: string, b: string): number {
-    if (a.startsWith('v')) {
-      a = a.substring(1)
-    }
-    if (b.startsWith('v')) {
-      b = b.substring(1)
-    }
+    a = removeVPrefix(a, true)
+    b = removeVPrefix(b, true)
 
     const aParts = a.split('.')
     const bParts = b.split('.')
@@ -195,6 +224,7 @@ export namespace VersionHelper {
       if (aParts[i] !== bParts[i]) {
         const ai = parseInt(aParts[i], 10)
         const bi = parseInt(bParts[i], 10)
+
         if (isNaN(ai) || isNaN(bi)) {
           // At least one part starts with a letter
           return aParts[i] > bParts[i] ? 1 : -1
@@ -202,13 +232,23 @@ export namespace VersionHelper {
           if (ai !== bi) {
             return ai > bi ? 1 : -1
           } else {
-            // Prefixes are equal, compare suffix as strings (e.g. 7.1-RC1 with 7.1-RC2)
-            return aParts[i] > bParts[i] ? 1 : -1
+            // Numeric prefixes are equal
+            // If a version doesn't have a suffix, then consider it greater (e.g. 7.15 is greater than 7.15-RC2)
+            // Otherwise compare suffixes as strings (e.g. 7.1-RC1 with 7.1-RC2)
+            if (aParts[i].startsWith(bParts[i])) {
+              return -1
+            } else if (bParts[i].startsWith(aParts[i])) {
+              return 1
+            } else {
+              // Compare suffixes as strings
+              return aParts[i] > bParts[i] ? 1 : -1
+            }
           }
         }
       }
     }
-    return aParts.length - bParts.length
+    // One version string includes the other, so longer is lesser (e.g. 7.20.2 is lesser than 7.20)
+    return bParts.length - aParts.length
   }
 
 }

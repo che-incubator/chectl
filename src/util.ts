@@ -75,16 +75,6 @@ export function base64Decode(arg: string): string {
 }
 
 /**
- * Indicates if stable version of Eclispe Che is used.
- */
-export function isStableVersion(flags: any): boolean {
-  if (!flags.version || flags.version === 'next' || flags.version === 'nightly') {
-    return false
-  }
-  return true
-}
-
-/**
  * Returns the tag of the image.
  */
 export function getImageTag(image: string): string | undefined {

@@ -116,7 +116,6 @@ export const logsDirectory = string({
 export const DEPLOY_VERSION_KEY = 'version'
 export const cheDeployVersion = string({
   char: 'v',
-  description: 'Version to deploy. Should be version (e.g. 7.15.2) or "stable" or "next"',
+  description: 'Version to deploy. Should be version (e.g. 7.15.2) or "stable" or "nightly"',
   env: 'CHE_DEPLOY_VERSION',
-  default: 'latest',
 })

@@ -20,6 +20,7 @@ import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { CheGithubClient } from '../../api/github-client'
 import { KubeHelper } from '../../api/kube'
+import { VersionHelper } from '../../api/version'
 import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
 
 export function createNamespaceTask(namespaceName: string, labels: {}): Listr.ListrTask {
@@ -81,8 +82,9 @@ export function prepareTemplates(flags: any): Listr.ListrTask {
       if (!verInfo) {
         throw new Error(`Version ${flags.version} does not exist`)
       }
+      const version = VersionHelper.removeVPrefix(verInfo.name, true)
 
-      const versionTemplatesDirPath = path.join(templatesRootDir, verInfo.name)
+      const versionTemplatesDirPath = path.join(templatesRootDir, version)
       flags.templates = versionTemplatesDirPath
 
       const installerTemplatesDirPath = path.join(versionTemplatesDirPath, installerTemplatesSubDir)
@@ -93,7 +95,7 @@ export function prepareTemplates(flags: any): Listr.ListrTask {
           try {
             const commitHash = (await fs.readFile(commitHashFilePath)).toString()
             if (commitHash === verInfo.commit.sha) {
-              task.title = `${task.title}... found up to date cached version: ${verInfo.name}`
+              task.title = `${task.title}... found up to date cached version: ${version}`
               return
             }
           } catch {
@@ -104,13 +106,13 @@ export function prepareTemplates(flags: any): Listr.ListrTask {
           rimraf.sync(versionTemplatesDirPath)
         } else {
           // Use cached templates
-          task.title = `${task.title}... found cache for version ${verInfo.name}`
+          task.title = `${task.title}... found cache for version ${version}`
           return
         }
       }
 
       // Download templates
-      task.title = `${task.title} for version ${verInfo.name}`
+      task.title = `${task.title} for version ${version}`
       await cheHelper.getAndPrepareInstallerTemplates(flags.installer, verInfo.zipball_url, versionTemplatesDirPath)
       ctx.downloadedNewTemplates = true
       // Save commit hash

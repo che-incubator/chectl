@@ -17,7 +17,7 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, DEPLOY_VERSION_KEY, devWorkspaceControllerNamespace, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_HELM_INSTALLER_VERSION } from '../../constants'
+import { DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_HELM_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, prepareTemplates, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
@@ -141,7 +141,6 @@ export default class Deploy extends Command {
                     With this strategy will be provided auto-update Eclipse Che without any human interaction.
                     By default this flag is enabled.
                     This parameter is used only when the installer is 'olm'.`,
-      default: true,
       allowNo: true,
       exclusive: ['starting-csv']
     }),
@@ -206,10 +205,18 @@ export default class Deploy extends Command {
 
   async setPlaformDefaults(flags: any, ctx: any): Promise<void> {
     flags.tls = await this.checkTlsMode(ctx)
+    if (flags['self-signed-cert']) {
+      this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
+    }
 
     if (!flags.installer) {
       await this.setDefaultInstaller(flags, ctx)
       cli.info(`› Installer type is set to: '${flags.installer}'`)
+    }
+
+    if (flags.installer === 'olm' && flags['olm-suggested-namespace']) {
+      flags.chenamespace = DEFAULT_OLM_SUGGESTED_NAMESPACE
+      cli.info(` ❕olm-suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
     }
   }
 
@@ -231,7 +238,7 @@ export default class Deploy extends Command {
     return true
   }
 
-  checkPlatformCompatibility(flags: any) {
+  private checkCompatibility(flags: any) {
     if (flags.installer === 'operator' && flags[CHE_OPERATOR_CR_YAML_KEY]) {
       const ignoredFlags = []
       flags['plugin-registry-url'] && ignoredFlags.push('--plugin-registry-url')
@@ -253,40 +260,29 @@ export default class Deploy extends Command {
       this.warn('"--domain" flag is ignored for Openshift family infrastructures. It should be done on the cluster level.')
     }
 
-    if (flags.installer) {
-      if (flags.installer === 'helm') {
-        if (flags.platform !== 'k8s' && flags.platform !== 'minikube' && flags.platform !== 'microk8s' && flags.platform !== 'docker-desktop') {
-          this.error(`🛑 Current platform is ${flags.platform}. Helm installer is only available on top of Kubernetes flavor platform (including Minikube, Docker Desktop).`)
-        }
+    if (flags.installer === 'helm') {
+      if (flags.platform !== 'k8s' && flags.platform !== 'minikube' && flags.platform !== 'microk8s' && flags.platform !== 'docker-desktop') {
+        this.error(`🛑 Current platform is ${flags.platform}. Helm installer is only available on top of Kubernetes flavor platform (including Minikube, Docker Desktop).`)
       }
+    }
 
-      if (flags.installer === 'olm' && flags.platform === 'minishift') {
+    if (flags.installer === 'olm') {
+      // OLM installer only checks
+      if (flags.platform === 'minishift') {
         this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
       }
 
-      if (flags.installer !== 'olm' && flags['starting-csv']) {
-        this.error('"starting-csv" flag should be used only with "olm" installer.')
-      }
-      if (flags.installer !== 'olm' && flags['catalog-source-yaml']) {
-        this.error('"catalog-source-yaml" flag should be used only with "olm" installer.')
-      }
-      if (flags.installer !== 'olm' && flags['olm-channel']) {
-        this.error('"olm-channel" flag should be used only with "olm" installer.')
-      }
-      if (flags.installer !== 'olm' && flags['package-manifest-name']) {
-        this.error('"package-manifest-name" flag should be used only with "olm" installer.')
-      }
-      if (flags.installer !== 'olm' && flags['catalog-source-name']) {
-        this.error('"catalog-source-name" flag should be used only with "olm" installer.')
-      }
-      if (flags.installer !== 'olm' && flags['catalog-source-namespace']) {
-        this.error('"package-manifest-name" flag should be used only with "olm" installer.')
-      }
-      if (flags.installer !== 'olm' && flags['cluster-monitoring'] && flags.platform !== 'openshift') {
-        this.error('"cluster-monitoring" flag should be used only with "olm" installer and "openshift" platform.')
-      }
       if (flags['catalog-source-name'] && flags['catalog-source-yaml']) {
         this.error('should be provided only one argument: "catalog-source-name" or "catalog-source-yaml"')
+      }
+      if (flags['starting-csv'] && flags.version) {
+        this.error('"starting-csv" and "version" flags are mutually exclusive. Please specify only one of them.')
+      }
+      if (flags['olm-channel'] && flags.version) {
+        this.error('"starting-csv" and "version" flags are mutually exclusive. Use "starting-csv" with "olm-channel" flag.')
+      }
+      if (flags['auto-update'] && flags.version && !(flags.version === 'latest' || flags.version === 'stable' || flags.version === 'nightly' || flags.version === 'next')) {
+        this.error('enabled "auto-update" flag can only be used with "latest" or "nightly" version.')
       }
 
       if (!flags['package-manifest-name'] && flags['catalog-source-yaml']) {
@@ -295,37 +291,53 @@ export default class Deploy extends Command {
       if (!flags['olm-channel'] && flags['catalog-source-yaml']) {
         this.error('you need to define "olm-channel" flag to use "catalog-source-yaml".')
       }
-    }
-  }
-
-  private async checkFlags(flags: any): Promise<void> {
-    if (flags['self-signed-cert']) {
-      this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
-    }
-
-    if (flags.installer === 'olm' && flags['olm-suggested-namespace']) {
-      flags.chenamespace = DEFAULT_OLM_SUGGESTED_NAMESPACE
-      cli.info(` ❕olm-suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
-    }
-
-    if (!flags['skip-version-check']) {
-      // Check minimal allowed version to install
-      switch (flags.installer) {
-      case 'operator':
-        if (VersionHelper.compareVersions(MIN_CHE_OPERATOR_INSTALLER_VERSION, flags.version) === 1) {
-          throw new Error(this.getWrongVersionMessage(flags.version, MIN_CHE_OPERATOR_INSTALLER_VERSION))
-        }
-        break
-      case 'helm':
-        if (VersionHelper.compareVersions(MIN_HELM_INSTALLER_VERSION, flags.version) === 1) {
-          throw new Error(this.getWrongVersionMessage(flags.version, MIN_HELM_INSTALLER_VERSION))
-        }
+    } else {
+      // Not OLM installer
+      if (flags['starting-csv']) {
+        this.error('"starting-csv" flag should be used only with "olm" installer.')
+      }
+      if (flags['catalog-source-yaml']) {
+        this.error('"catalog-source-yaml" flag should be used only with "olm" installer.')
+      }
+      if (flags['olm-channel']) {
+        this.error('"olm-channel" flag should be used only with "olm" installer.')
+      }
+      if (flags['package-manifest-name']) {
+        this.error('"package-manifest-name" flag should be used only with "olm" installer.')
+      }
+      if (flags['catalog-source-name']) {
+        this.error('"catalog-source-name" flag should be used only with "olm" installer.')
+      }
+      if (flags['catalog-source-namespace']) {
+        this.error('"package-manifest-name" flag should be used only with "olm" installer.')
+      }
+      if (flags['cluster-monitoring'] && flags.platform !== 'openshift') {
+        this.error('"cluster-monitoring" flag should be used only with "olm" installer and "openshift" platform.')
       }
     }
-  }
 
-  private getWrongVersionMessage(current: string, minimal: string): string {
-    return `This chectl version can deploy ${minimal} version and higher, but ${current} is provided. If you really need to deploy that old version, please download corresponding legacy chectl version.`
+    if (flags.version && !flags['skip-version-check']) {
+      // Check minimal allowed version to install
+      let minAllowedVersion: string
+      switch (flags.installer) {
+      case 'olm':
+        minAllowedVersion = MIN_OLM_INSTALLER_VERSION
+        break
+      case 'operator':
+        minAllowedVersion = MIN_CHE_OPERATOR_INSTALLER_VERSION
+        break
+      case 'helm':
+        minAllowedVersion = MIN_HELM_INSTALLER_VERSION
+        break
+      default:
+        // Should never happen
+        minAllowedVersion = 'latest'
+      }
+
+      if (VersionHelper.compareVersions(minAllowedVersion, flags.version) === 1) {
+        throw new Error(`This chectl version can deploy ${minAllowedVersion} version and higher, but ${flags.version} is provided. If you really need to deploy that old version, please download corresponding legacy chectl version.`)
+      }
+    }
   }
 
   async run() {
@@ -333,7 +345,6 @@ export default class Deploy extends Command {
     const ctx = await ChectlContext.initAndGet(flags, this)
 
     await this.setPlaformDefaults(flags, ctx)
-    await this.checkFlags(flags)
 
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()
@@ -365,7 +376,6 @@ export default class Deploy extends Command {
         title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
         enabled: () => flags['workspace-engine'] === 'dev-workspace',
         task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags))
-
       },
       getRetrieveKeycloakCredentialsTask(flags),
       retrieveCheCaCertificateTask(flags),
@@ -388,7 +398,7 @@ export default class Deploy extends Command {
         }
         cli.warn(message)
       } else {
-        this.checkPlatformCompatibility(flags)
+        this.checkCompatibility(flags)
         await platformCheckTasks.run(ctx)
         await logsTasks.run(ctx)
         await installTasks.run(ctx)

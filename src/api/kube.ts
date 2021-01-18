@@ -20,11 +20,12 @@ import * as net from 'net'
 import { Writable } from 'stream'
 
 import { CHE_CLUSTER_CRD, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
-import { getClusterClientCommand, isKubernetesPlatformFamily, isStableVersion, safeLoadFromYamlFile } from '../util'
+import { getClusterClientCommand, isKubernetesPlatformFamily, safeLoadFromYamlFile } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
 import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './typings/olm'
 import { IdentityProvider, OAuth } from './typings/openshift'
+import { VersionHelper } from './version'
 
 const AWAIT_TIMEOUT_S = 30
 
@@ -1408,7 +1409,7 @@ export class KubeHelper {
       // If CheCluster CR is not explicitly provided, then modify the default example CR
       // with values derived from the other parameters
 
-      if (isStableVersion(flags)) {
+      if (VersionHelper.isStableVersion(flags)) {
         // Use images from operator defaults in case of a stable version
         cheClusterCR.spec.server.cheImage = ''
         cheClusterCR.spec.server.cheImageTag = ''

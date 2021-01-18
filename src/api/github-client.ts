@@ -35,16 +35,15 @@ export class CheGithubClient {
   }
 
   /**
-   * Returns version (tag) information based on installer and version.
-   * OLM installer is not supported.
+   * Returns version (tag) information based on installer and version string (e.g. 7.19.2).
    */
   async getTemplatesTagInfo(installer: string, version?: string): Promise<TagInfo | undefined> {
-    if (installer === 'operator') {
+    if (installer === 'operator' || installer === 'olm') {
       return this.getTagInfoByVersion(CHE_OPERATOR_REPO, version)
     } else if (installer === 'helm') {
       return this.getTagInfoByVersion(CHE_REPO, version)
     }
-    // OLM is not supported
+    throw new Error(`Unsupported installer: ${installer}`)
   }
 
   /**

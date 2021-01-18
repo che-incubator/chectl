@@ -16,8 +16,9 @@ import * as path from 'path'
 
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
+import { VersionHelper } from '../../api/version'
 import { CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME } from '../../constants'
-import { isStableVersion, safeLoadFromYamlFile } from '../../util'
+import { safeLoadFromYamlFile } from '../../util'
 import { KubeTasks } from '../kube'
 
 import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
@@ -148,7 +149,7 @@ export class OperatorTasks {
     const kubeTasks = new KubeTasks(flags)
     const ctx = ChectlContext.get()
     ctx.resourcesPath = path.join(flags.templates, 'che-operator')
-    if (isStableVersion(flags)) {
+    if (VersionHelper.isStableVersion(flags)) {
       command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of Eclipse Che (--installer=olm).')
     }
     return new Listr([

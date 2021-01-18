@@ -18,7 +18,7 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { assumeYes, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, DEPLOY_VERSION_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OPERATOR_INSTALLER_VERSION, SUBSCRIPTION_NAME } from '../../constants'
+import { DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION, SUBSCRIPTION_NAME } from '../../constants'
 import { getPrintHighlightedMessagesTask, prepareTemplates } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
@@ -83,8 +83,14 @@ export default class Update extends Command {
       cli.info(`› Installer type is set to: '${flags.installer}'`)
     }
 
-    if (flags.installer === 'operator' && VersionHelper.compareVersions(MIN_CHE_OPERATOR_INSTALLER_VERSION, flags.version) === 1) {
-      throw new Error(this.getWrongVersionMessage(flags.version, MIN_CHE_OPERATOR_INSTALLER_VERSION))
+    if (flags.version) {
+      if (flags.installer === 'olm') {
+        this.error(`"${DEPLOY_VERSION_KEY}" flag is not supported for OLM installer.\nRunning update command will start updating process to the next version`)
+      }
+
+      if (flags.installer === 'operator' && VersionHelper.compareVersions(MIN_CHE_OPERATOR_INSTALLER_VERSION, flags.version) === 1) {
+        throw new Error(this.getWrongVersionMessage(flags.version, MIN_CHE_OPERATOR_INSTALLER_VERSION))
+      }
     }
 
     const installerTasks = new InstallerTasks()
@@ -286,6 +292,7 @@ export default class Update extends Command {
    * Checks if current version of chectl is capable to deploy Eclipse Che of given version.
    * @param version Eclipse Che version to upate to, e.g. 7.20.1
    */
+  // tslint:disable-next-line: no-unused
   async currentChectlCanUpdateTo(version: string): Promise<boolean> {
     // TODO As of now, chectl can deploy any version of Eclipse Che 7 (excluding some legacy ones prior to 7.10)
     // However, in the future, it may change. Deployment process might require some additional steps for newer versions.

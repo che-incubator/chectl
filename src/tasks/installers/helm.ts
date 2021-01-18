@@ -19,7 +19,7 @@ import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
 import { CertManagerTasks } from '../../tasks/component-installers/cert-manager'
-import { generatePassword, isStableVersion, safeSaveYamlToFile } from '../../util'
+import { generatePassword, safeSaveYamlToFile } from '../../util'
 
 interface HelmChartDependency {
   name: string
@@ -39,7 +39,7 @@ export class HelmTasks {
    * Returns list of tasks which perform preflight platform checks.
    */
   deployTasks(flags: any, command: Command): Listr {
-    if (isStableVersion(flags)) {
+    if (VersionHelper.isStableVersion(flags)) {
       command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of Eclipse Che (--installer=olm).')
     }
     return new Listr([
