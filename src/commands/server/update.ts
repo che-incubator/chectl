@@ -13,6 +13,7 @@ import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 import { merge } from 'lodash'
+import * as path from 'path'
 
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
@@ -22,7 +23,7 @@ import { DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OPERATOR_INSTALLER_VERSION, MI
 import { getPrintHighlightedMessagesTask, prepareTemplates } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandErrorMessage, getCommandSuccessMessage, getCurrentChectlVersion, getLatestChectlVersion, notifyCommandCompletedSuccessfully } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, getCurrentChectlName, getCurrentChectlVersion, getLatestChectlVersion, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -53,7 +54,8 @@ export default class Update extends Command {
     templates: string({
       char: 't',
       description: 'Path to the templates folder',
-      env: 'CHE_TEMPLATES_FOLDER'
+      env: 'CHE_TEMPLATES_FOLDER',
+      exclusive: [DEPLOY_VERSION_KEY],
     }),
     'che-operator-image': string({
       description: 'Container image of the operator. This parameter is used only when the installer is the operator',
@@ -83,7 +85,17 @@ export default class Update extends Command {
       cli.info(`› Installer type is set to: '${flags.installer}'`)
     }
 
+    if (!flags.templates && getCurrentChectlName() !== 'chectl') {
+      // A flavor of chectl, do not use upstream repositories to get installation templates from
+      // Use build-in templates instead
+      flags.templates = path.join(__dirname, '..', '..', '..', 'templates')
+    }
+
     if (flags.version) {
+      if (getCurrentChectlName() !== 'chectl') {
+        // Flavors of chectl should not use upstream repositories, so version flag is not appliable
+        this.error('"version" flag is not supported for this deployment.')
+      }
       if (flags.installer === 'olm') {
         this.error(`"${DEPLOY_VERSION_KEY}" flag is not supported for OLM installer.\nRunning update command will start updating process to the next version`)
       }

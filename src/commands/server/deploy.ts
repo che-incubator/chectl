@@ -12,6 +12,7 @@ import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
+import * as path from 'path'
 
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
@@ -24,7 +25,7 @@ import { getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, pr
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { getCommandErrorMessage, getCommandSuccessMessage, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, getCurrentChectlName, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Deploy extends Command {
   static description = 'Deploy Eclipse Che server'
@@ -42,7 +43,8 @@ export default class Deploy extends Command {
     templates: string({
       char: 't',
       description: 'Path to the templates folder',
-      env: 'CHE_TEMPLATES_FOLDER'
+      env: 'CHE_TEMPLATES_FOLDER',
+      exclusive: [DEPLOY_VERSION_KEY],
     }),
     'devfile-registry-url': string({
       description: 'The URL of the external Devfile registry.',
@@ -218,6 +220,12 @@ export default class Deploy extends Command {
       flags.chenamespace = DEFAULT_OLM_SUGGESTED_NAMESPACE
       cli.info(` ❕olm-suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
     }
+
+    if (!flags.templates && getCurrentChectlName() !== 'chectl') {
+      // A flavor of chectl, do not use upstream repositories to get installation templates from
+      // Use build-in templates instead
+      flags.templates = path.join(__dirname, '..', '..', '..', 'templates')
+    }
   }
 
   /**
@@ -254,6 +262,11 @@ export default class Deploy extends Command {
       if (ignoredFlags.length) {
         this.warn(`--${CHE_OPERATOR_CR_YAML_KEY} is used. The following flag(s) will be ignored: ${ignoredFlags.join('\t')}`)
       }
+    }
+
+    if (getCurrentChectlName() !== 'chectl' && flags.version) {
+      // Flavors of chectl should not use upstream repositories, so version flag is not appliable
+      this.error('"version" flag is not supported for this deployment.')
     }
 
     if (flags.domain && !flags[CHE_OPERATOR_CR_YAML_KEY] && isOpenshiftPlatformFamily(flags.platform)) {
