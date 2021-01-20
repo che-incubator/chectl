@@ -28,7 +28,7 @@ export const hook = async (options: { command: string, flags: any, config: IConf
 
     // Prompt question if user allow chectl to collect data anonymous data.
     if (!options.flags.telemetry && !segmentTelemetry) {
-      const confirmed = await cli.confirm('Enable CLI usage data to be sent to Red Hat online services. [y/n]:')
+      const confirmed = await cli.confirm('Enable CLI usage data to be sent to Red Hat online services. [y/n]')
       segmentTelemetry = confirmed ? 'on' : 'off'
       configManager.setProperty(SegmentProperties.Telemetry, segmentTelemetry)
     }
