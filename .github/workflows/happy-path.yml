@@ -1,0 +1,44 @@
+#
+#  Copyright (c) 2012-2021 Red Hat, Inc.
+#    This program and the accompanying materials are made
+#    available under the terms of the Eclipse Public License 2.0
+#    which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+#  SPDX-License-Identifier: EPL-2.0
+#
+#  Contributors:
+#    Red Hat, Inc. - initial API and implementation
+
+name: Happy Path
+on:
+  pull_request:
+    branches:
+      - '7.*.x'
+jobs:
+  happy-path:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Clone source code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 0
+      - name: Start minikube
+        id: run-minikube
+        uses: che-incubator/setup-minikube-action@next
+      - name: Add chectl to PATH
+        id: chectl-path
+        run: |
+          yarn
+          ln -s $(pwd)/bin/run $(pwd)/bin/chectl
+          echo "$PWD/bin" >> $GITHUB_PATH
+      - name: Deploy Eclipse Che
+        id: deploy-che
+        uses: che-incubator/che-deploy-action@next
+        with:
+          # use custom image built by this PR
+          skip-chectl-install: true
+      - name: Run Happy Path tests
+        id: run-happy-path-tests
+        uses: che-incubator/happy-path-tests-action@next
+        with:
+          che-url: ${{ steps.deploy-che.outputs.che-url }}
