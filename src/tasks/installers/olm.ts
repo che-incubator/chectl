@@ -16,7 +16,7 @@ import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/typings/olm'
-import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, KUBERNETES_OLM_CATALOG, NIGHTLY_CATALOG_SOURCE_NAME, OLM_NIGHTLY_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, SUBSCRIPTION_NAME } from '../../constants'
+import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, KUBERNETES_OLM_CATALOG, NIGHTLY_CATALOG_SOURCE_NAME, OLM_NIGHTLY_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, SUBSCRIPTION_NAME } from '../../constants'
 import { isKubernetesPlatformFamily, isStableVersion } from '../../util'
 
 import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
@@ -170,7 +170,7 @@ export class OLMTasks {
       },
       {
         title: 'Set custom operator image',
-        enabled: () => !!flags['che-operator-image'],
+        enabled: () => flags['che-operator-image'] !== DEFAULT_CHE_OPERATOR_IMAGE,
         task: async (_ctx: any, task: any) => {
           const csvList = await kube.getClusterServiceVersions(flags.chenamespace)
           if (csvList.items.length < 1) {
