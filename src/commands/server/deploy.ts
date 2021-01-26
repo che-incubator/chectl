@@ -21,7 +21,7 @@ import { cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, 
 import { DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_HELM_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
-import { getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, prepareTemplates, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
+import { getCheckChectlAndCheCompatibilityTask as checkChectlAndCheCompatibilityTask, getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, prepareTemplates, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
@@ -376,6 +376,7 @@ export default class Deploy extends Command {
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     })
     preInstallTasks.add(prepareTemplates(flags))
+    preInstallTasks.add(checkChectlAndCheCompatibilityTask(flags))
 
     let installTasks = new Listr(installerTasks.installTasks(flags, this), ctx.listrOptions)
 

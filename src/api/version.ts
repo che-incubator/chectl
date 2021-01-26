@@ -16,6 +16,22 @@ import { getClusterClientCommand } from '../util'
 
 import { KubeHelper } from './kube'
 
+export interface ChectlBreakingVersions {
+  helm: InstallerBreakingVersions[]
+  operator: InstallerBreakingVersions[]
+  olm: InstallerBreakingVersions[]
+}
+
+export interface InstallerBreakingVersions {
+  cheVersion: string
+  minimalChectlVeriosn: ChectlBreakingVersionDetails
+}
+
+export interface ChectlBreakingVersionDetails {
+  stable: string
+  nightly: string
+}
+
 export namespace VersionHelper {
   export const MINIMAL_OPENSHIFT_VERSION = '3.11'
   export const MINIMAL_K8S_VERSION = '1.9'
@@ -167,7 +183,7 @@ export namespace VersionHelper {
    * Indicates if stable version of Eclispe Che is specified.
    */
   export function isStableVersion(flags: any): boolean {
-    if (!flags.version || flags.version === 'next' || flags.version === 'nightly') {
+    if (flags.version === 'next' || flags.version === 'nightly') {
       return false
     }
     return true

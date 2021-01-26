@@ -177,7 +177,7 @@ export class HelmTasks {
       {
         title: 'Updating Helm Chart dependencies',
         task: async (_ctx: any, task: any) => {
-          if (VersionHelper.compareVersions('7.23.2', flags.version) === 1) {
+          if (flags.version && VersionHelper.compareVersions('7.23.2', flags.version) === 1) {
             // Current version is below 7.23.2
             // Fix moved external depenency
             await this.pathcCheHelmChartPrometheusAndGrafanaDependencies(flags)

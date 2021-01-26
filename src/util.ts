@@ -229,3 +229,15 @@ export async function downloadFile(url: string, dest: string): Promise<void> {
     streamWriter.on('error', reject)
   })
 }
+
+/**
+ * Downloads yaml file and returns data converted to JSON.
+ * @param url link to yaml file
+ */
+export async function downloadYaml(url: string): Promise<any> {
+  const axiosInstance = axios.create({
+    httpsAgent: new https.Agent({})
+  })
+  const response = await axiosInstance.get(url)
+  return yaml.safeLoad(response.data)
+}

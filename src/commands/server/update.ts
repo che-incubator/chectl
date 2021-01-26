@@ -19,8 +19,8 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { assumeYes, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, DEPLOY_VERSION_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION, SUBSCRIPTION_NAME } from '../../constants'
-import { getPrintHighlightedMessagesTask, prepareTemplates } from '../../tasks/installers/common-tasks'
+import { DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OPERATOR_INSTALLER_VERSION, SUBSCRIPTION_NAME } from '../../constants'
+import { getCheckChectlAndCheCompatibilityTask as checkChectlAndCheCompatibilityTask, getPrintHighlightedMessagesTask, prepareTemplates } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { getCommandErrorMessage, getCommandSuccessMessage, getCurrentChectlName, getCurrentChectlVersion, getLatestChectlVersion, notifyCommandCompletedSuccessfully } from '../../util'
@@ -112,6 +112,7 @@ export default class Update extends Command {
     const preUpdateTasks = new Listr([], ctx.listrOptions)
     preUpdateTasks.add(apiTasks.testApiTasks(flags, this))
     preUpdateTasks.add(prepareTemplates(flags))
+    preUpdateTasks.add(checkChectlAndCheCompatibilityTask(flags))
     preUpdateTasks.add(installerTasks.preUpdateTasks(flags, this))
 
     // update tasks

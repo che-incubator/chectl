@@ -10,18 +10,21 @@
 
 import Command from '@oclif/command'
 import ansi = require('ansi-colors')
+import { cli } from 'cli-ux'
 import * as fs from 'fs-extra'
 import * as Listr from 'listr'
 import { isEmpty } from 'lodash'
 import * as path from 'path'
+import { exit } from 'process'
 import * as rimraf from 'rimraf'
 
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { CheGithubClient } from '../../api/github-client'
 import { KubeHelper } from '../../api/kube'
-import { VersionHelper } from '../../api/version'
+import { ChectlBreakingVersionDetails, ChectlBreakingVersions, VersionHelper } from '../../api/version'
 import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
+import { downloadYaml, getCurrentChectlName, getCurrentChectlVersion } from '../../util'
 
 export function createNamespaceTask(namespaceName: string, labels: {}): Listr.ListrTask {
   return {
@@ -78,24 +81,25 @@ export function prepareTemplates(flags: any): Listr.ListrTask {
       if (flags.version === 'nightly') {
         flags.version = 'next'
       }
+      const isNextVersion = flags.version === 'next'
       const verInfo = await githubClient.getTemplatesTagInfo(flags.installer, flags.version)
       if (!verInfo) {
         throw new Error(`Version ${flags.version} does not exist`)
       }
-      const version = VersionHelper.removeVPrefix(verInfo.name, true)
+      flags.version = VersionHelper.removeVPrefix(verInfo.name, true)
 
-      const versionTemplatesDirPath = path.join(templatesRootDir, version)
+      const versionTemplatesDirPath = path.join(templatesRootDir, flags.version)
       flags.templates = versionTemplatesDirPath
 
       const installerTemplatesDirPath = path.join(versionTemplatesDirPath, installerTemplatesSubDir)
       const commitHashFilePath = path.join(installerTemplatesDirPath, 'commit-hash.txt')
       if (fs.existsSync(installerTemplatesDirPath)) {
-        if (flags.version === 'next') {
+        if (isNextVersion) {
           // Check commit hash
           try {
             const commitHash = (await fs.readFile(commitHashFilePath)).toString()
             if (commitHash === verInfo.commit.sha) {
-              task.title = `${task.title}... found up to date cached version: ${version}`
+              task.title = `${task.title}... found up to date cached version: ${flags.version}`
               return
             }
           } catch {
@@ -106,17 +110,52 @@ export function prepareTemplates(flags: any): Listr.ListrTask {
           rimraf.sync(versionTemplatesDirPath)
         } else {
           // Use cached templates
-          task.title = `${task.title}... found cache for version ${version}`
+          task.title = `${task.title}... found cache for version ${flags.version}`
           return
         }
       }
 
       // Download templates
-      task.title = `${task.title} for version ${version}`
+      task.title = `${task.title} for version ${flags.version}`
       await cheHelper.getAndPrepareInstallerTemplates(flags.installer, verInfo.zipball_url, versionTemplatesDirPath)
       ctx.downloadedNewTemplates = true
       // Save commit hash
       await fs.writeFile(commitHashFilePath, verInfo.commit.sha)
+    }
+  }
+}
+
+export function getCheckChectlAndCheCompatibilityTask(flags: any): Listr.ListrTask {
+  return {
+    title: 'Check chectl version compatibility',
+    enabled: () => getCurrentChectlName() === 'chectl' && !flags['skip-version-check'],
+    task: async (_ctx: any, task: any) => {
+      const desiredCheVersion: string = flags.version
+
+      const chectlVersion = getCurrentChectlVersion()
+      if (chectlVersion === '0.0.2') {
+        // Development version, skip checks
+        return
+      }
+      const chectlChannel: keyof ChectlBreakingVersionDetails = chectlVersion.includes('next') ? 'nightly' : 'stable'
+
+      const versionsCompatibility: ChectlBreakingVersions = (await downloadYaml('https://raw.githubusercontent.com/che-incubator/chectl/master/versions-compatibility.yaml')).v1
+      const installer: keyof ChectlBreakingVersions = flags.installer
+      const installerBreakingVersions = versionsCompatibility[installer]
+
+      for (const breakingVerData of installerBreakingVersions) {
+        if (VersionHelper.compareVersions(desiredCheVersion, breakingVerData.cheVersion) >= 0) {
+          const minimalRequiredChectlVersion = breakingVerData.minimalChectlVeriosn[chectlChannel]
+          if (VersionHelper.compareVersions(chectlVersion, minimalRequiredChectlVersion) < 0) {
+            task.title = `${task.title}... FAIL`
+            cli.info(`To install Eclipse Che version ${desiredCheVersion} it is required to have chectl ${minimalRequiredChectlVersion} or newer.`)
+            cli.info('Please update chectl with the following command: "chectl update"')
+            exit(0)
+          }
+        }
+      }
+
+      task.title = `${task.title}... OK`
     }
   }
 }
