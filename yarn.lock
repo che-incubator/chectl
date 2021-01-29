@@ -2176,13 +2176,13 @@ ecc-jsbn@~0.1.1:
   version "0.0.0"
   resolved "git://github.com/minishift/minishift#0381375335880a9f825a7a30266b03d493cd221c"
 
-"eclipse-che-operator@git://github.com/eclipse/che-operator#7.25.0":
+"eclipse-che-operator@git://github.com/eclipse/che-operator#7.25.1":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che-operator#419d276e55450fee1ee73f2f7498063b452819cc"
+  resolved "git://github.com/eclipse/che-operator#1a11d80089715c9886290d078fac9296733cc7f1"
 
-"eclipse-che@git://github.com/eclipse/che#7.25.0":
+"eclipse-che@git://github.com/eclipse/che#7.25.1":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che#6d5deb56a12871af8b2cebc827e2ac45cb4d71c6"
+  resolved "git://github.com/eclipse/che#6ca69fc0d9acd9f0e2ed310c78d6a6cae868a800"
 
 editorconfig@^0.15.0:
   version "0.15.3"

@@ -508,7 +508,7 @@ OPTIONS
       is the 'operator' or the 'olm'.
 
   --che-operator-image=che-operator-image
-      [default: quay.io/eclipse/che-operator:7.25.0] Container image of the operator. This parameter is used only when the 
+      [default: quay.io/eclipse/che-operator:7.25.1] Container image of the operator. This parameter is used only when the 
       installer is the operator
 
   --debug
@@ -723,7 +723,7 @@ OPTIONS
                                                            CheCluster CR used by the operator. This parameter is used
                                                            only when the installer is the 'operator' or the 'olm'.
 
-  --che-operator-image=che-operator-image                  [default: quay.io/eclipse/che-operator:7.25.0] Container
+  --che-operator-image=che-operator-image                  [default: quay.io/eclipse/che-operator:7.25.1] Container
                                                            image of the operator. This parameter is used only when the
                                                            installer is the operator
 
