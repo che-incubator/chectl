@@ -142,14 +142,14 @@ export default class Update extends Command {
         if (chectlName === 'chectl' && latestChectlVersion) {
           // suggest update chectl first
           if (chectlChannel === 'stable' && currentChectlVersion === latestChectlVersion && !flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]) {
-             // same stable version, no patch then nothing to update
-             cli.info('Eclipse Che is already up to date.')
-             this.exit(0)
+            // same stable version, no patch then nothing to update
+            cli.info('Eclipse Che is already up to date.')
+            this.exit(0)
           } else if (currentChectlVersion !== latestChectlVersion) {
             cli.warn(`It is not possible to update Eclipse Che to a newer version
-            using the current '${currentChectlVersion}' version of chectl. Please, update 'chectl'
-            to a newer version '${latestChectlVersion}' with the command 'chectl update ${chectlChannel}'
-            and then try again.`)
+using the current '${currentChectlVersion}' version of chectl. Please, update 'chectl'
+to a newer version '${latestChectlVersion}' with the command 'chectl update ${chectlChannel}'
+and then try again.`)
           }
         } else {
           // downstream project or unknown project
