@@ -22,8 +22,9 @@ import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
-import { getClusterClientCommand, getCommandErrorMessage, notifyCommandCompletedSuccessfully, OPENSHIFT_CLI } from '../../util'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { findWorkingNamespace, getClusterClientCommand, getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
 
 export default class Inject extends Command {
   static description = 'Inject configurations and tokens in a workspace'
@@ -52,7 +53,8 @@ export default class Inject extends Command {
     [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
     chenamespace: cheNamespace,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    telemetry: CHE_TELEMETRY
   }
 
   // Holds cluster CLI tool name: kubectl or oc
@@ -60,7 +62,10 @@ export default class Inject extends Command {
 
   async run() {
     const { flags } = this.parse(Inject)
+    flags.chenamespace = await findWorkingNamespace(flags)
     await ChectlContext.init(flags, this)
+
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Inject.id, flags })
 
     const cheHelper = new CheHelper(flags)
 
@@ -98,8 +103,6 @@ export default class Inject extends Command {
     } catch (err) {
       this.error(getCommandErrorMessage(err))
     }
-
-    notifyCommandCompletedSuccessfully()
   }
 
   async injectKubeconfig(flags: any, workspaceNamespace: string, workspacePodName: string, workspaceId: string): Promise<void> {

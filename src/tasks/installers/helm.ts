@@ -199,16 +199,16 @@ export class HelmTasks {
   /**
    * Returns list of tasks which remove helm chart
    */
-  deleteTasks(_flags: any): ReadonlyArray<Listr.ListrTask> {
+  deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [{
       title: 'Purge Eclipse Che Helm chart',
       enabled: (ctx: any) => !ctx.isOpenShift,
       task: async (_ctx: any, task: any) => {
-        if (await !commandExists.sync('helm')) {
-          task.title = `${task.title}...OK (Helm not found)`
+        if (!commandExists.sync('helm')) {
+          task.title = `${task.title}... SKIP (Helm not found)`
         } else {
-          await this.purgeHelmChart('che')
-          task.title = `${task.title}...OK`
+          await this.purgeHelmChart('che', flags.chenamespace)
+          task.title = `${task.title} ... OK`
         }
       }
     }]
@@ -281,8 +281,8 @@ error: E_COMMAND_FAILED`)
     }
   }
 
-  async purgeHelmChart(name: string, execTimeout = 30000) {
-    await execa('helm', ['delete', name, '--purge'], { timeout: execTimeout, reject: false })
+  async purgeHelmChart(name: string, namespace: string, execTimeout = 30000) {
+    await execa('helm', ['delete', name, '--purge', '--namespace', namespace], { timeout: execTimeout, reject: false })
   }
 
   private async pathcCheHelmChartPrometheusAndGrafanaDependencies(flags: any): Promise<void> {
@@ -319,7 +319,7 @@ error: E_COMMAND_FAILED`)
     ctx.isCheDeployed = true
     if (flags.multiuser) {
       ctx.isPostgresDeployed = true
-      ctx.isKeaycloakDeployed = true
+      ctx.isKeycloakDeployed = true
       multiUserFlag = `-f ${destDir}values/multi-user.yaml`
     }
 
@@ -387,7 +387,7 @@ error: E_COMMAND_FAILED`)
       }
       const revision = jsonOutput[0].revision
       if (jsonOutput.length > 0 && revision === '1') {
-        await this.purgeHelmChart(flags.chenamespace)
+        await this.purgeHelmChart('che', flags.chenamespace)
       } else {
         await execa('helm', ['rollback', flags.chenamespace, revision], { timeout: execTimeout })
 

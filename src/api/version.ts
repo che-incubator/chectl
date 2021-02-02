@@ -16,7 +16,7 @@ import Listr = require('listr')
 import * as path from 'path'
 
 import { CheTasks } from '../tasks/che'
-import { getClusterClientCommand, getCurrentChectlName, getCurrentChectlVersion } from '../util'
+import { getClusterClientCommand, getProjectName, getProjectVersion } from '../util'
 
 import { KubeHelper } from './kube'
 
@@ -180,7 +180,7 @@ export namespace VersionHelper {
    * Returns latest chectl version for the given channel.
    */
   export async function getLatestChectlVersion(channel: string): Promise<string | undefined> {
-    if (getCurrentChectlName() !== 'chectl') {
+    if (getProjectName() !== 'chectl') {
       return
     }
 
@@ -202,12 +202,12 @@ export namespace VersionHelper {
   export async function isChectlUpdateAvailable(cacheDir: string, forceRecheck = false): Promise<boolean> {
     // Do not use ctx inside this function as the function is used from hook where ctx is not yet defined.
 
-    if (getCurrentChectlName() !== 'chectl') {
+    if (getProjectName() !== 'chectl') {
       // Do nothing for chectl flavors
       return false
     }
 
-    const currentVersion = getCurrentChectlVersion()
+    const currentVersion = getProjectVersion()
     if (currentVersion === CHECTL_DEVELOPMENT_VERSION) {
       // Skip it, chectl is built from source
       return false

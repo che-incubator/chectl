@@ -21,7 +21,7 @@ import { CheGithubClient } from '../../api/github-client'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
-import { getCurrentChectlVersion } from '../../util'
+import { getProjectVersion } from '../../util'
 
 export function createNamespaceTask(namespaceName: string, labels: {}): Listr.ListrTask {
   return {
@@ -56,7 +56,7 @@ export function checkChectlAndCheVersionCompatibility(flags: any): Listr.ListrTa
       ctx.versionInfo = verInfo
       flags.version = VersionHelper.removeVPrefix(verInfo.name, true)
 
-      if (!ctx.isNightly && VersionHelper.compareVersions(getCurrentChectlVersion(), flags.version) === -1) {
+      if (!ctx.isNightly && VersionHelper.compareVersions(getProjectVersion(), flags.version) === -1) {
         throw new Error(`To install Eclipse Che ${flags.version} please update your chectl by executing "chectl update stable" command`)
       }
 

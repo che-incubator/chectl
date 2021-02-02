@@ -9,12 +9,11 @@
  **********************************************************************/
 import { boolean, string } from '@oclif/parser/lib/flags'
 
-import { DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH } from './constants'
+import { DEFAULT_CHE_NAMESPACE, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH } from './constants'
 
 export const cheNamespace = string({
   char: 'n',
-  description: 'Kubernetes namespace where Eclipse Che server is supposed to be deployed',
-  default: 'che',
+  description: `Eclipse Che Kubernetes namespace. Default to '${DEFAULT_CHE_NAMESPACE}'`,
   env: 'CHE_NAMESPACE'
 })
 
@@ -111,6 +110,11 @@ export const logsDirectory = string({
   char: 'd',
   description: 'Directory to store logs into',
   env: 'CHE_LOGS'
+})
+
+export const CHE_TELEMETRY = string({
+  description: 'Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry',
+  options: ['on', 'off']
 })
 
 export const DEPLOY_VERSION_KEY = 'version'

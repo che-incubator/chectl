@@ -19,6 +19,8 @@ import * as path from 'path'
 const pkjson = require('../package.json')
 
 import { ChectlContext } from './api/context'
+import { KubeHelper } from './api/kube'
+import { DEFAULT_CHE_NAMESPACE, LEGACY_CHE_NAMESPACE } from './constants'
 
 export const KUBERNETES_CLI = 'kubectl'
 export const OPENSHIFT_CLI = 'oc'
@@ -173,14 +175,14 @@ export function isDirEmpty(dirname: string): boolean {
 /**
  * Returns current chectl version defined in package.json.
  */
-export function getCurrentChectlVersion(): string {
+export function getProjectVersion(): string {
   return pkjson.version
 }
 
 /**
  * Returns current chectl version defined in package.json.
  */
-export function getCurrentChectlName(): string {
+export function getProjectName(): string {
   return pkjson.name
 }
 
@@ -196,11 +198,6 @@ export function safeSaveYamlToFile(yamlObject: any, filePath: string): void {
   fs.writeFileSync(filePath, yaml.safeDump(yamlObject))
 }
 
-/**
- * Downloads file by given url into provided location
- * @param url link to file to download
- * @param dest path where to save downloaded file
- */
 export async function downloadFile(url: string, dest: string): Promise<void> {
   const streamWriter = fs.createWriteStream(dest)
   const response = await axios({ url, method: 'GET', responseType: 'stream' })
@@ -230,4 +227,28 @@ export function getEmbeddedTemplatesDirectory(): string {
   }
   // Release (including nightly) version
   return path.join(__dirname, '..', '..', '..', 'templates')
+}
+
+/**
+ * The default Eclipse Che namespace has been changed from 'che' to 'eclipse-che'.
+ * It checks if legacy namespace 'che' exists. If so all chectl commands
+ * will launched against that namespace otherwise default 'eclipse-che' namespace will be used.
+ */
+export async function findWorkingNamespace(flags: any): Promise<string> {
+  if (flags.chenamespace) {
+    // use user specified namespace
+    return flags.chenamespace
+  }
+
+  const kubeHelper = new KubeHelper(flags)
+
+  if (await kubeHelper.getNamespace(DEFAULT_CHE_NAMESPACE)) {
+    return DEFAULT_CHE_NAMESPACE
+  }
+
+  if (await kubeHelper.getNamespace(LEGACY_CHE_NAMESPACE)) {
+    return LEGACY_CHE_NAMESPACE
+  }
+
+  return DEFAULT_CHE_NAMESPACE
 }

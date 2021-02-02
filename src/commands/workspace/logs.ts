@@ -15,8 +15,9 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
-import { skipKubeHealthzCheck } from '../../common-flags'
-import { notifyCommandCompletedSuccessfully } from '../../util'
+import { CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { findWorkingNamespace } from '../../util'
 
 export default class Logs extends Command {
   static description = 'Collect workspace(s) logs'
@@ -38,15 +39,18 @@ export default class Logs extends Command {
       description: 'Directory to store logs into',
       env: 'CHE_LOGS'
     }),
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {
     const { flags } = this.parse(Logs)
+    flags.chenamespace = await findWorkingNamespace(flags)
     await ChectlContext.init(flags, this)
 
     const logsDirectory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
 
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logs.id, flags })
     const cheHelper = new CheHelper(flags)
     const workspaceRun = await cheHelper.readWorkspacePodLog(flags.namespace, flags.workspace, logsDirectory)
 
@@ -61,7 +65,5 @@ export default class Logs extends Command {
     } catch (error) {
       this.error(error)
     }
-
-    notifyCommandCompletedSuccessfully()
   }
 }

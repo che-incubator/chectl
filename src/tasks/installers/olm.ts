@@ -192,7 +192,7 @@ export class OLMTasks {
       },
       {
         title: 'Set custom operator image',
-        enabled: () => !!flags['che-operator-image'],
+        enabled: () => flags['che-operator-image'],
         task: async (_ctx: any, task: any) => {
           const csvList = await kube.getClusterServiceVersions(flags.chenamespace)
           if (csvList.items.length < 1) {

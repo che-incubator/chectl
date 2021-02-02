@@ -16,7 +16,8 @@ import * as yaml from 'js-yaml'
 import { ChectlContext } from '../../api/context'
 import { Devfile, DevfileCommand, DevfileComponent, DevfileProject, ProjectSource, TheEndpointName } from '../../api/devfile'
 import { KubeHelper } from '../../api/kube'
-import { notifyCommandCompletedSuccessfully } from '../../util'
+import { CHE_TELEMETRY } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
 let kube: KubeHelper
 const stringLitArray = <L extends string>(arr: L[]) => arr
@@ -90,6 +91,7 @@ export default class Generate extends Command {
       env: 'COMMAND',
       required: false,
     }),
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {
@@ -97,6 +99,7 @@ export default class Generate extends Command {
     await ChectlContext.init(flags, this)
 
     kube = new KubeHelper(flags)
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Generate.id, flags })
 
     let name = flags.name || 'chectl-generated'
 
@@ -253,7 +256,6 @@ export default class Generate extends Command {
     this.log(`# chectl ${updatedArgs.join(' ')}`)
     this.log(yaml.safeDump(devfile))
 
-    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 

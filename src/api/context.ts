@@ -14,7 +14,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, LOG_DIRECTORY_KEY } from '../common-flags'
-import { getCurrentChectlName, getCurrentChectlVersion, readCRFile } from '../util'
+import { getProjectName, getProjectVersion, readCRFile } from '../util'
 
 import { KubeHelper } from './kube'
 
@@ -44,8 +44,8 @@ export namespace ChectlContext {
     ctx[IS_OPENSHIFT] = await kube.isOpenShift()
     ctx[IS_OPENSHIFT4] = await kube.isOpenShift4()
 
-    ctx.isChectl = getCurrentChectlName() === 'chectl'
-    ctx.isNightly = getCurrentChectlVersion().includes('next') || getCurrentChectlVersion() === '0.0.2'
+    ctx.isChectl = getProjectName() === 'chectl'
+    ctx.isNightly = getProjectVersion().includes('next') || getProjectVersion() === '0.0.2'
 
     if (flags['listr-renderer'] as any) {
       ctx.listrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions

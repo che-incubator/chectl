@@ -13,10 +13,11 @@ import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 
 import { ChectlContext } from '../../api/context'
-import { accessToken, cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { accessToken, cheDeployment, cheNamespace, CHE_TELEMETRY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
+import { findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Stop extends Command {
   static description = 'stop Eclipse Che server'
@@ -33,16 +34,20 @@ export default class Stop extends Command {
     }),
     'access-token': accessToken,
     'listr-renderer': listrRenderer,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {
     const { flags } = this.parse(Stop)
+    flags.chenamespace = await findWorkingNamespace(flags)
     await ChectlContext.init(flags, this)
 
     const Listr = require('listr')
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()
+
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Stop.id, flags })
 
     let tasks = new Listr(undefined,
       {

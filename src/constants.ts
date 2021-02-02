@@ -33,6 +33,8 @@ export const CHE_CLUSTER_CRD = 'checlusters.org.eclipse.che'
 // operator
 export const OPERATOR_DEPLOYMENT_NAME = 'che-operator'
 export const CHE_OPERATOR_SELECTOR = 'app=che-operator'
+export const DEFAULT_CHE_NAMESPACE = 'eclipse-che'
+export const LEGACY_CHE_NAMESPACE = 'che'
 
 // OLM
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'eclipse-che'
@@ -52,8 +54,8 @@ export const DEFAULT_OLM_SUGGESTED_NAMESPACE = 'eclipse-che'
 // Documentation links
 export const DOC_LINK = 'https://www.eclipse.org/che/docs/'
 export const DOC_LINK_RELEASE_NOTES = ''
-export const DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY = 'https://www.eclipse.org/che/docs/che-7/overview/running-che-locally/'
-export const DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER = 'https://www.eclipse.org/che/docs/che-7/overview/importing-certificates-to-browsers/'
+export const DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY = 'https://www.eclipse.org/che/docs/che-7/installation-guide/installing-che-locally/'
+export const DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER = 'https://www.eclipse.org/che/docs/che-7/end-user-guide/importing-certificates-to-browsers/'
 export const DOCS_LINK_HOW_TO_ADD_IDENTITY_PROVIDER_OS4 = 'https://docs.openshift.com/container-platform/latest/authentication/understanding-identity-provider.html#identity-provider-overview_understanding-identity-provider'
 export const DOCS_LINK_HOW_TO_CREATE_USER_OS3 = 'https://docs.openshift.com/container-platform/3.11/install_config/configuring_authentication.html'
 export const DOC_LINK_OBTAIN_ACCESS_TOKEN = 'https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_authenticating-to-the-che-server'
@@ -63,6 +65,9 @@ export const OUTPUT_SEPARATOR = '-----------------------------------------------
 
 // DevWorkspace
 export const DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE = 'devworkspace-controller'
+
+// HOOKS
+export const DEFAULT_ANALYTIC_HOOK_NAME = 'analytics'
 
 // Timeouts
 export const DEFAULT_K8S_POD_WAIT_TIMEOUT = 600000

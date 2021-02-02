@@ -17,12 +17,12 @@ import { merge } from 'lodash'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { assumeYes, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, DEPLOY_VERSION_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OPERATOR_INSTALLER_VERSION, SUBSCRIPTION_NAME } from '../../constants'
+import { assumeYes, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OPERATOR_INSTALLER_VERSION, SUBSCRIPTION_NAME } from '../../constants'
 import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandErrorMessage, getCommandSuccessMessage, getCurrentChectlVersion, getEmbeddedTemplatesDirectory, notifyCommandCompletedSuccessfully } from '../../util'
+import { findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectVersion, notifyCommandCompletedSuccessfully } from '../../util'
 
 import { askForChectlUpdateIfNeeded } from './deploy'
 
@@ -73,11 +73,13 @@ export default class Update extends Command {
     yes: assumeYes,
     help: flags.help({ char: 'h' }),
     [CHE_OPERATOR_CR_PATCH_YAML_KEY]: cheOperatorCRPatchYaml,
+    telemetry: CHE_TELEMETRY,
     [DEPLOY_VERSION_KEY]: cheDeployVersion,
   }
 
   async run() {
     const { flags } = this.parse(Update)
+    flags.chenamespace = await findWorkingNamespace(flags)
     const ctx = await ChectlContext.initAndGet(flags, this)
 
     await askForChectlUpdateIfNeeded()
@@ -87,6 +89,8 @@ export default class Update extends Command {
       await this.setDefaultInstaller(flags)
       cli.info(`› Installer type is set to: '${flags.installer}'`)
     }
+
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Update.id, flags })
 
     if (!flags.templates && !flags.version || !ctx.isChectl) {
       // A flavor of chectl, do not use upstream repositories to get installation templates from
@@ -247,7 +251,7 @@ export default class Update extends Command {
       if (VersionHelper.compareVersions(ctx.newCheOperatorImageTag, ctx.deployedCheOperatorImageTag) > 0) {
         // Upgrade
 
-        const currentChectlVersion = getCurrentChectlVersion()
+        const currentChectlVersion = getProjectVersion()
         if (!ctx.isNightly && VersionHelper.compareVersions(currentChectlVersion, ctx.newCheOperatorImageTag) < 0) {
           cli.warn(`It is not possible to update Eclipse Che to a newer version using the current '${currentChectlVersion}' version of chectl. Please, update 'chectl' to a newer version using command 'chectl update stable' and then try again.`)
           return false

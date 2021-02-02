@@ -13,6 +13,7 @@ import * as execa from 'execa'
 import { CheHelper } from '../../src/api/che'
 import { KubeHelper } from '../../src/api/kube'
 import { OpenShiftHelper } from '../../src/api/openshift'
+import { DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
 
 // Fields which chectl returns for workspace:list commands
 interface WorkspaceInfo {
@@ -34,7 +35,8 @@ export class E2eHelper {
   constructor() {
     this.kubeHelper = new KubeHelper({})
     this.che = new CheHelper({})
-    this.devfileName = 'e2e-tests'
+    // generate-name from https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml
+    this.devfileName = 'quarkus-'
     this.oc = new OpenShiftHelper()
   }
 
@@ -42,7 +44,7 @@ export class E2eHelper {
   // async getAllWorkspaces(isOpenshiftPlatformFamily: string): Promise<chetypes.workspace.Workspace[]> {
   private async getAllWorkspaces(): Promise<WorkspaceInfo[]> {
     const workspaces: WorkspaceInfo[] = []
-    const { stdout } = await execa(binChectl, ['workspace:list'])
+    const { stdout } = await execa(binChectl, ['workspace:list', `--chenamespace=${DEFAULT_OLM_SUGGESTED_NAMESPACE}`, '--telemetry=off'], { shell: true })
     const regEx = new RegExp('[A-Za-z0-9_-]+', 'g')
     for (const line of stdout.split('\n')) {
       const items = line.match(regEx)
@@ -61,7 +63,7 @@ export class E2eHelper {
   // Return id of test workspaces(e2e-tests. Please look devfile-example.yaml file)
   async getWorkspaceId(): Promise<any> {
     const workspaces = await this.getAllWorkspaces()
-    const workspaceId = workspaces.filter((wks => wks.name === this.devfileName)).map(({ id }) => id)[0]
+    const workspaceId = workspaces.filter((wks => wks.name.match(this.devfileName))).map(({ id }) => id)[0]
 
     if (!workspaceId) {
       throw Error('Error getting workspaceId')
@@ -73,7 +75,7 @@ export class E2eHelper {
   // Return the status of test workspaces(e2e-tests. Please look devfile-example.yaml file)
   async getWorkspaceStatus(): Promise<any> {
     const workspaces = await this.getAllWorkspaces()
-    const workspaceStatus = workspaces.filter((wks => wks.name === this.devfileName)).map(({ status }) => status)[0]
+    const workspaceStatus = workspaces.filter((wks => wks.name.match(this.devfileName))).map(({ status }) => status)[0]
 
     if (!workspaceStatus) {
       throw Error('Error getting workspace_id')

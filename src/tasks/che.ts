@@ -454,7 +454,7 @@ export class CheTasks {
         }
       },
       {
-        title: 'Delete PVC postgres-data and che-data-volume',
+        title: 'Delete PVCs',
         task: async (_ctx: any, task: any) => {
           if (await this.kube.persistentVolumeClaimExist('postgres-data', flags.chenamespace)) {
             await this.kube.deletePersistentVolumeClaim('postgres-data', flags.chenamespace)
@@ -462,7 +462,15 @@ export class CheTasks {
           if (await this.kube.persistentVolumeClaimExist('che-data-volume', flags.chenamespace)) {
             await this.kube.deletePersistentVolumeClaim('che-data-volume', flags.chenamespace)
           }
-          task.title = await `${task.title}...OK`
+
+          if (await this.kube.persistentVolumeClaimExist('keycloak-data', flags.chenamespace)) {
+            await this.kube.deletePersistentVolumeClaim('keycloak-data', flags.chenamespace)
+          }
+          if (await this.kube.persistentVolumeClaimExist('keycloak-log', flags.chenamespace)) {
+            await this.kube.deletePersistentVolumeClaim('keycloak-log', flags.chenamespace)
+          }
+
+          task.title = `${task.title}...OK`
         }
       },
       {

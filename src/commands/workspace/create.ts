@@ -17,8 +17,9 @@ import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
 import { getLoginData } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
-import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
-import { notifyCommandCompletedSuccessfully } from '../../util'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { findWorkingNamespace } from '../../util'
 
 export default class Create extends Command {
   static description = 'Creates a workspace from a devfile'
@@ -48,12 +49,16 @@ export default class Create extends Command {
     }),
     [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {
     const { flags } = this.parse(Create)
+    flags.chenamespace = await findWorkingNamespace(flags)
     await ChectlContext.init(flags, this)
+
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Create.id, flags })
 
     const devfilePath = this.getDevfilePath(flags.devfile)
     const cheHelper = new CheHelper(flags)
@@ -77,7 +82,6 @@ export default class Create extends Command {
       cli.url(workspaceIdeURL, workspaceIdeURL)
     }
 
-    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 

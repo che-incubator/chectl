@@ -13,10 +13,11 @@ import { integer } from '@oclif/parser/lib/flags'
 import * as Listr from 'listr'
 
 import { ChectlContext } from '../../api/context'
-import { cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandErrorMessage, notifyCommandCompletedSuccessfully } from '../../util'
+import { findWorkingNamespace, getCommandErrorMessage } from '../../util'
 
 export default class Debug extends Command {
   static description = 'Enable local debug of Eclipse Che server'
@@ -29,13 +30,16 @@ export default class Debug extends Command {
       description: 'Eclipse Che server debug port',
       default: 8000
     }),
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {
     const { flags } = this.parse(Debug)
+    flags.chenamespace = await findWorkingNamespace(flags)
     const ctx = await ChectlContext.initAndGet(flags, this)
 
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Debug.id, flags })
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
@@ -51,7 +55,5 @@ export default class Debug extends Command {
     } catch (err) {
       this.error(getCommandErrorMessage(err))
     }
-
-    notifyCommandCompletedSuccessfully()
   }
 }
