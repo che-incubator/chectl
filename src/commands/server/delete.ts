@@ -15,7 +15,7 @@ import * as Listrq from 'listr'
 
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { assumeYes, cheDeployment, cheNamespace, CHE_TELEMETRY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { assumeYes, batch, cheDeployment, cheNamespace, CHE_TELEMETRY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
@@ -31,6 +31,7 @@ export default class Delete extends Command {
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
+    batch,
     'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,
     'delete-namespace': boolean({
       description: 'Indicates that a Eclipse Che namespace will be deleted as well',
@@ -80,7 +81,7 @@ export default class Delete extends Command {
       tasks.add(cheTasks.deleteNamespace(flags))
     }
 
-    if (await this.isDeletionConfirmed(flags)) {
+    if (flags.batch || await this.isDeletionConfirmed(flags)) {
       try {
         await tasks.run()
         cli.log(getCommandSuccessMessage())

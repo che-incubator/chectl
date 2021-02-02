@@ -415,6 +415,9 @@ OPTIONS
                                                                            answer to all prompts and run
                                                                            non-interactively
 
+  --batch                                                                  Script mode. Prevents all interactive
+                                                                           prompts.
+
   --delete-namespace                                                       Indicates that a Eclipse Che namespace will
                                                                            be deleted as well
 
@@ -480,13 +483,16 @@ OPTIONS
       Path to the templates folder
 
   -v, --version=version
-      Version to deploy. Should be version (e.g. 7.15.2) or "stable" or "nightly"
+      Version to deploy (e.g. 7.15.2). Defaults to the same as chectl.
 
   --[no-]auto-update
       Auto update approval strategy for installation Eclipse Che.
                            With this strategy will be provided auto-update Eclipse Che without any human interaction.
                            By default this flag is enabled.
                            This parameter is used only when the installer is 'olm'.
+
+  --batch
+      Script mode. Prevents all interactive prompts.
 
   --catalog-source-name=catalog-source-name
       OLM catalog source to install Eclipse Che operator.
@@ -718,11 +724,13 @@ OPTIONS
   -n, --chenamespace=chenamespace                          Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
   -t, --templates=templates                                Path to the templates folder
 
-  -v, --version=version                                    Version to deploy. Should be version (e.g. 7.15.2) or
-                                                           "stable" or "nightly"
+  -v, --version=version                                    Version to deploy (e.g. 7.15.2). Defaults to the same as
+                                                           chectl.
 
   -y, --yes                                                Automatic yes to prompts; assume "yes" as answer to all
                                                            prompts and run non-interactively
+
+  --batch                                                  Script mode. Prevents all interactive prompts.
 
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml  Path to a yaml file that overrides the default values in
                                                            CheCluster CR used by the operator. This parameter is used

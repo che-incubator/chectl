@@ -14,7 +14,7 @@ import { cli } from 'cli-ux'
 import { VersionHelper } from '../../api/version'
 
 const hook: Hook<'prerun'> = async function (options) {
-  const commandName: string = (options as any).id || ''
+  const commandName: string = options.Command.id
   if (commandName === 'server:deploy' || commandName === 'server:update') {
     return
   }

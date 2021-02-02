@@ -17,7 +17,7 @@ import { merge } from 'lodash'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { assumeYes, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { assumeYes, batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OPERATOR_INSTALLER_VERSION, SUBSCRIPTION_NAME } from '../../constants'
 import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
@@ -52,6 +52,7 @@ export default class Update extends Command {
       hidden: true,
     }),
     chenamespace: cheNamespace,
+    batch,
     templates: string({
       char: 't',
       description: 'Path to the templates folder',
@@ -82,7 +83,9 @@ export default class Update extends Command {
     flags.chenamespace = await findWorkingNamespace(flags)
     const ctx = await ChectlContext.initAndGet(flags, this)
 
-    await askForChectlUpdateIfNeeded()
+    if (!flags.batch) {
+      await askForChectlUpdateIfNeeded()
+    }
 
     await this.setDomainFlag(flags)
     if (!flags.installer) {
@@ -209,8 +212,8 @@ export default class Update extends Command {
 
       if (imagesListMsg) {
         cli.warn(`Custom images found in '${cheCluster.metadata.name}' Custom Resource in the '${flags.chenamespace}' namespace: ${imagesListMsg}`)
-        if (!flags.yes && await cli.confirm('Do you want to preserve custom images [y/n]?')) {
-          cli.info('Keeping current images.\nNote, it might fail the update if some of he custom inages significantly change its internal functionality.')
+        if (flags.batch || flags.yes || await cli.confirm('Do you want to preserve custom images [y/n]?')) {
+          cli.info('Keeping current images.\nNote, it might fail the update if some of the custom images significantly change its internal functionality.')
         } else {
           cli.info('Resetting cutom images to default ones.')
 
@@ -238,9 +241,8 @@ export default class Update extends Command {
       // Official images
 
       if (ctx.deployedCheOperatorImage === ctx.newCheOperatorImage) {
-        if (ctx.isNightly && ctx.newCheOperatorImageTag === 'nightly' && await VersionHelper.isChectlUpdateAvailable(ctx[ChectlContext.CACHE_DIR], true)) {
-          // Current nightly version is not the latest one
-          cli.info('Updating to newer nightly version')
+        if (ctx.isNightly && ctx.newCheOperatorImageTag === 'nightly') {
+          cli.info('Updating existing nightly version to current one.')
           return true
         }
 
@@ -298,7 +300,7 @@ export default class Update extends Command {
       }
     }
 
-    if (!flags.yes && !await cli.confirm('If you want to continue - press Y')) {
+    if (!flags.batch && !flags.yes && !await cli.confirm('If you want to continue - press Y')) {
       cli.info('Update cancelled by user.')
       return false
     }

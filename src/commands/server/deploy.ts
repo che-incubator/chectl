@@ -16,7 +16,7 @@ import * as Listr from 'listr'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, devWorkspaceControllerNamespace, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
+import { batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, devWorkspaceControllerNamespace, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_HELM_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
@@ -32,6 +32,7 @@ export default class Deploy extends Command {
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
+    batch,
     'listr-renderer': listrRenderer,
     'deployment-name': cheDeployment,
     cheimage: string({
@@ -358,11 +359,13 @@ export default class Deploy extends Command {
     flags.chenamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
     const ctx = await ChectlContext.initAndGet(flags, this)
 
-    await askForChectlUpdateIfNeeded()
+    if (!flags.batch) {
+      await askForChectlUpdateIfNeeded()
+    }
 
     await this.setPlaformDefaults(flags, ctx)
-
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Deploy.id, flags })
+
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()
     const installerTasks = new InstallerTasks()
@@ -455,8 +458,8 @@ export default class Deploy extends Command {
 export async function askForChectlUpdateIfNeeded(): Promise<void> {
   const ctx = ChectlContext.get()
   if (await VersionHelper.isChectlUpdateAvailable(ctx[ChectlContext.CACHE_DIR])) {
-    cli.info('Newer version of chectl is awailable.')
-    if (cli.confirm('Do you want to update to the latest version before deploying Eclipse Che? [Y/n]')) {
+    cli.info('Newer version of chectl is available.')
+    if (await cli.confirm('Do you want to update to the latest version to deploy latest Eclipse Che? [y/n]')) {
       cli.info('Please run "chectl update" and rerun the command')
       cli.exit(0)
     }

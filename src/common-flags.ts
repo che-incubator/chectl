@@ -23,6 +23,12 @@ export const devWorkspaceControllerNamespace = string({
   env: 'DEV_WORKSPACE_OPERATOR_NAMESPACE',
 })
 
+export const batch = boolean({
+  description: 'Script mode. Prevents all interactive prompts.',
+  default: false,
+  required: false,
+})
+
 export const cheDeployment = string({
   description: 'Eclipse Che deployment name',
   default: 'che',
@@ -120,6 +126,6 @@ export const CHE_TELEMETRY = string({
 export const DEPLOY_VERSION_KEY = 'version'
 export const cheDeployVersion = string({
   char: 'v',
-  description: 'Version to deploy. Should be version (e.g. 7.15.2) or "stable" or "nightly"',
+  description: 'Version to deploy (e.g. 7.15.2). Defaults to the same as chectl.',
   env: 'CHE_DEPLOY_VERSION',
 })
