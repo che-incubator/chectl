@@ -93,6 +93,9 @@
   "main": "lib/index.js",
   "oclif": {
     "commands": "./lib/commands",
+    "hooks": {
+      "init": "./lib/hooks/prerun/hook-new-version-warning"
+    },
     "bin": "chectl",
     "macos": {
       "identifier": "che-incubator.chectl"

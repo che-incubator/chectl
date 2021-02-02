@@ -14,6 +14,7 @@ import * as fs from 'fs-extra'
 import * as https from 'https'
 import * as yaml from 'js-yaml'
 import * as notifier from 'node-notifier'
+import * as path from 'path'
 
 const pkjson = require('../package.json')
 
@@ -177,26 +178,6 @@ export function getCurrentChectlVersion(): string {
 }
 
 /**
- * Returns latest chectl version for the given channel.
- */
-export async function getLatestChectlVersion(channel: string): Promise<string | undefined> {
-  if (getCurrentChectlName() !== 'chectl') {
-    return
-  }
-
-  const axiosInstance = axios.create({
-    httpsAgent: new https.Agent({})
-  })
-
-  try {
-    const { data } = await axiosInstance.get(`https://che-incubator.github.io/chectl/channels/${channel}/linux-x64`)
-    return data.version
-  } catch {
-    return
-  }
-}
-
-/**
  * Returns current chectl version defined in package.json.
  */
 export function getCurrentChectlName(): string {
@@ -240,4 +221,13 @@ export async function downloadYaml(url: string): Promise<any> {
   })
   const response = await axiosInstance.get(url)
   return yaml.safeLoad(response.data)
+}
+
+export function getEmbeddedTemplatesDirectory(): string {
+  if (__dirname.endsWith('src')) {
+    // Development version
+    return path.join(__dirname, '..', 'templates')
+  }
+  // Release (including nightly) version
+  return path.join(__dirname, '..', '..', '..', 'templates')
 }

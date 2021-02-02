@@ -13,17 +13,18 @@ import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 import { merge } from 'lodash'
-import * as path from 'path'
 
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { assumeYes, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, DEPLOY_VERSION_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OPERATOR_INSTALLER_VERSION, SUBSCRIPTION_NAME } from '../../constants'
-import { getCheckChectlAndCheCompatibilityTask as checkChectlAndCheCompatibilityTask, getPrintHighlightedMessagesTask, prepareTemplates } from '../../tasks/installers/common-tasks'
+import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandErrorMessage, getCommandSuccessMessage, getCurrentChectlName, getCurrentChectlVersion, getLatestChectlVersion, notifyCommandCompletedSuccessfully } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, getCurrentChectlVersion, getEmbeddedTemplatesDirectory, notifyCommandCompletedSuccessfully } from '../../util'
+
+import { askForChectlUpdateIfNeeded } from './deploy'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -79,20 +80,22 @@ export default class Update extends Command {
     const { flags } = this.parse(Update)
     const ctx = await ChectlContext.initAndGet(flags, this)
 
+    await askForChectlUpdateIfNeeded()
+
     await this.setDomainFlag(flags)
     if (!flags.installer) {
       await this.setDefaultInstaller(flags)
       cli.info(`› Installer type is set to: '${flags.installer}'`)
     }
 
-    if (!flags.templates && getCurrentChectlName() !== 'chectl') {
+    if (!flags.templates && !flags.version || !ctx.isChectl) {
       // A flavor of chectl, do not use upstream repositories to get installation templates from
       // Use build-in templates instead
-      flags.templates = path.join(__dirname, '..', '..', '..', 'templates')
+      flags.templates = getEmbeddedTemplatesDirectory()
     }
 
     if (flags.version) {
-      if (getCurrentChectlName() !== 'chectl') {
+      if (!ctx.isChectl) {
         // Flavors of chectl should not use upstream repositories, so version flag is not appliable
         this.error('"version" flag is not supported for this deployment.')
       }
@@ -111,8 +114,8 @@ export default class Update extends Command {
     const apiTasks = new ApiTasks()
     const preUpdateTasks = new Listr([], ctx.listrOptions)
     preUpdateTasks.add(apiTasks.testApiTasks(flags, this))
-    preUpdateTasks.add(prepareTemplates(flags))
-    preUpdateTasks.add(checkChectlAndCheCompatibilityTask(flags))
+    preUpdateTasks.add(checkChectlAndCheVersionCompatibility(flags))
+    preUpdateTasks.add(downloadTemplates(flags))
     preUpdateTasks.add(installerTasks.preUpdateTasks(flags, this))
 
     // update tasks
@@ -231,7 +234,7 @@ export default class Update extends Command {
       // Official images
 
       if (ctx.deployedCheOperatorImage === ctx.newCheOperatorImage) {
-        if (ctx.newCheOperatorImageTag === 'nightly' && ctx.downloadedNewTemplates) {
+        if (ctx.isNightly && ctx.newCheOperatorImageTag === 'nightly' && await VersionHelper.isChectlUpdateAvailable(ctx[ChectlContext.CACHE_DIR], true)) {
           // Current nightly version is not the latest one
           cli.info('Updating to newer nightly version')
           return true
@@ -244,11 +247,9 @@ export default class Update extends Command {
       if (VersionHelper.compareVersions(ctx.newCheOperatorImageTag, ctx.deployedCheOperatorImageTag) > 0) {
         // Upgrade
 
-        if (!await this.currentChectlCanUpdateTo(ctx.newCheOperatorImageTag)) {
-          const chectlChannel = ctx.newCheOperatorImageTag === 'nightly' ? 'next' : 'stable'
-          const currentChectlVersion = getCurrentChectlVersion()
-          const latestChectlVersion = await getLatestChectlVersion(chectlChannel)
-          cli.warn(`It is not possible to update Eclipse Che to a newer version using the current '${currentChectlVersion}' version of chectl. Please, update 'chectl' to a newer version '${latestChectlVersion}' with the command 'chectl update ${chectlChannel}' and then try again.`)
+        const currentChectlVersion = getCurrentChectlVersion()
+        if (!ctx.isNightly && VersionHelper.compareVersions(currentChectlVersion, ctx.newCheOperatorImageTag) < 0) {
+          cli.warn(`It is not possible to update Eclipse Che to a newer version using the current '${currentChectlVersion}' version of chectl. Please, update 'chectl' to a newer version using command 'chectl update stable' and then try again.`)
           return false
         }
 
@@ -298,18 +299,6 @@ export default class Update extends Command {
       return false
     }
 
-    return true
-  }
-
-  /**
-   * Checks if current version of chectl is capable to deploy Eclipse Che of given version.
-   * @param version Eclipse Che version to upate to, e.g. 7.20.1
-   */
-  // tslint:disable-next-line: no-unused
-  async currentChectlCanUpdateTo(version: string): Promise<boolean> {
-    // TODO As of now, chectl can deploy any version of Eclipse Che 7 (excluding some legacy ones prior to 7.10)
-    // However, in the future, it may change. Deployment process might require some additional steps for newer versions.
-    // This method is needed to compare required chectl version in templates (to be added) with its current version.
     return true
   }
 

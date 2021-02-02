@@ -12,7 +12,6 @@ import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
-import * as path from 'path'
 
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
@@ -21,11 +20,11 @@ import { cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, 
 import { DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_HELM_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
-import { getCheckChectlAndCheCompatibilityTask as checkChectlAndCheCompatibilityTask, getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, prepareTemplates, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
+import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { getCommandErrorMessage, getCommandSuccessMessage, getCurrentChectlName, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Deploy extends Command {
   static description = 'Deploy Eclipse Che server'
@@ -221,10 +220,13 @@ export default class Deploy extends Command {
       cli.info(` ❕olm-suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
     }
 
-    if (!flags.templates && getCurrentChectlName() !== 'chectl') {
-      // A flavor of chectl, do not use upstream repositories to get installation templates from
-      // Use build-in templates instead
-      flags.templates = path.join(__dirname, '..', '..', '..', 'templates')
+    if (!ctx.isChectl && flags.version) {
+      // Flavors of chectl should not use upstream repositories, so version flag is not applicable
+      this.error('"version" flag is not supported for this deployment.')
+    }
+    if (!ctx.isChectl || (!flags.version && !flags.templates)) {
+      // Use build-in templates for any chectl flavour or if version is not specified
+      flags.templates = getEmbeddedTemplatesDirectory()
     }
   }
 
@@ -264,11 +266,6 @@ export default class Deploy extends Command {
       }
     }
 
-    if (getCurrentChectlName() !== 'chectl' && flags.version) {
-      // Flavors of chectl should not use upstream repositories, so version flag is not appliable
-      this.error('"version" flag is not supported for this deployment.')
-    }
-
     if (flags.domain && !flags[CHE_OPERATOR_CR_YAML_KEY] && isOpenshiftPlatformFamily(flags.platform)) {
       this.warn('"--domain" flag is ignored for Openshift family infrastructures. It should be done on the cluster level.')
     }
@@ -288,14 +285,16 @@ export default class Deploy extends Command {
       if (flags['catalog-source-name'] && flags['catalog-source-yaml']) {
         this.error('should be provided only one argument: "catalog-source-name" or "catalog-source-yaml"')
       }
-      if (flags['starting-csv'] && flags.version) {
-        this.error('"starting-csv" and "version" flags are mutually exclusive. Please specify only one of them.')
-      }
-      if (flags['olm-channel'] && flags.version) {
-        this.error('"starting-csv" and "version" flags are mutually exclusive. Use "starting-csv" with "olm-channel" flag.')
-      }
-      if (flags['auto-update'] && flags.version && !(flags.version === 'latest' || flags.version === 'stable' || flags.version === 'nightly' || flags.version === 'next')) {
-        this.error('enabled "auto-update" flag can only be used with "latest" or "nightly" version.')
+      if (flags.version) {
+        if (flags['starting-csv']) {
+          this.error('"starting-csv" and "version" flags are mutually exclusive. Please specify only one of them.')
+        }
+        if (flags['olm-channel']) {
+          this.error('"starting-csv" and "version" flags are mutually exclusive. Use "starting-csv" with "olm-channel" flag.')
+        }
+        if (flags['auto-update']) {
+          this.error('enabled "auto-update" flag cannot be used with version flag. Deploy latest version instead.')
+        }
       }
 
       if (!flags['package-manifest-name'] && flags['catalog-source-yaml']) {
@@ -357,6 +356,8 @@ export default class Deploy extends Command {
     const { flags } = this.parse(Deploy)
     const ctx = await ChectlContext.initAndGet(flags, this)
 
+    await askForChectlUpdateIfNeeded()
+
     await this.setPlaformDefaults(flags, ctx)
 
     const cheTasks = new CheTasks(flags)
@@ -375,8 +376,8 @@ export default class Deploy extends Command {
       title: '👀  Looking for an already existing Eclipse Che instance',
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     })
-    preInstallTasks.add(prepareTemplates(flags))
-    preInstallTasks.add(checkChectlAndCheCompatibilityTask(flags))
+    preInstallTasks.add(checkChectlAndCheVersionCompatibility(flags))
+    preInstallTasks.add(downloadTemplates(flags))
 
     let installTasks = new Listr(installerTasks.installTasks(flags, this), ctx.listrOptions)
 
@@ -444,6 +445,17 @@ export default class Deploy extends Command {
       flags.installer = 'olm'
     } else {
       flags.installer = 'operator'
+    }
+  }
+}
+
+export async function askForChectlUpdateIfNeeded(): Promise<void> {
+  const ctx = ChectlContext.get()
+  if (await VersionHelper.isChectlUpdateAvailable(ctx[ChectlContext.CACHE_DIR])) {
+    cli.info('Newer version of chectl is awailable.')
+    if (cli.confirm('Do you want to update to the latest version before deploying Eclipse Che? [Y/n]')) {
+      cli.info('Please run "chectl update" and rerun the command')
+      cli.exit(0)
     }
   }
 }

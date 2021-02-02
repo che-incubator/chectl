@@ -8,29 +8,26 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
+import axios from 'axios'
 import execa = require('execa')
+import * as fs from 'fs'
+import * as https from 'https'
 import Listr = require('listr')
+import * as path from 'path'
 
 import { CheTasks } from '../tasks/che'
-import { getClusterClientCommand } from '../util'
+import { getClusterClientCommand, getCurrentChectlName, getCurrentChectlVersion } from '../util'
 
 import { KubeHelper } from './kube'
 
-export interface ChectlBreakingVersions {
-  helm: InstallerBreakingVersions[]
-  operator: InstallerBreakingVersions[]
-  olm: InstallerBreakingVersions[]
+const CHECTL_DEVELOPMENT_VERSION = '0.0.2'
+const UPDATE_INFO_FILENAME = 'new-version-info.json'
+interface NewVersionInfoData {
+  latestVersion: string
+  // datetime of last check in milliseconds
+  lastCheck: number
 }
-
-export interface InstallerBreakingVersions {
-  cheVersion: string
-  minimalChectlVeriosn: ChectlBreakingVersionDetails
-}
-
-export interface ChectlBreakingVersionDetails {
-  stable: string
-  nightly: string
-}
+const A_DAY_IN_MS = 24 * 60 * 60 * 1000
 
 export namespace VersionHelper {
   export const MINIMAL_OPENSHIFT_VERSION = '3.11'
@@ -177,6 +174,65 @@ export namespace VersionHelper {
     } catch {
       return 'UNKNOWN'
     }
+  }
+
+  /**
+   * Returns latest chectl version for the given channel.
+   */
+  export async function getLatestChectlVersion(channel: string): Promise<string | undefined> {
+    if (getCurrentChectlName() !== 'chectl') {
+      return
+    }
+
+    const axiosInstance = axios.create({
+      httpsAgent: new https.Agent({})
+    })
+
+    try {
+      const { data } = await axiosInstance.get(`https://che-incubator.github.io/chectl/channels/${channel}/linux-x64`)
+      return data.version
+    } catch {
+      return
+    }
+  }
+
+  /**
+   * Checks whether there is an update available for current chectl.
+   */
+  export async function isChectlUpdateAvailable(cacheDir: string, forceRecheck = false): Promise<boolean> {
+    // Do not use ctx inside this function as the function is used from hook where ctx is not yet defined.
+
+    if (getCurrentChectlName() !== 'chectl') {
+      // Do nothing for chectl flavors
+      return false
+    }
+
+    const currentVersion = getCurrentChectlVersion()
+    if (currentVersion === CHECTL_DEVELOPMENT_VERSION) {
+      // Skip it, chectl is built from source
+      return false
+    }
+
+    const channel = currentVersion.includes('next') ? 'next' : 'stable'
+    const newVersionInfoFilePath = path.join(cacheDir, `${channel}-${UPDATE_INFO_FILENAME}`)
+    let newVersionInfo: NewVersionInfoData = {
+      latestVersion: '0.0.0',
+      lastCheck: 0,
+    }
+    if (fs.existsSync(newVersionInfoFilePath)) {
+      newVersionInfo = JSON.parse(fs.readFileSync(newVersionInfoFilePath, 'utf8')) as NewVersionInfoData
+    }
+
+    const now = Date.now()
+    if (forceRecheck || now - newVersionInfo.lastCheck > A_DAY_IN_MS) {
+      // Cached info is expired. Fetch actual info about versions.
+      // undefined cannot be returned from getLatestChectlVersion as 'is flavor' chack was done before.
+      const latestVersion = (await getLatestChectlVersion(channel))!
+      newVersionInfo = { latestVersion, lastCheck: now }
+      fs.writeFileSync(newVersionInfoFilePath, JSON.stringify(newVersionInfo), { encoding: 'utf8' })
+    }
+
+    return compareVersions(newVersionInfo.latestVersion, currentVersion) > 0
   }
 
   /**
