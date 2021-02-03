@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import * as fs from 'fs'
+import * as fs from 'fs-extra'
 import * as Listr from 'listr'
 import * as path from 'path'
 
@@ -53,7 +53,7 @@ export class CertManagerTasks {
         enabled: ctx => !ctx.certManagerInstalled,
         task: async (ctx: any, task: any) => {
           let yamlPath = path.join(flags.templates, 'cert-manager', 'cert-manager.yaml')
-          if (!fs.existsSync(yamlPath)) {
+          if (! await fs.pathExists(yamlPath)) {
             // Older Che versions don't have Cert Manager install yaml in templates
             // Try to use embedded in chectl version
             yamlPath = path.join(__dirname, '../../../installers/cert-manager.yml')

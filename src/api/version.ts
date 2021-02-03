@@ -10,7 +10,7 @@
 
 import axios from 'axios'
 import execa = require('execa')
-import * as fs from 'fs'
+import * as fs from 'fs-extra'
 import * as https from 'https'
 import Listr = require('listr')
 import * as path from 'path'
@@ -20,7 +20,8 @@ import { getClusterClientCommand, getProjectName, getProjectVersion } from '../u
 
 import { KubeHelper } from './kube'
 
-const CHECTL_DEVELOPMENT_VERSION = '0.0.2'
+export const CHECTL_DEVELOPMENT_VERSION = '0.0.2'
+
 const UPDATE_INFO_FILENAME = 'new-version-info.json'
 interface NewVersionInfoData {
   latestVersion: string
@@ -219,30 +220,32 @@ export namespace VersionHelper {
       latestVersion: '0.0.0',
       lastCheck: 0,
     }
-    if (fs.existsSync(newVersionInfoFilePath)) {
-      newVersionInfo = JSON.parse(fs.readFileSync(newVersionInfoFilePath, 'utf8')) as NewVersionInfoData
+    if (await fs.pathExists(newVersionInfoFilePath)) {
+      newVersionInfo = (await fs.readJson(newVersionInfoFilePath, { encoding: 'utf8' })) as NewVersionInfoData
     }
 
+    // Check cache, if it is already known that newer version available
+    const isCachedNewerVersionAvailable = compareVersions(newVersionInfo.latestVersion, currentVersion) > 0
     const now = Date.now()
-    if (forceRecheck || now - newVersionInfo.lastCheck > A_DAY_IN_MS) {
+    const isCacheExpired = now - newVersionInfo.lastCheck > A_DAY_IN_MS
+    if (forceRecheck || (!isCachedNewerVersionAvailable && isCacheExpired)) {
       // Cached info is expired. Fetch actual info about versions.
-      // undefined cannot be returned from getLatestChectlVersion as 'is flavor' chack was done before.
+      // undefined cannot be returned from getLatestChectlVersion as 'is flavor' check was done before.
       const latestVersion = (await getLatestChectlVersion(channel))!
       newVersionInfo = { latestVersion, lastCheck: now }
-      fs.writeFileSync(newVersionInfoFilePath, JSON.stringify(newVersionInfo), { encoding: 'utf8' })
+      await fs.writeJson(newVersionInfoFilePath, newVersionInfo, { encoding: 'utf8' })
+      return compareVersions(newVersionInfo.latestVersion, currentVersion) > 0
     }
 
-    return compareVersions(newVersionInfo.latestVersion, currentVersion) > 0
+    // Information whether a newer version available is already in cache
+    return isCachedNewerVersionAvailable
   }
 
   /**
    * Indicates if stable version of Eclispe Che is specified.
    */
   export function isStableVersion(flags: any): boolean {
-    if (flags.version === 'next' || flags.version === 'nightly') {
-      return false
-    }
-    return true
+    return flags.version !== 'next' && flags.version !== 'nightly'
   }
 
   /**

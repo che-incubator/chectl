@@ -97,7 +97,7 @@ export function downloadTemplates(flags: any): Listr.ListrTask {
       flags.templates = versionTemplatesDirPath
 
       const installerTemplatesDirPath = path.join(versionTemplatesDirPath, installerTemplatesSubDir)
-      if (fs.existsSync(installerTemplatesDirPath)) {
+      if (await fs.pathExists(installerTemplatesDirPath)) {
         // Use cached templates
         task.title = `${task.title}... found cache for version ${flags.version}`
         return
