@@ -546,9 +546,13 @@ export class KubeHelper {
   }
 
   async replaceClusterRoleBindingFrom(clusterRoleBinding: V1ClusterRoleBinding) {
+    if (!clusterRoleBinding.metadata || !clusterRoleBinding.metadata.name) {
+      throw new Error('Cluster Role Binding must have name specified')
+    }
+
     const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
     try {
-      return await k8sRbacAuthApi.replaceClusterRoleBinding(name, clusterRoleBinding)
+      return await k8sRbacAuthApi.replaceClusterRoleBinding(clusterRoleBinding.metadata.name, clusterRoleBinding)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1409,7 +1413,7 @@ export class KubeHelper {
       // If CheCluster CR is not explicitly provided, then modify the default example CR
       // with values derived from the other parameters
 
-      if (VersionHelper.isStableVersion(flags)) {
+      if (VersionHelper.isDeployingStableVersion(flags)) {
         // Use images from operator defaults in case of a stable version
         cheClusterCR.spec.server.cheImage = ''
         cheClusterCR.spec.server.cheImageTag = ''

@@ -40,7 +40,7 @@ export class HelmTasks {
    * Returns list of tasks which perform preflight platform checks.
    */
   deployTasks(flags: any, command: Command): Listr {
-    if (VersionHelper.isStableVersion(flags)) {
+    if (VersionHelper.isDeployingStableVersion(flags)) {
       command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of Eclipse Che (--installer=olm).')
     }
     return new Listr([

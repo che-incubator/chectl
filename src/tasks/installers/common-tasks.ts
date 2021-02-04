@@ -107,7 +107,7 @@ export function downloadTemplates(flags: any): Listr.ListrTask {
       // Download templates
       task.title = `${task.title} for version ${flags.version}`
       const cheHelper = new CheHelper(flags)
-      await cheHelper.getAndPrepareInstallerTemplates(flags.installer, ctx.versionInfo.zipball_url, versionTemplatesDirPath)
+      await cheHelper.downloadAndUnpackTemplates(flags.installer, ctx.versionInfo.zipball_url, versionTemplatesDirPath)
       task.title = `${task.title} ... OK`
     }
   }

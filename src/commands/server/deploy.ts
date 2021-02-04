@@ -25,7 +25,7 @@ import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighl
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { getCommandErrorMessage, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Deploy extends Command {
   static description = 'Deploy Eclipse Che server'
@@ -225,10 +225,11 @@ export default class Deploy extends Command {
 
     if (!ctx.isChectl && flags.version) {
       // Flavors of chectl should not use upstream repositories, so version flag is not applicable
-      this.error('"version" flag is not supported for this deployment.')
+      this.error(`${getProjectName()} does not support '--version' flag.`)
     }
-    if (!ctx.isChectl || (!flags.version && !flags.templates)) {
-      // Use build-in templates for any chectl flavour or if version is not specified
+    if (!flags.templates && !flags.version) {
+      // Use build-in templates if no custom templates nor version to deploy specified.
+      // All flavors should use embedded templates if not custom templates is given.
       flags.templates = getEmbeddedTemplatesDirectory()
     }
   }
@@ -331,7 +332,7 @@ export default class Deploy extends Command {
       }
     }
 
-    if (flags.version && !flags['skip-version-check']) {
+    if (flags.version) {
       // Check minimal allowed version to install
       let minAllowedVersion: string
       switch (flags.installer) {
@@ -360,7 +361,7 @@ export default class Deploy extends Command {
     flags.chenamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
     const ctx = await ChectlContext.initAndGet(flags, this)
 
-    if (!flags.batch) {
+    if (!flags.batch && ctx.isChectl) {
       await askForChectlUpdateIfNeeded()
     }
 

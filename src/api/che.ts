@@ -492,7 +492,7 @@ export class CheHelper {
    * @param url link to zip archive with sources of Che operator
    * @param destDir destination directory into which the templates should be unpacked
    */
-  async getAndPrepareInstallerTemplates(installer: string, url: string, destDir: string): Promise<void> {
+  async downloadAndUnpackTemplates(installer: string, url: string, destDir: string): Promise<void> {
     // Add che-operator folder for operator templates
     if (installer === 'operator') {
       destDir = path.join(destDir, 'che-operator')

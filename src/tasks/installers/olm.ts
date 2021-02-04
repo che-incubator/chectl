@@ -86,25 +86,16 @@ export class OLMTasks {
           if (flags.version) {
             // Convert version flag to channel (see subscription object), starting CSV and approval starategy
             flags.version = VersionHelper.removeVPrefix(flags.version, true)
-            if (VersionHelper.isTopVersion(flags)) {
-              // Use latest version in the channel
-              ctx.startingCSV = undefined
-            } else {
-              // Need to point to specific CSV
-              ctx.startingCSV = `eclipse-che.v${flags.version}`
-            }
-
-            if (VersionHelper.isTopVersion(flags)) {
-              ctx.approvalStarategy = flags['auto-update'] ? 'Automatic' : 'Manual'
-            } else {
-              ctx.approvalStarategy = 'Manual'
-            }
+            // Need to point to specific CSV
+            ctx.startingCSV = `eclipse-che.v${flags.version}`
+            // Set approval starategy to manual to prevent autoupdate to the latest version right before installation
+            ctx.approvalStarategy = 'Manual'
           } else {
             ctx.startingCSV = flags['starting-csv']
             if (ctx.startingCSV) {
               // Ignore auto-update flag, otherwise it will automatically update to the latest version and starting-csv will not have any effect.
               ctx.approvalStarategy = 'Manual'
-            } else if (flags['auto-update'] === undefined && VersionHelper.isTopVersion(flags)) {
+            } else if (flags['auto-update'] === undefined) {
               ctx.approvalStarategy = 'Automatic'
             } else {
               ctx.approvalStarategy = flags['auto-update'] ? 'Automatic' : 'Manual'
@@ -115,7 +106,7 @@ export class OLMTasks {
         }
       },
       {
-        enabled: () => !VersionHelper.isStableVersion(flags) && !flags['catalog-source-name'] && !flags['catalog-source-yaml'],
+        enabled: () => !VersionHelper.isDeployingStableVersion(flags) && !flags['catalog-source-name'] && !flags['catalog-source-yaml'],
         title: `Create nightly index CatalogSource in the namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
           if (!await kube.catalogSourceExists(NIGHTLY_CATALOG_SOURCE_NAME, flags.chenamespace)) {
@@ -155,7 +146,7 @@ export class OLMTasks {
               // custom Che CatalogSource
               const catalogSourceNamespace = flags['catalog-source-namespace'] || flags.chenamespace
               subscription = this.constructSubscription(SUBSCRIPTION_NAME, flags['package-manifest-name'], flags.chenamespace, catalogSourceNamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, ctx.startingCSV)
-            } else if (VersionHelper.isStableVersion(flags)) {
+            } else if (VersionHelper.isDeployingStableVersion(flags)) {
               // stable Che CatalogSource
               subscription = this.constructSubscription(SUBSCRIPTION_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
             } else {

@@ -12,8 +12,14 @@ import { Hook } from '@oclif/config'
 import { cli } from 'cli-ux'
 
 import { VersionHelper } from '../../api/version'
+import { getProjectName } from '../../util'
 
+const isChectl = getProjectName() === 'chectl'
 const hook: Hook<'prerun'> = async function (options) {
+  if (!isChectl) {
+    return
+  }
+
   const commandName: string = options.Command.id
   if (commandName === 'server:deploy' || commandName === 'server:update') {
     return
@@ -23,8 +29,8 @@ const hook: Hook<'prerun'> = async function (options) {
     if (await VersionHelper.isChectlUpdateAvailable(options.config.cacheDir)) {
       cli.warn('A newer version of chectl is available. Run "chectl update" to get it.')
     }
-  } catch (error) {
-    cli.warn(`Error occured when tried to check for newer version: ${error}`)
+  } catch {
+    // An error occured while checking for newer version. Ignore it.
   }
 }
 

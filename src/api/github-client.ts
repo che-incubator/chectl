@@ -149,7 +149,7 @@ export class CheGithubClient {
    * Helper for getTagInfoByVersion
    * Gets tag by exact match or latest tag with given prefix
    * @param repo repository name
-   * @param versionPrefix vaersion or version prefix, e.g. 7.22.0 or 7.18
+   * @param versionPrefix version or version prefix, e.g. 7.22.0 or 7.18
    */
   private async getTagInfoByVersionPrefix(repo: string, versionPrefix: string): Promise<TagInfo | undefined> {
     let tagInfo = await this.getTag(repo, versionPrefix)

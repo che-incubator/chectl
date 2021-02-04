@@ -149,7 +149,7 @@ export class OperatorTasks {
     const kubeTasks = new KubeTasks(flags)
     const ctx = ChectlContext.get()
     ctx.resourcesPath = path.join(flags.templates, 'che-operator')
-    if (VersionHelper.isStableVersion(flags)) {
+    if (VersionHelper.isDeployingStableVersion(flags)) {
       command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of Eclipse Che (--installer=olm).')
     }
     return new Listr([
@@ -246,7 +246,7 @@ export class OperatorTasks {
         }
       },
       {
-        title: 'Gathering versions info...',
+        title: 'Detecting existing version...',
         task: async (ctx: any, task: any) => {
           ctx.deployedCheOperatorImage = this.retrieveContainerImage(ctx.deployedCheOperatorYaml)
           const deployedCheOperatorImageAndTag = ctx.deployedCheOperatorImage.split(':', 2)

@@ -17,13 +17,12 @@ import * as semver from 'semver'
 
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { VersionHelper } from '../../api/version'
 import { assumeYes, batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OPERATOR_INSTALLER_VERSION, SUBSCRIPTION_NAME } from '../../constants'
 import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectVersion, notifyCommandCompletedSuccessfully } from '../../util'
+import { findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, getProjectVersion, notifyCommandCompletedSuccessfully } from '../../util'
 
 import { askForChectlUpdateIfNeeded } from './deploy'
 
@@ -84,7 +83,7 @@ export default class Update extends Command {
     flags.chenamespace = await findWorkingNamespace(flags)
     const ctx = await ChectlContext.initAndGet(flags, this)
 
-    if (!flags.batch) {
+    if (!flags.batch && ctx.isChectl) {
       await askForChectlUpdateIfNeeded()
     }
 
@@ -96,16 +95,16 @@ export default class Update extends Command {
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Update.id, flags })
 
-    if (!flags.templates && !flags.version || !ctx.isChectl) {
-      // A flavor of chectl, do not use upstream repositories to get installation templates from
-      // Use build-in templates instead
+    if (!flags.templates && !flags.version) {
+      // Use build-in templates if no custom templates nor version to deploy specified.
+      // All flavors should use embedded templates if not custom templates is given.
       flags.templates = getEmbeddedTemplatesDirectory()
     }
 
     if (flags.version) {
       if (!ctx.isChectl) {
         // Flavors of chectl should not use upstream repositories, so version flag is not appliable
-        this.error('"version" flag is not supported for this deployment.')
+        this.error(`${getProjectName()} does not support '--version' flag.`)
       }
       if (flags.installer === 'olm') {
         this.error(`"${DEPLOY_VERSION_KEY}" flag is not supported for OLM installer.\nRunning update command will start updating process to the next version`)

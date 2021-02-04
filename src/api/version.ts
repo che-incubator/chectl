@@ -19,11 +19,12 @@ import * as semver from 'semver'
 import { CheTasks } from '../tasks/che'
 import { getClusterClientCommand, getProjectName, getProjectVersion } from '../util'
 
+import { ChectlContext } from './context'
 import { KubeHelper } from './kube'
 
 export const CHECTL_DEVELOPMENT_VERSION = '0.0.2'
 
-const UPDATE_INFO_FILENAME = 'new-version-info.json'
+const UPDATE_INFO_FILENAME = 'update-info.json'
 interface NewVersionInfoData {
   latestVersion: string
   // datetime of last check in milliseconds
@@ -242,18 +243,11 @@ export namespace VersionHelper {
     return isCachedNewerVersionAvailable
   }
 
-  /**
-   * Indicates if stable version of Eclispe Che is specified.
-   */
-  export function isStableVersion(flags: any): boolean {
-    return flags.version !== 'next' && flags.version !== 'nightly'
-  }
-
-  /**
-   * Indicates if the newest stable or nightly version is specified by its alias.
-   */
-  export function isTopVersion(flags: any): boolean {
-    return !flags.version || flags.version === 'next' || flags.version === 'nightly' || flags.version === 'latest' || flags.version === 'stable'
+ /**
+  * Indicates if stable version of Eclispe Che is specified or meant implicitly.
+  */
+  export function isDeployingStableVersion(flags: any): boolean {
+    return !!flags.version || !ChectlContext.get().isNightly
   }
 
   /**

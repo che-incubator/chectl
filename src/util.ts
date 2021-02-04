@@ -139,7 +139,7 @@ export function getCommandSuccessMessage(): string {
 }
 
 /**
- * Returns command success message with execution time.
+ * Returns command error message.
  */
 export function getCommandErrorMessage(err: Error): string {
   const ctx = ChectlContext.get()
