@@ -13,6 +13,7 @@ import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 import { merge } from 'lodash'
+import * as semver from 'semver'
 
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
@@ -110,7 +111,7 @@ export default class Update extends Command {
         this.error(`"${DEPLOY_VERSION_KEY}" flag is not supported for OLM installer.\nRunning update command will start updating process to the next version`)
       }
 
-      if (flags.installer === 'operator' && VersionHelper.compareVersions(MIN_CHE_OPERATOR_INSTALLER_VERSION, flags.version) === 1) {
+      if (flags.installer === 'operator' && semver.gt(MIN_CHE_OPERATOR_INSTALLER_VERSION, flags.version)) {
         throw new Error(this.getWrongVersionMessage(flags.version, MIN_CHE_OPERATOR_INSTALLER_VERSION))
       }
     }
@@ -250,11 +251,11 @@ export default class Update extends Command {
         return false
       }
 
-      if (VersionHelper.compareVersions(ctx.newCheOperatorImageTag, ctx.deployedCheOperatorImageTag) > 0) {
+      if (semver.gt(ctx.newCheOperatorImageTag, ctx.deployedCheOperatorImageTag)) {
         // Upgrade
 
         const currentChectlVersion = getProjectVersion()
-        if (!ctx.isNightly && VersionHelper.compareVersions(currentChectlVersion, ctx.newCheOperatorImageTag) < 0) {
+        if (!ctx.isNightly && semver.lt(currentChectlVersion, ctx.newCheOperatorImageTag)) {
           cli.warn(`It is not possible to update Eclipse Che to a newer version using the current '${currentChectlVersion}' version of chectl. Please, update 'chectl' to a newer version using command 'chectl update stable' and then try again.`)
           return false
         }
@@ -268,7 +269,7 @@ export default class Update extends Command {
       } else {
         // Downgrade
 
-        if (VersionHelper.compareVersions(MIN_CHE_OPERATOR_INSTALLER_VERSION, flags.version) === 1) {
+        if (semver.gt(MIN_CHE_OPERATOR_INSTALLER_VERSION, flags.version)) {
           cli.info(`Given Eclipse Che version ${flags.version} is too old to be downgraded to`)
           return false
         }

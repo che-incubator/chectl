@@ -12,6 +12,7 @@ import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
+import * as semver from 'semver'
 
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
@@ -348,7 +349,7 @@ export default class Deploy extends Command {
         minAllowedVersion = 'latest'
       }
 
-      if (VersionHelper.compareVersions(minAllowedVersion, flags.version) === 1) {
+      if (semver.gt(minAllowedVersion, flags.version)) {
         throw new Error(`This chectl version can deploy ${minAllowedVersion} version and higher, but ${flags.version} is provided. If you really need to deploy that old version, please download corresponding legacy chectl version.`)
       }
     }

@@ -14,6 +14,7 @@ import * as fs from 'fs-extra'
 import * as Listr from 'listr'
 import { isEmpty } from 'lodash'
 import * as path from 'path'
+import * as semver from 'semver'
 
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
@@ -56,7 +57,7 @@ export function checkChectlAndCheVersionCompatibility(flags: any): Listr.ListrTa
       ctx.versionInfo = verInfo
       flags.version = VersionHelper.removeVPrefix(verInfo.name, true)
 
-      if (!ctx.isNightly && VersionHelper.compareVersions(getProjectVersion(), flags.version) === -1) {
+      if (!ctx.isNightly && semver.lt(getProjectVersion(), flags.version)) {
         throw new Error(`To install Eclipse Che ${flags.version} please update your chectl by executing "chectl update stable" command`)
       }
 

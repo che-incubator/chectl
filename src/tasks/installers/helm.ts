@@ -14,6 +14,7 @@ import * as execa from 'execa'
 import * as fs from 'fs'
 import * as Listr from 'listr'
 import * as path from 'path'
+import * as semver from 'semver'
 
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
@@ -177,7 +178,7 @@ export class HelmTasks {
       {
         title: 'Updating Helm Chart dependencies',
         task: async (_ctx: any, task: any) => {
-          if (flags.version && VersionHelper.compareVersions('7.23.2', flags.version) === 1) {
+          if (flags.version && semver.gt('7.23.2', flags.version)) {
             // Current version is below 7.23.2
             // Fix moved external depenency
             await this.pathcCheHelmChartPrometheusAndGrafanaDependencies(flags)

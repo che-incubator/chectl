@@ -14,6 +14,7 @@ import * as fs from 'fs-extra'
 import * as https from 'https'
 import Listr = require('listr')
 import * as path from 'path'
+import * as semver from 'semver'
 
 import { CheTasks } from '../tasks/che'
 import { getClusterClientCommand, getProjectName, getProjectVersion } from '../util'
@@ -225,7 +226,7 @@ export namespace VersionHelper {
     }
 
     // Check cache, if it is already known that newer version available
-    const isCachedNewerVersionAvailable = compareVersions(newVersionInfo.latestVersion, currentVersion) > 0
+    const isCachedNewerVersionAvailable = semver.gt(newVersionInfo.latestVersion, currentVersion)
     const now = Date.now()
     const isCacheExpired = now - newVersionInfo.lastCheck > A_DAY_IN_MS
     if (forceRecheck || (!isCachedNewerVersionAvailable && isCacheExpired)) {
@@ -234,7 +235,7 @@ export namespace VersionHelper {
       const latestVersion = (await getLatestChectlVersion(channel))!
       newVersionInfo = { latestVersion, lastCheck: now }
       await fs.writeJson(newVersionInfoFilePath, newVersionInfo, { encoding: 'utf8' })
-      return compareVersions(newVersionInfo.latestVersion, currentVersion) > 0
+      return semver.gt(newVersionInfo.latestVersion, currentVersion)
     }
 
     // Information whether a newer version available is already in cache
@@ -271,59 +272,6 @@ export namespace VersionHelper {
       return version.substr(1)
     }
     return version
-  }
-
-  /**
-   * Compares versions in format: x.y.z.w...
-   * Prefix 'v' is automatically deleted if in preceeds numeric version (e.g. v7.15.2 or v7.x).
-   * The following rules applies to the comparison:
-   * - if one of the arguments is a text it will be greater (e.g. 7.15 is less than latest)
-   * - if both arguments are text, then string comparison is applied (e.g. nightly greater than next)
-   * - if a part of a version has suffix, but another don't have it, version with suffix will be lesser (e.g. 7.15 is greater than 7.15-RC2)
-   * - if both version have suffixes, they are compared as strings (e.g. 7.15-RZ is greater than 7.15-RA)
-   * - if an argument has more version parts and first n are equal, then longer is lesser (e.g. 7.15 is greater than 7.15.1)
-   * | Arguments | Returns |
-   * | --------  | ------- |
-   *    a > b    |    1
-   *    a = b    |    0
-   *    a < b    |   -1
-   */
-  export function compareVersions(a: string, b: string): number {
-    a = removeVPrefix(a, true)
-    b = removeVPrefix(b, true)
-
-    const aParts = a.split('.')
-    const bParts = b.split('.')
-    const length = aParts.length > bParts.length ? bParts.length : aParts.length
-    for (let i = 0; i < length; i++) {
-      if (aParts[i] !== bParts[i]) {
-        const ai = parseInt(aParts[i], 10)
-        const bi = parseInt(bParts[i], 10)
-
-        if (isNaN(ai) || isNaN(bi)) {
-          // At least one part starts with a letter
-          return aParts[i] > bParts[i] ? 1 : -1
-        } else {
-          if (ai !== bi) {
-            return ai > bi ? 1 : -1
-          } else {
-            // Numeric prefixes are equal
-            // If a version doesn't have a suffix, then consider it greater (e.g. 7.15 is greater than 7.15-RC2)
-            // Otherwise compare suffixes as strings (e.g. 7.1-RC1 with 7.1-RC2)
-            if (aParts[i].startsWith(bParts[i])) {
-              return -1
-            } else if (bParts[i].startsWith(aParts[i])) {
-              return 1
-            } else {
-              // Compare suffixes as strings
-              return aParts[i] > bParts[i] ? 1 : -1
-            }
-          }
-        }
-      }
-    }
-    // One version string includes the other, so longer is lesser (e.g. 7.20.2 is lesser than 7.20)
-    return bParts.length - aParts.length
   }
 
 }
