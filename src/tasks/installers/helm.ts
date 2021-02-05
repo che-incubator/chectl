@@ -58,7 +58,7 @@ export class HelmTasks {
             if (!flags['skip-version-check']) {
               const checkPassed = VersionHelper.checkMinimalHelmVersion(version)
               if (!checkPassed) {
-                throw VersionHelper.getError(version, VersionHelper.MINIMAL_HELM_VERSION, 'helm')
+                throw VersionHelper.getMinimalVersionError(version, VersionHelper.MINIMAL_HELM_VERSION, 'helm')
               }
             }
 

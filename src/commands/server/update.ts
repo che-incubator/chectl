@@ -107,7 +107,7 @@ export default class Update extends Command {
         this.error(`${getProjectName()} does not support '--version' flag.`)
       }
       if (flags.installer === 'olm') {
-        this.error(`"${DEPLOY_VERSION_KEY}" flag is not supported for OLM installer.\nRunning update command will start updating process to the next version`)
+        this.error(`'--${DEPLOY_VERSION_KEY}' flag is not supported for OLM installer. 'server:update' command automatically updates to the next available version.`)
       }
 
       if (flags.installer === 'operator' && semver.gt(MIN_CHE_OPERATOR_INSTALLER_VERSION, flags.version)) {
@@ -213,9 +213,9 @@ export default class Update extends Command {
       if (imagesListMsg) {
         cli.warn(`Custom images found in '${cheCluster.metadata.name}' Custom Resource in the '${flags.chenamespace}' namespace: ${imagesListMsg}`)
         if (flags.batch || flags.yes || await cli.confirm('Do you want to preserve custom images [y/n]?')) {
-          cli.info('Keeping current images.\nNote, it might fail the update if some of the custom images significantly change its internal functionality.')
+          cli.info('Keeping current images.\nNote, Update might fail if functionality of the custom images different from the default ones.')
         } else {
-          cli.info('Resetting cutom images to default ones.')
+          cli.info('Resetting custom images to default ones.')
 
           const ctx = ChectlContext.get()
           const crPatch = ctx[ChectlContext.CR_PATCH] || {}
@@ -241,27 +241,38 @@ export default class Update extends Command {
       // Official images
 
       if (ctx.deployedCheOperatorImage === ctx.newCheOperatorImage) {
-        if (ctx.isNightly && ctx.newCheOperatorImageTag === 'nightly') {
-          cli.info('Updating existing nightly version to current one.')
+        if (ctx.newCheOperatorImageTag === 'nightly') {
+          cli.info('Updating current Eclipse Che nightly version to a new one.')
           return true
         }
 
-        cli.info('Eclipse Che is already up to date.')
-        return false
+        if (flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]) {
+          // Despite the operator image is the same, CR patch might contain some changes.
+          cli.info('Patching existing Eclipse Che installation.')
+          return true
+        } else {
+          cli.info('Eclipse Che is already up to date.')
+          return false
+        }
       }
 
-      if (semver.gt(ctx.newCheOperatorImageTag, ctx.deployedCheOperatorImageTag)) {
+      if (ctx.newCheOperatorImageTag === 'nightly' || (ctx.deployedCheOperatorImageTag !== 'nightly' && semver.gt(ctx.newCheOperatorImageTag, ctx.deployedCheOperatorImageTag))) {
         // Upgrade
 
         const currentChectlVersion = getProjectVersion()
-        if (!ctx.isNightly && semver.lt(currentChectlVersion, ctx.newCheOperatorImageTag)) {
-          cli.warn(`It is not possible to update Eclipse Che to a newer version using the current '${currentChectlVersion}' version of chectl. Please, update 'chectl' to a newer version using command 'chectl update stable' and then try again.`)
+        if (!ctx.isNightly && (ctx.newCheOperatorImageTag === 'nightly' || semver.lt(currentChectlVersion, ctx.newCheOperatorImageTag))) {
+          // Upgrade is not allowed
+          if (ctx.newCheOperatorImageTag === 'nightly') {
+            cli.warn(`Stable ${getProjectName()} cannot update stable Eclipse Che to nightly version`)
+          } else {
+            cli.warn(`It is not possible to update Eclipse Che to a newer version using the current '${currentChectlVersion}' version of chectl. Please, update '${getProjectName()}' to a newer version using command '${getProjectName()} update' and then try again.`)
+          }
           return false
         }
 
-        // Print message
+        // Upgrade allowed
         if (ctx.newCheOperatorImageTag === 'nightly') {
-          cli.info(`You are going to update Eclipse Che ${ctx.deployedCheOperatorImageTag} to possibly unstable nightly version`)
+          cli.info(`You are going to update Eclipse Che ${ctx.deployedCheOperatorImageTag} to nightly version.`)
         } else {
           cli.info(`You are going to update Eclipse Che ${ctx.deployedCheOperatorImageTag} to ${ctx.newCheOperatorImageTag}`)
         }
@@ -279,13 +290,11 @@ export default class Update extends Command {
     } else {
       // At least one of the images is custom
 
-      if (ctx.deployedCheOperatorImage === ctx.newCheOperatorImage) {
-        cli.info('Eclipse Che is already up to date.')
-        return false
-      }
-
       // Print message
-      if (ctx.deployedCheOperatorImageName !== DEFAULT_CHE_OPERATOR_IMAGE_NAME && ctx.newCheOperatorImageName !== DEFAULT_CHE_OPERATOR_IMAGE_NAME) {
+      if (ctx.deployedCheOperatorImage === ctx.newCheOperatorImage) {
+        // Despite the image is the same it could be updated image, replace anyway.
+        cli.info(`You are going to replace Eclipse Che operator image ${ctx.newCheOperatorImage}.`)
+      } else if (ctx.deployedCheOperatorImageName !== DEFAULT_CHE_OPERATOR_IMAGE_NAME && ctx.newCheOperatorImageName !== DEFAULT_CHE_OPERATOR_IMAGE_NAME) {
         // Both images are custom
         cli.info(`You are going to update ${ctx.deployedCheOperatorImage} to ${ctx.newCheOperatorImage}`)
       } else {

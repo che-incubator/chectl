@@ -288,7 +288,7 @@ export class KubeHelper {
     const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
 
     if (!yamlRole.metadata || !yamlRole.metadata.name) {
-      throw new Error('Role must have name specified')
+      throw new Error('Role object requires name')
     }
     try {
       const res = await k8sRbacAuthApi.replaceNamespacedRole(yamlRole.metadata.name, namespace, yamlRole)
@@ -493,7 +493,7 @@ export class KubeHelper {
 
   async replaceRoleBindingFrom(yamlRoleBinding: V1RoleBinding, namespace: string) {
     if (!yamlRoleBinding.metadata || !yamlRoleBinding.metadata.name) {
-      throw new Error('Role Binding must have name specified')
+      throw new Error('RoleBinding object requires name')
     }
 
     const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
@@ -511,7 +511,7 @@ export class KubeHelper {
 
   async createClusterRoleBindingFrom(yamlClusterRoleBinding: V1ClusterRoleBinding) {
     if (!yamlClusterRoleBinding.metadata || !yamlClusterRoleBinding.metadata.name) {
-      throw new Error('Cluster Role Binding must have name specified')
+      throw new Error('ClusterRoleBinding object requires name')
     }
 
     const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)

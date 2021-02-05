@@ -24,7 +24,7 @@ export const devWorkspaceControllerNamespace = string({
 })
 
 export const batch = boolean({
-  description: 'Script mode. Prevents all interactive prompts.',
+  description: 'Batch mode. Running a command without end user interaction.',
   default: false,
   required: false,
 })

@@ -27,7 +27,7 @@ const hook: Hook<'prerun'> = async function (options) {
 
   try {
     if (await VersionHelper.isChectlUpdateAvailable(options.config.cacheDir)) {
-      cli.warn('A newer version of chectl is available. Run "chectl update" to get it.')
+      cli.warn('A newer version of chectl is available. Run "chectl update" to update chectl to the newer version.')
     }
   } catch {
     // An error occured while checking for newer version. Ignore it.

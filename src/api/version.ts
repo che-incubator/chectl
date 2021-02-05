@@ -55,7 +55,7 @@ export namespace VersionHelper {
         if (!flags['skip-version-check'] && actualVersion) {
           const checkPassed = checkMinimalVersion(actualVersion, MINIMAL_OPENSHIFT_VERSION)
           if (!checkPassed) {
-            throw getError('OpenShift', actualVersion, MINIMAL_OPENSHIFT_VERSION)
+            throw getMinimalVersionError('OpenShift', actualVersion, MINIMAL_OPENSHIFT_VERSION)
           }
         }
       }
@@ -85,7 +85,7 @@ export namespace VersionHelper {
         if (!flags['skip-version-check'] && actualVersion) {
           const checkPassed = checkMinimalVersion(actualVersion, MINIMAL_K8S_VERSION)
           if (!checkPassed) {
-            throw getError('Kubernetes', actualVersion, MINIMAL_K8S_VERSION)
+            throw getMinimalVersionError('Kubernetes', actualVersion, MINIMAL_K8S_VERSION)
           }
         }
       }
@@ -134,7 +134,7 @@ export namespace VersionHelper {
     return (actualMajor > minimalMajor || (actualMajor === minimalMajor && actualMinor >= minimalMinor))
   }
 
-  export function getError(actualVersion: string, minimalVersion: string, component: string): Error {
+  export function getMinimalVersionError(actualVersion: string, minimalVersion: string, component: string): Error {
     return new Error(`The minimal supported version of ${component} is '${minimalVersion} but found '${actualVersion}'. To bypass version check use '--skip-version-check' flag.`)
   }
 

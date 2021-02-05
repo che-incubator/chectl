@@ -460,9 +460,9 @@ export default class Deploy extends Command {
 export async function askForChectlUpdateIfNeeded(): Promise<void> {
   const ctx = ChectlContext.get()
   if (await VersionHelper.isChectlUpdateAvailable(ctx[ChectlContext.CACHE_DIR])) {
-    cli.info('Newer version of chectl is available.')
-    if (await cli.confirm('Do you want to update to the latest version to deploy latest Eclipse Che? [y/n]')) {
-      cli.info('Please run "chectl update" and rerun the command')
+    cli.info('A newer version of chectl is available.')
+    if (await cli.confirm('To deploy the latest version of Eclipse Che you have to update chectl first [y/n]')) {
+      cli.info('Please run "chectl update" and then repeat "server:deploy" command.')
       cli.exit(0)
     }
   }

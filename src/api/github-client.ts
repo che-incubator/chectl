@@ -94,7 +94,7 @@ export class CheGithubClient {
   private async getLastCommitInfo(repo: string): Promise<TagInfo> {
     const listCommitsResponse = await this.octokit.repos.listCommits({ owner: OWNER, repo, per_page: 1 })
     if (listCommitsResponse.status !== 200) {
-      throw new Error(`Failed to get list of ${repo} commits. Requesting ${listCommitsResponse.url} has ${listCommitsResponse.status} response code.`)
+      throw new Error(`Failed to get list of commits from the repository '${repo}'. Request: ${listCommitsResponse.url}, response: ${listCommitsResponse.status}`)
     }
     const lastCommit = listCommitsResponse.data[0]
 

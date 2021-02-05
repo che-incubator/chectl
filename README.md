@@ -415,8 +415,8 @@ OPTIONS
                                                                            answer to all prompts and run
                                                                            non-interactively
 
-  --batch                                                                  Script mode. Prevents all interactive
-                                                                           prompts.
+  --batch                                                                  Batch mode. Running a command without end
+                                                                           user interaction.
 
   --delete-namespace                                                       Indicates that a Eclipse Che namespace will
                                                                            be deleted as well
@@ -492,7 +492,7 @@ OPTIONS
                            This parameter is used only when the installer is 'olm'.
 
   --batch
-      Script mode. Prevents all interactive prompts.
+      Batch mode. Running a command without end user interaction.
 
   --catalog-source-name=catalog-source-name
       OLM catalog source to install Eclipse Che operator.
@@ -730,7 +730,7 @@ OPTIONS
   -y, --yes                                                Automatic yes to prompts; assume "yes" as answer to all
                                                            prompts and run non-interactively
 
-  --batch                                                  Script mode. Prevents all interactive prompts.
+  --batch                                                  Batch mode. Running a command without end user interaction.
 
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml  Path to a yaml file that overrides the default values in
                                                            CheCluster CR used by the operator. This parameter is used
