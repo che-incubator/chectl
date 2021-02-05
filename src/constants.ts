@@ -12,9 +12,9 @@
 export const CHE_RELATED_COMPONENT_LABEL = 'client/org.eclipse.che=true'
 
 // images
-export const DEFAULT_CHE_IMAGE = 'quay.io/eclipse/che-server:7.25.1'
-export const DEFAULT_CHE_OPERATOR_IMAGE = 'quay.io/eclipse/che-operator:7.25.1'
-export const DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE = 'quay.io/devfile/devworkspace-controller:sha-28b4522'
+export const DEFAULT_CHE_IMAGE = 'quay.io/eclipse/che-server:7.25.2'
+export const DEFAULT_CHE_OPERATOR_IMAGE = 'quay.io/eclipse/che-operator:7.25.2'
+export const DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE = 'quay.io/devfile/devworkspace-controller:sha-c4ad8ce'
 // This image should be updated manually when needed.
 // Repository location: https://github.com/che-dockerfiles/che-cert-manager-ca-cert-generator-image
 export const CA_CERT_GENERATION_JOB_IMAGE = 'quay.io/eclipse/che-cert-manager-ca-cert-generator:671342c'
