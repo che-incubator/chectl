@@ -256,7 +256,7 @@ export default class Update extends Command {
         }
       }
 
-      if (ctx.newCheOperatorImageTag === 'nightly' || (ctx.deployedCheOperatorImageTag !== 'nightly' && semver.gt(ctx.newCheOperatorImageTag, ctx.deployedCheOperatorImageTag))) {
+      if (this.isUpgrade(ctx.deployedCheOperatorImageTag, ctx.newCheOperatorImageTag)) {
         // Upgrade
 
         const currentChectlVersion = getProjectVersion()
@@ -315,6 +315,31 @@ export default class Update extends Command {
     }
 
     return true
+  }
+
+  /**
+   * Checks if official operator image is replaced with a newer one.
+   * Tags are allowed in format x.y.z or nightly.
+   * nightly is considered the most recent.
+   * For example:
+   *  (7.22.1, 7.23.0) -> true,
+   *  (7.22.1, 7.20.2) -> false,
+   *  (7.22.1, nightly) -> true,
+   *  (nightly, 7.20.2) -> false
+   * @param oldTag old official operator image tag, e.g. 7.20.1
+   * @param newTag new official operator image tag e.g. 7.22.0
+   * @returns true if upgrade, false if downgrade
+   * @throws error if tags are equal
+   */
+  private isUpgrade(oldTag: string, newTag: string): boolean {
+    if (oldTag === newTag) {
+      throw new Error(`Tags are the same: ${newTag}`)
+    }
+    // if newTag is nightly it is upgrade
+    // if oldTag is nightly it is downgrade
+    // otherwise just compare new and old tags
+    // Note, that semver lib doesn't handle text tags and throws an error in case nightly is provided for comparation.
+    return newTag === 'nightly' || (oldTag !== 'nightly' && semver.gt(newTag, oldTag))
   }
 
   /**
