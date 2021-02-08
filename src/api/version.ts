@@ -55,7 +55,7 @@ export namespace VersionHelper {
         if (!flags['skip-version-check'] && actualVersion) {
           const checkPassed = checkMinimalVersion(actualVersion, MINIMAL_OPENSHIFT_VERSION)
           if (!checkPassed) {
-            throw getMinimalVersionError('OpenShift', actualVersion, MINIMAL_OPENSHIFT_VERSION)
+            throw getMinimalVersionError(actualVersion, MINIMAL_OPENSHIFT_VERSION, 'OpenShift')
           }
         }
       }
@@ -85,7 +85,7 @@ export namespace VersionHelper {
         if (!flags['skip-version-check'] && actualVersion) {
           const checkPassed = checkMinimalVersion(actualVersion, MINIMAL_K8S_VERSION)
           if (!checkPassed) {
-            throw getMinimalVersionError('Kubernetes', actualVersion, MINIMAL_K8S_VERSION)
+            throw getMinimalVersionError(actualVersion, MINIMAL_K8S_VERSION, 'Kubernetes')
           }
         }
       }

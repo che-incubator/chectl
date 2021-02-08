@@ -71,6 +71,7 @@ export const assumeYes = boolean({
   char: 'y',
   default: false,
   required: false,
+  exclusive: ['batch'],
 })
 
 export const CHE_OPERATOR_CR_YAML_KEY = 'che-operator-cr-yaml'
