@@ -29,7 +29,8 @@ export default class Open extends Command {
   async run() {
     const { flags } = this.parse(Open)
     flags.chenamespace = await findWorkingNamespace(flags)
-    await ChectlContext.init(flags, this)
+    await ChectlContext.initChectlCtx(flags, this)
+    await ChectlContext.initK8SCtx(flags)
 
     try {
       await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Open.id, flags })

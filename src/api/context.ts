@@ -38,11 +38,7 @@ export namespace ChectlContext {
 
   const ctx: any = {}
 
-  export async function init(flags: any, command: Command): Promise<void> {
-    const kube = new KubeHelper(flags)
-    ctx[IS_OPENSHIFT] = await kube.isOpenShift()
-    ctx[IS_OPENSHIFT4] = await kube.isOpenShift4()
-
+  export async function initChectlCtx(flags: any, command: Command): Promise<any> {
     if (flags['listr-renderer'] as any) {
       ctx.listrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
     }
@@ -57,10 +53,15 @@ export namespace ChectlContext {
 
     ctx[CUSTOM_CR] = readCRFile(flags, CHE_OPERATOR_CR_YAML_KEY)
     ctx[CR_PATCH] = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY)
+
+    return ctx
   }
 
-  export async function initAndGet(flags: any, command: Command): Promise<any> {
-    await init(flags, command)
+  export async function initK8SCtx(flags: any): Promise<any> {
+    const kube = new KubeHelper(flags)
+    ctx[IS_OPENSHIFT] = await kube.isOpenShift()
+    ctx[IS_OPENSHIFT4] = await kube.isOpenShift4()
+
     return ctx
   }
 

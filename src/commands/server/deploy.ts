@@ -326,7 +326,8 @@ export default class Deploy extends Command {
   async run() {
     const { flags } = this.parse(Deploy)
     flags.chenamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
-    const ctx = await ChectlContext.initAndGet(flags, this)
+    let ctx = await ChectlContext.initChectlCtx(flags, this)
+    ctx = await ChectlContext.initK8SCtx(flags)
 
     if (flags['self-signed-cert']) {
       this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')

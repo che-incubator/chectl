@@ -31,7 +31,7 @@ users:
 - name: minikube`
 
 const kube = new KubeHelper({})
-KubeHelper.KUBE_CONFIG.loadFromString(kubeContext)
+kube.kubeConfig.loadFromString(kubeContext)
 
 describe('Kube API helper', () => {
   fancy

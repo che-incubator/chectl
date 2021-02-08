@@ -42,7 +42,7 @@ export default class Delete extends Command {
 
   async run() {
     const { args, flags } = this.parse(Delete)
-    await ChectlContext.init(flags, this)
+    await ChectlContext.initChectlCtx(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Delete.id, flags })
     let cheApiEndpoint = CheApiClient.normalizeCheApiEndpointUrl(args[CHE_API_ENDPOINT_KEY])

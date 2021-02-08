@@ -69,17 +69,17 @@ describe('Eclipse Che helper', () => {
   })
   describe('cheNamespaceExist', () => {
     fancy
-      .stub(KubeHelper.KUBE_CONFIG, 'makeApiClient', () => k8sApi)
+      .stub(KubeHelper.initializeKubeConfig(), 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'readNamespace', jest.fn().mockImplementation(() => { throw new Error() }))
       .it('founds out that a namespace doesn\'t exist', async () => {
         const res = !!await kube.getNamespace(namespace)
         expect(res).to.equal(false)
       })
     fancy
-      .stub(KubeHelper.KUBE_CONFIG, 'makeApiClient', () => k8sApi)
+      .stub(KubeHelper.initializeKubeConfig(), 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'readNamespace', () => ({ response: '', body: { metadata: { name: `${namespace}` } } }))
       .it('founds out that a namespace does exist', async () => {
-        const res = !!await kube.getNamespace(namespace)
+        const res = !await kube.getNamespace(namespace)
         expect(res).to.equal(true)
       })
   })
@@ -124,14 +124,14 @@ describe('Eclipse Che helper', () => {
   })
   describe('getWorkspacePod', () => {
     fancy
-      .stub(KubeHelper.KUBE_CONFIG, 'makeApiClient', () => k8sApi)
+      .stub(kube.kubeConfig, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: { name: 'pod-name', labels: { 'che.workspace_id': workspace } } }] } }))
       .it('should return pod name where workspace with the given ID is running', async () => {
         const pod = await ch.getWorkspacePodName(namespace, workspace)
         expect(pod).to.equal('pod-name')
       })
     fancy
-      .stub(KubeHelper.KUBE_CONFIG, 'makeApiClient', () => k8sApi)
+      .stub(kube.kubeConfig, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: { labels: { 'che.workspace_id': `${workspace}1` } } }] } }))
       .do(() => ch.getWorkspacePodName(namespace, workspace))
       .catch(/Pod is not found for the given workspace ID/)

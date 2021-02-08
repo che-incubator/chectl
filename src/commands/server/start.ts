@@ -37,7 +37,7 @@ export default class Start extends Command {
   async run() {
     const { flags } = this.parse(Start)
     flags.chenamespace = await findWorkingNamespace(flags)
-    const ctx = await ChectlContext.initAndGet(flags, this)
+    const ctx = await ChectlContext.initChectlCtx(flags, this)
 
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()

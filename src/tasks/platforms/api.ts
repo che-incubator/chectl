@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 import { Command } from '@oclif/command'
+import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 
 import { KubeHelper } from '../../api/kube'
@@ -25,6 +26,7 @@ export class ApiTasks {
       skip: () => flags['skip-kubernetes-health-check'],
       task: async (ctx: any, task: any) => {
         try {
+          cli.info(`› Current Kubernetes context: '${await kube.currentContext()}'`)
           await kube.checkKubeApi()
           task.title = `${task.title}...OK`
 

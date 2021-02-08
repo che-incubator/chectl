@@ -69,8 +69,7 @@ export default class Login extends Command {
   async run() {
     const { args, flags } = this.parse(Login)
     flags.chenamespace = await findWorkingNamespace(flags)
-    const ctx = await ChectlContext.initAndGet(flags, this)
-
+    let ctx = await ChectlContext.initChectlCtx(flags, this)
     // Not recommended to track user and password in telemetry
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Login.id, flags })
 
@@ -79,6 +78,9 @@ export default class Login extends Command {
     let cheApiClient: CheApiClient
     let cheApiEndpoint: string | undefined = args[CHE_API_ENDPOINT_KEY]
     if (!cheApiEndpoint) {
+      // Initialize k8s context to get related che routes from cluster
+      ctx = await ChectlContext.initK8SCtx(flags)
+
       cheApiEndpoint = await getCheApiEndpoint(flags)
       cli.info(`Using ${cheApiEndpoint} server API URL to log in`)
       cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
@@ -134,25 +136,20 @@ export default class Login extends Command {
       }
       loginData = { username, password }
     } else {
-      // Try to login via oc login credentials
-      // Check for oc command and oc login credentials
-      const stdout = (await execa(OPENSHIFT_CLI, ['status'], { timeout: 10000 })).stdout
-      if (stdout.startsWith('In project')) {
-        // User is logged into cluster with oc or kubectl
-        // Try to retrieve oc user token
-        let ocUserToken: string
-        const getUserTokenArgs = ['whoami', '--show-token']
-        try {
-          ocUserToken = (await execa(OPENSHIFT_CLI, getUserTokenArgs, { timeout: 10000 })).stdout
-        } catch {
+      // User is logged into cluster with oc or kubectl
+      // Try to retrieve oc user token
+      let ocUserToken: string
+      const getUserTokenArgs = ['whoami', '--show-token']
+      try {
+        ocUserToken = (await execa(OPENSHIFT_CLI, getUserTokenArgs, { timeout: 10000 })).stdout
+      } catch {
           // Che is running on a Kubernetes cluster
-          throw new Error(`No credentials provided. Please provide "--${REFRESH_TOKEN_KEY}" or "--${USERNAME_KEY}" parameter`)
-        }
-
-        const subjectIssuer = (await ctx.isOpenShift4) ? 'openshift-v4' : 'openshift-v3'
-
-        loginData = { subjectToken: ocUserToken, subjectIssuer }
+        throw new Error(`No credentials provided. Please provide "--${REFRESH_TOKEN_KEY}" or "--${USERNAME_KEY}" parameter`)
       }
+
+      const subjectIssuer = (await ctx.isOpenShift4) ? 'openshift-v4' : 'openshift-v3'
+
+      loginData = { subjectToken: ocUserToken, subjectIssuer }
     }
 
     if (!loginData) {

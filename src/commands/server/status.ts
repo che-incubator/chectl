@@ -32,7 +32,8 @@ export default class Status extends Command {
   async run() {
     const { flags } = this.parse(Status)
     flags.chenamespace = await findWorkingNamespace(flags)
-    const ctx = await ChectlContext.initAndGet(flags, this)
+    let ctx = await ChectlContext.initChectlCtx(flags, this)
+    ctx = await ChectlContext.initK8SCtx(flags)
 
     const kube = new KubeHelper(flags)
     const che = new CheHelper(flags)

@@ -63,7 +63,7 @@ export default class Inject extends Command {
   async run() {
     const { flags } = this.parse(Inject)
     flags.chenamespace = await findWorkingNamespace(flags)
-    await ChectlContext.init(flags, this)
+    await ChectlContext.initChectlCtx(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Inject.id, flags })
 
@@ -153,6 +153,7 @@ export default class Inject extends Command {
    */
   private async doInjectKubeconfig(namespace: string, workspacePod: string, container: string, contextToInject: Context): Promise<void> {
     const { stdout } = await execa(`${this.command} exec ${workspacePod} -n ${namespace} -c ${container} env | grep ^HOME=`, { timeout: 10000, shell: true })
+    const kc = new KubeHelper()
     let containerHomeDir = stdout.split('=')[1]
     if (!containerHomeDir.endsWith('/')) {
       containerHomeDir += '/'
@@ -164,11 +165,11 @@ export default class Inject extends Command {
     await execa(`${this.command} exec ${workspacePod} -n ${namespace} -c ${container} -- mkdir ${containerHomeDir}.kube -p`, { timeout: 10000, shell: true })
 
     const kubeConfigPath = path.join(os.tmpdir(), 'che-kubeconfig')
-    const cluster = KubeHelper.KUBE_CONFIG.getCluster(contextToInject.cluster)
+    const cluster = kc.kubeConfig.getCluster(contextToInject.cluster)
     if (!cluster) {
       throw new Error(`Context ${contextToInject.name} has no cluster object`)
     }
-    const user = KubeHelper.KUBE_CONFIG.getUser(contextToInject.user)
+    const user = kc.kubeConfig.getUser(contextToInject.user)
     if (!user) {
       throw new Error(`Context ${contextToInject.name} has no user object`)
     }

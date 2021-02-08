@@ -33,7 +33,7 @@ export default class List extends Command {
   async run() {
     const { flags } = this.parse(List)
     flags.chenamespace = await findWorkingNamespace(flags)
-    await ChectlContext.init(flags, this)
+    await ChectlContext.initChectlCtx(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: List.id, flags })
     const { cheApiEndpoint, accessToken } = await getLoginData(flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
