@@ -29,6 +29,8 @@ export class ApiTasks {
           cli.info(`› Current Kubernetes context: '${await kube.currentContext()}'`)
           await kube.checkKubeApi()
           task.title = `${task.title}...OK`
+          ctx.isOpenShift = await kube.isOpenShift()
+          ctx.isOpenShift4 = await kube.isOpenShift4()
 
           if (ctx.isOpenShift) {
             task.title = `${task.title} (it's OpenShift)`

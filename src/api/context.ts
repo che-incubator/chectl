@@ -57,14 +57,6 @@ export namespace ChectlContext {
     return ctx
   }
 
-  export async function initK8SCtx(flags: any): Promise<any> {
-    const kube = new KubeHelper(flags)
-    ctx[IS_OPENSHIFT] = await kube.isOpenShift()
-    ctx[IS_OPENSHIFT4] = await kube.isOpenShift4()
-
-    return ctx
-  }
-
   export function get(): any {
     return ctx
   }

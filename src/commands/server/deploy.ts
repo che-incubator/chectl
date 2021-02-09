@@ -326,8 +326,7 @@ export default class Deploy extends Command {
   async run() {
     const { flags } = this.parse(Deploy)
     flags.chenamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
-    let ctx = await ChectlContext.initChectlCtx(flags, this)
-    ctx = await ChectlContext.initK8SCtx(flags)
+    const ctx = await ChectlContext.initChectlCtx(flags, this)
 
     if (flags['self-signed-cert']) {
       this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
@@ -412,7 +411,7 @@ export default class Deploy extends Command {
    * Sets default installer which is `olm` for OpenShift 4 with stable version of chectl
    * and `operator` for other cases.
    */
-  async setDefaultInstaller(flags: any, ctx: any): Promise<void> {
+  async setDefaultInstaller(flags: any, _ctx: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
 
     const isOlmPreinstalled = await kubeHelper.isPreInstalledOLM()
@@ -421,7 +420,7 @@ export default class Deploy extends Command {
       return
     }
 
-    if (flags.platform === 'openshift' && ctx.isOpenShift4 && isOlmPreinstalled) {
+    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isOlmPreinstalled) {
       flags.installer = 'olm'
     } else {
       flags.installer = 'operator'
