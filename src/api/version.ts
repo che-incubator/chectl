@@ -8,13 +8,29 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
+import axios from 'axios'
 import execa = require('execa')
+import * as fs from 'fs-extra'
+import * as https from 'https'
 import Listr = require('listr')
+import * as path from 'path'
+import * as semver from 'semver'
 
 import { CheTasks } from '../tasks/che'
-import { getClusterClientCommand } from '../util'
+import { getClusterClientCommand, getProjectName, getProjectVersion } from '../util'
 
+import { ChectlContext } from './context'
 import { KubeHelper } from './kube'
+
+export const CHECTL_DEVELOPMENT_VERSION = '0.0.2'
+
+const UPDATE_INFO_FILENAME = 'update-info.json'
+interface NewVersionInfoData {
+  latestVersion: string
+  // datetime of last check in milliseconds
+  lastCheck: number
+}
+const A_DAY_IN_MS = 24 * 60 * 60 * 1000
 
 export namespace VersionHelper {
   export const MINIMAL_OPENSHIFT_VERSION = '3.11'
@@ -39,7 +55,7 @@ export namespace VersionHelper {
         if (!flags['skip-version-check'] && actualVersion) {
           const checkPassed = checkMinimalVersion(actualVersion, MINIMAL_OPENSHIFT_VERSION)
           if (!checkPassed) {
-            throw getError('OpenShift', actualVersion, MINIMAL_OPENSHIFT_VERSION)
+            throw getMinimalVersionError(actualVersion, MINIMAL_OPENSHIFT_VERSION, 'OpenShift')
           }
         }
       }
@@ -69,7 +85,7 @@ export namespace VersionHelper {
         if (!flags['skip-version-check'] && actualVersion) {
           const checkPassed = checkMinimalVersion(actualVersion, MINIMAL_K8S_VERSION)
           if (!checkPassed) {
-            throw getError('Kubernetes', actualVersion, MINIMAL_K8S_VERSION)
+            throw getMinimalVersionError(actualVersion, MINIMAL_K8S_VERSION, 'Kubernetes')
           }
         }
       }
@@ -118,7 +134,7 @@ export namespace VersionHelper {
     return (actualMajor > minimalMajor || (actualMajor === minimalMajor && actualMinor >= minimalMinor))
   }
 
-  export function getError(actualVersion: string, minimalVersion: string, component: string): Error {
+  export function getMinimalVersionError(actualVersion: string, minimalVersion: string, component: string): Error {
     return new Error(`The minimal supported version of ${component} is '${minimalVersion} but found '${actualVersion}'. To bypass version check use '--skip-version-check' flag.`)
   }
 
@@ -163,7 +179,93 @@ export namespace VersionHelper {
     }
   }
 
-  function removeVPrefix(version: string): string {
-    return version.startsWith('v') ? version.substring(1) : version
+  /**
+   * Returns latest chectl version for the given channel.
+   */
+  export async function getLatestChectlVersion(channel: string): Promise<string | undefined> {
+    if (getProjectName() !== 'chectl') {
+      return
+    }
+
+    const axiosInstance = axios.create({
+      httpsAgent: new https.Agent({})
+    })
+
+    try {
+      const { data } = await axiosInstance.get(`https://che-incubator.github.io/chectl/channels/${channel}/linux-x64`)
+      return data.version
+    } catch {
+      return
+    }
   }
+
+  /**
+   * Checks whether there is an update available for current chectl.
+   */
+  export async function isChectlUpdateAvailable(cacheDir: string, forceRecheck = false): Promise<boolean> {
+    // Do not use ctx inside this function as the function is used from hook where ctx is not yet defined.
+
+    if (getProjectName() !== 'chectl') {
+      // Do nothing for chectl flavors
+      return false
+    }
+
+    const currentVersion = getProjectVersion()
+    if (currentVersion === CHECTL_DEVELOPMENT_VERSION) {
+      // Skip it, chectl is built from source
+      return false
+    }
+
+    const channel = currentVersion.includes('next') ? 'next' : 'stable'
+    const newVersionInfoFilePath = path.join(cacheDir, `${channel}-${UPDATE_INFO_FILENAME}`)
+    let newVersionInfo: NewVersionInfoData = {
+      latestVersion: '0.0.0',
+      lastCheck: 0,
+    }
+    if (await fs.pathExists(newVersionInfoFilePath)) {
+      newVersionInfo = (await fs.readJson(newVersionInfoFilePath, { encoding: 'utf8' })) as NewVersionInfoData
+    }
+
+    // Check cache, if it is already known that newer version available
+    const isCachedNewerVersionAvailable = semver.gt(newVersionInfo.latestVersion, currentVersion)
+    const now = Date.now()
+    const isCacheExpired = now - newVersionInfo.lastCheck > A_DAY_IN_MS
+    if (forceRecheck || (!isCachedNewerVersionAvailable && isCacheExpired)) {
+      // Cached info is expired. Fetch actual info about versions.
+      // undefined cannot be returned from getLatestChectlVersion as 'is flavor' check was done before.
+      const latestVersion = (await getLatestChectlVersion(channel))!
+      newVersionInfo = { latestVersion, lastCheck: now }
+      await fs.writeJson(newVersionInfoFilePath, newVersionInfo, { encoding: 'utf8' })
+      return semver.gt(newVersionInfo.latestVersion, currentVersion)
+    }
+
+    // Information whether a newer version available is already in cache
+    return isCachedNewerVersionAvailable
+  }
+
+ /**
+  * Indicates if stable version of Eclipse Che is specified or meant implicitly.
+  */
+  export function isDeployingStableVersion(flags: any): boolean {
+    return !!flags.version || !ChectlContext.get().isNightly
+  }
+
+  /**
+   * Removes 'v' prefix from version string.
+   * @param version version to process
+   * @param checkForNumber if true remove prefix only if a numeric version follow it (e.g. v7.x -> 7.x, vNext -> vNext)
+   */
+  export function removeVPrefix(version: string, checkForNumber = false): string {
+    if (version.startsWith('v') && version.length > 1) {
+      if (checkForNumber) {
+        const char2 = version.charAt(1)
+        if (char2 >= '0' && char2 <= '9') {
+          return version.substr(1)
+        }
+      }
+      return version.substr(1)
+    }
+    return version
+  }
+
 }

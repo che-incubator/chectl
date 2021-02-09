@@ -415,6 +415,9 @@ OPTIONS
                                                                            answer to all prompts and run
                                                                            non-interactively
 
+  --batch                                                                  Batch mode. Running a command without end
+                                                                           user interaction.
+
   --delete-namespace                                                       Indicates that a Eclipse Che namespace will
                                                                            be deleted as well
 
@@ -442,7 +445,7 @@ USAGE
   $ chectl server:deploy
 
 OPTIONS
-  -a, --installer=helm|operator|olm|minishift-addon
+  -a, --installer=helm|operator|olm
       Installer type. If not set, default is "olm" for OpenShift 4.x platform otherwise "operator".
 
   -b, --domain=domain
@@ -479,11 +482,17 @@ OPTIONS
   -t, --templates=templates
       Path to the templates folder
 
+  -v, --version=version
+      Version to deploy (e.g. 7.15.2). Defaults to the same as chectl.
+
   --[no-]auto-update
       Auto update approval strategy for installation Eclipse Che.
                            With this strategy will be provided auto-update Eclipse Che without any human interaction.
                            By default this flag is enabled.
                            This parameter is used only when the installer is 'olm'.
+
+  --batch
+      Batch mode. Running a command without end user interaction.
 
   --catalog-source-name=catalog-source-name
       OLM catalog source to install Eclipse Che operator.
@@ -508,8 +517,7 @@ OPTIONS
       is the 'operator' or the 'olm'.
 
   --che-operator-image=che-operator-image
-      [default: quay.io/eclipse/che-operator:nightly] Container image of the operator. This parameter is used only when 
-      the installer is the operator
+      Container image of the operator. This parameter is used only when the installer is the operator
 
   --debug
       Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug' 
@@ -714,18 +722,19 @@ USAGE
 OPTIONS
   -h, --help                                               show CLI help
   -n, --chenamespace=chenamespace                          Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
-  -t, --templates=templates                                [default: templates] Path to the templates folder
+  -t, --templates=templates                                Path to the templates folder
+
+  -v, --version=version                                    Version to deploy (e.g. 7.15.2). Defaults to the same as
+                                                           chectl.
 
   -y, --yes                                                Automatic yes to prompts; assume "yes" as answer to all
                                                            prompts and run non-interactively
 
+  --batch                                                  Batch mode. Running a command without end user interaction.
+
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml  Path to a yaml file that overrides the default values in
                                                            CheCluster CR used by the operator. This parameter is used
                                                            only when the installer is the 'operator' or the 'olm'.
-
-  --che-operator-image=che-operator-image                  [default: quay.io/eclipse/che-operator:nightly] Container
-                                                           image of the operator. This parameter is used only when the
-                                                           installer is the operator
 
   --deployment-name=deployment-name                        [default: che] Eclipse Che deployment name
 

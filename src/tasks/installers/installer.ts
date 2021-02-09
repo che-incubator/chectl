@@ -12,7 +12,6 @@ import Command from '@oclif/command'
 import * as Listr from 'listr'
 
 import { HelmTasks } from './helm'
-import { MinishiftAddonTasks } from './minishift-addon'
 import { OLMTasks } from './olm'
 import { OperatorTasks } from './operator'
 
@@ -27,7 +26,6 @@ export class InstallerTasks {
     let title: string
     let task: any
 
-    // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the Eclipse Che operator Update'
       task = () => {
@@ -56,7 +54,6 @@ export class InstallerTasks {
     let title: string
     let task: any
 
-    // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the Eclipse Che operator Update'
       task = () => {
@@ -82,12 +79,9 @@ export class InstallerTasks {
     const helmTasks = new HelmTasks(flags)
     const operatorTasks = new OperatorTasks()
     const olmTasks = new OLMTasks()
-    const minishiftAddonTasks = new MinishiftAddonTasks()
 
     let title: string
     let task: any
-
-    // let task: Listr.ListrTask
 
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the Eclipse Che operator'
@@ -97,7 +91,7 @@ export class InstallerTasks {
           flags.multiuser = true
         }
 
-        return operatorTasks.startTasks(flags, command)
+        return operatorTasks.deployTasks(flags, command)
       }
     } else if (flags.installer === 'olm') {
       title = '🏃‍  Running Olm installaion Eclipse Che'
@@ -109,15 +103,7 @@ export class InstallerTasks {
     // installer.ts BEGIN CHE ONLY
     } else if (flags.installer === 'helm') {
       title = '🏃‍  Running Helm to install Eclipse Che'
-      task = () => helmTasks.startTasks(flags, command)
-    } else if (flags.installer === 'minishift-addon') {
-      // minishift-addon supports Eclipse Che singleuser only
-      if (flags.multiuser) {
-        command.warn("Eclipse Che will be deployed in Single-User mode as 'minishift-addon' installer supports only that mode.")
-        flags.multiuser = false
-      }
-      title = '🏃‍  Running the Eclipse Che minishift-addon'
-      task = () => minishiftAddonTasks.startTasks(flags, command)
+      task = () => helmTasks.deployTasks(flags, command)
     // installer.ts END CHE ONLY
     } else {
       title = '🏃‍  Installer preflight check'
