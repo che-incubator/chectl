@@ -9,6 +9,7 @@
  **********************************************************************/
 
 import axios from 'axios'
+import { cli } from 'cli-ux'
 import * as commandExists from 'command-exists'
 import * as fs from 'fs-extra'
 import * as https from 'https'
@@ -20,6 +21,7 @@ const pkjson = require('../package.json')
 
 import { ChectlContext } from './api/context'
 import { KubeHelper } from './api/kube'
+import { VersionHelper } from './api/version'
 import { DEFAULT_CHE_NAMESPACE, LEGACY_CHE_NAMESPACE } from './constants'
 
 export const KUBERNETES_CLI = 'kubectl'
@@ -158,6 +160,17 @@ export function notifyCommandCompletedSuccessfully(): void {
     title: 'chectl',
     message: getCommandSuccessMessage()
   })
+}
+
+export async function askForChectlUpdateIfNeeded(): Promise<void> {
+  const ctx = ChectlContext.get()
+  if (await VersionHelper.isChectlUpdateAvailable(ctx[ChectlContext.CACHE_DIR])) {
+    cli.info('A newer version of chectl is available.')
+    if (await cli.confirm('To deploy the latest version of Eclipse Che you have to update chectl first [y/n]')) {
+      cli.info('Please run "chectl update" and then repeat "server:deploy" command.')
+      cli.exit(0)
+    }
+  }
 }
 
 /**

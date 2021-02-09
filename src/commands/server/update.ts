@@ -22,9 +22,7 @@ import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OP
 import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, getProjectVersion, notifyCommandCompletedSuccessfully } from '../../util'
-
-import { askForChectlUpdateIfNeeded } from './deploy'
+import { askForChectlUpdateIfNeeded, findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, getProjectVersion, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -174,38 +172,32 @@ export default class Update extends Command {
       let imagesListMsg = ''
 
       const resetImagesCrPatch: { [key: string]: any } = {}
-      if (cheCluster.spec.server.pluginRegistryImage
-        && (!resetImagesCrPatch.spec || !resetImagesCrPatch.spec.server || !resetImagesCrPatch.spec.server.pluginRegistryImage)) {
+      if (cheCluster.spec.server.pluginRegistryImage) {
         imagesListMsg += `\n - Plugin registry image: ${cheCluster.spec.server.pluginRegistryImage}`
         merge(resetImagesCrPatch, { spec: { server: { pluginRegistryImage: '' } } })
       }
 
-      if (cheCluster.spec.server.devfileRegistryImage
-        && (!resetImagesCrPatch.spec || !resetImagesCrPatch.spec.server || !resetImagesCrPatch.spec.server.devfileRegistryImage)) {
+      if (cheCluster.spec.server.devfileRegistryImage) {
         imagesListMsg += `\n - Devfile registry image: ${cheCluster.spec.server.devfileRegistryImage}`
         merge(resetImagesCrPatch, { spec: { server: { devfileRegistryImage: '' } } })
       }
 
-      if (cheCluster.spec.server.postgresImage
-        && (!resetImagesCrPatch.spec || !resetImagesCrPatch.spec.database || !resetImagesCrPatch.spec.database.postgresImage)) {
+      if (cheCluster.spec.server.postgresImage) {
         imagesListMsg += `\n - Postgres image: ${cheCluster.spec.database.postgresImage}`
         merge(resetImagesCrPatch, { spec: { database: { postgresImage: '' } } })
       }
 
-      if (cheCluster.spec.server.identityProviderImage
-        && (!resetImagesCrPatch.spec || !resetImagesCrPatch.spec.auth || !resetImagesCrPatch.spec.auth.identityProviderImage)) {
+      if (cheCluster.spec.server.identityProviderImage) {
         imagesListMsg += `\n - Identity provider image: ${cheCluster.spec.auth.identityProviderImage}`
         merge(resetImagesCrPatch, { spec: { auth: { identityProviderImage: '' } } })
       }
 
-      if (cheCluster.spec.server.cheImage
-        && (!resetImagesCrPatch.spec || !resetImagesCrPatch.spec.server || !resetImagesCrPatch.spec.server.cheImage)) {
+      if (cheCluster.spec.server.cheImage) {
         imagesListMsg += `\n - Eclipse Che server image name: ${cheCluster.spec.server.cheImage}`
         merge(resetImagesCrPatch, { spec: { server: { cheImage: '' } } })
       }
 
-      if (cheCluster.spec.server.cheImageTag
-        && (!resetImagesCrPatch.spec || !resetImagesCrPatch.spec.server || !resetImagesCrPatch.spec.server.cheImageTag)) {
+      if (cheCluster.spec.server.cheImageTag) {
         imagesListMsg += `\n - Eclipse Che server image tag: ${cheCluster.spec.server.cheImageTag}`
         merge(resetImagesCrPatch, { spec: { server: { cheImageTag: '' } } })
       }

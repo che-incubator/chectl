@@ -291,7 +291,7 @@ export class OperatorTasks {
         }
       },
       this.getReadRolesAndBindingsTask(kube),
-      this.getCreateOrUpdateRolesAndBindingsTask(flags, 'Updating Roles and Bindings', false),
+      this.getCreateOrUpdateRolesAndBindingsTask(flags, 'Updating Roles and Bindings', true),
       {
         title: `Updating Eclipse Che cluster CRD ${this.cheClusterCrd}`,
         task: async (ctx: any, task: any) => {
