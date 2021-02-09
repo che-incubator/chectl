@@ -44,7 +44,7 @@
     "rimraf": "^3.0.2",
     "semver": "^7.3.4",
     "stream-buffers": "^3.0.2",
-    "tslib": "^1",
+    "tslib": "^2",
     "unzipper": "0.10.11"
   },
   "devDependencies": {
