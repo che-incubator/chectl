@@ -16,8 +16,6 @@ import * as path from 'path'
 import { CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, LOG_DIRECTORY_KEY } from '../common-flags'
 import { readCRFile } from '../util'
 
-import { KubeHelper } from './kube'
-
 /**
  * chectl command context.
  * Can be requested from any location with `ChectlContext#get`
