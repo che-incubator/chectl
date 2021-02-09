@@ -83,7 +83,7 @@ export class HelmTasks {
       {
         title: 'Check Eclipse Che TLS certificate',
         task: async (ctx: any, task: any) => {
-          const fixErrorMessage = 'Helm installer generates secrets automatically. To fix the problem delete existed secrets in dedicated for Eclispe Che namespace and rerun the command.'
+          const fixErrorMessage = 'Helm installer generates secrets automatically. To fix the problem delete existed secrets in dedicated for Eclipse Che namespace and rerun the command.'
 
           const cheTlsSecret = await this.kubeHelper.getSecret(CHE_TLS_SECRET_NAME, flags.chenamespace)
           if (cheTlsSecret) {

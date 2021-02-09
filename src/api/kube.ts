@@ -477,34 +477,36 @@ export class KubeHelper {
     }
   }
 
-  async createRoleBindingFrom(yamlRoleBinding: V1RoleBinding, namespace: string) {
+  async createRoleBindingFrom(yamlRoleBinding: V1RoleBinding, namespace: string): Promise<V1RoleBinding> {
     const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
     try {
-      return await k8sRbacAuthApi.createNamespacedRoleBinding(namespace, yamlRoleBinding)
+      const response = await k8sRbacAuthApi.createNamespacedRoleBinding(namespace, yamlRoleBinding)
+      return response.body
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async createRoleBindingFromFile(filePath: string, namespace: string) {
+  async createRoleBindingFromFile(filePath: string, namespace: string): Promise<V1RoleBinding> {
     const yamlRoleBinding = this.safeLoadFromYamlFile(filePath) as V1RoleBinding
     return this.createRoleBindingFrom(yamlRoleBinding, namespace)
   }
 
-  async replaceRoleBindingFrom(yamlRoleBinding: V1RoleBinding, namespace: string) {
+  async replaceRoleBindingFrom(yamlRoleBinding: V1RoleBinding, namespace: string): Promise<V1RoleBinding> {
     if (!yamlRoleBinding.metadata || !yamlRoleBinding.metadata.name) {
       throw new Error('RoleBinding object requires name')
     }
 
     const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
     try {
-      return await k8sRbacAuthApi.replaceNamespacedRoleBinding(yamlRoleBinding.metadata.name, namespace, yamlRoleBinding)
+      const response = await k8sRbacAuthApi.replaceNamespacedRoleBinding(yamlRoleBinding.metadata.name, namespace, yamlRoleBinding)
+      return response.body
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async replaceRoleBindingFromFile(filePath: string, namespace: string) {
+  async replaceRoleBindingFromFile(filePath: string, namespace: string): Promise<V1RoleBinding> {
     const yamlRoleBinding = this.safeLoadFromYamlFile(filePath) as V1RoleBinding
     return this.replaceRoleBindingFrom(yamlRoleBinding, namespace)
   }
