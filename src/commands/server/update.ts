@@ -80,9 +80,6 @@ export default class Update extends Command {
     const { flags } = this.parse(Update)
     flags.chenamespace = await findWorkingNamespace(flags)
     const ctx = await ChectlContext.initChectlCtx(flags, this)
-    if (!flags.batch && ctx.isChectl) {
-      await askForChectlUpdateIfNeeded()
-    }
 
     if (!flags.batch && ctx.isChectl) {
       await askForChectlUpdateIfNeeded()
@@ -364,5 +361,4 @@ export default class Update extends Command {
   private getWrongVersionMessage(current: string, minimal: string): string {
     return `This chectl version can deploy ${minimal} version and higher, but ${current} is provided. If you really need to deploy that old version, please download corresponding legacy chectl version.`
   }
-
 }

@@ -46,6 +46,9 @@ export namespace ChectlContext {
     ctx.isChectl = getProjectName() === 'chectl'
     ctx.isNightly = getProjectVersion().includes('next') || getProjectVersion() === CHECTL_DEVELOPMENT_VERSION
 
+    ctx.isChectl = getProjectName() === 'chectl'
+    ctx.isNightly = getProjectVersion().includes('next') || getProjectVersion() === CHECTL_DEVELOPMENT_VERSION
+
     if (flags['listr-renderer'] as any) {
       ctx.listrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
     }
