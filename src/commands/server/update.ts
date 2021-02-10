@@ -79,7 +79,7 @@ export default class Update extends Command {
   async run() {
     const { flags } = this.parse(Update)
     flags.chenamespace = await findWorkingNamespace(flags)
-    const ctx = await ChectlContext.initChectlCtx(flags, this)
+    const ctx = await ChectlContext.initAndGet(flags, this)
 
     if (!flags.batch && ctx.isChectl) {
       await askForChectlUpdateIfNeeded()

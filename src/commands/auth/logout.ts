@@ -27,7 +27,7 @@ export default class Logout extends Command {
   async run() {
     const { flags } = this.parse(Logout)
 
-    await ChectlContext.initChectlCtx(flags, this)
+    await ChectlContext.initAndGet(flags, this)
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logout.id, flags })
 
     const loginManager = await CheServerLoginManager.getInstance()

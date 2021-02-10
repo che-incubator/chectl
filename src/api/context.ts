@@ -39,13 +39,7 @@ export namespace ChectlContext {
 
   const ctx: any = {}
 
-  export async function initChectlCtx(flags: any, command: Command): Promise<any> {
-    ctx.isChectl = getProjectName() === 'chectl'
-    ctx.isNightly = getProjectVersion().includes('next') || getProjectVersion() === CHECTL_DEVELOPMENT_VERSION
-
-    ctx.isChectl = getProjectName() === 'chectl'
-    ctx.isNightly = getProjectVersion().includes('next') || getProjectVersion() === CHECTL_DEVELOPMENT_VERSION
-
+  export async function init(flags: any, command: Command): Promise<void> {
     ctx.isChectl = getProjectName() === 'chectl'
     ctx.isNightly = getProjectVersion().includes('next') || getProjectVersion() === CHECTL_DEVELOPMENT_VERSION
 
@@ -64,7 +58,10 @@ export namespace ChectlContext {
 
     ctx[CUSTOM_CR] = readCRFile(flags, CHE_OPERATOR_CR_YAML_KEY)
     ctx[CR_PATCH] = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY)
+  }
 
+  export async function initAndGet(flags: any, command: Command): Promise<any> {
+    await init(flags, command)
     return ctx
   }
 

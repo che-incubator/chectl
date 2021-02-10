@@ -47,7 +47,7 @@ export default class Start extends Command {
   async run() {
     const { flags, args } = this.parse(Start)
     flags.chenamespace = await findWorkingNamespace(flags)
-    await ChectlContext.initChectlCtx(flags, this)
+    await ChectlContext.initAndGet(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Start.id, flags })
 

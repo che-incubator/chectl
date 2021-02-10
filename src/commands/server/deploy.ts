@@ -358,7 +358,7 @@ export default class Deploy extends Command {
   async run() {
     const { flags } = this.parse(Deploy)
     flags.chenamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
-    const ctx = await ChectlContext.initChectlCtx(flags, this)
+    const ctx = await ChectlContext.initAndGet(flags, this)
 
     if (!flags.batch && ctx.isChectl) {
       await askForChectlUpdateIfNeeded()

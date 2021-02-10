@@ -51,7 +51,7 @@ export default class Delete extends Command {
 
   async run() {
     const { flags } = this.parse(Delete)
-    let ctx = await ChectlContext.initChectlCtx(flags, this)
+    let ctx = await ChectlContext.initAndGet(flags, this)
 
     flags.chenamespace = await findWorkingNamespace(flags)
 

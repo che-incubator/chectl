@@ -70,7 +70,7 @@ export default class Login extends Command {
   async run() {
     const { args, flags } = this.parse(Login)
     flags.chenamespace = await findWorkingNamespace(flags)
-    await ChectlContext.initChectlCtx(flags, this)
+    await ChectlContext.initAndGet(flags, this)
 
     // Not recommended to track user and password in telemetry
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Login.id, flags })
@@ -138,7 +138,7 @@ export default class Login extends Command {
           throw new Error(`No credentials provided. Please provide "--${REFRESH_TOKEN_KEY}" or "--${USERNAME_KEY}" parameter`)
         }
 
-        const subjectIssuer = (await kube.isOpenShift()) ? 'openshift-v4' : 'openshift-v3'
+        const subjectIssuer = (await kube.isOpenShift4()) ? 'openshift-v4' : 'openshift-v3'
 
         loginData = { subjectToken: ocUserToken, subjectIssuer }
       } else {

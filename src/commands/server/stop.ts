@@ -41,7 +41,7 @@ export default class Stop extends Command {
   async run() {
     const { flags } = this.parse(Stop)
     flags.chenamespace = await findWorkingNamespace(flags)
-    await ChectlContext.initChectlCtx(flags, this)
+    await ChectlContext.initAndGet(flags, this)
 
     const Listr = require('listr')
     const cheTasks = new CheTasks(flags)

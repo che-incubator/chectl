@@ -40,7 +40,7 @@ export default class Export extends Command {
   async run() {
     const { flags } = this.parse(Export)
     flags.chenamespace = await findWorkingNamespace(flags)
-    await ChectlContext.initChectlCtx(flags, this)
+    await ChectlContext.initAndGet(flags, this)
 
     const kube = new KubeHelper(flags)
     const cheHelper = new CheHelper(flags)

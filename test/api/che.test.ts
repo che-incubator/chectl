@@ -27,6 +27,7 @@ describe('Eclipse Che helper', () => {
     fancy
       .stub(kube, 'getNamespace', () => ({}))
       .stub(kube, 'ingressExist', () => true)
+      .stub(kube, 'isOpenShift', () => false)
       .stub(kube, 'getIngressProtocol', () => 'https')
       .stub(kube, 'getIngressHost', () => 'example.org')
       .it('computes Eclipse Che URL on K8s', async () => {
