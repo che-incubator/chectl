@@ -53,7 +53,7 @@ export default class Use extends Command {
 
   async run() {
     const { args, flags } = this.parse(Use)
-    await ChectlContext.initAndGet(flags, this)
+    await ChectlContext.init(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Use.id, flags })
 

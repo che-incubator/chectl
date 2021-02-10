@@ -63,7 +63,7 @@ export default class Inject extends Command {
   async run() {
     const { flags } = this.parse(Inject)
     flags.chenamespace = await findWorkingNamespace(flags)
-    await ChectlContext.initAndGet(flags, this)
+    await ChectlContext.init(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Inject.id, flags })
 

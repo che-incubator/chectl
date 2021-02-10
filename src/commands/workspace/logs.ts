@@ -46,7 +46,7 @@ export default class Logs extends Command {
   async run() {
     const { flags } = this.parse(Logs)
     flags.chenamespace = await findWorkingNamespace(flags)
-    await ChectlContext.initAndGet(flags, this)
+    await ChectlContext.init(flags, this)
 
     const logsDirectory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
 

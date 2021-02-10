@@ -96,7 +96,7 @@ export default class Generate extends Command {
 
   async run() {
     const { flags } = this.parse(Generate)
-    await ChectlContext.initAndGet(flags, this)
+    await ChectlContext.init(flags, this)
 
     kube = new KubeHelper(flags)
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Generate.id, flags })

@@ -45,7 +45,7 @@ export default class Delete extends Command {
   async run() {
     const { flags, args } = this.parse(Delete)
     flags.chenamespace = await findWorkingNamespace(flags)
-    await ChectlContext.initAndGet(flags, this)
+    await ChectlContext.init(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Delete.id, flags })
 

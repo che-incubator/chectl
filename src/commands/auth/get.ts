@@ -25,7 +25,7 @@ export default class Get extends Command {
   }
   async run() {
     const { flags } = this.parse(Get)
-    await ChectlContext.initAndGet(flags, this)
+    await ChectlContext.init(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Get.id, flags })
 

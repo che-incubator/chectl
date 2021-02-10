@@ -69,8 +69,7 @@ export default class Login extends Command {
 
   async run() {
     const { args, flags } = this.parse(Login)
-    flags.chenamespace = await findWorkingNamespace(flags)
-    await ChectlContext.initAndGet(flags, this)
+    await ChectlContext.init(flags, this)
 
     // Not recommended to track user and password in telemetry
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Login.id, flags })
@@ -125,6 +124,7 @@ export default class Login extends Command {
       loginData = { username, password }
     } else {
       const kube = new KubeHelper(flags)
+      flags.chenamespace = await findWorkingNamespace(flags)
 
       // User is logged into cluster with oc or kubectl
       // Try to retrieve oc user token
