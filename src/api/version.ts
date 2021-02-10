@@ -135,7 +135,7 @@ export namespace VersionHelper {
   }
 
   export function getMinimalVersionError(actualVersion: string, minimalVersion: string, component: string): Error {
-    return new Error(`The minimal supported version of ${component} is '${minimalVersion} but found '${actualVersion}'. To bypass version check use '--skip-version-check' flag.`)
+    return new Error(`The minimal supported version of ${component} is '${minimalVersion} but '${actualVersion}' was found. To bypass version check use '--skip-version-check' flag.`)
   }
 
   async function getVersionWithOC(versionPrefix: string): Promise<string | undefined> {
