@@ -39,7 +39,10 @@ export namespace ChectlContext {
 
   const ctx: any = {}
 
-  export async function initChectlCtx(flags: any, command: Command): Promise<void> {
+  export async function initChectlCtx(flags: any, command: Command): Promise<any> {
+    ctx.isChectl = getProjectName() === 'chectl'
+    ctx.isNightly = getProjectVersion().includes('next') || getProjectVersion() === CHECTL_DEVELOPMENT_VERSION
+
     ctx.isChectl = getProjectName() === 'chectl'
     ctx.isNightly = getProjectVersion().includes('next') || getProjectVersion() === CHECTL_DEVELOPMENT_VERSION
 

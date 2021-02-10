@@ -80,6 +80,9 @@ export default class Update extends Command {
     const { flags } = this.parse(Update)
     flags.chenamespace = await findWorkingNamespace(flags)
     const ctx = await ChectlContext.initChectlCtx(flags, this)
+    if (!flags.batch && ctx.isChectl) {
+      await askForChectlUpdateIfNeeded()
+    }
 
     if (!flags.batch && ctx.isChectl) {
       await askForChectlUpdateIfNeeded()
