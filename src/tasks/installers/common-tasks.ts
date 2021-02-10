@@ -10,15 +10,19 @@
 
 import Command from '@oclif/command'
 import ansi = require('ansi-colors')
-import { copy, mkdirp, remove } from 'fs-extra'
+import * as fs from 'fs-extra'
 import * as Listr from 'listr'
 import { isEmpty } from 'lodash'
 import * as path from 'path'
+import * as semver from 'semver'
 
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
+import { CheGithubClient } from '../../api/github-client'
 import { KubeHelper } from '../../api/kube'
+import { VersionHelper } from '../../api/version'
 import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
+import { getProjectVersion } from '../../util'
 
 export function createNamespaceTask(namespaceName: string, labels: {}): Listr.ListrTask {
   return {
@@ -40,25 +44,73 @@ export function createNamespaceTask(namespaceName: string, labels: {}): Listr.Li
   }
 }
 
-export function copyOperatorResources(flags: any, cacheDir: string): Listr.ListrTask {
+export function checkChectlAndCheVersionCompatibility(flags: any): Listr.ListrTask {
   return {
-    title: 'Copying operator resources',
+    title: 'Check versions compatibility',
+    enabled: ctx => ctx.isChectl && !flags.templates && flags.version && flags.installer !== 'olm',
     task: async (ctx: any, task: any) => {
-      ctx.resourcesPath = await copyCheOperatorResources(flags.templates, cacheDir)
-      task.title = `${task.title}...done.`
+      const githubClient = new CheGithubClient()
+      const verInfo = await githubClient.getTemplatesTagInfo(flags.installer, flags.version)
+      if (!verInfo) {
+        throw new Error(`Version ${flags.version} does not exist`)
+      }
+      ctx.versionInfo = verInfo
+      flags.version = VersionHelper.removeVPrefix(verInfo.name, true)
+
+      if (!ctx.isNightly && semver.lt(getProjectVersion(), flags.version)) {
+        throw new Error(`To deploy Eclipse Che ${flags.version} please update your chectl first by running "chectl update" command`)
+      }
+
+      task.title = `${task.title}... OK`
     }
   }
 }
 
-async function copyCheOperatorResources(templatesDir: string, cacheDir: string): Promise<string> {
-  const srcDir = path.join(templatesDir, '/che-operator/')
-  const destDir = path.join(cacheDir, '/templates/che-operator/')
+/**
+ * Sets flags.templates based on required version and installer.
+ * Does not support OLM.
+ */
+export function downloadTemplates(flags: any): Listr.ListrTask {
+  return {
+    title: 'Download templates',
+    enabled: ctx => ctx.isChectl && flags.version && !flags.templates && flags.installer !== 'olm',
+    task: async (ctx: any, task: any) => {
+      // All templates are stored in the cache directory
+      // Example path: ~/.cache/chectl/templates/7.15.1/
+      const templatesRootDir = path.join(ctx[ChectlContext.CACHE_DIR], 'templates')
 
-  await remove(destDir)
-  await mkdirp(destDir)
-  await copy(srcDir, destDir)
+      let installerTemplatesSubDir: string
+      switch (flags.installer) {
+      case 'operator':
+        installerTemplatesSubDir = 'che-operator'
+        break
+      case 'helm':
+        installerTemplatesSubDir = 'kubernetes'
+        break
+      case 'olm':
+        // Should be handled on install phase when catalog source is deployed
+        return
+      default:
+        throw new Error(`Unknow installer ${flags.installer}`)
+      }
 
-  return destDir
+      const versionTemplatesDirPath = path.join(templatesRootDir, flags.version)
+      flags.templates = versionTemplatesDirPath
+
+      const installerTemplatesDirPath = path.join(versionTemplatesDirPath, installerTemplatesSubDir)
+      if (await fs.pathExists(installerTemplatesDirPath)) {
+        // Use cached templates
+        task.title = `${task.title}... found cached templates for version ${flags.version}`
+        return
+      }
+
+      // Download templates
+      task.title = `${task.title} for version ${flags.version}`
+      const cheHelper = new CheHelper(flags)
+      await cheHelper.downloadAndUnpackTemplates(flags.installer, ctx.versionInfo.zipball_url, versionTemplatesDirPath)
+      task.title = `${task.title} ... OK`
+    }
+  }
 }
 
 export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.ListrTask {

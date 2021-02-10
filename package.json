@@ -15,13 +15,7 @@
     "@oclif/plugin-autocomplete": "^0.2.0",
     "@oclif/plugin-help": "^3",
     "@oclif/plugin-update": "^1.3.10",
-    "@types/command-exists": "^1.2.0",
-    "@types/fs-extra": "^9.0.1",
-    "@types/inquirer": "^7.3.1",
-    "@types/node-notifier": "^8.0.0",
-    "@types/request": "^2.48.5",
-    "@types/websocket": "^1.0.1",
-    "@types/ws": "^7.2.6",
+    "@octokit/rest": "^18.0.12",
     "analytics-node": "^3.4.0-beta.3",
     "ansi-colors": "4.1.1",
     "axios": "^0.19.2",
@@ -47,8 +41,11 @@
     "node-forge": "^0.10.0",
     "node-notifier": "^8.0.0",
     "querystring": "^0.2.0",
+    "rimraf": "^3.0.2",
+    "semver": "^7.3.4",
     "stream-buffers": "^3.0.2",
-    "tslib": "^1"
+    "tslib": "^1",
+    "unzipper": "0.10.11"
   },
   "devDependencies": {
     "@eclipse-che/api": "latest",
@@ -56,11 +53,21 @@
     "@oclif/test": "^1",
     "@oclif/tslint": "^3",
     "@types/chai": "^4",
+    "@types/command-exists": "^1.2.0",
+    "@types/fs-extra": "^9.0.1",
+    "@types/inquirer": "^7.3.1",
     "@types/jest": "26.0.14",
     "@types/js-yaml": "^3.12.5",
     "@types/listr": "^0.14.2",
     "@types/node": "^12",
     "@types/node-forge": "^0.9.5",
+    "@types/node-notifier": "^8.0.0",
+    "@types/request": "^2.48.5",
+    "@types/rimraf": "^3.0.0",
+    "@types/semver": "^7.3.4",
+    "@types/unzipper": "^0.10.3",
+    "@types/websocket": "^1.0.1",
+    "@types/ws": "^7.2.6",
     "chai": "^4.2.0",
     "cpx": "^1.5.0",
     "globby": "^11",
@@ -90,12 +97,13 @@
   "main": "lib/index.js",
   "oclif": {
     "commands": "./lib/commands",
+    "hooks": {
+      "prerun": "./lib/hooks/prerun/new-version-warning",
+      "analytics": "./lib/hooks/analytics/analytics"
+    },
     "bin": "chectl",
     "macos": {
       "identifier": "che-incubator.chectl"
-    },
-    "hooks": {
-      "analytics": "./lib/hooks/analytics/analytics"
     },
     "plugins": [
       "@oclif/plugin-autocomplete",
@@ -133,12 +141,11 @@
   },
   "repository": "che-incubator/chectl",
   "scripts": {
-    "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-helm && npm run -s postinstall-cert-manager && npm run -s postinstall-operator && npm run -s postinstall-minishift-addon && npm run -s postinstall-devfile-api && npm run -s postinstall-dev-workspace && npm run -s postinstall-cleanup",
+    "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-helm && npm run -s postinstall-cert-manager && npm run -s postinstall-operator && npm run -s postinstall-devfile-api && npm run -s postinstall-dev-workspace && npm run -s postinstall-cleanup",
     "postinstall-helm": "rimraf templates/kubernetes && cpx 'node_modules/eclipse-che/deploy/kubernetes/**' 'templates/kubernetes'",
     "postinstall-cert-manager": "rimraf templates/cert-manager && cpx 'node_modules/eclipse-che/deploy/cert-manager/**' 'templates/cert-manager'",
     "postinstall-devfile-api": "rimraf templates/devfile-api && cpx 'node_modules/eclipse-che-devfile-api/deploy/**' 'templates/devfile-api'",
     "postinstall-dev-workspace": "rimraf templates/devworkspace && cpx 'node_modules/eclipse-che-devfile-workspace-operator/deploy/**' 'templates/devworkspace'",
-    "postinstall-minishift-addon": "rimraf templates/minishift-addon && cpx 'node_modules/eclipse-che-minishift/addons/che/**' 'templates/minishift-addon/che'",
     "postinstall-operator": "rimraf templates/che-operator && cpx 'node_modules/eclipse-che-operator/deploy/**' 'templates/che-operator'",
     "postinstall-repositories": "yarn upgrade eclipse-che eclipse-che-operator eclipse-che-minishift eclipse-che-devfile-api eclipse-che-devfile-workspace-operator",
     "postinstall-cleanup": "rimraf node_modules/eclipse-che && rimraf node_modules/eclipse-che-operator && rimraf node_modules/eclipse-che-minishift",

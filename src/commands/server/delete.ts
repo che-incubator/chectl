@@ -15,12 +15,11 @@ import * as Listrq from 'listr'
 
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { assumeYes, cheDeployment, cheNamespace, CHE_TELEMETRY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { assumeYes, batch, cheDeployment, cheNamespace, CHE_TELEMETRY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { HelmTasks } from '../../tasks/installers/helm'
-import { MinishiftAddonTasks } from '../../tasks/installers/minishift-addon'
 import { OLMTasks } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { ApiTasks } from '../../tasks/platforms/api'
@@ -32,6 +31,7 @@ export default class Delete extends Command {
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
+    batch,
     'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,
     'delete-namespace': boolean({
       description: 'Indicates that a Eclipse Che namespace will be deleted as well',
@@ -64,7 +64,6 @@ export default class Delete extends Command {
 
     const apiTasks = new ApiTasks()
     const helmTasks = new HelmTasks(flags)
-    const minishiftAddonTasks = new MinishiftAddonTasks()
     const operatorTasks = new OperatorTasks()
     const olmTasks = new OLMTasks()
     const cheTasks = new CheTasks(flags)
@@ -78,13 +77,12 @@ export default class Delete extends Command {
     tasks.add(cheTasks.deleteTasks(flags))
     tasks.add(devWorkspaceTasks.getUninstallTasks())
     tasks.add(helmTasks.deleteTasks(flags))
-    tasks.add(minishiftAddonTasks.deleteTasks(flags))
     tasks.add(cheTasks.waitPodsDeletedTasks())
     if (flags['delete-namespace']) {
       tasks.add(cheTasks.deleteNamespace(flags))
     }
 
-    if (await this.isDeletionConfirmed(flags)) {
+    if (flags.batch || await this.isDeletionConfirmed(flags)) {
       try {
         await tasks.run()
         cli.log(getCommandSuccessMessage())
@@ -107,7 +105,7 @@ export default class Delete extends Command {
       throw new Error('Failed to get current Kubernetes cluster. Check if the current context is set via kubectl/oc')
     }
 
-    if (!flags.yes) {
+    if (!flags.batch && !flags.yes) {
       return cli.confirm(`You're going to remove Eclipse Che server in namespace '${flags.chenamespace}' on server '${cluster ? cluster.server : ''}'. If you want to continue - press Y`)
     }
 

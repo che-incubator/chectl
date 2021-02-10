@@ -9,17 +9,20 @@
  **********************************************************************/
 
 import axios from 'axios'
+import { cli } from 'cli-ux'
 import * as commandExists from 'command-exists'
 import * as fs from 'fs-extra'
 import * as https from 'https'
 import * as yaml from 'js-yaml'
 import * as notifier from 'node-notifier'
+import * as path from 'path'
 
 const pkjson = require('../package.json')
 
 import { ChectlContext } from './api/context'
 import { KubeHelper } from './api/kube'
-import { DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OPERATOR_IMAGE, LEGACY_CHE_NAMESPACE } from './constants'
+import { VersionHelper } from './api/version'
+import { DEFAULT_CHE_NAMESPACE, LEGACY_CHE_NAMESPACE } from './constants'
 
 export const KUBERNETES_CLI = 'kubectl'
 export const OPENSHIFT_CLI = 'oc'
@@ -77,15 +80,6 @@ export function base64Decode(arg: string): string {
 }
 
 /**
- * Indicates if stable version of `chectl` is used.
- */
-export function isStableVersion(flags: any): boolean {
-  const operatorImage = flags['che-operator-image'] || DEFAULT_CHE_OPERATOR_IMAGE
-  const cheVersion = getImageTag(operatorImage)
-  return cheVersion !== 'nightly' && cheVersion !== 'latest' && !flags['catalog-source-yaml'] && !flags['catalog-source-name']
-}
-
-/**
  * Returns the tag of the image.
  */
 export function getImageTag(image: string): string | undefined {
@@ -118,7 +112,7 @@ export function readCRFile(flags: any, CRKey: string): any {
   }
 
   if (fs.existsSync(CRFilePath)) {
-    return yaml.safeLoad(fs.readFileSync(CRFilePath).toString())
+    return safeLoadFromYamlFile(CRFilePath)
   }
 
   throw new Error(`Unable to find file defined in the flag '--${CRKey}'`)
@@ -146,11 +140,37 @@ export function getCommandSuccessMessage(): string {
   return `Command ${ctx[ChectlContext.COMMAND_ID]} has completed successfully.`
 }
 
+/**
+ * Returns command error message.
+ */
+export function getCommandErrorMessage(err: Error): string {
+  const ctx = ChectlContext.get()
+  const logDirectory = ctx[ChectlContext.LOGS_DIR]
+
+  let message = `${err}\nCommand ${ctx[ChectlContext.COMMAND_ID]} failed. Error log: ${ctx[ChectlContext.ERROR_LOG]}`
+  if (logDirectory && isDirEmpty(logDirectory)) {
+    message += ` Eclipse Che logs: ${logDirectory}`
+  }
+
+  return message
+}
+
 export function notifyCommandCompletedSuccessfully(): void {
   notifier.notify({
     title: 'chectl',
     message: getCommandSuccessMessage()
   })
+}
+
+export async function askForChectlUpdateIfNeeded(): Promise<void> {
+  const ctx = ChectlContext.get()
+  if (await VersionHelper.isChectlUpdateAvailable(ctx[ChectlContext.CACHE_DIR])) {
+    cli.info('A newer version of chectl is available.')
+    if (await cli.confirm('To deploy the latest version of Eclipse Che you have to update chectl first [y/n]')) {
+      cli.info('Please run "chectl update" and then repeat "server:deploy" command.')
+      cli.exit(0)
+    }
+  }
 }
 
 /**
@@ -163,21 +183,6 @@ export function isDirEmpty(dirname: string): boolean {
   } catch {
     return true
   }
-}
-
-/**
- * Returns command success message with execution time.
- */
-export function getCommandErrorMessage(err: Error): string {
-  const ctx = ChectlContext.get()
-  const logDirectory = ctx[ChectlContext.LOGS_DIRECTORY]
-
-  let message = `${err}\nCommand ${ctx[ChectlContext.COMMAND_ID]} failed. Error log: ${ctx[ChectlContext.ERROR_LOG]}`
-  if (logDirectory && isDirEmpty(logDirectory)) {
-    message += ` Eclipse Che logs: ${logDirectory}`
-  }
-
-  return message
 }
 
 /**
@@ -198,24 +203,43 @@ export function readPackageJson(): any {
   return JSON.parse(fs.readFileSync('../package.json').toString())
 }
 
-/**
- * Returns latest chectl version for the given channel.
- */
-export async function getLatestChectlVersion(channel: string): Promise<string | undefined> {
-  if (getProjectName() !== 'chectl') {
-    return
-  }
+export function safeLoadFromYamlFile(filePath: string): any {
+  return yaml.safeLoad(fs.readFileSync(filePath).toString())
+}
 
+export function safeSaveYamlToFile(yamlObject: any, filePath: string): void {
+  fs.writeFileSync(filePath, yaml.safeDump(yamlObject))
+}
+
+export async function downloadFile(url: string, dest: string): Promise<void> {
+  const streamWriter = fs.createWriteStream(dest)
+  const response = await axios({ url, method: 'GET', responseType: 'stream' })
+  response.data.pipe(streamWriter)
+  return new Promise((resolve, reject) => {
+    streamWriter.on('finish', resolve)
+    streamWriter.on('error', reject)
+  })
+}
+
+/**
+ * Downloads yaml file and returns data converted to JSON.
+ * @param url link to yaml file
+ */
+export async function downloadYaml(url: string): Promise<any> {
   const axiosInstance = axios.create({
     httpsAgent: new https.Agent({})
   })
+  const response = await axiosInstance.get(url)
+  return yaml.safeLoad(response.data)
+}
 
-  try {
-    const { data } = await axiosInstance.get(`https://che-incubator.github.io/chectl/channels/${channel}/linux-x64`)
-    return data.version
-  } catch {
-    return
+export function getEmbeddedTemplatesDirectory(): string {
+  if (__dirname.endsWith('src')) {
+    // Development version
+    return path.join(__dirname, '..', 'templates')
   }
+  // Release (including nightly) version
+  return path.join(__dirname, '..', '..', '..', 'templates')
 }
 
 /**

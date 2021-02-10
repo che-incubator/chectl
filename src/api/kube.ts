@@ -8,24 +8,24 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1ContainerStateTerminated, V1ContainerStateWaiting, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1Namespace, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1ClusterRole, V1ClusterRoleBinding, V1ClusterRoleBindingList, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1ContainerStateTerminated, V1ContainerStateWaiting, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1Namespace, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleBindingList, V1RoleList, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Status, V1Subject, Watch } from '@kubernetes/client-node'
 import { Cluster, Context } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
 import * as execa from 'execa'
 import * as fs from 'fs'
 import https = require('https')
-import * as yaml from 'js-yaml'
 import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { CHE_CLUSTER_CRD, DEFAULT_CHE_IMAGE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
-import { getClusterClientCommand, isKubernetesPlatformFamily } from '../util'
+import { CHE_CLUSTER_CRD, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
+import { getClusterClientCommand, isKubernetesPlatformFamily, safeLoadFromYamlFile } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
 import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './typings/olm'
 import { IdentityProvider, OAuth } from './typings/openshift'
+import { VersionHelper } from './version'
 
 const AWAIT_TIMEOUT_S = 30
 
@@ -244,8 +244,30 @@ export class KubeHelper {
     }
   }
 
-  async createRoleFromFile(filePath: string, namespace = '') {
-    const yamlRole = this.safeLoadFromYamlFile(filePath) as V1Role
+  async getRole(name: string, namespace: string): Promise<V1Role | undefined> {
+    const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
+    try {
+      const res = await k8sRbacAuthApi.readNamespacedRole(name, namespace)
+      return res.body
+    } catch (e) {
+      if (e.statusCode === 404) {
+        return
+      }
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async listRoles(namespace: string): Promise<V1RoleList> {
+    const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
+    try {
+      const res = await k8sRbacAuthApi.listNamespacedRole(namespace)
+      return res.body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async createRoleFrom(yamlRole: V1Role, namespace: string) {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
       const res = await k8sRbacAuthApi.createNamespacedRole(namespace, yamlRole)
@@ -255,12 +277,16 @@ export class KubeHelper {
     }
   }
 
-  async replaceRoleFromFile(filePath: string, namespace = '') {
+  async createRoleFromFile(filePath: string, namespace: string) {
     const yamlRole = this.safeLoadFromYamlFile(filePath) as V1Role
+    return this.createRoleFrom(yamlRole, namespace)
+  }
+
+  async replaceRoleFrom(yamlRole: V1Role, namespace: string) {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
 
     if (!yamlRole.metadata || !yamlRole.metadata.name) {
-      throw new Error(`Role read from ${filePath} must have name specified`)
+      throw new Error('Role object requires name')
     }
     try {
       const res = await k8sRbacAuthApi.replaceNamespacedRole(yamlRole.metadata.name, namespace, yamlRole)
@@ -270,44 +296,67 @@ export class KubeHelper {
     }
   }
 
-  async createClusterRoleFromFile(filePath: string, roleName?: string) {
-    const yamlRole = this.safeLoadFromYamlFile(filePath) as V1ClusterRole
+  async replaceRoleFromFile(filePath: string, namespace: string) {
+    const yamlRole = this.safeLoadFromYamlFile(filePath) as V1Role
+    return this.replaceRoleFrom(yamlRole, namespace)
+  }
+
+  async listClusterRoles(): Promise<V1RoleList> {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
-    if (!yamlRole.metadata) {
-      yamlRole.metadata = {}
+    try {
+      const res = await k8sRbacAuthApi.listClusterRole()
+      return res.body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async createClusterRoleFrom(yamlClusterRole: V1ClusterRole, clusterRoleName?: string) {
+    const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
+    if (!yamlClusterRole.metadata) {
+      yamlClusterRole.metadata = {}
     }
 
-    if (roleName) {
-      yamlRole.metadata.name = roleName
-    } else if (!yamlRole.metadata.name) {
-      throw new Error(`Role name is not specified in ${filePath}`)
+    if (clusterRoleName) {
+      yamlClusterRole.metadata.name = clusterRoleName
+    } else if (!yamlClusterRole.metadata.name) {
+      throw new Error('Role name is not specified')
     }
     try {
-      const res = await k8sRbacAuthApi.createClusterRole(yamlRole)
+      const res = await k8sRbacAuthApi.createClusterRole(yamlClusterRole)
       return res.response.statusCode
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async replaceClusterRoleFromFile(filePath: string, roleName?: string) {
-    const yamlRole = this.safeLoadFromYamlFile(filePath) as V1ClusterRole
+  async createClusterRoleFromFile(filePath: string, clusterRoleName?: string) {
+    const yamlClusterRole = this.safeLoadFromYamlFile(filePath) as V1ClusterRole
+    return this.createClusterRoleFrom(yamlClusterRole, clusterRoleName)
+  }
+
+  async replaceClusterRoleFrom(yamlClusterRole: V1ClusterRole, clusterRoleName?: string) {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
-    if (!yamlRole.metadata) {
-      yamlRole.metadata = {}
+    if (!yamlClusterRole.metadata) {
+      yamlClusterRole.metadata = {}
     }
 
-    if (roleName) {
-      yamlRole.metadata.name = roleName
-    } else if (!yamlRole.metadata.name) {
-      throw new Error(`Role name is not specified in ${filePath}`)
+    if (clusterRoleName) {
+      yamlClusterRole.metadata.name = clusterRoleName
+    } else if (!yamlClusterRole.metadata.name) {
+      throw new Error('Role name is not specified')
     }
     try {
-      const res = await k8sRbacAuthApi.replaceClusterRole(yamlRole.metadata.name, yamlRole)
+      const res = await k8sRbacAuthApi.replaceClusterRole(yamlClusterRole.metadata.name, yamlClusterRole)
       return res.response.statusCode
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
+  }
+
+  async replaceClusterRoleFromFile(filePath: string, clusterRoleName?: string) {
+    const yamlClusterRole = this.safeLoadFromYamlFile(filePath) as V1ClusterRole
+    return this.replaceClusterRoleFrom(yamlClusterRole, clusterRoleName)
   }
 
   async addClusterRoleRule(name: string, apiGroups: string[], resources: string[], verbs: string[]): Promise<V1ClusterRole | undefined> {
@@ -365,6 +414,16 @@ export class KubeHelper {
     }
   }
 
+  async listRoleBindings(namespace: string): Promise<V1RoleBindingList> {
+    const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
+    try {
+      const res = await k8sRbacAuthApi.listNamespacedRoleBinding(namespace)
+      return res.body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
   async roleBindingExist(name = '', namespace = ''): Promise<boolean> {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
@@ -375,7 +434,17 @@ export class KubeHelper {
     }
   }
 
-  async clusterRoleBindingExist(name = ''): Promise<boolean | ''> {
+  async listClusterRoleBindings(labelSelector?: string, fieldSelector?: string): Promise<V1ClusterRoleBindingList> {
+    const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
+    try {
+      const res = await k8sRbacAuthApi.listClusterRoleBinding(undefined, undefined, undefined, fieldSelector, labelSelector)
+      return res.body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async clusterRoleBindingExist(name: string): Promise<boolean> {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
       const { body } = await k8sRbacAuthApi.readClusterRoleBinding(name)
@@ -406,31 +475,45 @@ export class KubeHelper {
     }
   }
 
-  async createRoleBindingFromFile(filePath: string, namespace = '') {
-    const yamlRoleBinding = this.safeLoadFromYamlFile(filePath) as V1RoleBinding
+  async createRoleBindingFrom(yamlRoleBinding: V1RoleBinding, namespace: string): Promise<V1RoleBinding> {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
-      return await k8sRbacAuthApi.createNamespacedRoleBinding(namespace, yamlRoleBinding)
+      const response = await k8sRbacAuthApi.createNamespacedRoleBinding(namespace, yamlRoleBinding)
+      return response.body
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async replaceRoleBindingFromFile(filePath: string, namespace = '') {
+  async createRoleBindingFromFile(filePath: string, namespace: string): Promise<V1RoleBinding> {
     const yamlRoleBinding = this.safeLoadFromYamlFile(filePath) as V1RoleBinding
+    return this.createRoleBindingFrom(yamlRoleBinding, namespace)
+  }
+
+  async replaceRoleBindingFrom(yamlRoleBinding: V1RoleBinding, namespace: string): Promise<V1RoleBinding> {
     if (!yamlRoleBinding.metadata || !yamlRoleBinding.metadata.name) {
-      throw new Error(`Role binding read from ${filePath} must have name specified`)
+      throw new Error('RoleBinding object requires name')
     }
 
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
-      return await k8sRbacAuthApi.replaceNamespacedRoleBinding(yamlRoleBinding.metadata.name, namespace, yamlRoleBinding)
+      const response = await k8sRbacAuthApi.replaceNamespacedRoleBinding(yamlRoleBinding.metadata.name, namespace, yamlRoleBinding)
+      return response.body
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
+  }
+
+  async replaceRoleBindingFromFile(filePath: string, namespace: string): Promise<V1RoleBinding> {
+    const yamlRoleBinding = this.safeLoadFromYamlFile(filePath) as V1RoleBinding
+    return this.replaceRoleBindingFrom(yamlRoleBinding, namespace)
   }
 
   async createClusterRoleBindingFrom(yamlClusterRoleBinding: V1ClusterRoleBinding) {
+    if (!yamlClusterRoleBinding.metadata || !yamlClusterRoleBinding.metadata.name) {
+      throw new Error('ClusterRoleBinding object requires name')
+    }
+
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
       return await k8sRbacAuthApi.createClusterRoleBinding(yamlClusterRoleBinding)
@@ -459,9 +542,17 @@ export class KubeHelper {
         apiGroup: 'rbac.authorization.k8s.io'
       }
     } as V1ClusterRoleBinding
+    return this.createClusterRoleBindingFrom(clusterRoleBinding)
+  }
+
+  async replaceClusterRoleBindingFrom(clusterRoleBinding: V1ClusterRoleBinding) {
+    if (!clusterRoleBinding.metadata || !clusterRoleBinding.metadata.name) {
+      throw new Error('Cluster Role Binding must have name specified')
+    }
+
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
-      return await k8sRbacAuthApi.createClusterRoleBinding(clusterRoleBinding)
+      return await k8sRbacAuthApi.replaceClusterRoleBinding(clusterRoleBinding.metadata.name, clusterRoleBinding)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -486,12 +577,7 @@ export class KubeHelper {
         apiGroup: 'rbac.authorization.k8s.io'
       }
     } as V1ClusterRoleBinding
-    const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
-    try {
-      return await k8sRbacAuthApi.replaceClusterRoleBinding(name, clusterRoleBinding)
-    } catch (e) {
-      throw this.wrapK8sClientError(e)
-    }
+    return this.replaceClusterRoleBindingFrom(clusterRoleBinding)
   }
 
   async deleteRoleBinding(name = '', namespace = '') {
@@ -503,10 +589,11 @@ export class KubeHelper {
     }
   }
 
-  async deleteClusterRoleBinding(name = '') {
+  async deleteClusterRoleBinding(name: string): Promise<V1Status> {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
-      return await k8sRbacAuthApi.deleteClusterRoleBinding(name)
+      const res = await k8sRbacAuthApi.deleteClusterRoleBinding(name)
+      return res.body
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -973,15 +1060,18 @@ export class KubeHelper {
     }
   }
 
-  async createDeploymentFromFile(filePath: string, namespace = '', containerImage = '', containerIndex = 0) {
+  async createDeploymentFromFile(filePath: string, namespace?: string, containerImage?: string, containerIndex = 0) {
     const yamlDeployment = this.safeLoadFromYamlFile(filePath) as V1Deployment
     if (containerImage) {
       yamlDeployment.spec!.template.spec!.containers[containerIndex].image = containerImage
     }
+    if (!namespace) {
+      namespace = yamlDeployment.metadata && yamlDeployment.metadata.namespace || ''
+    }
     return this.createDeploymentFrom(yamlDeployment, namespace)
   }
 
-  async createDeploymentFrom(yamlDeployment: V1Deployment, namespace = '') {
+  async createDeploymentFrom(yamlDeployment: V1Deployment, namespace: string) {
     const k8sAppsApi = this.kubeConfig.makeApiClient(AppsV1Api)
     try {
       return await k8sAppsApi.createNamespacedDeployment(namespace, yamlDeployment)
@@ -999,10 +1089,13 @@ export class KubeHelper {
     }
   }
 
-  async replaceDeploymentFromFile(filePath: string, namespace = '', containerImage = '', containerIndex = 0) {
+  async replaceDeploymentFromFile(filePath: string, namespace?: string, containerImage?: string, containerIndex = 0) {
     const yamlDeployment = this.safeLoadFromYamlFile(filePath) as V1Deployment
     if (containerImage) {
       yamlDeployment.spec!.template.spec!.containers[containerIndex].image = containerImage
+    }
+    if (!namespace) {
+      namespace = yamlDeployment.metadata && yamlDeployment.metadata.namespace || ''
     }
     if (!yamlDeployment.metadata || !yamlDeployment.metadata.name) {
       throw new Error(`Deployment read from ${filePath} must have name specified`)
@@ -1317,9 +1410,17 @@ export class KubeHelper {
   async createCheCluster(cheClusterCR: any, flags: any, ctx: any, useDefaultCR: boolean): Promise<any> {
     const cheNamespace = flags.chenamespace
     if (useDefaultCR) {
-      // If we don't use an explicitly provided CheCluster CR,
-      // then let's modify the default example CR with values
-      // derived from the other parameters
+      // If CheCluster CR is not explicitly provided, then modify the default example CR
+      // with values derived from the other parameters
+
+      if (VersionHelper.isDeployingStableVersion(flags)) {
+        // Use images from operator defaults in case of a stable version
+        cheClusterCR.spec.server.cheImage = ''
+        cheClusterCR.spec.server.cheImageTag = ''
+        cheClusterCR.spec.server.pluginRegistryImage = ''
+        cheClusterCR.spec.server.devfileRegistryImage = ''
+        cheClusterCR.spec.auth.identityProviderImage = ''
+      }
       const cheImage = flags.cheimage
       if (cheImage) {
         const imageAndTag = cheImage.split(':', 2)
@@ -1363,17 +1464,9 @@ export class KubeHelper {
       cheClusterCR.spec.storage.postgresPVCStorageClassName = flags['postgres-pvc-storage-class-name']
       cheClusterCR.spec.storage.workspacePVCStorageClassName = flags['workspace-pvc-storage-class-name']
 
-      if (flags.cheimage === DEFAULT_CHE_IMAGE &&
-        cheClusterCR.spec.server.cheImageTag !== 'nightly' &&
-        cheClusterCR.spec.server.cheImageTag !== 'latest') {
-        // We obviously are using a release version of chectl with the default `cheimage`
-        // => We should use the operator defaults for docker images
-        cheClusterCR.spec.server.cheImage = ''
-        cheClusterCR.spec.server.cheImageTag = ''
-        cheClusterCR.spec.server.pluginRegistryImage = ''
-        cheClusterCR.spec.server.devfileRegistryImage = ''
-        cheClusterCR.spec.auth.identityProviderImage = ''
-      }
+      // Use self-signed TLS certificate by default (for versions before 7.14.3).
+      // In modern versions of Che this field is ignored.
+      cheClusterCR.spec.server.selfSignedCert = true
     }
 
     cheClusterCR.spec.server.cheClusterRoles = ctx.namespaceEditorClusterRoleName
@@ -2303,7 +2396,7 @@ export class KubeHelper {
   }
 
   public safeLoadFromYamlFile(filePath: string): any {
-    return yaml.safeLoad(fs.readFileSync(filePath).toString())
+    return safeLoadFromYamlFile(filePath)
   }
 }
 

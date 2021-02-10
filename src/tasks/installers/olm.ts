@@ -16,8 +16,9 @@ import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/typings/olm'
-import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, KUBERNETES_OLM_CATALOG, NIGHTLY_CATALOG_SOURCE_NAME, OLM_NIGHTLY_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, SUBSCRIPTION_NAME } from '../../constants'
-import { isKubernetesPlatformFamily, isStableVersion } from '../../util'
+import { VersionHelper } from '../../api/version'
+import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, KUBERNETES_OLM_CATALOG, NIGHTLY_CATALOG_SOURCE_NAME, OLM_NIGHTLY_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, SUBSCRIPTION_NAME } from '../../constants'
+import { isKubernetesPlatformFamily } from '../../util'
 
 import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
 
@@ -79,20 +80,33 @@ export class OLMTasks {
           // catalog source name for stable Che version
           ctx.catalogSourceNameStable = isKubernetesPlatformFamily(flags.platform) ? KUBERNETES_OLM_CATALOG : OPENSHIFT_OLM_CATALOG
 
-          if (!flags['auto-update'] && !isStableVersion(flags)) {
-            ctx.approvalStarategy = 'Automatic'
-          } else {
-            ctx.approvalStarategy = flags['auto-update'] ? 'Automatic' : 'Manual'
-          }
-
           ctx.sourceName = flags['catalog-source-name'] || CUSTOM_CATALOG_SOURCE_NAME
           ctx.generalPlatformName = isKubernetesPlatformFamily(flags.platform) ? 'kubernetes' : 'openshift'
+
+          if (flags.version) {
+            // Convert version flag to channel (see subscription object), starting CSV and approval starategy
+            flags.version = VersionHelper.removeVPrefix(flags.version, true)
+            // Need to point to specific CSV
+            ctx.startingCSV = `eclipse-che.v${flags.version}`
+            // Set approval starategy to manual to prevent autoupdate to the latest version right before installation
+            ctx.approvalStarategy = 'Manual'
+          } else {
+            ctx.startingCSV = flags['starting-csv']
+            if (ctx.startingCSV) {
+              // Ignore auto-update flag, otherwise it will automatically update to the latest version and starting-csv will not have any effect.
+              ctx.approvalStarategy = 'Manual'
+            } else if (flags['auto-update'] === undefined) {
+              ctx.approvalStarategy = 'Automatic'
+            } else {
+              ctx.approvalStarategy = flags['auto-update'] ? 'Automatic' : 'Manual'
+            }
+          }
 
           task.title = `${task.title}...done.`
         }
       },
       {
-        enabled: () => !isStableVersion(flags) && !flags['catalog-source-name'] && !flags['catalog-source-yaml'],
+        enabled: () => !VersionHelper.isDeployingStableVersion(flags) && !flags['catalog-source-name'] && !flags['catalog-source-yaml'],
         title: `Create nightly index CatalogSource in the namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
           if (!await kube.catalogSourceExists(NIGHTLY_CATALOG_SOURCE_NAME, flags.chenamespace)) {
@@ -128,17 +142,16 @@ export class OLMTasks {
             task.title = `${task.title}...It already exists.`
           } else {
             let subscription: Subscription
-
-            // stable Che CatalogSource
-            if (isStableVersion(flags)) {
-              subscription = this.constructSubscription(SUBSCRIPTION_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, flags['starting-csv'])
+            if (flags['catalog-source-yaml'] || flags['catalog-source-name']) {
               // custom Che CatalogSource
-            } else if (flags['catalog-source-yaml'] || flags['catalog-source-name']) {
               const catalogSourceNamespace = flags['catalog-source-namespace'] || flags.chenamespace
-              subscription = this.constructSubscription(SUBSCRIPTION_NAME, flags['package-manifest-name'], flags.chenamespace, catalogSourceNamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, flags['starting-csv'])
-              // nightly Che CatalogSource
+              subscription = this.constructSubscription(SUBSCRIPTION_NAME, flags['package-manifest-name'], flags.chenamespace, catalogSourceNamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, ctx.startingCSV)
+            } else if (VersionHelper.isDeployingStableVersion(flags)) {
+              // stable Che CatalogSource
+              subscription = this.constructSubscription(SUBSCRIPTION_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
             } else {
-              subscription = this.constructSubscription(SUBSCRIPTION_NAME, `eclipse-che-preview-${ctx.generalPlatformName}`, flags.chenamespace, flags.chenamespace, OLM_NIGHTLY_CHANNEL_NAME, NIGHTLY_CATALOG_SOURCE_NAME, ctx.approvalStarategy, flags['starting-csv'])
+              // nightly Che CatalogSource
+              subscription = this.constructSubscription(SUBSCRIPTION_NAME, `eclipse-che-preview-${ctx.generalPlatformName}`, flags.chenamespace, flags.chenamespace, OLM_NIGHTLY_CHANNEL_NAME, NIGHTLY_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
             }
             await kube.createOperatorSubscription(subscription)
             task.title = `${task.title}...created new one.`
@@ -170,7 +183,7 @@ export class OLMTasks {
       },
       {
         title: 'Set custom operator image',
-        enabled: () => flags['che-operator-image'] !== DEFAULT_CHE_OPERATOR_IMAGE,
+        enabled: () => flags['che-operator-image'],
         task: async (_ctx: any, task: any) => {
           const csvList = await kube.getClusterServiceVersions(flags.chenamespace)
           if (csvList.items.length < 1) {
@@ -241,6 +254,14 @@ export class OLMTasks {
               return
             }
 
+            // Retrieve current and next version from the subscription status
+            const installedCSV = subscription.status.installedCSV
+            if (installedCSV) {
+              ctx.currentVersion = installedCSV.substr(installedCSV.lastIndexOf('v') + 1)
+            }
+            const currentCSV = subscription.status.currentCSV
+            ctx.nextVersion = currentCSV.substr(currentCSV.lastIndexOf('v') + 1)
+
             if (subscription.status.state === 'UpgradePending' && subscription.status!.conditions) {
               const installCondition = subscription.status.conditions.find(condition => condition.type === 'InstallPlanPending' && condition.status === 'True')
               if (installCondition) {
@@ -248,6 +269,10 @@ export class OLMTasks {
                 task.title = `${task.title}...done.`
                 return
               }
+            }
+
+            if (subscription.status.state === 'UpgradeAvailable' && installedCSV === currentCSV) {
+              command.error('Another update is in progress')
             }
           }
           command.error('Unable to find installation plan to update.')
@@ -266,6 +291,7 @@ export class OLMTasks {
         enabled: (ctx: any) => ctx.installPlanName,
         task: async (ctx: any, task: any) => {
           await kube.waitUntilOperatorIsInstalled(ctx.installPlanName, flags.chenamespace, 60)
+          ctx.highlightedMessages.push(`Operator is updated from ${ctx.currentVersion} to ${ ctx.nextVersion} version`)
           task.title = `${task.title}...done.`
         }
       },

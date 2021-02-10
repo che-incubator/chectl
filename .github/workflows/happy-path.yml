@@ -42,3 +42,8 @@ jobs:
         uses: che-incubator/happy-path-tests-action@next
         with:
           che-url: ${{ steps.deploy-che.outputs.che-url }}
+      - uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: happy-path-artifacts
+          path: che/tests/e2e/report
