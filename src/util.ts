@@ -234,7 +234,7 @@ export async function downloadYaml(url: string): Promise<any> {
 }
 
 export function getEmbeddedTemplatesDirectory(): string {
-  // Embedded templates are located in the templates directory taht is in the project/installation root:
+  // Embedded templates are located in the templates directory that is in the project/installation root:
   // chectl
   //  |- templates
   //  |- src

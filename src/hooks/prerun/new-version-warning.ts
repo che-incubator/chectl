@@ -12,9 +12,10 @@ import { Hook } from '@oclif/config'
 import { cli } from 'cli-ux'
 
 import { VersionHelper } from '../../api/version'
+import { CHECTL_PROJECT_NAME } from '../../constants'
 import { getProjectName } from '../../util'
 
-const isChectl = getProjectName() === 'chectl'
+const isChectl = getProjectName() === CHECTL_PROJECT_NAME
 const hook: Hook<'prerun'> = async function (options) {
   if (!isChectl) {
     return

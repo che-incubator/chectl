@@ -16,6 +16,7 @@ import Listr = require('listr')
 import * as path from 'path'
 import * as semver from 'semver'
 
+import { CHECTL_PROJECT_NAME } from '../constants'
 import { CheTasks } from '../tasks/che'
 import { getClusterClientCommand, getProjectName, getProjectVersion } from '../util'
 
@@ -183,7 +184,7 @@ export namespace VersionHelper {
    * Returns latest chectl version for the given channel.
    */
   export async function getLatestChectlVersion(channel: string): Promise<string | undefined> {
-    if (getProjectName() !== 'chectl') {
+    if (getProjectName() !== CHECTL_PROJECT_NAME) {
       return
     }
 
@@ -205,7 +206,7 @@ export namespace VersionHelper {
   export async function isChectlUpdateAvailable(cacheDir: string, forceRecheck = false): Promise<boolean> {
     // Do not use ctx inside this function as the function is used from hook where ctx is not yet defined.
 
-    if (getProjectName() !== 'chectl') {
+    if (getProjectName() !== CHECTL_PROJECT_NAME) {
       // Do nothing for chectl flavors
       return false
     }
