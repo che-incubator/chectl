@@ -224,7 +224,11 @@ export namespace VersionHelper {
       lastCheck: 0,
     }
     if (await fs.pathExists(newVersionInfoFilePath)) {
-      newVersionInfo = (await fs.readJson(newVersionInfoFilePath, { encoding: 'utf8' })) as NewVersionInfoData
+      try {
+        newVersionInfo = (await fs.readJson(newVersionInfoFilePath, { encoding: 'utf8' })) as NewVersionInfoData
+      } catch {
+        // file is corrupted
+      }
     }
 
     // Check cache, if it is already known that newer version available
@@ -244,9 +248,9 @@ export namespace VersionHelper {
     return isCachedNewerVersionAvailable
   }
 
- /**
-  * Indicates if stable version of Eclipse Che is specified or meant implicitly.
-  */
+  /**
+   * Indicates if stable version of Eclipse Che is specified or meant implicitly.
+   */
   export function isDeployingStableVersion(flags: any): boolean {
     return !!flags.version || !ChectlContext.get().isNightly
   }
