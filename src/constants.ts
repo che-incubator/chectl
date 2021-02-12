@@ -9,6 +9,7 @@
  **********************************************************************/
 
 export const CHECTL_PROJECT_NAME = 'chectl'
+export const OPERATOR_TEMPLATE_DIR = 'che-operator'
 
 // minimal installable versions by current chectl
 export const MIN_OLM_INSTALLER_VERSION = '7.17.0'

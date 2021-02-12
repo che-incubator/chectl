@@ -21,7 +21,7 @@ import { ChectlContext } from '../../api/context'
 import { CheGithubClient } from '../../api/github-client'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
+import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER, OPERATOR_TEMPLATE_DIR } from '../../constants'
 import { getProjectVersion } from '../../util'
 
 export function createNamespaceTask(namespaceName: string, labels: {}): Listr.ListrTask {
@@ -82,7 +82,7 @@ export function downloadTemplates(flags: any): Listr.ListrTask {
       let installerTemplatesSubDir: string
       switch (flags.installer) {
       case 'operator':
-        installerTemplatesSubDir = 'che-operator'
+        installerTemplatesSubDir = OPERATOR_TEMPLATE_DIR
         break
       case 'helm':
         installerTemplatesSubDir = 'kubernetes'

@@ -24,7 +24,7 @@ import * as rimraf from 'rimraf'
 import * as unzipper from 'unzipper'
 
 import { OpenShiftHelper } from '../api/openshift'
-import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../constants'
+import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME, OPERATOR_TEMPLATE_DIR } from '../constants'
 import { base64Decode, downloadFile } from '../util'
 
 import { CheApiClient } from './che-api-client'
@@ -495,7 +495,7 @@ export class CheHelper {
   async downloadAndUnpackTemplates(installer: string, url: string, destDir: string): Promise<void> {
     // Add che-operator folder for operator templates
     if (installer === 'operator') {
-      destDir = path.join(destDir, 'che-operator')
+      destDir = path.join(destDir, OPERATOR_TEMPLATE_DIR)
     }
     // No need to add kubernetes folder for Helm installer as it already present in the archive
 
