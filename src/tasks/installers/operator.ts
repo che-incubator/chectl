@@ -17,7 +17,7 @@ import * as path from 'path'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME } from '../../constants'
+import { CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME, OPERATOR_TEMPLATE_DIR } from '../../constants'
 import { safeLoadFromYamlFile } from '../../util'
 import { KubeTasks } from '../kube'
 
@@ -148,7 +148,7 @@ export class OperatorTasks {
     const kube = new KubeHelper(flags)
     const kubeTasks = new KubeTasks(flags)
     const ctx = ChectlContext.get()
-    ctx.resourcesPath = path.join(flags.templates, 'che-operator')
+    ctx.resourcesPath = path.join(flags.templates, OPERATOR_TEMPLATE_DIR)
     if (VersionHelper.isDeployingStableVersion(flags)) {
       command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of Eclipse Che (--installer=olm).')
     }
@@ -258,7 +258,7 @@ export class OperatorTasks {
             ctx.newCheOperatorImage = flags['che-operator-image']
           } else {
             // Load new operator image from templates
-            const newCheOperatorYaml = safeLoadFromYamlFile(path.join(flags.templates, 'che-operator', 'operator.yaml')) as V1Deployment
+            const newCheOperatorYaml = safeLoadFromYamlFile(path.join(flags.templates, OPERATOR_TEMPLATE_DIR, 'operator.yaml')) as V1Deployment
             ctx.newCheOperatorImage = this.retrieveContainerImage(newCheOperatorYaml)
           }
           const newCheOperatorImageAndTag = ctx.newCheOperatorImage.split(':', 2)
@@ -274,7 +274,7 @@ export class OperatorTasks {
   updateTasks(flags: any, command: Command): Listr {
     const kube = new KubeHelper(flags)
     const ctx = ChectlContext.get()
-    ctx.resourcesPath = path.join(flags.templates, 'che-operator')
+    ctx.resourcesPath = path.join(flags.templates, OPERATOR_TEMPLATE_DIR)
     return new Listr([
       {
         title: `Updating ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
