@@ -9,6 +9,7 @@
  **********************************************************************/
 import { Command } from '@oclif/command'
 import * as Listr from 'listr'
+import { base64Decode } from '../util'
 
 import { CheHelper } from '../api/che'
 import { CheApiClient } from '../api/che-api-client'
@@ -681,8 +682,8 @@ export class CheTasks {
             if (cr.status && cr.status.openShiftOAuthUserCredentialsSecret) {
               const credentialsSecret = await this.kube.getSecret(cr.status.openShiftOAuthUserCredentialsSecret, flags.chenamespace)
               if (credentialsSecret) {
-                const user = credentialsSecret.data!['user']
-                const password = credentialsSecret.data!['password']
+                const user = base64Decode(credentialsSecret.data!['user'])
+                const password = base64Decode(credentialsSecret.data!['password'])
                 messages.push(`HTPasswd user credentials : "${user}:${password}".`)
               }
             }
