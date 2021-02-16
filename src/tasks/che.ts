@@ -9,7 +9,6 @@
  **********************************************************************/
 import { Command } from '@oclif/command'
 import * as Listr from 'listr'
-import { base64Decode } from '../util'
 
 import { CheHelper } from '../api/che'
 import { CheApiClient } from '../api/che-api-client'
@@ -18,6 +17,7 @@ import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
 import { VersionHelper } from '../api/version'
 import { CHE_OPERATOR_SELECTOR, DOC_LINK, DOC_LINK_RELEASE_NOTES, OUTPUT_SEPARATOR } from '../constants'
+import { base64Decode } from '../util'
 
 import { KubeTasks } from './kube'
 
@@ -682,8 +682,8 @@ export class CheTasks {
             if (cr.status && cr.status.openShiftOAuthUserCredentialsSecret) {
               const credentialsSecret = await this.kube.getSecret(cr.status.openShiftOAuthUserCredentialsSecret, flags.chenamespace)
               if (credentialsSecret) {
-                const user = base64Decode(credentialsSecret.data!['user'])
-                const password = base64Decode(credentialsSecret.data!['password'])
+                const user = base64Decode(credentialsSecret.data!.user)
+                const password = base64Decode(credentialsSecret.data!.password)
                 messages.push(`HTPasswd user credentials : "${user}:${password}".`)
               }
             }
