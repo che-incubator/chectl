@@ -429,30 +429,42 @@ export class KubeHelper {
   async roleBindingExist(name = '', namespace = ''): Promise<boolean> {
     const k8sRbacAuthApi = KubeHelper.KUBE_CONFIG.makeApiClient(RbacAuthorizationV1Api)
     try {
-      const { body } = await k8sRbacAuthApi.readNamespacedRoleBinding(name, namespace)
-      return this.compare(body, name)
-    } catch {
-      return false
+      await k8sRbacAuthApi.readNamespacedRoleBinding(name, namespace)
+      return true
+    } catch (e) {
+      if (e.response.statusCode === 404) {
+        return false
+      }
+
+      throw this.wrapK8sClientError(e)
     }
   }
 
   async isMutatingWebhookConfigurationExists(name: string): Promise<boolean> {
     const k8sAdmissionApi = KubeHelper.KUBE_CONFIG.makeApiClient(AdmissionregistrationV1Api)
     try {
-      const { body } = await k8sAdmissionApi.readMutatingWebhookConfiguration(name)
-      return this.compare(body, name)
-    } catch {
-      return false
+      await k8sAdmissionApi.readMutatingWebhookConfiguration(name)
+      return true
+    } catch (e) {
+      if (e.response.statusCode === 404) {
+        return false
+      }
+
+      throw this.wrapK8sClientError(e)
     }
   }
 
   async isValidatingWebhookConfigurationExists(name: string): Promise<boolean> {
     const k8sAdmissionApi = KubeHelper.KUBE_CONFIG.makeApiClient(AdmissionregistrationV1Api)
     try {
-      const { body } = await k8sAdmissionApi.readValidatingWebhookConfiguration(name)
-      return this.compare(body, name)
-    } catch {
-      return false
+      await k8sAdmissionApi.readValidatingWebhookConfiguration(name)
+      return true
+    } catch (e) {
+      if (e.response.statusCode === 404) {
+        return false
+      }
+
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -981,10 +993,14 @@ export class KubeHelper {
   async isConfigMapExists(name: string, namespace: string): Promise<boolean> {
     const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
-      const { body } = await k8sApi.readNamespacedConfigMap(name, namespace)
-      return this.compare(body, name)
-    } catch {
-      return false
+      await k8sApi.readNamespacedConfigMap(name, namespace)
+      return true
+    } catch (e) {
+      if (e.response.statusCode === 404) {
+        return false
+      }
+
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -1440,10 +1456,14 @@ export class KubeHelper {
   async isCRDV1Exists(name: string): Promise<boolean> {
     const k8sApiextensionsApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApiextensionsV1Api)
     try {
-      const { body } = await k8sApiextensionsApi.readCustomResourceDefinition(name)
-      return this.compare(body, name)
-    } catch {
-      return false
+      await k8sApiextensionsApi.readCustomResourceDefinition(name)
+      return true
+    } catch (e) {
+      if (e.response.statusCode === 404) {
+        return false
+      }
+
+      throw this.wrapK8sClientError(e)
     }
   }
 
