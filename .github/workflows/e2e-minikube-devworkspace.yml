@@ -1,0 +1,26 @@
+#
+#  Copyright (c) 2012-2020 Red Hat, Inc.
+#    This program and the accompanying materials are made
+#    available under the terms of the Eclipse Public License 2.0
+#    which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+#  SPDX-License-Identifier: EPL-2.0
+#
+#  Contributors:
+#    Red Hat, Inc. - initial API and implementation
+name: Minikube E2E
+on: pull_request
+jobs:
+  minikube-e2e:
+    name: DevWorkspace Engine Deployment
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install minikube kubernetes cluster
+      run: minikube start --memory=6000
+    - name: Install chectl dependencies
+      run: yarn
+    - name: Run workspace-engine tests in minikube
+      run: |
+        minikube addons enable ingress
+        ./bin/run server:deploy --telemetry=off --workspace-engine=dev-workspace -p minikube

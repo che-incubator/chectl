@@ -436,7 +436,7 @@ export class KubeHelper {
     }
   }
 
-  async mutatingWebhookConfigurationExist(name: string): Promise<boolean> {
+  async isMutatingWebhookConfigurationExists(name: string): Promise<boolean> {
     const k8sAdmissionApi = KubeHelper.KUBE_CONFIG.makeApiClient(AdmissionregistrationV1Api)
     try {
       const { body } = await k8sAdmissionApi.readMutatingWebhookConfiguration(name)
@@ -446,7 +446,7 @@ export class KubeHelper {
     }
   }
 
-  async validatingWebhookConfigurationExist(name: string): Promise<boolean> {
+  async isValidatingWebhookConfigurationExists(name: string): Promise<boolean> {
     const k8sAdmissionApi = KubeHelper.KUBE_CONFIG.makeApiClient(AdmissionregistrationV1Api)
     try {
       const { body } = await k8sAdmissionApi.readValidatingWebhookConfiguration(name)
@@ -978,7 +978,7 @@ export class KubeHelper {
     }
   }
 
-  async configMapExist(name: string, namespace: string): Promise<boolean> {
+  async isConfigMapExists(name: string, namespace: string): Promise<boolean> {
     const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
       const { body } = await k8sApi.readNamespacedConfigMap(name, namespace)
@@ -1437,7 +1437,7 @@ export class KubeHelper {
     }
   }
 
-  async CRDV1Exist(name: string): Promise<boolean> {
+  async isCRDV1Exists(name: string): Promise<boolean> {
     const k8sApiextensionsApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApiextensionsV1Api)
     try {
       const { body } = await k8sApiextensionsApi.readCustomResourceDefinition(name)
@@ -2060,7 +2060,7 @@ export class KubeHelper {
     }
   }
 
-  async namespacedCertificateExists(name: string, version: string, namespace: string): Promise<boolean> {
+  async isNamespacedCertificateExists(name: string, version: string, namespace: string): Promise<boolean> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
     try {
@@ -2076,25 +2076,23 @@ export class KubeHelper {
     }
   }
 
-  async deleteNamespacedCertificate(name: string, version: string, namespace: string): Promise<boolean> {
+  async deleteNamespacedCertificate(name: string, version: string, namespace: string): Promise<void> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
     try {
       // If cluster issuers doesn't exist an exception will be thrown
       await customObjectsApi.deleteNamespacedCustomObject('cert-manager.io', version, namespace, 'certificates', name)
-      return true
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async deleteNamespacedIssuer(name: string, version: string, namespace: string): Promise<boolean> {
+  async deleteNamespacedIssuer(name: string, version: string, namespace: string): Promise<void> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
     try {
       // If cluster issuers doesn't exist an exception will be thrown
       await customObjectsApi.deleteNamespacedCustomObject('cert-manager.io', version, namespace, 'issuers', name)
-      return true
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -2140,7 +2138,7 @@ export class KubeHelper {
     }
   }
 
-  async certificateIssuerExists(name: string, version: string, namespace: string): Promise<boolean> {
+  async isCertificateIssuerExists(name: string, version: string, namespace: string): Promise<boolean> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
     try {

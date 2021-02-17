@@ -217,22 +217,22 @@ export class DevWorkspaceTasks {
       {
         title: 'Create DevWorkspace Custom Resource Definitions',
         task: async (ctx: any, task: any) => {
-          if (!await this.kubeHelper.CRDV1Exist(this.devworkspacesCRDName)) {
+          if (!await this.kubeHelper.isCRDV1Exists(this.devworkspacesCRDName)) {
             const devworkspaceWorkspaceCRDfile = path.join(this.getTemplatePath(ctx), 'devworkspaces.workspace.devfile.io.CustomResourceDefinition.yaml')
             await this.kubeHelper.createCRDV1FromFile(devworkspaceWorkspaceCRDfile)
           }
 
-          if (!await this.kubeHelper.CRDV1Exist(this.componentsCRDName)) {
+          if (!await this.kubeHelper.isCRDV1Exists(this.componentsCRDName)) {
             const devworkspaceWorkspaceCRDfile = path.join(this.getTemplatePath(ctx), 'components.controller.devfile.io.CustomResourceDefinition.yaml')
             await this.kubeHelper.createCRDV1FromFile(devworkspaceWorkspaceCRDfile)
           }
 
-          if (!await this.kubeHelper.CRDV1Exist(this.devworkspacetemplatesCRDName)) {
+          if (!await this.kubeHelper.isCRDV1Exists(this.devworkspacetemplatesCRDName)) {
             const devworkspaceWorkspaceCRDfile = path.join(this.getTemplatePath(ctx), 'devworkspacetemplates.workspace.devfile.io.CustomResourceDefinition.yaml')
             await this.kubeHelper.createCRDV1FromFile(devworkspaceWorkspaceCRDfile)
           }
 
-          if (!await this.kubeHelper.CRDV1Exist(this.workspaceroutingsCRDName)) {
+          if (!await this.kubeHelper.isCRDV1Exists(this.workspaceroutingsCRDName)) {
             const devworkspaceWorkspaceCRDfile = path.join(this.getTemplatePath(ctx), 'workspaceroutings.controller.devfile.io.CustomResourceDefinition.yaml')
             await this.kubeHelper.createCRDV1FromFile(devworkspaceWorkspaceCRDfile)
           }
@@ -243,7 +243,7 @@ export class DevWorkspaceTasks {
       {
         title: `Create configMap ${this.devworkspaceConfigMap}`,
         task: async (ctx: any, task: any) => {
-          const exists = await this.kubeHelper.configMapExist(this.devworkspaceConfigMap, this.getNamespace())
+          const exists = await this.kubeHelper.isConfigMapExists(this.devworkspaceConfigMap, this.getNamespace())
           if (exists) {
             task.title = `${task.title}...It already exists.`
             return
@@ -306,7 +306,7 @@ export class DevWorkspaceTasks {
         title: `Create certificate issuer ${this.devworkspaceCertIssuer}`,
         enabled: (ctx: any) => !ctx.isOpenShift,
         task: async (ctx: any, task: any) => {
-          const certIssuerExist = await this.kubeHelper.certificateIssuerExists(this.devworkspaceCertIssuer, ctx.certManagerK8sApiVersion, this.getNamespace())
+          const certIssuerExist = await this.kubeHelper.isCertificateIssuerExists(this.devworkspaceCertIssuer, ctx.certManagerK8sApiVersion, this.getNamespace())
           if (certIssuerExist) {
             task.title = `${task.title}...It already exists.`
             return
@@ -321,7 +321,7 @@ export class DevWorkspaceTasks {
         title: `Create self-signed certificate ${this.devworkspaceCertificate}`,
         enabled: (ctx: any) => !ctx.isOpenShift,
         task: async (ctx: any, task: any) => {
-          const certExists = await this.kubeHelper.namespacedCertificateExists(this.devworkspaceCertificate, ctx.certManagerK8sApiVersion, this.getNamespace())
+          const certExists = await this.kubeHelper.isNamespacedCertificateExists(this.devworkspaceCertificate, ctx.certManagerK8sApiVersion, this.getNamespace())
           if (certExists) {
             task.title = `${task.title}...It already exists.`
             return
@@ -444,10 +444,10 @@ export class DevWorkspaceTasks {
         title: 'Delete DevWorkspace self-signed certificates',
         enabled: async (ctx: any) => !ctx.IsOpenshift,
         task: async (_ctx: any, task: any) => {
-          if (await this.kubeHelper.namespacedCertificateExists(this.devworkspaceCertificate, 'v1', this.getNamespace())) {
+          if (await this.kubeHelper.isNamespacedCertificateExists(this.devworkspaceCertificate, 'v1', this.getNamespace())) {
             await this.kubeHelper.deleteNamespacedCertificate(this.devworkspaceCertificate, 'v1', this.getNamespace())
           }
-          if (await this.kubeHelper.certificateIssuerExists(this.devworkspaceCertIssuer, 'v1', this.getNamespace())) {
+          if (await this.kubeHelper.isCertificateIssuerExists(this.devworkspaceCertIssuer, 'v1', this.getNamespace())) {
             await this.kubeHelper.deleteNamespacedIssuer(this.devworkspaceCertIssuer, 'v1', this.getNamespace())
           }
           task.title = await `${task.title}...OK`
@@ -456,10 +456,10 @@ export class DevWorkspaceTasks {
       {
         title: 'Delete Devworkspace webhooks',
         task: async (_ctx: any, task: any) => {
-          if (await this.kubeHelper.mutatingWebhookConfigurationExist(this.webhooksName)) {
+          if (await this.kubeHelper.isMutatingWebhookConfigurationExists(this.webhooksName)) {
             await this.kubeHelper.deleteMutatingWebhookConfiguration(this.webhooksName)
           }
-          if (await this.kubeHelper.validatingWebhookConfigurationExist(this.webhooksName)) {
+          if (await this.kubeHelper.isValidatingWebhookConfigurationExists(this.webhooksName)) {
             await this.kubeHelper.deleteValidatingWebhookConfiguration(this.webhooksName)
           }
           task.title = await `${task.title} ...OK`
@@ -468,16 +468,16 @@ export class DevWorkspaceTasks {
       {
         title: 'Delete DevWorkspace controller CRDs',
         task: async (_ctx: any, task: any) => {
-          if (await this.kubeHelper.CRDV1Exist(this.componentsCRDName)) {
+          if (await this.kubeHelper.isCRDV1Exists(this.componentsCRDName)) {
             await this.kubeHelper.deleteCRDV1(this.componentsCRDName)
           }
-          if (await this.kubeHelper.CRDV1Exist(this.devworkspacesCRDName)) {
+          if (await this.kubeHelper.isCRDV1Exists(this.devworkspacesCRDName)) {
             await this.kubeHelper.deleteCRDV1(this.devworkspacesCRDName)
           }
-          if (await this.kubeHelper.CRDV1Exist(this.devworkspacetemplatesCRDName)) {
+          if (await this.kubeHelper.isCRDV1Exists(this.devworkspacetemplatesCRDName)) {
             await this.kubeHelper.deleteCRDV1(this.devworkspacetemplatesCRDName)
           }
-          if (await this.kubeHelper.CRDV1Exist(this.workspaceroutingsCRDName)) {
+          if (await this.kubeHelper.isCRDV1Exists(this.workspaceroutingsCRDName)) {
             await this.kubeHelper.deleteCRDV1(this.workspaceroutingsCRDName)
           }
           task.title = await `${task.title}...OK`
