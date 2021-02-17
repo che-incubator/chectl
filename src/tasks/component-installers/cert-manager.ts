@@ -14,7 +14,7 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { V1alpha2Certificate } from '../../api/typings/cert-manager'
+import { V1Certificate } from '../../api/typings/cert-manager'
 import { CA_CERT_GENERATION_JOB_IMAGE, CERT_MANAGER_NAMESPACE_NAME, CHE_RELATED_COMPONENT_LABEL, CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
 import { base64Decode } from '../../util'
 import { getMessageImportCaCertIntoBrowser } from '../installers/common-tasks'
@@ -30,11 +30,10 @@ export class CertManagerTasks {
     this.kubeHelper = new KubeHelper(flags)
     this.cheHelper = new CheHelper(flags)
   }
-
   /**
-   * Returns list of tasks which perform cert-manager checks and deploy and requests self-signed certificate for Che.
+   * Verify if cert-manager it is installed in cluster
    */
-  getTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+  verifyCertManagerDeployment(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Check Cert Manager deployment',
@@ -83,6 +82,13 @@ export class CertManagerTasks {
           task.title = `${task.title}...ready`
         }
       },
+    ]
+  }
+  /**
+   * Returns list of tasks which perform cert-manager checks and deploy and requests self-signed certificate for Che.
+   */
+  getTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+    return [
       {
         title: 'Check Cert Manager CA certificate',
         task: async (ctx: any, task: any) => {
@@ -182,7 +188,7 @@ export class CertManagerTasks {
           }
 
           const certificateTemplatePath = path.join(flags.templates, '/cert-manager/che-certificate.yml')
-          const certifiateYaml = this.kubeHelper.safeLoadFromYamlFile(certificateTemplatePath) as V1alpha2Certificate
+          const certifiateYaml = this.kubeHelper.safeLoadFromYamlFile(certificateTemplatePath) as V1Certificate
 
           const CN = '*.' + flags.domain
           certifiateYaml.spec.commonName = CN
