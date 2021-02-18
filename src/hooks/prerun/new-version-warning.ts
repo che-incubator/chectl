@@ -15,6 +15,13 @@ import { VersionHelper } from '../../api/version'
 import { CHECTL_PROJECT_NAME } from '../../constants'
 import { getProjectName } from '../../util'
 
+const DO_NO_PRINT_WARNING_COMMANDS = [
+  'server:deploy',
+  'server:update',
+  'update',
+  'version',
+]
+
 const isChectl = getProjectName() === CHECTL_PROJECT_NAME
 const hook: Hook<'prerun'> = async function (options) {
   if (!isChectl) {
@@ -22,7 +29,8 @@ const hook: Hook<'prerun'> = async function (options) {
   }
 
   const commandName: string = options.Command.id
-  if (commandName === 'server:deploy' || commandName === 'server:update') {
+  if (DO_NO_PRINT_WARNING_COMMANDS.includes(commandName)) {
+    // Do nothing
     return
   }
 
