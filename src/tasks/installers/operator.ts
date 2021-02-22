@@ -172,7 +172,7 @@ export class OperatorTasks {
       {
         title: `Create CRD ${this.cheClusterCrd}`,
         task: async (ctx: any, task: any) => {
-          const exist = await kube.crdExist(this.cheClusterCrd)
+          const exist = await kube.isCrdV1Beta1Exists(this.cheClusterCrd)
           const yamlFilePath = path.join(ctx.resourcesPath, 'crds', 'org_v1_che_crd.yaml')
 
           if (exist) {
@@ -182,7 +182,7 @@ export class OperatorTasks {
             }
             task.title = `${task.title}...It already exists.`
           } else {
-            await kube.createCrdFromFile(yamlFilePath)
+            await kube.createCrdV1Beta1FromFile(yamlFilePath)
             task.title = `${task.title}...done.`
           }
         }
@@ -305,7 +305,7 @@ export class OperatorTasks {
             await kube.replaceCrdFromFile(yamlFilePath, crd.metadata.resourceVersion)
             task.title = `${task.title}...updated.`
           } else {
-            await kube.createCrdFromFile(yamlFilePath)
+            await kube.createCrdV1Beta1FromFile(yamlFilePath)
             task.title = `${task.title}...created new one.`
           }
         }
@@ -376,14 +376,14 @@ export class OperatorTasks {
     {
       title: `Delete CRD ${this.cheClusterCrd}`,
       task: async (_ctx: any, task: any) => {
-        const crdExists = await kh.crdExist(this.cheClusterCrd)
+        const crdExists = await kh.isCrdV1Beta1Exists(this.cheClusterCrd)
         const checlusters = await kh.getAllCheClusters()
         if (checlusters.length > 0) {
           task.title = `${task.title}...Skipped: another Eclipse Che deployment found.`
         } else {
           // Check if CRD exist. When installer is helm the CRD are not created
           if (crdExists) {
-            await kh.deleteCrd(this.cheClusterCrd)
+            await kh.deleteCrdV1Beta1(this.cheClusterCrd)
           }
           task.title = `${task.title}...OK`
         }

@@ -13,7 +13,7 @@ import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 
 import { ChectlContext } from '../../api/context'
-import { accessToken, cheDeployment, cheNamespace, CHE_TELEMETRY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { accessToken, cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
@@ -25,7 +25,6 @@ export default class Stop extends Command {
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
-    'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,
     'deployment-name': cheDeployment,
     'che-selector': string({
       description: 'Selector for Eclipse Che server resources',
