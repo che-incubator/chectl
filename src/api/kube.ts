@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { AdmissionregistrationV1Api, ApiextensionsV1Api, ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1ClusterRole, V1ClusterRoleBinding, V1ClusterRoleBindingList, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1ContainerStateTerminated, V1ContainerStateWaiting, V1CustomResourceDefinition, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1Namespace, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleBindingList, V1RoleList, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Status, V1Subject, Watch } from '@kubernetes/client-node'
+import { AdmissionregistrationV1Api, ApiextensionsV1Api, ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1ClusterRole, V1ClusterRoleBinding, V1ClusterRoleBindingList, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1ContainerStateTerminated, V1ContainerStateWaiting, V1CustomResourceDefinition, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1MutatingWebhookConfiguration, V1Namespace, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleBindingList, V1RoleList, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Status, V1Subject, Watch } from '@kubernetes/client-node'
 import { Cluster, Context } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
@@ -450,6 +450,16 @@ export class KubeHelper {
         return false
       }
 
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async getMutatingWebhookConfiguration(name: string): Promise<V1MutatingWebhookConfiguration> {
+    const k8sAdmissionApi = KubeHelper.KUBE_CONFIG.makeApiClient(AdmissionregistrationV1Api)
+    try {
+      const res = await k8sAdmissionApi.readMutatingWebhookConfiguration(name)
+      return res.body
+    } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
@@ -1409,7 +1419,7 @@ export class KubeHelper {
     }
   }
 
-  async createCrdFromFile(filePath: string) {
+  async createCrdV1Beta1FromFile(filePath: string) {
     const yamlCrd = this.safeLoadFromYamlFile(filePath) as V1beta1CustomResourceDefinition
     const k8sApiextensionsApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApiextensionsV1beta1Api)
     try {
@@ -1419,7 +1429,7 @@ export class KubeHelper {
     }
   }
 
-  async createCRDV1FromFile(filePath: string) {
+  async createCrdV1FromFile(filePath: string) {
     const yamlCrd = this.safeLoadFromYamlFile(filePath) as V1CustomResourceDefinition
     const k8sApiextensionsApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApiextensionsV1Api)
     try {
@@ -1443,7 +1453,7 @@ export class KubeHelper {
     }
   }
 
-  async crdExist(name = ''): Promise<boolean> {
+  async isCrdV1Beta1Exists(name = ''): Promise<boolean> {
     const k8sApiextensionsApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApiextensionsV1beta1Api)
     try {
       const { body } = await k8sApiextensionsApi.readCustomResourceDefinition(name)
@@ -1453,7 +1463,7 @@ export class KubeHelper {
     }
   }
 
-  async isCRDV1Exists(name: string): Promise<boolean> {
+  async isCrdV1Exists(name: string): Promise<boolean> {
     const k8sApiextensionsApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApiextensionsV1Api)
     try {
       await k8sApiextensionsApi.readCustomResourceDefinition(name)
@@ -1488,7 +1498,7 @@ export class KubeHelper {
     return crdv ? crdv.name : 'v1'
   }
 
-  async deleteCrd(name: string): Promise<void> {
+  async deleteCrdV1Beta1(name: string): Promise<void> {
     const k8sApiextensionsApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApiextensionsV1beta1Api)
     try {
       await k8sApiextensionsApi.deleteCustomResourceDefinition(name)
@@ -1497,7 +1507,7 @@ export class KubeHelper {
     }
   }
 
-  async deleteCRDV1(name: string): Promise<void> {
+  async deleteCrdV1(name: string): Promise<void> {
     const k8sApiextensionsApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApiextensionsV1Api)
     try {
       await k8sApiextensionsApi.deleteCustomResourceDefinition(name)
@@ -2100,7 +2110,7 @@ export class KubeHelper {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
     try {
-      // If cluster issuers doesn't exist an exception will be thrown
+      // If cluster certificates doesn't exist an exception will be thrown
       await customObjectsApi.deleteNamespacedCustomObject('cert-manager.io', version, namespace, 'certificates', name)
     } catch (e) {
       throw this.wrapK8sClientError(e)
@@ -2174,11 +2184,11 @@ export class KubeHelper {
     }
   }
 
-  async createCheClusterCertificate(certificateYaml: V1Certificate, version: string): Promise<void> {
+  async createCheClusterCertificate(certificate: V1Certificate, version: string): Promise<void> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
     try {
-      await customObjectsApi.createNamespacedCustomObject('cert-manager.io', version, certificateYaml.metadata.namespace, 'certificates', certificateYaml)
+      await customObjectsApi.createNamespacedCustomObject('cert-manager.io', version, certificate.metadata.namespace, 'certificates', certificate)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }

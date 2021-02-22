@@ -16,16 +16,16 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
-    - name: Install minikube kubernetes cluster
-      run: minikube start --memory=6000
+    - name: Provision minikube cluster
+      run: |
+        minikube start --memory=6000
+        minikube addons enable ingress
+        minikube addons enable olm
     - name: Install chectl dependencies
       run: yarn
     - name: Run olm e2e tests minikube
       run: |
         export PLATFORM=minikube
         export INSTALLER=olm
-        minikube addons enable olm
-        minikube addons enable ingress
-
         sleep 60
         yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts

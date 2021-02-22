@@ -35,7 +35,7 @@ jobs:
         id: deploy-che
         uses: che-incubator/che-deploy-action@next
         with:
-          # use custom image built by this PR
+          # use custom chectl built by this PR
           skip-chectl-install: true
       - name: Run Happy Path tests
         id: run-happy-path-tests

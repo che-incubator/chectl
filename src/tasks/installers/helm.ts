@@ -110,8 +110,8 @@ export class HelmTasks {
 
             const certManagerTasks = new CertManagerTasks(flags)
             const certManagerListTasks = new Listr(undefined, ctx.listrOptions)
-            certManagerListTasks.add(certManagerTasks.verifyCertManagerDeployment(flags))
-            certManagerListTasks.add(certManagerTasks.getTasks(flags))
+            certManagerListTasks.add(certManagerTasks.getDeployCertManagerTasks(flags))
+            certManagerListTasks.add(certManagerTasks.getGenerateCertificatesTasks(flags))
 
             return certManagerListTasks
           }

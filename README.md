@@ -406,32 +406,21 @@ USAGE
   $ chectl server:delete
 
 OPTIONS
-  -h, --help                                                               show CLI help
+  -h, --help                         show CLI help
+  -n, --chenamespace=chenamespace    Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
 
-  -n, --chenamespace=chenamespace                                          Eclipse Che Kubernetes namespace. Default to
-                                                                           'eclipse-che'
+  -y, --yes                          Automatic yes to prompts; assume "yes" as answer to all prompts and run
+                                     non-interactively
 
-  -y, --yes                                                                Automatic yes to prompts; assume "yes" as
-                                                                           answer to all prompts and run
-                                                                           non-interactively
+  --batch                            Batch mode. Running a command without end user interaction.
 
-  --batch                                                                  Batch mode. Running a command without end
-                                                                           user interaction.
+  --delete-namespace                 Indicates that a Eclipse Che namespace will be deleted as well
 
-  --delete-namespace                                                       Indicates that a Eclipse Che namespace will
-                                                                           be deleted as well
+  --deployment-name=deployment-name  [default: che] Eclipse Che deployment name
 
-  --deployment-name=deployment-name                                        [default: che] Eclipse Che deployment name
+  --skip-kubernetes-health-check     Skip Kubernetes health check
 
-  --dev-workspace-controller-namespace=dev-workspace-controller-namespace  [default: devworkspace-controller] Namespace
-                                                                           for the DevWorkspace controller.  This
-                                                                           parameter is used only when the workspace
-                                                                           engine is the DevWorkspace
-
-  --skip-kubernetes-health-check                                           Skip Kubernetes health check
-
-  --telemetry=on|off                                                       Enable or disable telemetry. This flag skips
-                                                                           a prompt and enable/disable telemetry
+  --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
 _See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/delete.ts)_
@@ -697,10 +686,6 @@ OPTIONS
 
   --deployment-name=deployment-name
       [default: che] Eclipse Che deployment name
-
-  --dev-workspace-controller-namespace=dev-workspace-controller-namespace
-      [default: devworkspace-controller] Namespace for the DevWorkspace controller.  This parameter is used only when the 
-      workspace engine is the DevWorkspace
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check

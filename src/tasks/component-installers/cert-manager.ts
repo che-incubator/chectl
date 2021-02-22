@@ -31,15 +31,15 @@ export class CertManagerTasks {
     this.cheHelper = new CheHelper(flags)
   }
   /**
-   * Verify if cert-manager it is installed in cluster
+   * Verify if cert-manager is installed in cluster
    */
-  verifyCertManagerDeployment(flags: any): ReadonlyArray<Listr.ListrTask> {
+  getDeployCertManagerTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Check Cert Manager deployment',
         task: async (ctx: any, task: any) => {
           // Check only one CRD of cert-manager assuming that it is installed or not.
-          ctx.certManagerInstalled = await this.kubeHelper.getNamespace(CERT_MANAGER_NAMESPACE_NAME) && await this.kubeHelper.crdExist('certificates.cert-manager.io')
+          ctx.certManagerInstalled = await this.kubeHelper.getNamespace(CERT_MANAGER_NAMESPACE_NAME) && await this.kubeHelper.isCrdV1Exists('certificates.cert-manager.io')
           if (ctx.certManagerInstalled) {
             task.title = `${task.title}...already deployed`
           } else {
@@ -85,9 +85,9 @@ export class CertManagerTasks {
     ]
   }
   /**
-   * Returns list of tasks which perform cert-manager checks and deploy and requests self-signed certificate for Che.
+   * Returns list of tasks which perform cert-manager checks and requests self-signed certificate for Che.
    */
-  getTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+  getGenerateCertificatesTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Check Cert Manager CA certificate',
