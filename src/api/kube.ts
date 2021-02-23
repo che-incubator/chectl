@@ -42,8 +42,7 @@ export class KubeHelper {
     this.podReadyTimeout = (flags && flags.k8spodreadytimeout) ? parseInt(flags.k8spodreadytimeout, 10) : DEFAULT_K8S_POD_WAIT_TIMEOUT
     this.podDownloadImageTimeout = (flags && flags.k8spoddownloadimagetimeout) ? parseInt(flags.k8spoddownloadimagetimeout, 10) : DEFAULT_K8S_POD_WAIT_TIMEOUT
     this.podErrorRecheckTimeout = (flags && flags.spoderrorrechecktimeout) ? parseInt(flags.spoderrorrechecktimeout, 10) : DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT
-    this.kubeConfig = new KubeConfig()
-    this.kubeConfig.loadFromDefault()
+    this.kubeConfig = KubeHelper.initializeKubeConfig()
   }
 
   static initializeKubeConfig(): KubeConfig {
