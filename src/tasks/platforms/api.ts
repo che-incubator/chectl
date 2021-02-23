@@ -23,7 +23,6 @@ export class ApiTasks {
     let kube = new KubeHelper(flags)
     return {
       title: 'Verify Kubernetes API',
-      skip: () => flags['skip-kubernetes-health-check'],
       task: async (ctx: any, task: any) => {
         try {
           cli.info(`› Current Kubernetes context: '${await kube.currentContext()}'`)
