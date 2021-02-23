@@ -24,7 +24,7 @@
     "debug": "^4.3.1",
     "eclipse-che": "git://github.com/eclipse/che#master",
     "eclipse-che-devfile-api": "git://github.com/devfile/api#v1alpha1",
-    "eclipse-che-devfile-workspace-operator": "git://github.com/devfile/devworkspace-operator#master",
+    "eclipse-che-devfile-workspace-operator": "git://github.com/devfile/devworkspace-operator#main",
     "eclipse-che-minishift": "git://github.com/minishift/minishift#master",
     "eclipse-che-operator": "git://github.com/eclipse/che-operator#master",
     "esprima": "^4.0.1",
