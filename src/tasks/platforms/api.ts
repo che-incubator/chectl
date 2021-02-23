@@ -27,7 +27,9 @@ export class ApiTasks {
       task: async (ctx: any, task: any) => {
         try {
           cli.info(`› Current Kubernetes context: '${await kube.currentContext()}'`)
-          await kube.checkKubeApi()
+          if (!flags['skip-kubernetes-health-check']) {
+            await kube.checkKubeApi()
+          }
           task.title = `${task.title}...OK`
           ctx.isOpenShift = await kube.isOpenShift()
           ctx.isOpenShift4 = await kube.isOpenShift4()

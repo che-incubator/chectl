@@ -12,10 +12,11 @@ import { Command, flags } from '@oclif/command'
 import { boolean } from '@oclif/command/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
+import Listr = require('listr')
 
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { assumeYes, batch, cheDeployment, cheNamespace, CHE_TELEMETRY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { assumeYes, batch, cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
@@ -32,7 +33,6 @@ export default class Delete extends Command {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     batch,
-    'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,
     'delete-namespace': boolean({
       description: 'Indicates that a Eclipse Che namespace will be deleted as well',
       default: false
@@ -63,6 +63,7 @@ export default class Delete extends Command {
     }
 
     const apiTasks = new ApiTasks()
+    const kube = new KubeHelper(flags)
     const helmTasks = new HelmTasks(flags)
     const operatorTasks = new OperatorTasks()
     const olmTasks = new OLMTasks()
@@ -70,14 +71,24 @@ export default class Delete extends Command {
     const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
     const tasks = new Listrq([], ctx.listrOptions)
-
     tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(operatorTasks.deleteTasks(flags))
     tasks.add(olmTasks.deleteTasks(flags))
     tasks.add(cheTasks.deleteTasks(flags))
-    tasks.add(devWorkspaceTasks.getUninstallTasks())
     tasks.add(helmTasks.deleteTasks(flags))
     tasks.add(cheTasks.waitPodsDeletedTasks())
+
+    // Remove devworkspace controller only if there are no more cheClusters after olm/operator tasks
+    tasks.add({
+      title: 'Uninstall DevWorkspace Controller',
+      task: async (_ctx: any, task: any) => {
+        const checlusters = await kube.getAllCheClusters()
+        if (checlusters.length === 0) {
+          return new Listr(devWorkspaceTasks.getUninstallTasks())
+        }
+        task.title = `${task.title}...Skipped: another Eclipse Che deployment found.`
+      }})
+
     if (flags['delete-namespace']) {
       tasks.add(cheTasks.deleteNamespace(flags))
     }

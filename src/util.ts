@@ -234,12 +234,19 @@ export async function downloadYaml(url: string): Promise<any> {
 }
 
 export function getEmbeddedTemplatesDirectory(): string {
-  if (__dirname.endsWith('src')) {
-    // Development version
-    return path.join(__dirname, '..', 'templates')
-  }
-  // Release (including nightly) version
-  return path.join(__dirname, '..', '..', '..', 'templates')
+  // Embedded templates are located in the templates directory that is in the project/installation root:
+  // chectl
+  //  |- templates
+  //  |- src
+  //  |   |- util.ts
+  //  |  ...
+  //  |- lib
+  //  |   |- util.js
+  // ... ...
+  // __dirname is
+  //   project_root/src if dev mode,
+  //   installation_root/lib if run from an installed location
+  return path.join(__dirname, '..', 'templates')
 }
 
 /**

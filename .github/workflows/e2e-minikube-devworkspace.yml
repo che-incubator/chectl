@@ -12,7 +12,7 @@ name: Minikube E2E
 on: pull_request
 jobs:
   minikube-e2e:
-    name: Operator installer
+    name: DevWorkspace Engine Deployment
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
@@ -22,8 +22,6 @@ jobs:
         minikube addons enable ingress
     - name: Install chectl dependencies
       run: yarn
-    - name: Run e2e tests minikube
+    - name: Run workspace-engine tests in minikube
       run: |
-        export PLATFORM=minikube
-        export INSTALLER=operator
-        yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
+        ./bin/run server:deploy --telemetry=off --workspace-engine=dev-workspace -p minikube

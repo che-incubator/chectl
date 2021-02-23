@@ -350,7 +350,7 @@ export default class Deploy extends Command {
       }
 
       if (semver.gt(minAllowedVersion, flags.version)) {
-        throw new Error(`This chectl version can deploy ${minAllowedVersion} version and higher, but ${flags.version} is provided. If you really need to deploy that old version, please download corresponding legacy chectl version.`)
+        throw new Error(`This chectl version can deploy version ${minAllowedVersion} and higher. If you need to deploy ${flags.version} or lower, download the corresponding legacy chectl version.`)
       }
     }
   }

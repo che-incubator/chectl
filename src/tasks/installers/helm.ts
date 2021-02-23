@@ -109,7 +109,11 @@ export class HelmTasks {
             task.title = `${task.title}...going to generate self-signed one`
 
             const certManagerTasks = new CertManagerTasks(flags)
-            return new Listr(certManagerTasks.getTasks(flags), ctx.listrOptions)
+            const certManagerListTasks = new Listr(undefined, ctx.listrOptions)
+            certManagerListTasks.add(certManagerTasks.getDeployCertManagerTasks(flags))
+            certManagerListTasks.add(certManagerTasks.getGenerateCertificatesTasks(flags))
+
+            return certManagerListTasks
           }
         }
       },

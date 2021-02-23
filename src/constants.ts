@@ -8,6 +8,9 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
+export const CHECTL_PROJECT_NAME = 'chectl'
+export const OPERATOR_TEMPLATE_DIR = 'che-operator'
+
 // minimal installable versions by current chectl
 export const MIN_OLM_INSTALLER_VERSION = '7.17.0'
 export const MIN_CHE_OPERATOR_INSTALLER_VERSION = '7.13.1'

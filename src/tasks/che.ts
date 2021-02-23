@@ -17,6 +17,7 @@ import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
 import { VersionHelper } from '../api/version'
 import { CHE_OPERATOR_SELECTOR, DOC_LINK, DOC_LINK_RELEASE_NOTES, OUTPUT_SEPARATOR } from '../constants'
+import { base64Decode } from '../util'
 
 import { KubeTasks } from './kube'
 
@@ -675,7 +676,20 @@ export class CheTasks {
 
           const cheUrl = await this.che.cheURL(flags.chenamespace)
           messages.push(`Users Dashboard           : ${cheUrl}`)
-          messages.push('Admin user login          : "admin:admin". NOTE: must change after first login.')
+
+          const cr = await this.kube.getCheCluster(flags.chenamespace)
+          if (ctx.isOpenShift && cr && cr.spec && cr.spec.auth && cr.spec.auth.openShiftoAuth) {
+            if (cr.status && cr.status.openShiftOAuthUserCredentialsSecret) {
+              const credentialsSecret = await this.kube.getSecret(cr.status.openShiftOAuthUserCredentialsSecret, flags.chenamespace)
+              if (credentialsSecret) {
+                const user = base64Decode(credentialsSecret.data!.user)
+                const password = base64Decode(credentialsSecret.data!.password)
+                messages.push(`HTPasswd user credentials : "${user}:${password}".`)
+              }
+            }
+          } else {
+            messages.push('Admin user login          : "admin:admin". NOTE: must change after first login.')
+          }
           messages.push(OUTPUT_SEPARATOR)
 
           const cheConfigMap = await this.kube.getConfigMap('che', flags.chenamespace)

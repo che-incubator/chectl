@@ -19,7 +19,7 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, username, USERNAME_KEY } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import { findWorkingNamespace, getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
+import { getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
 
 const REFRESH_TOKEN_KEY = 'refresh-token'
 const PASSWORD_KEY = 'password'
@@ -124,7 +124,6 @@ export default class Login extends Command {
       loginData = { username, password }
     } else {
       const kube = new KubeHelper(flags)
-      flags.chenamespace = await findWorkingNamespace(flags)
 
       // User is logged into cluster with oc or kubectl
       // Try to retrieve oc user token

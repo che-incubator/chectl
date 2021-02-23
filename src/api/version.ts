@@ -16,6 +16,7 @@ import Listr = require('listr')
 import * as path from 'path'
 import * as semver from 'semver'
 
+import { CHECTL_PROJECT_NAME } from '../constants'
 import { CheTasks } from '../tasks/che'
 import { getClusterClientCommand, getProjectName, getProjectVersion } from '../util'
 
@@ -136,7 +137,7 @@ export namespace VersionHelper {
   }
 
   export function getMinimalVersionError(actualVersion: string, minimalVersion: string, component: string): Error {
-    return new Error(`The minimal supported version of ${component} is '${minimalVersion} but found '${actualVersion}'. To bypass version check use '--skip-version-check' flag.`)
+    return new Error(`The minimal supported version of ${component} is '${minimalVersion} but '${actualVersion}' was found. To bypass version check use '--skip-version-check' flag.`)
   }
 
   async function getVersionWithOC(versionPrefix: string): Promise<string | undefined> {
@@ -184,7 +185,7 @@ export namespace VersionHelper {
    * Returns latest chectl version for the given channel.
    */
   export async function getLatestChectlVersion(channel: string): Promise<string | undefined> {
-    if (getProjectName() !== 'chectl') {
+    if (getProjectName() !== CHECTL_PROJECT_NAME) {
       return
     }
 
@@ -206,7 +207,7 @@ export namespace VersionHelper {
   export async function isChectlUpdateAvailable(cacheDir: string, forceRecheck = false): Promise<boolean> {
     // Do not use ctx inside this function as the function is used from hook where ctx is not yet defined.
 
-    if (getProjectName() !== 'chectl') {
+    if (getProjectName() !== CHECTL_PROJECT_NAME) {
       // Do nothing for chectl flavors
       return false
     }
@@ -224,7 +225,11 @@ export namespace VersionHelper {
       lastCheck: 0,
     }
     if (await fs.pathExists(newVersionInfoFilePath)) {
-      newVersionInfo = (await fs.readJson(newVersionInfoFilePath, { encoding: 'utf8' })) as NewVersionInfoData
+      try {
+        newVersionInfo = (await fs.readJson(newVersionInfoFilePath, { encoding: 'utf8' })) as NewVersionInfoData
+      } catch {
+        // file is corrupted
+      }
     }
 
     // Check cache, if it is already known that newer version available
@@ -244,9 +249,9 @@ export namespace VersionHelper {
     return isCachedNewerVersionAvailable
   }
 
- /**
-  * Indicates if stable version of Eclipse Che is specified or meant implicitly.
-  */
+  /**
+   * Indicates if stable version of Eclipse Che is specified or meant implicitly.
+   */
   export function isDeployingStableVersion(flags: any): boolean {
     return !!flags.version || !ChectlContext.get().isNightly
   }
