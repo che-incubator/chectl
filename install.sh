@@ -248,8 +248,10 @@ IFS=$'\n'
 PRE_DEFINED=()
 COUNTER=0
 for f in $(declare -F); do
-  PRE_DEFINED[${COUNTER}]="${f:12}"
-  COUNTER=$((COUNTER+1))
+  if [[ ${f} == "declare -fx"* ]];then
+    PRE_DEFINED[${COUNTER}]="${f:12}"
+    COUNTER=$((COUNTER+1))
+  fi
 done
 FUNC=$(declare -f "${PRE_DEFINED[@]}")
 ${SUDO} bash -c "${FUNC}; CURRENT_DIR=$(pwd) INSTALL_LOG_FILE=\"${CURRENT_DIR}/chectl-install.log\" CHANNEL=\"${CHANNEL}\" chectl_install"
