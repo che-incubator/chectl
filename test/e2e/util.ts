@@ -25,6 +25,8 @@ interface WorkspaceInfo {
 
 const binChectl = `${process.cwd()}/bin/run`
 
+export const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml'
+
 //Utilities to help e2e tests
 export class E2eHelper {
   protected kubeHelper: KubeHelper
@@ -83,6 +85,20 @@ export class E2eHelper {
     }
 
     return workspaceStatus
+  }
+
+  async waitWorkspaceStatus(status: string, timeoutMs: number): Promise<boolean> {
+    const delayMs = 1000 * 5
+
+    let totalTimeMs = 0
+    while (totalTimeMs < timeoutMs) {
+      if (await this.getWorkspaceStatus() === status) {
+        return true
+      }
+      await this.sleep(delayMs)
+      totalTimeMs += delayMs
+    }
+    return false
   }
 
   //Return a route from Openshift adding protocol
