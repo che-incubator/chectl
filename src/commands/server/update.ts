@@ -361,5 +361,4 @@ export default class Update extends Command {
   private getWrongVersionMessage(current: string, minimal: string): string {
     return `This chectl version can deploy ${minimal} version and higher, but ${current} is provided. If you really need to deploy that old version, please download corresponding legacy chectl version.`
   }
-
 }

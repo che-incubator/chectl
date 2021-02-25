@@ -17,7 +17,6 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import { findWorkingNamespace } from '../../util'
 
 export default class Delete extends Command {
   static description = 'Delete a stopped workspace - use workspace:stop to stop the workspace before deleting it'
@@ -44,7 +43,6 @@ export default class Delete extends Command {
 
   async run() {
     const { flags, args } = this.parse(Delete)
-    flags.chenamespace = await findWorkingNamespace(flags)
     await ChectlContext.init(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Delete.id, flags })

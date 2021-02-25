@@ -439,7 +439,7 @@ export default class Deploy extends Command {
    * Sets default installer which is `olm` for OpenShift 4 with stable version of chectl
    * and `operator` for other cases.
    */
-  async setDefaultInstaller(flags: any, ctx: any): Promise<void> {
+  async setDefaultInstaller(flags: any, _ctx: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
 
     const isOlmPreinstalled = await kubeHelper.isPreInstalledOLM()
@@ -448,7 +448,7 @@ export default class Deploy extends Command {
       return
     }
 
-    if (flags.platform === 'openshift' && ctx.isOpenShift4 && isOlmPreinstalled) {
+    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isOlmPreinstalled) {
       flags.installer = 'olm'
     } else {
       flags.installer = 'operator'

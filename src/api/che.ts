@@ -28,7 +28,6 @@ import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME, OPERATOR_TEMPLATE_D
 import { base64Decode, downloadFile } from '../util'
 
 import { CheApiClient } from './che-api-client'
-import { ChectlContext } from './context'
 import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
 
@@ -56,7 +55,7 @@ export class CheHelper {
    * or if workspace ID wasn't specified but more than one workspace is found.
    */
   async getWorkspacePodName(namespace: string, cheWorkspaceId: string): Promise<string> {
-    const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
+    const k8sApi = this.kube.kubeConfig.makeApiClient(CoreV1Api)
 
     const res = await k8sApi.listNamespacedPod(namespace)
     const pods = res.body.items
@@ -80,7 +79,7 @@ export class CheHelper {
   }
 
   async getWorkspacePodContainers(namespace: string, cheWorkspaceId?: string): Promise<string[]> {
-    const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
+    const k8sApi = this.kube.kubeConfig.makeApiClient(CoreV1Api)
 
     const res = await k8sApi.listNamespacedPod(namespace)
     const pods = res.body.items
@@ -108,8 +107,7 @@ export class CheHelper {
       throw new Error(`ERR_NAMESPACE_NO_EXIST - No namespace ${namespace} is found`)
     }
 
-    const ctx = ChectlContext.get()
-    if (ctx.isOpenShift) {
+    if (await this.kube.isOpenShift()) {
       return this.cheOpenShiftURL(namespace)
     } else {
       return this.cheK8sURL(namespace)
@@ -127,8 +125,7 @@ export class CheHelper {
     }
 
     // grab URL
-    const ctx = ChectlContext.get()
-    if (ctx.isOpenShift) {
+    if (await this.kube.isOpenShift()) {
       return this.chePluginRegistryOpenShiftURL(namespace)
     } else {
       return this.chePluginRegistryK8sURL(namespace)
@@ -391,7 +388,7 @@ export class CheHelper {
   async watchNamespacedPods(namespace: string, podLabelSelector: string | undefined, directory: string): Promise<void> {
     const processedContainers = new Map<string, Set<string>>()
 
-    const watcher = new Watch(KubeHelper.KUBE_CONFIG)
+    const watcher = new Watch(this.kube.kubeConfig)
     return watcher.watch(`/api/v1/namespaces/${namespace}/pods`, {},
       async (_phase: string, obj: any) => {
         const pod = obj as V1Pod

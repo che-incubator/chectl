@@ -17,7 +17,6 @@ import { CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, LOG_DIRECTORY
 import { CHECTL_PROJECT_NAME } from '../constants'
 import { getProjectName, getProjectVersion, readCRFile } from '../util'
 
-import { KubeHelper } from './kube'
 import { CHECTL_DEVELOPMENT_VERSION } from './version'
 
 /**
@@ -42,10 +41,6 @@ export namespace ChectlContext {
   const ctx: any = {}
 
   export async function init(flags: any, command: Command): Promise<void> {
-    const kube = new KubeHelper(flags)
-    ctx[IS_OPENSHIFT] = await kube.isOpenShift()
-    ctx[IS_OPENSHIFT4] = await kube.isOpenShift4()
-
     ctx.isChectl = getProjectName() === CHECTL_PROJECT_NAME
     ctx.isNightly = getProjectVersion().includes('next') || getProjectVersion() === CHECTL_DEVELOPMENT_VERSION
 

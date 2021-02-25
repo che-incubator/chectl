@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 import { Command } from '@oclif/command'
+import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 
 import { KubeHelper } from '../../api/kube'
@@ -22,11 +23,15 @@ export class ApiTasks {
     let kube = new KubeHelper(flags)
     return {
       title: 'Verify Kubernetes API',
-      skip: () => flags['skip-kubernetes-health-check'],
       task: async (ctx: any, task: any) => {
         try {
-          await kube.checkKubeApi()
+          cli.info(`› Current Kubernetes context: '${await kube.currentContext()}'`)
+          if (!flags['skip-kubernetes-health-check']) {
+            await kube.checkKubeApi()
+          }
           task.title = `${task.title}...OK`
+          ctx.isOpenShift = await kube.isOpenShift()
+          ctx.isOpenShift4 = await kube.isOpenShift4()
 
           if (ctx.isOpenShift) {
             task.title = `${task.title} (it's OpenShift)`

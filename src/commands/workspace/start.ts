@@ -17,7 +17,6 @@ import { getLoginData } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import { findWorkingNamespace } from '../../util'
 
 export default class Start extends Command {
   static description = 'Starts a workspace'
@@ -46,7 +45,6 @@ export default class Start extends Command {
 
   async run() {
     const { flags, args } = this.parse(Start)
-    flags.chenamespace = await findWorkingNamespace(flags)
     await ChectlContext.init(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Start.id, flags })

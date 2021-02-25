@@ -32,7 +32,7 @@ export default class Status extends Command {
   async run() {
     const { flags } = this.parse(Status)
     flags.chenamespace = await findWorkingNamespace(flags)
-    const ctx = await ChectlContext.initAndGet(flags, this)
+    await ChectlContext.init(flags, this)
 
     const kube = new KubeHelper(flags)
     const che = new CheHelper(flags)
@@ -40,7 +40,7 @@ export default class Status extends Command {
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Status.id, flags })
     const cr = await kube.getCheCluster(flags.chenamespace)
-    if (ctx.isOpenShift && cr && cr.spec && cr.spec.auth && cr.spec.auth.openShiftoAuth) {
+    if (cr && cr.spec && cr.spec.auth && cr.spec.auth.openShiftoAuth && await kube.isOpenShift()) {
       openshiftOauth = 'Yes'
     }
 

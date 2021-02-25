@@ -52,6 +52,7 @@ export default class Delete extends Command {
   async run() {
     const { flags } = this.parse(Delete)
     const ctx = await ChectlContext.initAndGet(flags, this)
+
     flags.chenamespace = await findWorkingNamespace(flags)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Delete.id, flags })
@@ -108,7 +109,9 @@ export default class Delete extends Command {
   }
 
   async isDeletionConfirmed(flags: any): Promise<boolean> {
-    const cluster = KubeHelper.KUBE_CONFIG.getCurrentCluster()
+    const kc = new KubeHelper(flags)
+    const cluster = kc.kubeConfig.getCurrentCluster()
+
     if (!cluster) {
       throw new Error('Failed to get current Kubernetes cluster. Check if the current context is set via kubectl/oc')
     }

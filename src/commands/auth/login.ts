@@ -16,9 +16,10 @@ import * as execa from 'execa'
 import { CheApiClient } from '../../api/che-api-client'
 import { CheServerLoginManager, getCheApiEndpoint, LoginRecord } from '../../api/che-login-manager'
 import { ChectlContext } from '../../api/context'
+import { KubeHelper } from '../../api/kube'
 import { cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, username, USERNAME_KEY } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import { findWorkingNamespace, getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
+import { getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
 
 const REFRESH_TOKEN_KEY = 'refresh-token'
 const PASSWORD_KEY = 'password'
@@ -68,8 +69,7 @@ export default class Login extends Command {
 
   async run() {
     const { args, flags } = this.parse(Login)
-    flags.chenamespace = await findWorkingNamespace(flags)
-    const ctx = await ChectlContext.initAndGet(flags, this)
+    await ChectlContext.init(flags, this)
 
     // Not recommended to track user and password in telemetry
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Login.id, flags })
@@ -122,24 +122,12 @@ export default class Login extends Command {
       }
 
       loginData = { username, password }
-    } else if (!ctx.isOpenShift) {
-      const username = await cli.prompt(`Username on ${cheApiEndpoint}`)
-      if (!username) {
-        throw new Error('Username is required')
-      }
-
-      const password = await cli.prompt(`Password for ${username} on ${cheApiEndpoint}`, { type: 'hide' })
-      if (!password) {
-        throw new Error('Password is required')
-      }
-      loginData = { username, password }
     } else {
-      // Try to login via oc login credentials
-      // Check for oc command and oc login credentials
-      const stdout = (await execa(OPENSHIFT_CLI, ['status'], { timeout: 10000 })).stdout
-      if (stdout.startsWith('In project')) {
-        // User is logged into cluster with oc or kubectl
-        // Try to retrieve oc user token
+      const kube = new KubeHelper(flags)
+
+      // User is logged into cluster with oc or kubectl
+      // Try to retrieve oc user token
+      if (await kube.isOpenShift()) {
         let ocUserToken: string
         const getUserTokenArgs = ['whoami', '--show-token']
         try {
@@ -149,9 +137,19 @@ export default class Login extends Command {
           throw new Error(`No credentials provided. Please provide "--${REFRESH_TOKEN_KEY}" or "--${USERNAME_KEY}" parameter`)
         }
 
-        const subjectIssuer = (await ctx.isOpenShift4) ? 'openshift-v4' : 'openshift-v3'
+        const subjectIssuer = (await kube.isOpenShift4()) ? 'openshift-v4' : 'openshift-v3'
 
         loginData = { subjectToken: ocUserToken, subjectIssuer }
+      } else {
+        const username = await cli.prompt(`Username on ${cheApiEndpoint}`)
+        if (!username) {
+          throw new Error('Username is required')
+        }
+        const password = await cli.prompt(`Password for ${username} on ${cheApiEndpoint}`, { type: 'hide' })
+        if (!password) {
+          throw new Error('Password is required')
+        }
+        loginData = { username, password }
       }
     }
 
