@@ -26,11 +26,12 @@ jobs:
       run: |
         # Will unpack chectl binaries in $HOME/chectl
         tar -xvf dist/channels/*/chectl-linux-x64.tar.gz -C $HOME
+        rm -rf tmp/
     - name: Run e2e tests minikube
       run: |
         export PLATFORM=minikube
         export ASSEMBLY_MODE=on
         export INSTALLER=operator
 
-        alias chectl=$HOME/chectl/bin/run
+        PATH=$PATH:$HOME/chectl/bin/chectl
         yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
