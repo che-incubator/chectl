@@ -8,7 +8,7 @@
 #
 #  Contributors:
 #    Red Hat, Inc. - initial API and implementation
-name: Minikube
+name: Minikube E2E
 on: pull_request
 jobs:
   minikube-e2e-update:
