@@ -1,0 +1,29 @@
+#
+#  Copyright (c) 2021 Red Hat, Inc.
+#    This program and the accompanying materials are made
+#    available under the terms of the Eclipse Public License 2.0
+#    which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+#  SPDX-License-Identifier: EPL-2.0
+#
+#  Contributors:
+#    Red Hat, Inc. - initial API and implementation
+name: Minikube E2E
+on: pull_request
+jobs:
+  minikube-e2e-update:
+    name: e2e update tests
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: Provision minikube cluster
+      run: |
+        minikube start --memory=6000
+        minikube addons enable ingress
+    - name: Install chectl dependencies
+      run: yarn
+    - name: Run e2e update tests minikube
+      run: |
+        export PLATFORM=minikube
+        export INSTALLER=operator
+        yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e-upgrade.test.ts

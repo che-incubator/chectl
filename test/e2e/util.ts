@@ -25,6 +25,11 @@ interface WorkspaceInfo {
 
 const binChectl = `${process.cwd()}/bin/run`
 
+export const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml'
+
+export const NAMESPACE = 'eclipse-che'
+export const NIGHTLY = 'nightly'
+
 //Utilities to help e2e tests
 export class E2eHelper {
   protected kubeHelper: KubeHelper
@@ -38,6 +43,28 @@ export class E2eHelper {
     // generate-name from https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml
     this.devfileName = 'quarkus-'
     this.oc = new OpenShiftHelper()
+  }
+
+  async runCliCommand(command: string, args?: string[], printOutput = true): Promise<string> {
+    if (printOutput) {
+      // tslint:disable-next-line: no-console
+      console.log(`Running command: ${command} ${args ? args.join(' ') : ''}`)
+    }
+
+    const { exitCode, stdout, stderr } = await execa(command, args, { shell: true })
+
+    if (printOutput) {
+      // tslint:disable-next-line: no-console
+      console.log(stdout)
+      if (exitCode !== 0) {
+        // tslint:disable-next-line: no-console
+        console.log(stderr)
+      }
+    }
+
+    expect(exitCode).toEqual(0)
+
+    return stdout
   }
 
   // Return an array with all user workspaces
@@ -85,6 +112,20 @@ export class E2eHelper {
     return workspaceStatus
   }
 
+  async waitWorkspaceStatus(status: string, timeoutMs: number): Promise<boolean> {
+    const delayMs = 1000 * 5
+
+    let totalTimeMs = 0
+    while (totalTimeMs < timeoutMs) {
+      if (await this.getWorkspaceStatus() === status) {
+        return true
+      }
+      await this.sleep(delayMs)
+      totalTimeMs += delayMs
+    }
+    return false
+  }
+
   //Return a route from Openshift adding protocol
   async OCHostname(ingressName: string, namespace: string): Promise<string> {
     if (await this.oc.routeExist(ingressName, namespace)) {
@@ -112,4 +153,40 @@ export class E2eHelper {
     // tslint:disable-next-line no-string-based-set-timeout
     return new Promise(resolve => setTimeout(resolve, ms))
   }
+
+  async waitForVersionInCheCR(version: string, timeoutMs: number): Promise<void> {
+    const delayMs = 5 * 1000
+
+    let totalTimeMs = 0
+    while (totalTimeMs < timeoutMs) {
+      const cheCR = await this.kubeHelper.getCheCluster(NAMESPACE)
+      if (cheCR && cheCR.status && cheCR.status.cheVersion === version) {
+        return
+      }
+      await this.sleep(delayMs)
+      totalTimeMs += delayMs
+    }
+    throw new Error(`Che CR version ${version} has not appeared in ${timeoutMs / 1000}s`)
+  }
+
+  async waitForCheServerImageTag(tag: string, timeoutMs: number): Promise<void> {
+    const delayMs = 5 * 1000
+    const chePodNameRegExp = new RegExp('che-[0-9a-f]+-.*')
+
+    let totalTimeMs = 0
+    while (totalTimeMs < timeoutMs) {
+      const pods = (await this.kubeHelper.listNamespacedPod(NAMESPACE)).items
+      const pod = pods.find((pod => pod.metadata && pod.metadata.name && pod.metadata.name.match(chePodNameRegExp)))
+      if (pod && pod.status && pod.status.containerStatuses && pod.status.containerStatuses[0].image) {
+        const imageTag = pod.status.containerStatuses[0].image.split(':')[1]
+        if (imageTag === tag) {
+          return
+        }
+      }
+      await this.sleep(delayMs)
+      totalTimeMs += delayMs
+    }
+    throw new Error(`Che server image tag ${tag} has not appeared in ${timeoutMs / 1000}s `)
+  }
+
 }
