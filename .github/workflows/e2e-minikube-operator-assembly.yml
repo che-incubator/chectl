@@ -1,0 +1,36 @@
+#
+#  Copyright (c) 2012-2020 Red Hat, Inc.
+#    This program and the accompanying materials are made
+#    available under the terms of the Eclipse Public License 2.0
+#    which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+#  SPDX-License-Identifier: EPL-2.0
+#
+#  Contributors:
+#    Red Hat, Inc. - initial API and implementation
+name: Minikube E2E
+on: pull_request
+jobs:
+  minikube-e2e:
+    name: Operator installer Assembly Mode
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: Provision minikube cluster
+      run: |
+        minikube start --memory=6000
+        minikube addons enable ingress
+    - name: Pack chectl binaries
+      run: npx oclif-dev pack --targets=linux-x64
+    - name: UnPack chectl binaries in $HOME/chectl
+      run: |
+        # Will unpack chectl binaries in $HOME/chectl
+        tar -xvf dist/channels/*/chectl-linux-x64.tar.gz -C $HOME
+    - name: Run e2e tests minikube
+      run: |
+        export PLATFORM=minikube
+        export ASSEMBLY_MODE=on
+        export INSTALLER=operator
+
+        alias chectl=$HOME/chectl/bin/run
+        yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
