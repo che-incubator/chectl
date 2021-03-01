@@ -21,7 +21,7 @@ jobs:
         minikube start --memory=6000
         minikube addons enable ingress
     - name: Pack chectl binaries
-      run: npx oclif-dev pack --targets=linux-x64
+      run: yarn && npx oclif-dev pack --targets=linux-x64
     - name: UnPack chectl binaries in $HOME/chectl
       run: |
         # Will unpack chectl binaries in $HOME/chectl
