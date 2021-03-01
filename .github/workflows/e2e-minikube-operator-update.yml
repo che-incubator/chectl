@@ -8,11 +8,11 @@
 #
 #  Contributors:
 #    Red Hat, Inc. - initial API and implementation
-name: Minikube E2E Che update
+name: Minikube
 on: pull_request
 jobs:
   minikube-e2e-update:
-    name: Operator installer update
+    name: e2e update tests
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
