@@ -24,11 +24,10 @@ export const hook = async (options: { command: string, flags: any, config: IConf
   try {
     const configManager = ConfigManager.getInstance()
     let segmentTelemetry = configManager.getProperty(SegmentProperties.Telemetry)
-    let segmentId = configManager.getProperty(SegmentProperties.ID)
 
     // Prompt question if user allow chectl to collect data anonymous data.
     if (!options.flags.telemetry && !segmentTelemetry) {
-      const confirmed = await cli.confirm('Enable CLI usage data to be sent to Red Hat online services. [y/n]')
+      const confirmed = await cli.confirm('Enable CLI usage data to be sent to Red Hat online services. More info: https://developers.redhat.com/article/tool-data-collection [y/n]')
       segmentTelemetry = confirmed ? 'on' : 'off'
       configManager.setProperty(SegmentProperties.Telemetry, segmentTelemetry)
     }
@@ -38,23 +37,17 @@ export const hook = async (options: { command: string, flags: any, config: IConf
       return
     }
 
-    // In case if segmentID was not generated, generate new one
-    if (!segmentId) {
-      segmentId = generateSegmentID()
-      configManager.setProperty(SegmentProperties.ID, segmentId)
-    }
+    const segmentId = SegmentAdapter.getAnonymousId()
 
     const segment = new SegmentAdapter({
       // tslint:disable-next-line:no-single-line-block-comment
       segmentWriteKey: /* @mangle */'INSERT-KEY-HERE' /* @/mangle */,
     }, segmentId)
+
+    await segment.identifySegmentEvent(segmentId)
     await segment.trackSegmentEvent(options)
 
   } catch {
     return this
   }
-}
-
-function generateSegmentID(): string {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 }

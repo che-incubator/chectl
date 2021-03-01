@@ -12,17 +12,20 @@ import axios from 'axios'
 import { cli } from 'cli-ux'
 import * as commandExists from 'command-exists'
 import * as fs from 'fs-extra'
+import * as getos from 'getos'
 import * as https from 'https'
 import * as yaml from 'js-yaml'
 import * as notifier from 'node-notifier'
+import * as os from 'os'
 import * as path from 'path'
-
-const pkjson = require('../package.json')
+import { promisify } from 'util'
 
 import { ChectlContext } from './api/context'
 import { KubeHelper } from './api/kube'
 import { VersionHelper } from './api/version'
 import { DEFAULT_CHE_NAMESPACE, LEGACY_CHE_NAMESPACE } from './constants'
+
+const pkjson = require('../package.json')
 
 export const KUBERNETES_CLI = 'kubectl'
 export const OPENSHIFT_CLI = 'oc'
@@ -271,4 +274,23 @@ export async function findWorkingNamespace(flags: any): Promise<string> {
   }
 
   return DEFAULT_CHE_NAMESPACE
+}
+
+export function getPlatform(): string {
+  const platform: string = os.platform()
+  if (platform.startsWith('win')) {
+    return 'Windows'
+  }
+  if (platform.startsWith('darwin')) {
+    return 'Mac'
+  }
+  return platform.charAt(0).toUpperCase() + platform.slice(1)
+}
+
+export async function getDistribution(): Promise<string | undefined> {
+  if (os.platform() === 'linux') {
+    const platorm = await promisify(getos)() as getos.LinuxOs
+    return platorm.dist
+  }
+  return
 }
