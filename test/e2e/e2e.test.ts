@@ -21,7 +21,7 @@ import { E2eHelper } from './util'
 const helper = new E2eHelper()
 jest.setTimeout(1000000)
 
-const binChectl = getChectlBin()
+const binChectl = getChectlBinaries()
 
 const NAMESPACE = DEFAULT_OLM_SUGGESTED_NAMESPACE
 
@@ -39,7 +39,7 @@ const INSTALLER_OLM = 'olm'
 
 const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml'
 
-function getChectlBin(): string {
+function getChectlBinaries(): string {
   if (process.env.ASSEMBLY_MODE === 'on') {
     return 'chectl'
   }
