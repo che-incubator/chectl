@@ -276,17 +276,6 @@ export async function findWorkingNamespace(flags: any): Promise<string> {
   return DEFAULT_CHE_NAMESPACE
 }
 
-export function getPlatform(): string {
-  const platform: string = os.platform()
-  if (platform.startsWith('win')) {
-    return 'Windows'
-  }
-  if (platform.startsWith('darwin')) {
-    return 'Mac'
-  }
-  return platform.charAt(0).toUpperCase() + platform.slice(1)
-}
-
 export async function getDistribution(): Promise<string | undefined> {
   if (os.platform() === 'linux') {
     const platorm = await promisify(getos)() as getos.LinuxOs

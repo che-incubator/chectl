@@ -7,6 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
+import { cli } from 'cli-ux'
 import { getTimezone } from 'countries-and-timezones'
 import * as fs from 'fs-extra'
 import { pick } from 'lodash'
@@ -15,7 +16,7 @@ import * as osLocale from 'os-locale'
 import * as path from 'path'
 import { v4 } from 'uuid'
 
-import { getDistribution, getPlatform, getProjectName, getProjectVersion } from '../../util'
+import { getDistribution, getProjectName, getProjectVersion } from '../../util'
 
 let Analytics = require('analytics-node')
 
@@ -49,21 +50,27 @@ export class SegmentAdapter {
 
   /**
    * Returns anonymous id to identify and track chectl events in segment
+   * Check if exists an anonymousId in file: $HOME/.redhat/anonymousId and if not generate new one in this location
    */
-  static getAnonymousId(): string {
+  static getAnonymousId(): string | undefined {
     const anonymousIdPath = path.join(os.homedir(), '.redhat', 'anonymousId')
+    try {
+      if (fs.existsSync(anonymousIdPath)) {
+        return fs.readFileSync(anonymousIdPath, 'utf8')
+      } else {
+        const anonymousId = v4()
+        if (!fs.existsSync(anonymousIdPath)) {
+          fs.mkdirSync(path.join(os.homedir(), '.redhat'))
+        }
 
-    if (fs.existsSync(anonymousIdPath)) {
-      return fs.readFileSync(anonymousIdPath, 'utf8')
-    } else {
-      const anonymousId = v4()
-      if (!fs.existsSync(anonymousIdPath)) {
-        fs.mkdirSync(path.join(os.homedir(), '.redhat'))
+        fs.writeFileSync(anonymousIdPath, anonymousId, { encoding: 'utf8' })
+
+        return anonymousId
       }
+    } catch (error) {
+      cli.debug(`Failed to generate anonymousId ${error}`)
 
-      fs.writeFileSync(anonymousIdPath, anonymousId, { encoding: 'utf8' })
-
-      return anonymousId
+      return
     }
   }
 
@@ -105,7 +112,7 @@ export class SegmentAdapter {
   private async getSegmentIdentifyTraits(): Promise<any> {
     return {
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      os_name: getPlatform(),
+      os_name: os.platform(),
       os_version: os.release(),
       os_distribution: await getDistribution(),
       locale: osLocale.sync().replace('_', '-')
@@ -125,7 +132,7 @@ export class SegmentAdapter {
         version: getProjectVersion()
       },
       os: {
-        name: getPlatform(),
+        name: os.platform(),
         version: os.release()
       },
       location: {

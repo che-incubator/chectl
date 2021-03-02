@@ -38,6 +38,10 @@ export const hook = async (options: { command: string, flags: any, config: IConf
     }
 
     const segmentId = SegmentAdapter.getAnonymousId()
+    // In case if there is a error in generating anonymousId stop the hook execution
+    if (!segmentId) {
+      return
+    }
 
     const segment = new SegmentAdapter({
       // tslint:disable-next-line:no-single-line-block-comment
