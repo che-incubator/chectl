@@ -171,7 +171,9 @@ export async function askForChectlUpdateIfNeeded(command: Command): Promise<void
   if (await VersionHelper.isChectlUpdateAvailable(ctx[ChectlContext.CACHE_DIR])) {
     cli.info('A newer version of chectl is available. To deploy the latest version of Eclipse Che you have to manually update chectl first.')
     if (await cli.confirm('Do you want to update chectl now [y/n]')) {
-      cli.info(`Please run "chectl update" and then repeat "${command.id}" command.`)
+      cli.info('Please update chectl and then repeat command again:')
+      cli.info('1. chectl update')
+      cli.info(`2. chectl ${command.id} ...`)
       cli.exit(0)
     }
   }
