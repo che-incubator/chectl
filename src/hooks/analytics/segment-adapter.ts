@@ -54,11 +54,11 @@ export class SegmentAdapter {
    */
   static getAnonymousId(): string | undefined {
     const anonymousIdPath = path.join(os.homedir(), '.redhat', 'anonymousId')
+    const anonymousId = v4()
     try {
       if (fs.existsSync(anonymousIdPath)) {
         return fs.readFileSync(anonymousIdPath, 'utf8')
       } else {
-        const anonymousId = v4()
         if (!fs.existsSync(anonymousIdPath)) {
           fs.mkdirSync(path.join(os.homedir(), '.redhat'))
         }
@@ -68,9 +68,7 @@ export class SegmentAdapter {
         return anonymousId
       }
     } catch (error) {
-      cli.debug(`Failed to generate anonymousId ${error}`)
-
-      return
+      cli.debug(`Failed to store anonymousId ${error}`)
     }
   }
 
