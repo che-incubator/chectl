@@ -82,7 +82,7 @@ export default class Update extends Command {
     const ctx = await ChectlContext.initAndGet(flags, this)
 
     if (!flags.batch && ctx.isChectl) {
-      await askForChectlUpdateIfNeeded()
+      await askForChectlUpdateIfNeeded(this)
     }
 
     await this.setDomainFlag(flags)

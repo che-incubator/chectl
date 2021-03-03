@@ -361,7 +361,7 @@ export default class Deploy extends Command {
     const ctx = await ChectlContext.initAndGet(flags, this)
 
     if (!flags.batch && ctx.isChectl) {
-      await askForChectlUpdateIfNeeded()
+      await askForChectlUpdateIfNeeded(this)
     }
 
     await this.setPlaformDefaults(flags, ctx)

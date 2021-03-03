@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
+import Command from '@oclif/command'
 import axios from 'axios'
 import { cli } from 'cli-ux'
 import * as commandExists from 'command-exists'
@@ -165,12 +166,12 @@ export function notifyCommandCompletedSuccessfully(): void {
   })
 }
 
-export async function askForChectlUpdateIfNeeded(): Promise<void> {
+export async function askForChectlUpdateIfNeeded(command: Command): Promise<void> {
   const ctx = ChectlContext.get()
   if (await VersionHelper.isChectlUpdateAvailable(ctx[ChectlContext.CACHE_DIR])) {
-    cli.info('A newer version of chectl is available.')
-    if (await cli.confirm('To deploy the latest version of Eclipse Che you have to update chectl first [y/n]')) {
-      cli.info('Please run "chectl update" and then repeat "server:deploy" command.')
+    cli.info('A newer version of chectl is available. To deploy the latest version of Eclipse Che you have to manually update chectl first.')
+    if (!await cli.confirm('Do you want to continue using older version now ? [y/n]')) {
+      cli.info(`Please run "chectl update" and then repeat "${command.id}" command.`)
       cli.exit(0)
     }
   }
