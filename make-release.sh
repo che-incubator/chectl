@@ -14,7 +14,7 @@ set -e
 set -u
 
 usage ()
-{   echo "Usage: ./make-release.sh -v <version> -dwo <devworkpace-oprator version>"
+{   echo "Usage: ./make-release.sh -v <version> -dwo <devworkpace-operator version>"
     exit
 }
 
