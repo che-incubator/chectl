@@ -70,7 +70,7 @@ release() {
   # Create VERSION file
   echo "$VERSION" > VERSION
 
-  # Get DevWorkspace operator comit sha (if version is not specified, use latest commit from main branch)
+  # Get DevWorkspace operator commit sha (if version is not specified, use latest commit from main branch)
   DWO_REF=${DWO_VERSION:-HEAD}
   SHA1_DEV_WORKSPACE_OPERATOR=$(git ls-remote https://github.com/devfile/devworkspace-operator ${DWO_REF} | cut -f1)
   SHORT_SHA1_DEV_WORKSPACE_OPERATOR=$(echo ${SHA1_DEV_WORKSPACE_OPERATOR} | cut -c1-7)
