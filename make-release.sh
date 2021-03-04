@@ -78,7 +78,11 @@ release() {
   # replace nightly versions by release version
   apply_sed "s#quay.io/eclipse/che-server:.*#quay.io/eclipse/che-server:${VERSION}'#g" src/constants.ts
   apply_sed "s#quay.io/eclipse/che-operator:.*#quay.io/eclipse/che-operator:${VERSION}'#g" src/constants.ts
-  apply_sed "s#quay.io/devfile/devworkspace-controller:.*#quay.io/devfile/devworkspace-controller:sha-${SHORT_SHA1_DEV_WORKSPACE_OPERATOR}'#g" src/constants.ts
+  if [[ -n "${DWO_VERSION}" ]]; then
+    apply_sed "s#quay.io/devfile/devworkspace-controller:.*#quay.io/devfile/devworkspace-controller:${DWO_VERSION}'#g" src/constants.ts
+  else
+    apply_sed "s#quay.io/devfile/devworkspace-controller:.*#quay.io/devfile/devworkspace-controller:sha-${SHORT_SHA1_DEV_WORKSPACE_OPERATOR}'#g" src/constants.ts
+  fi
 
   # now replace package.json dependencies
   apply_sed "s;github.com/eclipse/che#\(.*\)\",;github.com/eclipse/che#${VERSION}\",;g" package.json
