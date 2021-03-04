@@ -54,22 +54,21 @@ export class SegmentAdapter {
    */
   static getAnonymousId(): string | undefined {
     const anonymousIdPath = path.join(os.homedir(), '.redhat', 'anonymousId')
-    const anonymousId = v4()
+    let anonymousId = v4()
     try {
       if (fs.existsSync(anonymousIdPath)) {
-        return fs.readFileSync(anonymousIdPath, 'utf8')
+        anonymousId = fs.readFileSync(anonymousIdPath, 'utf8')
       } else {
         if (!fs.existsSync(anonymousIdPath)) {
           fs.mkdirSync(path.join(os.homedir(), '.redhat'))
         }
-
         fs.writeFileSync(anonymousIdPath, anonymousId, { encoding: 'utf8' })
-
-        return anonymousId
       }
     } catch (error) {
       cli.debug(`Failed to store anonymousId ${error}`)
     }
+
+    return anonymousId.trim()
   }
 
   /**
@@ -127,7 +126,6 @@ export class SegmentAdapter {
       locale: osLocale.sync().replace('_', '-'),
       app: {
         name: getProjectName(),
-        version: getProjectVersion()
       },
       os: {
         name: os.platform(),

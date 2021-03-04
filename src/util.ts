@@ -276,10 +276,17 @@ export async function findWorkingNamespace(flags: any): Promise<string> {
   return DEFAULT_CHE_NAMESPACE
 }
 
+/**
+ * Return linux distribution if chectl command is executed in linux
+ */
 export async function getDistribution(): Promise<string | undefined> {
   if (os.platform() === 'linux') {
-    const platorm = await promisify(getos)() as getos.LinuxOs
-    return platorm.dist
+    try {
+      const platorm = await promisify(getos)() as getos.LinuxOs
+      return platorm.dist
+    } catch {
+      return
+    }
   }
   return
 }
