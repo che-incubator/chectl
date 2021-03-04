@@ -14,7 +14,7 @@ set -e
 set -u
 
 usage ()
-{   echo "Usage: ./make-release.sh <version>"
+{   echo "Usage: ./make-release.sh -v <version> -dwo <devworkpace-oprator version>"
     exit
 }
 
@@ -23,6 +23,7 @@ if [[ $# -lt 1 ]]; then usage; fi
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     '-v'|'--version') VERSION="$2"; shift 1;;
+    '-dwo'|'--dwo-version') DWO_VERSION="$2"; shift 1;;
     '--help'|'-h') usage;;
   esac
   shift 1
@@ -69,8 +70,9 @@ release() {
   # Create VERSION file
   echo "$VERSION" > VERSION
 
-  # Get DevWorkspace operator latest commit
-  SHA1_DEV_WORKSPACE_OPERATOR=$(git ls-remote https://github.com/devfile/devworkspace-operator HEAD | cut -f1)
+  # Get DevWorkspace operator comit sha (if version is not specified, use latest commit from main branch)
+  DWO_REF=${DWO_VERSION:-HEAD}
+  SHA1_DEV_WORKSPACE_OPERATOR=$(git ls-remote https://github.com/devfile/devworkspace-operator ${DWO_REF} | cut -f1)
   SHORT_SHA1_DEV_WORKSPACE_OPERATOR=$(echo ${SHA1_DEV_WORKSPACE_OPERATOR} | cut -c1-7)
 
   # replace nightly versions by release version
