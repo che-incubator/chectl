@@ -71,23 +71,24 @@ release() {
   echo "$VERSION" > VERSION
 
   # Get DevWorkspace operator commit sha (if version is not specified, use latest commit from main branch)
-  DWO_REF=${DWO_VERSION:-HEAD}
-  SHA1_DEV_WORKSPACE_OPERATOR=$(git ls-remote https://github.com/devfile/devworkspace-operator ${DWO_REF} | cut -f1)
-  SHORT_SHA1_DEV_WORKSPACE_OPERATOR=$(echo ${SHA1_DEV_WORKSPACE_OPERATOR} | cut -c1-7)
+  if [[ -n "${DWO_VERSION}" ]]; then
+    DWO_QUAY_IMAGE_VERSION=${DWO_VERSION}
+    DWO_GIT_VERSION=${DWO_VERSION}
+  else
+    # Get DevWorkspace operator commit sha
+    DWO_QUAY_IMAGE_VERSION="sha-$(git ls-remote https://github.com/devfile/devworkspace-operator HEAD | cut -f1)"
+    DWO_GIT_VERSION=$(echo ${SHA1_DEV_WORKSPACE_OPERATOR} | cut -c1-7)
+  fi
 
   # replace nightly versions by release version
   apply_sed "s#quay.io/eclipse/che-server:.*#quay.io/eclipse/che-server:${VERSION}'#g" src/constants.ts
   apply_sed "s#quay.io/eclipse/che-operator:.*#quay.io/eclipse/che-operator:${VERSION}'#g" src/constants.ts
-  if [[ -n "${DWO_VERSION}" ]]; then
-    apply_sed "s#quay.io/devfile/devworkspace-controller:.*#quay.io/devfile/devworkspace-controller:${DWO_VERSION}'#g" src/constants.ts
-  else
-    apply_sed "s#quay.io/devfile/devworkspace-controller:.*#quay.io/devfile/devworkspace-controller:sha-${SHORT_SHA1_DEV_WORKSPACE_OPERATOR}'#g" src/constants.ts
-  fi
+  apply_sed "s#quay.io/devfile/devworkspace-controller:.*#quay.io/devfile/devworkspace-controller:${DWO_QUAY_IMAGE_VERSION}'#g" src/constants.ts
 
   # now replace package.json dependencies
   apply_sed "s;github.com/eclipse/che#\(.*\)\",;github.com/eclipse/che#${VERSION}\",;g" package.json
   apply_sed "s;github.com/eclipse/che-operator#\(.*\)\",;github.com/eclipse/che-operator#${VERSION}\",;g" package.json
-  apply_sed "s;git://github.com/devfile/devworkspace-operator#\(.*\)\",;git://github.com/devfile/devworkspace-operator#${SHA1_DEV_WORKSPACE_OPERATOR}\",;g" package.json
+  apply_sed "s;git://github.com/devfile/devworkspace-operator#\(.*\)\",;git://github.com/devfile/devworkspace-operator#${DWO_GIT_VERSION}\",;g" package.json
 
   # build
   yarn
