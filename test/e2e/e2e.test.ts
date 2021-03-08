@@ -172,15 +172,14 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
 
       const workspaceId = await helper.getWorkspaceId()
       const { exitCode, stdout, stderr, } = await execa(binChectl, ['workspace:start', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'], { shell: true })
-
       console.log(`stdout: ${stdout}`)
       console.log(`stderr: ${stderr}`)
       expect(exitCode).equal(0)
 
-      // Sleep time to wait to workspace to be running
-      await helper.sleep(300000)
-      const workspaceStatus = await helper.getWorkspaceStatus()
-      expect(workspaceStatus).to.contain('RUNNING')
+      // Wait for workspace start 7 minutes.
+      // NOTE: Put 7 minutes because in GH actions minikube cluster we have lower memory and workspace creation can take some time
+      const desiredStatus = await helper.waitWorkspaceStatus('RUNNING', 450000)
+      expect(desiredStatus).to.be.true
     })
   })
 

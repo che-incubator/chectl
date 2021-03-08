@@ -31,4 +31,4 @@ jobs:
       if: ${{ always() }}
       with:
         name: minikube-updates-artifacts
-        path: /tmp/logs
+        path: /tmp/logs/*
