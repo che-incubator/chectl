@@ -37,6 +37,8 @@ const INSTALLER_OPERATOR = 'operator'
 const INSTALLER_HELM = 'helm'
 const INSTALLER_OLM = 'olm'
 
+const LOGS_DIR = '/tmp/logs'
+
 const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml'
 
 function getChectlBinaries(): string {
@@ -246,6 +248,18 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
 
       const workspaceId = await helper.getWorkspaceId()
       const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:delete', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'], { shell: true })
+
+      console.log(`stdout: ${stdout}`)
+      console.log(`stderr: ${stderr}`)
+      expect(exitCode).equal(0)
+    })
+  })
+
+  describe('Get Eclipse Che server logs', () => {
+    it('server:stop command coverage', async () => {
+      console.log('>>> Testing server:logs command')
+
+      const { exitCode, stdout, stderr } = await execa(binChectl, ['server:logs', `-d ${LOGS_DIR}`, '--telemetry=off'], { shell: true })
 
       console.log(`stdout: ${stdout}`)
       console.log(`stderr: ${stderr}`)

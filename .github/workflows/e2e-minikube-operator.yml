@@ -27,3 +27,8 @@ jobs:
         export PLATFORM=minikube
         export INSTALLER=operator
         yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
+    - uses: actions/upload-artifact@v2
+      if: ${{ always() }}
+      with:
+        name: minikube-updates-artifacts
+        path: /tmp/logs
