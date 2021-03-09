@@ -24,6 +24,8 @@ jest.setTimeout(1000000)
 const binChectl = getChectlBinaries()
 
 const NAMESPACE = DEFAULT_OLM_SUGGESTED_NAMESPACE
+// Workspace created in admin-che
+const WORKSPACE_NAMESPACE = 'admin-che'
 
 const PLATFORM = process.env.PLATFORM || ''
 const INSTALLER = process.env.INSTALLER || ''
@@ -187,7 +189,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
     it('Testing workspace:logs command', async () => {
       console.log('>>> Testing workspace:logs command')
       const workspaceId = await helper.getWorkspaceId()
-      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:logs', `--workspace ${workspaceId}`, `-n ${NAMESPACE}`, `-d ${LOGS_DIR}`, '--telemetry=off'], { shell: true })
+      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:logs', `--workspace ${workspaceId}`, `-n ${WORKSPACE_NAMESPACE}`, `-d ${LOGS_DIR}`, '--telemetry=off'], { shell: true })
 
       console.log(`stdout: ${stdout}`)
       console.log(`stderr: ${stderr}`)

@@ -130,3 +130,9 @@ export const cheDeployVersion = string({
   description: 'Version to deploy (e.g. 7.15.2). Defaults to the same as chectl.',
   env: 'CHE_DEPLOY_VERSION',
 })
+
+export const FOLLOW_LOGS = boolean({
+  description: 'Indicate if logs should be streamed',
+  default: false,
+  required: false,
+})

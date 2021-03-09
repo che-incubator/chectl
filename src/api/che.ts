@@ -313,7 +313,7 @@ export class CheHelper {
   /**
    * Finds workspace pods and reads logs from it.
    */
-  async readWorkspacePodLog(namespace: string, workspaceId: string, directory: string): Promise<boolean> {
+  async readWorkspacePodLog(namespace: string, workspaceId: string, directory: string, follow: boolean): Promise<boolean> {
     const podLabelSelector = `che.workspace_id=${workspaceId}`
 
     let workspaceIsRun = false
@@ -329,7 +329,6 @@ export class CheHelper {
       }
     }
 
-    const follow = !workspaceIsRun
     await this.readPodLog(namespace, podLabelSelector, directory, follow)
     await this.readNamespaceEvents(namespace, directory, follow)
 
