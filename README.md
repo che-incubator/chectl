@@ -937,6 +937,8 @@ OPTIONS
 
   -w, --workspace=workspace       (required) Target workspace id. Can be found in workspace configuration 'id' field.
 
+  --follow                        Indicate if logs should be streamed
+
   --skip-kubernetes-health-check  Skip Kubernetes health check
 
   --telemetry=on|off              Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry

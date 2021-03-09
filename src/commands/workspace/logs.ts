@@ -15,7 +15,7 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
-import { CHE_TELEMETRY, skipKubeHealthzCheck, FOLLOW_LOGS } from '../../common-flags'
+import { CHE_TELEMETRY, FOLLOW_LOGS, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
 export default class Logs extends Command {
@@ -51,16 +51,8 @@ export default class Logs extends Command {
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logs.id, flags })
     const cheHelper = new CheHelper(flags)
-    const workspaceRun = await cheHelper.readWorkspacePodLog(flags.namespace, flags.workspace, logsDirectory, flags.follow)
-    try {
-      this.log(`Workspace logs will be available in '${logsDirectory}'`)
+    await cheHelper.readWorkspacePodLog(flags.namespace, flags.workspace, logsDirectory, flags.follow)
 
-      if (!workspaceRun) {
-        this.log(`Workspace ${flags.workspace} hasn't been started yet.`)
-      }
-    } catch (error) {
-      this.error(error)
-    }
-
+    this.log(`Workspace logs will be available in '${logsDirectory}'`)
   }
 }

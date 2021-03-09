@@ -39,5 +39,5 @@ jobs:
     - uses: actions/upload-artifact@v2
       if: ${{ always() }}
       with:
-        name: chectl-assembly-installer
+        name: test-artifacts
         path: /tmp/logs/*

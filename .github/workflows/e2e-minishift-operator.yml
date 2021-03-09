@@ -79,5 +79,5 @@ jobs:
     - uses: actions/upload-artifact@v2
       if: ${{ always() }}
       with:
-        name: chectl-operator-installer-artifacts
+        name: test-artifacts
         path: /tmp/logs/*

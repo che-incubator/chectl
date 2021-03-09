@@ -20,6 +20,9 @@ import { DEVFILE_URL, E2eHelper, NAMESPACE, NIGHTLY } from './util'
 const helper = new E2eHelper()
 jest.setTimeout(1000000)
 
+const WORKSPACE_NAMESPACE = 'admin-che'
+const LOGS_DIR = '/tmp/logs'
+
 const binChectl = `${process.cwd()}/bin/run`
 
 const PLATFORM = process.env.PLATFORM || 'minikube'
@@ -56,6 +59,9 @@ describe('Test Che upgrade', () => {
       // Start
       await helper.runCliCommand(binChectl, ['workspace:start', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'])
       await helper.waitWorkspaceStatus('RUNNING', WORKSPACE_START_TIMEOUT_MS)
+
+      // Logs
+      await helper.runCliCommand(binChectl, ['workspace:logs', `-w ${workspaceId}`, `-n ${WORKSPACE_NAMESPACE}`, `-d ${LOGS_DIR}`, '--telemetry=off'])
 
       // Stop
       await helper.runCliCommand(binChectl, ['workspace:stop', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'])
