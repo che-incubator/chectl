@@ -183,6 +183,18 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
     })
   })
 
+  describe('Get workspace logs', () => {
+    it('Testing workspace:logs command', async () => {
+      console.log('>>> Testing workspace:logs command')
+      const workspaceId = await helper.getWorkspaceId()
+      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:logs', `--workspace ${workspaceId}`, `-n ${NAMESPACE}`, `-d ${LOGS_DIR}`, '--telemetry=off'], { shell: true })
+
+      console.log(`stdout: ${stdout}`)
+      console.log(`stderr: ${stderr}`)
+      expect(exitCode).equal(0)
+    })
+  })
+
   describe('Inject kubeconfig to workspaces', () => {
     it('Testing workspace:inject command', async () => {
       console.log('>>> Testing workspace:inject command')
@@ -255,7 +267,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
   })
 
   describe('Get Eclipse Che server logs', () => {
-    it('server:stop command coverage', async () => {
+    it('Testing server:logs command', async () => {
       console.log('>>> Testing server:logs command')
 
       const { exitCode, stdout, stderr } = await execa(binChectl, ['server:logs', `-d ${LOGS_DIR}`, '--telemetry=off'], { shell: true })

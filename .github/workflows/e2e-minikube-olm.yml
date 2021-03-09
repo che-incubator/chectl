@@ -32,5 +32,5 @@ jobs:
     - uses: actions/upload-artifact@v2
       if: ${{ always() }}
       with:
-        name: minikube-updates-artifacts
+        name: chectl-olm-installer-artifacts
         path: /tmp/logs/*
