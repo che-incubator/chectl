@@ -45,5 +45,5 @@ jobs:
       - uses: actions/upload-artifact@v2
         if: ${{ always() }}
         with:
-          name: happy-path-artifacts
+          name: test-artifacts
           path: che/tests/e2e/report

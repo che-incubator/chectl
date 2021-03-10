@@ -313,27 +313,11 @@ export class CheHelper {
   /**
    * Finds workspace pods and reads logs from it.
    */
-  async readWorkspacePodLog(namespace: string, workspaceId: string, directory: string): Promise<boolean> {
+  async readWorkspacePodLog(namespace: string, workspaceId: string, directory: string, follow: boolean): Promise<void> {
     const podLabelSelector = `che.workspace_id=${workspaceId}`
 
-    let workspaceIsRun = false
-
-    const pods = await this.kube.listNamespacedPod(namespace, undefined, podLabelSelector)
-    if (pods.items.length) {
-      workspaceIsRun = true
-    }
-
-    for (const pod of pods.items) {
-      for (const containerStatus of pod.status!.containerStatuses!) {
-        workspaceIsRun = workspaceIsRun && !!containerStatus.state && !!containerStatus.state.running
-      }
-    }
-
-    const follow = !workspaceIsRun
     await this.readPodLog(namespace, podLabelSelector, directory, follow)
     await this.readNamespaceEvents(namespace, directory, follow)
-
-    return workspaceIsRun
   }
 
   /**
