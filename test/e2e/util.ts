@@ -124,12 +124,9 @@ export class E2eHelper {
 
   async waitWorkspaceStatus(status: string, timeoutMs: number): Promise<boolean> {
     const delayMs = 1000 * 5
-    const workspaceId = await this.getWorkspaceId()
 
     let totalTimeMs = 0
     while (totalTimeMs < timeoutMs) {
-      this.runCliCommand(E2eHelper.getChectlBinaries(), ['workspace:logs', `--workspace ${workspaceId}`, `-n ${WORKSPACE_NAMESPACE}`, `-d ${LOGS_DIR}`, '--telemetry=off'])
-
       if (await this.getWorkspaceStatus() === status) {
         return true
       }

@@ -53,6 +53,10 @@ export default class Logs extends Command {
     const cheHelper = new CheHelper(flags)
     await cheHelper.readWorkspacePodLog(flags.namespace, flags.workspace, logsDirectory, flags.follow)
 
-    this.log(`Workspace logs will be available in '${logsDirectory}'`)
+    if (flags.follow) {
+      this.log(`Workspace logs are available in '${logsDirectory}'`)
+    } else {
+      this.log(`Workspace logs are being collected in '${logsDirectory}'`)
+    }
   }
 }
