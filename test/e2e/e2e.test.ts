@@ -16,16 +16,14 @@ import * as execa from 'execa'
 import { DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
 import { isKubernetesPlatformFamily } from '../../src/util'
 
-import { E2eHelper } from './util'
+import { E2eHelper, LOGS_DIR, WORKSPACE_NAMESPACE } from './util'
 
 const helper = new E2eHelper()
 jest.setTimeout(1000000)
 
-const binChectl = getChectlBinaries()
+const binChectl = E2eHelper.getChectlBinaries()
 
 const NAMESPACE = DEFAULT_OLM_SUGGESTED_NAMESPACE
-// Workspace created in admin-che
-const WORKSPACE_NAMESPACE = 'admin-che'
 
 const PLATFORM = process.env.PLATFORM || ''
 const INSTALLER = process.env.INSTALLER || ''
@@ -39,16 +37,7 @@ const INSTALLER_OPERATOR = 'operator'
 const INSTALLER_HELM = 'helm'
 const INSTALLER_OLM = 'olm'
 
-const LOGS_DIR = '/tmp/logs'
-
 const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml'
-
-function getChectlBinaries(): string {
-  if (process.env.ASSEMBLY_MODE === 'on') {
-    return 'chectl'
-  }
-  return `${process.cwd()}/bin/run`
-}
 
 function getDeployCommand(): string {
   let command: string

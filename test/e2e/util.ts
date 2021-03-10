@@ -23,12 +23,15 @@ interface WorkspaceInfo {
   status: string
 }
 
-const binChectl = `${process.cwd()}/bin/run`
-
 export const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml'
 
 export const NAMESPACE = 'eclipse-che'
 export const NIGHTLY = 'nightly'
+
+// Workspace created in admin-che
+export const WORKSPACE_NAMESPACE = 'admin-che'
+
+export const LOGS_DIR = '/tmp/logs'
 
 //Utilities to help e2e tests
 export class E2eHelper {
@@ -43,6 +46,13 @@ export class E2eHelper {
     // generate-name from https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml
     this.devfileName = 'quarkus-'
     this.oc = new OpenShiftHelper()
+  }
+
+  static getChectlBinaries(): string {
+    if (process.env.ASSEMBLY_MODE === 'on') {
+      return 'chectl'
+    }
+    return `${process.cwd()}/bin/run`
   }
 
   async runCliCommand(command: string, args?: string[], printOutput = true): Promise<string> {
@@ -71,7 +81,7 @@ export class E2eHelper {
   // async getAllWorkspaces(isOpenshiftPlatformFamily: string): Promise<chetypes.workspace.Workspace[]> {
   private async getAllWorkspaces(): Promise<WorkspaceInfo[]> {
     const workspaces: WorkspaceInfo[] = []
-    const { stdout } = await execa(binChectl, ['workspace:list', `--chenamespace=${DEFAULT_OLM_SUGGESTED_NAMESPACE}`, '--telemetry=off'], { shell: true })
+    const { stdout } = await execa(E2eHelper.getChectlBinaries(), ['workspace:list', `--chenamespace=${DEFAULT_OLM_SUGGESTED_NAMESPACE}`, '--telemetry=off'], { shell: true })
     const regEx = new RegExp('[A-Za-z0-9_-]+', 'g')
     for (const line of stdout.split('\n')) {
       const items = line.match(regEx)
@@ -114,15 +124,19 @@ export class E2eHelper {
 
   async waitWorkspaceStatus(status: string, timeoutMs: number): Promise<boolean> {
     const delayMs = 1000 * 5
+    const workspaceId = await this.getWorkspaceId()
 
     let totalTimeMs = 0
     while (totalTimeMs < timeoutMs) {
+      this.runCliCommand(E2eHelper.getChectlBinaries(), ['workspace:logs', `--workspace ${workspaceId}`, `-n ${WORKSPACE_NAMESPACE}`, `-d ${LOGS_DIR}`, '--telemetry=off'])
+
       if (await this.getWorkspaceStatus() === status) {
         return true
       }
       await this.sleep(delayMs)
       totalTimeMs += delayMs
     }
+
     return false
   }
 

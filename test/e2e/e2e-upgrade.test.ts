@@ -23,7 +23,7 @@ jest.setTimeout(1000000)
 const WORKSPACE_NAMESPACE = 'admin-che'
 const LOGS_DIR = '/tmp/logs'
 
-const binChectl = `${process.cwd()}/bin/run`
+const binChectl = E2eHelper.getChectlBinaries()
 
 const PLATFORM = process.env.PLATFORM || 'minikube'
 
