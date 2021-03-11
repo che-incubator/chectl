@@ -1,0 +1,28 @@
+#
+#  Copyright (c) 2021 Red Hat, Inc.
+#    This program and the accompanying materials are made
+#    available under the terms of the Eclipse Public License 2.0
+#    which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+#  SPDX-License-Identifier: EPL-2.0
+#
+#  Contributors:
+#    Red Hat, Inc. - initial API and implementation
+name: Release - generate release and push artifacts to github pages (after PR approved)
+on:
+  # Trigger the workflow on push only for the master and 7.y.x branches
+  push:
+    tags:
+      - '7.*.x'
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-20.04
+      - name: Create MM message
+        run: |
+          echo "{\"text\":\":building_construction: chectl ${{ github.ref }} has been released: https://github.com/che-incubator/chectl/releases/tag/${{ github.ref }}\"}" > mattermost.json
+      - name: Send MM message
+        uses: mattermost/action-mattermost-notify@master
+        env:
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
+          MATTERMOST_CHANNEL: eclipse-che-releases
+          MATTERMOST_USERNAME: che-bot
