@@ -8,12 +8,12 @@
 #
 #  Contributors:
 #    Red Hat, Inc. - initial API and implementation
-name: Release - generate release and push artifacts to github pages (after PR approved)
+name: Release - send mattermost notification for 7.yy.* branches only
 on:
-  # Trigger the workflow on push only for the master and 7.y.x branches
+  # Trigger the workflow on push only for 7.y.* tags
   push:
     tags:
-      - '7.*.x'
+      - '7.*'
 jobs:
   build-and-deploy:
     runs-on: ubuntu-20.04
