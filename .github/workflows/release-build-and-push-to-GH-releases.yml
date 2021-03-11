@@ -78,3 +78,12 @@ jobs:
           files: "./dist/channels/**/chectl-*.gz"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create MM message
+        run: |
+          echo "{\"text\":\":building_construction: chectl ${{ github.event.inputs.version }} has been released: https://github.com/che-incubator/chectl/releases/tag/${{ github.event.inputs.version }}\"}" > mattermost.json
+      - name: Send MM message
+        uses: mattermost/action-mattermost-notify@master
+        env:
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
+          MATTERMOST_CHANNEL: eclipse-che-releases
+          MATTERMOST_USERNAME: che-bot
