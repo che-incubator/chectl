@@ -8,7 +8,7 @@
 #
 #  Contributors:
 #    Red Hat, Inc. - initial API and implementation
-name: Release - send mattermost notification for 7.yy.* branches only
+name: Release - send mattermost notification for 7.y.* tags
 on:
   # Trigger the workflow on push only for 7.y.* tags
   push:
