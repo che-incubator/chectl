@@ -19,7 +19,9 @@ jobs:
     runs-on: ubuntu-20.04
       - name: Create MM message
         run: |
-          echo "{\"text\":\":building_construction: chectl ${{ github.ref }} has been released: https://github.com/che-incubator/chectl/releases/tag/${{ github.ref }}\"}" > mattermost.json
+          milestone=${{ github.event.inputs.version }}
+          milestone=${milestone%.*}; echo "milestone: ${milestone}"
+          echo "{\"text\":\":building_construction: chectl ${{ github.ref }} has been released: https://github.com/che-incubator/chectl/releases/tag/${{ github.ref }}\n\nPlease resolve or move unresolved issues assigned to this milestone: https://github.com/eclipse/che/milestones/${milestone}\"}" > mattermost.json
       - name: Send MM message
         uses: mattermost/action-mattermost-notify@master
         env:
