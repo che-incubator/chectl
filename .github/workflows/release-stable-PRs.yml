@@ -30,7 +30,7 @@ jobs:
           export GITHUB_TOKEN=${{ secrets.ACTIONS_TOKEN }}
           DWO_INPUT=${{ github.event.inputs.dwo-version}}
           if [[ -n $DWO_INPUT ]]; then
-            make-release.sh --version ${{ github.event.inputs.version }} -dwo ${{ github.event.inputs.dwo-version }}
+            ./make-release.sh --version ${{ github.event.inputs.version }} -dwo ${{ github.event.inputs.dwo-version }}
           else
-            make-release.sh --version ${{ github.event.inputs.version }}
+            ./make-release.sh --version ${{ github.event.inputs.version }}
           fi
