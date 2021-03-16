@@ -106,7 +106,7 @@ export class OLMTasks {
         }
       },
       {
-        enabled: () => !VersionHelper.isDeployingStableVersion(flags) && !flags['catalog-source-name'] && !flags['catalog-source-yaml'] && flags['olm-channel'] != OLM_STABLE_CHANNEL_NAME,
+        enabled: () => !VersionHelper.isDeployingStableVersion(flags) && !flags['catalog-source-name'] && !flags['catalog-source-yaml'] && flags['olm-channel'] !== OLM_STABLE_CHANNEL_NAME,
         title: `Create nightly index CatalogSource in the namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
           if (!await kube.catalogSourceExists(NIGHTLY_CATALOG_SOURCE_NAME, flags.chenamespace)) {
