@@ -146,7 +146,7 @@ export class OLMTasks {
               // custom Che CatalogSource
               const catalogSourceNamespace = flags['catalog-source-namespace'] || flags.chenamespace
               subscription = this.constructSubscription(SUBSCRIPTION_NAME, flags['package-manifest-name'], flags.chenamespace, catalogSourceNamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, ctx.startingCSV)
-            } else if (VersionHelper.isDeployingStableVersion(flags) || flags['olm-channel'] == OLM_STABLE_CHANNEL_NAME) {
+            } else if (VersionHelper.isDeployingStableVersion(flags) || flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME) {
               // stable Che CatalogSource
               subscription = this.constructSubscription(SUBSCRIPTION_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
             } else {
