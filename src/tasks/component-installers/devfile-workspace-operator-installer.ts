@@ -256,7 +256,7 @@ export class DevWorkspaceTasks {
           }
 
           if (!await this.kubeHelper.isCrdV1Exists(this.workspaceRoutingsCrdName)) {
-            const devworkspaceWorkspaceCRDfile = path.join(this.getTemplatePath(ctx), 'workspaceroutings.controller.devfile.io.CustomResourceDefinition.yaml')
+            const devworkspaceWorkspaceCRDfile = path.join(this.getTemplatePath(ctx), 'devworkspaceroutings.controller.devfile.io.CustomResourceDefinition.yaml')
             await this.kubeHelper.createCrdV1FromFile(devworkspaceWorkspaceCRDfile)
           }
 
