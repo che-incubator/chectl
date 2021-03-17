@@ -1,0 +1,11 @@
+apiVersion:  operators.coreos.com/v1alpha1
+kind:         CatalogSource
+metadata:
+  name:         eclipse-che-preview-custom
+  namespace:    che-namespace
+spec:
+  image:        quay.io/eclipse/eclipse-che-kubernetes-opm-catalog:preview
+  sourceType:  grpc
+  updateStrategy:
+    registryPoll:
+      interval: 5m
