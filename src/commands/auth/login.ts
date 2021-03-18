@@ -18,7 +18,7 @@ import { CheServerLoginManager, getCheApiEndpoint, LoginRecord } from '../../api
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, username, USERNAME_KEY } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE } from '../../constants'
 import { getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
 
 const REFRESH_TOKEN_KEY = 'refresh-token'
@@ -69,6 +69,7 @@ export default class Login extends Command {
 
   async run() {
     const { args, flags } = this.parse(Login)
+    flags.chenamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
     await ChectlContext.init(flags, this)
 
     // Not recommended to track user and password in telemetry
