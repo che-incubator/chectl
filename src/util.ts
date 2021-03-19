@@ -9,6 +9,7 @@
  **********************************************************************/
 
 import Command from '@oclif/command'
+import UpdateCommand from '@oclif/plugin-update/lib/commands/update'
 import axios from 'axios'
 import { cli } from 'cli-ux'
 import * as commandExists from 'command-exists'
@@ -24,6 +25,8 @@ import { promisify } from 'util'
 import { ChectlContext } from './api/context'
 import { KubeHelper } from './api/kube'
 import { VersionHelper } from './api/version'
+import Deploy from './commands/server/deploy'
+import Update from './commands/server/update'
 import { DEFAULT_CHE_NAMESPACE, LEGACY_CHE_NAMESPACE } from './constants'
 
 const pkjson = require('../package.json')
@@ -169,11 +172,18 @@ export function notifyCommandCompletedSuccessfully(): void {
 export async function askForChectlUpdateIfNeeded(command: Command): Promise<void> {
   const ctx = ChectlContext.get()
   if (await VersionHelper.isChectlUpdateAvailable(ctx[ChectlContext.CACHE_DIR])) {
-    cli.info('A newer version of chectl is available. To deploy the latest version of Eclipse Che you have to manually update chectl first.')
-    if (await cli.confirm('Do you want to update chectl now [y/n]')) {
-      cli.info('Please update chectl and then repeat command again:')
-      cli.info('1. chectl update')
-      cli.info(`2. chectl ${command.id} ...`)
+    cli.info('A newer version of chectl is available. To deploy the latest version of Eclipse Che you have to update chectl first.')
+    if (await cli.confirm('Do you want to update chectl now? [y/n]')) {
+      // Update chectl
+      await UpdateCommand.run([])
+
+      // Rerun the command
+      if (command.id === 'server:update') {
+        await Update.run(command.argv)
+      } else {
+        await Deploy.run(command.argv)
+      }
+
       cli.exit(0)
     }
   }
