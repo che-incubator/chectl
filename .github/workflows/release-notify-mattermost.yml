@@ -8,23 +8,36 @@
 #
 #  Contributors:
 #    Red Hat, Inc. - initial API and implementation
-name: Release - send mattermost notification for 7.y.* tags
+name: Release - send mattermost notification
 on:
-  # Trigger the workflow on push only for 7.y.* tags
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The version that is going to be announced. Should be in format 7.y.z'
+        required: true
   push:
-    tags:
+    # on change to VERSION file only (PR merged as part of release)
+    paths:
+      - 'VERSION'
+    # Trigger on push only for 7.y.* branch
+    branches:
       - '7.*.*'
 jobs:
-  build-and-deploy:
+  notify:
     runs-on: ubuntu-20.04
     steps:
       - name: Create MM message
         run: |
-          milestone=${{ github.event.inputs.version }}
-          milestone=${milestone%.*}; echo "milestone: ${milestone}"
-          echo "{\"text\":\":building_construction: chectl ${{ github.ref }} has been released: https://github.com/che-incubator/chectl/releases/tag/${{ github.ref }}\n\nPlease resolve or move unresolved issues assigned to this milestone: https://github.com/eclipse/che/milestones/${milestone}\"}" > mattermost.json
+          if [[ ${{ github.event.inputs.version }} != "" ]]; then
+            version=${{ github.event.inputs.version }}
+            milestone=${version%.*}; echo "version milestone: ${milestone}"
+          else
+            version=$(cat VERSION)
+            milestone=${version%.*}; echo "branch milestone: ${milestone}"
+          fi
+          echo "{\"text\":\":building_construction: chectl ${version} has been released: https://github.com/che-incubator/chectl/releases/tag/${version}\n\nPlease resolve or move unresolved issues assigned to this milestone: https://github.com/eclipse/che/milestones/${milestone}\"}" > mattermost.json
       - name: Send MM message
-        uses: mattermost/action-mattermost-notify@master
+        uses: mattermost/action-mattermost-notify@1.0.2
         env:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
           MATTERMOST_CHANNEL: eclipse-che-releases
