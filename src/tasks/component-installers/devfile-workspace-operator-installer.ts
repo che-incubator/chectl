@@ -60,7 +60,6 @@ export class DevWorkspaceTasks {
 
   // DevWorkspace CRD Names
   protected devWorkspacesCrdName = 'devworkspaces.workspace.devfile.io'
-  protected componentsCrdName = 'components.controller.devfile.io'
   protected devWorkspaceTemplatesCrdName = 'devworkspacetemplates.workspace.devfile.io'
   protected workspaceRoutingsCrdName = 'workspaceroutings.controller.devfile.io'
 
@@ -243,11 +242,6 @@ export class DevWorkspaceTasks {
           if (!await this.kubeHelper.isCrdV1Exists(this.devWorkspacesCrdName)) {
             const devworkspaceWorkspaceCrdfile = path.join(this.getTemplatePath(ctx), 'devworkspaces.workspace.devfile.io.CustomResourceDefinition.yaml')
             await this.kubeHelper.createCrdV1FromFile(devworkspaceWorkspaceCrdfile)
-          }
-
-          if (!await this.kubeHelper.isCrdV1Exists(this.componentsCrdName)) {
-            const devWorkspaceWorkspaceCrdfile = path.join(this.getTemplatePath(ctx), 'components.controller.devfile.io.CustomResourceDefinition.yaml')
-            await this.kubeHelper.createCrdV1FromFile(devWorkspaceWorkspaceCrdfile)
           }
 
           if (!await this.kubeHelper.isCrdV1Exists(this.devWorkspaceTemplatesCrdName)) {
@@ -484,9 +478,6 @@ export class DevWorkspaceTasks {
       {
         title: 'Delete DevWorkspace controller CRDs',
         task: async (_ctx: any, task: any) => {
-          if (await this.kubeHelper.isCrdV1Exists(this.componentsCrdName)) {
-            await this.kubeHelper.deleteCrdV1(this.componentsCrdName)
-          }
           if (await this.kubeHelper.isCrdV1Exists(this.devWorkspacesCrdName)) {
             await this.kubeHelper.deleteCrdV1(this.devWorkspacesCrdName)
           }
