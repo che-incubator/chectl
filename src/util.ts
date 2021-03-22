@@ -168,7 +168,7 @@ export function notifyCommandCompletedSuccessfully(): void {
 
 export async function askForChectlUpdateIfNeeded(): Promise<void> {
   const ctx = ChectlContext.get()
-  if (await VersionHelper.isChectlUpdateAvailable(ctx[ChectlContext.CACHE_DIR]) || true) {
+  if (await VersionHelper.isChectlUpdateAvailable(ctx[ChectlContext.CACHE_DIR])) {
     cli.info('A more recent version of chectl is available. To deploy the latest version of Eclipse Che, update the chectl tool first.')
     if (await cli.confirm('Do you want to update chectl now? [y/n]')) {
       // Update chectl
