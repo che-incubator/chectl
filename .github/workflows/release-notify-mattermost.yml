@@ -13,7 +13,7 @@ on:
   # Trigger the workflow on push only for 7.y.* tags
   push:
     tags:
-      - '7.*'
+      - '7.*.*'
 jobs:
   build-and-deploy:
     runs-on: ubuntu-20.04
