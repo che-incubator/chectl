@@ -67,7 +67,7 @@ describe('Test Che upgrade', () => {
 
   describe('Test Che update', () => {
     it('Update Che to nightly version', async () => {
-      await helper.runCliCommand(binChectl, ['server:update', '-y', `-n ${NAMESPACE}`, '--telemetry=off'])
+      await helper.runCliCommand(binChectl, ['server:update', '-y', '--version=nightly', `-n ${NAMESPACE}`, '--telemetry=off'])
       await helper.waitForCheServerImageTag(NIGHTLY, UPDATE_CHE_TIMEOUT_MS)
     })
 
