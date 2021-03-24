@@ -7,10 +7,12 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-
+import { Octokit } from '@octokit/rest'
 import * as execa from 'execa'
+import * as fs from 'fs-extra'
 
 import { CheHelper } from '../../src/api/che'
+import { CheGithubClient, TagInfo } from '../../src/api/github-client'
 import { KubeHelper } from '../../src/api/kube'
 import { OpenShiftHelper } from '../../src/api/openshift'
 import { DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
@@ -27,14 +29,18 @@ export const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse/che-devfil
 
 export const NAMESPACE = 'eclipse-che'
 export const NIGHTLY = 'nightly'
+export const CHECTL_REPONAME = 'chectl'
 
 // Workspace created in admin-che
 export const WORKSPACE_NAMESPACE = 'admin-che'
 
 export const LOGS_DIR = '/tmp/logs'
+export const OWNER = 'che-incubator'
+export const CHE_REPO = 'chectl'
 
 //Utilities to help e2e tests
 export class E2eHelper {
+  private readonly octokit: Octokit
   protected kubeHelper: KubeHelper
   protected che: CheHelper
   protected oc: OpenShiftHelper
@@ -46,6 +52,11 @@ export class E2eHelper {
     // generate-name from https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml
     this.devfileName = 'quarkus-'
     this.oc = new OpenShiftHelper()
+    this.octokit = new Octokit({
+      baseUrl: 'https://api.github.com',
+      userAgent: 'chectl',
+      auth: process.env.GITHUB_TOKEN,
+    })
   }
 
   static getChectlBinaries(): string {
@@ -200,4 +211,39 @@ export class E2eHelper {
     throw new Error(`Che server image tag ${tag} has not appeared in ${timeoutMs / 1000}s `)
   }
 
+  /**
+   * Gets last 50 tags from the given repository.
+   * @param repo repository name to list tag in
+   */
+  public async listLatestTags(repo: string): Promise<TagInfo[]> {
+    let response = await this.octokit.repos.listTags({ owner: OWNER, repo, per_page: 50 })
+    const tags = response.data
+    return tags
+  }
+
+  /**
+   * Get previous version from chectl repository
+   */
+  async getLatestReleasedVersion(): Promise<string> {
+    const githubClient = new CheGithubClient()
+    const latestTag = githubClient.getLatestTag(await this.listLatestTags(CHECTL_REPONAME))
+    return latestTag.name
+  }
+
+  /**
+   * Check if VERSION file exists and return content. In case if Version file doesn't exists
+   * We are not in release branch and return nightly
+   */
+  getNewVersion(): string {
+    let version = 'nightly'
+    const rootDir = process.cwd()
+    try {
+      if (fs.existsSync(`${rootDir}/VERSION`)) {
+        return fs.readFileSync(`${rootDir}/VERSION`).toString().trim()
+      }
+      return version
+    } catch (error) {
+      throw new Error(`Error reading version file: ${error}`)
+    }
+  }
 }

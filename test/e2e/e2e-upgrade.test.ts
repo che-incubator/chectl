@@ -12,10 +12,9 @@
 
 import { expect } from '@oclif/test'
 
-import { CheGithubClient } from '../../src/api/github-client'
 import { isKubernetesPlatformFamily } from '../../src/util'
 
-import { DEVFILE_URL, E2eHelper, NAMESPACE, NIGHTLY } from './util'
+import { DEVFILE_URL, E2eHelper, NAMESPACE } from './util'
 
 const helper = new E2eHelper()
 jest.setTimeout(1000000)
@@ -30,8 +29,8 @@ const PLATFORM = process.env.PLATFORM || 'minikube'
 const INSTALLER = 'operator'
 
 const UPDATE_CHE_TIMEOUT_MS = 5 * 60 * 1000
-const WORKSPACE_START_TIMEOUT_MS = 5 * 60 * 1000
-const CHE_VERSION_TIMEOUT_MS = 50 * 1000
+const WORKSPACE_START_TIMEOUT_MS = 10 * 60 * 1000
+const CHE_VERSION_TIMEOUT_MS = 3 * 60 * 1000
 
 describe('Test Che upgrade', () => {
   let cheVersion: string
@@ -39,9 +38,7 @@ describe('Test Che upgrade', () => {
   describe('Prepare latest stable Che', () => {
     it(`Deploy Che using ${INSTALLER} installer and self signed certificates`, async () => {
       // Retrieve latest stable Che version
-      const githubClient = new CheGithubClient()
-      const latestStableCheTag = (await githubClient.getTemplatesTagInfo(INSTALLER, 'latest'))!
-      cheVersion = latestStableCheTag.name
+      cheVersion = await helper.getLatestReleasedVersion()
 
       const deployCommand = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --version=${cheVersion} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
       await helper.runCliCommand(deployCommand)
@@ -72,13 +69,13 @@ describe('Test Che upgrade', () => {
   })
 
   describe('Test Che update', () => {
-    it('Update Che to nightly version', async () => {
+    it('Update Eclipse Che Version', async () => {
       await helper.runCliCommand(binChectl, ['server:update', '-y', `-n ${NAMESPACE}`, '--telemetry=off'])
-      await helper.waitForCheServerImageTag(NIGHTLY, UPDATE_CHE_TIMEOUT_MS)
+      await helper.waitForCheServerImageTag(helper.getNewVersion(), UPDATE_CHE_TIMEOUT_MS)
     })
 
     it('Check updated Che version', async () => {
-      await helper.waitForVersionInCheCR(NIGHTLY, CHE_VERSION_TIMEOUT_MS)
+      await helper.waitForVersionInCheCR(helper.getNewVersion(), CHE_VERSION_TIMEOUT_MS)
     })
   })
 
