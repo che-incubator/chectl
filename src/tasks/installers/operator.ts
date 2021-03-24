@@ -361,16 +361,39 @@ export class OperatorTasks {
     {
       title: `Delete the Custom Resource of type ${CHE_CLUSTER_CRD}`,
       task: async (_ctx: any, task: any) => {
-        const checluster = await kh.getCheCluster(flags.chenamespace)
-        if (checluster) {
-          await kh.patchCheClusterCustomResource(checluster.metadata.name, flags.chenamespace, { metadata: { finalizers: null } })
+        await kh.deleteCheCluster(flags.chenamespace)
+
+        // wait 20 seconds, default timeout in che operator
+        for (let index = 0; index < 20; index++) {
+          await cli.wait(1000)
+          if (!await kh.getCheCluster(flags.chenamespace)) {
+            task.title = `${task.title}...OK`
+            return
+          }
         }
 
-        await kh.deleteCheCluster(flags.chenamespace)
-        do {
-          await cli.wait(2000) //wait a couple of secs for the finalizers to be executed
-        } while (await kh.getCheCluster(flags.chenamespace))
-        task.title = `${task.title}...OK`
+        // if checluster still exists then remove finalizers and delete again
+        const checluster = await kh.getCheCluster(flags.chenamespace)
+        if (checluster) {
+          try {
+            await kh.patchCheClusterCustomResource(checluster.metadata.name, flags.chenamespace, { metadata: { finalizers: null } })
+          } catch (error) {
+            if (await kh.getCheCluster(flags.chenamespace)) {
+              task.title = `${task.title}...OK`
+              return // successfully removed
+            }
+            throw error
+          }
+
+          // wait 2 seconds
+          await cli.wait(2000)
+        }
+
+        if (!await kh.getCheCluster(flags.chenamespace)) {
+          task.title = `${task.title}...OK`
+        } else {
+          task.title = `${task.title}...Failed`
+        }
       }
     },
     {
