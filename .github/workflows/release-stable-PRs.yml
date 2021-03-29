@@ -6,9 +6,13 @@ on:
       version:
         description: 'The version that is going to be released. Should be in format 7.y.z'
         required: true
-      dwo-version:
+      dwoVersion:
         description: 'The version of DevWorkspace operator. Should be in format 0.y.z. If not set, then it will use DWO latest commit from main branch'
+        required: true
+      forceRecreateTags:
+        description: If true, tags will be recreated. Use with caution
         required: false
+        default: 'false'
 jobs:
   build:
     name: Create pull request for upcoming release
@@ -18,6 +22,24 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.ACTIONS_TOKEN }}
+      - name: Check existing tags
+        run: |
+          set +e
+          RECREATE_TAGS=${{ github.event.inputs.forceRecreateTags }}
+          VERSION=${{ github.event.inputs.version }}
+          EXISTING_TAG=$(git ls-remote --exit-code origin refs/tags/${VERSION})
+          if [[ -n ${EXISTING_TAG} ]]; then
+            if [[ ${RECREATE_TAGS} == "true" ]]; then
+              echo "[INFO] Removing tag for ${VERSION} version. New tag will be recreated during release."
+              git tag -d $VERSION || true
+              git push origin :$VERSION
+            else
+              echo "[ERROR] Cannot proceed with release - tag ${EXISTING_TAG} already exists."
+              exit 1
+            fi
+          else
+            echo "[INFO] No existing tags detected for $VERSION"
+          fi
       - uses: actions/setup-node@v2.1.2
         with:
           node-version: 12.18.2
@@ -28,9 +50,23 @@ jobs:
           git config --global user.name "Flavius Lacatusu"
           git config --global user.email "flacatus@redhat.com"
           export GITHUB_TOKEN=${{ secrets.ACTIONS_TOKEN }}
-          DWO_INPUT=${{ github.event.inputs.dwo-version}}
+          DWO_INPUT=${{ github.event.inputs.dwoVersion}}
           if [[ -n $DWO_INPUT ]]; then
-            ./make-release.sh --version ${{ github.event.inputs.version }} -dwo ${{ github.event.inputs.dwo-version }}
+            ./make-release.sh --version ${{ github.event.inputs.version }} -dwo ${{ github.event.inputs.dwoVersion }}
           else
             ./make-release.sh --version ${{ github.event.inputs.version }}
           fi
+      - name: Create failure MM message
+        if: ${{ failure() }}
+        run: |
+          echo "{\"text\":\":building_construction: Chectl ${{ github.event.inputs.version }} release has failed: https://github.com/che-incubator/chectl/actions/workflows/release.yml\"}" > mattermost.json
+      - name: Create success MM message
+        run: |
+          echo "{\"text\":\":building_construction: Chectl ${{ github.event.inputs.version }} release PR has been created: https://github.com/che-incubator/chectl/pulls?q=is%3Apr+${{ github.event.inputs.version }}\"}" > mattermost.json
+      - name: Send MM message
+        if: ${{ success() }} || ${{ failure() }}
+        uses: mattermost/action-mattermost-notify@master
+        env:
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
+          MATTERMOST_CHANNEL: eclipse-che-releases
+          MATTERMOST_USERNAME: che-bot

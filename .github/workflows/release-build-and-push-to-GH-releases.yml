@@ -78,3 +78,17 @@ jobs:
           files: "./dist/channels/**/chectl-*.gz"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create failure MM message
+        if: ${{ failure() }}
+        run: |
+          echo "{\"text\":\":building_construction: Chectl ${{ github.event.inputs.version }} release has failed: https://github.com/che-incubator/chectl/actions/workflows/release.yml\"}" > mattermost.json
+      - name: Create success MM message
+        run: |
+          echo "{\"text\":\":building_construction: Chectl ${{ github.event.inputs.version }} release has been completed: https://github.com/che-incubator/chectl/pulls?q=is%3Apr+${{ github.event.inputs.version }}\"}" > mattermost.json
+      - name: Send MM message
+        if: ${{ success() }} || ${{ failure() }}
+        uses: mattermost/action-mattermost-notify@master
+        env:
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
+          MATTERMOST_CHANNEL: eclipse-che-releases
+          MATTERMOST_USERNAME: che-bot
