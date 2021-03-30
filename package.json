@@ -63,7 +63,7 @@
     "@types/getos": "^3.0.0",
     "@types/inquirer": "^7.3.1",
     "@types/jest": "26.0.22",
-    "@types/js-yaml": "^3.12.5",
+    "@types/js-yaml": "^4.0.0",
     "@types/listr": "^0.14.2",
     "@types/node": "^12",
     "@types/node-forge": "^0.9.7",
