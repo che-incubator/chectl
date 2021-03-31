@@ -15,6 +15,7 @@ import * as path from 'path'
 import * as querystring from 'querystring'
 
 import { ACCESS_TOKEN_KEY } from '../common-flags'
+import { findWorkingNamespace } from '../util'
 
 import { CheHelper } from './che'
 import { CheApiClient } from './che-api-client'
@@ -563,11 +564,12 @@ export async function getLoginData(cheApiEndpoint: string, accessToken: string |
  */
 export async function getCheApiEndpoint(flags: any): Promise<string> {
   const kube = new KubeHelper(flags)
-  if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
+  const namespace = await findWorkingNamespace(flags)
+  if (!await kube.hasReadPermissionsForNamespace(namespace)) {
     throw new Error('Please provide server API URL argument')
   }
 
   // Retrieve API URL from routes
   const cheHelper = new CheHelper(flags)
-  return await cheHelper.cheURL(flags.chenamespace) + '/api'
+  return await cheHelper.cheURL(namespace) + '/api'
 }
