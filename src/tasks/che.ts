@@ -415,72 +415,45 @@ export class CheTasks {
       {
         title: 'Delete configmaps for Eclipse Che server and operator',
         task: async (_ctx: any, task: any) => {
-          if (await this.kube.getConfigMap('che', flags.chenamespace)) {
-            await this.kube.deleteConfigMap('che', flags.chenamespace)
-          }
-          if (await this.kube.getConfigMap('che-operator', flags.chenamespace)) {
-            await this.kube.deleteConfigMap('che-operator', flags.chenamespace)
-          }
+          await this.kube.deleteConfigMap('che', flags.chenamespace)
+          await this.kube.deleteConfigMap('che-operator', flags.chenamespace)
           task.title = await `${task.title}...OK`
         }
       },
       {
         title: 'Delete rolebindings che, che-workspace-exec and che-workspace-view',
         task: async (_ctx: any, task: any) => {
-          if (await this.kube.roleBindingExist('che', flags.chenamespace)) {
-            await this.kube.deleteRoleBinding('che', flags.chenamespace)
-          }
-          if (await this.kube.roleBindingExist('che-operator', flags.chenamespace)) {
-            await this.kube.deleteRoleBinding('che-operator', flags.chenamespace)
-          }
-          if (await this.kube.roleBindingExist('che-workspace-exec', flags.chenamespace)) {
-            await this.kube.deleteRoleBinding('che-workspace-exec', flags.chenamespace)
-          }
-          if (await this.kube.roleBindingExist('che-workspace-view', flags.chenamespace)) {
-            await this.kube.deleteRoleBinding('che-workspace-view', flags.chenamespace)
-          }
+          await this.kube.deleteRoleBinding('che', flags.chenamespace)
+          await this.kube.deleteRoleBinding('che-operator', flags.chenamespace)
+          await this.kube.deleteRoleBinding('che-workspace-exec', flags.chenamespace)
+          await this.kube.deleteRoleBinding('che-workspace-view', flags.chenamespace)
           task.title = await `${task.title}...OK`
         }
       },
       {
         title: 'Delete service accounts che, che-workspace',
         task: async (_ctx: any, task: any) => {
-          if (await this.kube.serviceAccountExist('che', flags.chenamespace)) {
-            await this.kube.deleteServiceAccount('che', flags.chenamespace)
-          }
-          if (await this.kube.roleBindingExist('che-workspace', flags.chenamespace)) {
-            await this.kube.deleteServiceAccount('che-workspace', flags.chenamespace)
-          }
+          await this.kube.deleteServiceAccount('che', flags.chenamespace)
+          await this.kube.deleteServiceAccount('che-workspace', flags.chenamespace)
           task.title = await `${task.title}...OK`
         }
       },
       {
         title: 'Delete PVCs',
         task: async (_ctx: any, task: any) => {
-          if (await this.kube.persistentVolumeClaimExist('postgres-data', flags.chenamespace)) {
-            await this.kube.deletePersistentVolumeClaim('postgres-data', flags.chenamespace)
-          }
-          if (await this.kube.persistentVolumeClaimExist('che-data-volume', flags.chenamespace)) {
-            await this.kube.deletePersistentVolumeClaim('che-data-volume', flags.chenamespace)
-          }
-
-          if (await this.kube.persistentVolumeClaimExist('keycloak-data', flags.chenamespace)) {
-            await this.kube.deletePersistentVolumeClaim('keycloak-data', flags.chenamespace)
-          }
-          if (await this.kube.persistentVolumeClaimExist('keycloak-log', flags.chenamespace)) {
-            await this.kube.deletePersistentVolumeClaim('keycloak-log', flags.chenamespace)
-          }
-
+          await this.kube.deletePersistentVolumeClaim('postgres-data', flags.chenamespace)
+          await this.kube.deletePersistentVolumeClaim('che-data-volume', flags.chenamespace)
+          await this.kube.deletePersistentVolumeClaim('keycloak-data', flags.chenamespace)
+          await this.kube.deletePersistentVolumeClaim('keycloak-log', flags.chenamespace)
           task.title = `${task.title}...OK`
         }
       },
       {
         title: `Delete consoleLink ${this.cheConsoleLinkName}`,
         task: async (_ctx: any, task: any) => {
-          const consoleLinkExists = await this.kube.consoleLinkExists(this.cheConsoleLinkName)
           const checlusters = await this.kube.getAllCheClusters()
           // Delete the consoleLink only in case if there no more checluster installed
-          if (checlusters.length === 0 && consoleLinkExists) {
+          if (checlusters.length === 0) {
             await this.kube.deleteConsoleLink(this.cheConsoleLinkName)
           }
           task.title = `${task.title}...OK`
