@@ -291,7 +291,7 @@ export class OLMTasks {
         enabled: (ctx: any) => ctx.installPlanName,
         task: async (ctx: any, task: any) => {
           await kube.waitUntilOperatorIsInstalled(ctx.installPlanName, flags.chenamespace, 60)
-          ctx.highlightedMessages.push(`Operator is updated from ${ctx.currentVersion} to ${ ctx.nextVersion} version`)
+          ctx.highlightedMessages.push(`Operator is updated from ${ctx.currentVersion} to ${ctx.nextVersion} version`)
           task.title = `${task.title}...done.`
         }
       },
@@ -313,9 +313,7 @@ export class OLMTasks {
         title: `Delete(OLM) operator subscription ${SUBSCRIPTION_NAME}`,
         enabled: ctx => ctx.isPreInstalledOLM,
         task: async (_ctx: any, task: any) => {
-          if (await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, flags.chenamespace)) {
-            await kube.deleteOperatorSubscription(SUBSCRIPTION_NAME, flags.chenamespace)
-          }
+          await kube.deleteOperatorSubscription(SUBSCRIPTION_NAME, flags.chenamespace)
           task.title = `${task.title}...OK`
         }
       },
@@ -333,45 +331,35 @@ export class OLMTasks {
         title: `Delete(OLM) operator group ${OPERATOR_GROUP_NAME}`,
         enabled: ctx => ctx.isPreInstalledOLM,
         task: async (_ctx: any, task: any) => {
-          if (await kube.operatorGroupExists(OPERATOR_GROUP_NAME, flags.chenamespace)) {
-            await kube.deleteOperatorGroup(OPERATOR_GROUP_NAME, flags.chenamespace)
-          }
+          await kube.deleteOperatorGroup(OPERATOR_GROUP_NAME, flags.chenamespace)
           task.title = `${task.title}...OK`
         }
       },
       {
         title: `Delete(OLM) custom catalog source ${CUSTOM_CATALOG_SOURCE_NAME}`,
         task: async (_ctx: any, task: any) => {
-          if (await kube.catalogSourceExists(CUSTOM_CATALOG_SOURCE_NAME, flags.chenamespace)) {
-            await kube.deleteCatalogSource(flags.chenamespace, CUSTOM_CATALOG_SOURCE_NAME)
-          }
+          await kube.deleteCatalogSource(flags.chenamespace, CUSTOM_CATALOG_SOURCE_NAME)
           task.title = `${task.title}...OK`
         }
       },
       {
         title: `Delete(OLM) nigthly catalog source ${NIGHTLY_CATALOG_SOURCE_NAME}`,
         task: async (_ctx: any, task: any) => {
-          if (await kube.catalogSourceExists(NIGHTLY_CATALOG_SOURCE_NAME, flags.chenamespace)) {
-            await kube.deleteCatalogSource(flags.chenamespace, NIGHTLY_CATALOG_SOURCE_NAME)
-          }
+          await kube.deleteCatalogSource(flags.chenamespace, NIGHTLY_CATALOG_SOURCE_NAME)
           task.title = `${task.title}...OK`
         }
       },
       {
         title: `Delete role ${this.prometheusRoleName}`,
         task: async (_ctx: any, task: any) => {
-          if (await kube.roleExist(this.prometheusRoleName, flags.chenamespace)) {
-            await kube.deleteRole(this.prometheusRoleName, flags.chenamespace)
-          }
+          await kube.deleteRole(this.prometheusRoleName, flags.chenamespace)
           task.title = await `${task.title}...OK`
         }
       },
       {
         title: `Delete role binding ${this.prometheusRoleName}`,
         task: async (_ctx: any, task: any) => {
-          if (await kube.roleBindingExist(this.prometheusRoleName, flags.chenamespace)) {
-            await kube.deleteRoleBinding(this.prometheusRoleName, flags.chenamespace)
-          }
+          await kube.deleteRoleBinding(this.prometheusRoleName, flags.chenamespace)
           task.title = await `${task.title}...OK`
         }
       },
