@@ -291,7 +291,8 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
       console.log(`stderr: ${result.stderr}`)
       expect(result.exitCode).equal(0)
 
-      // run server:delete twice
+      // run deletion second time to ensure that
+      // server:delete does not fail if resource is absent
       result = await execa(binChectl, ['server:delete', `-n ${NAMESPACE}`, '--telemetry=off', '--delete-namespace', '--yes'], { shell: true })
 
       console.log(`stdout: ${result.stdout}`)
