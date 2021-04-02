@@ -77,7 +77,7 @@ export class KubeHelper {
             await k8sApi.deleteNamespacedService(service.metadata!.name!, namespace)
           } catch (error) {
             if (error.response.statusCode !== 404) {
-              throw this.wrapK8sClientError(error)
+              throw error
             }
           }
         })
