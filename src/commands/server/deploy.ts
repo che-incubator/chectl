@@ -196,11 +196,6 @@ export default class Deploy extends Command {
       options: ['che-server', 'dev-workspace'],
       default: 'che-server',
     }),
-    'dev-workspace-controller-image': string({
-      description: 'Container image of the dev workspace controller. This parameter is used only when the workspace engine is the DevWorkspace',
-      default: DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE,
-      env: 'DEV_WORKSPACE_OPERATOR_IMAGE',
-    }),
     'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,
     telemetry: CHE_TELEMETRY,
     [DEPLOY_VERSION_KEY]: cheDeployVersion,
@@ -385,7 +380,11 @@ export default class Deploy extends Command {
     })
     preInstallTasks.add(checkChectlAndCheVersionCompatibility(flags))
     preInstallTasks.add(downloadTemplates(flags))
-
+    preInstallTasks.add({
+      title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
+      enabled: () => flags['workspace-engine'] === 'dev-workspace',
+      task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags))
+    })
     let installTasks = new Listr(installerTasks.installTasks(flags, this), ctx.listrOptions)
 
     // Post Install Checks
@@ -393,11 +392,6 @@ export default class Deploy extends Command {
       {
         title: '✅  Post installation checklist',
         task: () => new Listr(cheTasks.waitDeployedChe())
-      },
-      {
-        title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
-        enabled: () => flags['workspace-engine'] === 'dev-workspace',
-        task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags))
       },
       getRetrieveKeycloakCredentialsTask(flags),
       retrieveCheCaCertificateTask(flags),
