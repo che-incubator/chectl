@@ -239,7 +239,12 @@ export namespace VersionHelper {
     if (forceRecheck || (!isCachedNewerVersionAvailable && isCacheExpired)) {
       // Cached info is expired. Fetch actual info about versions.
       // undefined cannot be returned from getLatestChectlVersion as 'is flavor' check was done before.
-      const latestVersion = (await getLatestChectlVersion(channel))!
+      const latestVersion = (await getLatestChectlVersion(channel))
+      // if request failed (GitHub endpoint is not available) then
+      // assume update is not available
+      if (!latestVersion) {
+        return false
+      }
       newVersionInfo = { latestVersion, lastCheck: now }
       await fs.writeJson(newVersionInfoFilePath, newVersionInfo, { encoding: 'utf8' })
       return semver.gt(newVersionInfo.latestVersion, currentVersion)
