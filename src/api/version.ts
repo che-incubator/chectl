@@ -240,6 +240,7 @@ export namespace VersionHelper {
       // Cached info is expired. Fetch actual info about versions.
       // undefined cannot be returned from getLatestChectlVersion as 'is flavor' check was done before.
       const latestVersion = (await getLatestChectlVersion(channel))
+      // if request failed (GitHub endpoint is not available) then immediately return
       if (!latestVersion) {
         return false
       }
