@@ -8,9 +8,6 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { V1Deployment } from '@kubernetes/client-node'
-import * as fs from 'fs-extra'
-import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
 import * as path from 'path'
 
@@ -19,7 +16,6 @@ import { KubeHelper } from '../../api/kube'
 import { OpenShiftHelper } from '../../api/openshift'
 import { V1Certificate } from '../../api/typings/cert-manager'
 import { DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE } from '../../constants'
-import { safeLoadFromYamlFile } from '../../util'
 import { CertManagerTasks } from '../component-installers/cert-manager'
 import { createNamespaceTask } from '../installers/common-tasks'
 
