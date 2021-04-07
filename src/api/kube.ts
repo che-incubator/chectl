@@ -1579,6 +1579,10 @@ export class KubeHelper {
       merge(cheClusterCR, ctx.crPatch)
     }
 
+    if (flags['workspace-engine'] === 'dev-workspace') {
+      cheClusterCR.spec.devWorkspace.enable = true
+    }
+
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', cheNamespace, 'checlusters', cheClusterCR)

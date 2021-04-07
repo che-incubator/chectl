@@ -254,7 +254,7 @@ export default class Deploy extends Command {
 
     const customCR = ctx.customCR
     if (customCR && customCR.spec && customCR.spec.devWorkspace && customCR.spec.devWorkspace.enable) {
-      return false
+      return true
     }
 
     return false

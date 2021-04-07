@@ -15,7 +15,7 @@ import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { OpenShiftHelper } from '../../api/openshift'
 import { V1Certificate } from '../../api/typings/cert-manager'
-import { DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE } from '../../constants'
+import { DEFAULT_DEV_WORKSPACE_CHE_NAMESPACE, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE } from '../../constants'
 import { CertManagerTasks } from '../component-installers/cert-manager'
 import { createNamespaceTask } from '../installers/common-tasks'
 
@@ -30,26 +30,45 @@ export class DevWorkspaceTasks {
 
   protected devWorkspaceServiceAccount = 'devworkspace-controller-serviceaccount'
 
-  // Roles
+  // DevWorkspace Controller Roles
   protected devWorkspaceLeaderElectionRole = 'devworkspace-controller-leader-election-role'
 
-  // Cluster Roles
+  // DevWorkspace Controller Role Bindings
+  protected devWorkspaceLeaderElectionRoleBinding = 'devworkspace-controller-leader-election-role'
+
+  // DevWorkspace Controller Cluster Roles
   protected devWorkspaceEditWorkspaceClusterRole = 'devworkspace-controller-edit-workspaces'
   protected devworkspaceProxyClusterRole = 'devworkspace-controller-proxy-role'
   protected devworkspaceClusterRole = 'devworkspace-controller-role'
   protected devWorkspaceViewWorkspaceClusterRole = 'devworkspace-controller-view-workspaces'
-  // Cluster Role created by devworkspace pod
   protected devWorkspaceClusterRoleWebhook = 'devworkspace-webhook-server'
 
-  // RoleBindings and ClusterRole Bindings necessary devworkspace
-  protected devWorkspaceLeaderElectionRoleBinding = 'devworkspace-controller-leader-election-rolebinding'
+  // DevWorkspace Controller ClusterRole Bindings
   protected devworkspaceProxyClusterRoleBinding = 'devworkspace-controller-proxy-rolebinding'
   protected devWorkspaceRoleBinding = 'devworkspace-controller-rolebinding'
+
+  // DevWorkspace Che Roles
+  protected devWorkspaceCheLeaderElectionRole = 'devworkspace-che-leader-election-role'
+
+  // DevWorkspace Che RoleBindings
+  protected devWorkspaceCheLeaderElectionRoleBinding = 'devworkspace-che-leader-election-rolebinding'
+
+  // DevWorkspace Che Cluster Roles
+  protected devWorkspaceCheMetricsReader = 'devworkspace-che-metrics-reader'
+  protected devWorkspaceCheProxyRole = 'devworkspace-che-proxy-role'
+  protected devWorkspaceCheRole = 'devworkspace-che-role'
+
+  // ClusterRoleBindings DevWorkspaceChe
+  protected devWorkspaceCheProxyClusterRolebinding = 'devworkspace-che-proxy-rolebinding'
+  protected devWorkspaceCheClusterRolebinding = 'devworkspace-che-rolebinding'
+  protected devWorkspaceWebhookServerClusterRolebinding = 'devworkspace-webhook-server'
 
   // Deployment names
   protected deploymentName = 'devworkspace-controller-manager'
 
+  // ConfigMap names
   protected devWorkspaceConfigMap = 'devworkspace-controller-configmap'
+  protected devworkspaceCheConfigmap = 'devworkspace-che-configmap'
 
   protected devWorkspaceCertificate = 'devworkspace-controller-serving-cert'
   protected devWorkspaceCertIssuer = 'devworkspace-controller-selfsigned-issuer'
@@ -57,7 +76,7 @@ export class DevWorkspaceTasks {
   // DevWorkspace CRD Names
   protected devWorkspacesCrdName = 'devworkspaces.workspace.devfile.io'
   protected devWorkspaceTemplatesCrdName = 'devworkspacetemplates.workspace.devfile.io'
-  protected workspaceRoutingsCrdName = 'workspaceroutings.controller.devfile.io'
+  protected workspaceRoutingsCrdName = 'devworkspaceroutings.controller.devfile.io'
 
   protected webhooksName = 'controller.devfile.io'
 
@@ -133,21 +152,23 @@ export class DevWorkspaceTasks {
   getUninstallTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Delete all DevWorkspace deployments',
+        title: 'Delete all DevWorkspace Controller and DevWorkspace Che deployments',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteAllDeployments(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+          await this.kubeHelper.deleteAllDeployments(DEFAULT_DEV_WORKSPACE_CHE_NAMESPACE)
           task.title = await `${task.title}...OK`
         }
       },
       {
-        title: 'Delete all DevWorkspace services',
+        title: 'Delete all DevWorkspace Controller and DevWorkspace Che services',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteAllServices(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+          await this.kubeHelper.deleteAllServices(DEFAULT_DEV_WORKSPACE_CHE_NAMESPACE)
           task.title = await `${task.title}...OK`
         }
       },
       {
-        title: 'Delete all DevWorkspace routes',
+        title: 'Delete all DevWorkspace Controller and DevWorkspace Che routes',
         enabled: (ctx: any) => !ctx.isOpenShift,
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteAllIngresses(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
@@ -155,7 +176,7 @@ export class DevWorkspaceTasks {
         }
       },
       {
-        title: 'Delete all DevWorkspace routes',
+        title: 'Delete all DevWorkspace Controller and DevWorkspace Che routes',
         enabled: (ctx: any) => ctx.isOpenShift,
         task: async (_ctx: any, task: any) => {
           await this.openShiftHelper.deleteAllRoutes(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
@@ -163,16 +184,19 @@ export class DevWorkspaceTasks {
         }
       },
       {
-        title: 'Delete DevWorkspace configmaps',
+        title: 'Delete DevWorkspace Controller and DevWorkspace Che configmaps',
         task: async (_ctx: any, task: any) => {
           if (await this.kubeHelper.getConfigMap(this.devWorkspaceConfigMap, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)) {
             await this.kubeHelper.deleteConfigMap(this.devWorkspaceConfigMap, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+          }
+          if (await this.kubeHelper.getConfigMap(this.devworkspaceCheConfigmap, DEFAULT_DEV_WORKSPACE_CHE_NAMESPACE)) {
+            await this.kubeHelper.deleteConfigMap(this.devworkspaceCheConfigmap, DEFAULT_DEV_WORKSPACE_CHE_NAMESPACE)
           }
           task.title = await `${task.title}...OK`
         }
       },
       {
-        title: 'Delete DevWorkspace ClusterRoleBindings',
+        title: 'Delete DevWorkspace Controller and DevWorkspace Che ClusterRoleBindings',
         task: async (_ctx: any, task: any) => {
           if (await this.kubeHelper.clusterRoleBindingExist(this.devWorkspaceRoleBinding)) {
             await this.kubeHelper.deleteClusterRoleBinding(this.devWorkspaceRoleBinding)
@@ -180,29 +204,44 @@ export class DevWorkspaceTasks {
           if (await this.kubeHelper.clusterRoleBindingExist(this.devworkspaceProxyClusterRoleBinding)) {
             await this.kubeHelper.deleteClusterRoleBinding(this.devworkspaceProxyClusterRoleBinding)
           }
+          if (await this.kubeHelper.clusterRoleBindingExist(this.devWorkspaceCheProxyClusterRolebinding)) {
+            await this.kubeHelper.deleteClusterRoleBinding(this.devWorkspaceCheProxyClusterRolebinding)
+          }
+          if (await this.kubeHelper.clusterRoleBindingExist(this.devWorkspaceCheClusterRolebinding)) {
+            await this.kubeHelper.deleteClusterRoleBinding(this.devWorkspaceCheClusterRolebinding)
+          }
+          if (await this.kubeHelper.clusterRoleBindingExist(this.devWorkspaceWebhookServerClusterRolebinding)) {
+            await this.kubeHelper.deleteClusterRoleBinding(this.devWorkspaceWebhookServerClusterRolebinding)
+          }
           task.title = await `${task.title}...OK`
         }
       },
       {
-        title: 'Delete DevWorkspace role',
+        title: 'Delete DevWorkspace Controller and DevWorkspace Che role',
         task: async (_ctx: any, task: any) => {
           if (await this.kubeHelper.roleExist(this.devWorkspaceLeaderElectionRole, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)) {
             await this.kubeHelper.deleteRole(this.devWorkspaceLeaderElectionRole, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
           }
-          task.title = await `${task.title}...OK`
-        }
-      },
-      {
-        title: 'Delete DevWorkspace roleBinding',
-        task: async (_ctx: any, task: any) => {
-          if (await this.kubeHelper.roleBindingExist(this.devWorkspaceLeaderElectionRoleBinding, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)) {
-            await this.kubeHelper.deleteRoleBinding(this.devWorkspaceLeaderElectionRoleBinding, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+          if (await this.kubeHelper.roleExist(this.devWorkspaceCheLeaderElectionRole, DEFAULT_DEV_WORKSPACE_CHE_NAMESPACE)) {
+            await this.kubeHelper.deleteRole(this.devWorkspaceCheLeaderElectionRole, DEFAULT_DEV_WORKSPACE_CHE_NAMESPACE)
           }
           task.title = await `${task.title}...OK`
         }
       },
       {
-        title: 'Delete DevWorkspace cluster roles',
+        title: 'Delete DevWorkspace Controller and DevWorkspace Che roleBinding',
+        task: async (_ctx: any, task: any) => {
+          if (await this.kubeHelper.roleBindingExist(this.devWorkspaceLeaderElectionRoleBinding, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)) {
+            await this.kubeHelper.deleteRoleBinding(this.devWorkspaceLeaderElectionRoleBinding, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+          }
+          if (await this.kubeHelper.roleBindingExist(this.devWorkspaceCheLeaderElectionRoleBinding, DEFAULT_DEV_WORKSPACE_CHE_NAMESPACE)) {
+            await this.kubeHelper.deleteRoleBinding(this.devWorkspaceCheLeaderElectionRoleBinding, DEFAULT_DEV_WORKSPACE_CHE_NAMESPACE)
+          }
+          task.title = await `${task.title}...OK`
+        }
+      },
+      {
+        title: 'Delete DevWorkspace Controller and DevWorkspace Che cluster roles',
         task: async (_ctx: any, task: any) => {
           if (await this.kubeHelper.clusterRoleExist(this.devWorkspaceEditWorkspaceClusterRole)) {
             await this.kubeHelper.deleteClusterRole(this.devWorkspaceEditWorkspaceClusterRole)
@@ -219,11 +258,20 @@ export class DevWorkspaceTasks {
           if (await this.kubeHelper.clusterRoleExist(this.devWorkspaceClusterRoleWebhook)) {
             await this.kubeHelper.deleteClusterRole(this.devWorkspaceClusterRoleWebhook)
           }
+          if (await this.kubeHelper.clusterRoleExist(this.devWorkspaceCheMetricsReader)) {
+            await this.kubeHelper.deleteClusterRole(this.devWorkspaceCheMetricsReader)
+          }
+          if (await this.kubeHelper.clusterRoleExist(this.devWorkspaceCheProxyRole)) {
+            await this.kubeHelper.deleteClusterRole(this.devWorkspaceCheProxyRole)
+          }
+          if (await this.kubeHelper.clusterRoleExist(this.devWorkspaceCheRole)) {
+            await this.kubeHelper.deleteClusterRole(this.devWorkspaceCheRole)
+          }
           task.title = await `${task.title}...OK`
         }
       },
       {
-        title: 'Delete DevWorkspace service account',
+        title: 'Delete DevWorkspace Controller service account',
         task: async (_ctx: any, task: any) => {
           if (await this.kubeHelper.serviceAccountExist(this.devWorkspaceServiceAccount, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)) {
             await this.kubeHelper.deleteServiceAccount(this.devWorkspaceServiceAccount, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
@@ -232,7 +280,7 @@ export class DevWorkspaceTasks {
         }
       },
       {
-        title: 'Delete DevWorkspace self-signed certificates',
+        title: 'Delete DevWorkspace Controller self-signed certificates',
         enabled: async (ctx: any) => !ctx.IsOpenshift,
         task: async (_ctx: any, task: any) => {
           if (await this.kubeHelper.isNamespacedCertificateExists(this.devWorkspaceCertificate, 'v1', DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)) {
@@ -245,19 +293,16 @@ export class DevWorkspaceTasks {
         }
       },
       {
-        title: 'Delete DevWorkspace webhooks',
+        title: 'Delete DevWorkspace Controller',
         task: async (_ctx: any, task: any) => {
           if (await this.kubeHelper.isMutatingWebhookConfigurationExists(this.webhooksName)) {
             await this.kubeHelper.deleteMutatingWebhookConfiguration(this.webhooksName)
-          }
-          if (await this.kubeHelper.isValidatingWebhookConfigurationExists(this.webhooksName)) {
-            await this.kubeHelper.deleteValidatingWebhookConfiguration(this.webhooksName)
           }
           task.title = await `${task.title} ...OK`
         }
       },
       {
-        title: 'Delete DevWorkspace controller CRDs',
+        title: 'Delete DevWorkspace Controller CRDs',
         task: async (_ctx: any, task: any) => {
           if (await this.kubeHelper.isCrdV1Exists(this.devWorkspacesCrdName)) {
             await this.kubeHelper.deleteCrdV1(this.devWorkspacesCrdName)
