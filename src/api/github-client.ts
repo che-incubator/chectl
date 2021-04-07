@@ -175,7 +175,7 @@ export class CheGithubClient {
    * Finds the latest tag of format x.y.z, where x,y and z are numbers.
    * @param tags repository tags list returned by octokit
    */
-  private getLatestTag(tags: TagInfo[]): TagInfo {
+  public getLatestTag(tags: TagInfo[]): TagInfo {
     if (tags.length === 0) {
       throw new Error('Tag list should not be empty')
     }

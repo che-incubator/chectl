@@ -42,31 +42,31 @@ const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse/che-devfile-regis
 function getDeployCommand(): string {
   let command: string
   switch (PLATFORM) {
-  case PLATFORM_OPENSHIFT:
-    if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_OLM)) {
-      throw new Error(`Unknown installer ${INSTALLER}`)
-    }
-    command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
-    break
+    case PLATFORM_OPENSHIFT:
+      if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_OLM)) {
+        throw new Error(`Unknown installer ${INSTALLER}`)
+      }
+      command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
+      break
 
-  case PLATFORM_CRC:
-  case PLATFORM_MINISHIFT:
-    if (INSTALLER !== INSTALLER_OPERATOR) {
-      throw new Error(`Unknown installer ${INSTALLER}`)
-    }
-    command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
-    break
+    case PLATFORM_CRC:
+    case PLATFORM_MINISHIFT:
+      if (INSTALLER !== INSTALLER_OPERATOR) {
+        throw new Error(`Unknown installer ${INSTALLER}`)
+      }
+      command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
+      break
 
-  case PLATFORM_MINIKUBE:
-    if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_HELM || INSTALLER === INSTALLER_OLM)) {
-      throw new Error(`Unknown installer ${INSTALLER}`)
-    }
-    const patchOption = INSTALLER === INSTALLER_HELM ? '--helm-patch-yaml=test/e2e/resources/helm-patch.yaml' : '--che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml'
-    command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --telemetry=off --chenamespace=${NAMESPACE} ${patchOption} --multiuser --skip-cluster-availability-check`
-    break
+    case PLATFORM_MINIKUBE:
+      if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_HELM || INSTALLER === INSTALLER_OLM)) {
+        throw new Error(`Unknown installer ${INSTALLER}`)
+      }
+      const patchOption = INSTALLER === INSTALLER_HELM ? '--helm-patch-yaml=test/e2e/resources/helm-patch.yaml' : '--che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml'
+      command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --telemetry=off --chenamespace=${NAMESPACE} ${patchOption} --multiuser --skip-cluster-availability-check`
+      break
 
-  default:
-    throw new Error(`Unknown platform: ${PLATFORM}`)
+    default:
+      throw new Error(`Unknown platform: ${PLATFORM}`)
   }
   return command
 }
@@ -285,14 +285,19 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
     it('server:delete command coverage', async () => {
       console.log('>>> Testing server:delete command')
 
-      // Sleep time to wait to workspace to be running
-      await helper.sleep(10 * 1000)
+      let result = await execa(binChectl, ['server:delete', `-n ${NAMESPACE}`, '--telemetry=off', '--delete-namespace', '--yes'], { shell: true })
 
-      const { exitCode, stdout, stderr } = await execa(binChectl, ['server:delete', `-n ${NAMESPACE}`, '--telemetry=off', '--delete-namespace', '--yes'], { shell: true })
+      console.log(`stdout: ${result.stdout}`)
+      console.log(`stderr: ${result.stderr}`)
+      expect(result.exitCode).equal(0)
 
-      console.log(`stdout: ${stdout}`)
-      console.log(`stderr: ${stderr}`)
-      expect(exitCode).equal(0)
+      // run deletion second time to ensure that
+      // server:delete does not fail if resource is absent
+      result = await execa(binChectl, ['server:delete', `-n ${NAMESPACE}`, '--telemetry=off', '--delete-namespace', '--yes'], { shell: true })
+
+      console.log(`stdout: ${result.stdout}`)
+      console.log(`stderr: ${result.stderr}`)
+      expect(result.exitCode).equal(0)
     })
   })
 })

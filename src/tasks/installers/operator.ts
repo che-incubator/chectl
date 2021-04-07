@@ -361,30 +361,49 @@ export class OperatorTasks {
     {
       title: `Delete the Custom Resource of type ${CHE_CLUSTER_CRD}`,
       task: async (_ctx: any, task: any) => {
-        const checluster = await kh.getCheCluster(flags.chenamespace)
-        if (checluster) {
-          await kh.patchCheClusterCustomResource(checluster.metadata.name, flags.chenamespace, { metadata: { finalizers: null } })
+        await kh.deleteCheCluster(flags.chenamespace)
+
+        // wait 20 seconds, default timeout in che operator
+        for (let index = 0; index < 20; index++) {
+          await cli.wait(1000)
+          if (!await kh.getCheCluster(flags.chenamespace)) {
+            task.title = `${task.title}...OK`
+            return
+          }
         }
 
-        await kh.deleteCheCluster(flags.chenamespace)
-        do {
-          await cli.wait(2000) //wait a couple of secs for the finalizers to be executed
-        } while (await kh.getCheCluster(flags.chenamespace))
-        task.title = `${task.title}...OK`
+        // if checluster still exists then remove finalizers and delete again
+        const checluster = await kh.getCheCluster(flags.chenamespace)
+        if (checluster) {
+          try {
+            await kh.patchCheClusterCustomResource(checluster.metadata.name, flags.chenamespace, { metadata: { finalizers: null } })
+          } catch (error) {
+            if (await kh.getCheCluster(flags.chenamespace)) {
+              task.title = `${task.title}...OK`
+              return // successfully removed
+            }
+            throw error
+          }
+
+          // wait 2 seconds
+          await cli.wait(2000)
+        }
+
+        if (!await kh.getCheCluster(flags.chenamespace)) {
+          task.title = `${task.title}...OK`
+        } else {
+          task.title = `${task.title}...Failed`
+        }
       }
     },
     {
       title: `Delete CRD ${this.cheClusterCrd}`,
       task: async (_ctx: any, task: any) => {
-        const crdExists = await kh.isCrdV1Beta1Exists(this.cheClusterCrd)
         const checlusters = await kh.getAllCheClusters()
         if (checlusters.length > 0) {
           task.title = `${task.title}...Skipped: another Eclipse Che deployment found.`
         } else {
-          // Check if CRD exist. When installer is helm the CRD are not created
-          if (crdExists) {
-            await kh.deleteCrdV1Beta1(this.cheClusterCrd)
-          }
+          await kh.deleteCrdV1Beta1(this.cheClusterCrd)
           task.title = `${task.title}...OK`
         }
       }
@@ -394,12 +413,12 @@ export class OperatorTasks {
       task: async (_ctx: any, task: any) => {
         const roleBindings = await kh.listRoleBindings(flags.chenamespace)
         for (const roleBinding of roleBindings.items) {
-          await kh.deleteRoleBinding(roleBinding.metadata!.name, flags.chenamespace)
+          await kh.deleteRoleBinding(roleBinding.metadata!.name!, flags.chenamespace)
         }
 
         const roles = await kh.listRoles(flags.chenamespace)
         for (const role of roles.items) {
-          await kh.deleteRole(role.metadata!.name, flags.chenamespace)
+          await kh.deleteRole(role.metadata!.name!, flags.chenamespace)
         }
 
         // Count existing pairs of cluster roles and thier bindings
@@ -424,12 +443,8 @@ export class OperatorTasks {
 
         // If no pairs were deleted, then legacy names is used
         if (pairs === 0) {
-          if (await kh.clusterRoleBindingExist(this.legacyClusterResourcesName)) {
-            await kh.deleteClusterRoleBinding(this.legacyClusterResourcesName)
-          }
-          if (await kh.clusterRoleExist(this.legacyClusterResourcesName)) {
-            await kh.deleteClusterRole(this.legacyClusterResourcesName)
-          }
+          await kh.deleteClusterRoleBinding(this.legacyClusterResourcesName)
+          await kh.deleteClusterRole(this.legacyClusterResourcesName)
         }
 
         task.title = `${task.title}...OK`
@@ -438,18 +453,14 @@ export class OperatorTasks {
     {
       title: `Delete service accounts ${this.operatorServiceAccount}`,
       task: async (_ctx: any, task: any) => {
-        if (await kh.serviceAccountExist(this.operatorServiceAccount, flags.chenamespace)) {
-          await kh.deleteServiceAccount(this.operatorServiceAccount, flags.chenamespace)
-        }
+        await kh.deleteServiceAccount(this.operatorServiceAccount, flags.chenamespace)
         task.title = `${task.title}...OK`
       }
     },
     {
       title: 'Delete PVC che-operator',
       task: async (_ctx: any, task: any) => {
-        if (await kh.persistentVolumeClaimExist('che-operator', flags.chenamespace)) {
-          await kh.deletePersistentVolumeClaim('che-operator', flags.chenamespace)
-        }
+        await kh.deletePersistentVolumeClaim('che-operator', flags.chenamespace)
         task.title = `${task.title}...OK`
       }
     },
