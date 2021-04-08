@@ -17,7 +17,7 @@ import * as semver from 'semver'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, devWorkspaceControllerNamespace, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_HELM_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION } from '../../constants'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_HELM_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
@@ -196,11 +196,6 @@ export default class Deploy extends Command {
       options: ['che-server', 'dev-workspace'],
       default: 'che-server',
     }),
-    'dev-workspace-controller-image': string({
-      description: 'Container image of the dev workspace controller. This parameter is used only when the workspace engine is the DevWorkspace',
-      default: DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE,
-      env: 'DEV_WORKSPACE_OPERATOR_IMAGE',
-    }),
     'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,
     telemetry: CHE_TELEMETRY,
     [DEPLOY_VERSION_KEY]: cheDeployVersion,
@@ -249,6 +244,20 @@ export default class Deploy extends Command {
     }
 
     return true
+  }
+
+  private isDevWorkspaceEnabled(ctx: any): boolean {
+    const crPatch = ctx.crPatch
+    if (crPatch && crPatch.spec && crPatch.spec.devWorkspace && crPatch.spec.devWorkspace.enable) {
+      return true
+    }
+
+    const customCR = ctx.customCR
+    if (customCR && customCR.spec && customCR.spec.devWorkspace && customCR.spec.devWorkspace.enable) {
+      return true
+    }
+
+    return false
   }
 
   private checkCompatibility(flags: any) {
@@ -385,7 +394,11 @@ export default class Deploy extends Command {
     })
     preInstallTasks.add(checkChectlAndCheVersionCompatibility(flags))
     preInstallTasks.add(downloadTemplates(flags))
-
+    preInstallTasks.add({
+      title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
+      enabled: () => (this.isDevWorkspaceEnabled(ctx) || flags['workspace-engine'] === 'dev-workspace') && !ctx.isOpenShift,
+      task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags))
+    })
     let installTasks = new Listr(installerTasks.installTasks(flags, this), ctx.listrOptions)
 
     // Post Install Checks
@@ -393,11 +406,6 @@ export default class Deploy extends Command {
       {
         title: '✅  Post installation checklist',
         task: () => new Listr(cheTasks.waitDeployedChe())
-      },
-      {
-        title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
-        enabled: () => flags['workspace-engine'] === 'dev-workspace',
-        task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags))
       },
       getRetrieveKeycloakCredentialsTask(flags),
       retrieveCheCaCertificateTask(flags),
