@@ -127,10 +127,6 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
       ctx.isDevfileRegistryDeployed = !(flags['devfile-registry-url'] as boolean)
 
       const cheClusterCR = ctx.customCR || ctx.defaultCR
-      if (flags['workspace-engine'] === 'dev-workspace') {
-        cheClusterCR.spec.devWorkspace.enable = true
-      }
-
       const cr = await kube.createCheCluster(cheClusterCR, flags, ctx, !ctx.customCR)
 
       ctx.isKeycloakReady = ctx.isKeycloakReady || cr.spec.auth.externalIdentityProvider
