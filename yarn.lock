@@ -2378,25 +2378,17 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
-"eclipse-che-devfile-api@git://github.com/devfile/api#v1alpha1":
-  version "0.0.0"
-  resolved "git://github.com/devfile/api#9e2280a95680c4a042342a899311171f07fed0bf"
-
 "eclipse-che-devfile-workspace-operator@git://github.com/devfile/devworkspace-operator#main":
   version "0.0.0"
-  resolved "git://github.com/devfile/devworkspace-operator#8b500ad4f64c6e1281272965b3790d9c9bafe806"
-
-"eclipse-che-minishift@git://github.com/minishift/minishift#master":
-  version "0.0.0"
-  resolved "git://github.com/minishift/minishift#0381375335880a9f825a7a30266b03d493cd221c"
+  resolved "git://github.com/devfile/devworkspace-operator#c6a22a3a7d8be3893803ef715fb8a62ce55dfb2e"
 
 "eclipse-che-operator@git://github.com/eclipse/che-operator#master":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che-operator#052a6374306df65e1020bb3a4d65bdb0347e624d"
+  resolved "git://github.com/eclipse/che-operator#47e09f6927bf93ac58aef9ada890c3a89cd9ff36"
 
 "eclipse-che@git://github.com/eclipse/che#master":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che#765b5a483f67770e605c1aca9faa5bc6dfa769f8"
+  resolved "git://github.com/eclipse/che#f58c54f60187bce8c021d3d94ff4e46cf074fd21"
 
 editorconfig@^0.15.0:
   version "0.15.3"
@@ -4355,12 +4347,7 @@ lodash.templatesettings@^4.0.0:
   dependencies:
     lodash._reinterpolate "^3.0.0"
 
-lodash@4.x, lodash@^4.17.11, lodash@^4.17.13, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.21:
-  version "4.17.21"
-  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
-  integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
-
-lodash@^4.7.0:
+lodash@4.x, lodash@^4.17.11, lodash@^4.17.13, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.21, lodash@^4.7.0:
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
