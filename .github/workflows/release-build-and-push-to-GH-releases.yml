@@ -29,14 +29,11 @@ jobs:
       - name: Generate tag utilities
         id: TAG_UTIL
         run: |
-          if [[ ${GITHUB_REF#refs/heads/} =~ 7.* ]];
-          then
+          if [[ ${GITHUB_REF#refs/heads/} =~ 7.* ]]; then
             echo "::set-output name=chectl_version::$(cat VERSION)"
             echo "::set-output name=gh_release_name::$(cat VERSION)"
             echo "::set-output name=gh_tag::$(cat VERSION)"
-          fi
-          if [[ ${GITHUB_REF#refs/heads/} =~ master ]];
-          then
+          elif [[ ${GITHUB_REF#refs/heads/} =~ master ]]; then
             CURRENT_DAY=$(date +'%Y%m%d')
             SHORT_SHA1=$(git rev-parse --short HEAD)
             echo "::set-output name=gh_tag::$(date +'%Y%m%d%H%M%S')"
