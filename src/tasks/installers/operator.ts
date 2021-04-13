@@ -47,19 +47,19 @@ export class OperatorTasks {
             continue
           }
           switch (yamlContent.kind) {
-          case 'Role':
-            ctx.roles.push(yamlContent)
-            break
-          case 'RoleBinding':
-            ctx.roleBindings.push(yamlContent)
-            break
-          case 'ClusterRole':
-            ctx.clusterRoles.push(yamlContent)
-            break
-          case 'ClusterRoleBinding':
-            ctx.clusterRoleBindings.push(yamlContent)
-            break
-          default:
+            case 'Role':
+              ctx.roles.push(yamlContent)
+              break
+            case 'RoleBinding':
+              ctx.roleBindings.push(yamlContent)
+              break
+            case 'ClusterRole':
+              ctx.clusterRoles.push(yamlContent)
+              break
+            case 'ClusterRoleBinding':
+              ctx.clusterRoleBindings.push(yamlContent)
+              break
+            default:
             // Ignore this object kind
           }
         }
@@ -172,17 +172,13 @@ export class OperatorTasks {
       {
         title: `Create CRD ${this.cheClusterCrd}`,
         task: async (ctx: any, task: any) => {
-          const exist = await kube.isCrdV1Beta1Exists(this.cheClusterCrd)
-          const yamlFilePath = path.join(ctx.resourcesPath, 'crds', 'org_v1_che_crd.yaml')
+          const existedCRD = await kube.getCrd(this.cheClusterCrd)
+          const newCRDPath = await this.getCRDPath(ctx, flags)
 
-          if (exist) {
-            const checkCRD = await kube.isCRDCompatible(this.cheClusterCrd, yamlFilePath)
-            if (!checkCRD) {
-              cli.error(`It is not possible to proceed the installation of Eclipse Che. The existed ${this.cheClusterCrd} is different from a new one. Please update it to continue the installation.`)
-            }
+          if (existedCRD) {
             task.title = `${task.title}...It already exists.`
           } else {
-            await kube.createCrdV1Beta1FromFile(yamlFilePath)
+            await kube.createCrdFromFile(newCRDPath)
             task.title = `${task.title}...done.`
           }
         }
@@ -295,17 +291,18 @@ export class OperatorTasks {
       {
         title: `Updating Eclipse Che cluster CRD ${this.cheClusterCrd}`,
         task: async (ctx: any, task: any) => {
-          const crd = await kube.getCrd(this.cheClusterCrd)
-          const yamlFilePath = path.join(ctx.resourcesPath, 'crds', 'org_v1_che_crd.yaml')
-          if (crd) {
-            if (!crd.metadata || !crd.metadata.resourceVersion) {
+          const existedCRD = await kube.getCrd(this.cheClusterCrd)
+          const newCRDPath = await this.getCRDPath(ctx, flags)
+
+          if (existedCRD) {
+            if (!existedCRD.metadata || !existedCRD.metadata.resourceVersion) {
               throw new Error(`Fetched CRD ${this.cheClusterCrd} without resource version`)
             }
 
-            await kube.replaceCrdFromFile(yamlFilePath, crd.metadata.resourceVersion)
+            await kube.replaceCrdFromFile(newCRDPath, existedCRD.metadata.resourceVersion)
             task.title = `${task.title}...updated.`
           } else {
-            await kube.createCrdV1Beta1FromFile(yamlFilePath)
+            await kube.createCrdFromFile(newCRDPath)
             task.title = `${task.title}...created new one.`
           }
         }
@@ -403,7 +400,7 @@ export class OperatorTasks {
         if (checlusters.length > 0) {
           task.title = `${task.title}...Skipped: another Eclipse Che deployment found.`
         } else {
-          await kh.deleteCrdV1Beta1(this.cheClusterCrd)
+          await kh.deleteCrd(this.cheClusterCrd)
           task.title = `${task.title}...OK`
         }
       }
@@ -486,5 +483,20 @@ export class OperatorTasks {
     }
 
     return container.image
+  }
+
+  async getCRDPath(ctx: any, flags: any): Promise<string> {
+    let newCRDFilePath: string
+
+    const kube = new KubeHelper(flags)
+    if (kube.isOpenShift3()) {
+      // try to get CRD v1beta1 explicitly if exists since OCP 3.11 doesn't support v1
+      newCRDFilePath = path.join(ctx.resourcesPath, 'crds', 'org_v1_che_crd-v1beta1.yaml')
+      if (fs.existsSync(newCRDFilePath)) {
+        return newCRDFilePath
+      }
+    }
+
+    return path.join(ctx.resourcesPath, 'crds', 'org_v1_che_crd.yaml')
   }
 }

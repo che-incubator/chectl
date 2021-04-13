@@ -266,9 +266,9 @@ export class DevWorkspaceTasks {
       {
         title: 'Delete DevWorkspace Controller CRDs',
         task: async (_ctx: any, task: any) => {
-          await this.kubeHelper.deleteCrdV1(this.devWorkspacesCrdName)
-          await this.kubeHelper.deleteCrdV1(this.devWorkspaceTemplatesCrdName)
-          await this.kubeHelper.deleteCrdV1(this.workspaceRoutingsCrdName)
+          await this.kubeHelper.deleteCrd(this.devWorkspacesCrdName)
+          await this.kubeHelper.deleteCrd(this.devWorkspaceTemplatesCrdName)
+          await this.kubeHelper.deleteCrd(this.workspaceRoutingsCrdName)
 
           task.title = await `${task.title}...OK`
         }
