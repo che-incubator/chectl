@@ -9,6 +9,7 @@
  **********************************************************************/
 
 import axios from 'axios'
+import { cli } from 'cli-ux'
 import execa = require('execa')
 import * as fs from 'fs-extra'
 import * as https from 'https'
@@ -233,7 +234,14 @@ export namespace VersionHelper {
     }
 
     // Check cache, if it is already known that newer version available
-    const isCachedNewerVersionAvailable = semver.gt(newVersionInfo.latestVersion, currentVersion)
+    let isCachedNewerVersionAvailable = false
+    try {
+      isCachedNewerVersionAvailable = semver.gt(newVersionInfo.latestVersion, currentVersion)
+    } catch (error) {
+      // not a version (corrupted data)
+      cli.debug(`Failed to compare versions '${newVersionInfo.latestVersion}' and '${currentVersion}': ${error}`)
+    }
+
     const now = Date.now()
     const isCacheExpired = now - newVersionInfo.lastCheck > A_DAY_IN_MS
     if (forceRecheck || (!isCachedNewerVersionAvailable && isCacheExpired)) {
@@ -247,7 +255,13 @@ export namespace VersionHelper {
       }
       newVersionInfo = { latestVersion, lastCheck: now }
       await fs.writeJson(newVersionInfoFilePath, newVersionInfo, { encoding: 'utf8' })
-      return semver.gt(newVersionInfo.latestVersion, currentVersion)
+      try {
+        return semver.gt(newVersionInfo.latestVersion, currentVersion)
+      } catch (error) {
+        // not to fail unexpectedly
+        cli.debug(`Failed to compare versions '${newVersionInfo.latestVersion}' and '${currentVersion}': ${error}`)
+        return false
+      }
     }
 
     // Information whether a newer version available is already in cache
