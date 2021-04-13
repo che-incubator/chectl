@@ -17,7 +17,7 @@ import { OpenShiftHelper } from '../../api/openshift'
 import { V1Certificate } from '../../api/typings/cert-manager'
 import { DEFAULT_DEV_WORKSPACE_CHE_NAMESPACE, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE } from '../../constants'
 import { CertManagerTasks } from '../component-installers/cert-manager'
-import { createNamespaceTask } from '../installers/common-tasks'
+import { createNamespaceTask, isOlmPreInstalledTask } from '../installers/common-tasks'
 
 /**
  * Handle setup of the dev workspace operator controller.
@@ -104,6 +104,7 @@ export class DevWorkspaceTasks {
   getInstallTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       createNamespaceTask(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE, {}),
+      isOlmPreInstalledTask(this.kubeHelper),
       {
         title: 'Verify cert-manager installation',
         enabled: (ctx: any) => !ctx.isOpenShift,
@@ -259,7 +260,7 @@ export class DevWorkspaceTasks {
         title: 'Delete DevWorkspace Controller we',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteMutatingWebhookConfiguration(this.webhooksName)
-
+          await this.kubeHelper.deleteValidatingWebhookConfiguration(this.webhooksName)
           task.title = await `${task.title} ...OK`
         }
       },

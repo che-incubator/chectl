@@ -10,6 +10,7 @@
 
 import Command from '@oclif/command'
 import ansi = require('ansi-colors')
+import { cli } from 'cli-ux'
 import * as fs from 'fs-extra'
 import * as Listr from 'listr'
 import { isEmpty } from 'lodash'
@@ -231,6 +232,20 @@ export function getPrintHighlightedMessagesTask(): Listr.ListrTask {
         })
       }
       return printMessageTasks
+    }
+  }
+}
+
+export function isOlmPreInstalledTask(kube: KubeHelper): Listr.ListrTask<Listr.ListrContext> {
+  return {
+    title: 'Check if OLM is pre-installed on the platform',
+    task: async (_ctx: any, task: any) => {
+      if (!await kube.isPreInstalledOLM()) {
+        cli.warn('Looks like your platform hasn\'t got embedded OLM, so you should install it manually. For quick start you can use:')
+        cli.url('install.sh', 'https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/install.sh')
+        cli.error('OLM is required for installation Eclipse Che with installer flag \'olm\'')
+      }
+      task.title = `${task.title}...done.`
     }
   }
 }

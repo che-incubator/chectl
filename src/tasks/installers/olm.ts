@@ -9,7 +9,6 @@
  **********************************************************************/
 
 import Command from '@oclif/command'
-import { cli } from 'cli-ux'
 import * as yaml from 'js-yaml'
 import Listr = require('listr')
 import * as path from 'path'
@@ -20,7 +19,7 @@ import { VersionHelper } from '../../api/version'
 import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, KUBERNETES_OLM_CATALOG, NIGHTLY_CATALOG_SOURCE_NAME, OLM_NIGHTLY_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, SUBSCRIPTION_NAME } from '../../constants'
 import { isKubernetesPlatformFamily } from '../../util'
 
-import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
+import { createEclipseCheCluster, createNamespaceTask, isOlmPreInstalledTask, patchingEclipseCheCluster } from './common-tasks'
 
 export class OLMTasks {
   prometheusRoleName = 'prometheus-k8s'
@@ -28,10 +27,10 @@ export class OLMTasks {
   /**
    * Returns list of tasks which perform preflight platform checks.
    */
-  startTasks(flags: any, command: Command): Listr {
+  startTasks(flags: any): Listr {
     const kube = new KubeHelper(flags)
     return new Listr([
-      this.isOlmPreInstalledTask(command, kube),
+      isOlmPreInstalledTask(kube),
       createNamespaceTask(flags.chenamespace, this.getOlmNamespaceLabels(flags)),
       {
         enabled: () => flags['cluster-monitoring'] && flags.platform === 'openshift',
@@ -218,7 +217,7 @@ export class OLMTasks {
   preUpdateTasks(flags: any, command: Command): Listr {
     const kube = new KubeHelper(flags)
     return new Listr([
-      this.isOlmPreInstalledTask(command, kube),
+      isOlmPreInstalledTask(kube),
       {
         title: 'Check if operator group exists',
         task: async (_ctx: any, task: any) => {
@@ -364,20 +363,6 @@ export class OLMTasks {
         }
       },
     ]
-  }
-
-  private isOlmPreInstalledTask(command: Command, kube: KubeHelper): Listr.ListrTask<Listr.ListrContext> {
-    return {
-      title: 'Check if OLM is pre-installed on the platform',
-      task: async (_ctx: any, task: any) => {
-        if (!await kube.isPreInstalledOLM()) {
-          cli.warn('Looks like your platform hasn\'t got embedded OLM, so you should install it manually. For quick start you can use:')
-          cli.url('install.sh', 'https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/install.sh')
-          command.error('OLM is required for installation Eclipse Che with installer flag \'olm\'')
-        }
-        task.title = `${task.title}...done.`
-      }
-    }
   }
 
   private constructSubscription(name: string, packageName: string, namespace: string, sourceNamespace: string, channel: string, sourceName: string, installPlanApproval: string, startingCSV?: string): Subscription {
