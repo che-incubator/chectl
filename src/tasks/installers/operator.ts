@@ -47,19 +47,19 @@ export class OperatorTasks {
             continue
           }
           switch (yamlContent.kind) {
-            case 'Role':
-              ctx.roles.push(yamlContent)
-              break
-            case 'RoleBinding':
-              ctx.roleBindings.push(yamlContent)
-              break
-            case 'ClusterRole':
-              ctx.clusterRoles.push(yamlContent)
-              break
-            case 'ClusterRoleBinding':
-              ctx.clusterRoleBindings.push(yamlContent)
-              break
-            default:
+          case 'Role':
+            ctx.roles.push(yamlContent)
+            break
+          case 'RoleBinding':
+            ctx.roleBindings.push(yamlContent)
+            break
+          case 'ClusterRole':
+            ctx.clusterRoles.push(yamlContent)
+            break
+          case 'ClusterRoleBinding':
+            ctx.clusterRoleBindings.push(yamlContent)
+            break
+          default:
             // Ignore this object kind
           }
         }
@@ -173,11 +173,10 @@ export class OperatorTasks {
         title: `Create CRD ${this.cheClusterCrd}`,
         task: async (ctx: any, task: any) => {
           const existedCRD = await kube.getCrd(this.cheClusterCrd)
-          const newCRDPath = await this.getCRDPath(ctx, flags)
-
           if (existedCRD) {
             task.title = `${task.title}...It already exists.`
           } else {
+            const newCRDPath = await this.getCRDPath(ctx, flags)
             await kube.createCrdFromFile(newCRDPath)
             task.title = `${task.title}...done.`
           }
