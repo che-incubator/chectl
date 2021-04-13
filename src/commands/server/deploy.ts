@@ -358,7 +358,15 @@ export default class Deploy extends Command {
         minAllowedVersion = 'latest'
       }
 
-      if (semver.gt(minAllowedVersion, flags.version)) {
+      let isVersionAllowed = false
+      try {
+        isVersionAllowed = semver.gte(flags.version, minAllowedVersion)
+      } catch (error) {
+        // not to fail unexpectedly
+        cli.debug(`Failed to compare versions '${flags.version}' and '${minAllowedVersion}': ${error}`)
+      }
+
+      if (!isVersionAllowed) {
         throw new Error(`This chectl version can deploy version ${minAllowedVersion} and higher. If you need to deploy ${flags.version} or lower, download the corresponding legacy chectl version.`)
       }
     }

@@ -108,7 +108,15 @@ export default class Update extends Command {
         this.error(`'--${DEPLOY_VERSION_KEY}' flag is not supported for OLM installer. 'server:update' command automatically updates to the next available version.`)
       }
 
-      if (flags.installer === 'operator' && semver.gt(MIN_CHE_OPERATOR_INSTALLER_VERSION, flags.version)) {
+      let isVersionAllowed = false
+      try {
+        isVersionAllowed = semver.gte(flags.version, MIN_CHE_OPERATOR_INSTALLER_VERSION)
+      } catch (error) {
+        // not to fail unexpectedly
+        cli.debug(`Failed to compare versions '${flags.version}' and '${MIN_CHE_OPERATOR_INSTALLER_VERSION}': ${error}`)
+      }
+
+      if (flags.installer === 'operator' && !isVersionAllowed) {
         throw new Error(this.getWrongVersionMessage(flags.version, MIN_CHE_OPERATOR_INSTALLER_VERSION))
       }
     }
@@ -271,7 +279,15 @@ export default class Update extends Command {
       } else {
         // Downgrade
 
-        if (semver.gt(MIN_CHE_OPERATOR_INSTALLER_VERSION, flags.version)) {
+        let isVersionAllowed = false
+        try {
+          isVersionAllowed = semver.gte(flags.version, MIN_CHE_OPERATOR_INSTALLER_VERSION)
+        } catch (error) {
+          // not to fail unexpectedly
+          cli.debug(`Failed to compare versions '${flags.version}' and '${MIN_CHE_OPERATOR_INSTALLER_VERSION}': ${error}`)
+        }
+
+        if (!isVersionAllowed) {
           cli.info(`Given Eclipse Che version ${flags.version} is too old to be downgraded to`)
           return false
         }
@@ -327,11 +343,20 @@ export default class Update extends Command {
     if (oldTag === newTag) {
       throw new Error(`Tags are the same: ${newTag}`)
     }
+
+    let isUpdate = false
+    try {
+      isUpdate = semver.gt(newTag, oldTag)
+    } catch (error) {
+      // not to fail unexpectedly
+      cli.debug(`Failed to compare versions '${newTag}' and '${oldTag}': ${error}`)
+    }
+
     // if newTag is nightly it is upgrade
     // if oldTag is nightly it is downgrade
     // otherwise just compare new and old tags
     // Note, that semver lib doesn't handle text tags and throws an error in case nightly is provided for comparation.
-    return newTag === 'nightly' || (oldTag !== 'nightly' && semver.gt(newTag, oldTag))
+    return newTag === 'nightly' || (oldTag !== 'nightly' && isUpdate)
   }
 
   /**
