@@ -477,7 +477,9 @@ export class KubeHelper {
     try {
       await k8sAdmissionApi.deleteValidatingWebhookConfiguration(name)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -486,7 +488,9 @@ export class KubeHelper {
     try {
       await k8sAdmissionApi.deleteMutatingWebhookConfiguration(name)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -1506,7 +1510,9 @@ export class KubeHelper {
     try {
       await k8sApiextensionsApi.deleteCustomResourceDefinition(name)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -1566,6 +1572,10 @@ export class KubeHelper {
 
       cheClusterCR.spec.storage.postgresPVCStorageClassName = flags['postgres-pvc-storage-class-name']
       cheClusterCR.spec.storage.workspacePVCStorageClassName = flags['workspace-pvc-storage-class-name']
+
+      if (flags['workspace-engine'] === 'dev-workspace') {
+        cheClusterCR.spec.devWorkspace.enable = true
+      }
 
       // Use self-signed TLS certificate by default (for versions before 7.14.3).
       // In modern versions of Che this field is ignored.
@@ -2107,7 +2117,9 @@ export class KubeHelper {
       // If cluster certificates doesn't exist an exception will be thrown
       await customObjectsApi.deleteNamespacedCustomObject('cert-manager.io', version, namespace, 'certificates', name)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -2115,10 +2127,11 @@ export class KubeHelper {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     try {
-      // If cluster issuers doesn't exist an exception will be thrown
       await customObjectsApi.deleteNamespacedCustomObject('cert-manager.io', version, namespace, 'issuers', name)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
