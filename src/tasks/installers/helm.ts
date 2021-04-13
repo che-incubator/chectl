@@ -183,15 +183,15 @@ export class HelmTasks {
       {
         title: 'Updating Helm Chart dependencies',
         task: async (_ctx: any, task: any) => {
-          let isVersionAllowed = false
+          let shouldPatchHelmChart = false
           try {
-            isVersionAllowed = semver.gt('7.23.2', flags.version)
+            shouldPatchHelmChart = semver.gt('7.23.2', flags.version)
           } catch (error) {
             // not to fail unexpectedly
             cli.debug(`Failed to compare versions '7.23.2' and '${flags.version}': ${error}`)
           }
 
-          if (flags.version && isVersionAllowed) {
+          if (flags.version && shouldPatchHelmChart) {
             // Current version is below 7.23.2
             // Fix moved external dependency
             await this.pathcCheHelmChartPrometheusAndGrafanaDependencies(flags)

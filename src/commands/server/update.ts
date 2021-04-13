@@ -344,9 +344,9 @@ export default class Update extends Command {
       throw new Error(`Tags are the same: ${newTag}`)
     }
 
-    let isVersionAllowed = false
+    let isUpdate = false
     try {
-      isVersionAllowed = semver.gt(newTag, oldTag)
+      isUpdate = semver.gt(newTag, oldTag)
     } catch (error) {
       // not to fail unexpectedly
       cli.debug(`Failed to compare versions '${newTag}' and '${oldTag}': ${error}`)
@@ -356,7 +356,7 @@ export default class Update extends Command {
     // if oldTag is nightly it is downgrade
     // otherwise just compare new and old tags
     // Note, that semver lib doesn't handle text tags and throws an error in case nightly is provided for comparation.
-    return newTag === 'nightly' || (oldTag !== 'nightly' && isVersionAllowed)
+    return newTag === 'nightly' || (oldTag !== 'nightly' && isUpdate)
   }
 
   /**
