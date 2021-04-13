@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { AdmissionregistrationV1Api, ApiextensionsV1Api, ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1ClusterRole, V1ClusterRoleBinding, V1ClusterRoleBindingList, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1ContainerStateTerminated, V1ContainerStateWaiting, V1CustomResourceDefinition, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1MutatingWebhookConfiguration, V1Namespace, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleBindingList, V1RoleList, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Status, V1Subject, Watch } from '@kubernetes/client-node'
+import { AdmissionregistrationV1Api, ApiextensionsV1Api, ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1ClusterRole, V1ClusterRoleBinding, V1ClusterRoleBindingList, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1ContainerStateTerminated, V1ContainerStateWaiting, V1CustomResourceDefinition, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1MutatingWebhookConfiguration, V1Namespace, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleBindingList, V1RoleList, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
 import { Cluster, Context } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
@@ -66,18 +66,26 @@ export class KubeHelper {
     }
   }
 
-  async deleteAllServices(namespace = '') {
+  async deleteAllServices(namespace: string): Promise<void> {
     const k8sApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
       const res = await k8sApi.listNamespacedService(namespace)
       if (res && res.response && res.response.statusCode === 200) {
         const serviceList = res.body
         await serviceList.items.forEach(async service => {
-          await k8sApi.deleteNamespacedService(service.metadata!.name!, namespace)
+          try {
+            await k8sApi.deleteNamespacedService(service.metadata!.name!, namespace)
+          } catch (error) {
+            if (error.response.statusCode !== 404) {
+              throw error
+            }
+          }
         })
       }
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -178,12 +186,14 @@ export class KubeHelper {
     })
   }
 
-  async deleteServiceAccount(name = '', namespace = '') {
+  async deleteServiceAccount(name: string, namespace: string): Promise<void> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
       await k8sCoreApi.deleteNamespacedServiceAccount(name, namespace)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -381,12 +391,14 @@ export class KubeHelper {
     }
   }
 
-  async deleteRole(name = '', namespace = '') {
+  async deleteRole(name: string, namespace: string): Promise<void> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
       await k8sCoreApi.deleteNamespacedRole(name, namespace)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -401,12 +413,14 @@ export class KubeHelper {
     }
   }
 
-  async deleteClusterRole(name = '') {
+  async deleteClusterRole(name: string): Promise<void> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
       await k8sCoreApi.deleteClusterRole(name)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -477,7 +491,9 @@ export class KubeHelper {
     try {
       await k8sAdmissionApi.deleteValidatingWebhookConfiguration(name)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -486,7 +502,9 @@ export class KubeHelper {
     try {
       await k8sAdmissionApi.deleteMutatingWebhookConfiguration(name)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -636,22 +654,25 @@ export class KubeHelper {
     return this.replaceClusterRoleBindingFrom(clusterRoleBinding)
   }
 
-  async deleteRoleBinding(name = '', namespace = '') {
+  async deleteRoleBinding(name: string, namespace: string): Promise<void> {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
-      return await k8sRbacAuthApi.deleteNamespacedRoleBinding(name, namespace)
+      await k8sRbacAuthApi.deleteNamespacedRoleBinding(name, namespace)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
-  async deleteClusterRoleBinding(name: string): Promise<V1Status> {
+  async deleteClusterRoleBinding(name: string): Promise<void> {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
-      const res = await k8sRbacAuthApi.deleteClusterRoleBinding(name)
-      return res.body
+      await k8sRbacAuthApi.deleteClusterRoleBinding(name)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -702,12 +723,14 @@ export class KubeHelper {
     }
   }
 
-  async deleteConfigMap(name: string, namespace = '') {
+  async deleteConfigMap(name: string, namespace: string): Promise<void> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
       await k8sCoreApi.deleteNamespacedConfigMap(name, namespace)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -1195,12 +1218,14 @@ export class KubeHelper {
     }
   }
 
-  async deleteAllDeployments(namespace = '') {
+  async deleteAllDeployments(namespace: string): Promise<void> {
     const k8sAppsApi = this.kubeConfig.makeApiClient(AppsV1Api)
     try {
       await k8sAppsApi.deleteCollectionNamespacedDeployment(namespace)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -1404,12 +1429,14 @@ export class KubeHelper {
     }
   }
 
-  async deleteAllIngresses(namespace = '') {
+  async deleteAllIngresses(namespace: string): Promise<void> {
     const k8sExtensionsApi = this.kubeConfig.makeApiClient(ExtensionsV1beta1Api)
     try {
       await k8sExtensionsApi.deleteCollectionNamespacedIngress(namespace)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -1497,6 +1524,9 @@ export class KubeHelper {
     try {
       await k8sApiextensionsApi.deleteCustomResourceDefinition(name)
     } catch (e) {
+      if (e.response.statusCode === 404) {
+        return
+      }
       throw this.wrapK8sClientError(e)
     }
   }
@@ -1506,7 +1536,9 @@ export class KubeHelper {
     try {
       await k8sApiextensionsApi.deleteCustomResourceDefinition(name)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -1566,6 +1598,10 @@ export class KubeHelper {
 
       cheClusterCR.spec.storage.postgresPVCStorageClassName = flags['postgres-pvc-storage-class-name']
       cheClusterCR.spec.storage.workspacePVCStorageClassName = flags['workspace-pvc-storage-class-name']
+
+      if (flags['workspace-engine'] === 'dev-workspace') {
+        cheClusterCR.spec.devWorkspace.enable = true
+      }
 
       // Use self-signed TLS certificate by default (for versions before 7.14.3).
       // In modern versions of Che this field is ignored.
@@ -1647,7 +1683,7 @@ export class KubeHelper {
   /**
    * Deletes `checlusters.org.eclipse.che' resources in the given namespace.
    */
-  async deleteCheCluster(namespace: string) {
+  async deleteCheCluster(namespace: string): Promise<void> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.listNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters')
@@ -1753,6 +1789,9 @@ export class KubeHelper {
         await customObjectsApi.deleteClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclientauthorizations', oauthAuthorization.metadata.name)
       }
     } catch (e) {
+      if (e.response.statusCode === 404) {
+        return
+      }
       throw this.wrapK8sClientError(e)
     }
   }
@@ -1776,7 +1815,9 @@ export class KubeHelper {
     try {
       await customObjectsApi.deleteClusterCustomObject('console.openshift.io', 'v1', 'consolelinks', name)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -1835,6 +1876,9 @@ export class KubeHelper {
     try {
       await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', catalogSourceName)
     } catch (e) {
+      if (e.response.statusCode === 404) {
+        return
+      }
       throw this.wrapK8sClientError(e)
     }
   }
@@ -1871,12 +1915,14 @@ export class KubeHelper {
     }
   }
 
-  async deleteOperatorGroup(operatorGroupName: string, namespace: string) {
+  async deleteOperatorGroup(operatorGroupName: string, namespace: string): Promise<void> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
       await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorgroups', operatorGroupName)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -1912,12 +1958,14 @@ export class KubeHelper {
     }
   }
 
-  async deleteOperatorSubscription(operatorSubscriptionName: string, namespace: string) {
+  async deleteOperatorSubscription(operatorSubscriptionName: string, namespace: string): Promise<void> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
       await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', operatorSubscriptionName)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -2032,13 +2080,14 @@ export class KubeHelper {
     }
   }
 
-  async deleteClusterServiceVersion(namespace: string, csvName: string) {
+  async deleteClusterServiceVersion(namespace: string, csvName: string): Promise<void> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions', csvName)
-      return body as ClusterServiceVersionList
+      await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions', csvName)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -2107,7 +2156,9 @@ export class KubeHelper {
       // If cluster certificates doesn't exist an exception will be thrown
       await customObjectsApi.deleteNamespacedCustomObject('cert-manager.io', version, namespace, 'certificates', name)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -2115,10 +2166,11 @@ export class KubeHelper {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     try {
-      // If cluster issuers doesn't exist an exception will be thrown
       await customObjectsApi.deleteNamespacedCustomObject('cert-manager.io', version, namespace, 'issuers', name)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -2135,7 +2187,7 @@ export class KubeHelper {
     if (!res || !res.body) {
       throw new Error('Unable to get cluster issuers list')
     }
-    const clusterIssuersList: {items?: any[]} = res.body
+    const clusterIssuersList: { items?: any[] } = res.body
 
     return clusterIssuersList.items || []
   }
@@ -2458,12 +2510,14 @@ export class KubeHelper {
     }
   }
 
-  async deletePersistentVolumeClaim(name = '', namespace = '') {
+  async deletePersistentVolumeClaim(name: string, namespace: string): Promise<void> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
       await k8sCoreApi.deleteNamespacedPersistentVolumeClaim(name, namespace)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 

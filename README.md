@@ -515,10 +515,6 @@ OPTIONS
   --deployment-name=deployment-name
       [default: che] Eclipse Che deployment name
 
-  --dev-workspace-controller-image=dev-workspace-controller-image
-      [default: quay.io/devfile/devworkspace-controller:v0.2.3] Container image of the dev workspace controller. This 
-      parameter is used only when the workspace engine is the DevWorkspace
-
   --dev-workspace-controller-namespace=dev-workspace-controller-namespace
       [default: devworkspace-controller] Namespace for the DevWorkspace controller.  This parameter is used only when the 
       workspace engine is the DevWorkspace

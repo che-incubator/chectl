@@ -69,6 +69,9 @@ export const OUTPUT_SEPARATOR = '-----------------------------------------------
 // DevWorkspace
 export const DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE = 'devworkspace-controller'
 
+// DevWorkspace Che
+export const DEFAULT_DEV_WORKSPACE_CHE_NAMESPACE = 'devworkspace-che'
+
 // HOOKS
 export const DEFAULT_ANALYTIC_HOOK_NAME = 'analytics'
 
