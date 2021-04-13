@@ -72,18 +72,15 @@ release() {
 
   # Get DevWorkspace operator commit sha (if version is not specified, use latest commit from main branch)
   if [[ -n "${DWO_VERSION}" ]]; then
-    DWO_QUAY_IMAGE_VERSION=${DWO_VERSION}
     DWO_GIT_VERSION=${DWO_VERSION}
   else
     # Get DevWorkspace operator commit sha
-    DWO_QUAY_IMAGE_VERSION="sha-$(git ls-remote https://github.com/devfile/devworkspace-operator HEAD | cut -f1)"
     DWO_GIT_VERSION=$(echo ${SHA1_DEV_WORKSPACE_OPERATOR} | cut -c1-7)
   fi
 
   # replace nightly versions by release version
   apply_sed "s#quay.io/eclipse/che-server:.*#quay.io/eclipse/che-server:${VERSION}'#g" src/constants.ts
   apply_sed "s#quay.io/eclipse/che-operator:.*#quay.io/eclipse/che-operator:${VERSION}'#g" src/constants.ts
-  apply_sed "s#quay.io/devfile/devworkspace-controller:.*#quay.io/devfile/devworkspace-controller:${DWO_QUAY_IMAGE_VERSION}'#g" src/constants.ts
 
   # now replace package.json dependencies
   apply_sed "s;github.com/eclipse/che#\(.*\)\",;github.com/eclipse/che#${VERSION}\",;g" package.json
