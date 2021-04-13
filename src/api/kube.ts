@@ -77,7 +77,9 @@ export class KubeHelper {
         })
       }
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -183,7 +185,9 @@ export class KubeHelper {
     try {
       await k8sCoreApi.deleteNamespacedServiceAccount(name, namespace)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -386,7 +390,9 @@ export class KubeHelper {
     try {
       await k8sCoreApi.deleteNamespacedRole(name, namespace)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -406,7 +412,9 @@ export class KubeHelper {
     try {
       await k8sCoreApi.deleteClusterRole(name)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -645,17 +653,20 @@ export class KubeHelper {
     try {
       return await k8sRbacAuthApi.deleteNamespacedRoleBinding(name, namespace)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
-  async deleteClusterRoleBinding(name: string): Promise<V1Status> {
+  async deleteClusterRoleBinding(name: string): Promise<void> {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
-      const res = await k8sRbacAuthApi.deleteClusterRoleBinding(name)
-      return res.body
+      await k8sRbacAuthApi.deleteClusterRoleBinding(name)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -711,7 +722,9 @@ export class KubeHelper {
     try {
       await k8sCoreApi.deleteNamespacedConfigMap(name, namespace)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -1204,7 +1217,9 @@ export class KubeHelper {
     try {
       await k8sAppsApi.deleteCollectionNamespacedDeployment(namespace)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -1413,7 +1428,9 @@ export class KubeHelper {
     try {
       await k8sExtensionsApi.deleteCollectionNamespacedIngress(namespace)
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
