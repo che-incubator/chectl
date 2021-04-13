@@ -18,6 +18,7 @@ import https = require('https')
 import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
+
 import { CHE_CLUSTER_CRD, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
 import { getClusterClientCommand, isKubernetesPlatformFamily, safeLoadFromYamlFile } from '../util'
 import { V1Certificate } from './typings/cert-manager'
@@ -1446,7 +1447,7 @@ export class KubeHelper {
     }
 
     yaml.metadata.resourceVersion = resourceVersion
-    if (yaml.apiVersion === "apiextensions.k8s.io/v1beta1") {
+    if (yaml.apiVersion === 'apiextensions.k8s.io/v1beta1') {
       return this.replaceCrdV1Beta1(yaml)
     }
     return this.replaceCrdV1(yaml)
@@ -1477,7 +1478,7 @@ export class KubeHelper {
       yaml = this.getCrdV1(name)
     }
 
-    if (!!yaml && this.IsAPIExtensionSupported('v1beta1')) {
+    if (yaml && this.IsAPIExtensionSupported('v1beta1')) {
       yaml = this.getCrdV1beta1(name)
     }
 
@@ -1528,7 +1529,7 @@ export class KubeHelper {
       return this.deleteCrdV1(name)
     }
 
-    this.deleteCrdV1Beta1(name)
+    return this.deleteCrdV1Beta1(name)
   }
 
   private async deleteCrdV1Beta1(name: string): Promise<void> {
@@ -2361,7 +2362,6 @@ export class KubeHelper {
   async isOpenShift4(): Promise<boolean> {
     return this.IsAPIGroupSupported('route.openshift.io') && this.IsAPIGroupSupported('config.openshift.io')
   }
-
 
   async IsAPIExtensionSupported(version: string): Promise<boolean> {
     return this.IsAPIGroupSupported('apiextensions.k8s.io', version)
