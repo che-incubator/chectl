@@ -1473,17 +1473,11 @@ export class KubeHelper {
   }
 
   async getCrd(name: string): Promise<any | undefined> {
-    let yaml: any
-
-    if (this.IsAPIExtensionSupported('v1')) {
-      yaml = this.getCrdV1(name)
+    if (this.IsAPIExtensionSupported('v1beta1')) {
+      return this.getCrdV1beta1(name)
     }
 
-    if (yaml && this.IsAPIExtensionSupported('v1beta1')) {
-      yaml = this.getCrdV1beta1(name)
-    }
-
-    return yaml
+    return this.getCrdV1(name)
   }
 
   private async getCrdV1(name: string): Promise<any | undefined> {
@@ -1526,11 +1520,11 @@ export class KubeHelper {
   }
 
   async deleteCrd(name: string): Promise<void> {
-    if (this.IsAPIExtensionSupported('v1')) {
-      return this.deleteCrdV1(name)
+    if (this.IsAPIExtensionSupported('v1beta1')) {
+      return this.deleteCrdV1Beta1(name)
     }
 
-    return this.deleteCrdV1Beta1(name)
+    return this.deleteCrdV1(name)
   }
 
   private async deleteCrdV1Beta1(name: string): Promise<void> {
@@ -1538,10 +1532,9 @@ export class KubeHelper {
     try {
       await k8sApi.deleteCustomResourceDefinition(name)
     } catch (e) {
-      if (e.response.statusCode === 404) {
-        return
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
       }
-      throw this.wrapK8sClientError(e)
     }
   }
 
