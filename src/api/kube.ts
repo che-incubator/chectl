@@ -2357,11 +2357,11 @@ export class KubeHelper {
     return this.IsAPIGroupSupported('apps.openshift.io')
   }
   async isOpenShift3(): Promise<boolean> {
-    return await this.IsAPIGroupSupported('apps.openshift.io') && ! (await this.IsAPIGroupSupported('config.openshift.io'))
+    return (await this.IsAPIGroupSupported('apps.openshift.io')) && ! (await this.IsAPIGroupSupported('config.openshift.io'))
   }
 
   async isOpenShift4(): Promise<boolean> {
-    return await this.IsAPIGroupSupported('route.openshift.io') && await this.IsAPIGroupSupported('config.openshift.io')
+    return (await this.IsAPIGroupSupported('route.openshift.io')) && (await this.IsAPIGroupSupported('config.openshift.io'))
   }
 
   async IsAPIExtensionSupported(version: string): Promise<boolean> {
