@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { AdmissionregistrationV1Api, ApiextensionsV1Api, ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1ClusterRole, V1ClusterRoleBinding, V1ClusterRoleBindingList, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1ContainerStateTerminated, V1ContainerStateWaiting, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1MutatingWebhookConfiguration, V1Namespace, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleBindingList, V1RoleList, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
+import { AdmissionregistrationV1Api, ApiextensionsV1Api, ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1ClusterRole, V1ClusterRoleBinding, V1ClusterRoleBindingList, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1ContainerStateTerminated, V1ContainerStateWaiting, V1CustomResourceDefinition, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1MutatingWebhookConfiguration, V1Namespace, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleBindingList, V1RoleList, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
 import { Cluster, Context } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
@@ -1418,9 +1418,9 @@ export class KubeHelper {
   async createCrdFromFile(filePath: string): Promise<void> {
     const yaml = this.safeLoadFromYamlFile(filePath)
     if (yaml.apiVersion === 'apiextensions.k8s.io/v1beta1') {
-      return this.createCrdV1Beta1(filePath)
+      return this.createCrdV1Beta1(yaml)
     }
-    return this.createCrdV1(filePath)
+    return this.createCrdV1(yaml)
   }
 
   private async createCrdV1Beta1(yaml: any): Promise<void> {
@@ -2357,11 +2357,11 @@ export class KubeHelper {
     return this.IsAPIGroupSupported('apps.openshift.io')
   }
   async isOpenShift3(): Promise<boolean> {
-    return this.IsAPIGroupSupported('apps.openshift.io') && !this.IsAPIGroupSupported('config.openshift.io')
+    return await this.IsAPIGroupSupported('apps.openshift.io') && ! (await this.IsAPIGroupSupported('config.openshift.io'))
   }
 
   async isOpenShift4(): Promise<boolean> {
-    return this.IsAPIGroupSupported('route.openshift.io') && this.IsAPIGroupSupported('config.openshift.io')
+    return await this.IsAPIGroupSupported('route.openshift.io') && await this.IsAPIGroupSupported('config.openshift.io')
   }
 
   async IsAPIExtensionSupported(version: string): Promise<boolean> {
