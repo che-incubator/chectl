@@ -1474,11 +1474,10 @@ export class KubeHelper {
   }
 
   async getCrd(name: string): Promise<any | undefined> {
-    if (this.IsAPIExtensionSupported('v1beta1')) {
-      return this.getCrdV1beta1(name)
+    if (this.IsAPIExtensionSupported('v1')) {
+      return this.getCrdV1(name)
     }
-
-    return this.getCrdV1(name)
+    return this.getCrdV1beta1(name)
   }
 
   private async getCrdV1(name: string): Promise<any | undefined> {
@@ -1521,11 +1520,10 @@ export class KubeHelper {
   }
 
   async deleteCrd(name: string): Promise<void> {
-    if (this.IsAPIExtensionSupported('v1beta1')) {
-      return this.deleteCrdV1Beta1(name)
+    if (this.IsAPIExtensionSupported('v1')) {
+      return this.deleteCrdV1(name)
     }
-
-    return this.deleteCrdV1(name)
+    return this.deleteCrdV1Beta1(name)
   }
 
   private async deleteCrdV1Beta1(name: string): Promise<void> {
