@@ -31,6 +31,7 @@ const AWAIT_TIMEOUT_S = 30
 
 export class KubeHelper {
   public readonly kubeConfig
+  readonly API_EXTENSIONS_V1BETA1 = 'apiextensions.k8s.io/v1beta1'
 
   podWaitTimeout: number
   podDownloadImageTimeout: number
@@ -1417,7 +1418,7 @@ export class KubeHelper {
 
   async createCrdFromFile(filePath: string): Promise<void> {
     const yaml = this.safeLoadFromYamlFile(filePath)
-    if (yaml.apiVersion === 'apiextensions.k8s.io/v1beta1') {
+    if (yaml.apiVersion === this.API_EXTENSIONS_V1BETA1) {
       return this.createCrdV1Beta1(yaml)
     }
     return this.createCrdV1(yaml)
@@ -1448,7 +1449,7 @@ export class KubeHelper {
     }
 
     yaml.metadata.resourceVersion = resourceVersion
-    if (yaml.apiVersion === 'apiextensions.k8s.io/v1beta1') {
+    if (yaml.apiVersion === this.API_EXTENSIONS_V1BETA1) {
       return this.replaceCrdV1Beta1(yaml)
     }
     return this.replaceCrdV1(yaml)
