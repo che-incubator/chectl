@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { AdmissionregistrationV1Api, ApiextensionsV1Api, ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1ClusterRole, V1ClusterRoleBinding, V1ClusterRoleBindingList, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1ContainerStateTerminated, V1ContainerStateWaiting, V1CustomResourceDefinition, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1MutatingWebhookConfiguration, V1Namespace, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleBindingList, V1RoleList, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
+import { AdmissionregistrationV1Api, ApiextensionsV1Api, ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1ClusterRole, V1ClusterRoleBinding, V1ClusterRoleBindingList, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1ContainerStateTerminated, V1ContainerStateWaiting, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1MutatingWebhookConfiguration, V1Namespace, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleBindingList, V1RoleList, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
 import { Cluster, Context } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
@@ -31,6 +31,7 @@ const AWAIT_TIMEOUT_S = 30
 
 export class KubeHelper {
   public readonly kubeConfig
+  readonly API_EXTENSIONS_V1BETA1 = 'apiextensions.k8s.io/v1beta1'
 
   podWaitTimeout: number
   podDownloadImageTimeout: number
@@ -1396,25 +1397,6 @@ export class KubeHelper {
     }
   }
 
-  async isCRDCompatible(crdClusterName: string, crdFilePath: string): Promise<boolean> {
-    const { spec: crdFileSpec } = this.safeLoadFromYamlFile(crdFilePath) as V1beta1CustomResourceDefinition
-    const { spec: crdClusterSpec } = await this.getCrd(crdClusterName)
-    const { validation: { openAPIV3Schema: { properties: crdFileProps = '' } = {} } = {} } = crdFileSpec
-    const { validation: { openAPIV3Schema: { properties: crdClusterProps = '' } = {} } = {} } = crdClusterSpec
-
-    if (!crdFileSpec.versions || !crdClusterSpec.versions) {
-      return false
-    }
-
-    const crdFileVersions = crdFileSpec.versions.find(e => e.storage === true)
-    const crdClusterVersions = crdClusterSpec.versions.find(e => e.storage === true)
-    if (!crdFileVersions || !crdClusterVersions || crdFileVersions.name !== crdClusterVersions.name) {
-      return false
-    }
-
-    return Object.keys(crdFileProps).length === Object.keys(crdClusterProps).length
-  }
-
   async ingressExist(name = '', namespace = ''): Promise<boolean> {
     const k8sExtensionsApi = this.kubeConfig.makeApiClient(ExtensionsV1beta1Api)
     try {
@@ -1434,101 +1416,131 @@ export class KubeHelper {
     }
   }
 
-  async createCrdV1Beta1FromFile(filePath: string) {
-    const yamlCrd = this.safeLoadFromYamlFile(filePath) as V1beta1CustomResourceDefinition
-    const k8sApiextensionsApi = this.kubeConfig.makeApiClient(ApiextensionsV1beta1Api)
+  async createCrdFromFile(filePath: string): Promise<void> {
+    const yaml = this.safeLoadFromYamlFile(filePath)
+    if (yaml.apiVersion === this.API_EXTENSIONS_V1BETA1) {
+      return this.createCrdV1Beta1(yaml)
+    }
+    return this.createCrdV1(yaml)
+  }
+
+  private async createCrdV1Beta1(yaml: any): Promise<void> {
+    const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1beta1Api)
     try {
-      return await k8sApiextensionsApi.createCustomResourceDefinition(yamlCrd)
+      await k8sApi.createCustomResourceDefinition(yaml)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async createCrdV1FromFile(filePath: string) {
-    const yamlCrd = this.safeLoadFromYamlFile(filePath) as V1CustomResourceDefinition
-    const k8sApiextensionsApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
+  private async createCrdV1(yaml: any): Promise<void> {
+    const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
     try {
-      return await k8sApiextensionsApi.createCustomResourceDefinition(yamlCrd)
+      await k8sApi.createCustomResourceDefinition(yaml)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async replaceCrdFromFile(filePath: string, resourceVersion: string) {
-    const yamlCrd = this.safeLoadFromYamlFile(filePath) as V1beta1CustomResourceDefinition
-    if (!yamlCrd.metadata || !yamlCrd.metadata.name) {
-      throw new Error(`CRD read from ${filePath} must have name specified`)
+  async replaceCrdFromFile(filePath: string, resourceVersion: string): Promise<void> {
+    const yaml = this.safeLoadFromYamlFile(filePath)
+    if (!yaml.metadata || !yaml.metadata.name) {
+      throw new Error(`Name is not defined in: ${filePath}`)
     }
-    yamlCrd.metadata.resourceVersion = resourceVersion
-    const k8sApiextensionsApi = this.kubeConfig.makeApiClient(ApiextensionsV1beta1Api)
+
+    yaml.metadata.resourceVersion = resourceVersion
+    if (yaml.apiVersion === this.API_EXTENSIONS_V1BETA1) {
+      return this.replaceCrdV1Beta1(yaml)
+    }
+    return this.replaceCrdV1(yaml)
+  }
+
+  private async replaceCrdV1Beta1(yaml: any): Promise<void> {
+    const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1beta1Api)
     try {
-      return await k8sApiextensionsApi.replaceCustomResourceDefinition(yamlCrd.metadata.name, yamlCrd)
+      await k8sApi.replaceCustomResourceDefinition(yaml.metadata.name, yaml)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async isCrdV1Beta1Exists(name = ''): Promise<boolean> {
-    const k8sApiextensionsApi = this.kubeConfig.makeApiClient(ApiextensionsV1beta1Api)
+  private async replaceCrdV1(yaml: any): Promise<void> {
+    const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
     try {
-      const { body } = await k8sApiextensionsApi.readCustomResourceDefinition(name)
-      return this.compare(body, name)
-    } catch {
-      return false
+      await k8sApi.replaceCustomResourceDefinition(yaml.metadata.name, yaml)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
     }
   }
 
-  async isCrdV1Exists(name: string): Promise<boolean> {
-    const k8sApiextensionsApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
+  async getCrd(name: string): Promise<any | undefined> {
+    if (this.IsAPIExtensionSupported('v1')) {
+      return this.getCrdV1(name)
+    }
+    return this.getCrdV1beta1(name)
+  }
+
+  private async getCrdV1(name: string): Promise<any | undefined> {
+    const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
     try {
-      await k8sApiextensionsApi.readCustomResourceDefinition(name)
-      return true
+      const { body } = await k8sApi.readCustomResourceDefinition(name)
+      return body
     } catch (e) {
       if (e.response.statusCode === 404) {
-        return false
+        return
       }
 
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async getCrd(name: string): Promise<V1beta1CustomResourceDefinition> {
-    const k8sApiextensionsApi = this.kubeConfig.makeApiClient(ApiextensionsV1beta1Api)
+  private async getCrdV1beta1(name: string): Promise<any | undefined> {
+    const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1beta1Api)
     try {
-      const { body } = await k8sApiextensionsApi.readCustomResourceDefinition(name)
+      const { body } = await k8sApi.readCustomResourceDefinition(name)
       return body
     } catch (e) {
+      if (e.response.statusCode === 404) {
+        return
+      }
+
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async getCrdApiVersion(crdName: string): Promise<string> {
-    const crd = await this.getCrd(crdName)
+  async getCrdStorageVersion(name: string): Promise<string> {
+    const crd = await this.getCrd(name)
     if (!crd.spec.versions) {
       // Should never happen
       return 'v1'
     }
 
-    const crdv = crd.spec.versions.find(version => version.storage)
-    return crdv ? crdv.name : 'v1'
+    const version = crd.spec.versions.find((v: any) => v.storage)
+    return version ? version.name : 'v1'
   }
 
-  async deleteCrdV1Beta1(name: string): Promise<void> {
-    const k8sApiextensionsApi = this.kubeConfig.makeApiClient(ApiextensionsV1beta1Api)
+  async deleteCrd(name: string): Promise<void> {
+    if (this.IsAPIExtensionSupported('v1')) {
+      return this.deleteCrdV1(name)
+    }
+    return this.deleteCrdV1Beta1(name)
+  }
+
+  private async deleteCrdV1Beta1(name: string): Promise<void> {
+    const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1beta1Api)
     try {
-      await k8sApiextensionsApi.deleteCustomResourceDefinition(name)
+      await k8sApi.deleteCustomResourceDefinition(name)
     } catch (e) {
-      if (e.response.statusCode === 404) {
-        return
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
       }
-      throw this.wrapK8sClientError(e)
     }
   }
 
-  async deleteCrdV1(name: string): Promise<void> {
-    const k8sApiextensionsApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
+  private async deleteCrdV1(name: string): Promise<void> {
+    const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
     try {
-      await k8sApiextensionsApi.deleteCustomResourceDefinition(name)
+      await k8sApi.deleteCustomResourceDefinition(name)
     } catch (e) {
       if (e.response.statusCode !== 404) {
         throw this.wrapK8sClientError(e)
@@ -2108,7 +2120,7 @@ export class KubeHelper {
    * Returns CRD version of Cert Manager
    */
   async getCertManagerK8sApiVersion(): Promise<string> {
-    return this.getCrdApiVersion('certificates.cert-manager.io')
+    return this.getCrdStorageVersion('certificates.cert-manager.io')
   }
 
   async clusterIssuerExists(name: string, version: string): Promise<boolean> {
@@ -2334,12 +2346,42 @@ export class KubeHelper {
   }
 
   async isOpenShift(): Promise<boolean> {
-    const k8sCoreApi = this.kubeConfig.makeApiClient(ApisApi)
+    return this.IsAPIGroupSupported('apps.openshift.io')
+  }
+  async isOpenShift3(): Promise<boolean> {
+    const isAppsAPISupported = await this.IsAPIGroupSupported('apps.openshift.io')
+    const isConfigAPISupported = await this.IsAPIGroupSupported('config.openshift.io')
+    return isAppsAPISupported && !isConfigAPISupported
+  }
 
+  async isOpenShift4(): Promise<boolean> {
+    const isRouteAPISupported = await this.IsAPIGroupSupported('route.openshift.io')
+    const isConfigAPISupported = await this.IsAPIGroupSupported('config.openshift.io')
+    return isRouteAPISupported && isConfigAPISupported
+  }
+
+  async IsAPIExtensionSupported(version: string): Promise<boolean> {
+    return this.IsAPIGroupSupported('apiextensions.k8s.io', version)
+  }
+
+  async IsAPIGroupSupported(name: string, version?: string): Promise<boolean> {
+    const k8sCoreApi = this.kubeConfig.makeApiClient(ApisApi)
     try {
       const res = await k8sCoreApi.getAPIVersions()
-      return res && res.body && res.body.groups &&
-        res.body.groups.some(group => group.name === 'apps.openshift.io')
+      if (!res || !res.body || !res.body.groups) {
+        return false
+      }
+
+      const group = res.body.groups.find(g => g.name === name)
+      if (!group) {
+        return false
+      }
+
+      if (version) {
+        return !!group.versions.find(v => v.version === version)
+      } else {
+        return !!group
+      }
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -2389,19 +2431,6 @@ export class KubeHelper {
       throw this.wrapK8sClientError(e)
     }
     throw new Error('ERR_LIST_INGRESSES')
-  }
-
-  async isOpenShift4(): Promise<boolean> {
-    const k8sCoreApi = this.kubeConfig.makeApiClient(ApisApi)
-
-    try {
-      const res = await k8sCoreApi.getAPIVersions()
-      return res && res.body && res.body.groups &&
-        res.body.groups.some(group => group.name === 'route.openshift.io') &&
-        res.body.groups.some(group => group.name === 'config.openshift.io')
-    } catch (e) {
-      throw this.wrapK8sClientError(e)
-    }
   }
 
   async getSecret(name = '', namespace = 'default'): Promise<V1Secret | undefined> {

@@ -39,7 +39,7 @@ export class CertManagerTasks {
         title: 'Check Cert Manager deployment',
         task: async (ctx: any, task: any) => {
           // Check only one CRD of cert-manager assuming that it is installed or not.
-          ctx.certManagerInstalled = await this.kubeHelper.getNamespace(CERT_MANAGER_NAMESPACE_NAME) && await this.kubeHelper.isCrdV1Exists('certificates.cert-manager.io')
+          ctx.certManagerInstalled = await this.kubeHelper.getNamespace(CERT_MANAGER_NAMESPACE_NAME) && await this.kubeHelper.getCrd('certificates.cert-manager.io')
           if (ctx.certManagerInstalled) {
             task.title = `${task.title}...already deployed`
           } else {
