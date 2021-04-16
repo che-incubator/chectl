@@ -57,9 +57,9 @@ checkoutToReleaseBranch() {
     echo "[INFO] $BRANCH exists."
     resetChanges $BRANCH
   else
-    echo "[INFO] $BRANCH does not exist. Will be created a new one from master."
-    resetChanges master
-    git push origin master:$BRANCH
+    echo "[INFO] $BRANCH does not exist. Will be created a new one from main."
+    resetChanges main
+    git push origin main:$BRANCH
   fi
   git checkout -B $VERSION
 }

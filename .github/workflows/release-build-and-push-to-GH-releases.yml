@@ -10,11 +10,11 @@
 #    Red Hat, Inc. - initial API and implementation
 name: Release - generate release and push artifacts to github pages (after PR approved)
 on:
-  # Trigger the workflow on push only for the master and 7.y.x branches
+  # Trigger the workflow on push only for the main and 7.y.x branches
   push:
     branches:
       - '7.*.x'
-      - 'master'
+      - 'main'
 jobs:
   build-and-deploy:
     runs-on: ubuntu-20.04
@@ -33,7 +33,7 @@ jobs:
             echo "::set-output name=chectl_version::$(cat VERSION)"
             echo "::set-output name=gh_release_name::$(cat VERSION)"
             echo "::set-output name=gh_tag::$(cat VERSION)"
-          elif [[ ${GITHUB_REF#refs/heads/} =~ master ]]; then
+          elif [[ ${GITHUB_REF#refs/heads/} =~ main ]]; then
             CURRENT_DAY=$(date +'%Y%m%d')
             SHORT_SHA1=$(git rev-parse --short HEAD)
             echo "::set-output name=gh_tag::$(date +'%Y%m%d%H%M%S')"

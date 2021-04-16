@@ -4,9 +4,7 @@ chectl
 [Eclipse Che](https://github.com/eclipse/che/) CLI
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
-[![codecov](https://codecov.io/gh/che-incubator/chectl/branch/master/graph/badge.svg?token=ZBQtKMeiYu)](https://codecov.io/gh/che-incubator/chectl)
-[![Build Status](https://travis-ci.org/che-incubator/chectl.svg?branch=master)](https://travis-ci.org/che-incubator/chectl)
-![](https://img.shields.io/david/che-incubator/chectl.svg)
+[![codecov](https://codecov.io/gh/che-incubator/chectl/branch/main/graph/badge.svg?token=ZBQtKMeiYu)](https://codecov.io/gh/che-incubator/chectl)
 
 [![asciicast](https://asciinema.org/a/216201.svg)](https://asciinema.org/a/216201)
 
@@ -29,7 +27,7 @@ Issues are tracked on the main Eclipse Che Repository: https://github.com/eclips
 
 There are two channels of `chectl`: `stable` and `next`
 
-Stable is for all tagged versions of Eclipse Che. Next is updated after each commit/Pull Request being merged in master branch of the [Chectl repository](https://github.com/che-incubator/chectl).
+Stable is for all tagged versions of Eclipse Che. Next is updated after each commit/Pull Request being merged in main branch of the [Chectl repository](https://github.com/che-incubator/chectl).
 
 If you're using Windows x64, here is how to install chectl by using one single PowerShell command:
 
@@ -1023,4 +1021,4 @@ _See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/che
 
 # Contributing
 
-Contributing to chectl is covered in [CONTRIBUTING.md](https://github.com/che-incubator/chectl/blob/master/CONTRIBUTING.md)
+Contributing to chectl is covered in [CONTRIBUTING.md](https://github.com/che-incubator/chectl/blob/main/CONTRIBUTING.md)
