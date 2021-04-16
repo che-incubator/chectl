@@ -25,7 +25,7 @@
     "debug": "^4.3.1",
     "eclipse-che": "git://github.com/eclipse/che#master",
     "eclipse-che-devfile-workspace-operator": "git://github.com/devfile/devworkspace-operator#main",
-    "eclipse-che-operator": "git://github.com/eclipse/che-operator#master",
+    "eclipse-che-operator": "git://github.com/eclipse/che-operator#main",
     "esprima": "^4.0.1",
     "execa": "^4.0.3",
     "fancy-test": "^1.4.9",

@@ -2,21 +2,23 @@
 
 The development flow includes:
 
-- [create workspace, clone sources](#create-workspace-clone-sources)
-- [build](#build)
-- [run tests](#run-tests)
-- [generate devfile](#generate-devfile)
-- [create workspace](#create-workspace)
-- [package binaries](#package-binaries)
-- [push changes, provide pull request](#push-changes-provide-pull-request)
-- [make release](#make-release)
+- [Contributing](#contributing)
+  - [Create workspace, clone sources](#create-workspace-clone-sources)
+  - [Build](#build)
+  - [Run tests](#run-tests)
+  - [Run](#run)
+  - [Generate Devfile](#generate-devfile)
+  - [Create Workspace](#create-workspace)
+  - [Package binaries](#package-binaries)
+  - [Push changes, provide Pull Request](#push-changes-provide-pull-request)
+  - [Make Release](#make-release)
 
 ## Create workspace, clone sources
 
 To create a workpace you can use [devfile](devfile.yaml):
 
 ```
-$ chectl workspace:start -f https://raw.githubusercontent.com/che-incubator/chectl/master/devfile.yaml
+$ chectl workspace:start -f https://raw.githubusercontent.com/che-incubator/chectl/main/devfile.yaml
 ```
 
 > See more about [devfile](https://redhat-developer.github.io/devfile)
