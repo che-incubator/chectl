@@ -506,7 +506,7 @@ export class OperatorTasks {
   private async readOperatorDeployment(path: string, flags: any): Promise<V1Deployment> {
     const operatorDeployment = safeLoadFromYamlFile(path) as V1Deployment
 
-    if (operatorDeployment.metadata! || operatorDeployment.metadata!.name) {
+    if (!operatorDeployment.metadata || !operatorDeployment.metadata!.name) {
       throw new Error(`Deployment read from ${path} must have name specified`)
     }
 
