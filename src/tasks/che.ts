@@ -653,10 +653,24 @@ export class CheTasks {
           const cr = await this.kube.getCheCluster(flags.chenamespace)
           if (ctx.isOpenShift && cr && cr.spec && cr.spec.auth && cr.spec.auth.openShiftoAuth) {
             if (cr.status && cr.status.openShiftOAuthUserCredentialsSecret) {
-              const credentialsSecret = await this.kube.getSecret(cr.status.openShiftOAuthUserCredentialsSecret, flags.chenamespace)
+              let user = ''
+              let password = ''
+
+              // read secret from the `openshift-config` namespace
+              let credentialsSecret = await this.kube.getSecret(cr.status.openShiftOAuthUserCredentialsSecret, 'openshift-config')
               if (credentialsSecret) {
-                const user = base64Decode(credentialsSecret.data!.user)
-                const password = base64Decode(credentialsSecret.data!.password)
+                user = base64Decode(credentialsSecret.data!.user)
+                password = base64Decode(credentialsSecret.data!.password)
+              } else {
+                // read legacy secret from the `flags.chenamespace` namespace
+                credentialsSecret = await this.kube.getSecret(cr.status.openShiftOAuthUserCredentialsSecret, flags.chenamespace)
+                if (credentialsSecret) {
+                  user = base64Decode(credentialsSecret.data!.user)
+                  password = base64Decode(credentialsSecret.data!.password)
+                }
+              }
+
+              if (user && password) {
                 messages.push(`HTPasswd user credentials : "${user}:${password}".`)
               }
             }
