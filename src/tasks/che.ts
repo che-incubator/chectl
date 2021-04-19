@@ -653,7 +653,7 @@ export class CheTasks {
           const cr = await this.kube.getCheCluster(flags.chenamespace)
           if (ctx.isOpenShift && cr && cr.spec && cr.spec.auth && cr.spec.auth.openShiftoAuth) {
             if (cr.status && cr.status.openShiftOAuthUserCredentialsSecret) {
-              let user, password = ""
+              let user, password = ''
 
               // read secret from the `openshift-config` namespace
               let credentialsSecret = await this.kube.getSecret(cr.status.openShiftOAuthUserCredentialsSecret, 'openshift-config')
