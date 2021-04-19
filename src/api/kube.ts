@@ -1152,21 +1152,10 @@ export class KubeHelper {
     }
   }
 
-  async createDeploymentFromFile(filePath: string, namespace?: string, containerImage?: string, containerIndex = 0) {
-    const yamlDeployment = this.safeLoadFromYamlFile(filePath) as V1Deployment
-    if (containerImage) {
-      yamlDeployment.spec!.template.spec!.containers[containerIndex].image = containerImage
-    }
-    if (!namespace) {
-      namespace = yamlDeployment.metadata && yamlDeployment.metadata.namespace || ''
-    }
-    return this.createDeploymentFrom(yamlDeployment, namespace)
-  }
-
-  async createDeploymentFrom(yamlDeployment: V1Deployment, namespace: string) {
+  async createDeploymentFrom(yamlDeployment: V1Deployment): Promise<void> {
     const k8sAppsApi = this.kubeConfig.makeApiClient(AppsV1Api)
     try {
-      return await k8sAppsApi.createNamespacedDeployment(namespace, yamlDeployment)
+      await k8sAppsApi.createNamespacedDeployment(yamlDeployment.metadata!.namespace!, yamlDeployment)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1181,18 +1170,7 @@ export class KubeHelper {
     }
   }
 
-  async replaceDeploymentFromFile(filePath: string, namespace?: string, containerImage?: string, containerIndex = 0) {
-    const yamlDeployment = this.safeLoadFromYamlFile(filePath) as V1Deployment
-    if (containerImage) {
-      yamlDeployment.spec!.template.spec!.containers[containerIndex].image = containerImage
-    }
-    if (!namespace) {
-      namespace = yamlDeployment.metadata && yamlDeployment.metadata.namespace || ''
-    }
-    if (!yamlDeployment.metadata || !yamlDeployment.metadata.name) {
-      throw new Error(`Deployment read from ${filePath} must have name specified`)
-    }
-
+  async replaceDeploymentFrom(yamlDeployment: V1Deployment): Promise<void> {
     // updating restartedAt to make sure that rollout will be restarted
     let annotations = yamlDeployment.spec!.template!.metadata!.annotations
     if (!annotations) {
@@ -1203,12 +1181,12 @@ export class KubeHelper {
 
     const k8sAppsApi = this.kubeConfig.makeApiClient(AppsV1Api)
     try {
-      return await k8sAppsApi.replaceNamespacedDeployment(yamlDeployment.metadata.name, namespace, yamlDeployment)
+      await k8sAppsApi.replaceNamespacedDeployment(yamlDeployment.metadata!.name!, yamlDeployment.metadata!.namespace!, yamlDeployment)
     } catch (e) {
       if (e.response && e.response.body && e.response.body.message && e.response.body.message.toString().endsWith('field is immutable')) {
         try {
-          await k8sAppsApi.deleteNamespacedDeployment(yamlDeployment.metadata.name, namespace)
-          return await k8sAppsApi.createNamespacedDeployment(namespace, yamlDeployment)
+          await k8sAppsApi.deleteNamespacedDeployment(yamlDeployment.metadata!.name!, yamlDeployment.metadata!.namespace!)
+          await k8sAppsApi.createNamespacedDeployment(yamlDeployment.metadata!.namespace!, yamlDeployment)
         } catch (e) {
           throw this.wrapK8sClientError(e)
         }
