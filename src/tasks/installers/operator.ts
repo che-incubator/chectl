@@ -196,7 +196,9 @@ export class OperatorTasks {
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            await kube.createDeploymentFromFile(path.join(ctx.resourcesPath, 'operator.yaml'), flags.chenamespace, flags['che-operator-image'])
+            const deploymentPath = path.join(ctx.resourcesPath, 'operator.yaml')
+            const operatorDeployment = await this.readOperatorDeployment(deploymentPath, flags)
+            await kube.createDeploymentFrom(operatorDeployment)
             task.title = `${task.title}...done.`
           }
         }
@@ -318,11 +320,12 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exist = await kube.deploymentExist(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
           const deploymentPath = path.join(ctx.resourcesPath, 'operator.yaml')
+          const operatorDeployment = await this.readOperatorDeployment(deploymentPath, flags)
           if (exist) {
-            await kube.replaceDeploymentFromFile(deploymentPath, flags.chenamespace, flags['che-operator-image'])
+            await kube.replaceDeploymentFrom(operatorDeployment)
             task.title = `${task.title}...updated.`
           } else {
-            await kube.createDeploymentFromFile(deploymentPath, flags.chenamespace, flags['che-operator-image'])
+            await kube.createDeploymentFrom(operatorDeployment)
             task.title = `${task.title}...created new one.`
           }
         }
@@ -465,18 +468,13 @@ export class OperatorTasks {
 
   retrieveContainerImage(deployment: V1Deployment) {
     const containers = deployment.spec!.template!.spec!.containers
-
     const namespace = deployment.metadata!.namespace
     const name = deployment.metadata!.name
-    if (containers.length === 0) {
+    const container = containers.find(c => c.name === 'che-operator')
+
+    if (!container) {
       throw new Error(`Can not evaluate image of ${namespace}/${name} deployment. Containers list are empty`)
     }
-
-    if (containers.length > 1) {
-      throw new Error(`Can not evaluate image of ${namespace}/${name} deployment. It has multiple containers`)
-    }
-
-    const container = containers[0]
     if (!container.image) {
       throw new Error(`Container ${container.name} in deployment ${namespace}/${name} must have image specified`)
     }
@@ -497,5 +495,40 @@ export class OperatorTasks {
     }
 
     return path.join(ctx.resourcesPath, 'crds', 'org_v1_che_crd.yaml')
+  }
+
+  /**
+   * Reads and patch 'che-operator' deployment:
+   * - sets operator image
+   * - sets deployment namespace
+   * - removes other containers for ocp 3.11
+   */
+  private async readOperatorDeployment(path: string, flags: any): Promise<V1Deployment> {
+    const operatorDeployment = safeLoadFromYamlFile(path) as V1Deployment
+
+    if (!operatorDeployment.metadata || !operatorDeployment.metadata!.name) {
+      throw new Error(`Deployment read from ${path} must have name specified`)
+    }
+
+    if (flags['che-operator-image']) {
+      const container = operatorDeployment.spec!.template.spec!.containers.find(c => c.name === 'che-operator')
+      if (container) {
+        container.image = flags['che-operator-image']
+      } else {
+        throw new Error(`Container 'che-operator' not found in deployment '${operatorDeployment.metadata!.name}'`)
+      }
+    }
+
+    if (flags.chenamespace) {
+      operatorDeployment.metadata!.namespace = flags.chenamespace
+    }
+
+    const kube = new KubeHelper(flags)
+    if (await kube.isOpenShift3()) {
+      const containers = operatorDeployment.spec!.template.spec!.containers || []
+      operatorDeployment.spec!.template.spec!.containers = containers.filter(c => c.name === 'che-operator')
+    }
+
+    return operatorDeployment
   }
 }
