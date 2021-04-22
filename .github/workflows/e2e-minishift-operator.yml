@@ -16,11 +16,13 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
+    - name: "Install chectl dependencies"
+      run: yarn --skip-integrity-check
     - name: Install and start minishift OCP 3.11 cluster
       run: |
         brew install minishift
         export MINISHIFT_GITHUB_API_TOKEN=${{ secrets.GITHUB_TOKEN }}
-        minishift start --memory=5500 --vm-driver=virtualbox
+        minishift start --memory=5500 --vm-driver=virtualbox --registry-mirror=https://quay.io
     - name: Generate minishift certificates
       run: |
         export CA_CN="Local Eclipse Che Signer"
@@ -74,7 +76,6 @@ jobs:
         # RUN THE TESTS
         export PLATFORM=minishift
         export INSTALLER=operator
-        yarn
         yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
     - uses: actions/upload-artifact@v2
       if: ${{ always() }}
