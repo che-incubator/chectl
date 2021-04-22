@@ -20,7 +20,7 @@ jobs:
       run: |
         brew install minishift
         export MINISHIFT_GITHUB_API_TOKEN=${{ secrets.GITHUB_TOKEN }}
-        minishift start --memory=5500 --vm-driver=virtualbox
+        minishift start --memory=5500 --vm-driver=virtualbox --registry-mirror=quay.io --skip-registry-check
     - name: Generate minishift certificates
       run: |
         export CA_CN="Local Eclipse Che Signer"
