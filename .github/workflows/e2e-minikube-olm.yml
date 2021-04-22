@@ -23,9 +23,12 @@ jobs:
       
         minikube start --memory=6000
         minikube addons enable ingress
-        minikube addons enable olm
     - name: Install chectl dependencies
       run: yarn
+    - name: Install olm
+      run: |
+        export OLM_VERSION=v0.17.0
+        curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/${OLM_VERSION}/install.sh | bash -s ${OLM_VERSION}
     - name: Run olm e2e tests minikube
       run: |
         export PLATFORM=minikube
