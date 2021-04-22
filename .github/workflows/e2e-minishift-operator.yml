@@ -13,72 +13,23 @@ on: pull_request
 jobs:
   minishift-e2e:
     name: Operator installer
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
     - name: "Install chectl dependencies"
       run: yarn --skip-integrity-check
     - name: Install and start minishift OCP 3.11 cluster
       run: |
-        brew install minishift
-        export MINISHIFT_GITHUB_API_TOKEN=${{ secrets.GITHUB_TOKEN }}
-        minishift start --memory=5500 --vm-driver=virtualbox --registry-mirror=https://quay.io
-    - name: Generate minishift certificates
-      run: |
-        export CA_CN="Local Eclipse Che Signer"
-        export DOMAIN=\*.$( minishift ip ).nip.io
-        export OPENSSL_CNF=/System/Library/OpenSSL/openssl.cnf
+        sudo curl -L https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.10.0/docker-machine-driver-kvm-ubuntu16.04 -o /usr/local/bin/docker-machine-driver-kvm
+        sudo chmod +x /usr/local/bin/docker-machine-driver-kvm
+        sudo apt install qemu-kvm libvirt-daemon libvirt-daemon-system
+        sudo apt install libvirt-bin qemu-kvm
 
-        openssl genrsa -out ca.key 4096
-        openssl req -x509 \
-          -new -nodes \
-          -key ca.key \
-          -sha256 \
-          -days 1024 \
-          -out ca.crt \
-          -subj /CN="${CA_CN}" \
-          -reqexts SAN \
-          -extensions SAN \
-          -config <(cat ${OPENSSL_CNF} \
-              <(printf '[SAN]\nbasicConstraints=critical, CA:TRUE\nkeyUsage=keyCertSign, cRLSign, digitalSignature'))
-        openssl genrsa -out domain.key 2048
 
-        openssl req -new -sha256 \
-          -key domain.key \
-          -subj "/O=Local Eclipse Che/CN=${DOMAIN}" \
-          -reqexts SAN \
-          -config <(cat ${OPENSSL_CNF} \
-              <(printf "\n[SAN]\nsubjectAltName=DNS:${DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
-          -out domain.csr
+        echo "======== Start to install minishift ========"
+        curl -Lo minishift.tgz https://github.com/minishift/minishift/releases/download/v1.34.2/minishift-1.34.2-linux-amd64.tgz
+        tar -xvf minishift.tgz --strip-components=1
+        chmod +x ./minishift
+        sudo mv ./minishift /usr/local/bin/minishift
 
-        openssl x509 \
-          -req \
-          -sha256 \
-          -extfile <(printf "subjectAltName=DNS:${DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth") \
-          -days 365 \
-          -in domain.csr \
-          -CA ca.crt \
-          -CAkey ca.key \
-          -CAcreateserial -out domain.crt
-    - name: Update minishift deprecated certificates and run e2e
-      run: |
-        sleep 30
-        eval $(minishift oc-env)
-        oc login -u system:admin --insecure-skip-tls-verify=true
-        oc create namespace eclipse-che
-        oc project default
-        oc delete secret router-certs
-        cat domain.crt domain.key > minishift.crt
-        oc create secret tls router-certs --key=domain.key --cert=minishift.crt
-        sleep 5s
-        # oc rollout latest router
-        oc create secret generic self-signed-certificate --from-file=ca.crt -n=eclipse-che
-        # RUN THE TESTS
-        export PLATFORM=minishift
-        export INSTALLER=operator
-        yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
-    - uses: actions/upload-artifact@v2
-      if: ${{ always() }}
-      with:
-        name: test-artifacts
-        path: /tmp/logs/*
+        minishift start --memory=5500 --registry-mirror=https://quay.io
