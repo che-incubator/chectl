@@ -486,8 +486,8 @@ export class OperatorTasks {
     let newCRDFilePath: string
 
     const kube = new KubeHelper(flags)
-    if (await kube.isOpenShift3()) {
-      // try to get CRD v1beta1 explicitly if exists since OCP 3.11 doesn't support v1
+    if (! await kube.IsAPIExtensionSupported('v1')) {
+      // try to get CRD v1beta1 if platform doesn't support v1
       newCRDFilePath = path.join(ctx.resourcesPath, 'crds', 'org_v1_che_crd-v1beta1.yaml')
       if (fs.existsSync(newCRDFilePath)) {
         return newCRDFilePath
