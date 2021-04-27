@@ -187,7 +187,7 @@ export class OperatorTasks {
       {
         title: `Create CRD ${this.cheManagerCRD}`,
         task: async (ctx: any, task: any) => {
-          if (await kube.isOpenShift3()) {
+          if (! await kube.IsAPIExtensionSupported('v1')) {
             task.title = `${task.title}...Skipped.`
             return
           }
@@ -210,7 +210,7 @@ export class OperatorTasks {
       {
         title: `Create CRD ${this.dwRoutingCRD}`,
         task: async (ctx: any, task: any) => {
-          if (await kube.isOpenShift3()) {
+          if (! await kube.IsAPIExtensionSupported('v1')) {
             task.title = `${task.title}...Skipped.`
             return
           }
@@ -359,7 +359,7 @@ export class OperatorTasks {
       {
         title: `Updating CRD ${this.cheManagerCRD}`,
         task: async (ctx: any, task: any) => {
-          if (await kube.isOpenShift3()) {
+          if (! await kube.IsAPIExtensionSupported('v1')) {
             task.title = `${task.title}...Skipped.`
             return
           }
@@ -383,7 +383,7 @@ export class OperatorTasks {
       {
         title: `Updating CRD ${this.dwRoutingCRD}`,
         task: async (ctx: any, task: any) => {
-          if (await kube.isOpenShift3()) {
+          if (! await kube.IsAPIExtensionSupported('v1')) {
             task.title = `${task.title}...Skipped.`
             return
           }
@@ -620,7 +620,7 @@ export class OperatorTasks {
     }
 
     const kube = new KubeHelper(flags)
-    if (await kube.isOpenShift3()) {
+    if (! await kube.IsAPIExtensionSupported('v1')) {
       const containers = operatorDeployment.spec!.template.spec!.containers || []
       operatorDeployment.spec!.template.spec!.containers = containers.filter(c => c.name === 'che-operator')
     }
