@@ -26,6 +26,8 @@ import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster
 export class OperatorTasks {
   operatorServiceAccount = 'che-operator'
   cheClusterCrd = 'checlusters.org.eclipse.che'
+  cheManagerCRD = 'chemanagers.che.eclipse.org'
+  dwRoutingCRD = 'devworkspaceroutings.controller.devfile.io'
   legacyClusterResourcesName = 'che-operator'
 
   private getReadRolesAndBindingsTask(kube: KubeHelper): Listr.ListrTask {
@@ -183,6 +185,52 @@ export class OperatorTasks {
         }
       },
       {
+        title: `Create CRD ${this.cheManagerCRD}`,
+        task: async (ctx: any, task: any) => {
+          if (await kube.isOpenShift3()) {
+            task.title = `${task.title}...Skipped.`
+            return
+          }
+
+          const existedCRD = await kube.getCrd(this.cheManagerCRD)
+          if (existedCRD) {
+            task.title = `${task.title}...It already exists.`
+          } else {
+            const newCRDPath = path.join(ctx.resourcesPath, 'crds', 'chemanagers.che.eclipse.org.CustomResourceDefinition.yaml')
+            if (!fs.existsSync(newCRDPath)) {
+              task.title = `${task.title}...Skipped.`
+              return
+            }
+
+            await kube.createCrdFromFile(newCRDPath)
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
+      {
+        title: `Create CRD ${this.dwRoutingCRD}`,
+        task: async (ctx: any, task: any) => {
+          if (await kube.isOpenShift3()) {
+            task.title = `${task.title}...Skipped.`
+            return
+          }
+
+          const existedCRD = await kube.getCrd(this.dwRoutingCRD)
+          if (existedCRD) {
+            task.title = `${task.title}...It already exists.`
+          } else {
+            const newCRDPath = path.join(ctx.resourcesPath, 'crds', 'devworkspaceroutings.controller.devfile.io.CustomResourceDefinition.yaml')
+            if (!fs.existsSync(newCRDPath)) {
+              task.title = `${task.title}...Skipped.`
+              return
+            }
+
+            await kube.createCrdFromFile(newCRDPath)
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
+      {
         title: 'Waiting 5 seconds for the new Kubernetes resources to get flushed',
         task: async (_ctx: any, task: any) => {
           await cli.wait(5000)
@@ -300,6 +348,54 @@ export class OperatorTasks {
               throw new Error(`Fetched CRD ${this.cheClusterCrd} without resource version`)
             }
 
+            await kube.replaceCrdFromFile(newCRDPath, existedCRD.metadata.resourceVersion)
+            task.title = `${task.title}...updated.`
+          } else {
+            await kube.createCrdFromFile(newCRDPath)
+            task.title = `${task.title}...created new one.`
+          }
+        }
+      },
+      {
+        title: `Updating CRD ${this.cheManagerCRD}`,
+        task: async (ctx: any, task: any) => {
+          if (await kube.isOpenShift3()) {
+            task.title = `${task.title}...Skipped.`
+            return
+          }
+
+          const newCRDPath = path.join(ctx.resourcesPath, 'crds', 'chemanagers.che.eclipse.org.CustomResourceDefinition.yaml')
+          if (!fs.existsSync(newCRDPath)) {
+            task.title = `${task.title}...Skipped.`
+            return
+          }
+
+          const existedCRD = await kube.getCrd(this.cheManagerCRD)
+          if (existedCRD) {
+            await kube.replaceCrdFromFile(newCRDPath, existedCRD.metadata.resourceVersion)
+            task.title = `${task.title}...updated.`
+          } else {
+            await kube.createCrdFromFile(newCRDPath)
+            task.title = `${task.title}...created new one.`
+          }
+        }
+      },
+      {
+        title: `Updating CRD ${this.dwRoutingCRD}`,
+        task: async (ctx: any, task: any) => {
+          if (await kube.isOpenShift3()) {
+            task.title = `${task.title}...Skipped.`
+            return
+          }
+
+          const newCRDPath = path.join(ctx.resourcesPath, 'crds', 'devworkspaceroutings.controller.devfile.io.CustomResourceDefinition.yaml')
+          if (!fs.existsSync(newCRDPath)) {
+            task.title = `${task.title}...Skipped.`
+            return
+          }
+
+          const existedCRD = await kube.getCrd(this.dwRoutingCRD)
+          if (existedCRD) {
             await kube.replaceCrdFromFile(newCRDPath, existedCRD.metadata.resourceVersion)
             task.title = `${task.title}...updated.`
           } else {
