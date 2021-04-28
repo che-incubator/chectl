@@ -121,6 +121,7 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
       ctx.isCheDeployed = true
       ctx.isPostgresDeployed = true
       ctx.isKeycloakDeployed = true
+      ctx.isDashboardDeployed = true
 
       // plugin and devfile registry will be deployed only when external ones are not configured
       ctx.isPluginRegistryDeployed = !(flags['plugin-registry-url'] as boolean)
