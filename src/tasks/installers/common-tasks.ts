@@ -121,7 +121,16 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
       ctx.isCheDeployed = true
       ctx.isPostgresDeployed = true
       ctx.isKeycloakDeployed = true
-      ctx.isDashboardDeployed = true
+      ctx.isDashboardDeployed = false
+
+      // Check if the installed version support dashboard deployment checking `RELATED_IMAGE_dashboard` operator environment
+      const operatorDeployment = await kube.getDeployment('che-operator', flags.chenamespace)
+      if (operatorDeployment && operatorDeployment.spec && operatorDeployment.spec.template.spec) {
+        const operatorContainer = operatorDeployment.spec.template.spec.containers.find(c => c.name === 'che-operator')
+        if (operatorContainer && operatorContainer.env) {
+          ctx.isDashboardDeployed = operatorContainer.env.some(env => env.name === 'RELATED_IMAGE_dashboard')
+        }
+      }
 
       // plugin and devfile registry will be deployed only when external ones are not configured
       ctx.isPluginRegistryDeployed = !(flags['plugin-registry-url'] as boolean)

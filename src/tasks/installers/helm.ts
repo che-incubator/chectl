@@ -331,6 +331,7 @@ error: E_COMMAND_FAILED`)
     let setOptions = []
 
     ctx.isCheDeployed = true
+    ctx.isDashboardDeployed = true
     if (flags.multiuser) {
       ctx.isPostgresDeployed = true
       ctx.isKeycloakDeployed = true

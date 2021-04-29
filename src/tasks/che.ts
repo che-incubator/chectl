@@ -37,7 +37,7 @@ export class CheTasks {
   cheDeploymentName: string
 
   dashboardDeploymentName = 'che-dashboard'
-  dashboardSelector = 'app=che,component,component=che-dashboard'
+  dashboardSelector = 'app=che,component=che-dashboard'
 
   keycloakDeploymentName = 'keycloak'
   keycloakSelector = 'app=che,component=keycloak'
