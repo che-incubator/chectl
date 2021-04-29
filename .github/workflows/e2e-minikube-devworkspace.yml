@@ -16,12 +16,11 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
-    - name: Provision minikube cluster
-      run: |
-        curl -LO https://storage.googleapis.com/minikube/releases/v1.18.1/minikube-linux-amd64
-        sudo install minikube-linux-amd64 /usr/local/bin/minikube
-        minikube start --memory=6000
-        minikube addons enable ingress
+    - name: Start minikube cluster
+      id: run-minikube
+      uses: che-incubator/setup-minikube-action@next
+      with:
+        minikube-version: v1.18.1
     - name: Install chectl dependencies
       run: yarn
     - name: Install olm
