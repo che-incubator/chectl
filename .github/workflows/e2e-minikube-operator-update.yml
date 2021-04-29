@@ -16,11 +16,11 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
-    - name: Start minikube
+    - name: Start minikube cluster
       id: run-minikube
       uses: che-incubator/setup-minikube-action@next
       with:
-        minikube-version: 1.18.1
+        minikube-version: v1.18.1
     - name: Install chectl dependencies
       run: yarn
     - name: Run e2e update tests minikube

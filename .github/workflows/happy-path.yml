@@ -22,11 +22,11 @@ jobs:
         uses: actions/checkout@v1
         with:
           fetch-depth: 0
-      - name: Start minikube
+      - name: Start minikube cluster
         id: run-minikube
         uses: che-incubator/setup-minikube-action@next
         with:
-          minikube-version: 1.18.1
+          minikube-version: v1.18.1
       - name: Add chectl to PATH
         id: chectl-path
         run: |
