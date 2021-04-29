@@ -25,6 +25,8 @@ jobs:
       - name: Start minikube
         id: run-minikube
         uses: che-incubator/setup-minikube-action@next
+        with:
+          minikube-version: 1.18.1
       - name: Add chectl to PATH
         id: chectl-path
         run: |
