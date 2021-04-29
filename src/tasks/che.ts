@@ -84,17 +84,22 @@ export class CheTasks {
         task: () => this.kubeTasks.podStartTasks(this.keycloakSelector, this.cheNamespace)
       },
       {
-        title: 'Devfile registry pod bootstrap',
+        title: 'Devfile Registry pod bootstrap',
         enabled: ctx => ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryReady,
         task: () => this.kubeTasks.podStartTasks(this.devfileRegistrySelector, this.cheNamespace)
       },
       {
-        title: 'Plugin registry pod bootstrap',
+        title: 'Plug-in Registry pod bootstrap',
         enabled: ctx => ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryReady,
         task: () => this.kubeTasks.podStartTasks(this.pluginRegistrySelector, this.cheNamespace)
       },
       {
-        title: 'Eclipse Che pod bootstrap',
+        title: 'Eclipse Che Dashboard pod bootstrap',
+        enabled: ctx => ctx.isDashboardDeployed && !ctx.isDashboardReady,
+        task: () => this.kubeTasks.podStartTasks(this.dashboardSelector, this.cheNamespace)
+      },
+      {
+        title: 'Eclipse Che Server pod bootstrap',
         enabled: ctx => !ctx.isCheReady,
         task: () => this.kubeTasks.podStartTasks(this.cheSelector, this.cheNamespace)
       },
@@ -249,7 +254,7 @@ export class CheTasks {
         }
       },
       {
-        title: 'Plugin registry pod bootstrap',
+        title: 'Plug-in Registry pod bootstrap',
         enabled: ctx => ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryReady,
         task: async () => {
           await this.kube.scaleDeployment(this.pluginRegistryDeploymentName, this.cheNamespace, 1)
@@ -257,19 +262,19 @@ export class CheTasks {
         }
       },
       {
-        title: 'Eclipse Che pod bootstrap',
-        enabled: ctx => ctx.isCheDeployed && !ctx.isCheReady,
-        task: async () => {
-          await this.kube.scaleDeployment(this.cheDeploymentName, this.cheNamespace, 1)
-          return this.kubeTasks.podStartTasks(this.cheSelector, this.cheNamespace)
-        }
-      },
-      {
-        title: 'Eclipse Che dashboard pod bootstrap',
+        title: 'Eclipse Che Dashboard pod bootstrap',
         enabled: ctx => ctx.isDashboardDeployed && !ctx.isDashboardReady,
         task: async () => {
           await this.kube.scaleDeployment(this.dashboardDeploymentName, this.cheNamespace, 1)
           return this.kubeTasks.podStartTasks(this.dashboardSelector, this.cheNamespace)
+        }
+      },
+      {
+        title: 'Eclipse Che Server pod bootstrap',
+        enabled: ctx => ctx.isCheDeployed && !ctx.isCheReady,
+        task: async () => {
+          await this.kube.scaleDeployment(this.cheDeploymentName, this.cheNamespace, 1)
+          return this.kubeTasks.podStartTasks(this.cheSelector, this.cheNamespace)
         }
       },
       ...this.checkEclipseCheStatus()
@@ -284,7 +289,7 @@ export class CheTasks {
    */
   scaleCheDownTasks(command: Command): ReadonlyArray<Listr.ListrTask> {
     return [{
-      title: 'Stop Eclipse Che server and wait until it\'s ready to shutdown',
+      title: 'Stop Eclipse Che Server and wait until it\'s ready to shutdown',
       enabled: (ctx: any) => !ctx.isCheStopped,
       task: async (task: any) => {
         try {
@@ -467,9 +472,16 @@ export class CheTasks {
   waitPodsDeletedTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Wait until Eclipse Che pod is deleted',
+        title: 'Wait until Eclipse Che Server pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.cheSelector, this.cheNamespace)
+          task.title = `${task.title}...done.`
+        }
+      },
+      {
+        title: 'Wait until Eclipse Che Dashboard pod is deleted',
+        task: async (_ctx: any, task: any) => {
+          await this.kube.waitUntilPodIsDeleted(this.dashboardSelector, this.cheNamespace)
           task.title = `${task.title}...done.`
         }
       },
@@ -481,21 +493,21 @@ export class CheTasks {
         }
       },
       {
-        title: 'Wait until Postgres pod is deleted',
+        title: 'Wait until PostgreSQL pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.postgresSelector, this.cheNamespace)
           task.title = `${task.title}...done.`
         }
       },
       {
-        title: 'Wait until Devfile registry pod is deleted',
+        title: 'Wait until Devfile Registry pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.devfileRegistrySelector, this.cheNamespace)
           task.title = `${task.title}...done.`
         }
       },
       {
-        title: 'Wait until Plugin registry pod is deleted',
+        title: 'Wait until Plug-in Registry pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.pluginRegistrySelector, this.cheNamespace)
           task.title = `${task.title}...done.`
@@ -554,14 +566,14 @@ export class CheTasks {
         }
       },
       {
-        title: `${follow ? 'Start following' : 'Read'} Eclipse Che server logs`,
+        title: `${follow ? 'Start following' : 'Read'} Eclipse Che Server logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.cheSelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
         }
       },
       {
-        title: `${follow ? 'Start following' : 'Read'} Postgres logs`,
+        title: `${follow ? 'Start following' : 'Read'} PostgreSQL logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.postgresSelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
@@ -575,16 +587,23 @@ export class CheTasks {
         }
       },
       {
-        title: `${follow ? 'Start following' : 'Read'} Plugin registry logs`,
+        title: `${follow ? 'Start following' : 'Read'} Plug-in Registry logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.pluginRegistrySelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
         }
       },
       {
-        title: `${follow ? 'Start following' : 'Read'} Devfile registry logs`,
+        title: `${follow ? 'Start following' : 'Read'} Devfile Registry logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.devfileRegistrySelector, ctx.directory, follow)
+          task.title = await `${task.title}...done`
+        }
+      },
+      {
+        title: `${follow ? 'Start following' : 'Read'} Eclipse Che Dashboard logs`,
+        task: async (ctx: any, task: any) => {
+          await this.che.readPodLog(flags.chenamespace, this.dashboardSelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
         }
       },
@@ -601,7 +620,7 @@ export class CheTasks {
   debugTask(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Find Eclipse Che server pod',
+        title: 'Find Eclipse Che Server pod',
         task: async (ctx: any, task: any) => {
           const chePods = await this.kube.listNamespacedPod(flags.chenamespace, undefined, this.cheSelector)
           if (chePods.items.length === 0) {
