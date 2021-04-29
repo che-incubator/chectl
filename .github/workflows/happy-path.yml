@@ -44,7 +44,6 @@ jobs:
         uses: che-incubator/happy-path-tests-action@next
         with:
           che-url: ${{ steps.deploy-che.outputs.che-url }}
-          e2e-version: 'stable'
       - name: Collect Eclipse Che logs
         if: ${{ always() }}
         run: chectl server:logs -d che/tests
@@ -52,4 +51,4 @@ jobs:
         if: ${{ always() }}
         with:
           name: test-artifacts
-          path: che/tests/e2e/report
+          path: che/tests
