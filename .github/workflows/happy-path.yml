@@ -46,7 +46,7 @@ jobs:
           che-url: ${{ steps.deploy-che.outputs.che-url }}
       - name: Collect Eclipse Che logs
         if: ${{ always() }}
-        run: chectl server:logs -d che/tests
+        run: chectl server:logs -d che/tests/e2e/report
       - uses: actions/upload-artifact@v2
         if: ${{ always() }}
         with:
