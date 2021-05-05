@@ -284,9 +284,9 @@
     minimist "^1.2.0"
 
 "@eclipse-che/api@latest":
-  version "7.18.1"
-  resolved "https://registry.yarnpkg.com/@eclipse-che/api/-/api-7.18.1.tgz#1beae9ebe694e4b58d0edfefcde07995ce6cd0b2"
-  integrity sha512-KnnnDpnxxK0TBgR0Ux3oOYCvmCv6d4cRA+1j9wiLkaJighCqgCUaxnHWXEfolYbRq1+o/sfsxN+BxRDuF+H8wQ==
+  version "7.29.2"
+  resolved "https://registry.yarnpkg.com/@eclipse-che/api/-/api-7.29.2.tgz#a1c3852f9d2d280ea09f8aa96463c59fab676b69"
+  integrity sha512-2cgwvgp/1cS8xJ5oxGALK/PEuUm4jRta7afSe9lmkRrEA4mORFXTkPP0kV+ouhFjDGC2fiF8+FuiaW980mlilw==
 
 "@fimbul/bifrost@^0.21.0":
   version "0.21.0"
