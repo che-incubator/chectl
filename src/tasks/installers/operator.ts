@@ -146,12 +146,12 @@ export class OperatorTasks {
   /**
    * Returns tasks list which perform preflight platform checks.
    */
-  deployTasks(flags: any, command: Command): Listr {
+  async deployTasks(flags: any, command: Command): Promise<Listr> {
     const kube = new KubeHelper(flags)
     const kubeTasks = new KubeTasks(flags)
     const ctx = ChectlContext.get()
     ctx.resourcesPath = path.join(flags.templates, OPERATOR_TEMPLATE_DIR)
-    if (VersionHelper.isDeployingStableVersion(flags)) {
+    if (VersionHelper.isDeployingStableVersion(flags) && ! await kube.isOpenShift3()) {
       command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of Eclipse Che (--installer=olm).')
     }
     return new Listr([
