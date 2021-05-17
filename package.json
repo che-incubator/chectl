@@ -155,7 +155,7 @@
     "postinstall-helm": "rimraf templates/kubernetes && cpx 'node_modules/eclipse-che-server/deploy/kubernetes/**' 'templates/kubernetes'",
     "postinstall-cert-manager": "rimraf templates/cert-manager && cpx 'node_modules/eclipse-che-server/deploy/cert-manager/**' 'templates/cert-manager'",
     "postinstall-dev-workspace": "rimraf templates/devworkspace && cpx 'node_modules/eclipse-che-devfile-workspace-operator/deploy/**' 'templates/devworkspace'",
-    "postinstall-operator": "rimraf templates/che-operator && cpx 'node_modules/eclipse-che-operator/deploy/**' 'templates/che-operator'",
+    "postinstall-operator": "node prepare-che-operator-templates.js",
     "postinstall-repositories": "yarn upgrade eclipse-che-server eclipse-che-operator eclipse-che-devfile-workspace-operator",
     "postinstall-cleanup": "rimraf node_modules/eclipse-che-server && rimraf node_modules/eclipse-che-operator",
     "test": "jest --collect-coverage",
