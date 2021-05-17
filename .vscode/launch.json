@@ -59,6 +59,12 @@
                 "program": "${workspaceFolder}/node_modules/jest/bin/jest",
             }
         },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug prepare-che-operator.js script",
+            "program": "${workspaceFolder}/prepare-che-operator-templates.js"
+          },
 
     ]
 }
