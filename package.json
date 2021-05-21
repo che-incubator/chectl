@@ -147,8 +147,8 @@
   "repository": "che-incubator/chectl",
   "scripts": {
     "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-helm && npm run -s postinstall-cert-manager && npm run -s postinstall-operator && npm run -s postinstall-dev-workspace && npm run -s postinstall-cleanup",
-    "postinstall-helm": "rimraf templates/kubernetes && cpx 'node_modules/eclipse-che/deploy/kubernetes/**' 'templates/kubernetes'",
-    "postinstall-cert-manager": "rimraf templates/cert-manager && cpx 'node_modules/eclipse-che/deploy/cert-manager/**' 'templates/cert-manager'",
+    "postinstall-helm": "rimraf templates/kubernetes && cpx 'node_modules/eclipse-che-server/deploy/kubernetes/**' 'templates/kubernetes'",
+    "postinstall-cert-manager": "rimraf templates/cert-manager && cpx 'node_modules/eclipse-che-server/deploy/cert-manager/**' 'templates/cert-manager'",
     "postinstall-dev-workspace": "rimraf templates/devworkspace && cpx 'node_modules/eclipse-che-devfile-workspace-operator/deploy/**' 'templates/devworkspace'",
     "postinstall-operator": "rimraf templates/che-operator && cpx 'node_modules/eclipse-che-operator/deploy/**' 'templates/che-operator'",
     "postinstall-repositories": "yarn upgrade eclipse-che-server eclipse-che-operator eclipse-che-devfile-workspace-operator",
