@@ -26,6 +26,8 @@ import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster
 export class OperatorTasks {
   operatorServiceAccount = 'che-operator'
   cheClusterCrd = 'checlusters.org.eclipse.che'
+  cheClusterBackupCrd = 'checlusterbackups.org.eclipse.che'
+  cheClusterRestoreCrd = 'checlusterrestores.org.eclipse.che'
   cheManagerCRD = 'chemanagers.che.eclipse.org'
   dwRoutingCRD = 'devworkspaceroutings.controller.devfile.io'
   legacyClusterResourcesName = 'che-operator'
@@ -182,6 +184,29 @@ export class OperatorTasks {
             await kube.createCrdFromFile(newCRDPath)
             task.title = `${task.title}...done.`
           }
+        }
+      },
+      {
+        title: 'Create backup and restore CRDs',
+        task: async (ctx: any, task: any) => {
+          const backupCrdExist = await kube.getCrd(this.cheClusterBackupCrd)
+          const restoreCrdExist = await kube.getCrd(this.cheClusterRestoreCrd)
+          if (backupCrdExist && restoreCrdExist) {
+            task.title = `${task.title}...skipped.`
+            return
+          }
+
+          const backupCrdPath = path.join(ctx.resourcesPath, 'crds', 'org.eclipse.che_checlusterbackups_crd.yaml')
+          if (!backupCrdExist && fs.existsSync(backupCrdPath)) {
+            await kube.createCrdFromFile(backupCrdPath)
+          }
+
+          const restoreCrdPath = path.join(ctx.resourcesPath, 'crds', 'org.eclipse.che_checlusterrestores_crd.yaml')
+          if (!restoreCrdExist && fs.existsSync(restoreCrdPath)) {
+            await kube.createCrdFromFile(restoreCrdPath)
+          }
+
+          task.title = `${task.title}...done.`
         }
       },
       {
@@ -357,6 +382,34 @@ export class OperatorTasks {
         }
       },
       {
+        title: 'Updating backup and restore CRDs',
+        task: async (ctx: any, task: any) => {
+          const existedBackupCRD = await kube.getCrd(this.cheClusterBackupCrd)
+          const newBackupCRDPath = path.join(ctx.resourcesPath, 'crds', 'org.eclipse.che_checlusterbackups_crd.yaml')
+          if (existedBackupCRD) {
+            if (!existedBackupCRD.metadata || !existedBackupCRD.metadata.resourceVersion) {
+              throw new Error(`Fetched CRD ${this.cheClusterBackupCrd} without resource version`)
+            }
+            await kube.replaceCrdFromFile(newBackupCRDPath, existedBackupCRD.metadata.resourceVersion)
+          } else {
+            await kube.createCrdFromFile(newBackupCRDPath)
+          }
+
+          const existedRestoreCRD = await kube.getCrd(this.cheClusterRestoreCrd)
+          const newRestoreCRDPath = path.join(ctx.resourcesPath, 'crds', 'org.eclipse.che_checlusterrestores_crd.yaml')
+          if (existedRestoreCRD) {
+            if (!existedRestoreCRD.metadata || !existedRestoreCRD.metadata.resourceVersion) {
+              throw new Error(`Fetched CRD ${this.cheClusterRestoreCrd} without resource version`)
+            }
+            await kube.replaceCrdFromFile(newRestoreCRDPath, existedRestoreCRD.metadata.resourceVersion)
+            task.title = `${task.title}...updated.`
+          } else {
+            await kube.createCrdFromFile(newRestoreCRDPath)
+            task.title = `${task.title}...created new one.`
+          }
+        }
+      },
+      {
         title: `Updating CRD ${this.cheManagerCRD}`,
         task: async (ctx: any, task: any) => {
           if (! await kube.IsAPIExtensionSupported('v1')) {
@@ -492,13 +545,15 @@ export class OperatorTasks {
       }
     },
     {
-      title: `Delete CRD ${this.cheClusterCrd}`,
+      title: 'Delete CRDs',
       task: async (_ctx: any, task: any) => {
         const checlusters = await kh.getAllCheClusters()
         if (checlusters.length > 0) {
           task.title = `${task.title}...Skipped: another Eclipse Che deployment found.`
         } else {
           await kh.deleteCrd(this.cheClusterCrd)
+          await kh.deleteCrd(this.cheClusterBackupCrd)
+          await kh.deleteCrd(this.cheClusterRestoreCrd)
           task.title = `${task.title}...OK`
         }
       }
