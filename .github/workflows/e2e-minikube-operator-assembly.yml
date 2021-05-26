@@ -42,3 +42,13 @@ jobs:
       with:
         name: test-artifacts
         path: /tmp/logs/*
+  windows-e2e:
+    name: windows-assembly-e2e
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v1
+    - name: Start minikube cluster
+      run: |
+        minikube version
+        minikube start --memory=6000 --addons=ingress
+        ls dist/channels
