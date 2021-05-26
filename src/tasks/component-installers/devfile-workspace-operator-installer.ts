@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
+import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 import * as path from 'path'
 
@@ -83,6 +84,14 @@ export class DevWorkspaceTasks {
   // Web Terminal Operator constants
   protected WTOSubscriptionName = 'web-terminal'
   protected WTONamespace = 'openshift-operators'
+
+  // Devworkspace Che operator namespace
+  protected devworkspaceCheNamespace = 'devworkspace-che'
+
+  // chemanager k8s object info
+  protected cheManagerApiGroupName = 'che.eclipse.org'
+  protected cheManagerApiVersionName = 'v1alpha1'
+  protected cheManagerCRDName = 'chemanagers.che.eclipse.org'
 
   constructor(private readonly flags: any) {
     this.kubeHelper = new KubeHelper(flags)
@@ -271,6 +280,35 @@ export class DevWorkspaceTasks {
           await this.kubeHelper.deleteCrd(this.workspaceRoutingsCrdName)
 
           task.title = await `${task.title}...OK`
+        }
+      },
+      {
+        title: `Delete the Custom Resource of type ${this.cheManagerCRDName}`,
+        task: async (_ctx: any, task: any) => {
+          await this.kubeHelper.deleteCheManagerInstance(this.devworkspaceCheNamespace)
+          // if chemanager instance still exists then remove finalizers and delete again
+          const chemanager = await this.kubeHelper.getCheManagerInstance(this.devworkspaceCheNamespace)
+
+          if (chemanager) {
+            try {
+              await this.kubeHelper.patchCustomResource(chemanager.metadata.name, this.devworkspaceCheNamespace, { metadata: { finalizers: null } }, this.cheManagerApiGroupName, this.cheManagerApiVersionName, 'chemanagers')
+            } catch (error) {
+              if (await this.kubeHelper.getCheManagerInstance(this.devworkspaceCheNamespace)) {
+                task.title = `${task.title}...OK`
+                return // successfully removed
+              }
+              throw error
+            }
+
+            // wait 2 seconds
+            await cli.wait(2000)
+          }
+
+          if (!await this.kubeHelper.getCheManagerInstance(this.devworkspaceCheNamespace)) {
+            task.title = `${task.title}...OK`
+          } else {
+            task.title = `${task.title}...Failed`
+          }
         }
       },
     ]

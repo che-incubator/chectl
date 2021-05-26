@@ -790,7 +790,7 @@ export class KubeHelper {
     }
   }
 
-  async patchCheClusterCustomResource(name: string, namespace: string, patch: any): Promise<any | undefined> {
+  async patchCustomResource(name: string, namespace: string, patch: any, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any | undefined> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     // It is required to patch content-type, otherwise request will be rejected with 415 (Unsupported media type) error.
@@ -801,7 +801,7 @@ export class KubeHelper {
     }
 
     try {
-      const res = await k8sCoreApi.patchNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name, patch, undefined, undefined, undefined, requestOptions)
+      const res = await k8sCoreApi.patchNamespacedCustomObject(resourceAPIGroup, resourceAPIVersion, namespace, resourcePlural, name, patch, undefined, undefined, undefined, requestOptions)
       if (res && res.body) {
         return res.body
       }
@@ -1640,7 +1640,35 @@ export class KubeHelper {
       return crs[0]
     } catch (e) {
       if (e.response.statusCode === 404) {
-        // There is no CR 'checluster`
+          // There is no CR 'checluster`
+        return
+      }
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  /**
+   * Returns `che.eclipse.org/v1alpha1' in the given namespace.
+   */
+  async getCheManagerInstance(namespace: string): Promise<any | undefined> {
+    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.listNamespacedCustomObject('che.eclipse.org', 'v1alpha1', namespace, 'chemanagers')
+      if (!(body as any).items) {
+        return
+      }
+
+      const crs = (body as any).items as any[]
+      if (crs.length === 0) {
+        return
+      } else if (crs.length !== 1) {
+        throw new Error(`Too many resources '${CHE_CLUSTER_CRD}' found in the namespace '${namespace}'`)
+      }
+
+      return crs[0]
+    } catch (e) {
+      if (e.response.statusCode === 404) {
+            // There is no CR 'checluster`
         return
       }
       throw this.wrapK8sClientError(e)
@@ -1682,6 +1710,30 @@ export class KubeHelper {
     } catch (e) {
       if (e.response.statusCode === 404) {
         // There is no CRD 'checlusters`
+        return
+      }
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  /**
+   * Deletes `che.eclipse.org/v1alpha1' resources in the given namespace.
+   */
+  async deleteCheManagerInstance(namespace: string): Promise<void> {
+    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.listNamespacedCustomObject('che.eclipse.org', 'v1alpha1', namespace, 'checlusters')
+      if (!(body as any).items) {
+        return
+      }
+
+      const crs = (body as any).items as any[]
+      for (const cr of crs) {
+        await customObjectsApi.deleteNamespacedCustomObject('che.eclipse.org', 'v1alpha1', namespace, 'checlusters', cr.metadata.name)
+      }
+    } catch (e) {
+      if (e.response.statusCode === 404) {
+          // There is no CRD 'checlusters`
         return
       }
       throw this.wrapK8sClientError(e)

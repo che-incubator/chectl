@@ -471,7 +471,7 @@ export class OperatorTasks {
         const checluster = await kh.getCheCluster(flags.chenamespace)
         if (checluster) {
           try {
-            await kh.patchCheClusterCustomResource(checluster.metadata.name, flags.chenamespace, { metadata: { finalizers: null } })
+            await kh.patchCustomResource(checluster.metadata.name, flags.chenamespace, { metadata: { finalizers: null } }, 'org.eclipse.che', 'v1', 'checlusters')
           } catch (error) {
             if (await kh.getCheCluster(flags.chenamespace)) {
               task.title = `${task.title}...OK`
