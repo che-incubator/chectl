@@ -386,26 +386,32 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const existedBackupCRD = await kube.getCrd(this.cheClusterBackupCrd)
           const newBackupCRDPath = path.join(ctx.resourcesPath, 'crds', 'org.eclipse.che_checlusterbackups_crd.yaml')
-          if (existedBackupCRD) {
-            if (!existedBackupCRD.metadata || !existedBackupCRD.metadata.resourceVersion) {
-              throw new Error(`Fetched CRD ${this.cheClusterBackupCrd} without resource version`)
+          if (fs.existsSync(newBackupCRDPath)) {
+            if (existedBackupCRD) {
+              if (!existedBackupCRD.metadata || !existedBackupCRD.metadata.resourceVersion) {
+                throw new Error(`Fetched CRD ${this.cheClusterBackupCrd} without resource version`)
+              }
+              await kube.replaceCrdFromFile(newBackupCRDPath, existedBackupCRD.metadata.resourceVersion)
+            } else {
+              await kube.createCrdFromFile(newBackupCRDPath)
             }
-            await kube.replaceCrdFromFile(newBackupCRDPath, existedBackupCRD.metadata.resourceVersion)
-          } else {
-            await kube.createCrdFromFile(newBackupCRDPath)
           }
 
           const existedRestoreCRD = await kube.getCrd(this.cheClusterRestoreCrd)
           const newRestoreCRDPath = path.join(ctx.resourcesPath, 'crds', 'org.eclipse.che_checlusterrestores_crd.yaml')
-          if (existedRestoreCRD) {
-            if (!existedRestoreCRD.metadata || !existedRestoreCRD.metadata.resourceVersion) {
-              throw new Error(`Fetched CRD ${this.cheClusterRestoreCrd} without resource version`)
+          if (fs.existsSync(newRestoreCRDPath)) {
+            if (existedRestoreCRD) {
+              if (!existedRestoreCRD.metadata || !existedRestoreCRD.metadata.resourceVersion) {
+                throw new Error(`Fetched CRD ${this.cheClusterRestoreCrd} without resource version`)
+              }
+              await kube.replaceCrdFromFile(newRestoreCRDPath, existedRestoreCRD.metadata.resourceVersion)
+              task.title = `${task.title}...updated.`
+            } else {
+              await kube.createCrdFromFile(newRestoreCRDPath)
+              task.title = `${task.title}...created new one.`
             }
-            await kube.replaceCrdFromFile(newRestoreCRDPath, existedRestoreCRD.metadata.resourceVersion)
-            task.title = `${task.title}...updated.`
           } else {
-            await kube.createCrdFromFile(newRestoreCRDPath)
-            task.title = `${task.title}...created new one.`
+            task.title = `${task.title}...skipped.`
           }
         }
       },
