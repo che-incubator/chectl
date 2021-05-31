@@ -7,11 +7,15 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-import { V1ContainerStateWaiting, V1PodCondition } from '@kubernetes/client-node'
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 
 import { KubeHelper } from '../api/kube'
+
+interface FailState {
+  reason?: string
+  message?: string
+}
 
 export class KubeTasks {
   private readonly interval = 500
@@ -25,27 +29,31 @@ export class KubeTasks {
       {
         title: 'Scheduling',
         task: async (_ctx: any, task: any) => {
-          const taskTitle = task.title
           const iterations = this.kubeHelper.podWaitTimeout / this.interval
           for (let i = 1; i <= iterations; i++) {
-            // check 'PodScheduled' condition
-            const failedCondition = await this.getFailedPodCondition(namespace, selector, 'PodScheduled')
-            if (failedCondition) {
-              task.title = `${taskTitle}...failed, rechecking...`
+            // check cheCluster status
+            const cheClusterFailState = await this.getCheClusterFailState(namespace)
+            if (cheClusterFailState) {
+              task.title = `${task.title}...failed`
+              throw new Error(`Eclipse Che operator failed, reason: ${cheClusterFailState.reason}, message: ${cheClusterFailState.message}. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
+            }
 
+            // check 'PodScheduled' condition
+            const podFailState = await this.getPodFailState(namespace, selector, 'PodScheduled')
+            if (podFailState) {
               // for instance we need some time for pvc provisioning...
               await cli.wait(this.kubeHelper.podErrorRecheckTimeout)
 
-              const failedCondition = await this.getFailedPodCondition(namespace, selector, 'PodScheduled')
-              if (failedCondition) {
-                task.title = `${taskTitle}...failed`
-                throw new Error(`Failed to schedule a pod, reason: ${failedCondition.reason}, message: ${failedCondition.message}. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
+              const podFailState = await this.getPodFailState(namespace, selector, 'PodScheduled')
+              if (podFailState) {
+                task.title = `${task.title}...failed`
+                throw new Error(`Failed to schedule a pod, reason: ${podFailState.reason}, message: ${podFailState.message}. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
               }
             }
 
             const allScheduled = await this.isPodConditionStatusPassed(namespace, selector, 'PodScheduled')
             if (allScheduled) {
-              task.title = `${taskTitle}...done`
+              task.title = `${task.title}...done`
               return
             }
 
@@ -58,17 +66,15 @@ export class KubeTasks {
       {
         title: 'Downloading images',
         task: async (_ctx: any, task: any) => {
-          const taskTitle = task.title
           const iterations = this.kubeHelper.podDownloadImageTimeout / this.interval
           for (let i = 1; i <= iterations; i++) {
-            const failedState = await this.getFailedWaitingState(namespace, selector, 'Pending')
+            const failedState = await this.getContainerFailState(namespace, selector, 'Pending')
             if (failedState) {
-              task.title = `${taskTitle}...failed, rechecking...`
               await cli.wait(this.kubeHelper.podErrorRecheckTimeout)
 
-              const failedState = await this.getFailedWaitingState(namespace, selector, 'Pending')
+              const failedState = await this.getContainerFailState(namespace, selector, 'Pending')
               if (failedState) {
-                task.title = `${taskTitle}...failed`
+                task.title = `${task.title}...failed`
                 throw new Error(`Failed to download image, reason: ${failedState.reason}, message: ${failedState.message}.`)
               }
             }
@@ -76,7 +82,7 @@ export class KubeTasks {
             const pods = await this.kubeHelper.getPodListByLabel(namespace, selector)
             const allRunning = !pods.some(value => !value.status || value.status.phase !== 'Running')
             if (pods.length && allRunning) {
-              task.title = `${taskTitle}...done`
+              task.title = `${task.title}...done`
               return
             }
 
@@ -89,24 +95,29 @@ export class KubeTasks {
       {
         title: 'Starting',
         task: async (_ctx: any, task: any) => {
-          const taskTitle = task.title
           const iterations = this.kubeHelper.podReadyTimeout / this.interval
           for (let i = 1; i <= iterations; i++) {
-            const failedState = await this.getFailedWaitingState(namespace, selector, 'Running')
+            // check cheCluster status
+            const cheClusterFailState = await this.getCheClusterFailState(namespace)
+            if (cheClusterFailState) {
+              task.title = `${task.title}...failed`
+              throw new Error(`Eclipse Che operator failed, reason: ${cheClusterFailState.reason}, message: ${cheClusterFailState.message}. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
+            }
+
+            const failedState = await this.getContainerFailState(namespace, selector, 'Running')
             if (failedState) {
-              task.title = `${taskTitle}...failed, rechecking...`
               await cli.wait(this.kubeHelper.podErrorRecheckTimeout)
 
-              const failedState = await this.getFailedWaitingState(namespace, selector, 'Running')
+              const failedState = await this.getContainerFailState(namespace, selector, 'Running')
               if (failedState) {
-                task.title = `${taskTitle}...failed`
+                task.title = `${task.title}...failed`
                 throw new Error(`Failed to start a pod, reason: ${failedState.reason}, message: ${failedState.message}`)
               }
             }
 
             const terminatedState = await this.kubeHelper.getPodLastTerminatedState(namespace, selector)
             if (terminatedState) {
-              task.title = `${taskTitle}...failed`
+              task.title = `${task.title}...failed`
               let errorMsg = `Failed to start a pod, reason: ${terminatedState.reason}`
               terminatedState.message && (errorMsg += `, message: ${terminatedState.message}`)
               terminatedState.exitCode && (errorMsg += `, exitCode: ${terminatedState.exitCode}`)
@@ -116,7 +127,7 @@ export class KubeTasks {
 
             const allStarted = await this.isPodConditionStatusPassed(namespace, selector, 'Ready')
             if (allStarted) {
-              task.title = `${taskTitle}...done`
+              task.title = `${task.title}...done`
               return
             }
 
@@ -129,7 +140,7 @@ export class KubeTasks {
     ])
   }
 
-  private async getFailedPodCondition(namespace: string, selector: string, conditionType: string): Promise<V1PodCondition | undefined> {
+  private async getPodFailState(namespace: string, selector: string, conditionType: string): Promise<FailState | undefined> {
     const status = await this.kubeHelper.getPodCondition(namespace, selector, conditionType)
     return status.find(s => s.status === 'False' && s.message && s.reason)
   }
@@ -143,7 +154,7 @@ export class KubeTasks {
   /**
    * Checks if there is any reason for a given pod state and returns message if so.
    */
-  private async getFailedWaitingState(namespace: string, selector: string, state: string): Promise<V1ContainerStateWaiting | undefined> {
+  private async getContainerFailState(namespace: string, selector: string, state: string): Promise<FailState | undefined> {
     const waitingState = await this.kubeHelper.getPodWaitingState(namespace, selector, state)
     if (waitingState && waitingState.reason && waitingState.message) {
       return waitingState
@@ -175,5 +186,12 @@ export class KubeTasks {
     }
 
     return errorMessage
+  }
+
+  private async getCheClusterFailState(namespace: string): Promise<FailState | undefined> {
+    const cheCluster = await this.kubeHelper.getCheCluster(namespace)
+    if (cheCluster && cheCluster.status && cheCluster.status.reason && cheCluster.status.message) {
+      return cheCluster.status
+    }
   }
 }
