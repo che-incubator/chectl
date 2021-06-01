@@ -16,7 +16,7 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { cheNamespace, CHE_TELEMETRY } from '../../common-flags'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL, DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { findWorkingNamespace } from '../../util'
 
 export default class Status extends Command {
@@ -39,7 +39,7 @@ export default class Status extends Command {
     let openshiftOauth = 'No'
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Status.id, flags })
-    const cr = await kube.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
+    const cr = await kube.getCheCluster(flags.chenamespace)
     if (cr && cr.spec && cr.spec.auth && cr.spec.auth.openShiftoAuth && await kube.isOpenShift()) {
       openshiftOauth = 'Yes'
     }

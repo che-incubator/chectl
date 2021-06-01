@@ -11,7 +11,6 @@ import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 
 import { KubeHelper } from '../api/kube'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL } from '../constants'
 
 interface FailState {
   reason?: string
@@ -190,7 +189,7 @@ export class KubeTasks {
   }
 
   private async getCheClusterFailState(namespace: string): Promise<FailState | undefined> {
-    const cheCluster = await this.kubeHelper.getCustomResource(namespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
+    const cheCluster = await this.kubeHelper.getCheCluster(namespace)
     if (cheCluster && cheCluster.status && cheCluster.status.reason && cheCluster.status.message) {
       return cheCluster.status
     }

@@ -21,7 +21,7 @@ import { ChectlContext } from '../../api/context'
 import { CheGithubClient } from '../../api/github-client'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_CRD, CHE_CLUSTER_KIND_PLURAL, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER, OPERATOR_TEMPLATE_DIR } from '../../constants'
+import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER, OPERATOR_TEMPLATE_DIR } from '../../constants'
 import { getProjectVersion } from '../../util'
 
 export function createNamespaceTask(namespaceName: string, labels: {}): Listr.ListrTask {
@@ -165,7 +165,7 @@ export function patchingEclipseCheCluster(flags: any, kube: KubeHelper, command:
     title: `Patching the Custom Resource of type '${CHE_CLUSTER_CRD}' in the namespace '${flags.chenamespace}'`,
     skip: (ctx: any) => isEmpty(ctx[ChectlContext.CR_PATCH]),
     task: async (ctx: any, task: any) => {
-      const cheCluster = await kube.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
+      const cheCluster = await kube.getCheCluster(flags.chenamespace)
       if (!cheCluster) {
         command.error(`Eclipse Che cluster CR is not found in the namespace '${flags.chenamespace}'`)
       }

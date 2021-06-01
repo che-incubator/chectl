@@ -18,7 +18,7 @@ import * as semver from 'semver'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { assumeYes, batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL, DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OPERATOR_INSTALLER_VERSION, SUBSCRIPTION_NAME } from '../../constants'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OPERATOR_INSTALLER_VERSION, SUBSCRIPTION_NAME } from '../../constants'
 import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
@@ -170,7 +170,7 @@ export default class Update extends Command {
    */
   private async checkComponentImages(flags: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
-    const cheCluster = await kubeHelper.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
+    const cheCluster = await kubeHelper.getCheCluster(flags.chenamespace)
     if (cheCluster.spec.server.cheImage
       || cheCluster.spec.server.cheImageTag
       || cheCluster.spec.server.devfileRegistryImage
@@ -364,7 +364,7 @@ export default class Update extends Command {
    */
   private async setDomainFlag(flags: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
-    const cheCluster = await kubeHelper.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
+    const cheCluster = await kubeHelper.getCheCluster(flags.chenamespace)
     if (cheCluster && cheCluster.spec.k8s && cheCluster.spec.k8s.ingressDomain) {
       flags.domain = cheCluster.spec.k8s.ingressDomain
     }

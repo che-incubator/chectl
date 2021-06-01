@@ -19,7 +19,7 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
 import { getClusterClientCommand, isKubernetesPlatformFamily, safeLoadFromYamlFile } from '../util'
 
 import { V1Certificate } from './typings/cert-manager'
@@ -1620,6 +1620,13 @@ export class KubeHelper {
   }
 
   /**
+   * Returns `checlusters.org.eclipse.che' in the given namespace.
+   */
+  async getCheCluster(cheNamespace: string): Promise<any | undefined> {
+    return this.getCustomResource(cheNamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
+  }
+
+  /**
    * Returns custom resource in the given namespace.
    */
   async getCustomResource(namespace: string, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any | undefined> {
@@ -1648,6 +1655,13 @@ export class KubeHelper {
   }
 
   /**
+   * Deletes `checlusters.org.eclipse.che' resources in the given namespace.
+   */
+  async getAllCheClusters(): Promise<any[]> {
+    return this.getAllCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
+  }
+
+  /**
    * Returns all custom resources
    */
   async getAllCustomResources(resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any[]> {
@@ -1662,6 +1676,13 @@ export class KubeHelper {
       }
       throw this.wrapK8sClientError(e)
     }
+  }
+
+  /**
+   * Deletes `checlusters.org.eclipse.che' resources in the given namespace.
+   */
+  async deleteCheCluster(namespace: string): Promise<void> {
+    return this.deleteCustomResource(namespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
   }
 
   /**

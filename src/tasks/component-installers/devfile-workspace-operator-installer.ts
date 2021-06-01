@@ -287,7 +287,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteCustomResource(this.devworkspaceCheNamespace, this.cheManagerApiGroupName, this.cheManagerApiVersionName, this.cheManagersKindPlural)
 
-          // wait 20 seconds, default timeout in che operator
+          // Timeout of 20 seconds to see if CR are removed
           for (let index = 0; index < 20; index++) {
             await cli.wait(1000)
             if (!await this.kubeHelper.getCustomResource(this.devworkspaceCheNamespace, this.cheManagerApiGroupName, this.cheManagerApiVersionName, this.cheManagersKindPlural)) {
@@ -308,9 +308,6 @@ export class DevWorkspaceTasks {
               }
               throw error
             }
-
-            // wait 2 seconds
-            await cli.wait(2000)
           }
 
           if (!await this.kubeHelper.getCustomResource(this.devworkspaceCheNamespace, this.cheManagerApiGroupName, this.cheManagerApiVersionName, this.cheManagersKindPlural)) {
