@@ -15,7 +15,7 @@ import { CheHelper } from '../../src/api/che'
 import { CheGithubClient, TagInfo } from '../../src/api/github-client'
 import { KubeHelper } from '../../src/api/kube'
 import { OpenShiftHelper } from '../../src/api/openshift'
-import { DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
 
 // Fields which chectl returns for workspace:list commands
 interface WorkspaceInfo {
@@ -181,7 +181,7 @@ export class E2eHelper {
 
     let totalTimeMs = 0
     while (totalTimeMs < timeoutMs) {
-      const cheCR = await this.kubeHelper.getCheCluster(NAMESPACE)
+      const cheCR = await this.kubeHelper.getCustomResource(NAMESPACE, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, 'checlusters')
       if (cheCR && cheCR.status && cheCR.status.cheVersion === version) {
         return
       }

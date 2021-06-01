@@ -30,7 +30,6 @@ export const CHE_TLS_SECRET_NAME = 'che-tls'
 export const CHE_ROOT_CA_SECRET_NAME = 'self-signed-certificate'
 export const DEFAULT_CA_CERT_FILE_NAME = 'cheCA.crt'
 export const CHE_CLUSTER_CR_NAME = 'eclipse-che'
-export const CHE_CLUSTER_CRD = 'checlusters.org.eclipse.che'
 
 // operator
 export const OPERATOR_DEPLOYMENT_NAME = 'che-operator'
@@ -77,3 +76,8 @@ export const DEFAULT_ANALYTIC_HOOK_NAME = 'analytics'
 // Timeouts
 export const DEFAULT_K8S_POD_WAIT_TIMEOUT = 600000
 export const DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT = 15000
+
+// Custom Resources names
+export const CHE_CLUSTER_CRD = 'checlusters.org.eclipse.che'
+export const CHE_CLUSTER_API_GROUP = 'org.eclipse.che'
+export const CHE_CLUSTER_API_VERSION = 'v1'

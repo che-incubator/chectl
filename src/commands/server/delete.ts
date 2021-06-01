@@ -17,7 +17,7 @@ import Listr = require('listr')
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { assumeYes, batch, cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { HelmTasks } from '../../tasks/installers/helm'
@@ -80,9 +80,9 @@ export default class Delete extends Command {
 
     // Remove devworkspace controller only if there are no more cheClusters after olm/operator tasks
     tasks.add({
-      title: 'Uninstall DevWorkspace Controller',
+      title: 'Uninstall DevWorkspace Controller and DevWorkspace Che Controller',
       task: async (_ctx: any, task: any) => {
-        const checlusters = await kube.getAllCheClusters()
+        const checlusters = await kube.getAllCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, 'checlusters')
         if (checlusters.length === 0) {
           return new Listr(devWorkspaceTasks.getUninstallTasks())
         }

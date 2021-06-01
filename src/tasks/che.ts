@@ -16,7 +16,7 @@ import { CheServerLoginManager } from '../api/che-login-manager'
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
 import { VersionHelper } from '../api/version'
-import { CHE_OPERATOR_SELECTOR, DOC_LINK, DOC_LINK_RELEASE_NOTES, OUTPUT_SEPARATOR } from '../constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_OPERATOR_SELECTOR, DOC_LINK, DOC_LINK_RELEASE_NOTES, OUTPUT_SEPARATOR } from '../constants'
 import { base64Decode } from '../util'
 
 import { KubeTasks } from './kube'
@@ -456,7 +456,7 @@ export class CheTasks {
       {
         title: `Delete consoleLink ${this.cheConsoleLinkName}`,
         task: async (_ctx: any, task: any) => {
-          const checlusters = await this.kube.getAllCheClusters()
+          const checlusters = await this.kube.getAllCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, 'checlusters')
           // Delete the consoleLink only in case if there no more checluster installed
           if (checlusters.length === 0) {
             await this.kube.deleteConsoleLink(this.cheConsoleLinkName)
@@ -669,7 +669,7 @@ export class CheTasks {
           const cheUrl = await this.che.cheURL(flags.chenamespace)
           messages.push(`Users Dashboard           : ${cheUrl}`)
 
-          const cr = await this.kube.getCheCluster(flags.chenamespace)
+          const cr = await this.kube.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, 'checlusters')
           if (ctx.isOpenShift && cr && cr.spec && cr.spec.auth && cr.spec.auth.openShiftoAuth) {
             if (cr.status && cr.status.openShiftOAuthUserCredentialsSecret) {
               let user = ''

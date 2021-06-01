@@ -19,7 +19,7 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { CHE_CLUSTER_CRD, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
+import { DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
 import { getClusterClientCommand, isKubernetesPlatformFamily, safeLoadFromYamlFile } from '../util'
 
 import { V1Certificate } from './typings/cert-manager'
@@ -1620,12 +1620,12 @@ export class KubeHelper {
   }
 
   /**
-   * Returns `checlusters.org.eclipse.che' in the given namespace.
+   * Returns custom resource in the given namespace.
    */
-  async getCheCluster(namespace: string): Promise<any | undefined> {
+  async getCustomResource(namespace: string, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any | undefined> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.listNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters')
+      const { body } = await customObjectsApi.listNamespacedCustomObject(resourceAPIGroup, resourceAPIVersion, namespace, resourcePlural)
       if (!(body as any).items) {
         return
       }
@@ -1634,13 +1634,13 @@ export class KubeHelper {
       if (crs.length === 0) {
         return
       } else if (crs.length !== 1) {
-        throw new Error(`Too many resources '${CHE_CLUSTER_CRD}' found in the namespace '${namespace}'`)
+        throw new Error(`Too many resources of type ${resourcePlural}.${resourceAPIGroup} found in the namespace '${namespace}'`)
       }
 
       return crs[0]
     } catch (e) {
       if (e.response.statusCode === 404) {
-          // There is no CR 'checluster`
+        // There is no CRD
         return
       }
       throw this.wrapK8sClientError(e)
@@ -1648,44 +1648,16 @@ export class KubeHelper {
   }
 
   /**
-   * Returns `che.eclipse.org/v1alpha1' in the given namespace.
+   * Returns all custom resources
    */
-  async getCheManagerInstance(namespace: string): Promise<any | undefined> {
+  async getAllCustomResources(resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any[]> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.listNamespacedCustomObject('che.eclipse.org', 'v1alpha1', namespace, 'chemanagers')
-      if (!(body as any).items) {
-        return
-      }
-
-      const crs = (body as any).items as any[]
-      if (crs.length === 0) {
-        return
-      } else if (crs.length !== 1) {
-        throw new Error(`Too many resources '${CHE_CLUSTER_CRD}' found in the namespace '${namespace}'`)
-      }
-
-      return crs[0]
-    } catch (e) {
-      if (e.response.statusCode === 404) {
-            // There is no CR 'checluster`
-        return
-      }
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
-  /**
-   * Returns all `checlusters.org.eclipse.che' resources
-   */
-  async getAllCheClusters(): Promise<any[]> {
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-    try {
-      const { body } = await customObjectsApi.listClusterCustomObject('org.eclipse.che', 'v1', 'checlusters')
+      const { body } = await customObjectsApi.listClusterCustomObject(resourceAPIGroup, resourceAPIVersion, resourcePlural)
       return (body as any).items ? (body as any).items : []
     } catch (e) {
       if (e.response.statusCode === 404) {
-        // There is no CRD 'checlusters`
+        // There is no CRD
         return []
       }
       throw this.wrapK8sClientError(e)
@@ -1693,47 +1665,23 @@ export class KubeHelper {
   }
 
   /**
-   * Deletes `checlusters.org.eclipse.che' resources in the given namespace.
+   * Deletes custom resources in the given namespace.
    */
-  async deleteCheCluster(namespace: string): Promise<void> {
+  async deleteCustomResource(namespace: string, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<void> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.listNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters')
+      const { body } = await customObjectsApi.listNamespacedCustomObject(resourceAPIGroup, resourceAPIVersion, namespace, resourcePlural)
       if (!(body as any).items) {
         return
       }
 
       const crs = (body as any).items as any[]
       for (const cr of crs) {
-        await customObjectsApi.deleteNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', cr.metadata.name)
+        await customObjectsApi.deleteNamespacedCustomObject(resourceAPIGroup, resourceAPIVersion, namespace, resourcePlural, cr.metadata.name)
       }
     } catch (e) {
       if (e.response.statusCode === 404) {
-        // There is no CRD 'checlusters`
-        return
-      }
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
-  /**
-   * Deletes `che.eclipse.org/v1alpha1' resources in the given namespace.
-   */
-  async deleteCheManagerInstance(namespace: string): Promise<void> {
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-    try {
-      const { body } = await customObjectsApi.listNamespacedCustomObject('che.eclipse.org', 'v1alpha1', namespace, 'checlusters')
-      if (!(body as any).items) {
-        return
-      }
-
-      const crs = (body as any).items as any[]
-      for (const cr of crs) {
-        await customObjectsApi.deleteNamespacedCustomObject('che.eclipse.org', 'v1alpha1', namespace, 'checlusters', cr.metadata.name)
-      }
-    } catch (e) {
-      if (e.response.statusCode === 404) {
-          // There is no CRD 'checlusters`
+        // There is no CRD
         return
       }
       throw this.wrapK8sClientError(e)

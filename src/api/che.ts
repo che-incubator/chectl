@@ -24,7 +24,7 @@ import * as rimraf from 'rimraf'
 import * as unzipper from 'unzipper'
 
 import { OpenShiftHelper } from '../api/openshift'
-import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME, OPERATOR_TEMPLATE_DIR } from '../constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME, OPERATOR_TEMPLATE_DIR } from '../constants'
 import { base64Decode, downloadFile } from '../util'
 
 import { CheApiClient } from './che-api-client'
@@ -214,7 +214,7 @@ export class CheHelper {
     let adminUsername
     let adminPassword
 
-    const cheCluster = await this.kube.getCheCluster(cheNamespace)
+    const cheCluster = await this.kube.getCustomResource(cheNamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, 'checlusters')
     if (!cheCluster || cheCluster.spec.auth.externalIdentityProvider) {
       return []
     }

@@ -285,15 +285,18 @@ export class DevWorkspaceTasks {
       {
         title: `Delete the Custom Resource of type ${this.cheManagerCRDName}`,
         task: async (_ctx: any, task: any) => {
-          await this.kubeHelper.deleteCheManagerInstance(this.devworkspaceCheNamespace)
-          // if chemanager instance still exists then remove finalizers and delete again
-          const chemanager = await this.kubeHelper.getCheManagerInstance(this.devworkspaceCheNamespace)
+          await this.kubeHelper.deleteCustomResource(this.devworkspaceCheNamespace, this.cheManagerApiGroupName, this.cheManagerApiVersionName, 'chemanagers')
 
+          // wait 10 seconds
+          await cli.wait(10000)
+
+          // if chemanager instance still exists then remove finalizers and delete again
+          const chemanager = await this.kubeHelper.getCustomResource(this.devworkspaceCheNamespace, this.cheManagerApiGroupName, this.cheManagerApiVersionName, 'chemanagers')
           if (chemanager) {
             try {
               await this.kubeHelper.patchCustomResource(chemanager.metadata.name, this.devworkspaceCheNamespace, { metadata: { finalizers: null } }, this.cheManagerApiGroupName, this.cheManagerApiVersionName, 'chemanagers')
             } catch (error) {
-              if (await this.kubeHelper.getCheManagerInstance(this.devworkspaceCheNamespace)) {
+              if (await this.kubeHelper.getCustomResource(this.devworkspaceCheNamespace, this.cheManagerApiGroupName, this.cheManagerApiVersionName, 'chemanagers')) {
                 task.title = `${task.title}...OK`
                 return // successfully removed
               }
@@ -304,7 +307,7 @@ export class DevWorkspaceTasks {
             await cli.wait(2000)
           }
 
-          if (!await this.kubeHelper.getCheManagerInstance(this.devworkspaceCheNamespace)) {
+          if (!await this.kubeHelper.getCustomResource(this.devworkspaceCheNamespace, this.cheManagerApiGroupName, this.cheManagerApiVersionName, 'chemanagers')) {
             task.title = `${task.title}...OK`
           } else {
             task.title = `${task.title}...Failed`
