@@ -17,7 +17,7 @@ import Listr = require('listr')
 import * as path from 'path'
 import * as semver from 'semver'
 
-import { CHECTL_PROJECT_NAME, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION } from '../constants'
+import { CHECTL_PROJECT_NAME, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL } from '../constants'
 import { CheTasks } from '../tasks/che'
 import { getClusterClientCommand, getProjectName, getProjectVersion } from '../util'
 
@@ -161,7 +161,7 @@ export namespace VersionHelper {
   export async function getCheVersion(flags: any): Promise<string> {
     const kube = new KubeHelper(flags)
     const cheTasks = new CheTasks(flags)
-    const cheCluster = await kube.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, 'checlusters')
+    const cheCluster = await kube.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
     if (cheCluster && cheCluster.spec.server.cheFlavor !== 'che') {
       return cheCluster.status.cheVersion
     }

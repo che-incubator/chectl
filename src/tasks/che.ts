@@ -16,7 +16,7 @@ import { CheServerLoginManager } from '../api/che-login-manager'
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
 import { VersionHelper } from '../api/version'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_OPERATOR_SELECTOR, DOC_LINK, DOC_LINK_RELEASE_NOTES, OUTPUT_SEPARATOR } from '../constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL, CHE_OPERATOR_SELECTOR, DOC_LINK, DOC_LINK_RELEASE_NOTES, OUTPUT_SEPARATOR } from '../constants'
 import { base64Decode } from '../util'
 
 import { KubeTasks } from './kube'
@@ -669,7 +669,7 @@ export class CheTasks {
           const cheUrl = await this.che.cheURL(flags.chenamespace)
           messages.push(`Users Dashboard           : ${cheUrl}`)
 
-          const cr = await this.kube.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, 'checlusters')
+          const cr = await this.kube.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
           if (ctx.isOpenShift && cr && cr.spec && cr.spec.auth && cr.spec.auth.openShiftoAuth) {
             if (cr.status && cr.status.openShiftOAuthUserCredentialsSecret) {
               let user = ''

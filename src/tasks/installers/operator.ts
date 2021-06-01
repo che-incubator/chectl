@@ -17,7 +17,7 @@ import * as path from 'path'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME, OPERATOR_TEMPLATE_DIR } from '../../constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_CRD, CHE_CLUSTER_KIND_PLURAL, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME, OPERATOR_TEMPLATE_DIR } from '../../constants'
 import { safeLoadFromYamlFile } from '../../util'
 import { KubeTasks } from '../kube'
 
@@ -258,7 +258,7 @@ export class OperatorTasks {
       {
         title: 'Prepare Eclipse Che cluster CR',
         task: async (ctx: any, task: any) => {
-          const cheCluster = await kube.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, 'checlusters')
+          const cheCluster = await kube.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
           if (cheCluster) {
             task.title = `${task.title}...It already exists..`
             return
@@ -445,7 +445,7 @@ export class OperatorTasks {
     return [{
       title: 'Delete oauthClientAuthorizations',
       task: async (_ctx: any, task: any) => {
-        const checluster = await kh.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, 'checlusters')
+        const checluster = await kh.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
         if (checluster && checluster.spec && checluster.spec.auth && checluster.spec.auth.oAuthClientName) {
           const oAuthClientAuthorizations = await kh.getOAuthClientAuthorizations(checluster.spec.auth.oAuthClientName)
           await kh.deleteOAuthClientAuthorizations(oAuthClientAuthorizations)
@@ -456,24 +456,24 @@ export class OperatorTasks {
     {
       title: `Delete the Custom Resource of type ${CHE_CLUSTER_CRD}`,
       task: async (_ctx: any, task: any) => {
-        await kh.deleteCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, 'checlusters')
+        await kh.deleteCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
 
         // wait 20 seconds, default timeout in che operator
         for (let index = 0; index < 20; index++) {
           await cli.wait(1000)
-          if (!await kh.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, 'checlusters')) {
+          if (!await kh.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)) {
             task.title = `${task.title}...OK`
             return
           }
         }
 
         // if checluster still exists then remove finalizers and delete again
-        const checluster = await kh.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, 'checlusters')
+        const checluster = await kh.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
         if (checluster) {
           try {
-            await kh.patchCustomResource(checluster.metadata.name, flags.chenamespace, { metadata: { finalizers: null } }, 'org.eclipse.che', 'v1', 'checlusters')
+            await kh.patchCustomResource(checluster.metadata.name, flags.chenamespace, { metadata: { finalizers: null } }, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
           } catch (error) {
-            if (await kh.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, 'checlusters')) {
+            if (await kh.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)) {
               task.title = `${task.title}...OK`
               return // successfully removed
             }
@@ -484,7 +484,7 @@ export class OperatorTasks {
           await cli.wait(2000)
         }
 
-        if (!await kh.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, 'checlusters')) {
+        if (!await kh.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)) {
           task.title = `${task.title}...OK`
         } else {
           task.title = `${task.title}...Failed`
@@ -494,7 +494,7 @@ export class OperatorTasks {
     {
       title: `Delete CRD ${this.cheClusterCrd}`,
       task: async (_ctx: any, task: any) => {
-        const checlusters = await kh.getAllCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, 'checlusters')
+        const checlusters = await kh.getAllCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
         if (checlusters.length > 0) {
           task.title = `${task.title}...Skipped: another Eclipse Che deployment found.`
         } else {

@@ -81,3 +81,4 @@ export const DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT = 15000
 export const CHE_CLUSTER_CRD = 'checlusters.org.eclipse.che'
 export const CHE_CLUSTER_API_GROUP = 'org.eclipse.che'
 export const CHE_CLUSTER_API_VERSION = 'v1'
+export const CHE_CLUSTER_KIND_PLURAL = 'checlusters'

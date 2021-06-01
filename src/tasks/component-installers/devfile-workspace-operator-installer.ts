@@ -92,7 +92,7 @@ export class DevWorkspaceTasks {
   protected cheManagerApiGroupName = 'che.eclipse.org'
   protected cheManagerApiVersionName = 'v1alpha1'
   protected cheManagerCRDName = 'chemanagers.che.eclipse.org'
-
+  protected cheManagersKindPlural = 'chemanagers'
   constructor(private readonly flags: any) {
     this.kubeHelper = new KubeHelper(flags)
     this.cheHelper = new CheHelper(flags)
@@ -285,18 +285,24 @@ export class DevWorkspaceTasks {
       {
         title: `Delete the Custom Resource of type ${this.cheManagerCRDName}`,
         task: async (_ctx: any, task: any) => {
-          await this.kubeHelper.deleteCustomResource(this.devworkspaceCheNamespace, this.cheManagerApiGroupName, this.cheManagerApiVersionName, 'chemanagers')
+          await this.kubeHelper.deleteCustomResource(this.devworkspaceCheNamespace, this.cheManagerApiGroupName, this.cheManagerApiVersionName, this.cheManagersKindPlural)
 
-          // wait 10 seconds
-          await cli.wait(10000)
+          // wait 20 seconds, default timeout in che operator
+          for (let index = 0; index < 20; index++) {
+            await cli.wait(1000)
+            if (!await this.kubeHelper.getCustomResource(this.devworkspaceCheNamespace, this.cheManagerApiGroupName, this.cheManagerApiVersionName, this.cheManagersKindPlural)) {
+              task.title = `${task.title}...OK`
+              return
+            }
+          }
 
           // if chemanager instance still exists then remove finalizers and delete again
-          const chemanager = await this.kubeHelper.getCustomResource(this.devworkspaceCheNamespace, this.cheManagerApiGroupName, this.cheManagerApiVersionName, 'chemanagers')
+          const chemanager = await this.kubeHelper.getCustomResource(this.devworkspaceCheNamespace, this.cheManagerApiGroupName, this.cheManagerApiVersionName, this.cheManagersKindPlural)
           if (chemanager) {
             try {
-              await this.kubeHelper.patchCustomResource(chemanager.metadata.name, this.devworkspaceCheNamespace, { metadata: { finalizers: null } }, this.cheManagerApiGroupName, this.cheManagerApiVersionName, 'chemanagers')
+              await this.kubeHelper.patchCustomResource(chemanager.metadata.name, this.devworkspaceCheNamespace, { metadata: { finalizers: null } }, this.cheManagerApiGroupName, this.cheManagerApiVersionName, this.cheManagersKindPlural)
             } catch (error) {
-              if (await this.kubeHelper.getCustomResource(this.devworkspaceCheNamespace, this.cheManagerApiGroupName, this.cheManagerApiVersionName, 'chemanagers')) {
+              if (await this.kubeHelper.getCustomResource(this.devworkspaceCheNamespace, this.cheManagerApiGroupName, this.cheManagerApiVersionName, this.cheManagersKindPlural)) {
                 task.title = `${task.title}...OK`
                 return // successfully removed
               }
@@ -307,7 +313,7 @@ export class DevWorkspaceTasks {
             await cli.wait(2000)
           }
 
-          if (!await this.kubeHelper.getCustomResource(this.devworkspaceCheNamespace, this.cheManagerApiGroupName, this.cheManagerApiVersionName, 'chemanagers')) {
+          if (!await this.kubeHelper.getCustomResource(this.devworkspaceCheNamespace, this.cheManagerApiGroupName, this.cheManagerApiVersionName, this.cheManagersKindPlural)) {
             task.title = `${task.title}...OK`
           } else {
             task.title = `${task.title}...Failed`
