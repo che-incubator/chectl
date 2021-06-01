@@ -17,7 +17,7 @@ import * as path from 'path'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME, OPERATOR_TEMPLATE_DIR } from '../../constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_CRD, CHE_CLUSTER_KIND_PLURAL, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME, OPERATOR_TEMPLATE_DIR } from '../../constants'
 import { getImageNameAndTag, safeLoadFromYamlFile } from '../../util'
 import { KubeTasks } from '../kube'
 
@@ -528,7 +528,7 @@ export class OperatorTasks {
         const checluster = await kh.getCheCluster(flags.chenamespace)
         if (checluster) {
           try {
-            await kh.patchCheClusterCustomResource(checluster.metadata.name, flags.chenamespace, { metadata: { finalizers: null } })
+            await kh.patchCustomResource(checluster.metadata.name, flags.chenamespace, { metadata: { finalizers: null } }, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
           } catch (error) {
             if (await kh.getCheCluster(flags.chenamespace)) {
               task.title = `${task.title}...OK`
