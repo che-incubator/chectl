@@ -84,6 +84,44 @@ export function base64Decode(arg: string): string {
 }
 
 /**
+ * Separates docker image repository and tag.
+ * @param image string with image and tag separated by a colon
+ * @returns image name (including registry and account) and image tag correspondingly
+ */
+export function getImageNameAndTag(image: string): [string, string] {
+  let deployedCheOperatorImageName: string
+  let deployedCheOperatorImageTag: string
+
+  if (image.includes('@')) {
+    // Image is referenced via a digest
+    const index = image.indexOf('@')
+    deployedCheOperatorImageName = image.substring(0, index)
+    deployedCheOperatorImageTag = image.substring(index + 1)
+  } else {
+    // Image is referenced via a tag
+    const lastColonIndex = image.lastIndexOf(':')
+    if (lastColonIndex === -1) {
+      // Image name without a tag
+      deployedCheOperatorImageName = image
+      deployedCheOperatorImageTag = 'latest'
+    } else {
+      let beforeLastColon = image.substring(0, lastColonIndex)
+      let afterLastColon = image.substring(lastColonIndex + 1)
+      if (afterLastColon.includes('/')) {
+        // The colon is for registry port and not for a tag
+        deployedCheOperatorImageName = image
+        deployedCheOperatorImageTag = 'latest'
+      } else {
+        // The colon separates image name from the tag
+        deployedCheOperatorImageName = beforeLastColon
+        deployedCheOperatorImageTag = afterLastColon
+      }
+    }
+  }
+  return [deployedCheOperatorImageName, deployedCheOperatorImageTag]
+}
+
+/**
  * Returns the tag of the image.
  */
 export function getImageTag(image: string): string | undefined {

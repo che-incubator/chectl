@@ -18,7 +18,7 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME, OPERATOR_TEMPLATE_DIR } from '../../constants'
-import { safeLoadFromYamlFile } from '../../util'
+import { getImageNameAndTag, safeLoadFromYamlFile } from '../../util'
 import { KubeTasks } from '../kube'
 
 import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
@@ -319,10 +319,9 @@ export class OperatorTasks {
         title: 'Detecting existing version...',
         task: async (ctx: any, task: any) => {
           ctx.deployedCheOperatorImage = this.retrieveContainerImage(ctx.deployedCheOperatorYaml)
-          const deployedCheOperatorImageAndTag = ctx.deployedCheOperatorImage.split(':', 2)
-          ctx.deployedCheOperatorImageName = deployedCheOperatorImageAndTag[0]
-          ctx.deployedCheOperatorImageTag = deployedCheOperatorImageAndTag.length === 2 ? deployedCheOperatorImageAndTag[1] : 'latest'
-          ctx.deployedCheOperatorImage = ctx.deployedCheOperatorImageName + ':' + ctx.deployedCheOperatorImageTag
+          const [deployedImage, deployedTag] = getImageNameAndTag(ctx.deployedCheOperatorImage)
+          ctx.deployedCheOperatorImageName = deployedImage
+          ctx.deployedCheOperatorImageTag = deployedTag
 
           if (flags['che-operator-image']) {
             ctx.newCheOperatorImage = flags['che-operator-image']
@@ -331,10 +330,9 @@ export class OperatorTasks {
             const newCheOperatorYaml = safeLoadFromYamlFile(path.join(flags.templates, OPERATOR_TEMPLATE_DIR, 'operator.yaml')) as V1Deployment
             ctx.newCheOperatorImage = this.retrieveContainerImage(newCheOperatorYaml)
           }
-          const newCheOperatorImageAndTag = ctx.newCheOperatorImage.split(':', 2)
-          ctx.newCheOperatorImageName = newCheOperatorImageAndTag[0]
-          ctx.newCheOperatorImageTag = newCheOperatorImageAndTag.length === 2 ? newCheOperatorImageAndTag[1] : 'latest'
-          ctx.newCheOperatorImage = ctx.newCheOperatorImageName + ':' + ctx.newCheOperatorImageTag
+          const [newImage, newTag] = getImageNameAndTag(ctx.newCheOperatorImage)
+          ctx.newCheOperatorImageName = newImage
+          ctx.newCheOperatorImageTag = newTag
 
           task.title = `${task.title} ${ctx.deployedCheOperatorImageTag} -> ${ctx.newCheOperatorImageTag}`
         }
