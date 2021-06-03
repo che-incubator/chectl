@@ -10,8 +10,8 @@
 
 import { Octokit } from '@octokit/rest'
 
-const OWNER = 'eclipse'
-export const CHE_REPO = 'che'
+const OWNER = 'eclipse-che'
+export const CHE_REPO = 'che-server'
 export const CHE_OPERATOR_REPO = 'che-operator'
 
 export interface TagInfo {
