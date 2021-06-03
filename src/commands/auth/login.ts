@@ -19,7 +19,7 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, username, USERNAME_KEY } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import { getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
+import { OPENSHIFT_CLI, wrapCommandError } from '../../util'
 
 const REFRESH_TOKEN_KEY = 'refresh-token'
 const PASSWORD_KEY = 'password'
@@ -161,7 +161,7 @@ export default class Login extends Command {
       const username = await loginManager.setLoginContext(cheApiEndpoint, loginData)
       cli.info(`Successfully logged into ${cheApiEndpoint} as ${username}`)
     } catch (err) {
-      this.error(getCommandErrorMessage(err))
+      this.error(wrapCommandError(err))
     }
   }
 }

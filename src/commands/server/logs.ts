@@ -17,7 +17,7 @@ import { cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHeal
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage } from '../../util'
+import { findWorkingNamespace, getCommandSuccessMessage, wrapCommandError } from '../../util'
 
 export default class Logs extends Command {
   static description = 'Collect Eclipse Che logs'
@@ -46,7 +46,7 @@ export default class Logs extends Command {
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logs.id, flags })
-    tasks.add(apiTasks.testApiTasks(flags, this))
+    tasks.add(apiTasks.testApiTasks(flags))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.serverLogsTasks(flags, false))
 
@@ -55,7 +55,7 @@ export default class Logs extends Command {
       await tasks.run(ctx)
       this.log(getCommandSuccessMessage())
     } catch (err) {
-      this.error(getCommandErrorMessage(err))
+      this.error(wrapCommandError(err))
     }
 
     this.exit(0)

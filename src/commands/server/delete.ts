@@ -24,7 +24,7 @@ import { HelmTasks } from '../../tasks/installers/helm'
 import { OLMTasks } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
+import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Delete extends Command {
   static description = 'delete any Eclipse Che related resource: Kubernetes/OpenShift/Helm'
@@ -71,7 +71,7 @@ export default class Delete extends Command {
     const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
     const tasks = new Listrq([], ctx.listrOptions)
-    tasks.add(apiTasks.testApiTasks(flags, this))
+    tasks.add(apiTasks.testApiTasks(flags))
     tasks.add(operatorTasks.deleteTasks(flags))
     tasks.add(olmTasks.deleteTasks(flags))
     tasks.add(cheTasks.deleteTasks(flags))
@@ -98,7 +98,7 @@ export default class Delete extends Command {
         await tasks.run()
         cli.log(getCommandSuccessMessage())
       } catch (err) {
-        this.error(getCommandErrorMessage(err))
+        this.error(wrapCommandError(err))
       }
     } else {
       this.exit(0)

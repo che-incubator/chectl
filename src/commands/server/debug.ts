@@ -17,7 +17,7 @@ import { cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { findWorkingNamespace, getCommandErrorMessage } from '../../util'
+import { findWorkingNamespace, wrapCommandError } from '../../util'
 
 export default class Debug extends Command {
   static description = 'Enable local debug of Eclipse Che server'
@@ -44,7 +44,7 @@ export default class Debug extends Command {
     const apiTasks = new ApiTasks()
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
 
-    tasks.add(apiTasks.testApiTasks(flags, this))
+    tasks.add(apiTasks.testApiTasks(flags))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.debugTask(flags))
 
@@ -53,7 +53,7 @@ export default class Debug extends Command {
       this.log(`Eclipse Che server debug is available on localhost:${flags['debug-port']}.`)
       this.log('The program keeps running to enable port forwarding.')
     } catch (err) {
-      this.error(getCommandErrorMessage(err))
+      this.error(wrapCommandError(err))
     }
   }
 }

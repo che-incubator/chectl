@@ -7,11 +7,11 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-import { Command } from '@oclif/command'
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 
 import { KubeHelper } from '../../api/kube'
+import { newError } from '../../util'
 
 export class ApiTasks {
   /**
@@ -19,7 +19,7 @@ export class ApiTasks {
    *
    * `isOpenShift` property is provisioned into context.
    */
-  testApiTasks(flags: any, command: Command): Listr.ListrTask {
+  testApiTasks(flags: any): Listr.ListrTask {
     let kube = new KubeHelper(flags)
     return {
       title: 'Verify Kubernetes API',
@@ -37,7 +37,7 @@ export class ApiTasks {
             task.title = `${task.title} (it's OpenShift)`
           }
         } catch (error) {
-          command.error(`Failed to connect to Kubernetes API, error: ${error.message}. If you're sure that your Kubernetes cluster is healthy - you can skip this check with '--skip-kubernetes-health-check' flag.`)
+          return newError('Failed to connect to Kubernetes API. If you\'re sure that your Kubernetes cluster is healthy - you can skip this check with \'--skip-kubernetes-health-check\' flag.', error)
         }
       }
     }
