@@ -191,17 +191,18 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const backupCrdExist = await kube.getCrd(this.cheClusterBackupCrd)
           const restoreCrdExist = await kube.getCrd(this.cheClusterRestoreCrd)
-          if (backupCrdExist && restoreCrdExist) {
+          if (!backupCrdExist || !restoreCrdExist) {
             task.title = `${task.title}...skipped.`
             return
           }
 
-          const backupCrdPath = path.join(ctx.resourcesPath, 'crds', 'org.eclipse.che_checlusterbackups_crd.yaml')
+          const [backupCrdFileName, restoreCrdFileName] = await this.getBackupRestoreCrdFilesNames(kube)
+          const backupCrdPath = path.join(ctx.resourcesPath, 'crds', backupCrdFileName)
           if (!backupCrdExist && fs.existsSync(backupCrdPath)) {
             await kube.createCrdFromFile(backupCrdPath)
           }
 
-          const restoreCrdPath = path.join(ctx.resourcesPath, 'crds', 'org.eclipse.che_checlusterrestores_crd.yaml')
+          const restoreCrdPath = path.join(ctx.resourcesPath, 'crds', restoreCrdFileName)
           if (!restoreCrdExist && fs.existsSync(restoreCrdPath)) {
             await kube.createCrdFromFile(restoreCrdPath)
           }
@@ -382,8 +383,9 @@ export class OperatorTasks {
       {
         title: 'Updating backup and restore CRDs',
         task: async (ctx: any, task: any) => {
+          const [backupCrdFileName, restoreCrdFileName] = await this.getBackupRestoreCrdFilesNames(kube)
           const existedBackupCRD = await kube.getCrd(this.cheClusterBackupCrd)
-          const newBackupCRDPath = path.join(ctx.resourcesPath, 'crds', 'org.eclipse.che_checlusterbackups_crd.yaml')
+          const newBackupCRDPath = path.join(ctx.resourcesPath, 'crds', backupCrdFileName)
           if (fs.existsSync(newBackupCRDPath)) {
             if (existedBackupCRD) {
               if (!existedBackupCRD.metadata || !existedBackupCRD.metadata.resourceVersion) {
@@ -396,7 +398,7 @@ export class OperatorTasks {
           }
 
           const existedRestoreCRD = await kube.getCrd(this.cheClusterRestoreCrd)
-          const newRestoreCRDPath = path.join(ctx.resourcesPath, 'crds', 'org.eclipse.che_checlusterrestores_crd.yaml')
+          const newRestoreCRDPath = path.join(ctx.resourcesPath, 'crds', restoreCrdFileName)
           if (fs.existsSync(newRestoreCRDPath)) {
             if (existedRestoreCRD) {
               if (!existedRestoreCRD.metadata || !existedRestoreCRD.metadata.resourceVersion) {
@@ -650,6 +652,21 @@ export class OperatorTasks {
     }
 
     return path.join(ctx.resourcesPath, 'crds', 'org_v1_che_crd.yaml')
+  }
+
+  // Delete this method and use default v1 CRDs when Openshift 3.x support dropped
+  private async getBackupRestoreCrdFilesNames(kube: KubeHelper): Promise<[string, string]> {
+    let backupCrdFileName: string
+    let restoreCrdFileName: string
+    if (! await kube.IsAPIExtensionSupported('v1')) {
+      // Needed for Openshift 3.x
+      backupCrdFileName = 'org.eclipse.che_checlusterbackups_crd-v1beta1.yaml'
+      restoreCrdFileName = 'org.eclipse.che_checlusterrestores_crd-v1beta1.yaml'
+    } else {
+      backupCrdFileName = 'org.eclipse.che_checlusterbackups_crd.yaml'
+      restoreCrdFileName = 'org.eclipse.che_checlusterrestores_crd.yaml'
+    }
+    return [backupCrdFileName, restoreCrdFileName]
   }
 
   /**
