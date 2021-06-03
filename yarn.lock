@@ -2378,17 +2378,17 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
-"eclipse-che-devfile-workspace-operator@git://github.com/devfile/devworkspace-operator#v0.5.0":
+"eclipse-che-devfile-workspace-operator@git://github.com/devfile/devworkspace-operator#v0.5.1":
   version "0.0.0"
-  resolved "git://github.com/devfile/devworkspace-operator#241857ecf17be74d6f6c76df66e10af881772fd1"
+  resolved "git://github.com/devfile/devworkspace-operator#4b0189c1d77039ef23e4f11ad20f57003c62f60f"
 
-"eclipse-che-operator@git://github.com/eclipse-che/che-operator#7.31.0":
+"eclipse-che-operator@git://github.com/eclipse-che/che-operator#7.31.1":
   version "0.0.0"
-  resolved "git://github.com/eclipse-che/che-operator#b38dec3fba372dc9008fb753b0738281fca9ee13"
+  resolved "git://github.com/eclipse-che/che-operator#9dcca1edcbcfb5b5fa3e63837ac019a23561009c"
 
 "eclipse-che-server@git://github.com/eclipse-che/che-server#main":
   version "0.0.0"
-  resolved "git://github.com/eclipse-che/che-server#d640df4d7fdba2721a90983ac29640c0e9136273"
+  resolved "git://github.com/eclipse-che/che-server#29247d8923d1e537641149d97230762371451614"
 
 editorconfig@^0.15.0:
   version "0.15.3"
