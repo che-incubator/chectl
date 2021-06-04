@@ -191,23 +191,31 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const backupCrdExist = await kube.getCrd(this.cheClusterBackupCrd)
           const restoreCrdExist = await kube.getCrd(this.cheClusterRestoreCrd)
-          if (!backupCrdExist || !restoreCrdExist) {
-            task.title = `${task.title}...skipped.`
+          if (backupCrdExist && restoreCrdExist) {
+            task.title = `${task.title}...already exist.`
             return
           }
 
+          let done = false
           const [backupCrdFileName, restoreCrdFileName] = await this.getBackupRestoreCrdFilesNames(kube)
           const backupCrdPath = path.join(ctx.resourcesPath, 'crds', backupCrdFileName)
           if (!backupCrdExist && fs.existsSync(backupCrdPath)) {
             await kube.createCrdFromFile(backupCrdPath)
+            done = true
           }
 
           const restoreCrdPath = path.join(ctx.resourcesPath, 'crds', restoreCrdFileName)
           if (!restoreCrdExist && fs.existsSync(restoreCrdPath)) {
             await kube.createCrdFromFile(restoreCrdPath)
+            done = true
           }
 
-          task.title = `${task.title}...done.`
+          if (done) {
+            task.title = `${task.title}...done.`
+          } else {
+            task.title = `${task.title}...skipped.`
+          }
+
         }
       },
       {
