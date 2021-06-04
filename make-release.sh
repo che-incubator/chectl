@@ -78,15 +78,27 @@ release() {
     DWO_GIT_VERSION=$(echo ${SHA1_DEV_WORKSPACE_OPERATOR} | cut -c1-7)
   fi
 
-  # replace nightly versions by release version
-  apply_sed "s#quay.io/eclipse/che-server:.*#quay.io/eclipse/che-server:${VERSION}'#g" src/constants.ts
-  apply_sed "s#quay.io/eclipse/che-operator:.*#quay.io/eclipse/che-operator:${VERSION}'#g" src/constants.ts
+  if [[ -z ${DWO_GIT_VERSION} ]]; then
+    echo "[ERROR] DevWorkspace Operator version is not defined"
+    exit 1
+  fi
 
   # now replace package.json dependencies
-  apply_sed "s;github.com/eclipse/che#\(.*\)\",;github.com/eclipse/che#${VERSION}\",;g" package.json
-  apply_sed "s;github.com/eclipse/che-operator#\(.*\)\",;github.com/eclipse-che/che-operator#${VERSION}\",;g" package.json
+  apply_sed "s;github.com/eclipse-che/che-server#\(.*\)\",;github.com/eclipse-che/che-server#${VERSION}\",;g" package.json
   apply_sed "s;github.com/eclipse-che/che-operator#\(.*\)\",;github.com/eclipse-che/che-operator#${VERSION}\",;g" package.json
-  apply_sed "s;git://github.com/devfile/devworkspace-operator#\(.*\)\",;git://github.com/devfile/devworkspace-operator#${DWO_GIT_VERSION}\",;g" package.json
+  apply_sed "s;github.com/devfile/devworkspace-operator#\(.*\)\",;github.com/devfile/devworkspace-operator#${DWO_GIT_VERSION}\",;g" package.json
+
+  if ! grep -q "github.com/eclipse-che/che-server#${VERSION}" package.json; then
+    echo "[ERROR] Unable to find Che Server version ${VERSION} in the package.json"; exit 1
+  fi
+
+  if ! grep -q "github.com/eclipse-che/che-operator#${VERSION}" package.json; then
+    echo "[ERROR] Unable to find Che Operator version ${VERSION} in the package.json"; exit 1
+  fi
+
+  if ! grep -q "github.com/devfile/devworkspace-operator#${DWO_GIT_VERSION}" package.json; then
+    echo "[ERROR] Unable to find Dev Workspace Operator version ${DWO_GIT_VERSION} in the package.json"; exit 1
+  fi
 
   # build
   yarn
