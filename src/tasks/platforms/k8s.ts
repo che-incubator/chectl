@@ -14,6 +14,7 @@ import * as Listr from 'listr'
 
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
+import { newError } from '../../util'
 
 import { CommonPlatformTasks } from './common-platform-tasks'
 
@@ -40,7 +41,7 @@ export class K8sTasks {
             await kh.checkKubeApi()
             task.title = `${task.title}...done.`
           } catch (error) {
-            command.error('E_PLATFORM_NOT_READY: ' + error)
+            return newError('Platform not ready.', error)
           }
         }
       },

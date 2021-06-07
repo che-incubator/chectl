@@ -20,7 +20,7 @@ import * as net from 'net'
 import { Writable } from 'stream'
 
 import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
-import { getClusterClientCommand, isKubernetesPlatformFamily, safeLoadFromYamlFile } from '../util'
+import { getClusterClientCommand, isKubernetesPlatformFamily, newError, safeLoadFromYamlFile } from '../util'
 
 import { V1Certificate } from './typings/cert-manager'
 import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './typings/olm'
@@ -1646,11 +1646,9 @@ export class KubeHelper {
 
       return crs[0]
     } catch (e) {
-      if (e.response.statusCode === 404) {
-        // There is no CRD
-        return
+      if (e.response && e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
       }
-      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -2635,8 +2633,10 @@ export class KubeHelper {
    * @param e k8s error to wrap
    */
   private wrapK8sClientError(e: any): Error {
-    if (e.response && e.response.body && e.response.body.message) return new Error(e.response.body.message)
-    else return new Error(e)
+    if (e.response && e.response.body) {
+      return newError(e.response.body, e)
+    }
+    return e
   }
 
   public safeLoadFromYamlFile(filePath: string): any {

@@ -24,7 +24,7 @@ import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighl
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { askForChectlUpdateIfNeeded, getCommandErrorMessage, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, isKubernetesPlatformFamily, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully } from '../../util'
+import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, isKubernetesPlatformFamily, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Deploy extends Command {
   static description = 'Deploy Eclipse Che server'
@@ -395,10 +395,10 @@ export default class Deploy extends Command {
 
     // Checks if Eclipse Che is already deployed
     let preInstallTasks = new Listr(undefined, ctx.listrOptions)
-    preInstallTasks.add(apiTasks.testApiTasks(flags, this))
+    preInstallTasks.add(apiTasks.testApiTasks(flags))
     preInstallTasks.add({
       title: '👀  Looking for an already existing Eclipse Che instance',
-      task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
+      task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags))
     })
     preInstallTasks.add(checkChectlAndCheVersionCompatibility(flags))
     preInstallTasks.add(downloadTemplates(flags))
@@ -444,7 +444,7 @@ export default class Deploy extends Command {
         this.log(getCommandSuccessMessage())
       }
     } catch (err) {
-      this.error(getCommandErrorMessage(err))
+      this.error(wrapCommandError(err))
     }
 
     notifyCommandCompletedSuccessfully()

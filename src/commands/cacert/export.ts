@@ -16,7 +16,7 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
-import { findWorkingNamespace, getCommandErrorMessage } from '../../util'
+import { findWorkingNamespace, wrapCommandError } from '../../util'
 
 export default class Export extends Command {
   static description = 'Retrieves Eclipse Che self-signed certificate'
@@ -62,7 +62,7 @@ export default class Export extends Command {
         this.log('Self signed certificate secret not found. Is commonly trusted certificate used?')
       }
     } catch (err) {
-      this.error(getCommandErrorMessage(err))
+      this.error(wrapCommandError(err))
     }
   }
 }

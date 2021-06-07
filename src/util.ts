@@ -183,18 +183,24 @@ export function getCommandSuccessMessage(): string {
 }
 
 /**
- * Returns command error message.
+ * Wraps error into command error.
  */
-export function getCommandErrorMessage(err: Error): string {
+export function wrapCommandError(error: Error): Error {
   const ctx = ChectlContext.get()
   const logDirectory = ctx[ChectlContext.LOGS_DIR]
 
-  let message = `${err}\nCommand ${ctx[ChectlContext.COMMAND_ID]} failed. Error log: ${ctx[ChectlContext.ERROR_LOG]}`
+  let commandErrorMessage = `Command ${ctx[ChectlContext.COMMAND_ID]} failed. Error log: ${ctx[ChectlContext.ERROR_LOG]}.`
   if (logDirectory && isDirEmpty(logDirectory)) {
-    message += ` Eclipse Che logs: ${logDirectory}`
+    commandErrorMessage += ` Eclipse Che logs: ${logDirectory}.`
   }
 
-  return message
+  return newError(commandErrorMessage, error)
+}
+
+export function newError(message: string, cause: Error): Error {
+  const error = new Error(message)
+  error.stack += `\nCause: ${cause.stack}`
+  return error
 }
 
 export function notifyCommandCompletedSuccessfully(): void {

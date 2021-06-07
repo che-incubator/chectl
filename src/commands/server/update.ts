@@ -22,7 +22,7 @@ import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OP
 import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { askForChectlUpdateIfNeeded, findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, getProjectVersion, notifyCommandCompletedSuccessfully } from '../../util'
+import { askForChectlUpdateIfNeeded, findWorkingNamespace, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, getProjectVersion, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -126,7 +126,7 @@ export default class Update extends Command {
     // pre update tasks
     const apiTasks = new ApiTasks()
     const preUpdateTasks = new Listr([], ctx.listrOptions)
-    preUpdateTasks.add(apiTasks.testApiTasks(flags, this))
+    preUpdateTasks.add(apiTasks.testApiTasks(flags))
     preUpdateTasks.add(checkChectlAndCheVersionCompatibility(flags))
     preUpdateTasks.add(downloadTemplates(flags))
     preUpdateTasks.add(installerTasks.preUpdateTasks(flags, this))
@@ -158,7 +158,7 @@ export default class Update extends Command {
 
       this.log(getCommandSuccessMessage())
     } catch (err) {
-      this.error(getCommandErrorMessage(err))
+      this.error(wrapCommandError(err))
     }
 
     notifyCommandCompletedSuccessfully()
