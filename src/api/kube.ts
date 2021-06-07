@@ -1643,6 +1643,8 @@ export class KubeHelper {
       } else if (crs.length !== 1) {
         throw new Error(`Too many resources of type ${resourcePlural}.${resourceAPIGroup} found in the namespace '${namespace}'`)
       }
+
+      return crs[0]
     } catch (e) {
       if (e.response && e.response.statusCode !== 404) {
         throw this.wrapK8sClientError(e)
