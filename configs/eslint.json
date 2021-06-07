@@ -1,0 +1,6 @@
+{
+    "extends": [
+        "./eslint.license.json",
+        "./base.eslint.chectl.json"
+    ]
+}

@@ -24,3 +24,12 @@ jobs:
             echo "[ERROR] README.md it is not up to date. Please run 'yarn oclif-dev readme' to update and commit the changes."
             exit 1
           fi
+      - name: Check license header year eslint template    
+        run: |
+          TEMPLATE=$(jq '.rules."header/header"[2][1].pattern'  configs/eslint.license.json)
+          CURRENT_YEAR=$(date +'%Y')
+
+          if [[ ${TEMPLATE} != *"$CURRENT_YEAR"* ]];then
+              echo -e "[ERROR] The license header template doesn't contain the current year. Please change the year in configs/eslint.license.json and run yarn lint:fix"
+              exit 1
+          fi

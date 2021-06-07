@@ -1,0 +1,23 @@
+{
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "sourceType": "module",
+      "ecmaVersion": 6,
+      "ecmaFeatures": {
+        "jsx": false
+      }
+    },
+    "plugins": [
+      "@typescript-eslint",
+      "no-null"
+    ],
+    "env": {
+      "browser": true,
+      "mocha": true,
+      "node": true
+    },
+    "ignorePatterns": [
+      "node_modules",
+      "lib"
+    ]
+  }
