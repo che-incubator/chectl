@@ -23,7 +23,7 @@ import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
 import { CertManagerTasks } from '../../tasks/component-installers/cert-manager'
-import { generatePassword, safeSaveYamlToFile } from '../../util'
+import { generatePassword, newError, safeSaveYamlToFile } from '../../util'
 
 interface HelmChartDependency {
   name: string
@@ -71,7 +71,7 @@ export class HelmTasks {
 
             task.title = `${task.title}: Found ${version}`
           } catch (error) {
-            command.error(`Unable to get helm version. ${error.message}`)
+            return newError('Unable to get helm version', error)
           }
         },
       },

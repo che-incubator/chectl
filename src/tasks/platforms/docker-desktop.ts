@@ -18,6 +18,7 @@ import * as os from 'os'
 
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
+import { newError } from '../../util'
 
 export class DockerDesktopTasks {
   private readonly kh: KubeHelper
@@ -58,7 +59,7 @@ export class DockerDesktopTasks {
             await this.kh.checkKubeApi()
             task.title = `${task.title}...done.`
           } catch (error) {
-            command.error('E_PLATFORM_NOT_READY: ' + error)
+            return newError('Platform not ready.', error)
           }
         },
       },

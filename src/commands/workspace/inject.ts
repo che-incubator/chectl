@@ -26,7 +26,7 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import { getClusterClientCommand, getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
+import { getClusterClientCommand, OPENSHIFT_CLI, wrapCommandError } from '../../util'
 
 export default class Inject extends Command {
   static description = 'Inject configurations and tokens in a workspace'
@@ -102,7 +102,7 @@ export default class Inject extends Command {
     try {
       await this.injectKubeconfig(flags, workspaceNamespace, workspacePodName, workspaceId!)
     } catch (err) {
-      this.error(getCommandErrorMessage(err))
+      this.error(wrapCommandError(err))
     }
   }
 

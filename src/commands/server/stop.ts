@@ -19,7 +19,7 @@ import { accessToken, cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer,
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
+import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Stop extends Command {
   static description = 'stop Eclipse Che server'
@@ -57,8 +57,8 @@ export default class Stop extends Command {
       }
     )
 
-    tasks.add(apiTasks.testApiTasks(flags, this))
-    tasks.add(cheTasks.checkIfCheIsInstalledTasks(flags, this))
+    tasks.add(apiTasks.testApiTasks(flags))
+    tasks.add(cheTasks.checkIfCheIsInstalledTasks(flags))
     tasks.add([
       {
         title: 'Deployment doesn\'t exist',
@@ -70,13 +70,13 @@ export default class Stop extends Command {
     ],
     { renderer: flags['listr-renderer'] as any }
     )
-    tasks.add(cheTasks.scaleCheDownTasks(this))
+    tasks.add(cheTasks.scaleCheDownTasks())
     tasks.add(cheTasks.waitPodsDeletedTasks())
     try {
       await tasks.run()
       cli.log(getCommandSuccessMessage())
     } catch (err) {
-      this.error(getCommandErrorMessage(err))
+      this.error(wrapCommandError(err))
     }
 
     notifyCommandCompletedSuccessfully()

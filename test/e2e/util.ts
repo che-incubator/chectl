@@ -25,7 +25,7 @@ interface WorkspaceInfo {
   status: string
 }
 
-export const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml'
+export const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse-che/che-devfile-registry/master/devfiles/go/devfile.yaml'
 
 export const NAMESPACE = 'eclipse-che'
 export const NIGHTLY = 'nightly'
@@ -111,8 +111,11 @@ export class E2eHelper {
   // Return id of test workspaces(e2e-tests. Please look devfile-example.yaml file)
   async getWorkspaceId(): Promise<any> {
     const workspaces = await this.getAllWorkspaces()
-    const workspaceId = workspaces.filter((wks => wks.name.match(this.devfileName))).map(({ id }) => id)[0]
+    if (workspaces.length === 0) {
+      throw Error('Workspace not found')
+    }
 
+    const workspaceId = workspaces[0].id
     if (!workspaceId) {
       throw Error('Error getting workspaceId')
     }
@@ -123,11 +126,13 @@ export class E2eHelper {
   // Return the status of test workspaces(e2e-tests. Please look devfile-example.yaml file)
   async getWorkspaceStatus(): Promise<any> {
     const workspaces = await this.getAllWorkspaces()
-    const workspaceStatus = workspaces.filter((wks => wks.name.match(this.devfileName))).map(({ status }) => status)[0]
+    if (workspaces.length === 0) {
+      throw Error('Workspace not found')
+    }
 
+    const workspaceStatus = workspaces[0].status
     if (!workspaceStatus) {
-      throw Error('Error getting workspace_id')
-
+      throw Error('Error getting workspace status')
     }
 
     return workspaceStatus

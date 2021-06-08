@@ -19,7 +19,7 @@ import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
 import { VersionHelper } from '../api/version'
 import { CHE_OPERATOR_SELECTOR, DOC_LINK, DOC_LINK_RELEASE_NOTES, OUTPUT_SEPARATOR } from '../constants'
-import { base64Decode } from '../util'
+import { base64Decode, newError } from '../util'
 
 import { KubeTasks } from './kube'
 
@@ -126,7 +126,7 @@ export class CheTasks {
    * is[Component]Deployed, is[Component]Stopped, is[Component]Ready
    * where component is one the: Che, Keycloak, Postgres, PluginRegistry, DevfileRegistry
    */
-  checkIfCheIsInstalledTasks(_flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
+  checkIfCheIsInstalledTasks(_flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: `Verify if Eclipse Che is deployed into namespace \"${this.cheNamespace}\"`,
@@ -226,7 +226,7 @@ export class CheTasks {
             const auth = ctx.isAuthEnabled ? '(auth enabled)' : '(auth disabled)'
             task.title = `${task.title}...${status} ${auth}`
           } catch (error) {
-            command.error(`E_CHECK_CHE_STATUS_FAIL - Failed to check Eclipse Che status (URL: ${cheURL}). ${error.message}`)
+            return newError(`Failed to check Eclipse Che status (URL: ${cheURL}).`, error)
           }
         },
       },
@@ -299,7 +299,7 @@ export class CheTasks {
    *
    * @see [CheTasks](#checkIfCheIsInstalledTasks)
    */
-  scaleCheDownTasks(command: Command): ReadonlyArray<Listr.ListrTask> {
+  scaleCheDownTasks(): ReadonlyArray<Listr.ListrTask> {
     return [{
       title: 'Stop Eclipse Che Server and wait until it\'s ready to shutdown',
       enabled: (ctx: any) => !ctx.isCheStopped,
@@ -316,7 +316,7 @@ export class CheTasks {
           await cheApi.waitUntilCheServerReadyToShutdown()
           task.title = `${task.title}...done`
         } catch (error) {
-          command.error(`E_SHUTDOWN_CHE_SERVER_FAIL - Failed to shutdown Eclipse Che server. ${error.message}`)
+          return newError('Failed to shutdown Eclipse Che server.', error)
         }
       },
     },
@@ -328,7 +328,7 @@ export class CheTasks {
           await this.kube.scaleDeployment(this.cheDeploymentName, this.cheNamespace, 0)
           task.title = await `${task.title}...done`
         } catch (error) {
-          command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale deployment. ${error.message}`)
+          return newError(`Failed to scale ${this.cheDeploymentName} deployment.`, error)
         }
       },
     },
@@ -340,7 +340,7 @@ export class CheTasks {
           await this.kube.scaleDeployment(this.dashboardDeploymentName, this.cheNamespace, 0)
           task.title = await `${task.title}...done`
         } catch (error) {
-          command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale dashboard deployment. ${error.message}`)
+          return newError('Failed to scale dashboard deployment.', error)
         }
       },
     },
@@ -352,7 +352,7 @@ export class CheTasks {
           await this.kube.scaleDeployment(this.keycloakDeploymentName, this.cheNamespace, 0)
           task.title = await `${task.title}...done`
         } catch (error) {
-          command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale keycloak deployment. ${error.message}`)
+          return newError('Failed to scale keycloak deployment.', error)
         }
       },
     },
@@ -364,7 +364,7 @@ export class CheTasks {
           await this.kube.scaleDeployment(this.postgresDeploymentName, this.cheNamespace, 0)
           task.title = await `${task.title}...done`
         } catch (error) {
-          command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale postgres deployment. ${error.message}`)
+          return newError('Failed to scale postgres deployment.', error)
         }
       },
     },
@@ -376,7 +376,7 @@ export class CheTasks {
           await this.kube.scaleDeployment(this.devfileRegistryDeploymentName, this.cheNamespace, 0)
           task.title = await `${task.title}...done`
         } catch (error) {
-          command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale devfile-registry deployment. ${error.message}`)
+          return newError('Failed to scale devfile registry deployment.', error)
         }
       },
     },
@@ -388,7 +388,7 @@ export class CheTasks {
           await this.kube.scaleDeployment(this.pluginRegistryDeploymentName, this.cheNamespace, 0)
           task.title = await `${task.title}...done`
         } catch (error) {
-          command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale plugin-registry deployment. ${error.message}`)
+          return newError('Failed to scale plugin registry deployment.', error)
         }
       },
     }]

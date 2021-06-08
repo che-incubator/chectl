@@ -18,68 +18,68 @@ import { ChectlContext } from '../../api/context'
 import { cheDeployment, cheNamespace, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
+import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Start extends Command {
-  static description = 'Start Eclipse Che server'
+   static description = 'Start Eclipse Che server'
 
-  static flags: flags.Input<any> = {
-    help: flags.help({ char: 'h' }),
-    chenamespace: cheNamespace,
-    'listr-renderer': listrRenderer,
-    'deployment-name': cheDeployment,
-    [K8SPODWAITTIMEOUT_KEY]: k8sPodWaitTimeout,
-    [K8SPODREADYTIMEOUT_KEY]: k8sPodReadyTimeout,
-    [K8SPODDOWNLOADIMAGETIMEOUT_KEY]: k8sPodDownloadImageTimeout,
-    [K8SPODERRORRECHECKTIMEOUT_KEY]: k8sPodErrorRecheckTimeout,
-    [LOG_DIRECTORY_KEY]: logsDirectory,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck,
-  }
+   static flags: flags.Input<any> = {
+     help: flags.help({ char: 'h' }),
+     chenamespace: cheNamespace,
+     'listr-renderer': listrRenderer,
+     'deployment-name': cheDeployment,
+     [K8SPODWAITTIMEOUT_KEY]: k8sPodWaitTimeout,
+     [K8SPODREADYTIMEOUT_KEY]: k8sPodReadyTimeout,
+     [K8SPODDOWNLOADIMAGETIMEOUT_KEY]: k8sPodDownloadImageTimeout,
+     [K8SPODERRORRECHECKTIMEOUT_KEY]: k8sPodErrorRecheckTimeout,
+     [LOG_DIRECTORY_KEY]: logsDirectory,
+     'skip-kubernetes-health-check': skipKubeHealthzCheck,
+   }
 
-  async run() {
-    const { flags } = this.parse(Start)
-    flags.chenamespace = await findWorkingNamespace(flags)
-    const ctx = await ChectlContext.initAndGet(flags, this)
+   async run() {
+     const { flags } = this.parse(Start)
+     flags.chenamespace = await findWorkingNamespace(flags)
+     const ctx = await ChectlContext.initAndGet(flags, this)
 
-    const cheTasks = new CheTasks(flags)
-    const apiTasks = new ApiTasks()
+     const cheTasks = new CheTasks(flags)
+     const apiTasks = new ApiTasks()
 
-    // Checks if Eclipse Che is already deployed
-    const preInstallTasks = new Listr([
-      apiTasks.testApiTasks(flags, this),
-      {
-        title: '👀  Looking for an already existing Eclipse Che instance',
-        task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this)),
-      },
-    ], ctx.listrOptions)
+     // Checks if Eclipse Che is already deployed
+     const preInstallTasks = new Listr([
+       apiTasks.testApiTasks(flags),
+       {
+         title: '👀  Looking for an already existing Eclipse Che instance',
+         task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags)),
+       },
+     ], ctx.listrOptions)
 
-    const logsTasks = new Listr([{
-      title: 'Following Eclipse Che logs',
-      task: () => new Listr(cheTasks.serverLogsTasks(flags, true)),
-    }], ctx.listrOptions)
+     const logsTasks = new Listr([{
+       title: 'Following Eclipse Che logs',
+       task: () => new Listr(cheTasks.serverLogsTasks(flags, true)),
+     }], ctx.listrOptions)
 
-    const startCheTasks = new Listr([{
-      title: 'Starting Eclipse Che',
-      task: () => new Listr(cheTasks.scaleCheUpTasks()),
-    }], ctx.listrOptions)
+     const startCheTasks = new Listr([{
+       title: 'Starting Eclipse Che',
+       task: () => new Listr(cheTasks.scaleCheUpTasks()),
+     }], ctx.listrOptions)
 
-    try {
-      await preInstallTasks.run(ctx)
+     try {
+       await preInstallTasks.run(ctx)
 
-      if (!ctx.isCheDeployed) {
-        cli.warn('Eclipse Che has not been deployed yet. Use server:deploy command to deploy a new Eclipse Che instance.')
-      } else if (ctx.isCheReady) {
-        cli.info('Eclipse Che has been already started.')
-      } else {
-        await logsTasks.run(ctx)
-        await startCheTasks.run(ctx)
-        this.log(getCommandSuccessMessage())
-      }
-    } catch (err) {
-      this.error(getCommandErrorMessage(err))
-    }
+       if (!ctx.isCheDeployed) {
+         cli.warn('Eclipse Che has not been deployed yet. Use server:deploy command to deploy a new Eclipse Che instance.')
+       } else if (ctx.isCheReady) {
+         cli.info('Eclipse Che has been already started.')
+       } else {
+         await logsTasks.run(ctx)
+         await startCheTasks.run(ctx)
+         this.log(getCommandSuccessMessage())
+       }
+     } catch (err) {
+       this.error(wrapCommandError(err))
+     }
 
-    notifyCommandCompletedSuccessfully()
-    this.exit(0)
-  }
+     notifyCommandCompletedSuccessfully()
+     this.exit(0)
+   }
 }
