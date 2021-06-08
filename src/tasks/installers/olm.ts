@@ -26,7 +26,9 @@ import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster
 
 export class OLMTasks {
   prometheusRoleName = 'prometheus-k8s'
+
   prometheusRoleBindingName = 'prometheus-k8s'
+
   /**
    * Returns list of tasks which perform preflight platform checks.
    */
@@ -47,7 +49,7 @@ export class OLMTasks {
             await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         enabled: () => flags['cluster-monitoring'] && flags.platform === 'openshift',
@@ -62,7 +64,7 @@ export class OLMTasks {
             await kube.createRoleBindingFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: 'Create operator group',
@@ -73,7 +75,7 @@ export class OLMTasks {
             await kube.createOperatorGroup(OPERATOR_GROUP_NAME, flags.chenamespace)
             task.title = `${task.title}...created new one.`
           }
-        }
+        },
       },
       {
         title: 'Configure context information',
@@ -105,7 +107,7 @@ export class OLMTasks {
           }
 
           task.title = `${task.title}...done.`
-        }
+        },
       },
       {
         enabled: () => !VersionHelper.isDeployingStableVersion(flags) && !flags['catalog-source-name'] && !flags['catalog-source-yaml'] && flags['olm-channel'] !== OLM_STABLE_CHANNEL_NAME,
@@ -119,7 +121,7 @@ export class OLMTasks {
           } else {
             task.title = `${task.title}...It already exists.`
           }
-        }
+        },
       },
       {
         enabled: () => flags['catalog-source-yaml'],
@@ -135,7 +137,7 @@ export class OLMTasks {
           } else {
             task.title = `${task.title}...It already exists.`
           }
-        }
+        },
       },
       {
         title: 'Create operator subscription',
@@ -158,7 +160,7 @@ export class OLMTasks {
             await kube.createOperatorSubscription(subscription)
             task.title = `${task.title}...created new one.`
           }
-        }
+        },
       },
       {
         title: 'Wait while subscription is ready',
@@ -166,7 +168,7 @@ export class OLMTasks {
           const installPlan = await kube.waitOperatorSubscriptionReadyForApproval(flags.chenamespace, SUBSCRIPTION_NAME, 600)
           ctx.installPlanName = installPlan.name
           task.title = `${task.title}...done.`
-        }
+        },
       },
       {
         title: 'Approve installation',
@@ -174,14 +176,14 @@ export class OLMTasks {
         task: async (ctx: any, task: any) => {
           await kube.approveOperatorInstallationPlan(ctx.installPlanName, flags.chenamespace)
           task.title = `${task.title}...done.`
-        }
+        },
       },
       {
         title: 'Wait while operator installed',
         task: async (ctx: any, task: any) => {
           await kube.waitUntilOperatorIsInstalled(ctx.installPlanName, flags.chenamespace)
           task.title = `${task.title}...done.`
-        }
+        },
       },
       {
         title: 'Set custom operator image',
@@ -195,7 +197,7 @@ export class OLMTasks {
           const jsonPatch = [{ op: 'replace', path: '/spec/install/spec/deployments/0/spec/template/spec/containers/0/image', value: flags['che-operator-image'] }]
           await kube.patchClusterServiceVersion(csv.metadata.namespace!, csv.metadata.name!, jsonPatch)
           task.title = `${task.title}... changed to ${flags['che-operator-image']}.`
-        }
+        },
       },
       {
         title: 'Prepare Eclipse Che cluster CR',
@@ -211,9 +213,9 @@ export class OLMTasks {
           }
 
           task.title = `${task.title}...Done.`
-        }
+        },
       },
-      createEclipseCheCluster(flags, kube)
+      createEclipseCheCluster(flags, kube),
     ], { renderer: flags['listr-renderer'] as any })
   }
 
@@ -228,7 +230,7 @@ export class OLMTasks {
             command.error(`Unable to find operator group ${OPERATOR_GROUP_NAME}`)
           }
           task.title = `${task.title}...done.`
-        }
+        },
       },
       {
         title: 'Check if operator subscription exists',
@@ -237,7 +239,7 @@ export class OLMTasks {
             command.error(`Unable to find operator subscription ${SUBSCRIPTION_NAME}`)
           }
           task.title = `${task.title}...done.`
-        }
+        },
       },
     ], { renderer: flags['listr-renderer'] as any })
   }
@@ -278,7 +280,7 @@ export class OLMTasks {
             }
           }
           command.error('Unable to find installation plan to update.')
-        }
+        },
       },
       {
         title: 'Approve installation',
@@ -286,7 +288,7 @@ export class OLMTasks {
         task: async (ctx: any, task: any) => {
           await kube.approveOperatorInstallationPlan(ctx.installPlanName, flags.chenamespace)
           task.title = `${task.title}...done.`
-        }
+        },
       },
       {
         title: 'Wait while newer operator installed',
@@ -295,9 +297,9 @@ export class OLMTasks {
           await kube.waitUntilOperatorIsInstalled(ctx.installPlanName, flags.chenamespace, 60)
           ctx.highlightedMessages.push(`Operator is updated from ${ctx.currentVersion} to ${ctx.nextVersion} version`)
           task.title = `${task.title}...done.`
-        }
+        },
       },
-      patchingEclipseCheCluster(flags, kube, command)
+      patchingEclipseCheCluster(flags, kube, command),
     ], { renderer: flags['listr-renderer'] as any })
   }
 
@@ -307,9 +309,9 @@ export class OLMTasks {
       {
         title: 'Check if OLM is pre-installed on the platform',
         task: async (ctx: any, task: any) => {
-          ctx.isPreInstalledOLM = await kube.isPreInstalledOLM() ? true : false
+          ctx.isPreInstalledOLM = Boolean(await kube.isPreInstalledOLM())
           task.title = `${task.title}: ${ctx.isPreInstalledOLM}...OK`
-        }
+        },
       },
       {
         title: `Delete(OLM) operator subscription ${SUBSCRIPTION_NAME}`,
@@ -317,7 +319,7 @@ export class OLMTasks {
         task: async (_ctx: any, task: any) => {
           await kube.deleteOperatorSubscription(SUBSCRIPTION_NAME, flags.chenamespace)
           task.title = `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete(OLM) Eclipse Che cluster service versions',
@@ -327,7 +329,7 @@ export class OLMTasks {
           const csvsToDelete = csvs.items.filter(csv => csv.metadata.name!.startsWith(CVS_PREFIX))
           csvsToDelete.forEach(csv => kube.deleteClusterServiceVersion(flags.chenamespace, csv.metadata.name!))
           task.title = `${task.title}...OK`
-        }
+        },
       },
       {
         title: `Delete(OLM) operator group ${OPERATOR_GROUP_NAME}`,
@@ -335,35 +337,35 @@ export class OLMTasks {
         task: async (_ctx: any, task: any) => {
           await kube.deleteOperatorGroup(OPERATOR_GROUP_NAME, flags.chenamespace)
           task.title = `${task.title}...OK`
-        }
+        },
       },
       {
         title: `Delete(OLM) custom catalog source ${CUSTOM_CATALOG_SOURCE_NAME}`,
         task: async (_ctx: any, task: any) => {
           await kube.deleteCatalogSource(flags.chenamespace, CUSTOM_CATALOG_SOURCE_NAME)
           task.title = `${task.title}...OK`
-        }
+        },
       },
       {
         title: `Delete(OLM) nigthly catalog source ${NIGHTLY_CATALOG_SOURCE_NAME}`,
         task: async (_ctx: any, task: any) => {
           await kube.deleteCatalogSource(flags.chenamespace, NIGHTLY_CATALOG_SOURCE_NAME)
           task.title = `${task.title}...OK`
-        }
+        },
       },
       {
         title: `Delete role ${this.prometheusRoleName}`,
         task: async (_ctx: any, task: any) => {
           await kube.deleteRole(this.prometheusRoleName, flags.chenamespace)
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: `Delete role binding ${this.prometheusRoleName}`,
         task: async (_ctx: any, task: any) => {
           await kube.deleteRoleBinding(this.prometheusRoleName, flags.chenamespace)
           task.title = await `${task.title}...OK`
-        }
+        },
       },
     ]
   }
@@ -378,7 +380,7 @@ export class OLMTasks {
           command.error('OLM is required for installation Eclipse Che with installer flag \'olm\'')
         }
         task.title = `${task.title}...done.`
-      }
+      },
     }
   }
 
@@ -388,7 +390,7 @@ export class OLMTasks {
       kind: 'Subscription',
       metadata: {
         name,
-        namespace
+        namespace,
       },
       spec: {
         channel,
@@ -397,7 +399,7 @@ export class OLMTasks {
         source: sourceName,
         sourceNamespace,
         startingCSV,
-      }
+      },
     }
   }
 
@@ -414,10 +416,10 @@ export class OLMTasks {
         sourceType: 'grpc',
         updateStrategy: {
           registryPoll: {
-            interval: '15m'
-          }
-        }
-      }
+            interval: '15m',
+          },
+        },
+      },
     }
   }
 
@@ -428,13 +430,12 @@ export class OLMTasks {
     if (csv && csv.metadata.annotations) {
       const CRRaw = csv.metadata.annotations!['alm-examples']
       return (yaml.safeLoad(CRRaw) as Array<any>)[0]
-    } else {
-      throw new Error(`Unable to retrieve Che cluster CR definition from CSV: ${currentCSV}`)
     }
+    throw new Error(`Unable to retrieve Che cluster CR definition from CSV: ${currentCSV}`)
   }
 
   private getOlmNamespaceLabels(flags: any): any {
-    //The label values must be strings
+    // The label values must be strings
     if (flags['cluster-monitoring'] && flags.platform === 'openshift') {
       return { 'openshift.io/cluster-monitoring': 'true' }
     }

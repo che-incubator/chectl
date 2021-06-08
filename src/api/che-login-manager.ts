@@ -65,15 +65,15 @@ export interface PasswordLoginRecord {
 }
 
 export function isRefreshTokenLoginData(loginData: LoginRecord): loginData is RefreshTokenLoginRecord {
-  return !!(loginData as RefreshTokenLoginRecord).refreshToken
+  return Boolean((loginData as RefreshTokenLoginRecord).refreshToken)
 }
 
 export function isOcUserTokenLoginData(loginData: LoginRecord): loginData is OcUserTokenLoginRecord {
-  return !!(loginData as OcUserTokenLoginRecord).subjectToken
+  return Boolean((loginData as OcUserTokenLoginRecord).subjectToken)
 }
 
 export function isPasswordLoginData(loginData: LoginRecord): loginData is PasswordLoginRecord {
-  return !!(loginData as PasswordLoginRecord).password
+  return Boolean((loginData as PasswordLoginRecord).password)
 }
 
 // Response structure from <che-host>/api/keycloak/settings
@@ -117,10 +117,13 @@ let loginContext: CheServerLoginManager | undefined
  */
 export class CheServerLoginManager {
   private loginData: CheServerLoginConfig
+
   private apiUrl: string
+
   private username: string
 
   private readonly dataFilePath: string
+
   private readonly axios: AxiosInstance
 
   private constructor(dataFilePath: string) {
@@ -137,7 +140,7 @@ export class CheServerLoginManager {
     // Make axios ignore untrusted certificate error for self-signed certificate case.
     const httpsAgent = new https.Agent({ rejectUnauthorized: false })
     this.axios = axios.create({
-      httpsAgent
+      httpsAgent,
     })
   }
 
@@ -168,10 +171,9 @@ export class CheServerLoginManager {
   public hasLoginFor(apiUrl: string, username?: string): boolean {
     apiUrl = CheApiClient.normalizeCheApiEndpointUrl(apiUrl)
     if (username) {
-      return !!this.getLoginRecord(apiUrl, username)
-    } else {
-      return !!this.loginData.logins![apiUrl]
+      return Boolean(this.getLoginRecord(apiUrl, username))
     }
+    return Boolean(this.loginData.logins![apiUrl])
   }
 
   public getCurrentLoginInfo(): { cheApiEndpoint: string, username: string } {
@@ -187,7 +189,7 @@ export class CheServerLoginManager {
 
     const allLogins = new Map<string, string[]>()
     for (const [apiUrl, serverLogins] of Object.entries(this.loginData.logins!)) {
-      allLogins.set(apiUrl, Array.from(Object.keys(serverLogins)))
+      allLogins.set(apiUrl, [...Object.keys(serverLogins)])
     }
     return allLogins
   }
@@ -214,7 +216,7 @@ export class CheServerLoginManager {
     }
     const refreshTokenLoginRecord: RefreshTokenLoginRecord = {
       refreshToken: keycloakAuthData.refresh_token,
-      expires: now + refreshTokenExpiresIn
+      expires: now + refreshTokenExpiresIn,
     }
 
     const username = isPasswordLoginData(loginRecord) ? loginRecord.username :
@@ -430,16 +432,14 @@ export class CheServerLoginManager {
     }
     if (isPasswordLoginData(loginRecord)) {
       return this.getKeycloakAuthDataByUserNameAndPassword(cheKeycloakSettings, loginRecord.username, loginRecord.password)
-    } else {
-      if (isRefreshTokenLoginData(loginRecord)) {
-        return this.getKeycloakAuthDataByRefreshToken(cheKeycloakSettings, loginRecord.refreshToken)
-      } else if (isOcUserTokenLoginData(loginRecord)) {
-        return this.getKeycloakAuthDataByOcToken(cheKeycloakSettings, loginRecord.subjectToken, loginRecord.subjectIssuer)
-      } else {
-        // Should never happen
-        throw new Error('Token is not provided')
-      }
     }
+    if (isRefreshTokenLoginData(loginRecord)) {
+      return this.getKeycloakAuthDataByRefreshToken(cheKeycloakSettings, loginRecord.refreshToken)
+    } if (isOcUserTokenLoginData(loginRecord)) {
+      return this.getKeycloakAuthDataByOcToken(cheKeycloakSettings, loginRecord.subjectToken, loginRecord.subjectIssuer)
+    }
+    // Should never happen
+    throw new Error('Token is not provided')
   }
 
   private async getKeycloakAuthDataByUserNameAndPassword(cheKeycloakSettings: CheKeycloakSettings, username: string, password: string): Promise<KeycloakAuthTokenResponse> {
@@ -451,7 +451,7 @@ export class CheServerLoginManager {
       password,
     }
     const headers = {
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/x-www-form-urlencoded',
     }
     try {
       const response = await this.axios.post(keycloakTokenUrl, querystring.stringify(data), { headers, timeout: REQUEST_TIMEOUT_MS })
@@ -489,7 +489,7 @@ export class CheServerLoginManager {
 
   private async requestKeycloakAuth(keycloakTokenUrl: string, requestData: any): Promise<KeycloakAuthTokenResponse> {
     const headers = {
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/x-www-form-urlencoded',
     }
     try {
       const response = await this.axios.post(keycloakTokenUrl, querystring.stringify(requestData), { headers, timeout: REQUEST_TIMEOUT_MS })
@@ -522,7 +522,6 @@ export class CheServerLoginManager {
       throw new Error(`Failed to get userdata from ${endpoint}. Cause: ${error.message}`)
     }
   }
-
 }
 
 /**

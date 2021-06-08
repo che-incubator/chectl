@@ -63,7 +63,7 @@ export namespace VersionHelper {
             throw getMinimalVersionError(actualVersion, MINIMAL_OPENSHIFT_VERSION, 'OpenShift')
           }
         }
-      }
+      },
     }
   }
   export function getK8sCheckVersionTask(flags: any): Listr.ListrTask {
@@ -93,7 +93,7 @@ export namespace VersionHelper {
             throw getMinimalVersionError(actualVersion, MINIMAL_K8S_VERSION, 'Kubernetes')
           }
         }
-      }
+      },
     }
   }
 
@@ -193,14 +193,14 @@ export namespace VersionHelper {
     }
 
     const axiosInstance = axios.create({
-      httpsAgent: new https.Agent({})
+      httpsAgent: new https.Agent({}),
     })
 
     try {
       const { data } = await axiosInstance.get(`https://che-incubator.github.io/chectl/channels/${channel}/linux-x64`)
       return data.version
     } catch {
-      return
+
     }
   }
 
@@ -274,7 +274,7 @@ export namespace VersionHelper {
    * Indicates if stable version of Eclipse Che is specified or meant implicitly.
    */
   export function isDeployingStableVersion(flags: any): boolean {
-    return !!flags.version || !ChectlContext.get().isNightly
+    return Boolean(flags.version) || !ChectlContext.get().isNightly
   }
 
   /**

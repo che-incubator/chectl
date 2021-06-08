@@ -28,15 +28,15 @@ export default class Stop extends Command {
     [ACCESS_TOKEN_KEY]: accessToken,
     chenamespace: cheNamespace,
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   static args = [
     {
       name: 'workspace',
       description: 'The workspace id to stop',
-      required: true
-    }
+      required: true,
+    },
   ]
 
   async run() {

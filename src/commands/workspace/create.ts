@@ -41,17 +41,17 @@ export default class Create extends Command {
     start: boolean({
       char: 's',
       description: 'Starts the workspace after creation',
-      default: false
+      default: false,
     }),
     debug: boolean({
       char: 'd',
       description: 'Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup. This flag is used in conjunction with --start flag.',
-      default: false
+      default: false,
     }),
     [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   async run() {
@@ -97,5 +97,4 @@ export default class Create extends Command {
     }
     return devfilePath
   }
-
 }

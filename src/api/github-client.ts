@@ -42,7 +42,7 @@ export class CheGithubClient {
   async getTemplatesTagInfo(installer: string, version?: string): Promise<TagInfo | undefined> {
     if (installer === 'operator' || installer === 'olm') {
       return this.getTagInfoByVersion(CHE_OPERATOR_REPO, version)
-    } else if (installer === 'helm') {
+    } if (installer === 'helm') {
       return this.getTagInfoByVersion(CHE_REPO, version)
     }
     throw new Error(`Unsupported installer: ${installer}`)
@@ -54,7 +54,7 @@ export class CheGithubClient {
    * @param prefix return only tags that starts with given prefix
    */
   private async listLatestTags(repo: string, prefix = ''): Promise<TagInfo[]> {
-    let response = await this.octokit.repos.listTags({ owner: OWNER, repo, per_page: 50 })
+    const response = await this.octokit.repos.listTags({ owner: OWNER, repo, per_page: 50 })
     const tags = response.data
     if (prefix) {
       return tags.filter(tag => tag.name.startsWith(prefix))
@@ -72,7 +72,7 @@ export class CheGithubClient {
       const tagRefResp = await this.octokit.git.getRef({ owner: OWNER, repo, ref: `tags/${tagName}` })
       const tagRef = tagRefResp.data
       const downloadUrlResp = await this.octokit.repos.downloadZipballArchive({ owner: OWNER, repo, ref: tagRef.object.sha })
-       // Simulate tag info
+      // Simulate tag info
       return {
         name: tagName,
         commit: {
@@ -129,22 +129,21 @@ export class CheGithubClient {
     if (!version || version === 'latest' || version === 'stable') {
       const tags = await this.listLatestTags(repo)
       return this.getLatestTag(tags)
-    } else if (version === 'next' || version === 'nightly') {
+    } if (version === 'next' || version === 'nightly') {
       return this.getLastCommitInfo(repo)
-    } else {
-      // User might provide a version directly or only version prefix, e.g. 7.15
-      // Some old tags might have 'v' prefix
-      if (version.startsWith('v')) {
-        // Remove 'v' prefix
-        version = version.substr(1)
-      }
-      let tagInfo = await this.getTagInfoByVersionPrefix(repo, version)
-      if (!tagInfo) {
-        // Try to add 'v' prefix
-        tagInfo = tagInfo = await this.getTagInfoByVersionPrefix(repo, 'v' + version)
-      }
-      return tagInfo
     }
+    // User might provide a version directly or only version prefix, e.g. 7.15
+    // Some old tags might have 'v' prefix
+    if (version.startsWith('v')) {
+      // Remove 'v' prefix
+      version = version.substr(1)
+    }
+    let tagInfo = await this.getTagInfoByVersionPrefix(repo, version)
+    if (!tagInfo) {
+      // Try to add 'v' prefix
+      tagInfo = tagInfo = await this.getTagInfoByVersionPrefix(repo, 'v' + version)
+    }
+    return tagInfo
   }
 
   /**
@@ -154,7 +153,7 @@ export class CheGithubClient {
    * @param versionPrefix version or version prefix, e.g. 7.22.0 or 7.18
    */
   private async getTagInfoByVersionPrefix(repo: string, versionPrefix: string): Promise<TagInfo | undefined> {
-    let tagInfo = await this.getTag(repo, versionPrefix)
+    const tagInfo = await this.getTag(repo, versionPrefix)
     if (tagInfo) {
       // Exact match found
       return tagInfo
@@ -163,7 +162,7 @@ export class CheGithubClient {
     const tags = await this.listLatestTags(repo, versionPrefix)
     if (tags.length === 0) {
       // Wrong version is given
-      return
+
     } else if (tags.length === 1) {
       return tags[0]
     } else {
@@ -226,16 +225,14 @@ export class CheGithubClient {
     const sortedSemanticTags = semanticTags.sort((semTagA: SemanticTagData, semTagB: SemanticTagData) => {
       if (semTagA.major !== semTagB.major) {
         return semTagB.major - semTagA.major
-      } else if (semTagA.minor !== semTagB.minor) {
+      } if (semTagA.minor !== semTagB.minor) {
         return semTagB.minor - semTagA.minor
-      } else if (semTagA.patch !== semTagB.patch) {
+      } if (semTagA.patch !== semTagB.patch) {
         return semTagB.patch - semTagA.patch
-      } else {
-        return 0
       }
+      return 0
     })
 
     return sortedSemanticTags.map(tag => tag.data)
   }
-
 }

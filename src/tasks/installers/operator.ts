@@ -27,11 +27,17 @@ import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster
 
 export class OperatorTasks {
   operatorServiceAccount = 'che-operator'
+
   cheClusterCrd = 'checlusters.org.eclipse.che'
+
   cheClusterBackupCrd = 'checlusterbackups.org.eclipse.che'
+
   cheClusterRestoreCrd = 'checlusterrestores.org.eclipse.che'
+
   cheManagerCRD = 'chemanagers.che.eclipse.org'
+
   dwRoutingCRD = 'devworkspaceroutings.controller.devfile.io'
+
   legacyClusterResourcesName = 'che-operator'
 
   private getReadRolesAndBindingsTask(kube: KubeHelper): Listr.ListrTask {
@@ -79,7 +85,7 @@ export class OperatorTasks {
         }
 
         task.title = `${task.title}...done.`
-      }
+      },
     }
   }
 
@@ -143,7 +149,7 @@ export class OperatorTasks {
         }
 
         task.title = `${task.title}...done.`
-      }
+      },
     }
   }
 
@@ -155,7 +161,7 @@ export class OperatorTasks {
     const kubeTasks = new KubeTasks(flags)
     const ctx = ChectlContext.get()
     ctx.resourcesPath = path.join(flags.templates, OPERATOR_TEMPLATE_DIR)
-    if (VersionHelper.isDeployingStableVersion(flags) && ! await kube.isOpenShift3()) {
+    if (VersionHelper.isDeployingStableVersion(flags) && !await kube.isOpenShift3()) {
       command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of Eclipse Che (--installer=olm).')
     }
     return new Listr([
@@ -171,7 +177,7 @@ export class OperatorTasks {
             await kube.createServiceAccountFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       this.getReadRolesAndBindingsTask(kube),
       this.getCreateOrUpdateRolesAndBindingsTask(flags, 'Creating Roles and Bindings', false),
@@ -186,7 +192,7 @@ export class OperatorTasks {
             await kube.createCrdFromFile(newCRDPath)
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: 'Create backup and restore CRDs',
@@ -217,13 +223,12 @@ export class OperatorTasks {
           } else {
             task.title = `${task.title}...skipped.`
           }
-
-        }
+        },
       },
       {
         title: `Create CRD ${this.cheManagerCRD}`,
         task: async (ctx: any, task: any) => {
-          if (! await kube.IsAPIExtensionSupported('v1')) {
+          if (!await kube.IsAPIExtensionSupported('v1')) {
             task.title = `${task.title}...Skipped.`
             return
           }
@@ -241,12 +246,12 @@ export class OperatorTasks {
             await kube.createCrdFromFile(newCRDPath)
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: `Create CRD ${this.dwRoutingCRD}`,
         task: async (ctx: any, task: any) => {
-          if (! await kube.IsAPIExtensionSupported('v1')) {
+          if (!await kube.IsAPIExtensionSupported('v1')) {
             task.title = `${task.title}...Skipped.`
             return
           }
@@ -264,14 +269,14 @@ export class OperatorTasks {
             await kube.createCrdFromFile(newCRDPath)
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: 'Waiting 5 seconds for the new Kubernetes resources to get flushed',
         task: async (_ctx: any, task: any) => {
           await cli.wait(5000)
           task.title = `${task.title}...done.`
-        }
+        },
       },
       {
         title: `Create deployment ${OPERATOR_DEPLOYMENT_NAME} in namespace ${flags.chenamespace}`,
@@ -285,11 +290,11 @@ export class OperatorTasks {
             await kube.createDeploymentFrom(operatorDeployment)
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: 'Operator pod bootstrap',
-        task: () => kubeTasks.podStartTasks(CHE_OPERATOR_SELECTOR, flags.chenamespace)
+        task: () => kubeTasks.podStartTasks(CHE_OPERATOR_SELECTOR, flags.chenamespace),
       },
       {
         title: 'Prepare Eclipse Che cluster CR',
@@ -306,9 +311,9 @@ export class OperatorTasks {
           }
 
           task.title = `${task.title}...Done.`
-        }
+        },
       },
-      createEclipseCheCluster(flags, kube)
+      createEclipseCheCluster(flags, kube),
     ], { renderer: flags['listr-renderer'] as any })
   }
 
@@ -324,7 +329,7 @@ export class OperatorTasks {
           }
           ctx.deployedCheOperatorYaml = operatorDeployment
           task.title = `${task.title}...done`
-        }
+        },
       },
       {
         title: 'Detecting existing version...',
@@ -346,8 +351,9 @@ export class OperatorTasks {
           ctx.newCheOperatorImageTag = newTag
 
           task.title = `${task.title} ${ctx.deployedCheOperatorImageTag} -> ${ctx.newCheOperatorImageTag}`
-        }
-      }])
+        },
+      },
+    ])
   }
 
   updateTasks(flags: any, command: Command): Listr {
@@ -367,7 +373,7 @@ export class OperatorTasks {
             await kube.createServiceAccountFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...created new one.`
           }
-        }
+        },
       },
       this.getReadRolesAndBindingsTask(kube),
       this.getCreateOrUpdateRolesAndBindingsTask(flags, 'Updating Roles and Bindings', true),
@@ -388,7 +394,7 @@ export class OperatorTasks {
             await kube.createCrdFromFile(newCRDPath)
             task.title = `${task.title}...created new one.`
           }
-        }
+        },
       },
       {
         title: 'Updating backup and restore CRDs',
@@ -423,12 +429,12 @@ export class OperatorTasks {
           } else {
             task.title = `${task.title}...skipped.`
           }
-        }
+        },
       },
       {
         title: `Updating CRD ${this.cheManagerCRD}`,
         task: async (ctx: any, task: any) => {
-          if (! await kube.IsAPIExtensionSupported('v1')) {
+          if (!await kube.IsAPIExtensionSupported('v1')) {
             task.title = `${task.title}...Skipped.`
             return
           }
@@ -447,12 +453,12 @@ export class OperatorTasks {
             await kube.createCrdFromFile(newCRDPath)
             task.title = `${task.title}...created new one.`
           }
-        }
+        },
       },
       {
         title: `Updating CRD ${this.dwRoutingCRD}`,
         task: async (ctx: any, task: any) => {
-          if (! await kube.IsAPIExtensionSupported('v1')) {
+          if (!await kube.IsAPIExtensionSupported('v1')) {
             task.title = `${task.title}...Skipped.`
             return
           }
@@ -471,14 +477,14 @@ export class OperatorTasks {
             await kube.createCrdFromFile(newCRDPath)
             task.title = `${task.title}...created new one.`
           }
-        }
+        },
       },
       {
         title: 'Waiting 5 seconds for the new Kubernetes resources to get flushed',
         task: async (_ctx: any, task: any) => {
           await cli.wait(5000)
           task.title = `${task.title}...done.`
-        }
+        },
       },
       {
         title: `Updating deployment ${OPERATOR_DEPLOYMENT_NAME} in namespace ${flags.chenamespace}`,
@@ -493,14 +499,14 @@ export class OperatorTasks {
             await kube.createDeploymentFrom(operatorDeployment)
             task.title = `${task.title}...created new one.`
           }
-        }
+        },
       },
       {
         title: 'Waiting newer operator to be run',
         task: async (_ctx: any, _task: any) => {
           await cli.wait(1000)
           await kube.waitLatestReplica(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
-        }
+        },
       },
       patchingEclipseCheCluster(flags, kube, command),
     ], { renderer: flags['listr-renderer'] as any })
@@ -510,7 +516,7 @@ export class OperatorTasks {
    * Returns list of tasks which remove Eclipse Che operator related resources
    */
   deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
-    let kh = new KubeHelper(flags)
+    const kh = new KubeHelper(flags)
     return [{
       title: 'Delete oauthClientAuthorizations',
       task: async (_ctx: any, task: any) => {
@@ -520,7 +526,7 @@ export class OperatorTasks {
           await kh.deleteOAuthClientAuthorizations(oAuthClientAuthorizations)
         }
         task.title = `${task.title}...OK`
-      }
+      },
     },
     {
       title: `Delete the Custom Resource of type ${CHE_CLUSTER_CRD}`,
@@ -558,7 +564,7 @@ export class OperatorTasks {
         } else {
           task.title = `${task.title}...Failed`
         }
-      }
+      },
     },
     {
       title: 'Delete CRDs',
@@ -572,7 +578,7 @@ export class OperatorTasks {
           await kh.deleteCrd(this.cheClusterRestoreCrd)
           task.title = `${task.title}...OK`
         }
-      }
+      },
     },
     {
       title: 'Delete Roles and Bindings',
@@ -614,23 +620,22 @@ export class OperatorTasks {
         }
 
         task.title = `${task.title}...OK`
-      }
+      },
     },
     {
       title: `Delete service accounts ${this.operatorServiceAccount}`,
       task: async (_ctx: any, task: any) => {
         await kh.deleteServiceAccount(this.operatorServiceAccount, flags.chenamespace)
         task.title = `${task.title}...OK`
-      }
+      },
     },
     {
       title: 'Delete PVC che-operator',
       task: async (_ctx: any, task: any) => {
         await kh.deletePersistentVolumeClaim('che-operator', flags.chenamespace)
         task.title = `${task.title}...OK`
-      }
-    },
-    ]
+      },
+    }]
   }
 
   retrieveContainerImage(deployment: V1Deployment) {
@@ -653,7 +658,7 @@ export class OperatorTasks {
     let newCRDFilePath: string
 
     const kube = new KubeHelper(flags)
-    if (! await kube.IsAPIExtensionSupported('v1')) {
+    if (!await kube.IsAPIExtensionSupported('v1')) {
       // try to get CRD v1beta1 if platform doesn't support v1
       newCRDFilePath = path.join(ctx.resourcesPath, 'crds', 'org_v1_che_crd-v1beta1.yaml')
       if (fs.existsSync(newCRDFilePath)) {
@@ -668,7 +673,7 @@ export class OperatorTasks {
   private async getBackupRestoreCrdFilesNames(kube: KubeHelper): Promise<[string, string]> {
     let backupCrdFileName: string
     let restoreCrdFileName: string
-    if (! await kube.IsAPIExtensionSupported('v1')) {
+    if (!await kube.IsAPIExtensionSupported('v1')) {
       // Needed for Openshift 3.x
       backupCrdFileName = 'org.eclipse.che_checlusterbackups_crd-v1beta1.yaml'
       restoreCrdFileName = 'org.eclipse.che_checlusterrestores_crd-v1beta1.yaml'
@@ -706,7 +711,7 @@ export class OperatorTasks {
     }
 
     const kube = new KubeHelper(flags)
-    if (! await kube.IsAPIExtensionSupported('v1')) {
+    if (!await kube.IsAPIExtensionSupported('v1')) {
       const containers = operatorDeployment.spec!.template.spec!.containers || []
       operatorDeployment.spec!.template.spec!.containers = containers.filter(c => c.name === 'che-operator')
     }

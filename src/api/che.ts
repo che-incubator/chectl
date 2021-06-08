@@ -35,7 +35,9 @@ import { KubeHelper } from './kube'
 
 export class CheHelper {
   defaultCheResponseTimeoutMs = 3000
+
   kube: KubeHelper
+
   oc = new OpenShiftHelper()
 
   private readonly axios: AxiosInstance
@@ -47,7 +49,7 @@ export class CheHelper {
     const httpsAgent = new https.Agent({ rejectUnauthorized: false })
 
     this.axios = axios.create({
-      httpsAgent
+      httpsAgent,
     })
   }
 
@@ -111,9 +113,8 @@ export class CheHelper {
 
     if (await this.kube.isOpenShift()) {
       return this.cheOpenShiftURL(namespace)
-    } else {
-      return this.cheK8sURL(namespace)
     }
+    return this.cheK8sURL(namespace)
   }
 
   async chePluginRegistryURL(namespace = ''): Promise<string> {
@@ -129,14 +130,13 @@ export class CheHelper {
     // grab URL
     if (await this.kube.isOpenShift()) {
       return this.chePluginRegistryOpenShiftURL(namespace)
-    } else {
-      return this.chePluginRegistryK8sURL(namespace)
     }
+    return this.chePluginRegistryK8sURL(namespace)
   }
 
   async isSelfSignedCertificateSecretExist(namespace: string): Promise<boolean> {
     const selfSignedCertSecret = await this.kube.getSecret(CHE_ROOT_CA_SECRET_NAME, namespace)
-    return !!selfSignedCertSecret
+    return Boolean(selfSignedCertSecret)
   }
 
   /**
@@ -285,7 +285,7 @@ export class CheHelper {
     try {
       devfile = await this.parseDevfile(devfilePath)
       if (workspaceName) {
-        let json: Devfile = yaml.load(devfile)
+        const json: Devfile = yaml.load(devfile)
         json.metadata.name = workspaceName
         devfile = yaml.dump(json)
       }
@@ -303,9 +303,8 @@ export class CheHelper {
     if (devfilePath.startsWith('http')) {
       const response = await this.axios.get(devfilePath)
       return response.data
-    } else {
-      return fs.readFileSync(devfilePath, 'utf8')
     }
+    return fs.readFileSync(devfilePath, 'utf8')
   }
 
   async buildDashboardURL(ideURL: string): Promise<string> {
@@ -533,5 +532,4 @@ export class CheHelper {
       }
     }
   }
-
 }

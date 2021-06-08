@@ -33,10 +33,10 @@ export default class Export extends Command {
                     If the destination is a directory, then ${DEFAULT_CA_CERT_FILE_NAME} file will be created there with Che certificate in PEM format.
                     If this option is omitted, then Che certificate will be stored in a user's temporary directory as ${DEFAULT_CA_CERT_FILE_NAME}.`,
       env: 'CHE_CA_CERT_LOCATION',
-      default: ''
+      default: '',
     }),
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   async run() {

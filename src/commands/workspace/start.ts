@@ -28,21 +28,21 @@ export default class Start extends Command {
     debug: flags.boolean({
       char: 'd',
       description: 'Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup.',
-      default: false
+      default: false,
     }),
     [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
     chenamespace: cheNamespace,
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   static args = [
     {
       name: 'workspace',
       description: 'The workspace id to start',
-      required: true
-    }
+      required: true,
+    },
   ]
 
   async run() {

@@ -31,7 +31,7 @@ export class CRCHelper {
           } else {
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: 'Verify if crc is installed',
@@ -41,7 +41,7 @@ export class CRCHelper {
           } else {
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: 'Verify if CodeReady Containers is running',
@@ -52,7 +52,7 @@ export class CRCHelper {
           } else {
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       VersionHelper.getOpenShiftCheckVersionTask(flags),
       VersionHelper.getK8sCheckVersionTask(flags),
@@ -63,7 +63,7 @@ export class CRCHelper {
           const ip = await this.getCRCIP()
           flags.domain = ip + '.nip.io'
           task.title = `${task.title}...${flags.domain}.`
-        }
+        },
       },
     ], { renderer: flags['listr-renderer'] as any })
   }
@@ -74,14 +74,12 @@ export class CRCHelper {
       stdout.includes('CRC VM:          Running') &&
       stdout.includes('OpenShift:       Running')) {
       return true
-    } else {
-      return false
     }
+    return false
   }
 
   async getCRCIP(): Promise<string> {
     const { stdout } = await execa('crc', ['ip'], { timeout: 10000 })
     return stdout
   }
-
 }

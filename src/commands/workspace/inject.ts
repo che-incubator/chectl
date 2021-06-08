@@ -36,27 +36,27 @@ export default class Inject extends Command {
     kubeconfig: flags.boolean({
       char: 'k',
       description: 'Inject the local Kubernetes configuration',
-      required: true
+      required: true,
     }),
     workspace: string({
       char: 'w',
       description: `The workspace id to inject configuration into. It can be omitted if the only one running workspace exists.
-                    Use workspace:list command to get all workspaces and their statuses.`
+                    Use workspace:list command to get all workspaces and their statuses.`,
     }),
     container: string({
       char: 'c',
       description: 'The container name. If not specified, configuration files will be injected in all containers of the workspace pod',
-      required: false
+      required: false,
     }),
     'kube-context': string({
       description: 'Kubeconfig context to inject',
-      required: false
+      required: false,
     }),
     [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
     chenamespace: cheNamespace,
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   // Holds cluster CLI tool name: kubectl or oc
@@ -145,7 +145,9 @@ export default class Inject extends Command {
    */
   private async canInject(namespace: string, pod: string, container: string): Promise<boolean> {
     const { exitCode } = await execa(`${this.command} exec ${pod} -n ${namespace} -c ${container} -- tar --version `, { timeout: 10000, reject: false, shell: true })
-    if (exitCode === 0) { return true } else { return false }
+    if (exitCode === 0) {
+      return true
+    }  return false
   }
 
   /**
@@ -209,12 +211,13 @@ export default class Inject extends Command {
     await execa(this.command, ['config', configPathFlag, kubeConfigPath, 'use-context', contextToInject.name], { timeout: 10000 })
 
     await execa(this.command, ['cp', kubeConfigPath, `${namespace}/${workspacePod}:${containerHomeDir}.kube/config`, '-c', container], { timeout: 10000 })
-    return
   }
 
   private async fileExists(namespace: string, pod: string, container: string, file: string): Promise<boolean> {
     const { exitCode } = await execa(`${this.command} exec ${pod} -n ${namespace} -c ${container} -- test -e ${file}`, { timeout: 10000, reject: false, shell: true })
-    if (exitCode === 0) { return true } else { return false }
+    if (exitCode === 0) {
+      return true
+    }  return false
   }
 
   private async containerExists(namespace: string, pod: string, container: string): Promise<boolean> {

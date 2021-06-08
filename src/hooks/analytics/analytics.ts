@@ -52,7 +52,6 @@ export const hook = async (options: { command: string, flags: any, config: IConf
 
     await segment.identifySegmentEvent(segmentId)
     await segment.trackSegmentEvent(options)
-
   } catch {
     return this
   }

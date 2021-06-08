@@ -30,10 +30,10 @@ export default class Debug extends Command {
     'listr-renderer': listrRenderer,
     'debug-port': integer({
       description: 'Eclipse Che server debug port',
-      default: 8000
+      default: 8000,
     }),
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   async run() {

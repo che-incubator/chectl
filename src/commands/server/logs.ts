@@ -32,10 +32,10 @@ export default class Logs extends Command {
     directory: string({
       char: 'd',
       description: 'Directory to store logs into',
-      env: 'CHE_LOGS'
+      env: 'CHE_LOGS',
     }),
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   async run() {

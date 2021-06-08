@@ -27,8 +27,11 @@ import { createNamespaceTask } from '../installers/common-tasks'
  */
 export class DevWorkspaceTasks {
   protected kubeHelper: KubeHelper
+
   protected cheHelper: CheHelper
+
   protected openShiftHelper: OpenShiftHelper
+
   protected certManagerTask: CertManagerTasks
 
   protected devWorkspaceServiceAccount = 'devworkspace-controller-serviceaccount'
@@ -41,13 +44,18 @@ export class DevWorkspaceTasks {
 
   // DevWorkspace Controller Cluster Roles
   protected devWorkspaceEditWorkspaceClusterRole = 'devworkspace-controller-edit-workspaces'
+
   protected devworkspaceProxyClusterRole = 'devworkspace-controller-proxy-role'
+
   protected devworkspaceClusterRole = 'devworkspace-controller-role'
+
   protected devWorkspaceViewWorkspaceClusterRole = 'devworkspace-controller-view-workspaces'
+
   protected devWorkspaceClusterRoleWebhook = 'devworkspace-webhook-server'
 
   // DevWorkspace Controller ClusterRole Bindings
   protected devworkspaceProxyClusterRoleBinding = 'devworkspace-controller-proxy-rolebinding'
+
   protected devWorkspaceRoleBinding = 'devworkspace-controller-rolebinding'
 
   // DevWorkspace Che Roles
@@ -58,12 +66,16 @@ export class DevWorkspaceTasks {
 
   // DevWorkspace Che Cluster Roles
   protected devWorkspaceCheMetricsReader = 'devworkspace-che-metrics-reader'
+
   protected devWorkspaceCheProxyRole = 'devworkspace-che-proxy-role'
+
   protected devWorkspaceCheRole = 'devworkspace-che-role'
 
   // ClusterRoleBindings DevWorkspaceChe
   protected devWorkspaceCheProxyClusterRolebinding = 'devworkspace-che-proxy-rolebinding'
+
   protected devWorkspaceCheClusterRolebinding = 'devworkspace-che-rolebinding'
+
   protected devWorkspaceWebhookServerClusterRolebinding = 'devworkspace-webhook-server'
 
   // Deployment names
@@ -71,20 +83,25 @@ export class DevWorkspaceTasks {
 
   // ConfigMap names
   protected devWorkspaceConfigMap = 'devworkspace-controller-configmap'
+
   protected devworkspaceCheConfigmap = 'devworkspace-che-configmap'
 
   protected devWorkspaceCertificate = 'devworkspace-controller-serving-cert'
+
   protected devWorkspaceCertIssuer = 'devworkspace-controller-selfsigned-issuer'
 
   // DevWorkspace CRD Names
   protected devWorkspacesCrdName = 'devworkspaces.workspace.devfile.io'
+
   protected devWorkspaceTemplatesCrdName = 'devworkspacetemplates.workspace.devfile.io'
+
   protected workspaceRoutingsCrdName = 'devworkspaceroutings.controller.devfile.io'
 
   protected webhooksName = 'controller.devfile.io'
 
   // Web Terminal Operator constants
   protected WTOSubscriptionName = 'web-terminal'
+
   protected WTONamespace = 'openshift-operators'
 
   // Devworkspace Che operator namespace
@@ -92,9 +109,13 @@ export class DevWorkspaceTasks {
 
   // chemanager k8s object info
   protected cheManagerApiGroupName = 'che.eclipse.org'
+
   protected cheManagerApiVersionName = 'v1alpha1'
+
   protected cheManagerCRDName = 'chemanagers.che.eclipse.org'
+
   protected cheManagersKindPlural = 'chemanagers'
+
   constructor(private readonly flags: any) {
     this.kubeHelper = new KubeHelper(flags)
     this.cheHelper = new CheHelper(flags)
@@ -120,7 +141,7 @@ export class DevWorkspaceTasks {
         enabled: (ctx: any) => !ctx.isOpenShift,
         task: async (ctx: any, _task: any) => {
           return new Listr(this.certManagerTask.getDeployCertManagerTasks(flags), ctx.listrOptions)
-        }
+        },
       },
       // WARNING: Issuer and Certificate should be moved to che-operator side. Depends on issue: https://github.com/eclipse/che/issues/19502
       {
@@ -136,7 +157,7 @@ export class DevWorkspaceTasks {
           await this.kubeHelper.createCertificateIssuer(devWorkspaceIssuerCertFilePath, ctx.certManagerK8sApiVersion, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
 
           task.title = `${task.title}...Done.`
-        }
+        },
       },
       {
         title: `Create self signed certificate ${this.devWorkspaceCertificate}`,
@@ -152,7 +173,7 @@ export class DevWorkspaceTasks {
           const certifiateYaml = this.kubeHelper.safeLoadFromYamlFile(certificateTemplatePath) as V1Certificate
           await this.kubeHelper.createCheClusterCertificate(certifiateYaml, ctx.certManagerK8sApiVersion)
           task.title = `${task.title}...Done.`
-        }
+        },
       },
     ]
   }
@@ -168,7 +189,7 @@ export class DevWorkspaceTasks {
           await this.kubeHelper.deleteAllDeployments(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
           await this.kubeHelper.deleteAllDeployments(DEFAULT_DEV_WORKSPACE_CHE_NAMESPACE)
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete all DevWorkspace Controller and DevWorkspace Che services',
@@ -176,7 +197,7 @@ export class DevWorkspaceTasks {
           await this.kubeHelper.deleteAllServices(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
           await this.kubeHelper.deleteAllServices(DEFAULT_DEV_WORKSPACE_CHE_NAMESPACE)
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete all DevWorkspace Controller and DevWorkspace Che routes',
@@ -184,7 +205,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteAllIngresses(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete all DevWorkspace Controller and DevWorkspace Che routes',
@@ -192,7 +213,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           await this.openShiftHelper.deleteAllRoutes(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete DevWorkspace Controller and DevWorkspace Che configmaps',
@@ -201,7 +222,7 @@ export class DevWorkspaceTasks {
           await this.kubeHelper.deleteConfigMap(this.devworkspaceCheConfigmap, DEFAULT_DEV_WORKSPACE_CHE_NAMESPACE)
 
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete DevWorkspace Controller and DevWorkspace Che ClusterRoleBindings',
@@ -213,7 +234,7 @@ export class DevWorkspaceTasks {
           await this.kubeHelper.deleteClusterRoleBinding(this.devWorkspaceWebhookServerClusterRolebinding)
 
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete DevWorkspace Controller and DevWorkspace Che role',
@@ -222,7 +243,7 @@ export class DevWorkspaceTasks {
           await this.kubeHelper.deleteRole(this.devWorkspaceCheLeaderElectionRole, DEFAULT_DEV_WORKSPACE_CHE_NAMESPACE)
 
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete DevWorkspace Controller and DevWorkspace Che roleBinding',
@@ -231,7 +252,7 @@ export class DevWorkspaceTasks {
           await this.kubeHelper.deleteRoleBinding(this.devWorkspaceCheLeaderElectionRoleBinding, DEFAULT_DEV_WORKSPACE_CHE_NAMESPACE)
 
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete DevWorkspace Controller and DevWorkspace Che cluster roles',
@@ -246,7 +267,7 @@ export class DevWorkspaceTasks {
           await this.kubeHelper.deleteClusterRole(this.devWorkspaceCheRole)
 
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete DevWorkspace Controller service account',
@@ -254,7 +275,7 @@ export class DevWorkspaceTasks {
           await this.kubeHelper.deleteServiceAccount(this.devWorkspaceServiceAccount, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
 
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete DevWorkspace Controller self-signed certificates',
@@ -264,7 +285,7 @@ export class DevWorkspaceTasks {
           await this.kubeHelper.deleteNamespacedIssuer(this.devWorkspaceCertIssuer, 'v1', DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
 
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete DevWorkspace Controller we',
@@ -272,7 +293,7 @@ export class DevWorkspaceTasks {
           await this.kubeHelper.deleteMutatingWebhookConfiguration(this.webhooksName)
 
           task.title = await `${task.title} ...OK`
-        }
+        },
       },
       {
         title: 'Delete DevWorkspace Controller CRDs',
@@ -282,7 +303,7 @@ export class DevWorkspaceTasks {
           await this.kubeHelper.deleteCrd(this.workspaceRoutingsCrdName)
 
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: `Delete the Custom Resource of type ${this.cheManagerCRDName}`,
@@ -317,7 +338,7 @@ export class DevWorkspaceTasks {
           } else {
             task.title = `${task.title}...Failed`
           }
-        }
+        },
       },
     ]
   }

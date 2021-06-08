@@ -28,7 +28,7 @@ export default class List extends Command {
     [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   async run() {
@@ -52,7 +52,7 @@ export default class List extends Command {
         namespace: workspace.attributes.infrastructureNamespace,
         status: workspace.status,
         created: new Date(parseInt(workspace.attributes.created, 10)).toISOString(),
-        updated: workspace.attributes.updated ? new Date(parseInt(workspace.attributes.updated, 10)).toISOString() : ''
+        updated: workspace.attributes.updated ? new Date(parseInt(workspace.attributes.updated, 10)).toISOString() : '',
       })
     })
     cli.table(data, { id: {}, name: {}, namespace: {}, status: {}, created: {}, updated: {} })

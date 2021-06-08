@@ -1,6 +1,9 @@
 {
     "extends": [
+        "oclif",
+        "oclif-typescript",
         "./eslint.license.json",
-        "./base.eslint.chectl.json"
+        "./base.eslint.chectl.json",
+        "./disabled.rules.chectl.json"
     ]
 }

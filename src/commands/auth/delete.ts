@@ -26,13 +26,14 @@ export default class Delete extends Command {
     {
       name: CHE_API_ENDPOINT_KEY,
       description: 'Eclipse Che server API endpoint',
-      required: true
-    }
+      required: true,
+    },
   ]
+
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     [USERNAME_KEY]: username,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   static examples = [
@@ -76,5 +77,4 @@ export default class Delete extends Command {
       cli.info(`Successfully logged out all users on ${cheApiEndpoint}`)
     }
   }
-
 }

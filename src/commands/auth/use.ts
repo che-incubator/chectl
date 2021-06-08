@@ -27,9 +27,10 @@ export default class Use extends Command {
     {
       name: CHE_API_ENDPOINT_KEY,
       description: 'Eclipse Che server API endpoint',
-      required: false
-    }
+      required: false,
+    },
   ]
+
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     [USERNAME_KEY]: username,
@@ -37,9 +38,9 @@ export default class Use extends Command {
       char: 'i',
       description: 'Select an active login session in interactive mode',
       required: false,
-      exclusive: [USERNAME_KEY]
+      exclusive: [USERNAME_KEY],
     }),
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   static examples = [
@@ -129,7 +130,7 @@ export default class Use extends Command {
     if (allLogins.size === 0) {
       cli.info('No login session exists')
       return
-    } else if (allLogins.size === 1) {
+    } if (allLogins.size === 1) {
       // Retrieve the only login info
       cheApiEndpoint = allLogins.keys().next().value
       username = allLogins.get(cheApiEndpoint)![0]
@@ -142,7 +143,7 @@ export default class Use extends Command {
         for (const login of serverLogins) {
           const choise = {
             name: `   ${login}`,
-            value: { cheApiEndpoint: serverUrl, username: login }
+            value: { cheApiEndpoint: serverUrl, username: login },
           }
           choices.push(choise)
           if (currentLogin.cheApiEndpoint === serverUrl && currentLogin.username === login) {
@@ -176,5 +177,4 @@ export default class Use extends Command {
       cli.info('Nothing to change')
     }
   }
-
 }

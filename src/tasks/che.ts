@@ -28,29 +28,39 @@ import { KubeTasks } from './kube'
  */
 export class CheTasks {
   kube: KubeHelper
+
   kubeTasks: KubeTasks
+
   oc = new OpenShiftHelper()
+
   che: CheHelper
 
   cheNamespace: string
 
   cheAccessToken: string | undefined
+
   cheSelector = 'app=che,component=che'
+
   cheDeploymentName: string
 
   dashboardDeploymentName = 'che-dashboard'
+
   dashboardSelector = 'app=che,component=che-dashboard'
 
   keycloakDeploymentName = 'keycloak'
+
   keycloakSelector = 'app=che,component=keycloak'
 
   postgresDeploymentName = 'postgres'
+
   postgresSelector = 'app=che,component=postgres'
 
   devfileRegistryDeploymentName = 'devfile-registry'
+
   devfileRegistrySelector = 'app=che,component=devfile-registry'
 
   pluginRegistryDeploymentName = 'plugin-registry'
+
   pluginRegistrySelector = 'app=che,component=plugin-registry'
 
   cheConsoleLinkName = 'che'
@@ -78,34 +88,34 @@ export class CheTasks {
       {
         title: 'PostgreSQL pod bootstrap',
         enabled: ctx => ctx.isPostgresDeployed && !ctx.isPostgresReady,
-        task: () => this.kubeTasks.podStartTasks(this.postgresSelector, this.cheNamespace)
+        task: () => this.kubeTasks.podStartTasks(this.postgresSelector, this.cheNamespace),
       },
       {
         title: 'Keycloak pod bootstrap',
         enabled: ctx => ctx.isKeycloakDeployed && !ctx.isKeycloakReady,
-        task: () => this.kubeTasks.podStartTasks(this.keycloakSelector, this.cheNamespace)
+        task: () => this.kubeTasks.podStartTasks(this.keycloakSelector, this.cheNamespace),
       },
       {
         title: 'Devfile Registry pod bootstrap',
         enabled: ctx => ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryReady,
-        task: () => this.kubeTasks.podStartTasks(this.devfileRegistrySelector, this.cheNamespace)
+        task: () => this.kubeTasks.podStartTasks(this.devfileRegistrySelector, this.cheNamespace),
       },
       {
         title: 'Plug-in Registry pod bootstrap',
         enabled: ctx => ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryReady,
-        task: () => this.kubeTasks.podStartTasks(this.pluginRegistrySelector, this.cheNamespace)
+        task: () => this.kubeTasks.podStartTasks(this.pluginRegistrySelector, this.cheNamespace),
       },
       {
         title: 'Eclipse Che Dashboard pod bootstrap',
         enabled: ctx => ctx.isDashboardDeployed && !ctx.isDashboardReady,
-        task: () => this.kubeTasks.podStartTasks(this.dashboardSelector, this.cheNamespace)
+        task: () => this.kubeTasks.podStartTasks(this.dashboardSelector, this.cheNamespace),
       },
       {
         title: 'Eclipse Che Server pod bootstrap',
         enabled: ctx => !ctx.isCheReady,
-        task: () => this.kubeTasks.podStartTasks(this.cheSelector, this.cheNamespace)
+        task: () => this.kubeTasks.podStartTasks(this.cheSelector, this.cheNamespace),
       },
-      ...this.checkEclipseCheStatus()
+      ...this.checkEclipseCheStatus(),
     ]
   }
 
@@ -177,31 +187,31 @@ export class CheTasks {
               {
                 enabled: () => ctx.isCheDeployed,
                 title: `Found ${ctx.isCheStopped ? 'stopped' : 'running'} Eclipse Che deployment`,
-                task: () => { }
+                task: () => { },
               },
               {
                 enabled: () => ctx.isPostgresDeployed,
                 title: `Found ${ctx.isPostgresStopped ? 'stopped' : 'running'} postgres deployment`,
-                task: () => { }
+                task: () => { },
               },
               {
                 enabled: () => ctx.isKeycloakDeployed,
                 title: `Found ${ctx.isKeycloakStopped ? 'stopped' : 'running'} keycloak deployment`,
-                task: () => { }
+                task: () => { },
               },
               {
                 enabled: () => ctx.isPluginRegistryDeployed,
                 title: `Found ${ctx.isPluginRegistryStopped ? 'stopped' : 'running'} plugin registry deployment`,
-                task: () => { }
+                task: () => { },
               },
               {
                 enabled: () => ctx.isDevfileRegistryDeployed,
                 title: `Found ${ctx.isDevfileRegistryStopped ? 'stopped' : 'running'} devfile registry deployment`,
-                task: () => { }
-              }
+                task: () => { },
+              },
             ])
           }
-        }
+        },
       },
       {
         title: 'Check Eclipse Che server status',
@@ -218,8 +228,8 @@ export class CheTasks {
           } catch (error) {
             command.error(`E_CHECK_CHE_STATUS_FAIL - Failed to check Eclipse Che status (URL: ${cheURL}). ${error.message}`)
           }
-        }
-      }
+        },
+      },
     ]
   }
 
@@ -237,7 +247,7 @@ export class CheTasks {
         task: async () => {
           await this.kube.scaleDeployment(this.postgresDeploymentName, this.cheNamespace, 1)
           return this.kubeTasks.podStartTasks(this.postgresSelector, this.cheNamespace)
-        }
+        },
       },
       {
         title: 'Keycloak pod bootstrap',
@@ -245,7 +255,7 @@ export class CheTasks {
         task: async () => {
           await this.kube.scaleDeployment(this.keycloakDeploymentName, this.cheNamespace, 1)
           return this.kubeTasks.podStartTasks(this.keycloakSelector, this.cheNamespace)
-        }
+        },
       },
       {
         title: 'Devfile registry pod bootstrap',
@@ -253,7 +263,7 @@ export class CheTasks {
         task: async () => {
           await this.kube.scaleDeployment(this.devfileRegistryDeploymentName, this.cheNamespace, 1)
           return this.kubeTasks.podStartTasks(this.devfileRegistrySelector, this.cheNamespace)
-        }
+        },
       },
       {
         title: 'Plug-in Registry pod bootstrap',
@@ -261,7 +271,7 @@ export class CheTasks {
         task: async () => {
           await this.kube.scaleDeployment(this.pluginRegistryDeploymentName, this.cheNamespace, 1)
           return this.kubeTasks.podStartTasks(this.pluginRegistrySelector, this.cheNamespace)
-        }
+        },
       },
       {
         title: 'Eclipse Che Dashboard pod bootstrap',
@@ -269,7 +279,7 @@ export class CheTasks {
         task: async () => {
           await this.kube.scaleDeployment(this.dashboardDeploymentName, this.cheNamespace, 1)
           return this.kubeTasks.podStartTasks(this.dashboardSelector, this.cheNamespace)
-        }
+        },
       },
       {
         title: 'Eclipse Che Server pod bootstrap',
@@ -277,9 +287,9 @@ export class CheTasks {
         task: async () => {
           await this.kube.scaleDeployment(this.cheDeploymentName, this.cheNamespace, 1)
           return this.kubeTasks.podStartTasks(this.cheSelector, this.cheNamespace)
-        }
+        },
       },
-      ...this.checkEclipseCheStatus()
+      ...this.checkEclipseCheStatus(),
     ]
   }
 
@@ -308,7 +318,7 @@ export class CheTasks {
         } catch (error) {
           command.error(`E_SHUTDOWN_CHE_SERVER_FAIL - Failed to shutdown Eclipse Che server. ${error.message}`)
         }
-      }
+      },
     },
     {
       title: `Scale \"${this.cheDeploymentName}\" deployment to zero`,
@@ -320,7 +330,7 @@ export class CheTasks {
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale deployment. ${error.message}`)
         }
-      }
+      },
     },
     {
       title: 'Scale \"dashboard\" deployment to zero',
@@ -332,7 +342,7 @@ export class CheTasks {
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale dashboard deployment. ${error.message}`)
         }
-      }
+      },
     },
     {
       title: 'Scale \"keycloak\" deployment to zero',
@@ -344,7 +354,7 @@ export class CheTasks {
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale keycloak deployment. ${error.message}`)
         }
-      }
+      },
     },
     {
       title: 'Scale \"postgres\" deployment to zero',
@@ -356,7 +366,7 @@ export class CheTasks {
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale postgres deployment. ${error.message}`)
         }
-      }
+      },
     },
     {
       title: 'Scale \"devfile registry\" deployment to zero',
@@ -368,7 +378,7 @@ export class CheTasks {
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale devfile-registry deployment. ${error.message}`)
         }
-      }
+      },
     },
     {
       title: 'Scale \"plugin registry\" deployment to zero',
@@ -380,7 +390,7 @@ export class CheTasks {
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale plugin-registry deployment. ${error.message}`)
         }
-      }
+      },
     }]
   }
 
@@ -394,14 +404,14 @@ export class CheTasks {
         task: async (_ctx: any, task: any) => {
           await this.kube.deleteAllDeployments(flags.chenamespace)
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete all services',
         task: async (_ctx: any, task: any) => {
           await this.kube.deleteAllServices(flags.chenamespace)
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete all ingresses',
@@ -409,7 +419,7 @@ export class CheTasks {
         task: async (_ctx: any, task: any) => {
           await this.kube.deleteAllIngresses(flags.chenamespace)
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete all routes',
@@ -417,7 +427,7 @@ export class CheTasks {
         task: async (_ctx: any, task: any) => {
           await this.oc.deleteAllRoutes(flags.chenamespace)
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete configmaps for Eclipse Che server and operator',
@@ -425,7 +435,7 @@ export class CheTasks {
           await this.kube.deleteConfigMap('che', flags.chenamespace)
           await this.kube.deleteConfigMap('che-operator', flags.chenamespace)
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete rolebindings che, che-workspace-exec and che-workspace-view',
@@ -435,7 +445,7 @@ export class CheTasks {
           await this.kube.deleteRoleBinding('che-workspace-exec', flags.chenamespace)
           await this.kube.deleteRoleBinding('che-workspace-view', flags.chenamespace)
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete service accounts che, che-workspace',
@@ -443,7 +453,7 @@ export class CheTasks {
           await this.kube.deleteServiceAccount('che', flags.chenamespace)
           await this.kube.deleteServiceAccount('che-workspace', flags.chenamespace)
           task.title = await `${task.title}...OK`
-        }
+        },
       },
       {
         title: 'Delete PVCs',
@@ -453,7 +463,7 @@ export class CheTasks {
           await this.kube.deletePersistentVolumeClaim('keycloak-data', flags.chenamespace)
           await this.kube.deletePersistentVolumeClaim('keycloak-log', flags.chenamespace)
           task.title = `${task.title}...OK`
-        }
+        },
       },
       {
         title: `Delete consoleLink ${this.cheConsoleLinkName}`,
@@ -464,8 +474,9 @@ export class CheTasks {
             await this.kube.deleteConsoleLink(this.cheConsoleLinkName)
           }
           task.title = `${task.title}...OK`
-        }
-      }]
+        },
+      },
+    ]
   }
 
   /**
@@ -478,43 +489,43 @@ export class CheTasks {
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.cheSelector, this.cheNamespace)
           task.title = `${task.title}...done.`
-        }
+        },
       },
       {
         title: 'Wait until Eclipse Che Dashboard pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.dashboardSelector, this.cheNamespace)
           task.title = `${task.title}...done.`
-        }
+        },
       },
       {
         title: 'Wait until Keycloak pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.keycloakSelector, this.cheNamespace)
           task.title = `${task.title}...done.`
-        }
+        },
       },
       {
         title: 'Wait until PostgreSQL pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.postgresSelector, this.cheNamespace)
           task.title = `${task.title}...done.`
-        }
+        },
       },
       {
         title: 'Wait until Devfile Registry pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.devfileRegistrySelector, this.cheNamespace)
           task.title = `${task.title}...done.`
-        }
+        },
       },
       {
         title: 'Wait until Plug-in Registry pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.pluginRegistrySelector, this.cheNamespace)
           task.title = `${task.title}...done.`
-        }
-      }
+        },
+      },
     ]
   }
 
@@ -527,7 +538,7 @@ export class CheTasks {
           await this.kube.deleteNamespace(flags.chenamespace)
         }
         task.title = `${task.title}...OK`
-      }
+      },
     }]
   }
 
@@ -538,7 +549,7 @@ export class CheTasks {
         if (!await this.kube.getNamespace(flags.chenamespace)) {
           command.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist.`, { code: 'EBADNS' })
         }
-      }
+      },
     }]
   }
 
@@ -550,7 +561,7 @@ export class CheTasks {
       title: 'Verify if the workspaces is running',
       task: async (ctx: any) => {
         ctx.pod = await this.che.getWorkspacePodName(flags.chenamespace!, flags.workspace).catch(e => command.error(e.message))
-      }
+      },
     }]
   }
 
@@ -565,57 +576,57 @@ export class CheTasks {
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, CHE_OPERATOR_SELECTOR, ctx.directory, follow)
           task.title = `${task.title}...done`
-        }
+        },
       },
       {
         title: `${follow ? 'Start following' : 'Read'} Eclipse Che Server logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.cheSelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
-        }
+        },
       },
       {
         title: `${follow ? 'Start following' : 'Read'} PostgreSQL logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.postgresSelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
-        }
+        },
       },
       {
         title: `${follow ? 'Start following' : 'Read'} Keycloak logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.keycloakSelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
-        }
+        },
       },
       {
         title: `${follow ? 'Start following' : 'Read'} Plug-in Registry logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.pluginRegistrySelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
-        }
+        },
       },
       {
         title: `${follow ? 'Start following' : 'Read'} Devfile Registry logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.devfileRegistrySelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
-        }
+        },
       },
       {
         title: `${follow ? 'Start following' : 'Read'} Eclipse Che Dashboard logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.dashboardSelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
-        }
+        },
       },
       {
         title: `${follow ? 'Start following' : 'Read'} namespace events`,
         task: async (ctx: any, task: any) => {
           await this.che.readNamespaceEvents(flags.chenamespace, ctx.directory, follow)
           task.title = await `${task.title}...done`
-        }
-      }
+        },
+      },
     ]
   }
 
@@ -630,7 +641,7 @@ export class CheTasks {
           }
           ctx.podName = chePods.items[0].metadata!.name!
           task.title = `${task.title}...done`
-        }
+        },
       },
       {
         title: 'Check if debug mode is enabled',
@@ -641,15 +652,15 @@ export class CheTasks {
           }
 
           task.title = `${task.title}...done`
-        }
+        },
       },
       {
         title: `Forward port '${flags['debug-port']}'`,
         task: async (ctx: any, task: any) => {
           await this.kube.portForward(ctx.podName, flags.chenamespace, flags['debug-port'])
           task.title = `${task.title}...done`
-        }
-      }
+        },
+      },
     ]
   }
 
@@ -720,8 +731,8 @@ export class CheTasks {
           }
           ctx.highlightedMessages = messages.concat(ctx.highlightedMessages)
           task.title = `${task.title}...done`
-        }
-      }
+        },
+      },
     ]
   }
 
@@ -733,9 +744,8 @@ export class CheTasks {
           const cheApi = CheApiClient.getInstance(ctx.cheURL + '/api')
           task.title = `${task.title}...done`
           return cheApi.isCheServerReady()
-        }
-      }
+        },
+      },
     ]
   }
-
 }

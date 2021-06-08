@@ -23,6 +23,7 @@ import { sleep } from '../util'
 let instance: CheApiClient | undefined
 export class CheApiClient {
   public defaultCheResponseTimeoutMs = 3000
+
   public readonly cheApiEndpoint: string
 
   private readonly axios: AxiosInstance
@@ -34,7 +35,7 @@ export class CheApiClient {
     const httpsAgent = new https.Agent({ rejectUnauthorized: false })
 
     this.axios = axios.create({
-      httpsAgent
+      httpsAgent,
     })
   }
 
@@ -114,9 +115,8 @@ export class CheApiClient {
     } catch (error) {
       if (error.response && error.response.status === 409) {
         return
-      } else {
-        throw this.getCheApiError(error, endpoint)
       }
+      throw this.getCheApiError(error, endpoint)
     }
     if (!response || response.status !== 204) {
       throw new Error('E_BAD_RESP_CHE_API')
@@ -126,7 +126,7 @@ export class CheApiClient {
   async waitUntilCheServerReadyToShutdown(intervalMs = 500, timeoutMs = 60000): Promise<void> {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
-      let status = await this.getCheServerStatus()
+      const status = await this.getCheServerStatus()
       if (status === 'READY_TO_SHUTDOWN') {
         return
       }
@@ -168,9 +168,8 @@ export class CheApiClient {
       const response = await this.axios.get(endpoint, { headers })
       if (response && response.data) {
         return response.data
-      } else {
-        throw new Error('E_BAD_RESP_CHE_SERVER')
       }
+      throw new Error('E_BAD_RESP_CHE_SERVER')
     } catch (error) {
       throw this.getCheApiError(error, endpoint)
     }
@@ -289,9 +288,8 @@ export class CheApiClient {
 
     if (response && response.data) {
       return response.data as chetypes.workspace.Workspace
-    } else {
-      throw new Error('E_BAD_RESP_CHE_SERVER')
     }
+    throw new Error('E_BAD_RESP_CHE_SERVER')
   }
 
   /**
@@ -324,9 +322,8 @@ export class CheApiClient {
     } catch (error) {
       if (error.response && (error.response.status === 404 || error.response.status === 503)) {
         return false
-      } else {
-        throw this.getCheApiError(error, endpoint)
       }
+      throw this.getCheApiError(error, endpoint)
     }
     this.checkResponse(response, endpoint)
     if (!response.data['che.keycloak.token.endpoint']) {
@@ -347,27 +344,23 @@ export class CheApiClient {
       const status = error.response.status
       if (status === 403) {
         return new Error(`E_CHE_API_FORBIDDEN - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data.message)}`)
-      } else if (status === 401) {
+      } if (status === 401) {
         return new Error(`E_CHE_API_UNAUTHORIZED - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
-      } else if (status === 404) {
+      } if (status === 404) {
         return new Error(`E_CHE_API_NOTFOUND - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
-      } else if (status === 503) {
+      } if (status === 503) {
         return new Error(`E_CHE_API_UNAVAIL - Endpoint: ${endpoint} returned 503 code`)
-      } else {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        return new Error(`E_CHE_API_UNKNOWN_ERROR - Endpoint: ${endpoint} -Status: ${error.response.status}`)
       }
-
-    } else if (error.request) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      return new Error(`E_CHE_API_UNKNOWN_ERROR - Endpoint: ${endpoint} -Status: ${error.response.status}`)
+    } if (error.request) {
       // The request was made but no response was received
       // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
       // http.ClientRequest in node.js
       return new Error(`E_CHE_API_NO_RESPONSE - Endpoint: ${endpoint} - Error message: ${error.message}`)
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      return new Error(`E_CHECTL_UNKNOWN_ERROR - Endpoint: ${endpoint} - Message: ${error.message}`)
     }
+    // Something happened in setting up the request that triggered an Error
+    return new Error(`E_CHECTL_UNKNOWN_ERROR - Endpoint: ${endpoint} - Message: ${error.message}`)
   }
-
 }

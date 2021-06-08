@@ -21,7 +21,9 @@ interface FailState {
 
 export class KubeTasks {
   private readonly interval = 500
+
   private readonly kubeHelper: KubeHelper
+
   constructor(flags: any) {
     this.kubeHelper = new KubeHelper(flags)
   }
@@ -63,7 +65,7 @@ export class KubeTasks {
           }
 
           throw new Error(`Failed to schedule a pod: ${await this.getTimeOutErrorMessage(namespace, selector)}`)
-        }
+        },
       },
       {
         title: 'Downloading images',
@@ -92,7 +94,7 @@ export class KubeTasks {
           }
 
           throw new Error(`Failed to download image: ${await this.getTimeOutErrorMessage(namespace, selector)}`)
-        }
+        },
       },
       {
         title: 'Starting',
@@ -137,8 +139,8 @@ export class KubeTasks {
           }
 
           throw new Error(`Failed to start a pod: ${await this.getTimeOutErrorMessage(namespace, selector)}`)
-        }
-      }
+        },
+      },
     ])
   }
 
@@ -150,7 +152,7 @@ export class KubeTasks {
   private async isPodConditionStatusPassed(namespace: string, selector: string, conditionType: string): Promise<boolean> {
     const status = await this.kubeHelper.getPodCondition(namespace, selector, conditionType)
     const allScheduled = !status.some(s => s.status !== 'True')
-    return !!status.length && allScheduled
+    return Boolean(status.length) && allScheduled
   }
 
   /**

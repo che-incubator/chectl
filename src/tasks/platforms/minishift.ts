@@ -31,7 +31,7 @@ export class MinishiftTasks {
           } else {
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: 'Verify if minishift is installed',
@@ -41,7 +41,7 @@ export class MinishiftTasks {
           } else {
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: 'Verify if minishift is running',
@@ -52,7 +52,7 @@ export class MinishiftTasks {
           } else {
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       VersionHelper.getOpenShiftCheckVersionTask(flags),
       VersionHelper.getK8sCheckVersionTask(flags),
@@ -65,14 +65,12 @@ export class MinishiftTasks {
       stdout.includes('Minishift:  Running') &&
       stdout.includes('OpenShift:  Running')) {
       return true
-    } else {
-      return false
     }
+    return false
   }
 
   async getMinishiftIP(): Promise<string> {
     const { stdout } = await execa('minishift', ['ip'], { timeout: 10000 })
     return stdout
   }
-
 }

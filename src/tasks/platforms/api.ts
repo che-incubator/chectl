@@ -22,7 +22,7 @@ export class ApiTasks {
    * `isOpenShift` property is provisioned into context.
    */
   testApiTasks(flags: any, command: Command): Listr.ListrTask {
-    let kube = new KubeHelper(flags)
+    const kube = new KubeHelper(flags)
     return {
       title: 'Verify Kubernetes API',
       task: async (ctx: any, task: any) => {
@@ -41,7 +41,7 @@ export class ApiTasks {
         } catch (error) {
           command.error(`Failed to connect to Kubernetes API, error: ${error.message}. If you're sure that your Kubernetes cluster is healthy - you can skip this check with '--skip-kubernetes-health-check' flag.`)
         }
-      }
+      },
     }
   }
 }

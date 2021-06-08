@@ -28,21 +28,21 @@ export default class Logs extends Command {
     workspace: string({
       char: 'w',
       description: 'Target workspace id. Can be found in workspace configuration \'id\' field.',
-      required: true
+      required: true,
     }),
     namespace: string({
       char: 'n',
       description: 'The namespace where workspace is located. Can be found in workspace configuration \'attributes.infrastructureNamespace\' field.',
-      required: true
+      required: true,
     }),
     directory: string({
       char: 'd',
       description: 'Directory to store logs into',
-      env: 'CHE_LOGS'
+      env: 'CHE_LOGS',
     }),
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
     telemetry: CHE_TELEMETRY,
-    follow: FOLLOW_LOGS
+    follow: FOLLOW_LOGS,
   }
 
   async run() {

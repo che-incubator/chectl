@@ -49,17 +49,18 @@ export default class Start extends Command {
       apiTasks.testApiTasks(flags, this),
       {
         title: '👀  Looking for an already existing Eclipse Che instance',
-        task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
-      }], ctx.listrOptions)
+        task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this)),
+      },
+    ], ctx.listrOptions)
 
     const logsTasks = new Listr([{
       title: 'Following Eclipse Che logs',
-      task: () => new Listr(cheTasks.serverLogsTasks(flags, true))
+      task: () => new Listr(cheTasks.serverLogsTasks(flags, true)),
     }], ctx.listrOptions)
 
     const startCheTasks = new Listr([{
       title: 'Starting Eclipse Che',
-      task: () => new Listr(cheTasks.scaleCheUpTasks())
+      task: () => new Listr(cheTasks.scaleCheUpTasks()),
     }], ctx.listrOptions)
 
     try {
@@ -81,5 +82,4 @@ export default class Start extends Command {
     notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
-
 }

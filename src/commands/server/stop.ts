@@ -31,12 +31,12 @@ export default class Stop extends Command {
     'che-selector': string({
       description: 'Selector for Eclipse Che server resources',
       default: 'app=che,component=che',
-      env: 'CHE_SELECTOR'
+      env: 'CHE_SELECTOR',
     }),
     'access-token': accessToken,
     'listr-renderer': listrRenderer,
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   async run() {
@@ -50,10 +50,10 @@ export default class Stop extends Command {
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Stop.id, flags })
 
-    let tasks = new Listr(undefined,
+    const tasks = new Listr(undefined,
       {
         renderer: flags['listr-renderer'] as any,
-        collapse: false
+        collapse: false,
       }
     )
 
@@ -65,10 +65,10 @@ export default class Stop extends Command {
         enabled: (ctx: any) => !ctx.isCheDeployed,
         task: async () => {
           await this.error(`E_BAD_DEPLOY - Deployment do not exist.\nA Deployment named "${flags['deployment-name']}" exist in namespace \"${flags.chenamespace}\", Eclipse Che server cannot be stopped.\nFix with: verify the namespace where Eclipse Che is running (oc get projects)\nhttps://github.com/eclipse/che`, { code: 'E_BAD_DEPLOY' })
-        }
-      }
+        },
+      },
     ],
-      { renderer: flags['listr-renderer'] as any }
+    { renderer: flags['listr-renderer'] as any }
     )
     tasks.add(cheTasks.scaleCheDownTasks(this))
     tasks.add(cheTasks.waitPodsDeletedTasks())

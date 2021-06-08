@@ -64,7 +64,7 @@ export function generatePassword(passwodLength: number, charactersSet = '') {
     const ranges = [[ZERO_CHAR_CODE, NINE_CHAR_CODE], [A_CHAR_CODE, Z_CHAR_CODE], [a_CHAR_CODE, z_CHAR_CODE]]
 
     dictionary = []
-    for (let range of ranges) {
+    for (const range of ranges) {
       for (let charCode = range[0]; charCode <= range[1]; charCode++) {
         dictionary.push(String.fromCharCode(charCode))
       }
@@ -107,8 +107,8 @@ export function getImageNameAndTag(image: string): [string, string] {
       deployedCheOperatorImageName = image
       deployedCheOperatorImageTag = 'latest'
     } else {
-      let beforeLastColon = image.substring(0, lastColonIndex)
-      let afterLastColon = image.substring(lastColonIndex + 1)
+      const beforeLastColon = image.substring(0, lastColonIndex)
+      const afterLastColon = image.substring(lastColonIndex + 1)
       if (afterLastColon.includes('/')) {
         // The colon is for registry port and not for a tag
         deployedCheOperatorImageName = image
@@ -202,7 +202,7 @@ export function getCommandErrorMessage(err: Error): string {
 export function notifyCommandCompletedSuccessfully(): void {
   notifier.notify({
     title: 'chectl',
-    message: getCommandSuccessMessage()
+    message: getCommandSuccessMessage(),
   })
 }
 
@@ -272,7 +272,7 @@ export async function downloadFile(url: string, dest: string): Promise<void> {
  */
 export async function downloadYaml(url: string): Promise<any> {
   const axiosInstance = axios.create({
-    httpsAgent: new https.Agent({})
+    httpsAgent: new https.Agent({}),
   })
   const response = await axiosInstance.get(url)
   return yaml.safeLoad(response.data)
@@ -327,8 +327,7 @@ export async function getDistribution(): Promise<string | undefined> {
       const platorm = await promisify(getos)() as getos.LinuxOs
       return platorm.dist
     } catch {
-      return
+
     }
   }
-  return
 }

@@ -40,7 +40,7 @@ export default class Deploy extends Command {
     cheimage: string({
       char: 'i',
       description: 'Eclipse Che server container image',
-      env: 'CHE_CONTAINER_IMAGE'
+      env: 'CHE_CONTAINER_IMAGE',
     }),
     templates: string({
       char: 't',
@@ -50,18 +50,18 @@ export default class Deploy extends Command {
     }),
     'devfile-registry-url': string({
       description: 'The URL of the external Devfile registry.',
-      env: 'CHE_WORKSPACE_DEVFILE__REGISTRY__URL'
+      env: 'CHE_WORKSPACE_DEVFILE__REGISTRY__URL',
     }),
     'plugin-registry-url': string({
       description: 'The URL of the external plugin registry.',
-      env: 'CHE_WORKSPACE_PLUGIN__REGISTRY__URL'
+      env: 'CHE_WORKSPACE_PLUGIN__REGISTRY__URL',
     }),
     cheboottimeout: string({
       char: 'o',
       description: 'Eclipse Che server bootstrap timeout (in milliseconds)',
       default: '40000',
       required: true,
-      env: 'CHE_SERVER_BOOT_TIMEOUT'
+      env: 'CHE_SERVER_BOOT_TIMEOUT',
     }),
     [K8SPODWAITTIMEOUT_KEY]: k8sPodWaitTimeout,
     [K8SPODREADYTIMEOUT_KEY]: k8sPodReadyTimeout,
@@ -71,7 +71,7 @@ export default class Deploy extends Command {
     multiuser: flags.boolean({
       char: 'm',
       description: 'Starts Eclipse Che in multi-user mode',
-      default: false
+      default: false,
     }),
     tls: flags.boolean({
       char: 's',
@@ -81,12 +81,12 @@ export default class Deploy extends Command {
                     In case of providing own self-signed certificate 'self-signed-certificate' secret should be also created.
                     For OpenShift, router will use default cluster certificates.
                     Please see the docs how to deploy Eclipse Che on different infrastructures: ${DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY}`,
-      hidden: true
+      hidden: true,
     }),
     'self-signed-cert': flags.boolean({
       description: 'Deprecated. The flag is ignored. Self signed certificates usage is autodetected now.',
       default: false,
-      hidden: true
+      hidden: true,
     }),
     platform: string({
       char: 'p',
@@ -106,11 +106,11 @@ export default class Deploy extends Command {
                     Please note, that just setting this flag will not likely work out of the box.
                     According changes should be done in Kubernetes cluster configuration as well.
                     In case of Openshift, domain adjustment should be done on the cluster configuration level.`,
-      default: ''
+      default: '',
     }),
     debug: boolean({
       description: 'Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use \'server:debug\' command.',
-      default: false
+      default: false,
     }),
     'che-operator-image': string({
       description: 'Container image of the operator. This parameter is used only when the installer is the operator',
@@ -126,19 +126,19 @@ export default class Deploy extends Command {
     'workspace-pvc-storage-class-name': string({
       description: 'persistent volume(s) storage class name to use to store Eclipse Che workspaces data',
       env: 'CHE_INFRA_KUBERNETES_PVC_STORAGE__CLASS__NAME',
-      default: ''
+      default: '',
     }),
     'postgres-pvc-storage-class-name': string({
       description: 'persistent volume storage class name to use to store Eclipse Che postgres database',
-      default: ''
+      default: '',
     }),
     'skip-version-check': flags.boolean({
       description: 'Skip minimal versions check.',
-      default: false
+      default: false,
     }),
     'skip-cluster-availability-check': flags.boolean({
       description: 'Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.',
-      default: false
+      default: false,
     }),
     'auto-update': flags.boolean({
       description: `Auto update approval strategy for installation Eclipse Che.
@@ -146,7 +146,7 @@ export default class Deploy extends Command {
                     By default this flag is enabled.
                     This parameter is used only when the installer is 'olm'.`,
       allowNo: true,
-      exclusive: ['starting-csv']
+      exclusive: ['starting-csv'],
     }),
     'starting-csv': flags.string({
       description: `Starting cluster service version(CSV) for installation Eclipse Che.
@@ -154,7 +154,7 @@ export default class Deploy extends Command {
                     For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
                     Then OLM will install Eclipse Che with version 7.10.0.
                     Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known version.
-                    This parameter is used only when the installer is 'olm'.`
+                    This parameter is used only when the installer is 'olm'.`,
     }),
     'olm-channel': string({
       description: `Olm channel to install Eclipse Che, f.e. stable.
@@ -173,24 +173,24 @@ export default class Deploy extends Command {
     }),
     'catalog-source-name': string({
       description: `OLM catalog source to install Eclipse Che operator.
-                    This parameter is used only when the installer is the 'olm'.`
+                    This parameter is used only when the installer is the 'olm'.`,
     }),
     'catalog-source-namespace': string({
       description: `Namespace for OLM catalog source to install Eclipse Che operator.
-                    This parameter is used only when the installer is the 'olm'.`
+                    This parameter is used only when the installer is the 'olm'.`,
     }),
     'cluster-monitoring': boolean({
       default: false,
       hidden: true,
       description: `Enable cluster monitoring to scrape Eclipse Che metrics in Prometheus.
-                    This parameter is used only when the platform is 'openshift'.`
+                    This parameter is used only when the platform is 'openshift'.`,
     }),
     'olm-suggested-namespace': boolean({
       default: true,
       allowNo: true,
       description: `Indicate to deploy Eclipse Che in OLM suggested namespace: '${DEFAULT_OLM_SUGGESTED_NAMESPACE}'.
                     Flag 'chenamespace' is ignored in this case
-                    This parameter is used only when the installer is 'olm'.`
+                    This parameter is used only when the installer is 'olm'.`,
     }),
     'skip-kubernetes-health-check': skipK8sHealthCheck,
     'workspace-engine': string({
@@ -393,29 +393,29 @@ export default class Deploy extends Command {
     const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
     // Platform Checks
-    let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), ctx.listrOptions)
+    const platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), ctx.listrOptions)
 
     // Checks if Eclipse Che is already deployed
-    let preInstallTasks = new Listr(undefined, ctx.listrOptions)
+    const preInstallTasks = new Listr(undefined, ctx.listrOptions)
     preInstallTasks.add(apiTasks.testApiTasks(flags, this))
     preInstallTasks.add({
       title: '👀  Looking for an already existing Eclipse Che instance',
-      task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
+      task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this)),
     })
     preInstallTasks.add(checkChectlAndCheVersionCompatibility(flags))
     preInstallTasks.add(downloadTemplates(flags))
     preInstallTasks.add({
       title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
       enabled: () => (this.isDevWorkspaceEnabled(ctx) || flags['workspace-engine'] === 'dev-workspace') && !ctx.isOpenShift,
-      task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags))
+      task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags)),
     })
-    let installTasks = new Listr(installerTasks.installTasks(flags, this), ctx.listrOptions)
+    const installTasks = new Listr(installerTasks.installTasks(flags, this), ctx.listrOptions)
 
     // Post Install Checks
     const postInstallTasks = new Listr([
       {
         title: '✅  Post installation checklist',
-        task: () => new Listr(cheTasks.waitDeployedChe())
+        task: () => new Listr(cheTasks.waitDeployedChe()),
       },
       getRetrieveKeycloakCredentialsTask(flags),
       retrieveCheCaCertificateTask(flags),
@@ -425,7 +425,7 @@ export default class Deploy extends Command {
 
     const logsTasks = new Listr([{
       title: 'Following Eclipse Che logs',
-      task: () => new Listr(cheTasks.serverLogsTasks(flags, true))
+      task: () => new Listr(cheTasks.serverLogsTasks(flags, true)),
     }], ctx.listrOptions)
 
     try {

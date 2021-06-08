@@ -28,19 +28,20 @@ export default class Delete extends Command {
     chenamespace: cheNamespace,
     'delete-namespace': flags.boolean({
       description: 'Indicates that a Kubernetes namespace where workspace was created will be deleted as well',
-      default: false
+      default: false,
     }),
     [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
+
   static args = [
     {
       name: 'workspace',
       description: 'The workspace id to delete',
-      required: true
-    }
+      required: true,
+    },
   ]
 
   async run() {

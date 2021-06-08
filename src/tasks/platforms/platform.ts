@@ -38,49 +38,53 @@ export class PlatformTasks {
     if (!flags.platform) {
       task = {
         title: '✈️  Platform preflight checklist',
-        task: () => { command.error('Platform is required ¯\\_(ツ)_/¯') }
+        task: () => {
+          command.error('Platform is required ¯\\_(ツ)_/¯')
+        },
       }
     } else if (flags.platform === 'openshift') {
       task = {
         title: '✈️  Openshift preflight checklist',
-        task: () => openshiftTasks.preflightCheckTasks(flags, command)
+        task: () => openshiftTasks.preflightCheckTasks(flags, command),
       }
     } else if (flags.platform === 'crc') {
       task = {
         title: '✈️  CodeReady Containers preflight checklist',
-        task: () => crc.preflightCheckTasks(flags, command)
+        task: () => crc.preflightCheckTasks(flags, command),
       }
     // platform.ts BEGIN CHE ONLY
     } else if (flags.platform === 'minikube') {
       task = {
         title: '✈️  Minikube preflight checklist',
-        task: () => minikubeTasks.preflightCheckTasks(flags, command)
+        task: () => minikubeTasks.preflightCheckTasks(flags, command),
       }
     } else if (flags.platform === 'minishift') {
       task = {
         title: '✈️  Minishift preflight checklist',
-        task: () => minishiftTasks.preflightCheckTasks(flags, command)
+        task: () => minishiftTasks.preflightCheckTasks(flags, command),
       }
     } else if (flags.platform === 'microk8s') {
       task = {
         title: '✈️  MicroK8s preflight checklist',
-        task: () => microk8sTasks.preflightCheckTasks(flags, command)
+        task: () => microk8sTasks.preflightCheckTasks(flags, command),
       }
     } else if (flags.platform === 'k8s') {
       task = {
         title: '✈️  Kubernetes preflight checklist',
-        task: () => k8sTasks.preflightCheckTasks(flags, command)
+        task: () => k8sTasks.preflightCheckTasks(flags, command),
       }
     } else if (flags.platform === 'docker-desktop') {
       task = {
         title: '✈️  Docker Desktop preflight checklist',
-        task: () => dockerDesktopTasks.preflightCheckTasks(flags, command)
+        task: () => dockerDesktopTasks.preflightCheckTasks(flags, command),
       }
     // platform.ts END CHE ONLY
     } else {
       task = {
         title: '✈️  Platform preflight checklist',
-        task: () => { command.error(`Platform ${flags.platform} is not supported yet ¯\\_(ツ)_/¯`) }
+        task: () => {
+          command.error(`Platform ${flags.platform} is not supported yet ¯\\_(ツ)_/¯`)
+        },
       }
     }
 

@@ -40,12 +40,14 @@ export class InstallerTasks {
       }
     } else {
       title = '🏃‍  Installer preflight check'
-      task = () => { command.error(`Installer ${flags.installer} does not support update ¯\\_(ツ)_/¯`) }
+      task = () => {
+        command.error(`Installer ${flags.installer} does not support update ¯\\_(ツ)_/¯`)
+      }
     }
 
     return [{
       title,
-      task
+      task,
     }]
   }
 
@@ -68,12 +70,14 @@ export class InstallerTasks {
       }
     } else {
       title = '🏃‍  Installer preflight check'
-      task = () => { command.error(`Installer ${flags.installer} does not support update ¯\\_(ツ)_/¯`) }
+      task = () => {
+        command.error(`Installer ${flags.installer} does not support update ¯\\_(ツ)_/¯`)
+      }
     }
 
     return [{
       title,
-      task
+      task,
     }]
   }
 
@@ -109,12 +113,14 @@ export class InstallerTasks {
     // installer.ts END CHE ONLY
     } else {
       title = '🏃‍  Installer preflight check'
-      task = () => { command.error(`Installer ${flags.installer} is not supported ¯\\_(ツ)_/¯`) }
+      task = () => {
+        command.error(`Installer ${flags.installer} is not supported ¯\\_(ツ)_/¯`)
+      }
     }
 
     return [{
       title,
-      task
+      task,
     }]
   }
 }

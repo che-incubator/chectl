@@ -30,12 +30,12 @@ export namespace CommonPlatformTasks {
           return
         }
 
-        if (! await checkHttpServer(domain, 80) && ! await checkHttpsServer(domain, 443)) {
+        if (!await checkHttpServer(domain, 80) && !await checkHttpsServer(domain, 443)) {
           throw new Error(`Cannot reach cluster at "${domain}". To skip this check add "--skip-cluster-availability-check" flag.`)
         }
 
         task.title = `${task.title}... ok`
-      }
+      },
     }
   }
 

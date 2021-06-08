@@ -37,7 +37,7 @@ export default class Delete extends Command {
     batch,
     'delete-namespace': boolean({
       description: 'Indicates that a Eclipse Che namespace will be deleted as well',
-      default: false
+      default: false,
     }),
     'deployment-name': cheDeployment,
     'listr-renderer': listrRenderer,
@@ -48,7 +48,7 @@ export default class Delete extends Command {
     }),
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
     yes: assumeYes,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   async run() {

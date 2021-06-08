@@ -23,8 +23,9 @@ export default class Get extends Command {
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
+
   async run() {
     const { flags } = this.parse(Get)
     await ChectlContext.init(flags, this)
@@ -39,5 +40,4 @@ export default class Get extends Command {
       cli.info('There is no active login session')
     }
   }
-
 }

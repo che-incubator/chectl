@@ -137,7 +137,7 @@ export default class Update extends Command {
     const updateTasks = new Listr([], ctx.listrOptions)
     updateTasks.add({
       title: '↺  Updating...',
-      task: () => new Listr(installerTasks.updateTasks(flags, this))
+      task: () => new Listr(installerTasks.updateTasks(flags, this)),
     })
 
     // post update tasks
@@ -173,12 +173,12 @@ export default class Update extends Command {
   private async checkComponentImages(flags: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
     const cheCluster = await kubeHelper.getCheCluster(flags.chenamespace)
-    if (cheCluster.spec.server.cheImage
-      || cheCluster.spec.server.cheImageTag
-      || cheCluster.spec.server.devfileRegistryImage
-      || cheCluster.spec.database.postgresImage
-      || cheCluster.spec.server.pluginRegistryImage
-      || cheCluster.spec.auth.identityProviderImage) {
+    if (cheCluster.spec.server.cheImage ||
+      cheCluster.spec.server.cheImageTag ||
+      cheCluster.spec.server.devfileRegistryImage ||
+      cheCluster.spec.database.postgresImage ||
+      cheCluster.spec.server.pluginRegistryImage ||
+      cheCluster.spec.auth.identityProviderImage) {
       let imagesListMsg = ''
 
       const resetImagesCrPatch: { [key: string]: any } = {}
@@ -252,10 +252,9 @@ export default class Update extends Command {
           // Despite the operator image is the same, CR patch might contain some changes.
           cli.info('Patching existing Eclipse Che installation.')
           return true
-        } else {
-          cli.info('Eclipse Che is already up to date.')
-          return false
         }
+        cli.info('Eclipse Che is already up to date.')
+        return false
       }
 
       if (this.isUpgrade(ctx.deployedCheOperatorImageTag, ctx.newCheOperatorImageTag)) {

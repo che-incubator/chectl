@@ -31,7 +31,7 @@ export class K8sTasks {
           if (!commandExists.sync('kubectl')) {
             command.error('E_REQUISITE_NOT_FOUND')
           }
-        }
+        },
       },
       {
         title: 'Verify remote kubernetes status',
@@ -44,7 +44,7 @@ export class K8sTasks {
           } catch (error) {
             command.error('E_PLATFORM_NOT_READY: ' + error)
           }
-        }
+        },
       },
       VersionHelper.getK8sCheckVersionTask(flags),
       // Should automatically compute route if missing
@@ -55,11 +55,11 @@ export class K8sTasks {
             command.error('E_MISSING_ARGUMENT: the domain parameter needs to be defined.')
           }
           task.title = `${task.title}...set to ${flags.domain}.`
-        }
+        },
       },
-      CommonPlatformTasks.getPingClusterTask(flags)
+      CommonPlatformTasks.getPingClusterTask(flags),
     ],
-      { renderer: flags['listr-renderer'] as any }
+    { renderer: flags['listr-renderer'] as any }
     )
   }
 }

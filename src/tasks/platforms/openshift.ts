@@ -31,7 +31,7 @@ export class OpenshiftTasks {
           } else {
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: 'Verify if openshift is running',
@@ -42,7 +42,7 @@ export class OpenshiftTasks {
           } else {
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       VersionHelper.getOpenShiftCheckVersionTask(flags),
       VersionHelper.getK8sCheckVersionTask(flags),

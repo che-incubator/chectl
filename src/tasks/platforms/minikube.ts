@@ -33,7 +33,7 @@ export class MinikubeTasks {
           if (!commandExists.sync('kubectl')) {
             command.error('E_REQUISITE_NOT_FOUND')
           }
-        }
+        },
       },
       {
         title: 'Verify if minikube is installed',
@@ -41,13 +41,13 @@ export class MinikubeTasks {
           if (!commandExists.sync('minikube')) {
             command.error('E_REQUISITE_NOT_FOUND', { code: 'E_REQUISITE_NOT_FOUND' })
           }
-        }
+        },
       },
       {
         title: 'Verify if minikube is running',
         task: async (ctx: any) => {
           ctx.isMinikubeRunning = await this.isMinikubeRunning()
-        }
+        },
       },
       {
         title: 'Start minikube',
@@ -56,14 +56,14 @@ export class MinikubeTasks {
             return 'Minikube is already running.'
           }
         },
-        task: () => this.startMinikube()
+        task: () => this.startMinikube(),
       },
       VersionHelper.getK8sCheckVersionTask(flags),
       {
         title: 'Verify if minikube ingress addon is enabled',
         task: async (ctx: any) => {
           ctx.isIngressAddonEnabled = await this.isIngressAddonEnabled()
-        }
+        },
       },
       {
         title: 'Enable minikube ingress addon',
@@ -72,7 +72,7 @@ export class MinikubeTasks {
             return 'Ingress addon is already enabled.'
           }
         },
-        task: () => this.enableIngressAddon()
+        task: () => this.enableIngressAddon(),
       },
       {
         title: 'Retrieving minikube IP and domain for ingress URLs',
@@ -81,7 +81,7 @@ export class MinikubeTasks {
           const ip = await this.getMinikubeIP()
           flags.domain = ip + '.nip.io'
           task.title = `${task.title}...${flags.domain}.`
-        }
+        },
       },
       {
         title: 'Checking minikube version',
@@ -93,7 +93,7 @@ export class MinikubeTasks {
           ctx.minikubeVersionPatch = parseInt(versionComponents[2], 10)
 
           task.title = `${task.title}... ${version}`
-        }
+        },
       },
       {
         // Starting from Minikube 1.9 there is a bug with storage provisioner which prevents Che from successful deployment.
@@ -110,30 +110,32 @@ export class MinikubeTasks {
             kind: 'Pod',
             spec: {
               containers: [
-                { name: 'storage-provisioner', image: storageProvisionerImage }
-              ]
-            }
+                { name: 'storage-provisioner', image: storageProvisionerImage },
+              ],
+            },
           }
-          if (! await kube.patchNamespacedPod('storage-provisioner', 'kube-system', storageProvisionerImagePatch)) {
+          if (!await kube.patchNamespacedPod('storage-provisioner', 'kube-system', storageProvisionerImagePatch)) {
             throw new Error('Failed to patch storage provisioner image')
           }
 
           // Set required permissions for cluster role of persistent volume provisioner
-          if (! await kube.addClusterRoleRule('system:persistent-volume-provisioner',
+          if (!await kube.addClusterRoleRule('system:persistent-volume-provisioner',
             [''], ['endpoints'], ['get', 'list', 'watch', 'create', 'patch', 'update'])) {
             throw new Error('Failed to patch permissions for persistent-volume-provisioner')
           }
 
           task.title = `${task.title}... done`
-        }
+        },
       },
-      CommonPlatformTasks.getPingClusterTask(flags)
+      CommonPlatformTasks.getPingClusterTask(flags),
     ], { renderer: flags['listr-renderer'] as any })
   }
 
   async isMinikubeRunning(): Promise<boolean> {
     const { exitCode } = await execa('minikube', ['status'], { timeout: 10000, reject: false })
-    if (exitCode === 0) { return true } else { return false }
+    if (exitCode === 0) {
+      return true
+    }  return false
   }
 
   async startMinikube() {
@@ -147,12 +149,12 @@ export class MinikubeTasks {
       // grab json
       const json = JSON.parse(stdout)
       return json.ingress && json.ingress.Status === 'enabled'
+    // eslint-disable-next-line no-else-return
     } else {
       // probably with old minikube, let's try with classic output
       const { stdout } = await execa('minikube', ['addons', 'list'], { timeout: 10000 })
       return stdout.includes('ingress: enabled')
     }
-
   }
 
   async enableIngressAddon() {
@@ -170,5 +172,4 @@ export class MinikubeTasks {
     const versionString = versionLine.trim().split(' ')[2].substr(1)
     return versionString
   }
-
 }

@@ -37,7 +37,7 @@ export class DockerDesktopTasks {
           if (!commandExists.sync('kubectl')) {
             command.error('E_REQUISITE_NOT_FOUND')
           }
-        }
+        },
       },
       {
         title: 'Verify if kubectl context is Docker Desktop',
@@ -48,7 +48,7 @@ export class DockerDesktopTasks {
           } else {
             task.title = `${task.title}: Found ${context}.`
           }
-        }
+        },
       },
       {
         title: 'Verify remote kubernetes status',
@@ -60,14 +60,14 @@ export class DockerDesktopTasks {
           } catch (error) {
             command.error('E_PLATFORM_NOT_READY: ' + error)
           }
-        }
+        },
       },
       VersionHelper.getK8sCheckVersionTask(flags),
       {
         title: 'Verify if nginx ingress is installed',
         task: async (ctx: any) => {
           ctx.isNginxIngressInstalled = await this.isNginxIngressEnabled()
-        }
+        },
       },
       {
         title: 'Installing nginx ingress',
@@ -76,7 +76,7 @@ export class DockerDesktopTasks {
             return 'Ngninx ingress is already setup.'
           }
         },
-        task: () => this.enableNginxIngress()
+        task: () => this.enableNginxIngress(),
       },
 
       // Should automatically compute route if missing
@@ -93,7 +93,7 @@ export class DockerDesktopTasks {
             task.title = `${task.title}... auto-assigning domain to ${flags.domain}.`
           }
           task.title = `${task.title}...set to ${flags.domain}.`
-        }
+        },
       },
     ], { renderer: flags['listr-renderer'] as any })
   }
@@ -117,7 +117,7 @@ export class DockerDesktopTasks {
   }
 
   grabIps(): string[] {
-    let networkInterfaces = os.networkInterfaces()
+    const networkInterfaces = os.networkInterfaces()
     const allIps: string[] = []
     Object.keys(networkInterfaces).forEach(interfaceName => {
       networkInterfaces[interfaceName].forEach(iface => {
@@ -128,5 +128,4 @@ export class DockerDesktopTasks {
     })
     return allIps
   }
-
 }

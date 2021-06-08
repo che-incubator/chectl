@@ -77,6 +77,8 @@
     "chai": "^4.2.0",
     "cpx": "^1.5.0",
     "eslint": "^7.28.0",
+    "eslint-config-oclif": "^3.1.0",
+    "eslint-config-oclif-typescript": "^0.2.0",
     "eslint-plugin-header": "^3.1.1",
     "eslint-plugin-no-null": "^1.0.2",
     "globby": "^11",
@@ -88,7 +90,7 @@
     "typescript-formatter": "7.2.2"
   },
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=12.0.0"
   },
   "files": [
     "/bin",
@@ -149,7 +151,7 @@
   },
   "repository": "che-incubator/chectl",
   "scripts": {
-    "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-helm && npm run -s postinstall-cert-manager && npm run -s postinstall-operator && npm run -s postinstall-dev-workspace && npm run -s postinstall-cleanup",
+    "postinstall": "yarn lint && npm run -s postinstall-repositories && npm run -s postinstall-helm && npm run -s postinstall-cert-manager && npm run -s postinstall-operator && npm run -s postinstall-dev-workspace && npm run -s postinstall-cleanup",
     "postinstall-helm": "rimraf templates/kubernetes && cpx 'node_modules/eclipse-che-server/deploy/kubernetes/**' 'templates/kubernetes'",
     "postinstall-cert-manager": "rimraf templates/cert-manager && cpx 'node_modules/eclipse-che-server/deploy/cert-manager/**' 'templates/cert-manager'",
     "postinstall-dev-workspace": "rimraf templates/devworkspace && cpx 'node_modules/eclipse-che-devfile-workspace-operator/deploy/**' 'templates/devworkspace'",

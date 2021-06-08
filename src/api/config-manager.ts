@@ -21,9 +21,11 @@ import { ChectlContext } from './context'
  */
 export class ConfigManager {
   private static configManager: ConfigManager
+
   private static readonly CHECTL_CONFIG_FILE_NAME = 'config.json'
 
   private data: any
+
   private readonly configPath: string
 
   private constructor(configDir: string) {

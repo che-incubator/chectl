@@ -23,7 +23,7 @@ export default class Logout extends Command {
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   async run() {

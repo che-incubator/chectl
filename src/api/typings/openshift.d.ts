@@ -14,7 +14,7 @@ export interface OAuth {
     apiVersion: string;
     kind: string;
     metadata: V1ObjectMeta;
-  
+
     spec: OAuthSpec;
 }
 
