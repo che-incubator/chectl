@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Red Hat, Inc.
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -252,9 +252,10 @@ export default class Update extends Command {
           // Despite the operator image is the same, CR patch might contain some changes.
           cli.info('Patching existing Eclipse Che installation.')
           return true
+        } else {
+          cli.info('Eclipse Che is already up to date.')
+          return false
         }
-        cli.info('Eclipse Che is already up to date.')
-        return false
       }
 
       if (this.isUpgrade(ctx.deployedCheOperatorImageTag, ctx.newCheOperatorImageTag)) {

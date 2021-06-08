@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Red Hat, Inc.
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -238,21 +238,27 @@ export class HelmTasks {
     const { exitCode } = await execa('kubectl', ['get', 'clusterrolebinding', `${cheNamespace}-che-clusterrole-binding`], { timeout: execTimeout, reject: false })
     if (exitCode === 0) {
       return true
-    }  return false
+    } else {
+      return false
+    }
   }
 
   async removeClusterRoleBinding(cheNamespace: string, execTimeout = 30000): Promise<boolean> {
     const { exitCode } = await execa('kubectl', ['delete', 'clusterrolebinding', `${cheNamespace}-che-clusterrole-binding`], { timeout: execTimeout, reject: false })
     if (exitCode === 0) {
       return true
-    }  return false
+    } else {
+      return false
+    }
   }
 
   async tillerRoleBindingExist(execTimeout = 30000): Promise<boolean> {
     const { exitCode } = await execa('kubectl', ['get', 'clusterrolebinding', 'add-on-cluster-admin'], { timeout: execTimeout, reject: false })
     if (exitCode === 0) {
       return true
-    }  return false
+    } else {
+      return false
+    }
   }
 
   async createTillerRoleBinding(execTimeout = 30000) {
@@ -263,7 +269,9 @@ export class HelmTasks {
     const { exitCode } = await execa('kubectl', ['get', 'serviceaccounts', 'tiller', '--namespace', 'kube-system'], { timeout: execTimeout, reject: false })
     if (exitCode === 0) {
       return true
-    }  return false
+    } else {
+      return false
+    }
   }
 
   async createTillerServiceAccount(execTimeout = 120000) {
@@ -281,7 +289,9 @@ export class HelmTasks {
     const { exitCode } = await execa('kubectl', ['get', 'services', 'tiller-deploy', '-n', 'kube-system'], { timeout: execTimeout, reject: false })
     if (exitCode === 0) {
       return true
-    }  return false
+    } else {
+      return false
+    }
   }
 
   async getVersion(execTimeout = 10000): Promise<string> {

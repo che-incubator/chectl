@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Red Hat, Inc.
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -113,8 +113,9 @@ export class CheHelper {
 
     if (await this.kube.isOpenShift()) {
       return this.cheOpenShiftURL(namespace)
+    } else {
+      return this.cheK8sURL(namespace)
     }
-    return this.cheK8sURL(namespace)
   }
 
   async chePluginRegistryURL(namespace = ''): Promise<string> {
@@ -130,8 +131,9 @@ export class CheHelper {
     // grab URL
     if (await this.kube.isOpenShift()) {
       return this.chePluginRegistryOpenShiftURL(namespace)
+    } else {
+      return this.chePluginRegistryK8sURL(namespace)
     }
-    return this.chePluginRegistryK8sURL(namespace)
   }
 
   async isSelfSignedCertificateSecretExist(namespace: string): Promise<boolean> {
@@ -303,8 +305,9 @@ export class CheHelper {
     if (devfilePath.startsWith('http')) {
       const response = await this.axios.get(devfilePath)
       return response.data
+    } else {
+      return fs.readFileSync(devfilePath, 'utf8')
     }
-    return fs.readFileSync(devfilePath, 'utf8')
   }
 
   async buildDashboardURL(ideURL: string): Promise<string> {

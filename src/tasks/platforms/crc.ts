@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Red Hat, Inc.
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -74,8 +74,9 @@ export class CRCHelper {
       stdout.includes('CRC VM:          Running') &&
       stdout.includes('OpenShift:       Running')) {
       return true
+    } else {
+      return false
     }
-    return false
   }
 
   async getCRCIP(): Promise<string> {

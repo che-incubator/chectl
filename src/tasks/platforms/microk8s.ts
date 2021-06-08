@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Red Hat, Inc.
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -106,7 +106,9 @@ export class MicroK8sTasks {
     const { exitCode } = await execa('microk8s.status', { timeout: 10000, reject: false })
     if (exitCode === 0) {
       return true
-    }  return false
+    } else {
+      return false
+    }
   }
 
   async startMicroK8s() {

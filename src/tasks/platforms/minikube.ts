@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Red Hat, Inc.
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -135,7 +135,9 @@ export class MinikubeTasks {
     const { exitCode } = await execa('minikube', ['status'], { timeout: 10000, reject: false })
     if (exitCode === 0) {
       return true
-    }  return false
+    } else {
+      return false
+    }
   }
 
   async startMinikube() {
@@ -149,7 +151,6 @@ export class MinikubeTasks {
       // grab json
       const json = JSON.parse(stdout)
       return json.ingress && json.ingress.Status === 'enabled'
-    // eslint-disable-next-line no-else-return
     } else {
       // probably with old minikube, let's try with classic output
       const { stdout } = await execa('minikube', ['addons', 'list'], { timeout: 10000 })

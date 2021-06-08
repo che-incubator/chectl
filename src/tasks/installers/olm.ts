@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Red Hat, Inc.
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -430,8 +430,9 @@ export class OLMTasks {
     if (csv && csv.metadata.annotations) {
       const CRRaw = csv.metadata.annotations!['alm-examples']
       return (yaml.safeLoad(CRRaw) as Array<any>)[0]
+    } else {
+      throw new Error(`Unable to retrieve Che cluster CR definition from CSV: ${currentCSV}`)
     }
-    throw new Error(`Unable to retrieve Che cluster CR definition from CSV: ${currentCSV}`)
   }
 
   private getOlmNamespaceLabels(flags: any): any {

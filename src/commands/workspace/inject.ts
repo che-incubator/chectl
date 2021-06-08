@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Red Hat, Inc.
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -147,7 +147,9 @@ export default class Inject extends Command {
     const { exitCode } = await execa(`${this.command} exec ${pod} -n ${namespace} -c ${container} -- tar --version `, { timeout: 10000, reject: false, shell: true })
     if (exitCode === 0) {
       return true
-    }  return false
+    } else {
+      return false
+    }
   }
 
   /**
@@ -211,13 +213,16 @@ export default class Inject extends Command {
     await execa(this.command, ['config', configPathFlag, kubeConfigPath, 'use-context', contextToInject.name], { timeout: 10000 })
 
     await execa(this.command, ['cp', kubeConfigPath, `${namespace}/${workspacePod}:${containerHomeDir}.kube/config`, '-c', container], { timeout: 10000 })
+    return
   }
 
   private async fileExists(namespace: string, pod: string, container: string, file: string): Promise<boolean> {
     const { exitCode } = await execa(`${this.command} exec ${pod} -n ${namespace} -c ${container} -- test -e ${file}`, { timeout: 10000, reject: false, shell: true })
     if (exitCode === 0) {
       return true
-    }  return false
+    } else {
+      return false
+    }
   }
 
   private async containerExists(namespace: string, pod: string, container: string): Promise<boolean> {

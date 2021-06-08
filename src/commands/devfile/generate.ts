@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Red Hat, Inc.
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -251,8 +251,9 @@ export default class Generate extends Command {
     const updatedArgs = process.argv.slice(index).map(arg => {
       if (arg.indexOf(' ') >= 0) {
         return arg.replace(/(.*?)=(.*)/g, '$1=\"$2\"')
+      } else {
+        return arg
       }
-      return arg
     })
     this.log(`# chectl ${updatedArgs.join(' ')}`)
     this.log(yaml.safeDump(devfile))

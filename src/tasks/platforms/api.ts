@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Red Hat, Inc.
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -17,10 +17,10 @@ import { newError } from '../../util'
 
 export class ApiTasks {
   /**
-    * Returns tasks which tests if K8s or OpenShift API is configured in the current context.
-    *
-    * `isOpenShift` property is provisioned into context.
-    */
+   * Returns tasks which tests if K8s or OpenShift API is configured in the current context.
+   *
+   * `isOpenShift` property is provisioned into context.
+   */
   testApiTasks(flags: any): Listr.ListrTask {
     const kube = new KubeHelper(flags)
     return {

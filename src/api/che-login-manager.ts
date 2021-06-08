@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Red Hat, Inc.
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -172,8 +172,9 @@ export class CheServerLoginManager {
     apiUrl = CheApiClient.normalizeCheApiEndpointUrl(apiUrl)
     if (username) {
       return Boolean(this.getLoginRecord(apiUrl, username))
+    } else {
+      return Boolean(this.loginData.logins![apiUrl])
     }
-    return Boolean(this.loginData.logins![apiUrl])
   }
 
   public getCurrentLoginInfo(): { cheApiEndpoint: string, username: string } {
@@ -432,14 +433,16 @@ export class CheServerLoginManager {
     }
     if (isPasswordLoginData(loginRecord)) {
       return this.getKeycloakAuthDataByUserNameAndPassword(cheKeycloakSettings, loginRecord.username, loginRecord.password)
+    } else {
+      if (isRefreshTokenLoginData(loginRecord)) {
+        return this.getKeycloakAuthDataByRefreshToken(cheKeycloakSettings, loginRecord.refreshToken)
+      } else if (isOcUserTokenLoginData(loginRecord)) {
+        return this.getKeycloakAuthDataByOcToken(cheKeycloakSettings, loginRecord.subjectToken, loginRecord.subjectIssuer)
+      } else {
+        // Should never happen
+        throw new Error('Token is not provided')
+      }
     }
-    if (isRefreshTokenLoginData(loginRecord)) {
-      return this.getKeycloakAuthDataByRefreshToken(cheKeycloakSettings, loginRecord.refreshToken)
-    } if (isOcUserTokenLoginData(loginRecord)) {
-      return this.getKeycloakAuthDataByOcToken(cheKeycloakSettings, loginRecord.subjectToken, loginRecord.subjectIssuer)
-    }
-    // Should never happen
-    throw new Error('Token is not provided')
   }
 
   private async getKeycloakAuthDataByUserNameAndPassword(cheKeycloakSettings: CheKeycloakSettings, username: string, password: string): Promise<KeycloakAuthTokenResponse> {

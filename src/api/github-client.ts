@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Red Hat, Inc.
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -42,7 +42,7 @@ export class CheGithubClient {
   async getTemplatesTagInfo(installer: string, version?: string): Promise<TagInfo | undefined> {
     if (installer === 'operator' || installer === 'olm') {
       return this.getTagInfoByVersion(CHE_OPERATOR_REPO, version)
-    } if (installer === 'helm') {
+    } else if (installer === 'helm') {
       return this.getTagInfoByVersion(CHE_REPO, version)
     }
     throw new Error(`Unsupported installer: ${installer}`)
@@ -129,21 +129,22 @@ export class CheGithubClient {
     if (!version || version === 'latest' || version === 'stable') {
       const tags = await this.listLatestTags(repo)
       return this.getLatestTag(tags)
-    } if (version === 'next' || version === 'nightly') {
+    } else if (version === 'next' || version === 'nightly') {
       return this.getLastCommitInfo(repo)
+    } else {
+      // User might provide a version directly or only version prefix, e.g. 7.15
+      // Some old tags might have 'v' prefix
+      if (version.startsWith('v')) {
+        // Remove 'v' prefix
+        version = version.substr(1)
+      }
+      let tagInfo = await this.getTagInfoByVersionPrefix(repo, version)
+      if (!tagInfo) {
+        // Try to add 'v' prefix
+        tagInfo = tagInfo = await this.getTagInfoByVersionPrefix(repo, 'v' + version)
+      }
+      return tagInfo
     }
-    // User might provide a version directly or only version prefix, e.g. 7.15
-    // Some old tags might have 'v' prefix
-    if (version.startsWith('v')) {
-      // Remove 'v' prefix
-      version = version.substr(1)
-    }
-    let tagInfo = await this.getTagInfoByVersionPrefix(repo, version)
-    if (!tagInfo) {
-      // Try to add 'v' prefix
-      tagInfo = tagInfo = await this.getTagInfoByVersionPrefix(repo, 'v' + version)
-    }
-    return tagInfo
   }
 
   /**
@@ -162,7 +163,7 @@ export class CheGithubClient {
     const tags = await this.listLatestTags(repo, versionPrefix)
     if (tags.length === 0) {
       // Wrong version is given
-
+      return
     } else if (tags.length === 1) {
       return tags[0]
     } else {
@@ -225,12 +226,13 @@ export class CheGithubClient {
     const sortedSemanticTags = semanticTags.sort((semTagA: SemanticTagData, semTagB: SemanticTagData) => {
       if (semTagA.major !== semTagB.major) {
         return semTagB.major - semTagA.major
-      } if (semTagA.minor !== semTagB.minor) {
+      } else if (semTagA.minor !== semTagB.minor) {
         return semTagB.minor - semTagA.minor
-      } if (semTagA.patch !== semTagB.patch) {
+      } else if (semTagA.patch !== semTagB.patch) {
         return semTagB.patch - semTagA.patch
+      } else {
+        return 0
       }
-      return 0
     })
 
     return sortedSemanticTags.map(tag => tag.data)
