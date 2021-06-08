@@ -24,5 +24,7 @@ jobs:
           node-version: '12'
       - name: Install chectl dependencies
         run: yarn
+      - name: Run eslint
+        run: yarn lint
       - name: Run unit tests
         run: yarn test
