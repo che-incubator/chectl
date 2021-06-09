@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2020 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import Command from '@oclif/command'
 import ansi = require('ansi-colors')
@@ -40,7 +42,7 @@ export function createNamespaceTask(namespaceName: string, labels: {}): Listr.Li
         await che.waitNamespaceActive(namespaceName)
         task.title = `${task.title}...Done.`
       }
-    }
+    },
   }
 }
 
@@ -62,7 +64,7 @@ export function checkChectlAndCheVersionCompatibility(flags: any): Listr.ListrTa
       }
 
       task.title = `${task.title}... OK`
-    }
+    },
   }
 }
 
@@ -109,14 +111,14 @@ export function downloadTemplates(flags: any): Listr.ListrTask {
       const cheHelper = new CheHelper(flags)
       await cheHelper.downloadAndUnpackTemplates(flags.installer, ctx.versionInfo.zipball_url, versionTemplatesDirPath)
       task.title = `${task.title} ... OK`
-    }
+    },
   }
 }
 
 export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.ListrTask {
   return {
     title: `Create the Custom Resource of type ${CHE_CLUSTER_CRD} in the namespace ${flags.chenamespace}`,
-    enabled: ctx => !!ctx.customCR || !!ctx.defaultCR,
+    enabled: ctx => Boolean(ctx.customCR) || Boolean(ctx.defaultCR),
     task: async (ctx: any, task: any) => {
       ctx.isCheDeployed = true
       ctx.isPostgresDeployed = true
@@ -149,7 +151,7 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
       }
 
       task.title = `${task.title}...done.`
-    }
+    },
   }
 }
 
@@ -171,7 +173,7 @@ export function patchingEclipseCheCluster(flags: any, kube: KubeHelper, command:
       }
       await kube.patchCheCluster(cheCluster.metadata.name, flags.chenamespace, ctx[ChectlContext.CR_PATCH])
       task.title = `${task.title}...done.`
-    }
+    },
   }
 }
 
@@ -195,8 +197,7 @@ export function retrieveCheCaCertificateTask(flags: any): Listr.ListrTask {
       } else {
         task.title = `${task.title}... commonly trusted certificate is used.`
       }
-
-    }
+    },
   }
 }
 
@@ -220,7 +221,7 @@ export function getRetrieveKeycloakCredentialsTask(flags: any): Listr.ListrTask 
       } else {
         task.title = `${task.title}...failed.`
       }
-    }
+    },
   }
 }
 
@@ -237,10 +238,10 @@ export function getPrintHighlightedMessagesTask(): Listr.ListrTask {
       for (const message of ctx.highlightedMessages) {
         printMessageTasks.add({
           title: message,
-          task: () => { }
+          task: () => { },
         })
       }
       return printMessageTasks
-    }
+    },
   }
 }

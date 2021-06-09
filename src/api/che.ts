@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019-2020 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { che as chetypes } from '@eclipse-che/api'
 import { CoreV1Api, V1Pod, Watch } from '@kubernetes/client-node'
@@ -33,7 +35,9 @@ import { KubeHelper } from './kube'
 
 export class CheHelper {
   defaultCheResponseTimeoutMs = 3000
+
   kube: KubeHelper
+
   oc = new OpenShiftHelper()
 
   private readonly axios: AxiosInstance
@@ -45,7 +49,7 @@ export class CheHelper {
     const httpsAgent = new https.Agent({ rejectUnauthorized: false })
 
     this.axios = axios.create({
-      httpsAgent
+      httpsAgent,
     })
   }
 
@@ -134,7 +138,7 @@ export class CheHelper {
 
   async isSelfSignedCertificateSecretExist(namespace: string): Promise<boolean> {
     const selfSignedCertSecret = await this.kube.getSecret(CHE_ROOT_CA_SECRET_NAME, namespace)
-    return !!selfSignedCertSecret
+    return Boolean(selfSignedCertSecret)
   }
 
   /**
@@ -283,7 +287,7 @@ export class CheHelper {
     try {
       devfile = await this.parseDevfile(devfilePath)
       if (workspaceName) {
-        let json: Devfile = yaml.load(devfile)
+        const json: Devfile = yaml.load(devfile)
         json.metadata.name = workspaceName
         devfile = yaml.dump(json)
       }
@@ -531,5 +535,4 @@ export class CheHelper {
       }
     }
   }
-
 }

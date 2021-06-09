@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
@@ -26,15 +28,15 @@ export default class Stop extends Command {
     [ACCESS_TOKEN_KEY]: accessToken,
     chenamespace: cheNamespace,
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   static args = [
     {
       name: 'workspace',
       description: 'The workspace id to stop',
-      required: true
-    }
+      required: true,
+    },
   ]
 
   async run() {

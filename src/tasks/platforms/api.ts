@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 
@@ -20,7 +22,7 @@ export class ApiTasks {
    * `isOpenShift` property is provisioned into context.
    */
   testApiTasks(flags: any): Listr.ListrTask {
-    let kube = new KubeHelper(flags)
+    const kube = new KubeHelper(flags)
     return {
       title: 'Verify Kubernetes API',
       task: async (ctx: any, task: any) => {
@@ -39,7 +41,7 @@ export class ApiTasks {
         } catch (error) {
           return newError('Failed to connect to Kubernetes API. If you\'re sure that your Kubernetes cluster is healthy - you can skip this check with \'--skip-kubernetes-health-check\' flag.', error)
         }
-      }
+      },
     }
   }
 }

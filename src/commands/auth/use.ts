@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2020 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
@@ -25,9 +27,10 @@ export default class Use extends Command {
     {
       name: CHE_API_ENDPOINT_KEY,
       description: 'Eclipse Che server API endpoint',
-      required: false
-    }
+      required: false,
+    },
   ]
+
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     [USERNAME_KEY]: username,
@@ -35,9 +38,9 @@ export default class Use extends Command {
       char: 'i',
       description: 'Select an active login session in interactive mode',
       required: false,
-      exclusive: [USERNAME_KEY]
+      exclusive: [USERNAME_KEY],
     }),
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   static examples = [
@@ -140,7 +143,7 @@ export default class Use extends Command {
         for (const login of serverLogins) {
           const choise = {
             name: `   ${login}`,
-            value: { cheApiEndpoint: serverUrl, username: login }
+            value: { cheApiEndpoint: serverUrl, username: login },
           }
           choices.push(choise)
           if (currentLogin.cheApiEndpoint === serverUrl && currentLogin.username === login) {
@@ -174,5 +177,4 @@ export default class Use extends Command {
       cli.info('Nothing to change')
     }
   }
-
 }

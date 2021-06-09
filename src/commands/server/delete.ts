@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Command, flags } from '@oclif/command'
 import { boolean } from '@oclif/command/lib/flags'
@@ -35,7 +37,7 @@ export default class Delete extends Command {
     batch,
     'delete-namespace': boolean({
       description: 'Indicates that a Eclipse Che namespace will be deleted as well',
-      default: false
+      default: false,
     }),
     'deployment-name': cheDeployment,
     'listr-renderer': listrRenderer,
@@ -46,7 +48,7 @@ export default class Delete extends Command {
     }),
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
     yes: assumeYes,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   async run() {

@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2020 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import * as fs from 'fs-extra'
 import * as Listr from 'listr'
@@ -24,12 +26,14 @@ export const DEFAULT_CHE_CLUSTER_ISSUER_NAME = 'che-cluster-issuer'
 
 export class CertManagerTasks {
   protected kubeHelper: KubeHelper
+
   protected cheHelper: CheHelper
 
   constructor(flags: any) {
     this.kubeHelper = new KubeHelper(flags)
     this.cheHelper = new CheHelper(flags)
   }
+
   /**
    * Verify if cert-manager is installed in cluster
    */
@@ -45,14 +49,14 @@ export class CertManagerTasks {
           } else {
             task.title = `${task.title}...not deployed`
           }
-        }
+        },
       },
       {
         title: 'Deploy cert-manager',
         enabled: ctx => !ctx.certManagerInstalled,
         task: async (ctx: any, task: any) => {
           let yamlPath = path.join(flags.templates, 'cert-manager', 'cert-manager.yaml')
-          if (! await fs.pathExists(yamlPath)) {
+          if (!await fs.pathExists(yamlPath)) {
             // Older Che versions don't have Cert Manager install yaml in templates
             // Try to use embedded in chectl version
             yamlPath = path.join(__dirname, '../../../installers/cert-manager.yml')
@@ -62,7 +66,7 @@ export class CertManagerTasks {
           ctx.certManagerInstalled = true
 
           task.title = `${task.title}...done`
-        }
+        },
       },
       {
         title: 'Wait for cert-manager',
@@ -80,10 +84,11 @@ export class CertManagerTasks {
           await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cainjector', CERT_MANAGER_NAMESPACE_NAME, 1000, timeout)
 
           task.title = `${task.title}...ready`
-        }
+        },
       },
     ]
   }
+
   /**
    * Returns list of tasks which perform cert-manager checks and requests self-signed certificate for Che.
    */
@@ -141,7 +146,7 @@ export class CertManagerTasks {
           } else {
             task.title = `${task.title}...already exists`
           }
-        }
+        },
       },
       {
         title: 'Set up Eclipse Che certificates issuer',
@@ -175,7 +180,7 @@ export class CertManagerTasks {
           } else {
             task.title = `${task.title}...already exists`
           }
-        }
+        },
       },
       {
         title: 'Request certificate',
@@ -203,7 +208,7 @@ export class CertManagerTasks {
           ctx.cheCertificateExists = true
 
           task.title = `${task.title}...done`
-        }
+        },
       },
       {
         title: 'Wait for certificate',
@@ -215,7 +220,7 @@ export class CertManagerTasks {
           await this.kubeHelper.waitSecret(CHE_TLS_SECRET_NAME, flags.chenamespace, ['tls.key', 'tls.crt', 'ca.crt'])
 
           task.title = `${task.title}...ready`
-        }
+        },
       },
       {
         title: 'Retrieving Che CA certificate',
@@ -240,9 +245,8 @@ export class CertManagerTasks {
           } else {
             throw new Error('Failed to get Cert Manager CA secret')
           }
-        }
-      }
+        },
+      },
     ]
   }
-
 }

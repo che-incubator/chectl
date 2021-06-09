@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019-2020 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { che as chetypes } from '@eclipse-che/api'
 import axios, { AxiosInstance } from 'axios'
@@ -21,6 +23,7 @@ import { newError, sleep } from '../util'
 let instance: CheApiClient | undefined
 export class CheApiClient {
   public defaultCheResponseTimeoutMs = 3000
+
   public readonly cheApiEndpoint: string
 
   private readonly axios: AxiosInstance
@@ -32,7 +35,7 @@ export class CheApiClient {
     const httpsAgent = new https.Agent({ rejectUnauthorized: false })
 
     this.axios = axios.create({
-      httpsAgent
+      httpsAgent,
     })
   }
 
@@ -124,7 +127,7 @@ export class CheApiClient {
   async waitUntilCheServerReadyToShutdown(intervalMs = 500, timeoutMs = 60000): Promise<void> {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
-      let status = await this.getCheServerStatus()
+      const status = await this.getCheServerStatus()
       if (status === 'READY_TO_SHUTDOWN') {
         return
       }
@@ -356,7 +359,6 @@ export class CheApiClient {
         // that falls out of the range of 2xx
         return newError(`E_CHE_API_UNKNOWN_ERROR - Endpoint: ${endpoint} -Status: ${error.response.status}`, error)
       }
-
     } else if (error.request) {
       // The request was made but no response was received
       // `error.request` is an instance of XMLHttpRequest in the browser and an instance of

@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 
@@ -19,7 +21,9 @@ interface FailState {
 
 export class KubeTasks {
   private readonly interval = 500
+
   private readonly kubeHelper: KubeHelper
+
   constructor(flags: any) {
     this.kubeHelper = new KubeHelper(flags)
   }
@@ -61,7 +65,7 @@ export class KubeTasks {
           }
 
           throw new Error(`Failed to schedule a pod: ${await this.getTimeOutErrorMessage(namespace, selector)}`)
-        }
+        },
       },
       {
         title: 'Downloading images',
@@ -90,7 +94,7 @@ export class KubeTasks {
           }
 
           throw new Error(`Failed to download image: ${await this.getTimeOutErrorMessage(namespace, selector)}`)
-        }
+        },
       },
       {
         title: 'Starting',
@@ -135,8 +139,8 @@ export class KubeTasks {
           }
 
           throw new Error(`Failed to start a pod: ${await this.getTimeOutErrorMessage(namespace, selector)}`)
-        }
-      }
+        },
+      },
     ])
   }
 
@@ -148,7 +152,7 @@ export class KubeTasks {
   private async isPodConditionStatusPassed(namespace: string, selector: string, conditionType: string): Promise<boolean> {
     const status = await this.kubeHelper.getPodCondition(namespace, selector, conditionType)
     const allScheduled = !status.some(s => s.status !== 'True')
-    return !!status.length && allScheduled
+    return Boolean(status.length) && allScheduled
   }
 
   /**

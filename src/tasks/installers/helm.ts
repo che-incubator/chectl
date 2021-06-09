@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Command } from '@oclif/command'
 import { cli } from 'cli-ux'
@@ -47,7 +49,11 @@ export class HelmTasks {
     return new Listr([
       {
         title: 'Verify if helm is installed',
-        task: () => { if (!commandExists.sync('helm')) { command.error('E_REQUISITE_NOT_FOUND') } }
+        task: () => {
+          if (!commandExists.sync('helm')) {
+            command.error('E_REQUISITE_NOT_FOUND')
+          }
+        },
       },
       {
         title: 'Check Helm Version',
@@ -67,7 +73,7 @@ export class HelmTasks {
           } catch (error) {
             return newError('Unable to get helm version', error)
           }
-        }
+        },
       },
       {
         title: `Create Namespace (${flags.chenamespace})`,
@@ -79,7 +85,7 @@ export class HelmTasks {
             await execa(`kubectl create namespace ${flags.chenamespace}`, { shell: true })
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: 'Check Eclipse Che TLS certificate',
@@ -116,7 +122,7 @@ export class HelmTasks {
 
             return certManagerListTasks
           }
-        }
+        },
       },
       {
         title: 'Create Tiller Role Binding',
@@ -130,7 +136,7 @@ export class HelmTasks {
             await this.createTillerRoleBinding()
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: 'Check Cluster Role Binding',
@@ -144,7 +150,7 @@ export class HelmTasks {
             await this.removeClusterRoleBinding(flags.chenamespace)
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: 'Create Tiller Service Account',
@@ -158,13 +164,13 @@ export class HelmTasks {
             await this.createTillerServiceAccount()
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: 'Create Tiller RBAC',
         // Tiller is not used anymore in helm v3
         enabled: (ctx: any) => !ctx.isHelmV3,
-        task: async () => this.createTillerRBAC(flags.templates)
+        task: async () => this.createTillerRBAC(flags.templates),
       },
       {
         // Tiller is not used anymore in helm v3
@@ -178,7 +184,7 @@ export class HelmTasks {
             await this.createTillerService()
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: 'Updating Helm Chart dependencies',
@@ -198,14 +204,14 @@ export class HelmTasks {
           }
           await this.updateCheHelmChartDependencies(flags)
           task.title = `${task.title}...done.`
-        }
+        },
       },
       {
         title: 'Deploying Eclipse Che Helm Chart',
         task: async (ctx: any, task: any) => {
           await this.upgradeCheHelmChart(ctx, flags)
           task.title = `${task.title}...done.`
-        }
+        },
       },
     ], { renderer: flags['listr-renderer'] as any })
   }
@@ -224,23 +230,35 @@ export class HelmTasks {
           await this.purgeHelmChart('che', flags.chenamespace)
           task.title = `${task.title} ... OK`
         }
-      }
+      },
     }]
   }
 
   async clusterRoleBindingExist(cheNamespace: string, execTimeout = 30000): Promise<boolean> {
     const { exitCode } = await execa('kubectl', ['get', 'clusterrolebinding', `${cheNamespace}-che-clusterrole-binding`], { timeout: execTimeout, reject: false })
-    if (exitCode === 0) { return true } else { return false }
+    if (exitCode === 0) {
+      return true
+    } else {
+      return false
+    }
   }
 
   async removeClusterRoleBinding(cheNamespace: string, execTimeout = 30000): Promise<boolean> {
     const { exitCode } = await execa('kubectl', ['delete', 'clusterrolebinding', `${cheNamespace}-che-clusterrole-binding`], { timeout: execTimeout, reject: false })
-    if (exitCode === 0) { return true } else { return false }
+    if (exitCode === 0) {
+      return true
+    } else {
+      return false
+    }
   }
 
   async tillerRoleBindingExist(execTimeout = 30000): Promise<boolean> {
     const { exitCode } = await execa('kubectl', ['get', 'clusterrolebinding', 'add-on-cluster-admin'], { timeout: execTimeout, reject: false })
-    if (exitCode === 0) { return true } else { return false }
+    if (exitCode === 0) {
+      return true
+    } else {
+      return false
+    }
   }
 
   async createTillerRoleBinding(execTimeout = 30000) {
@@ -249,7 +267,11 @@ export class HelmTasks {
 
   async tillerServiceAccountExist(execTimeout = 30000): Promise<boolean> {
     const { exitCode } = await execa('kubectl', ['get', 'serviceaccounts', 'tiller', '--namespace', 'kube-system'], { timeout: execTimeout, reject: false })
-    if (exitCode === 0) { return true } else { return false }
+    if (exitCode === 0) {
+      return true
+    } else {
+      return false
+    }
   }
 
   async createTillerServiceAccount(execTimeout = 120000) {
@@ -265,16 +287,23 @@ export class HelmTasks {
 
   async tillerServiceExist(execTimeout = 30000): Promise<boolean> {
     const { exitCode } = await execa('kubectl', ['get', 'services', 'tiller-deploy', '-n', 'kube-system'], { timeout: execTimeout, reject: false })
-    if (exitCode === 0) { return true } else { return false }
+    if (exitCode === 0) {
+      return true
+    } else {
+      return false
+    }
   }
 
   async getVersion(execTimeout = 10000): Promise<string> {
+    // eslint-disable-next-line prefer-const
     let { stdout, exitCode } = await execa('helm', ['version', '-c', '--short'], { timeout: execTimeout, reject: false })
     const CLIENT_PREFIX = 'Client: '
     if (stdout.startsWith(CLIENT_PREFIX)) {
       stdout = stdout.substring(CLIENT_PREFIX.length)
     }
-    if (exitCode === 0) { return stdout }
+    if (exitCode === 0) {
+      return stdout
+    }
     throw new Error('Unable to get version')
   }
 
@@ -328,7 +357,7 @@ error: E_COMMAND_FAILED`)
 
     let multiUserFlag = ''
     let tlsFlag = ''
-    let setOptions = []
+    const setOptions = []
 
     ctx.isCheDeployed = true
     ctx.isDashboardDeployed = true
@@ -343,7 +372,7 @@ error: E_COMMAND_FAILED`)
       tlsFlag = `-f ${destDir}values/tls.yaml`
     }
 
-    const selfSignedCertSecretExists = !! await this.kubeHelper.getSecret(CHE_ROOT_CA_SECRET_NAME, flags.chenamespace)
+    const selfSignedCertSecretExists = Boolean(await this.kubeHelper.getSecret(CHE_ROOT_CA_SECRET_NAME, flags.chenamespace))
     setOptions.push(`--set global.tls.useSelfSignedCerts=${selfSignedCertSecretExists}`)
 
     if (flags['plugin-registry-url']) {
@@ -382,9 +411,9 @@ error: E_COMMAND_FAILED`)
 
     const patchFlags = flags['helm-patch-yaml'] ? '-f ' + flags['helm-patch-yaml'] : ''
 
-    let command = `helm upgrade --install che --force --namespace ${flags.chenamespace} ${setOptions.join(' ')} ${multiUserFlag} ${tlsFlag} ${patchFlags} ${destDir}`
+    const command = `helm upgrade --install che --force --namespace ${flags.chenamespace} ${setOptions.join(' ')} ${multiUserFlag} ${tlsFlag} ${patchFlags} ${destDir}`
 
-    let { exitCode, stderr } = await execa(command, { timeout: execTimeout, reject: false, shell: true })
+    const { exitCode, stderr } = await execa(command, { timeout: execTimeout, reject: false, shell: true })
     // if process failed, check the following
     // if revision=1, purge and retry command else rollback
     if (exitCode !== 0) {
@@ -405,11 +434,8 @@ error: E_COMMAND_FAILED`)
         await this.purgeHelmChart('che', flags.chenamespace)
       } else {
         await execa('helm', ['rollback', flags.chenamespace, revision], { timeout: execTimeout })
-
       }
       await execa(command, { timeout: execTimeout, shell: true })
-
     }
   }
-
 }

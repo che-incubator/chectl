@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2020 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
@@ -32,9 +34,10 @@ export default class Login extends Command {
       name: CHE_API_ENDPOINT_KEY,
       description: 'Eclipse Che server API endpoint',
       env: 'CHE_API_ENDPOINT',
-      required: false // In case of login via oc token with admin rights
-    }
+      required: false, // In case of login via oc token with admin rights
+    },
   ]
+
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
@@ -43,7 +46,7 @@ export default class Login extends Command {
       description: 'Keycloak refresh token',
       env: 'CHE_KEYCLOAK_REFRESH_TOKEN',
       required: false,
-      exclusive: [USERNAME_KEY, PASSWORD_KEY]
+      exclusive: [USERNAME_KEY, PASSWORD_KEY],
     }),
     [USERNAME_KEY]: username,
     [PASSWORD_KEY]: string({
@@ -51,9 +54,9 @@ export default class Login extends Command {
       description: 'Eclipse Che user password',
       env: 'CHE_USER_PASSWORD',
       required: false,
-      exclusive: [REFRESH_TOKEN_KEY]
+      exclusive: [REFRESH_TOKEN_KEY],
     }),
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   static examples = [

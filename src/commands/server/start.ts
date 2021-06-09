@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
@@ -47,17 +49,18 @@ export default class Start extends Command {
       apiTasks.testApiTasks(flags),
       {
         title: '👀  Looking for an already existing Eclipse Che instance',
-        task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags))
-      }], ctx.listrOptions)
+        task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags)),
+      },
+    ], ctx.listrOptions)
 
     const logsTasks = new Listr([{
       title: 'Following Eclipse Che logs',
-      task: () => new Listr(cheTasks.serverLogsTasks(flags, true))
+      task: () => new Listr(cheTasks.serverLogsTasks(flags, true)),
     }], ctx.listrOptions)
 
     const startCheTasks = new Listr([{
       title: 'Starting Eclipse Che',
-      task: () => new Listr(cheTasks.scaleCheUpTasks())
+      task: () => new Listr(cheTasks.scaleCheUpTasks()),
     }], ctx.listrOptions)
 
     try {
@@ -79,5 +82,4 @@ export default class Start extends Command {
     notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
-
 }

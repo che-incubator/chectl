@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
@@ -26,7 +28,7 @@ export default class List extends Command {
     [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   async run() {
@@ -50,7 +52,7 @@ export default class List extends Command {
         namespace: workspace.attributes.infrastructureNamespace,
         status: workspace.status,
         created: new Date(parseInt(workspace.attributes.created, 10)).toISOString(),
-        updated: workspace.attributes.updated ? new Date(parseInt(workspace.attributes.updated, 10)).toISOString() : ''
+        updated: workspace.attributes.updated ? new Date(parseInt(workspace.attributes.updated, 10)).toISOString() : '',
       })
     })
     cli.table(data, { id: {}, name: {}, namespace: {}, status: {}, created: {}, updated: {} })

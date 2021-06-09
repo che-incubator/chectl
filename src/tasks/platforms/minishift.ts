@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Command } from '@oclif/command'
 import * as commandExists from 'command-exists'
@@ -29,7 +31,7 @@ export class MinishiftTasks {
           } else {
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: 'Verify if minishift is installed',
@@ -39,7 +41,7 @@ export class MinishiftTasks {
           } else {
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: 'Verify if minishift is running',
@@ -50,7 +52,7 @@ export class MinishiftTasks {
           } else {
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       VersionHelper.getOpenShiftCheckVersionTask(flags),
       VersionHelper.getK8sCheckVersionTask(flags),
@@ -72,5 +74,4 @@ export class MinishiftTasks {
     const { stdout } = await execa('minishift', ['ip'], { timeout: 10000 })
     return stdout
   }
-
 }

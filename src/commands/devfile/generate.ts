@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { ExtensionsV1beta1Ingress, V1Deployment, V1DeploymentSpec, V1ObjectMeta, V1PersistentVolumeClaim, V1PersistentVolumeClaimSpec, V1PodTemplateSpec, V1Service, V1ServicePort, V1ServiceSpec } from '@kubernetes/client-node'
 import { Command, flags } from '@oclif/command'
@@ -36,7 +38,7 @@ const LanguagesComponents = new Map<Language, DevfileComponent>([
 
 const EditorComponents = new Map<Editor, DevfileComponent>([
   ['theia-next', { type: TheEndpointName.CheEditor, alias: 'theia-editor', id: 'eclipse/che-theia/next' }],
-  ['theia-1.0.0', { type: TheEndpointName.CheEditor, alias: 'theia-editor', id: 'eclipse/che-theia/1.0.0' }]
+  ['theia-1.0.0', { type: TheEndpointName.CheEditor, alias: 'theia-editor', id: 'eclipse/che-theia/1.0.0' }],
 ])
 
 export default class Generate extends Command {
@@ -91,7 +93,7 @@ export default class Generate extends Command {
       env: 'COMMAND',
       required: false,
     }),
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   async run() {
@@ -101,24 +103,24 @@ export default class Generate extends Command {
     kube = new KubeHelper(flags)
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Generate.id, flags })
 
-    let name = flags.name || 'chectl-generated'
+    const name = flags.name || 'chectl-generated'
 
-    let devfile: Devfile = {
+    const devfile: Devfile = {
       apiVersion: '1.0.0',
       metadata: {
-        name
-      }
+        name,
+      },
     }
 
     if (flags['git-repo'] !== undefined) {
       const repo: ProjectSource = {
         type: 'git',
-        location: flags['git-repo']
+        location: flags['git-repo'],
       }
 
       const project: DevfileProject = {
         source: repo,
-        name: flags['git-repo'].split('/').pop() || 'git-project'
+        name: flags['git-repo'].split('/').pop() || 'git-project',
       }
 
       if (devfile.projects) {
@@ -136,7 +138,7 @@ export default class Generate extends Command {
         memoryLimit: '512M',
         mountSources: true,
         command: ['tail'],
-        args: ['-f', '/dev/null']
+        args: ['-f', '/dev/null'],
       }
       if (devfile.components) {
         devfile.components.push(component)
@@ -146,13 +148,13 @@ export default class Generate extends Command {
     }
 
     if (flags.selector !== undefined) {
-      let k8sList = {
+      const k8sList = {
         kind: 'List',
         apiVersion: 'v1',
         metadata: {
-          name: `${flags.selector}`
+          name: `${flags.selector}`,
         },
-        items: new Array<any>()
+        items: new Array<any>(),
       }
 
       const deployments = await this.getDeploymentsBySelector(flags.selector, flags.namespace)
@@ -176,7 +178,7 @@ export default class Generate extends Command {
       const component: DevfileComponent = {
         type: TheEndpointName.Kubernetes,
         alias: `${flags.selector}`,
-        referenceContent: `${yaml.safeDump(k8sList, { skipInvalid: true })}`
+        referenceContent: `${yaml.safeDump(k8sList, { skipInvalid: true })}`,
       }
       if (devfile.components) {
         devfile.components.push(component)
@@ -230,9 +232,9 @@ export default class Generate extends Command {
             type: 'exec',
             command: `${flags.command}`,
             component: `${devfile.components[0].alias}`,
-            workdir
-          }
-        ]
+            workdir,
+          },
+        ],
       }
 
       if (devfile.commands) {
@@ -264,11 +266,11 @@ export default class Generate extends Command {
   }
 
   private async getDeploymentsBySelector(labelSelector: string, namespace = ''): Promise<Array<V1Deployment>> {
-    let items = new Array<V1Deployment>()
+    const items = new Array<V1Deployment>()
 
     const k8sDeployList = await kube.getDeploymentsBySelector(labelSelector, namespace)
     k8sDeployList.items.forEach(async item => {
-      let deployment = new V1Deployment()
+      const deployment = new V1Deployment()
       deployment.apiVersion = 'apps/v1'
       deployment.kind = 'Deployment'
       deployment.metadata = new V1ObjectMeta()
@@ -288,11 +290,11 @@ export default class Generate extends Command {
   }
 
   private async getServicesBySelector(labelSelector: string, namespace = ''): Promise<Array<V1Service>> {
-    let items = new Array<V1Service>()
+    const items = new Array<V1Service>()
 
     const k8sServicesList = await kube.getServicesBySelector(labelSelector, namespace)
     k8sServicesList.items.forEach(async item => {
-      let service = new V1Service()
+      const service = new V1Service()
       service.kind = 'Service'
       service.apiVersion = 'v1'
       service.metadata = new V1ObjectMeta()
@@ -303,7 +305,7 @@ export default class Generate extends Command {
       service.spec.selector = item.spec!.selector
       service.spec.ports = new Array<V1ServicePort>()
       item.spec!.ports!.forEach(port => {
-        let svcPort = new V1ServicePort()
+        const svcPort = new V1ServicePort()
         svcPort.port = port.port
         service.spec!.ports!.push(svcPort)
       })
@@ -314,11 +316,11 @@ export default class Generate extends Command {
   }
 
   private async getIngressesBySelector(labelSelector: string, namespace = ''): Promise<Array<ExtensionsV1beta1Ingress>> {
-    let items = new Array<ExtensionsV1beta1Ingress>()
+    const items = new Array<ExtensionsV1beta1Ingress>()
 
     const k8sIngressesList = await kube.getIngressesBySelector(labelSelector, namespace)
     k8sIngressesList.items.forEach(async item => {
-      let ingress = new ExtensionsV1beta1Ingress()
+      const ingress = new ExtensionsV1beta1Ingress()
       ingress.kind = 'Ingress'
       ingress.apiVersion = 'extensions/v1beta1'
       ingress.metadata = new V1ObjectMeta()
@@ -332,11 +334,11 @@ export default class Generate extends Command {
   }
 
   private async getPersistentVolumeClaimsBySelector(labelSelector: string, namespace = ''): Promise<Array<V1PersistentVolumeClaim>> {
-    let items = new Array<V1PersistentVolumeClaim>()
+    const items = new Array<V1PersistentVolumeClaim>()
 
     const k8sPVCsList = await kube.getPersistentVolumeClaimsBySelector(labelSelector, namespace)
     k8sPVCsList.items.forEach(async item => {
-      let pvc = new V1PersistentVolumeClaim()
+      const pvc = new V1PersistentVolumeClaim()
       pvc.kind = 'PersistentVolumeClaim'
       pvc.apiVersion = 'v1'
       pvc.metadata = new V1ObjectMeta()

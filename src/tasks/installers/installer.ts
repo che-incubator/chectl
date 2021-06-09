@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import Command from '@oclif/command'
 import * as Listr from 'listr'
@@ -38,12 +40,14 @@ export class InstallerTasks {
       }
     } else {
       title = '🏃‍  Installer preflight check'
-      task = () => { command.error(`Installer ${flags.installer} does not support update ¯\\_(ツ)_/¯`) }
+      task = () => {
+        command.error(`Installer ${flags.installer} does not support update ¯\\_(ツ)_/¯`)
+      }
     }
 
     return [{
       title,
-      task
+      task,
     }]
   }
 
@@ -66,12 +70,14 @@ export class InstallerTasks {
       }
     } else {
       title = '🏃‍  Installer preflight check'
-      task = () => { command.error(`Installer ${flags.installer} does not support update ¯\\_(ツ)_/¯`) }
+      task = () => {
+        command.error(`Installer ${flags.installer} does not support update ¯\\_(ツ)_/¯`)
+      }
     }
 
     return [{
       title,
-      task
+      task,
     }]
   }
 
@@ -107,12 +113,14 @@ export class InstallerTasks {
     // installer.ts END CHE ONLY
     } else {
       title = '🏃‍  Installer preflight check'
-      task = () => { command.error(`Installer ${flags.installer} is not supported ¯\\_(ツ)_/¯`) }
+      task = () => {
+        command.error(`Installer ${flags.installer} is not supported ¯\\_(ツ)_/¯`)
+      }
     }
 
     return [{
       title,
-      task
+      task,
     }]
   }
 }

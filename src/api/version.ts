@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2020 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import axios from 'axios'
 import { cli } from 'cli-ux'
@@ -61,7 +63,7 @@ export namespace VersionHelper {
             throw getMinimalVersionError(actualVersion, MINIMAL_OPENSHIFT_VERSION, 'OpenShift')
           }
         }
-      }
+      },
     }
   }
   export function getK8sCheckVersionTask(flags: any): Listr.ListrTask {
@@ -91,7 +93,7 @@ export namespace VersionHelper {
             throw getMinimalVersionError(actualVersion, MINIMAL_K8S_VERSION, 'Kubernetes')
           }
         }
-      }
+      },
     }
   }
 
@@ -191,7 +193,7 @@ export namespace VersionHelper {
     }
 
     const axiosInstance = axios.create({
-      httpsAgent: new https.Agent({})
+      httpsAgent: new https.Agent({}),
     })
 
     try {
@@ -272,7 +274,7 @@ export namespace VersionHelper {
    * Indicates if stable version of Eclipse Che is specified or meant implicitly.
    */
   export function isDeployingStableVersion(flags: any): boolean {
-    return !!flags.version || !ChectlContext.get().isNightly
+    return Boolean(flags.version) || !ChectlContext.get().isNightly
   }
 
   /**

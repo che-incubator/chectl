@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2020 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 import { cli } from 'cli-ux'
 import { getTimezone } from 'countries-and-timezones'
 import * as fs from 'fs-extra'
@@ -18,7 +20,7 @@ import { v4 } from 'uuid'
 
 import { getDistribution, getProjectName, getProjectVersion } from '../../util'
 
-let Analytics = require('analytics-node')
+const Analytics = require('analytics-node')
 
 export interface SegmentConfig {
   segmentWriteKey: string
@@ -40,6 +42,7 @@ export namespace SegmentProperties {
  */
 export class SegmentAdapter {
   private readonly segment: typeof Analytics
+
   private readonly id: string
 
   constructor(segmentConfig: SegmentConfig, segmentId: string) {
@@ -96,12 +99,12 @@ export class SegmentAdapter {
       properties: {
         ...pick(options.flags, ['platform', 'installer']),
         command: options.command,
-        version: getProjectVersion()
+        version: getProjectVersion(),
       },
       // Property which indicate segment will integrate with all configured destinations.
       integrations: {
-        All: true
-      }
+        All: true,
+      },
     })
   }
 
@@ -112,7 +115,7 @@ export class SegmentAdapter {
       os_name: os.platform(),
       os_version: os.release(),
       os_distribution: await getDistribution(),
-      locale: osLocale.sync().replace('_', '-')
+      locale: osLocale.sync().replace('_', '-'),
     }
   }
 
@@ -129,10 +132,10 @@ export class SegmentAdapter {
       },
       os: {
         name: os.platform(),
-        version: os.release()
+        version: os.release(),
       },
       location: {
-        country: getTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)?.country || 'XX'
+        country: getTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)?.country || 'XX',
       },
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }

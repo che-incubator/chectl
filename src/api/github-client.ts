@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2020-2021 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Octokit } from '@octokit/rest'
 
@@ -52,7 +54,7 @@ export class CheGithubClient {
    * @param prefix return only tags that starts with given prefix
    */
   private async listLatestTags(repo: string, prefix = ''): Promise<TagInfo[]> {
-    let response = await this.octokit.repos.listTags({ owner: OWNER, repo, per_page: 50 })
+    const response = await this.octokit.repos.listTags({ owner: OWNER, repo, per_page: 50 })
     const tags = response.data
     if (prefix) {
       return tags.filter(tag => tag.name.startsWith(prefix))
@@ -70,7 +72,7 @@ export class CheGithubClient {
       const tagRefResp = await this.octokit.git.getRef({ owner: OWNER, repo, ref: `tags/${tagName}` })
       const tagRef = tagRefResp.data
       const downloadUrlResp = await this.octokit.repos.downloadZipballArchive({ owner: OWNER, repo, ref: tagRef.object.sha })
-       // Simulate tag info
+      // Simulate tag info
       return {
         name: tagName,
         commit: {
@@ -152,7 +154,7 @@ export class CheGithubClient {
    * @param versionPrefix version or version prefix, e.g. 7.22.0 or 7.18
    */
   private async getTagInfoByVersionPrefix(repo: string, versionPrefix: string): Promise<TagInfo | undefined> {
-    let tagInfo = await this.getTag(repo, versionPrefix)
+    const tagInfo = await this.getTag(repo, versionPrefix)
     if (tagInfo) {
       // Exact match found
       return tagInfo
@@ -235,5 +237,4 @@ export class CheGithubClient {
 
     return sortedSemanticTags.map(tag => tag.data)
   }
-
 }

@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2020 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import * as http from 'http'
 import * as https from 'https'
@@ -28,12 +30,12 @@ export namespace CommonPlatformTasks {
           return
         }
 
-        if (! await checkHttpServer(domain, 80) && ! await checkHttpsServer(domain, 443)) {
+        if (!await checkHttpServer(domain, 80) && !await checkHttpsServer(domain, 443)) {
           throw new Error(`Cannot reach cluster at "${domain}". To skip this check add "--skip-cluster-availability-check" flag.`)
         }
 
         task.title = `${task.title}... ok`
-      }
+      },
     }
   }
 
