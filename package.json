@@ -41,7 +41,7 @@
     "node-forge": "^0.10.0",
     "node-notifier": "^8.0.1",
     "os-locale": "^5.0.0",
-    "querystring": "^0.2.0",
+    "querystring": "^0.2.1",
     "rimraf": "^3.0.2",
     "semver": "^7.3.4",
     "stream-buffers": "^3.0.2",
