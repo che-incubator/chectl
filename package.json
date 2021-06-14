@@ -39,7 +39,7 @@
     "lodash": "^4.17.21",
     "mkdirp": "^1.0.4",
     "node-forge": "^0.10.0",
-    "node-notifier": "^8.0.1",
+    "node-notifier": "^10.0.0",
     "os-locale": "^5.0.0",
     "querystring": "^0.2.1",
     "rimraf": "^3.0.2",
