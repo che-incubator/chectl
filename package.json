@@ -43,7 +43,7 @@
     "os-locale": "^5.0.0",
     "querystring": "^0.2.1",
     "rimraf": "^3.0.2",
-    "semver": "^7.3.4",
+    "semver": "^7.3.5",
     "stream-buffers": "^3.0.2",
     "tslib": "^2",
     "unzipper": "0.10.11",
