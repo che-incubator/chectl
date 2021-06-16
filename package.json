@@ -86,7 +86,7 @@
     "nock": "^11.7.0",
     "ts-jest": "^26.5.6",
     "ts-node": "^9",
-    "typescript": "^4.1",
+    "typescript": "^4.3",
     "typescript-formatter": "7.2.2"
   },
   "engines": {
