@@ -30,6 +30,8 @@ export class OperatorTasks {
 
   cheClusterCrd = 'checlusters.org.eclipse.che'
 
+  cheBackupServerConfigCrd = 'chebackupserverconfigurations.org.eclipse.che'
+
   cheClusterBackupCrd = 'checlusterbackups.org.eclipse.che'
 
   cheClusterRestoreCrd = 'checlusterrestores.org.eclipse.che'
@@ -193,6 +195,7 @@ export class OperatorTasks {
       {
         title: 'Create backup and restore CRDs',
         task: async (ctx: any, task: any) => {
+          const backupServerConfigCrdExist = await kube.getCrd(this.cheBackupServerConfigCrd)
           const backupCrdExist = await kube.getCrd(this.cheClusterBackupCrd)
           const restoreCrdExist = await kube.getCrd(this.cheClusterRestoreCrd)
           if (backupCrdExist && restoreCrdExist) {
@@ -201,7 +204,14 @@ export class OperatorTasks {
           }
 
           let done = false
-          const [backupCrdFileName, restoreCrdFileName] = await this.getBackupRestoreCrdFilesNames(kube)
+          const [backupServerConfigFileName, backupCrdFileName, restoreCrdFileName] = await this.getBackupRestoreCrdFilesNames(kube)
+
+          const backupServerConfigPath = path.join(ctx.resourcesPath, 'crds', backupServerConfigFileName)
+          if (!backupServerConfigCrdExist && fs.existsSync(backupServerConfigPath)) {
+            await kube.createCrdFromFile(backupServerConfigPath)
+            done = true
+          }
+
           const backupCrdPath = path.join(ctx.resourcesPath, 'crds', backupCrdFileName)
           if (!backupCrdExist && fs.existsSync(backupCrdPath)) {
             await kube.createCrdFromFile(backupCrdPath)
@@ -349,7 +359,21 @@ export class OperatorTasks {
       {
         title: 'Updating backup and restore CRDs',
         task: async (ctx: any, task: any) => {
-          const [backupCrdFileName, restoreCrdFileName] = await this.getBackupRestoreCrdFilesNames(kube)
+          const [backupServerConfigFileName, backupCrdFileName, restoreCrdFileName] = await this.getBackupRestoreCrdFilesNames(kube)
+
+          const existedBackupServerConfigCRD = await kube.getCrd(this.cheBackupServerConfigCrd)
+          const newBackupServerConfigCRDPath = path.join(ctx.resourcesPath, 'crds', backupServerConfigFileName)
+          if (fs.existsSync(newBackupServerConfigCRDPath)) {
+            if (existedBackupServerConfigCRD) {
+              if (!existedBackupServerConfigCRD.metadata || !existedBackupServerConfigCRD.metadata.resourceVersion) {
+                throw new Error(`Fetched CRD ${this.cheBackupServerConfigCrd} without resource version`)
+              }
+              await kube.replaceCrdFromFile(newBackupServerConfigCRDPath, existedBackupServerConfigCRD.metadata.resourceVersion)
+            } else {
+              await kube.createCrdFromFile(newBackupServerConfigCRDPath)
+            }
+          }
+
           const existedBackupCRD = await kube.getCrd(this.cheClusterBackupCrd)
           const newBackupCRDPath = path.join(ctx.resourcesPath, 'crds', backupCrdFileName)
           if (fs.existsSync(newBackupCRDPath)) {
@@ -478,6 +502,7 @@ export class OperatorTasks {
           await kh.deleteCrd(this.cheClusterCrd)
           await kh.deleteCrd(this.cheClusterBackupCrd)
           await kh.deleteCrd(this.cheClusterRestoreCrd)
+          await kh.deleteCrd(this.cheBackupServerConfigCrd)
           task.title = `${task.title}...OK`
         }
       },
@@ -572,18 +597,21 @@ export class OperatorTasks {
   }
 
   // Delete this method and use default v1 CRDs when Openshift 3.x support dropped
-  private async getBackupRestoreCrdFilesNames(kube: KubeHelper): Promise<[string, string]> {
+  private async getBackupRestoreCrdFilesNames(kube: KubeHelper): Promise<[string, string, string]> {
+    let backupServerConfigFileName: string
     let backupCrdFileName: string
     let restoreCrdFileName: string
     if (!await kube.IsAPIExtensionSupported('v1')) {
       // Needed for Openshift 3.x
+      backupServerConfigFileName = 'org.eclipse.che_chebackupserverconfigurations_crd-v1beta1.yaml'
       backupCrdFileName = 'org.eclipse.che_checlusterbackups_crd-v1beta1.yaml'
       restoreCrdFileName = 'org.eclipse.che_checlusterrestores_crd-v1beta1.yaml'
     } else {
+      backupServerConfigFileName = 'org.eclipse.che_chebackupserverconfigurations_crd.yaml'
       backupCrdFileName = 'org.eclipse.che_checlusterbackups_crd.yaml'
       restoreCrdFileName = 'org.eclipse.che_checlusterrestores_crd.yaml'
     }
-    return [backupCrdFileName, restoreCrdFileName]
+    return [backupServerConfigFileName, backupCrdFileName, restoreCrdFileName]
   }
 
   /**
