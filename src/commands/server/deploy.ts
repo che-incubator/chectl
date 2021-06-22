@@ -113,7 +113,7 @@ export default class Deploy extends Command {
       default: false,
     }),
     'che-operator-image': string({
-      description: 'Container image of the operator. This parameter is used only when the installer is the operator',
+      description: 'Container image of the operator. This parameter is used only when the installer is the operator or OLM.',
     }),
     [CHE_OPERATOR_CR_YAML_KEY]: cheOperatorCRYaml,
     [CHE_OPERATOR_CR_PATCH_YAML_KEY]: cheOperatorCRPatchYaml,

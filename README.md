@@ -504,7 +504,7 @@ OPTIONS
       is the 'operator' or the 'olm'.
 
   --che-operator-image=che-operator-image
-      Container image of the operator. This parameter is used only when the installer is the operator
+      Container image of the operator. This parameter is used only when the installer is the operator or OLM.
 
   --debug
       Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug' 
