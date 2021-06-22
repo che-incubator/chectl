@@ -60,7 +60,7 @@ export default class Update extends Command {
       exclusive: [DEPLOY_VERSION_KEY],
     }),
     'che-operator-image': string({
-      description: 'Container image of the operator. This parameter is used only when the installer is the operator',
+      description: 'Container image of the operator. This parameter is used only when the installer is the operator or OLM.',
       hidden: true,
     }),
     'skip-version-check': flags.boolean({
