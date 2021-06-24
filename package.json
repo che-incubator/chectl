@@ -19,7 +19,7 @@
     "analytics-node": "^4.0.1",
     "ansi-colors": "4.1.1",
     "axios": "^0.21.1",
-    "cli-ux": "^5.5.1",
+    "cli-ux": "^5.6.2",
     "command-exists": "^1.2.9",
     "countries-and-timezones": "^2.4.0",
     "debug": "^4.3.1",
