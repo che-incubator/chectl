@@ -2639,7 +2639,8 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-devfile-workspace-operator@git://github.com/devfile/devworkspace-operator#main":
   version "0.0.0"
-  resolved "git://github.com/devfile/devworkspace-operator#103a64b19540b015b9f3f27967830e8b47bab052"
+  uid b622ebbfe9cf6bfba07a144c482e1314936b7bca
+  resolved "git://github.com/devfile/devworkspace-operator#b622ebbfe9cf6bfba07a144c482e1314936b7bca"
 
 "eclipse-che-operator@git://github.com/eclipse-che/che-operator#main":
   version "0.0.0"
