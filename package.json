@@ -28,7 +28,7 @@
     "eclipse-che-server": "git://github.com/eclipse-che/che-server#main",
     "esprima": "^4.0.1",
     "execa": "^5.1.1",
-    "fancy-test": "^1.4.9",
+    "fancy-test": "^1.4.10",
     "fs-extra": "^10.0.0",
     "getos": "^3.2.1",
     "gnirts": "^1.1.7",
