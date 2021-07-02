@@ -20,7 +20,7 @@ jobs:
       id: run-minikube
       uses: che-incubator/setup-minikube-action@next
       with:
-        minikube-version: v1.18.1
+        minikube-version: v1.21.0
     - name: Pack chectl binaries
       run: yarn && npx oclif-dev pack --targets=linux-x64
     - name: UnPack chectl binaries in $HOME/chectl
