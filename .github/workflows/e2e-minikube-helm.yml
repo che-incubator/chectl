@@ -20,7 +20,7 @@ jobs:
       id: run-minikube
       uses: che-incubator/setup-minikube-action@next
       with:
-        minikube-version: v1.18.1
+        minikube-version: v1.21.0
     - name: Install chectl dependencies
       run: yarn
     - name: Run e2e tests minikube

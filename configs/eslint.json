@@ -3,7 +3,7 @@
         "oclif",
         "oclif-typescript",
         "./eslint.license.json",
-        "./base.eslint.chectl.json",
-        "./disabled.rules.chectl.json"
+        "./base.eslint.json",
+        "./disabled.rules.json"
     ]
 }
