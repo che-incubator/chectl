@@ -19,7 +19,7 @@ import * as path from 'path'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_CRD, CHE_CLUSTER_KIND_PLURAL, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME, OPERATOR_TEMPLATE_DIR } from '../../constants'
+import { CHE_BACKUP_SERVER_CONFIG_CRD, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_CRD, CHE_CLUSTER_CRD, CHE_CLUSTER_KIND_PLURAL, CHE_CLUSTER_RESTORE_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME, OPERATOR_TEMPLATE_DIR } from '../../constants'
 import { getImageNameAndTag, safeLoadFromYamlFile } from '../../util'
 import { KubeTasks } from '../kube'
 
@@ -27,14 +27,6 @@ import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster
 
 export class OperatorTasks {
   operatorServiceAccount = 'che-operator'
-
-  cheClusterCrd = 'checlusters.org.eclipse.che'
-
-  cheBackupServerConfigCrd = 'chebackupserverconfigurations.org.eclipse.che'
-
-  cheClusterBackupCrd = 'checlusterbackups.org.eclipse.che'
-
-  cheClusterRestoreCrd = 'checlusterrestores.org.eclipse.che'
 
   legacyClusterResourcesName = 'che-operator'
 
@@ -182,9 +174,9 @@ export class OperatorTasks {
       this.getReadRolesAndBindingsTask(kube),
       this.getCreateOrUpdateRolesAndBindingsTask(flags, 'Creating Roles and Bindings', false),
       {
-        title: `Create CRD ${this.cheClusterCrd}`,
+        title: `Create CRD ${CHE_CLUSTER_CRD}`,
         task: async (ctx: any, task: any) => {
-          const existedCRD = await kube.getCrd(this.cheClusterCrd)
+          const existedCRD = await kube.getCrd(CHE_CLUSTER_CRD)
           if (existedCRD) {
             task.title = `${task.title}...It already exists.`
           } else {
@@ -197,9 +189,9 @@ export class OperatorTasks {
       {
         title: 'Create backup and restore CRDs',
         task: async (ctx: any, task: any) => {
-          const backupServerConfigCrdExist = await kube.getCrd(this.cheBackupServerConfigCrd)
-          const backupCrdExist = await kube.getCrd(this.cheClusterBackupCrd)
-          const restoreCrdExist = await kube.getCrd(this.cheClusterRestoreCrd)
+          const backupServerConfigCrdExist = await kube.getCrd(CHE_BACKUP_SERVER_CONFIG_CRD)
+          const backupCrdExist = await kube.getCrd(CHE_CLUSTER_BACKUP_CRD)
+          const restoreCrdExist = await kube.getCrd(CHE_CLUSTER_RESTORE_CRD)
           if (backupCrdExist && restoreCrdExist) {
             task.title = `${task.title}...already exist.`
             return
@@ -340,14 +332,14 @@ export class OperatorTasks {
       this.getReadRolesAndBindingsTask(kube),
       this.getCreateOrUpdateRolesAndBindingsTask(flags, 'Updating Roles and Bindings', true),
       {
-        title: `Updating Eclipse Che cluster CRD ${this.cheClusterCrd}`,
+        title: `Updating Eclipse Che cluster CRD ${CHE_CLUSTER_CRD}`,
         task: async (ctx: any, task: any) => {
-          const existedCRD = await kube.getCrd(this.cheClusterCrd)
+          const existedCRD = await kube.getCrd(CHE_CLUSTER_CRD)
           const newCRDPath = await this.getCRDPath(ctx, flags)
 
           if (existedCRD) {
             if (!existedCRD.metadata || !existedCRD.metadata.resourceVersion) {
-              throw new Error(`Fetched CRD ${this.cheClusterCrd} without resource version`)
+              throw new Error(`Fetched CRD ${CHE_CLUSTER_CRD} without resource version`)
             }
 
             await kube.replaceCrdFromFile(newCRDPath, existedCRD.metadata.resourceVersion)
@@ -363,12 +355,12 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const [backupServerConfigFileName, backupCrdFileName, restoreCrdFileName] = await this.getBackupRestoreCrdFilesNames(kube)
 
-          const existedBackupServerConfigCRD = await kube.getCrd(this.cheBackupServerConfigCrd)
+          const existedBackupServerConfigCRD = await kube.getCrd(CHE_BACKUP_SERVER_CONFIG_CRD)
           const newBackupServerConfigCRDPath = path.join(ctx.resourcesPath, 'crds', backupServerConfigFileName)
           if (fs.existsSync(newBackupServerConfigCRDPath)) {
             if (existedBackupServerConfigCRD) {
               if (!existedBackupServerConfigCRD.metadata || !existedBackupServerConfigCRD.metadata.resourceVersion) {
-                throw new Error(`Fetched CRD ${this.cheBackupServerConfigCrd} without resource version`)
+                throw new Error(`Fetched CRD ${CHE_BACKUP_SERVER_CONFIG_CRD} without resource version`)
               }
               await kube.replaceCrdFromFile(newBackupServerConfigCRDPath, existedBackupServerConfigCRD.metadata.resourceVersion)
             } else {
@@ -376,12 +368,12 @@ export class OperatorTasks {
             }
           }
 
-          const existedBackupCRD = await kube.getCrd(this.cheClusterBackupCrd)
+          const existedBackupCRD = await kube.getCrd(CHE_CLUSTER_BACKUP_CRD)
           const newBackupCRDPath = path.join(ctx.resourcesPath, 'crds', backupCrdFileName)
           if (fs.existsSync(newBackupCRDPath)) {
             if (existedBackupCRD) {
               if (!existedBackupCRD.metadata || !existedBackupCRD.metadata.resourceVersion) {
-                throw new Error(`Fetched CRD ${this.cheClusterBackupCrd} without resource version`)
+                throw new Error(`Fetched CRD ${CHE_CLUSTER_BACKUP_CRD} without resource version`)
               }
               await kube.replaceCrdFromFile(newBackupCRDPath, existedBackupCRD.metadata.resourceVersion)
             } else {
@@ -389,12 +381,12 @@ export class OperatorTasks {
             }
           }
 
-          const existedRestoreCRD = await kube.getCrd(this.cheClusterRestoreCrd)
+          const existedRestoreCRD = await kube.getCrd(CHE_CLUSTER_RESTORE_CRD)
           const newRestoreCRDPath = path.join(ctx.resourcesPath, 'crds', restoreCrdFileName)
           if (fs.existsSync(newRestoreCRDPath)) {
             if (existedRestoreCRD) {
               if (!existedRestoreCRD.metadata || !existedRestoreCRD.metadata.resourceVersion) {
-                throw new Error(`Fetched CRD ${this.cheClusterRestoreCrd} without resource version`)
+                throw new Error(`Fetched CRD ${CHE_CLUSTER_RESTORE_CRD} without resource version`)
               }
               await kube.replaceCrdFromFile(newRestoreCRDPath, existedRestoreCRD.metadata.resourceVersion)
               task.title = `${task.title}...updated.`
@@ -501,10 +493,10 @@ export class OperatorTasks {
         if (checlusters.length > 0) {
           task.title = `${task.title}...Skipped: another Eclipse Che deployment found.`
         } else {
-          await kh.deleteCrd(this.cheClusterCrd)
-          await kh.deleteCrd(this.cheClusterBackupCrd)
-          await kh.deleteCrd(this.cheClusterRestoreCrd)
-          await kh.deleteCrd(this.cheBackupServerConfigCrd)
+          await kh.deleteCrd(CHE_CLUSTER_CRD)
+          await kh.deleteCrd(CHE_CLUSTER_BACKUP_CRD)
+          await kh.deleteCrd(CHE_CLUSTER_RESTORE_CRD)
+          await kh.deleteCrd(CHE_BACKUP_SERVER_CONFIG_CRD)
           task.title = `${task.title}...OK`
         }
       },
