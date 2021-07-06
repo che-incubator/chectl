@@ -59,7 +59,7 @@ export function checkChectlAndCheVersionCompatibility(flags: any): Listr.ListrTa
       ctx.versionInfo = verInfo
       flags.version = VersionHelper.removeVPrefix(verInfo.name, true)
 
-      if (!ctx.isNightly && semver.lt(getProjectVersion(), flags.version)) {
+      if (!ctx.isDevVersion && semver.lt(getProjectVersion(), flags.version)) {
         throw new Error(`To deploy Eclipse Che ${flags.version}, please update your chectl first by running "chectl update".`)
       }
 
