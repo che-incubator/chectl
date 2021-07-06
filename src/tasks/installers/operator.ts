@@ -38,6 +38,8 @@ export class OperatorTasks {
 
   legacyClusterResourcesName = 'che-operator'
 
+  devworkspaceCheNamePrefix = 'devworkspace-che'
+
   private getReadRolesAndBindingsTask(kube: KubeHelper): Listr.ListrTask {
     return {
       title: 'Read Roles and Bindings',
@@ -526,7 +528,7 @@ export class OperatorTasks {
         const clusterRoleBindings = await kh.listClusterRoleBindings()
         for (const clusterRoleBinding of clusterRoleBindings.items) {
           const name = clusterRoleBinding.metadata && clusterRoleBinding.metadata.name || ''
-          if (name.startsWith(flags.chenamespace)) {
+          if (name.startsWith(flags.chenamespace) || name.startsWith(this.devworkspaceCheNamePrefix)) {
             pairs++
             await kh.deleteClusterRoleBinding(name)
           }
@@ -535,7 +537,7 @@ export class OperatorTasks {
         const clusterRoles = await kh.listClusterRoles()
         for (const clusterRole of clusterRoles.items) {
           const name = clusterRole.metadata && clusterRole.metadata.name || ''
-          if (name.startsWith(flags.chenamespace)) {
+          if (name.startsWith(flags.chenamespace) || name.startsWith(this.devworkspaceCheNamePrefix)) {
             await kh.deleteClusterRole(name)
           }
         }
