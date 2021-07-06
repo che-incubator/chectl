@@ -58,7 +58,7 @@
     "@types/countries-and-timezones": "^2.0.3",
     "@types/fs-extra": "^9.0.11",
     "@types/getos": "^3.0.0",
-    "@types/inquirer": "^7.3.2",
+    "@types/inquirer": "^7.3.3",
     "@types/jest": "26.0.23",
     "@types/js-yaml": "^3.12.5",
     "@types/listr": "^0.14.3",
