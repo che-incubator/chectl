@@ -979,10 +979,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/inquirer@^7.3.2":
-  version "7.3.2"
-  resolved "https://registry.yarnpkg.com/@types/inquirer/-/inquirer-7.3.2.tgz#35d2ef4d98dd42feeb4e1256cdeb9f13f457d420"
-  integrity sha512-EkeX/hU0SWinA2c7Qu/+6+7KbepFPYJcjankUgtA/VSY6BlVHybL0Cgyey9PDbXwhNXnNGBLU3t+MORp23RgAw==
+"@types/inquirer@^7.3.3":
+  version "7.3.3"
+  resolved "https://registry.yarnpkg.com/@types/inquirer/-/inquirer-7.3.3.tgz#92e6676efb67fa6925c69a2ee638f67a822952ac"
+  integrity sha512-HhxyLejTHMfohAuhRun4csWigAMjXTmRyiJTU1Y/I1xmggikFMkOUoMQRlFm+zQcPEGHSs3io/0FAmNZf8EymQ==
   dependencies:
     "@types/through" "*"
     rxjs "^6.4.0"
@@ -1024,10 +1024,10 @@
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.7.tgz#98a993516c859eb0d5c4c8f098317a9ea68db9ad"
   integrity sha512-cxWFQVseBm6O9Gbw1IWb8r6OS4OhSt3hPZLkFApLjM8TEXROBuQGLAH2i2gZpcXdLBIrpXuTDhH7Vbm1iXmNGA==
 
-"@types/listr@^0.14.3":
-  version "0.14.3"
-  resolved "https://registry.yarnpkg.com/@types/listr/-/listr-0.14.3.tgz#f6cfd1f0841ce6c0d2571fb114279ba07be43796"
-  integrity sha512-+TxIH5cf6w/44VH+cc1oTccaR7aBQdUJU0nas+seJ/iOYPi7q0kHf153eFayT0KitxCZMVoyFmruCrWt/bxq2g==
+"@types/listr@^0.14.4":
+  version "0.14.4"
+  resolved "https://registry.yarnpkg.com/@types/listr/-/listr-0.14.4.tgz#6ba2a4206615cf80d79d10f9ba9701c303cd57b6"
+  integrity sha512-+MWvidNujBUgJsi4yMVwEQQwaHe6oHedPSy+dwk3akGEeuIbvhWkK+TGsXSwbFup7Y0cCBb+wzzdD+yGKp7sOg==
   dependencies:
     "@types/node" "*"
     rxjs "^6.5.1"
@@ -1111,10 +1111,10 @@
   resolved "https://registry.yarnpkg.com/@types/semver/-/semver-5.5.0.tgz#146c2a29ee7d3bae4bf2fcb274636e264c813c45"
   integrity sha512-41qEJgBH/TWgo5NFSvBCJ1qkoi3Q6ONSF2avrHq1LVEZfYpdHmj0y9SuTK+u9ZhG1sYQKBL1AWXKyLWP4RaUoQ==
 
-"@types/semver@^7.3.6":
-  version "7.3.6"
-  resolved "https://registry.yarnpkg.com/@types/semver/-/semver-7.3.6.tgz#e9831776f4512a7ba6da53e71c26e5fb67882d63"
-  integrity sha512-0caWDWmpCp0uifxFh+FaqK3CuZ2SkRR/ZRxAV5+zNdC3QVUi6wyOJnefhPvtNt8NQWXB5OA93BUvZsXpWat2Xw==
+"@types/semver@^7.3.7":
+  version "7.3.7"
+  resolved "https://registry.yarnpkg.com/@types/semver/-/semver-7.3.7.tgz#b9eb89d7dfa70d5d1ce525bc1411a35347f533a3"
+  integrity sha512-4g1jrL98mdOIwSOUh6LTlB0Cs9I0dQPwINUhBg7C6pN4HLr8GS8xsksJxilW6S6dQHVi2K/o+lQuQcg7LroCnw==
 
 "@types/sinon@*":
   version "9.0.5"
@@ -2591,7 +2591,8 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-operator@git://github.com/eclipse-che/che-operator#main":
   version "0.0.0"
-  resolved "git://github.com/eclipse-che/che-operator#b9ccdb73d8f641fde64fdbe7784f1e3da2cfd91e"
+  uid b6c2c3c2ff5c32d232f9a704e03722f6d369ceb9
+  resolved "git://github.com/eclipse-che/che-operator#b6c2c3c2ff5c32d232f9a704e03722f6d369ceb9"
 
 "eclipse-che-server@git://github.com/eclipse-che/che-server#main":
   version "0.0.0"
