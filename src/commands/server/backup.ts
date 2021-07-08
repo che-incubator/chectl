@@ -15,7 +15,7 @@ import { string } from '@oclif/parser/lib/flags'
 import * as fs from 'fs-extra'
 import * as Listr from 'listr'
 
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE } from '../../constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace } from '../../common-flags'
@@ -23,7 +23,7 @@ import { requestBackup, BackupServerConfig, getBackupServerType } from '../../ap
 import { V1CheClusterBackup, V1CheClusterBackupStatus } from '../../api/typings/backup-restore-crds'
 import { cli } from 'cli-ux'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export const BACKUP_REPOSITORY_URL_KEY = 'repository-url'
 export const backupRepositoryUrl = string({
@@ -64,7 +64,7 @@ export const sshKey = string({
 
 export const SSH_KEY_FILE_KEY = 'ssh-key-file'
 export const sshKeyFile = string({
-  description: 'PAth to file with private SSH key for authentication on SFTP server',
+  description: 'Path to file with private SSH key for authentication on SFTP server',
   env: 'SSH_KEY_FILE',
   required: false,
   exclusive: [SSH_KEY_FILE_KEY],
@@ -122,8 +122,8 @@ export default class Backup extends Command {
 
   async run() {
     const { flags } = this.parse(Backup)
-    flags.chenamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
     const ctx = await ChectlContext.initAndGet(flags, this)
+    flags.chenamespace = await findWorkingNamespace(flags)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Backup.id, flags })
 

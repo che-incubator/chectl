@@ -407,7 +407,7 @@ OPTIONS
 
   --ssh-key=ssh-key                                      Private SSH key for authentication on SFTP server
 
-  --ssh-key-file=ssh-key-file                            PAth to file with private SSH key for authentication on SFTP
+  --ssh-key-file=ssh-key-file                            Path to file with private SSH key for authentication on SFTP
                                                          server
 
   --username=username                                    Username for authentication in backup REST server
@@ -684,7 +684,7 @@ OPTIONS
 
   --ssh-key=ssh-key                                      Private SSH key for authentication on SFTP server
 
-  --ssh-key-file=ssh-key-file                            PAth to file with private SSH key for authentication on SFTP
+  --ssh-key-file=ssh-key-file                            Path to file with private SSH key for authentication on SFTP
                                                          server
 
   --username=username                                    Username for authentication in backup REST server

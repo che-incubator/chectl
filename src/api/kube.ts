@@ -1716,25 +1716,24 @@ export class KubeHelper {
     const name = crYaml.metadata.name
 
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-    // Delete previos CR if any
+    let crExist = false
     try {
       await customObjectsApi.getNamespacedCustomObject(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, namespace, kindPlural, name)
-      try {
-        await customObjectsApi.deleteNamespacedCustomObject(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, namespace, kindPlural, name)
-      } catch (e) {
-        // Failed to delete old CR
-        throw this.wrapK8sClientError(e)
-      }
+      crExist = true
     } catch (e) {
       if (e.response.statusCode !== 404) {
         throw this.wrapK8sClientError(e)
       }
-      // Old CR doesn't exists, do nothing
     }
 
     try {
-      const res = await customObjectsApi.createNamespacedCustomObject(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, namespace, kindPlural, crYaml)
-      return res.body
+      if (crExist) {
+        const res = await customObjectsApi.replaceNamespacedCustomObject(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, namespace, kindPlural, name, crYaml)
+        return res.body
+      } else {
+        const res = await customObjectsApi.createNamespacedCustomObject(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, namespace, kindPlural, crYaml)
+        return res.body
+      }
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -2549,7 +2548,7 @@ export class KubeHelper {
   }
 
   /**
-   * Creates or replaces if exists secret with given name and data.
+   * Replaces given secret or creates a new one.
    * Data should not be base64 encoded.
    */
   async recreateSecret(namespace: string, name: string, data: { [key: string]: string }): Promise<V1Secret | undefined> {
@@ -2558,7 +2557,15 @@ export class KubeHelper {
       if (existingSecret.data === data) {
         return existingSecret
       }
-      await this.deleteSecret(namespace, name)
+      existingSecret.data = data
+
+      const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
+      try {
+        const res = await k8sCoreApi.replaceNamespacedSecret(name, namespace, existingSecret)
+        return res.body
+      } catch (e) {
+        throw this.wrapK8sClientError(e)
+      }
     }
     return this.createSecret(namespace, name, data)
   }
