@@ -40,6 +40,8 @@ export class OperatorTasks {
 
   devworkspaceCheNamePrefix = 'devworkspace-che'
 
+  devWorkspaceRoutingCrd = 'devworkspaceroutings.controller.devfile.io'
+
   private getReadRolesAndBindingsTask(kube: KubeHelper): Listr.ListrTask {
     return {
       title: 'Read Roles and Bindings',
@@ -228,6 +230,23 @@ export class OperatorTasks {
 
           if (done) {
             task.title = `${task.title}...done.`
+          } else {
+            task.title = `${task.title}...skipped.`
+          }
+        },
+      },
+      {
+        title: 'Create DevWorkspaceRouting CRD',
+        task: async (ctx: any, task: any) => {
+          const crdPath = await this.getDevWorkspaceRoutingCRDPath(ctx, kube)
+          if (crdPath) {
+            const existingCRD = await kube.getCrd(this.devWorkspaceRoutingCrd)
+            if (existingCRD) {
+              task.title = `${task.title}...It already exists.`
+            } else {
+              await kube.createCrdFromFile(crdPath)
+              task.title = `${task.title}...done.`
+            }
           } else {
             task.title = `${task.title}...skipped.`
           }
@@ -505,6 +524,7 @@ export class OperatorTasks {
           await kh.deleteCrd(this.cheClusterBackupCrd)
           await kh.deleteCrd(this.cheClusterRestoreCrd)
           await kh.deleteCrd(this.cheBackupServerConfigCrd)
+          await kh.deleteCrd(this.devWorkspaceRoutingCrd)
           task.title = `${task.title}...OK`
         }
       },
@@ -614,6 +634,14 @@ export class OperatorTasks {
       restoreCrdFileName = 'org.eclipse.che_checlusterrestores_crd.yaml'
     }
     return [backupServerConfigFileName, backupCrdFileName, restoreCrdFileName]
+  }
+
+  private async getDevWorkspaceRoutingCRDPath(ctx: any, kube: KubeHelper): Promise<string | null> {
+    if (await kube.IsAPIExtensionSupported('v1')) {
+      return path.join(ctx.resourcesPath, 'crds', 'devworkspaceroutings.controller.devfile.io.CustomResourceDefinition.yaml')
+    } else {
+      return null
+    }
   }
 
   /**

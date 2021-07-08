@@ -76,8 +76,6 @@ export class DevWorkspaceTasks {
 
   protected devWorkspaceTemplatesCrdName = 'devworkspacetemplates.workspace.devfile.io'
 
-  protected workspaceRoutingsCrdName = 'devworkspaceroutings.controller.devfile.io'
-
   protected webhooksName = 'controller.devfile.io'
 
   // Web Terminal Operator constants
@@ -260,7 +258,6 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteCrd(this.devWorkspacesCrdName)
           await this.kubeHelper.deleteCrd(this.devWorkspaceTemplatesCrdName)
-          await this.kubeHelper.deleteCrd(this.workspaceRoutingsCrdName)
 
           task.title = await `${task.title}...OK`
         },
