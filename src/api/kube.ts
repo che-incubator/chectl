@@ -21,8 +21,9 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
 import { getClusterClientCommand, isKubernetesPlatformFamily, newError, safeLoadFromYamlFile } from '../util'
+import { V1CheClusterBackup, V1CheClusterRestore } from './typings/backup-restore-crds'
 
 import { V1Certificate } from './typings/cert-manager'
 import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './typings/olm'
@@ -1710,6 +1711,69 @@ export class KubeHelper {
     }
   }
 
+  async recreateCheGroupCr(crYaml: any, kindPlural: string): Promise<any> {
+    const namespace = crYaml.metadata.namespace
+    const name = crYaml.metadata.name
+
+    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+    // Delete previos CR if any
+    try {
+      await customObjectsApi.getNamespacedCustomObject(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, namespace, kindPlural, name)
+      try {
+        await customObjectsApi.deleteNamespacedCustomObject(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, namespace, kindPlural, name)
+      } catch (e) {
+        // Failed to delete old CR
+        throw this.wrapK8sClientError(e)
+      }
+    } catch (e) {
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
+      // Old CR doesn't exists, do nothing
+    }
+
+    try {
+      const res = await customObjectsApi.createNamespacedCustomObject(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, namespace, kindPlural, crYaml)
+      return res.body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async recreateBackupCr(namespace: string, name: string, backupServerConfigName?: string): Promise<V1CheClusterBackup> {
+    const backupCr: V1CheClusterBackup = {
+      apiVersion: `${CHE_CLUSTER_API_GROUP}/${CHE_CLUSTER_API_VERSION}`,
+      kind: 'CheClusterBackup',
+      spec: {},
+    }
+    backupCr.metadata = new V1ObjectMeta()
+    backupCr.metadata.name = name
+    backupCr.metadata.namespace = namespace
+    if (backupServerConfigName) {
+      backupCr.spec.backupServerConfigRef = backupServerConfigName
+      backupCr.spec.useInternalBackupServer = false
+    } else {
+      backupCr.spec.useInternalBackupServer = true
+    }
+
+    return this.recreateCheGroupCr(backupCr, CHE_CLUSTER_BACKUP_KIND_PLURAL)
+  }
+
+  async recreateRestoreCr(namespace: string, name: string, backupServerConfigName?: string, snapshotId?: string): Promise<V1CheClusterBackup> {
+    const restoreCr: V1CheClusterRestore = {
+      apiVersion: `${CHE_CLUSTER_API_GROUP}/${CHE_CLUSTER_API_VERSION}`,
+      kind: 'CheClusterRestore',
+      spec: {},
+    }
+    restoreCr.metadata = new V1ObjectMeta()
+    restoreCr.metadata.name = name
+    restoreCr.metadata.namespace = namespace
+    restoreCr.spec.backupServerConfigRef = backupServerConfigName
+    restoreCr.spec.snapshotId = snapshotId
+
+    return this.recreateCheGroupCr(restoreCr, CHE_CLUSTER_RESTORE_KIND_PLURAL)
+  }
+
   async isPreInstalledOLM(): Promise<boolean> {
     const apiApi = this.kubeConfig.makeApiClient(ApisApi)
     try {
@@ -2434,7 +2498,7 @@ export class KubeHelper {
     throw new Error('ERR_LIST_INGRESSES')
   }
 
-  async getSecret(name = '', namespace = 'default'): Promise<V1Secret | undefined> {
+  async getSecret(name: string, namespace = 'default'): Promise<V1Secret | undefined> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
 
     // now get the matching secrets
@@ -2454,7 +2518,7 @@ export class KubeHelper {
    * Creates a secret with given name and data.
    * Data should not be base64 encoded.
    */
-  async createSecret(name: string, data: { [key: string]: string }, namespace: string): Promise<V1Secret | undefined> {
+  async createSecret(namespace: string, name: string, data: { [key: string]: string }): Promise<V1Secret | undefined> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
 
     const secret = new V1Secret()
@@ -2468,6 +2532,43 @@ export class KubeHelper {
     } catch {
       return
     }
+  }
+
+  /**
+   * Deletes specified secret if any.
+   */
+  async deleteSecret(namespace: string, name: string): Promise<void> {
+    const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
+    try {
+      await k8sCoreApi.deleteNamespacedSecret(name, namespace)
+    } catch (e) {
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
+    }
+  }
+
+  /**
+   * Replaces given secret or creates a new one.
+   * Data should not be base64 encoded.
+   */
+  async createOrReplaceSecret(namespace: string, name: string, data: { [key: string]: string }): Promise<V1Secret | undefined> {
+    const existingSecret =  await this.getSecret(name, namespace)
+    if (existingSecret) {
+      if (existingSecret.data === data) {
+        return existingSecret
+      }
+      existingSecret.data = data
+
+      const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
+      try {
+        const res = await k8sCoreApi.replaceNamespacedSecret(name, namespace, existingSecret)
+        return res.body
+      } catch (e) {
+        throw this.wrapK8sClientError(e)
+      }
+    }
+    return this.createSecret(namespace, name, data)
   }
 
   /**
