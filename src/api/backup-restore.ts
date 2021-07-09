@@ -52,10 +52,10 @@ export interface SftpBackupServerCredentials {
   sshKey: string
 }
 
-export const BACKUP_CR_NAME = 'chectl-che-backup'
-export const RESTORE_CR_NAME = 'chectl-che-restore'
+export const BACKUP_CR_NAME = 'eclipse-che-backup'
+export const RESTORE_CR_NAME = 'eclipse-che-restore'
 
-export const BACKUP_SERVER_CONFIG_NAME = 'chectl-backup-server-config'
+export const BACKUP_SERVER_CONFIG_NAME = 'eclipse-che-backup-server-config'
 
 export const BACKUP_REPOSITORY_PASSWORD_SECRET_NAME = 'chectl-backup-repository-password'
 export const REST_SERVER_CREDENTIALS_SECRET_NAME = 'chectl-backup-rest-server-credentials'
@@ -67,11 +67,11 @@ export const SSH_KEY_SECRET_NAME = 'chectl-backup-sftp-server-key'
  * @param url full url to backup server including restic protocol, e.g. sftp://url
  */
 export function getBackupServerType(url: string): BackupServerType {
-  if (url.startsWith('rest:') || url.startsWith('rest://')) {
+  if (url.startsWith('rest:')) {
     return 'rest'
-  } else if (url.startsWith('s3:') || url.startsWith('s3://')) {
+  } else if (url.startsWith('s3:')) {
     return 's3'
-  } else if (url.startsWith('sftp:') || url.startsWith('sftp://')) {
+  } else if (url.startsWith('sftp:')) {
     return 'sftp'
   }
   return ''

@@ -73,10 +73,6 @@ export default class Restore extends Command {
     const apiTasks = new ApiTasks()
     tasks.add(apiTasks.testApiTasks(flags))
     tasks.add(this.getRestoreTasks(flags))
-    // Export self-signed CA cert if any
-    // Setting tls flag to enable retrieveCheCaCertificateTask
-    flags.tls = true
-    tasks.add(retrieveCheCaCertificateTask(flags))
     try {
       await tasks.run(ctx)
     } catch (err) {
