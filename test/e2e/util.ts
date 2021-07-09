@@ -28,7 +28,6 @@ interface WorkspaceInfo {
 export const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse-che/che-devfile-registry/master/devfiles/go/devfile.yaml'
 
 export const NAMESPACE = 'eclipse-che'
-export const NIGHTLY = 'nightly'
 export const CHECTL_REPONAME = 'chectl'
 
 // Workspace created in admin-che
@@ -237,16 +236,15 @@ export class E2eHelper {
 
   /**
    * Check if VERSION file exists and return content. In case if Version file doesn't exists
-   * We are not in release branch and return nightly
+   * We are not in release branch and return `next`
    */
   getNewVersion(): string {
-    let version = 'nightly'
     const rootDir = process.cwd()
     try {
       if (fs.existsSync(`${rootDir}/VERSION`)) {
         return fs.readFileSync(`${rootDir}/VERSION`).toString().trim()
       }
-      return version
+      return 'next'
     } catch (error) {
       throw new Error(`Error reading version file: ${error}`)
     }
