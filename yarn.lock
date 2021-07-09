@@ -973,10 +973,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/getos@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@types/getos/-/getos-3.0.0.tgz#582c758e99e9d634f31f471faf7ce59cf1c39a71"
-  integrity sha512-g5O9kykBPMaK5USwU+zM5AyXaztqbvHjSQ7HaBjqgO3f5lKGChkRhLP58Z/Nrr4RBGNNPrBcJkWZwnmbmi9YjQ==
+"@types/getos@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@types/getos/-/getos-3.0.1.tgz#6812bfdca81aaeba7ac2d0f4ad002b7e6566fc3b"
+  integrity sha512-igBIU7ZwzRrVGYf0nQyISMJZjuDF+5T2v8gnqXGpIbMN7j/pk6s4uSHXfolXPMUZET6aCfG9xoPDT47oM9RN6A==
 
 "@types/glob@*", "@types/glob@^7.1.1":
   version "7.1.3"
