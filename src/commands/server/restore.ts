@@ -18,7 +18,6 @@ import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_RESTORE_KIN
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace } from '../../common-flags'
-import { retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { requestRestore } from '../../api/backup-restore'
 import { cli } from 'cli-ux'
 import { ApiTasks } from '../../tasks/platforms/api'

@@ -130,7 +130,7 @@ async function getBackupServerConfigurationName(namespace: string, backupServerC
       backupServerConfigCrYaml.metadata.namespace = namespace
       backupServerConfigCrYaml.metadata.name = BACKUP_SERVER_CONFIG_NAME
       await provisionCredentialsSecrets(namespace, backupServerConfig)
-      await kube.replaceCheGroupCr(backupServerConfigCrYaml, CHE_BACKUP_SERVER_CONFIG_KIND_PLURAL)
+      await kube.recreateCheGroupCr(backupServerConfigCrYaml, CHE_BACKUP_SERVER_CONFIG_KIND_PLURAL)
       return BACKUP_SERVER_CONFIG_NAME
     }
   }
@@ -244,7 +244,7 @@ async function provisionCredentialsSecrets(namespace: string, backupServerConfig
   const kube = new KubeHelper()
 
   const data: { [key: string]: string } = { 'repo-password': backupServerConfig.repoPassword }
-  await kube.recreateSecret(namespace, BACKUP_REPOSITORY_PASSWORD_SECRET_NAME, data)
+  await kube.createOrReplaceSecret(namespace, BACKUP_REPOSITORY_PASSWORD_SECRET_NAME, data)
 
   if (backupServerConfig.credentials) {
     const serverType = getBackupServerType(backupServerConfig.url)
@@ -255,7 +255,7 @@ async function provisionCredentialsSecrets(namespace: string, backupServerConfig
       const password = restServerCredentials.password
       if (username && password) {
         const data = { username, password }
-        await kube.recreateSecret(namespace, REST_SERVER_CREDENTIALS_SECRET_NAME, data)
+        await kube.createOrReplaceSecret(namespace, REST_SERVER_CREDENTIALS_SECRET_NAME, data)
       }
       break
     case 's3':
@@ -264,14 +264,14 @@ async function provisionCredentialsSecrets(namespace: string, backupServerConfig
       const awsSecretAccessKey = awsCredentials.awsSecretAccessKey
       if (awsAccessKeyId && awsSecretAccessKey) {
         const data = { awsAccessKeyId, awsSecretAccessKey }
-        await kube.recreateSecret(namespace, AWS_CREDENTIALS_SECRET_NAME, data)
+        await kube.createOrReplaceSecret(namespace, AWS_CREDENTIALS_SECRET_NAME, data)
       }
       break
     case 'sftp':
       const sftpServerCredentials = backupServerConfig.credentials as SftpBackupServerCredentials
       if (sftpServerCredentials.sshKey) {
         const data = { 'ssh-privatekey': sftpServerCredentials.sshKey }
-        await kube.recreateSecret(namespace, SSH_KEY_SECRET_NAME, data)
+        await kube.createOrReplaceSecret(namespace, SSH_KEY_SECRET_NAME, data)
       }
       break
     default:
