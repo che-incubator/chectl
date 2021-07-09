@@ -44,7 +44,7 @@ export namespace ChectlContext {
 
   export async function init(flags: any, command: Command): Promise<void> {
     ctx.isChectl = getProjectName() === CHECTL_PROJECT_NAME
-    ctx.isNightly = getProjectVersion().includes('next') || getProjectVersion() === CHECTL_DEVELOPMENT_VERSION
+    ctx.isDevVersion = getProjectVersion().includes('next') || getProjectVersion() === CHECTL_DEVELOPMENT_VERSION
 
     if (flags['listr-renderer'] as any) {
       ctx.listrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions

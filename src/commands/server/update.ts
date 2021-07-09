@@ -20,7 +20,7 @@ import * as semver from 'semver'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { assumeYes, batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OPERATOR_INSTALLER_VERSION, SUBSCRIPTION_NAME } from '../../constants'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OPERATOR_INSTALLER_VERSION, NEXT_TAG, SUBSCRIPTION_NAME } from '../../constants'
 import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
@@ -243,8 +243,8 @@ export default class Update extends Command {
       // Official images
 
       if (ctx.deployedCheOperatorImage === ctx.newCheOperatorImage) {
-        if (ctx.newCheOperatorImageTag === 'nightly') {
-          cli.info('Updating current Eclipse Che nightly version to a new one.')
+        if (ctx.newCheOperatorImageTag === NEXT_TAG) {
+          cli.info(`Updating current Eclipse Che ${NEXT_TAG} version to a new one.`)
           return true
         }
 
@@ -262,10 +262,10 @@ export default class Update extends Command {
         // Upgrade
 
         const currentChectlVersion = getProjectVersion()
-        if (!ctx.isNightly && (ctx.newCheOperatorImageTag === 'nightly' || semver.lt(currentChectlVersion, ctx.newCheOperatorImageTag))) {
+        if (!ctx.isDevVersion && (ctx.newCheOperatorImageTag === NEXT_TAG || semver.lt(currentChectlVersion, ctx.newCheOperatorImageTag))) {
           // Upgrade is not allowed
-          if (ctx.newCheOperatorImageTag === 'nightly') {
-            cli.warn(`Stable ${getProjectName()} cannot update stable Eclipse Che to nightly version`)
+          if (ctx.newCheOperatorImageTag === NEXT_TAG) {
+            cli.warn(`Stable ${getProjectName()} cannot update stable Eclipse Che to ${NEXT_TAG} version`)
           } else {
             cli.warn(`It is not possible to update Eclipse Che to a newer version using the current '${currentChectlVersion}' version of chectl. Please, update '${getProjectName()}' to a newer version using command '${getProjectName()} update' and then try again.`)
           }
@@ -273,8 +273,8 @@ export default class Update extends Command {
         }
 
         // Upgrade allowed
-        if (ctx.newCheOperatorImageTag === 'nightly') {
-          cli.info(`You are going to update Eclipse Che ${ctx.deployedCheOperatorImageTag} to nightly version.`)
+        if (ctx.newCheOperatorImageTag === NEXT_TAG) {
+          cli.info(`You are going to update Eclipse Che ${ctx.deployedCheOperatorImageTag} to ${NEXT_TAG} version.`)
         } else {
           cli.info(`You are going to update Eclipse Che ${ctx.deployedCheOperatorImageTag} to ${ctx.newCheOperatorImageTag}`)
         }
@@ -329,13 +329,13 @@ export default class Update extends Command {
 
   /**
    * Checks if official operator image is replaced with a newer one.
-   * Tags are allowed in format x.y.z or nightly.
-   * nightly is considered the most recent.
+   * Tags are allowed in format x.y.z or NEXT_TAG.
+   * NEXT_TAG is considered the most recent.
    * For example:
    *  (7.22.1, 7.23.0) -> true,
    *  (7.22.1, 7.20.2) -> false,
-   *  (7.22.1, nightly) -> true,
-   *  (nightly, 7.20.2) -> false
+   *  (7.22.1, NEXT_TAG) -> true,
+   *  (NEXT_TAG, 7.20.2) -> false
    * @param oldTag old official operator image tag, e.g. 7.20.1
    * @param newTag new official operator image tag e.g. 7.22.0
    * @returns true if upgrade, false if downgrade
@@ -354,11 +354,11 @@ export default class Update extends Command {
       cli.debug(`Failed to compare versions '${newTag}' and '${oldTag}': ${error}`)
     }
 
-    // if newTag is nightly it is upgrade
-    // if oldTag is nightly it is downgrade
+    // if newTag is NEXT_TAG it is upgrade
+    // if oldTag is NEXT_TAG it is downgrade
     // otherwise just compare new and old tags
-    // Note, that semver lib doesn't handle text tags and throws an error in case nightly is provided for comparation.
-    return newTag === 'nightly' || (oldTag !== 'nightly' && isUpdate)
+    // Note, that semver lib doesn't handle text tags and throws an error in case NEXT_TAG is provided for comparation.
+    return newTag === NEXT_TAG || (oldTag !== NEXT_TAG && isUpdate)
   }
 
   /**
