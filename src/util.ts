@@ -338,3 +338,10 @@ export async function getDistribution(): Promise<string | undefined> {
   }
   return
 }
+
+export function addTrailingSlash(url: string): string {
+  if (url.endsWith('/')) {
+    return url
+  }
+  return url + '/'
+}
