@@ -19,7 +19,7 @@ import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
 import { VersionHelper } from '../api/version'
 import { CHE_OPERATOR_SELECTOR, DOC_LINK, DOC_LINK_RELEASE_NOTES, OUTPUT_SEPARATOR } from '../constants'
-import { base64Decode, newError } from '../util'
+import { addTrailingSlash, base64Decode, newError } from '../util'
 
 import { KubeTasks } from './kube'
 
@@ -714,15 +714,15 @@ export class CheTasks {
           const cheConfigMap = await this.kube.getConfigMap('che', flags.chenamespace)
           if (cheConfigMap && cheConfigMap.data) {
             if (cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL) {
-              messages.push(`Plug-in Registry          : ${cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL}`)
+              messages.push(`Plug-in Registry          : ${addTrailingSlash(cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL)}`)
             }
             if (cheConfigMap.data.CHE_WORKSPACE_DEVFILE__REGISTRY__URL) {
-              messages.push(`Devfile Registry          : ${cheConfigMap.data.CHE_WORKSPACE_DEVFILE__REGISTRY__URL}`)
+              messages.push(`Devfile Registry          : ${addTrailingSlash(cheConfigMap.data.CHE_WORKSPACE_DEVFILE__REGISTRY__URL)}`)
             }
             messages.push(OUTPUT_SEPARATOR)
 
             if (cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL) {
-              messages.push(`Identity Provider URL     : ${cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL}`)
+              messages.push(`Identity Provider URL     : ${addTrailingSlash(cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL)}`)
             }
             if (ctx.identityProviderUsername && ctx.identityProviderPassword) {
               messages.push(`Identity Provider login   : "${ctx.identityProviderUsername}:${ctx.identityProviderPassword}".`)
