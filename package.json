@@ -56,7 +56,7 @@
     "@types/chai": "^4",
     "@types/command-exists": "^1.2.0",
     "@types/countries-and-timezones": "^2.0.3",
-    "@types/fs-extra": "^9.0.11",
+    "@types/fs-extra": "^9.0.12",
     "@types/getos": "^3.0.1",
     "@types/inquirer": "^7.3.3",
     "@types/jest": "26.0.23",
