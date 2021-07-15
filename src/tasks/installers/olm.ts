@@ -429,7 +429,7 @@ export class OLMTasks {
     const csv = await kube.getCSV(currentCSV, cheNamespace)
     if (csv && csv.metadata.annotations) {
       const CRRaw = csv.metadata.annotations!['alm-examples']
-      return (yaml.safeLoad(CRRaw) as Array<any>)[0]
+      return (yaml.load(CRRaw) as Array<any>)[0]
     } else {
       throw new Error(`Unable to retrieve Che cluster CR definition from CSV: ${currentCSV}`)
     }

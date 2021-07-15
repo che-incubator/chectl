@@ -255,11 +255,11 @@ export function readPackageJson(): any {
 }
 
 export function safeLoadFromYamlFile(filePath: string): any {
-  return yaml.safeLoad(fs.readFileSync(filePath).toString())
+  return yaml.load(fs.readFileSync(filePath).toString())
 }
 
 export function safeSaveYamlToFile(yamlObject: any, filePath: string): void {
-  fs.writeFileSync(filePath, yaml.safeDump(yamlObject))
+  fs.writeFileSync(filePath, yaml.dump(yamlObject))
 }
 
 export async function downloadFile(url: string, dest: string): Promise<void> {
@@ -281,7 +281,7 @@ export async function downloadYaml(url: string): Promise<any> {
     httpsAgent: new https.Agent({}),
   })
   const response = await axiosInstance.get(url)
-  return yaml.safeLoad(response.data)
+  return yaml.load(response.data)
 }
 
 export function getEmbeddedTemplatesDirectory(): string {

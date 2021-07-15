@@ -287,7 +287,7 @@ export class CheHelper {
     try {
       devfile = await this.parseDevfile(devfilePath)
       if (workspaceName) {
-        const json: Devfile = yaml.load(devfile)
+        const json = yaml.load(devfile) as Devfile
         json.metadata.name = workspaceName
         devfile = yaml.dump(json)
       }
