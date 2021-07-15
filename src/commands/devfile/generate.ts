@@ -178,7 +178,7 @@ export default class Generate extends Command {
       const component: DevfileComponent = {
         type: TheEndpointName.Kubernetes,
         alias: `${flags.selector}`,
-        referenceContent: `${yaml.safeDump(k8sList, { skipInvalid: true })}`,
+        referenceContent: `${yaml.dump(k8sList, { skipInvalid: true })}`,
       }
       if (devfile.components) {
         devfile.components.push(component)
@@ -256,7 +256,7 @@ export default class Generate extends Command {
       }
     })
     this.log(`# chectl ${updatedArgs.join(' ')}`)
-    this.log(yaml.safeDump(devfile))
+    this.log(yaml.dump(devfile))
 
     this.exit(0)
   }
