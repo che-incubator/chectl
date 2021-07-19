@@ -97,7 +97,8 @@
     "/lib",
     "/installers",
     "/npm-shrinkwrap.json",
-    "/oclif.manifest.json"
+    "/oclif.manifest.json",
+    "/prepare-che-operator-templates.js"
   ],
   "homepage": "https://github.com/che-incubator/chectl",
   "keywords": [
