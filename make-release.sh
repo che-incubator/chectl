@@ -86,7 +86,8 @@ release() {
   # now replace package.json dependencies
   apply_sed "s;github.com/eclipse-che/che-server#\(.*\)\",;github.com/eclipse-che/che-server#${VERSION}\",;g" package.json
   apply_sed "s;github.com/eclipse-che/che-operator#\(.*\)\",;github.com/eclipse-che/che-operator#${VERSION}\",;g" package.json
-  apply_sed "s;github.com/devfile/devworkspace-operator#\(.*\)\",;github.com/devfile/devworkspace-operator#${DWO_GIT_VERSION}\",;g" package.json
+  apply_sed "s;github.com/eclipse-che/che-operator#\(.*\)\",;github.com/eclipse-che/che-operator#${VERSION}\",;g" package.json
+  apply_sed "s;\"@eclipse-che/api\": \"\(.*\)\",;\"@eclipse-che/api\": \"${VERSION}\",;g" package.json
 
   if ! grep -q "github.com/eclipse-che/che-server#${VERSION}" package.json; then
     echo "[ERROR] Unable to find Che Server version ${VERSION} in the package.json"; exit 1
