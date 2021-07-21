@@ -141,7 +141,7 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
       const cheClusterCR = ctx.customCR || ctx.defaultCR
       const cr = await kube.createCheCluster(cheClusterCR, flags, ctx, !ctx.customCR)
 
-      ctx.isKeycloakReady = ctx.isKeycloakReady || cr.spec.auth.externalIdentityProvider
+      ctx.isKeycloakReady = ctx.isKeycloakReady || cr.spec.auth.externalIdentityProvider || cr.spec.auth.nativeUserMode
       ctx.isPostgresReady = ctx.isPostgresReady || cr.spec.database.externalDb
       ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || cr.spec.server.externalDevfileRegistry
       ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || cr.spec.server.externalPluginRegistry
