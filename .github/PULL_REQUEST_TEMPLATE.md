@@ -27,7 +27,6 @@ Pull Request Policy: https://github.com/che-incubator/chectl/blob/main/CONTRIBUT
 
 [As the author of this Pull Request I made sure that:](https://github.com/eclipse/che/blob/master/CONTRIBUTING.md#pull-request-template-and-its-checklist)
 
-- [ ] [The Eclipse Contributor Agreement is valid](https://github.com/eclipse/che/blob/master/CONTRIBUTING.md#the-eclipse-contributor-agreement-is-valid)
 - [ ] [Code produced is complete](https://github.com/eclipse/che/blob/master/CONTRIBUTING.md#code-produced-is-complete)
 - [ ] [Code builds without errors](https://github.com/eclipse/che/blob/master/CONTRIBUTING.md#code-builds-without-errors)
 - [ ] [Tests are covering the bugfix](https://github.com/eclipse/che/blob/master/CONTRIBUTING.md#tests-are-covering-the-bugfix)
