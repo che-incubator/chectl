@@ -16,7 +16,6 @@ import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { OpenShiftHelper } from '../../api/openshift'
-import { V1Certificate } from '../../api/typings/cert-manager'
 import { DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE } from '../../constants'
 import { CertManagerTasks } from '../component-installers/cert-manager'
 import { createNamespaceTask } from '../installers/common-tasks'
@@ -110,38 +109,6 @@ export class DevWorkspaceTasks {
         enabled: (ctx: any) => !ctx.isOpenShift,
         task: async (ctx: any, _task: any) => {
           return new Listr(this.certManagerTask.getDeployCertManagerTasks(flags), ctx.listrOptions)
-        },
-      },
-      // WARNING: Issuer and Certificate should be moved to che-operator side. Depends on issue: https://github.com/eclipse/che/issues/19502
-      {
-        title: `Create certificate issuer ${this.devWorkspaceCertIssuer}`,
-        enabled: (ctx: any) => !ctx.isOpenShift,
-        task: async (ctx: any, task: any) => {
-          const certIssuerExist = await this.kubeHelper.isCertificateIssuerExists(this.devWorkspaceCertIssuer, ctx.certManagerK8sApiVersion, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
-          if (certIssuerExist) {
-            task.title = `${task.title}...It already exists.`
-            return
-          }
-          const devWorkspaceIssuerCertFilePath = path.join(this.getTemplatePath(ctx), 'devworkspace-controller-selfsigned-issuer.Issuer.yaml')
-          await this.kubeHelper.createCertificateIssuer(devWorkspaceIssuerCertFilePath, ctx.certManagerK8sApiVersion, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
-
-          task.title = `${task.title}...Done.`
-        },
-      },
-      {
-        title: `Create self signed certificate ${this.devWorkspaceCertificate}`,
-        enabled: (ctx: any) => !ctx.isOpenShift,
-        task: async (ctx: any, task: any) => {
-          const certExists = await this.kubeHelper.isNamespacedCertificateExists(this.devWorkspaceCertificate, ctx.certManagerK8sApiVersion, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
-          if (certExists) {
-            task.title = `${task.title}...It already exists.`
-            return
-          }
-
-          const certificateTemplatePath = path.join(this.getTemplatePath(ctx), 'devworkspace-controller-serving-cert.Certificate.yaml')
-          const certifiateYaml = this.kubeHelper.safeLoadFromYamlFile(certificateTemplatePath) as V1Certificate
-          await this.kubeHelper.createCheClusterCertificate(certifiateYaml, ctx.certManagerK8sApiVersion)
-          task.title = `${task.title}...Done.`
         },
       },
     ]
