@@ -67,7 +67,7 @@
     "@types/node-notifier": "^8.0.1",
     "@types/request": "^2.48.6",
     "@types/rimraf": "^3.0.1",
-    "@types/semver": "^7.3.7",
+    "@types/semver": "^7.3.8",
     "@types/unzipper": "^0.10.4",
     "@types/uuid": "^8.3.1",
     "@types/websocket": "^1.0.3",
