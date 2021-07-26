@@ -33,7 +33,7 @@ jobs:
           echo "{\"text\":\":white_check_mark: Chectl ${{ steps.TAG_UTIL.outputs.version }} released: https://github.com/che-incubator/chectl/releases${{ steps.TAG_UTIL.outputs.gh_tag }}\"}" > mattermost.json
       - name: Send MM message
         if: ${{ success() }} || ${{ failure() }}
-        uses: mattermost/action-mattermost-notify@1.0.2
+        uses: mattermost/action-mattermost-notify@1.0.3
         env:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
           MATTERMOST_CHANNEL: eclipse-che-releases
