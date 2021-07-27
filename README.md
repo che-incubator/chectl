@@ -511,8 +511,8 @@ OPTIONS
       (required) [default: 40000] Eclipse Che server bootstrap timeout (in milliseconds)
 
   -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc
-      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc 
-      (for CodeReady Containers)", "microk8s".
+      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s" (for kubernetes), "openshift", "crc" (for CodeReady Containers)
+      , "microk8s", docker-desktop.
 
   -t, --templates=templates
       Path to the templates folder
