@@ -22,7 +22,7 @@ import { batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatc
 import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_HELM_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
-import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
+import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
@@ -417,7 +417,6 @@ export default class Deploy extends Command {
         title: '✅  Post installation checklist',
         task: () => new Listr(cheTasks.waitDeployedChe()),
       },
-      getRetrieveKeycloakCredentialsTask(flags),
       retrieveCheCaCertificateTask(flags),
       ...cheTasks.preparePostInstallationOutput(flags),
       getPrintHighlightedMessagesTask(),

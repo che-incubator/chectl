@@ -723,11 +723,18 @@ export class CheTasks {
 
             if (cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL) {
               messages.push(`Identity Provider URL     : ${addTrailingSlash(cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL)}`)
+
+              if (ctx.identityProviderUsername && ctx.identityProviderPassword) {
+                messages.push(`Identity Provider login   : "${ctx.identityProviderUsername}:${ctx.identityProviderPassword}".`)
+              } else {
+                const [login, password] = await this.che.retrieveKeycloakAdminCredentials(flags.chenamespace)
+                if (login && password) {
+                  messages.push(`Identity Provider login   : "${login}:${password}".`)
+                }
+              }
+
+              messages.push(OUTPUT_SEPARATOR)
             }
-            if (ctx.identityProviderUsername && ctx.identityProviderPassword) {
-              messages.push(`Identity Provider login   : "${ctx.identityProviderUsername}:${ctx.identityProviderPassword}".`)
-            }
-            messages.push(OUTPUT_SEPARATOR)
           }
           ctx.highlightedMessages = messages.concat(ctx.highlightedMessages)
           task.title = `${task.title}...done`
