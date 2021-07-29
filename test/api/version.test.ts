@@ -39,4 +39,81 @@ describe('Version Helper', () => {
         expect(check).to.false
       })
   })
+
+  describe('chectl version comparator', () => {
+    function getCommitDateFakeResponse(commitDate: string) {
+      return {
+        commit : {
+          committer: {
+            date: commitDate
+          }
+        }
+      }
+    }
+
+    fancy
+      .it('should update stable version', async () => {
+        const currentVersion = '7.30.2'
+        const newVersion = '7.31.1'
+        const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
+        expect(shouldUpdate).to.be.true
+      })
+    fancy
+      .it('should not update stable version', async () => {
+        const currentVersion = '7.30.2'
+        const newVersion = '7.30.2'
+        const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
+        expect(shouldUpdate).to.be.false
+      })
+    fancy
+      .it('should not downgrade stable version', async () => {
+        const currentVersion = '7.31.1'
+        const newVersion = '7.30.2'
+        const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
+        expect(shouldUpdate).to.be.false
+      })
+    fancy
+      .it('should update nightly version (release day differs)', async () => {
+        const currentVersion = '0.0.20210727-next.81f31b0'
+        const newVersion = '0.0.20210729-next.6041615'
+        const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
+        expect(shouldUpdate).to.be.true
+      })
+    fancy
+      .it('should not update nightly version (release day differs)', async () => {
+        const currentVersion = '0.0.20210729-next.6041615'
+        const newVersion = '0.0.20210729-next.6041615'
+        const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
+        expect(shouldUpdate).to.be.false
+      })
+    fancy
+      .it('should not downgrade nightly version (release day differs)', async () => {
+        const currentVersion = '0.0.20210729-next.6041615'
+        const newVersion = '0.0.20210727-next.81f31b0'
+        const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
+        expect(shouldUpdate).to.be.false
+      })
+    fancy
+      .nock('https://api.github.com/repos/che-incubator/chectl/commits', api => api
+        .get('/597729a').reply(200, getCommitDateFakeResponse('2021-07-15T08:20:00Z'))
+        .get('/4771039').reply(200, getCommitDateFakeResponse('2021-07-15T09:45:37Z'))
+      )
+      .it('should update nightly version (release day the same)', async () => {
+        const currentVersion = '0.0.20210715-next.597729a'
+        const newVersion = '0.0.20210715-next.4771039'
+        const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
+        expect(shouldUpdate).to.be.true
+      })
+    fancy
+      .nock('https://api.github.com/repos/che-incubator/chectl/commits', api => api
+        .get('/597729a').reply(200, getCommitDateFakeResponse('2021-07-15T08:20:00Z'))
+        .get('/4771039').reply(200, getCommitDateFakeResponse('2021-07-15T09:45:37Z'))
+      )
+      .it('should not downgrade nightly version (release day the same)', async () => {
+        const currentVersion = '0.0.20210715-next.4771039'
+        const newVersion = '0.0.20210715-next.597729a'
+        const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
+        expect(shouldUpdate).to.be.false
+      })
+  })
 })
