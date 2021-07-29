@@ -207,24 +207,6 @@ export function getMessageImportCaCertIntoBrowser(caCertFileLocation: string): s
   return message
 }
 
-export function getRetrieveKeycloakCredentialsTask(flags: any): Listr.ListrTask {
-  return {
-    title: 'Retrieving Keycloak admin credentials',
-    enabled: () => (flags.installer !== 'helm'),
-    task: async (ctx: any, task: any) => {
-      const che = new CheHelper(flags)
-      const [login, password] = await che.retrieveKeycloakAdminCredentials(flags.chenamespace)
-      if (login && password) {
-        ctx.identityProviderUsername = login
-        ctx.identityProviderPassword = password
-        task.title = `${task.title}...done`
-      } else {
-        task.title = `${task.title}...failed.`
-      }
-    },
-  }
-}
-
 /**
  * Prints important to user messages which are stored in ctx.highlightedMessages
  * Typically this task is the last task of a command.
