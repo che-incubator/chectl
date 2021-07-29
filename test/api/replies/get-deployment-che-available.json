@@ -367,7 +367,7 @@
                                       }
                                   }
                               ],
-                              "image": "quay.io/eclipse/che-server:nightly",
+                              "image": "quay.io/eclipse/che-server:next",
                               "imagePullPolicy": "Always",
                               "livenessProbe": {
                                   "failureThreshold": 3,

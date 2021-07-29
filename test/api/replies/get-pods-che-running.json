@@ -356,7 +356,7 @@
                 }
               }
             ],
-            "image": "quay.io/eclipse/che-server:nightly",
+            "image": "quay.io/eclipse/che-server:next",
             "imagePullPolicy": "Always",
             "livenessProbe": {
               "failureThreshold": 3,
@@ -518,7 +518,7 @@
         "containerStatuses": [
           {
             "containerID": "docker://b9d083b708db25137a18489ee28e5ce58bde2a8bf951a28618ba83b9983c65dd",
-            "image": "quay.io/eclipse/che-server:nightly",
+            "image": "quay.io/eclipse/che-server:next",
             "imageID": "docker-pullable://quay.io/eclipse/che-server@sha256:e756e822cfdb867524b47998cd02c1f3525eaea9b9e705aab92c055b1ee3d121",
             "lastState": {
               "terminated": {

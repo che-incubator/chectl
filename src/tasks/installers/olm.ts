@@ -113,13 +113,13 @@ export class OLMTasks {
       },
       {
         enabled: () => !VersionHelper.isDeployingStableVersion(flags) && !flags['catalog-source-name'] && !flags['catalog-source-yaml'] && flags['olm-channel'] !== OLM_STABLE_CHANNEL_NAME,
-        title: `Create nightly index CatalogSource in the namespace ${flags.chenamespace}`,
+        title: `Create next index CatalogSource in the namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
-          if (!await kube.catalogSourceExists(NIGHTLY_CATALOG_SOURCE_NAME, flags.chenamespace)) {
+          if (!await kube.catalogSourceExists(NEXT_CATALOG_SOURCE_NAME, flags.chenamespace)) {
             const catalogSourceImage = `quay.io/eclipse/eclipse-che-${ctx.generalPlatformName}-opm-catalog:preview`
             const nigthlyCatalogSource = this.constructIndexCatalogSource(flags.chenamespace, catalogSourceImage)
             await kube.createCatalogSource(nigthlyCatalogSource)
-            await kube.waitCatalogSource(flags.chenamespace, NIGHTLY_CATALOG_SOURCE_NAME)
+            await kube.waitCatalogSource(flags.chenamespace, NEXT_CATALOG_SOURCE_NAME)
           } else {
             task.title = `${task.title}...It already exists.`
           }
@@ -160,7 +160,7 @@ export class OLMTasks {
               subscription = this.constructSubscription(SUBSCRIPTION_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, STABLE_ALL_NAMESPACES_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
             } else {
               // nightly Che CatalogSource
-              subscription = this.constructSubscription(SUBSCRIPTION_NAME, `eclipse-che-preview-${ctx.generalPlatformName}`, ctx.operatorNamespace, ctx.operatorNamespace, OLM_NIGHTLY_CHANNEL_NAME, NIGHTLY_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
+              subscription = this.constructSubscription(SUBSCRIPTION_NAME, `eclipse-che-preview-${ctx.generalPlatformName}`, ctx.operatorNamespace, ctx.operatorNamespace, OLM_NEXT_CHANNEL_NAME, NIGHTLY_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
             }
             await kube.createOperatorSubscription(subscription)
             task.title = `${task.title}...created new one.`
@@ -425,7 +425,7 @@ export class OLMTasks {
       apiVersion: 'operators.coreos.com/v1alpha1',
       kind: 'CatalogSource',
       metadata: {
-        name: NIGHTLY_CATALOG_SOURCE_NAME,
+        name: NEXT_CATALOG_SOURCE_NAME,
         namespace,
       },
       spec: {
