@@ -90,3 +90,6 @@ export const CHE_CLUSTER_BACKUP_CRD = 'checlusterbackups.org.eclipse.che'
 export const CHE_CLUSTER_BACKUP_KIND_PLURAL = 'checlusterbackups'
 export const CHE_CLUSTER_RESTORE_CRD = 'checlusterrestores.org.eclipse.che'
 export const CHE_CLUSTER_RESTORE_KIND_PLURAL = 'checlusterrestores'
+
+export const DEFAULT_OPENSHIFT_OPERATORS_NS_NAME = 'openshift-operators'
+export const STABLE_ALL_NAMESPACES_CHANNEL_NAME = 'stable-all-namespaces'

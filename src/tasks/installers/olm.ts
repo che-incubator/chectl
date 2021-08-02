@@ -19,7 +19,7 @@ import * as path from 'path'
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/typings/olm'
 import { VersionHelper } from '../../api/version'
-import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, KUBERNETES_OLM_CATALOG, NIGHTLY_CATALOG_SOURCE_NAME, OLM_NIGHTLY_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, SUBSCRIPTION_NAME } from '../../constants'
+import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, KUBERNETES_OLM_CATALOG, NIGHTLY_CATALOG_SOURCE_NAME, OLM_NIGHTLY_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, STABLE_ALL_NAMESPACES_CHANNEL_NAME, SUBSCRIPTION_NAME } from '../../constants'
 import { isKubernetesPlatformFamily } from '../../util'
 
 import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
@@ -68,6 +68,8 @@ export class OLMTasks {
       },
       {
         title: 'Create operator group',
+        // 'stable-all-namespaces' channel install the operator in openshift-operators namespace and there already exists a pre-created operator-group.
+        enabled: () => flags['olm-channel'] !== STABLE_ALL_NAMESPACES_CHANNEL_NAME,
         task: async (_ctx: any, task: any) => {
           if (await kube.operatorGroupExists(OPERATOR_GROUP_NAME, flags.chenamespace)) {
             task.title = `${task.title}...It already exists.`
@@ -142,20 +144,23 @@ export class OLMTasks {
       {
         title: 'Create operator subscription',
         task: async (ctx: any, task: any) => {
-          if (await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, flags.chenamespace)) {
+          if (await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, ctx.operatorNamespace)) {
             task.title = `${task.title}...It already exists.`
           } else {
             let subscription: Subscription
             if (flags['catalog-source-yaml'] || flags['catalog-source-name']) {
               // custom Che CatalogSource
-              const catalogSourceNamespace = flags['catalog-source-namespace'] || flags.chenamespace
-              subscription = this.constructSubscription(SUBSCRIPTION_NAME, flags['package-manifest-name'], flags.chenamespace, catalogSourceNamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, ctx.startingCSV)
+              const catalogSourceNamespace = flags['catalog-source-namespace'] || ctx.operatorNamespace
+              subscription = this.constructSubscription(SUBSCRIPTION_NAME, flags['package-manifest-name'], ctx.operatorNamespace, catalogSourceNamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, ctx.startingCSV)
             } else if (VersionHelper.isDeployingStableVersion(flags) || flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME) {
               // stable Che CatalogSource
-              subscription = this.constructSubscription(SUBSCRIPTION_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, flags.chenamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
+              subscription = this.constructSubscription(SUBSCRIPTION_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
+            } else if (flags['olm-channel'] === STABLE_ALL_NAMESPACES_CHANNEL_NAME) {
+              // stable Che CatalogSource
+              subscription = this.constructSubscription(SUBSCRIPTION_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, STABLE_ALL_NAMESPACES_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
             } else {
               // nightly Che CatalogSource
-              subscription = this.constructSubscription(SUBSCRIPTION_NAME, `eclipse-che-preview-${ctx.generalPlatformName}`, flags.chenamespace, flags.chenamespace, OLM_NIGHTLY_CHANNEL_NAME, NIGHTLY_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
+              subscription = this.constructSubscription(SUBSCRIPTION_NAME, `eclipse-che-preview-${ctx.generalPlatformName}`, ctx.operatorNamespace, ctx.operatorNamespace, OLM_NIGHTLY_CHANNEL_NAME, NIGHTLY_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
             }
             await kube.createOperatorSubscription(subscription)
             task.title = `${task.title}...created new one.`
@@ -165,7 +170,7 @@ export class OLMTasks {
       {
         title: 'Wait while subscription is ready',
         task: async (ctx: any, task: any) => {
-          const installPlan = await kube.waitOperatorSubscriptionReadyForApproval(flags.chenamespace, SUBSCRIPTION_NAME, 600)
+          const installPlan = await kube.waitOperatorSubscriptionReadyForApproval(ctx.operatorNamespace, SUBSCRIPTION_NAME, 600)
           ctx.installPlanName = installPlan.name
           task.title = `${task.title}...done.`
         },
@@ -174,14 +179,14 @@ export class OLMTasks {
         title: 'Approve installation',
         enabled: ctx => ctx.approvalStarategy === 'Manual',
         task: async (ctx: any, task: any) => {
-          await kube.approveOperatorInstallationPlan(ctx.installPlanName, flags.chenamespace)
+          await kube.approveOperatorInstallationPlan(ctx.installPlanName, ctx.operatorNamespace)
           task.title = `${task.title}...done.`
         },
       },
       {
         title: 'Wait while operator installed',
         task: async (ctx: any, task: any) => {
-          await kube.waitUntilOperatorIsInstalled(ctx.installPlanName, flags.chenamespace)
+          await kube.waitUntilOperatorIsInstalled(ctx.installPlanName, ctx.operatorNamespace)
           task.title = `${task.title}...done.`
         },
       },
@@ -189,7 +194,7 @@ export class OLMTasks {
         title: 'Set custom operator image',
         enabled: () => flags['che-operator-image'],
         task: async (_ctx: any, task: any) => {
-          const csvList = await kube.getClusterServiceVersions(flags.chenamespace)
+          const csvList = await kube.getClusterServiceVersions(flags.chenamespaces)
           if (csvList.items.length < 1) {
             throw new Error('Failed to get CSV for Che operator')
           }
@@ -225,8 +230,8 @@ export class OLMTasks {
       this.isOlmPreInstalledTask(command, kube),
       {
         title: 'Check if operator group exists',
-        task: async (_ctx: any, task: any) => {
-          if (!await kube.operatorGroupExists(OPERATOR_GROUP_NAME, flags.chenamespace)) {
+        task: async (ctx: any, task: any) => {
+          if (!await kube.operatorGroupExists(OPERATOR_GROUP_NAME, ctx.operatorNamespace)) {
             command.error(`Unable to find operator group ${OPERATOR_GROUP_NAME}`)
           }
           task.title = `${task.title}...done.`
@@ -234,8 +239,8 @@ export class OLMTasks {
       },
       {
         title: 'Check if operator subscription exists',
-        task: async (_ctx: any, task: any) => {
-          if (!await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, flags.chenamespace)) {
+        task: async (ctx: any, task: any) => {
+          if (!await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, ctx.operatorNamespace)) {
             command.error(`Unable to find operator subscription ${SUBSCRIPTION_NAME}`)
           }
           task.title = `${task.title}...done.`
@@ -250,7 +255,7 @@ export class OLMTasks {
       {
         title: 'Get operator installation plan',
         task: async (ctx: any, task: any) => {
-          const subscription: Subscription = await kube.getOperatorSubscription(SUBSCRIPTION_NAME, flags.chenamespace)
+          const subscription: Subscription = await kube.getOperatorSubscription(SUBSCRIPTION_NAME, ctx.operatorNamespace)
 
           if (subscription.status) {
             if (subscription.status.state === 'AtLatestKnown') {
@@ -286,7 +291,7 @@ export class OLMTasks {
         title: 'Approve installation',
         enabled: (ctx: any) => ctx.installPlanName,
         task: async (ctx: any, task: any) => {
-          await kube.approveOperatorInstallationPlan(ctx.installPlanName, flags.chenamespace)
+          await kube.approveOperatorInstallationPlan(ctx.installPlanName, ctx.operatorNamespace)
           task.title = `${task.title}...done.`
         },
       },
@@ -294,7 +299,7 @@ export class OLMTasks {
         title: 'Wait while newer operator installed',
         enabled: (ctx: any) => ctx.installPlanName,
         task: async (ctx: any, task: any) => {
-          await kube.waitUntilOperatorIsInstalled(ctx.installPlanName, flags.chenamespace, 60)
+          await kube.waitUntilOperatorIsInstalled(ctx.installPlanName, ctx.operatorNamespace, 60)
           ctx.highlightedMessages.push(`Operator is updated from ${ctx.currentVersion} to ${ctx.nextVersion} version`)
           task.title = `${task.title}...done.`
         },
@@ -314,10 +319,24 @@ export class OLMTasks {
         },
       },
       {
+        title: `Check if operator is installed in ${DEFAULT_OPENSHIFT_OPERATORS_NS_NAME} namespace`,
+        task: async (ctx: any, task: any) => {
+          if (await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)) {
+            ctx.operatorNamespace = DEFAULT_OPENSHIFT_OPERATORS_NS_NAME
+            task.title = `${task.title}...Found`
+          }
+          ctx.operatorNamespace = flags.chenamespace
+          task.title = `${task.title}...Not Found`
+        },
+      },
+      {
         title: `Delete(OLM) operator subscription ${SUBSCRIPTION_NAME}`,
         enabled: ctx => ctx.isPreInstalledOLM,
-        task: async (_ctx: any, task: any) => {
-          await kube.deleteOperatorSubscription(SUBSCRIPTION_NAME, flags.chenamespace)
+        task: async (ctx: any, task: any) => {
+          const checlusters = await kube.getAllCheClusters()
+          if (kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME) && checlusters.length === 0) {
+            await kube.deleteOperatorSubscription(SUBSCRIPTION_NAME, ctx.operatorNamespace)
+          }
           task.title = `${task.title}...OK`
         },
       },
@@ -334,22 +353,22 @@ export class OLMTasks {
       {
         title: `Delete(OLM) operator group ${OPERATOR_GROUP_NAME}`,
         enabled: ctx => ctx.isPreInstalledOLM,
-        task: async (_ctx: any, task: any) => {
-          await kube.deleteOperatorGroup(OPERATOR_GROUP_NAME, flags.chenamespace)
+        task: async (ctx: any, task: any) => {
+          await kube.deleteOperatorGroup(OPERATOR_GROUP_NAME, ctx.operatorNamespace)
           task.title = `${task.title}...OK`
         },
       },
       {
         title: `Delete(OLM) custom catalog source ${CUSTOM_CATALOG_SOURCE_NAME}`,
-        task: async (_ctx: any, task: any) => {
-          await kube.deleteCatalogSource(flags.chenamespace, CUSTOM_CATALOG_SOURCE_NAME)
+        task: async (ctx: any, task: any) => {
+          await kube.deleteCatalogSource(ctx.operatorNamespace, CUSTOM_CATALOG_SOURCE_NAME)
           task.title = `${task.title}...OK`
         },
       },
       {
         title: `Delete(OLM) nigthly catalog source ${NIGHTLY_CATALOG_SOURCE_NAME}`,
-        task: async (_ctx: any, task: any) => {
-          await kube.deleteCatalogSource(flags.chenamespace, NIGHTLY_CATALOG_SOURCE_NAME)
+        task: async (ctx: any, task: any) => {
+          await kube.deleteCatalogSource(ctx.operatorNamespace, NIGHTLY_CATALOG_SOURCE_NAME)
           task.title = `${task.title}...OK`
         },
       },
