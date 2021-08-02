@@ -24,7 +24,7 @@ import { CheGithubClient } from '../../api/github-client'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER, OPERATOR_TEMPLATE_DIR } from '../../constants'
-import { getProjectVersion } from '../../util'
+import { getProjectVersion, isOpenshiftPlatformFamily } from '../../util'
 
 export function createNamespaceTask(namespaceName: string, labels: {}): Listr.ListrTask {
   return {
@@ -141,7 +141,7 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
       const cheClusterCR = ctx.customCR || ctx.defaultCR
       const cr = await kube.createCheCluster(cheClusterCR, flags, ctx, !ctx.customCR)
 
-      ctx.isKeycloakReady = ctx.isKeycloakReady || cr.spec.auth.externalIdentityProvider || cr.spec.auth.nativeUserMode
+      ctx.isKeycloakReady = ctx.isKeycloakReady || shouldNotDeployKeycloak(flags, cr)
       ctx.isPostgresReady = ctx.isPostgresReady || cr.spec.database.externalDb
       ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || cr.spec.server.externalDevfileRegistry
       ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || cr.spec.server.externalPluginRegistry
@@ -153,6 +153,11 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
       task.title = `${task.title}...done.`
     },
   }
+}
+
+function shouldNotDeployKeycloak(flags: any, cr: any): boolean {
+  return cr.spec.auth.externalIdentityProvider || cr.spec.auth.nativeUserMode ||
+    (isOpenshiftPlatformFamily(flags.platform) && cr.spec.devWorkspace.enable)
 }
 
 /**
