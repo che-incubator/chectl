@@ -283,10 +283,10 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@eclipse-che/api@latest":
-  version "7.33.0"
-  resolved "https://registry.yarnpkg.com/@eclipse-che/api/-/api-7.33.0.tgz#6f9e264db3b97173045678b51280ce07615dbf19"
-  integrity sha512-KqCQ1xsQTl1809Xp14myCfzFQiA12NAnsqnZxnJPO/ALkHpFArMNIZ55yuiYup/QLpgB94vT/B8MM+XNj2+xKA==
+"@eclipse-che/api@7.34.0":
+  version "7.34.0"
+  resolved "https://registry.yarnpkg.com/@eclipse-che/api/-/api-7.34.0.tgz#14a50669a48bd76221eb0437cef8cac23fa4c153"
+  integrity sha512-nSrBmQ5BqqyGCa+F4dYOBnFuQSIedDnSmKqtUEsBbLPubyI6Gm8kDW2hJY6FcV20u48eimUctOGjARH1gWTVIw==
 
 "@eslint/eslintrc@^0.4.3":
   version "0.4.3"
@@ -2609,20 +2609,17 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
-"eclipse-che-devfile-workspace-operator@git://github.com/devfile/devworkspace-operator#main":
+"eclipse-che-devfile-workspace-operator@git://github.com/devfile/devworkspace-operator#v0.7.2":
   version "0.0.0"
-  uid "8fb82395e25b9fad3205d028fbd68a8252fbe1d6"
-  resolved "git://github.com/devfile/devworkspace-operator#8fb82395e25b9fad3205d028fbd68a8252fbe1d6"
+  resolved "git://github.com/devfile/devworkspace-operator#82a6f8993a563e8ff5e48b616422b3a2f1f2fb9f"
 
-"eclipse-che-operator@git://github.com/eclipse-che/che-operator#main":
+"eclipse-che-operator@git://github.com/eclipse-che/che-operator#7.34.0":
   version "0.0.0"
-  uid d935e6f9dcca91f018817e049bdea8a5212f4fb6
-  resolved "git://github.com/eclipse-che/che-operator#d935e6f9dcca91f018817e049bdea8a5212f4fb6"
+  resolved "git://github.com/eclipse-che/che-operator#6431444a395fca64203b19faadc7162a83e343d2"
 
-"eclipse-che-server@git://github.com/eclipse-che/che-server#main":
+"eclipse-che-server@git://github.com/eclipse-che/che-server#7.34.0":
   version "0.0.0"
-  uid b252bce9865e0652ad08d522dbe5e6ea609e040c
-  resolved "git://github.com/eclipse-che/che-server#b252bce9865e0652ad08d522dbe5e6ea609e040c"
+  resolved "git://github.com/eclipse-che/che-server#31b60d0b15f59254f496c35bfebdf1670fd13b8f"
 
 editorconfig@^0.15.0:
   version "0.15.3"

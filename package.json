@@ -23,9 +23,9 @@
     "command-exists": "^1.2.9",
     "countries-and-timezones": "^2.5.0",
     "debug": "^4.3.2",
-    "eclipse-che-devfile-workspace-operator": "git://github.com/devfile/devworkspace-operator#main",
-    "eclipse-che-operator": "git://github.com/eclipse-che/che-operator#main",
-    "eclipse-che-server": "git://github.com/eclipse-che/che-server#main",
+    "eclipse-che-devfile-workspace-operator": "git://github.com/devfile/devworkspace-operator#v0.7.2",
+    "eclipse-che-operator": "git://github.com/eclipse-che/che-operator#7.34.0",
+    "eclipse-che-server": "git://github.com/eclipse-che/che-server#7.34.0",
     "esprima": "^4.0.1",
     "execa": "^5.1.1",
     "fancy-test": "^1.4.9",
@@ -50,7 +50,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@eclipse-che/api": "latest",
+    "@eclipse-che/api": "7.34.0",
     "@oclif/dev-cli": "^1",
     "@oclif/test": "^1",
     "@types/chai": "^4",
