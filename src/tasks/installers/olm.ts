@@ -19,7 +19,7 @@ import * as path from 'path'
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/typings/olm'
 import { VersionHelper } from '../../api/version'
-import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, KUBERNETES_OLM_CATALOG, NIGHTLY_CATALOG_SOURCE_NAME, OLM_NIGHTLY_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, STABLE_ALL_NAMESPACES_CHANNEL_NAME, SUBSCRIPTION_NAME } from '../../constants'
+import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, KUBERNETES_OLM_CATALOG, NIGHTLY_CATALOG_SOURCE_NAME, OLM_NIGHTLY_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, STABLE_ALL_NAMESPACES_CHANNEL_NAME, SUBSCRIPTION_NAME } from '../../constants'
 import { isKubernetesPlatformFamily } from '../../util'
 
 import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
@@ -69,7 +69,7 @@ export class OLMTasks {
       {
         title: 'Create operator group',
         // 'stable-all-namespaces' channel install the operator in openshift-operators namespace and there already exists a pre-created operator-group.
-        enabled: () => flags['olm-channel'] !== STABLE_ALL_NAMESPACES_CHANNEL_NAME,
+        enabled: (ctx: any) => ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
         task: async (_ctx: any, task: any) => {
           if (await kube.operatorGroupExists(OPERATOR_GROUP_NAME, flags.chenamespace)) {
             task.title = `${task.title}...It already exists.`
@@ -194,7 +194,7 @@ export class OLMTasks {
         title: 'Set custom operator image',
         enabled: () => flags['che-operator-image'],
         task: async (_ctx: any, task: any) => {
-          const csvList = await kube.getClusterServiceVersions(flags.chenamespaces)
+          const csvList = await kube.getClusterServiceVersions(flags.chenamespace)
           if (csvList.items.length < 1) {
             throw new Error('Failed to get CSV for Che operator')
           }
@@ -324,19 +324,17 @@ export class OLMTasks {
           if (await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)) {
             ctx.operatorNamespace = DEFAULT_OPENSHIFT_OPERATORS_NS_NAME
             task.title = `${task.title}...Found`
+          } else {
+            ctx.operatorNamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
+            task.title = `${task.title}...Not Found`
           }
-          ctx.operatorNamespace = flags.chenamespace
-          task.title = `${task.title}...Not Found`
         },
       },
       {
         title: `Delete(OLM) operator subscription ${SUBSCRIPTION_NAME}`,
         enabled: ctx => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
-          const checlusters = await kube.getAllCheClusters()
-          if (kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME) && checlusters.length === 0) {
-            await kube.deleteOperatorSubscription(SUBSCRIPTION_NAME, ctx.operatorNamespace)
-          }
+          await kube.deleteOperatorSubscription(SUBSCRIPTION_NAME, ctx.operatorNamespace)
           task.title = `${task.title}...OK`
         },
       },
