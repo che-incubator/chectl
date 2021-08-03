@@ -2033,9 +2033,10 @@ export class KubeHelper {
     try {
       await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', operatorSubscriptionName)
     } catch (e) {
-      if (e.response.statusCode !== 404) {
-        throw this.wrapK8sClientError(e)
+      if (e.response.statusCode === 404) {
+        return
       }
+      throw this.wrapK8sClientError(e)
     }
   }
 
