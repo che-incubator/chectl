@@ -19,7 +19,7 @@ import Listr = require('listr')
 import * as path from 'path'
 import * as semver from 'semver'
 
-import { CHECTL_REPO, CheGithubClient } from '../api/github-client'
+import { CHECTL_REPO, CheGithubClient, ECLIPSE_CHE_INCUBATOR_ORG } from '../api/github-client'
 import { CHECTL_PROJECT_NAME } from '../constants'
 import { CheTasks } from '../tasks/che'
 import { getClusterClientCommand, getProjectName, getProjectVersion } from '../util'
@@ -315,8 +315,8 @@ export namespace VersionHelper {
     const verBCommitId = verB.split('-')[1].split('.')[1]
 
     const githubClient = new CheGithubClient()
-    const verACommitDateString = await githubClient.getCommitDate(CHECTL_REPO, verACommitId)
-    const verBCommitDateString = await githubClient.getCommitDate(CHECTL_REPO, verBCommitId)
+    const verACommitDateString = await githubClient.getCommitDate(ECLIPSE_CHE_INCUBATOR_ORG, CHECTL_REPO, verACommitId)
+    const verBCommitDateString = await githubClient.getCommitDate(ECLIPSE_CHE_INCUBATOR_ORG, CHECTL_REPO, verBCommitId)
     const verATimestamp = Date.parse(verACommitDateString)
     const verBTimestamp = Date.parse(verBCommitDateString)
     return verATimestamp > verBTimestamp ? 1 : -1
