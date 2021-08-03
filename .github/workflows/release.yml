@@ -65,7 +65,7 @@ jobs:
           echo "{\"text\":\":white_check_mark: Chectl ${{ github.event.inputs.version }} release PR has been created: https://github.com/che-incubator/chectl/pulls?q=is%3Apr+${{ github.event.inputs.version }}\"}" > mattermost.json
       - name: Send MM message
         if: ${{ success() }} || ${{ failure() }}
-        uses: mattermost/action-mattermost-notify@1.0.2
+        uses: mattermost/action-mattermost-notify@1.1.0
         env:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
           MATTERMOST_CHANNEL: eclipse-che-releases
