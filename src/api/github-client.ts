@@ -12,9 +12,12 @@
 
 import { Octokit } from '@octokit/rest'
 
-const OWNER = 'eclipse-che'
+export const ECLIPSE_CHE_ORG = 'eclipse-che'
+export const ECLIPSE_CHE_INCUBATOR_ORG = 'che-incubator'
+
 export const CHE_REPO = 'che-server'
 export const CHE_OPERATOR_REPO = 'che-operator'
+export const CHECTL_REPO = 'chectl'
 
 export interface TagInfo {
   name: string
@@ -41,20 +44,21 @@ export class CheGithubClient {
    */
   async getTemplatesTagInfo(installer: string, version?: string): Promise<TagInfo | undefined> {
     if (installer === 'operator' || installer === 'olm') {
-      return this.getTagInfoByVersion(CHE_OPERATOR_REPO, version)
+      return this.getTagInfoByVersion(ECLIPSE_CHE_ORG, CHE_OPERATOR_REPO, version)
     } else if (installer === 'helm') {
-      return this.getTagInfoByVersion(CHE_REPO, version)
+      return this.getTagInfoByVersion(ECLIPSE_CHE_ORG, CHE_REPO, version)
     }
     throw new Error(`Unsupported installer: ${installer}`)
   }
 
   /**
    * Gets last 50 tags from the given repository.
+   * @param owner oerganization of the repository
    * @param repo repository name to list tag in
    * @param prefix return only tags that starts with given prefix
    */
-  private async listLatestTags(repo: string, prefix = ''): Promise<TagInfo[]> {
-    const response = await this.octokit.repos.listTags({ owner: OWNER, repo, per_page: 50 })
+  private async listLatestTags(owner: string, repo: string, prefix = ''): Promise<TagInfo[]> {
+    const response = await this.octokit.repos.listTags({ owner, repo, per_page: 50 })
     const tags = response.data
     if (prefix) {
       return tags.filter(tag => tag.name.startsWith(prefix))
@@ -64,14 +68,15 @@ export class CheGithubClient {
 
   /**
    * Gets tag info if it exists.
+   * @param owner oerganization of the repository
    * @param repo repository name to search for the tag in
    * @param tagName name of the tag
    */
-  private async getTag(repo: string, tagName: string): Promise<TagInfo | undefined> {
+  private async getTag(owner: string, repo: string, tagName: string): Promise<TagInfo | undefined> {
     try {
-      const tagRefResp = await this.octokit.git.getRef({ owner: OWNER, repo, ref: `tags/${tagName}` })
+      const tagRefResp = await this.octokit.git.getRef({ owner, repo, ref: `tags/${tagName}` })
       const tagRef = tagRefResp.data
-      const downloadUrlResp = await this.octokit.repos.downloadZipballArchive({ owner: OWNER, repo, ref: tagRef.object.sha })
+      const downloadUrlResp = await this.octokit.repos.downloadZipballArchive({ owner, repo, ref: tagRef.object.sha })
       // Simulate tag info
       return {
         name: tagName,
@@ -91,17 +96,18 @@ export class CheGithubClient {
 
   /**
    * Returns latest commit information in tag format.
+   * @param owner oerganization of the repository
    * @param repo repository name to get the latest commit from
    */
-  private async getLastCommitInfo(repo: string): Promise<TagInfo> {
-    const listCommitsResponse = await this.octokit.repos.listCommits({ owner: OWNER, repo, per_page: 1 })
+  private async getLastCommitInfo(owner: string, repo: string): Promise<TagInfo> {
+    const listCommitsResponse = await this.octokit.repos.listCommits({ owner, repo, per_page: 1 })
     if (listCommitsResponse.status !== 200) {
       throw new Error(`Failed to get list of commits from the repository '${repo}'. Request: ${listCommitsResponse.url}, response: ${listCommitsResponse.status}`)
     }
     const lastCommit = listCommitsResponse.data[0]
 
     const downloadZipResponse = await this.octokit.repos.downloadZipballArchive({
-      owner: OWNER,
+      owner,
       repo,
       ref: lastCommit.sha!,
     })
@@ -122,15 +128,16 @@ export class CheGithubClient {
    * Returns tag/commit information about given version.
    * The informaton includes zip archive download link.
    * If non-existing version is given, then undefined will be returned.
+   * @param owner oerganization of the repository
    * @param repo repository name
    * @param version version or version prefix. If only prefix is given, the latest one that match will be choosen.
    */
-  private async getTagInfoByVersion(repo: string, version?: string): Promise<TagInfo | undefined> {
+  private async getTagInfoByVersion(owner: string, repo: string, version?: string): Promise<TagInfo | undefined> {
     if (!version || version === 'latest' || version === 'stable') {
-      const tags = await this.listLatestTags(repo)
+      const tags = await this.listLatestTags(owner, repo)
       return this.getLatestTag(tags)
     } else if (version === 'next' || version === 'nightly') {
-      return this.getLastCommitInfo(repo)
+      return this.getLastCommitInfo(owner, repo)
     } else {
       // User might provide a version directly or only version prefix, e.g. 7.15
       // Some old tags might have 'v' prefix
@@ -138,10 +145,10 @@ export class CheGithubClient {
         // Remove 'v' prefix
         version = version.substr(1)
       }
-      let tagInfo = await this.getTagInfoByVersionPrefix(repo, version)
+      let tagInfo = await this.getTagInfoByVersionPrefix(owner, repo, version)
       if (!tagInfo) {
         // Try to add 'v' prefix
-        tagInfo = tagInfo = await this.getTagInfoByVersionPrefix(repo, 'v' + version)
+        tagInfo = tagInfo = await this.getTagInfoByVersionPrefix(owner, repo, 'v' + version)
       }
       return tagInfo
     }
@@ -150,11 +157,12 @@ export class CheGithubClient {
   /**
    * Helper for getTagInfoByVersion
    * Gets tag by exact match or latest tag with given prefix
+   * @param owner oerganization of the repository
    * @param repo repository name
    * @param versionPrefix version or version prefix, e.g. 7.22.0 or 7.18
    */
-  private async getTagInfoByVersionPrefix(repo: string, versionPrefix: string): Promise<TagInfo | undefined> {
-    const tagInfo = await this.getTag(repo, versionPrefix)
+  private async getTagInfoByVersionPrefix(owner: string, repo: string, versionPrefix: string): Promise<TagInfo | undefined> {
+    const tagInfo = await this.getTag(owner, repo, versionPrefix)
     if (tagInfo) {
       // Exact match found
       return tagInfo
@@ -236,5 +244,27 @@ export class CheGithubClient {
     })
 
     return sortedSemanticTags.map(tag => tag.data)
+  }
+
+  private async getCommitData(owner: string, repo: string, commitId: string) {
+    const commitDataResponse = await this.octokit.repos.getCommit({ owner, repo, ref: commitId })
+    if (commitDataResponse.status !== 200) {
+      throw new Error(`Failed to get commit data from the repository '${repo}'. Request: ${commitDataResponse.url}, response: ${commitDataResponse.status}`)
+    }
+    return commitDataResponse.data
+  }
+
+  /**
+   * Returns date of the given commit
+   * @param owner oerganization of the repository
+   * @param repo repository name
+   * @param commitId ID of commit to get date for
+   */
+  async getCommitDate(owner: string, repo: string, commitId: string): Promise<string> {
+    const commitData = await this.getCommitData(owner, repo, commitId)
+    if (!commitData.commit.committer || !commitData.commit.committer.date) {
+      throw new Error(`Failed to read '${commitId}' commit date`)
+    }
+    return commitData.commit.committer.date
   }
 }
