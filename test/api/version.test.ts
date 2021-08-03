@@ -73,21 +73,21 @@ describe('Version Helper', () => {
         expect(shouldUpdate).to.be.false
       })
     fancy
-      .it('should update nightly version (release day differs)', async () => {
+      .it('should update next version (release day differs)', async () => {
         const currentVersion = '0.0.20210727-next.81f31b0'
         const newVersion = '0.0.20210729-next.6041615'
         const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
         expect(shouldUpdate).to.be.true
       })
     fancy
-      .it('should not update nightly version (release day differs)', async () => {
+      .it('should not update next version (release day differs)', async () => {
         const currentVersion = '0.0.20210729-next.6041615'
         const newVersion = '0.0.20210729-next.6041615'
         const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
         expect(shouldUpdate).to.be.false
       })
     fancy
-      .it('should not downgrade nightly version (release day differs)', async () => {
+      .it('should not downgrade next version (release day differs)', async () => {
         const currentVersion = '0.0.20210729-next.6041615'
         const newVersion = '0.0.20210727-next.81f31b0'
         const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
@@ -98,7 +98,7 @@ describe('Version Helper', () => {
         .get('/597729a').reply(200, getCommitDateFakeResponse('2021-07-15T08:20:00Z'))
         .get('/4771039').reply(200, getCommitDateFakeResponse('2021-07-15T09:45:37Z'))
       )
-      .it('should update nightly version (release day the same)', async () => {
+      .it('should update next version (release day the same)', async () => {
         const currentVersion = '0.0.20210715-next.597729a'
         const newVersion = '0.0.20210715-next.4771039'
         const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
@@ -109,7 +109,7 @@ describe('Version Helper', () => {
         .get('/597729a').reply(200, getCommitDateFakeResponse('2021-07-15T08:20:00Z'))
         .get('/4771039').reply(200, getCommitDateFakeResponse('2021-07-15T09:45:37Z'))
       )
-      .it('should not downgrade nightly version (release day the same)', async () => {
+      .it('should not downgrade next version (release day the same)', async () => {
         const currentVersion = '0.0.20210715-next.4771039'
         const newVersion = '0.0.20210715-next.597729a'
         const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
