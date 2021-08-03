@@ -44,7 +44,7 @@ export const LEGACY_CHE_NAMESPACE = 'che'
 // OLM
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'eclipse-che'
 export const OLM_STABLE_CHANNEL_NAME = 'stable'
-export const OLM_NIGHTLY_CHANNEL_NAME = 'nightly'
+export const OLM_NEXT_CHANNEL_NAME = 'next'
 export const DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE = 'openshift-marketplace'
 export const DEFAULT_OLM_KUBERNETES_NAMESPACE = 'olm'
 export const CUSTOM_CATALOG_SOURCE_NAME = 'eclipse-che-custom-catalog-source'
@@ -53,7 +53,7 @@ export const OPERATOR_GROUP_NAME = 'che-operator-group'
 export const KUBERNETES_OLM_CATALOG = 'operatorhubio-catalog'
 export const OPENSHIFT_OLM_CATALOG = 'community-operators'
 export const CVS_PREFIX = 'eclipse-che'
-export const NIGHTLY_CATALOG_SOURCE_NAME = 'eclipse-che-preview'
+export const NEXT_CATALOG_SOURCE_NAME = 'eclipse-che-preview'
 export const DEFAULT_OLM_SUGGESTED_NAMESPACE = 'eclipse-che'
 
 // Documentation links
