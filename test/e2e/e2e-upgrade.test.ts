@@ -30,7 +30,7 @@ const INSTALLER = 'operator'
 
 const UPDATE_CHE_TIMEOUT_MS = 10 * 60 * 1000
 const WORKSPACE_START_TIMEOUT_MS = 10 * 60 * 1000
-const CHE_VERSION_TIMEOUT_MS = 10 * 60 * 1000
+const CHE_VERSION_TIMEOUT_MS = 5 * 60 * 1000
 
 describe('Test Che upgrade', () => {
   let cheVersion: string
@@ -75,7 +75,12 @@ describe('Test Che upgrade', () => {
     })
 
     it('Check updated Che version', async () => {
-      await helper.waitForVersionInCheCR(helper.getNewVersion(), CHE_VERSION_TIMEOUT_MS)
+      try {
+        await helper.waitForVersionInCheCR(helper.getNewVersion(), CHE_VERSION_TIMEOUT_MS)
+      } catch (error) {
+        await helper.runCliCommand(binChectl, ['server:logs', `-n ${NAMESPACE}`, `-d ${LOGS_DIR}`, '--telemetry=off'])
+        throw error
+      }
     })
   })
 
