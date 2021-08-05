@@ -283,10 +283,10 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@eclipse-che/api@7.34.0":
-  version "7.34.0"
-  resolved "https://registry.yarnpkg.com/@eclipse-che/api/-/api-7.34.0.tgz#14a50669a48bd76221eb0437cef8cac23fa4c153"
-  integrity sha512-nSrBmQ5BqqyGCa+F4dYOBnFuQSIedDnSmKqtUEsBbLPubyI6Gm8kDW2hJY6FcV20u48eimUctOGjARH1gWTVIw==
+"@eclipse-che/api@7.34.1":
+  version "7.34.1"
+  resolved "https://registry.yarnpkg.com/@eclipse-che/api/-/api-7.34.1.tgz#8f079894beb9013e6793447d865fe5c8ec21eab7"
+  integrity sha512-kP9SLr8NoLcy9beGPvTXqzBNnD3RXQybzwfGUuKKAEN/k5Wa03nwJXHMBxjDsfGrCdcF9DMFo6WoUvJB/pJ9mw==
 
 "@eslint/eslintrc@^0.4.3":
   version "0.4.3"
@@ -2613,13 +2613,13 @@ ecc-jsbn@~0.1.1:
   version "0.0.0"
   resolved "git://github.com/devfile/devworkspace-operator#82a6f8993a563e8ff5e48b616422b3a2f1f2fb9f"
 
-"eclipse-che-operator@git://github.com/eclipse-che/che-operator#7.34.0":
+"eclipse-che-operator@git://github.com/eclipse-che/che-operator#7.34.1":
   version "0.0.0"
-  resolved "git://github.com/eclipse-che/che-operator#6431444a395fca64203b19faadc7162a83e343d2"
+  resolved "git://github.com/eclipse-che/che-operator#f1e8c50486dfa633f84bc7aa23f20913e25de1a0"
 
-"eclipse-che-server@git://github.com/eclipse-che/che-server#7.34.0":
+"eclipse-che-server@git://github.com/eclipse-che/che-server#7.34.1":
   version "0.0.0"
-  resolved "git://github.com/eclipse-che/che-server#31b60d0b15f59254f496c35bfebdf1670fd13b8f"
+  resolved "git://github.com/eclipse-che/che-server#04e9d6fed4627e78c4a7ab29362b0846caed87b0"
 
 editorconfig@^0.15.0:
   version "0.15.3"
