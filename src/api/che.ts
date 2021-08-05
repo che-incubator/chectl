@@ -31,8 +31,6 @@ import { CheApiClient } from './che-api-client'
 import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
 
-
-
 export class CheHelper {
   defaultCheResponseTimeoutMs = 3000
 
