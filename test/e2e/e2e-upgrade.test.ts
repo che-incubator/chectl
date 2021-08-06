@@ -14,13 +14,14 @@ import { expect } from '@oclif/test'
 
 import { isKubernetesPlatformFamily } from '../../src/util'
 
-import { DEVFILE_URL, E2eHelper, NAMESPACE } from './util'
+// import { DEVFILE_URL, E2eHelper, NAMESPACE } from './util'
+import { E2eHelper, NAMESPACE } from './util'
 
 const helper = new E2eHelper()
 jest.setTimeout(1000000)
 
-const WORKSPACE_NAMESPACE = 'admin-che'
-const LOGS_DIR = '/tmp/logs'
+// const WORKSPACE_NAMESPACE = 'admin-che'
+// const LOGS_DIR = '/tmp/logs'
 
 const binChectl = E2eHelper.getChectlBinaries()
 
