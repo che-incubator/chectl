@@ -10,9 +10,9 @@
 
 // tslint:disable: no-console
 
-import { expect } from '@oclif/test'
+// import { expect } from '@oclif/test'
 
-import { isKubernetesPlatformFamily } from '../../src/util'
+// import { isKubernetesPlatformFamily } from '../../src/util'
 
 // import { DEVFILE_URL, E2eHelper, NAMESPACE } from './util'
 import { E2eHelper, NAMESPACE } from './util'
@@ -30,7 +30,7 @@ const PLATFORM = process.env.PLATFORM || 'minikube'
 const INSTALLER = 'operator'
 
 const UPDATE_CHE_TIMEOUT_MS = 10 * 60 * 1000
-const WORKSPACE_START_TIMEOUT_MS = 10 * 60 * 1000
+// const WORKSPACE_START_TIMEOUT_MS = 10 * 60 * 1000
 const CHE_VERSION_TIMEOUT_MS = 10 * 60 * 1000
 
 describe('Test Che upgrade', () => {
@@ -104,14 +104,14 @@ describe('Test Che upgrade', () => {
 
 })
 
-async function runLoginTest() {
-  let cheApiEndpoint: string
-  if (isKubernetesPlatformFamily(PLATFORM)) {
-    cheApiEndpoint = await helper.K8SHostname('che', NAMESPACE) + '/api'
-  } else {
-    cheApiEndpoint = await helper.OCHostname('che', NAMESPACE) + '/api'
-  }
+// async function runLoginTest() {
+//   let cheApiEndpoint: string
+//   if (isKubernetesPlatformFamily(PLATFORM)) {
+//     cheApiEndpoint = await helper.K8SHostname('che', NAMESPACE) + '/api'
+//   } else {
+//     cheApiEndpoint = await helper.OCHostname('che', NAMESPACE) + '/api'
+//   }
 
-  const stdout = await helper.runCliCommand(binChectl, ['auth:login', cheApiEndpoint, '-u', 'admin', '-p', 'admin', '-n', `${NAMESPACE}`, '--telemetry=off'])
-  expect(stdout).to.contain('Successfully logged into')
-}
+//   const stdout = await helper.runCliCommand(binChectl, ['auth:login', cheApiEndpoint, '-u', 'admin', '-p', 'admin', '-n', `${NAMESPACE}`, '--telemetry=off'])
+//   expect(stdout).to.contain('Successfully logged into')
+// }
