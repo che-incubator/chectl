@@ -80,16 +80,16 @@ describe('Test Che upgrade', () => {
     })
   })
 
-  describe('Test updated Che', () => {
-    it('Start existing workspace after update', async () => {
-      // Relogin
-      await runLoginTest()
+  // describe('Test updated Che', () => {
+  //   it('Start existing workspace after update', async () => {
+  //     // Relogin
+  //     await runLoginTest()
 
-      const workspaceId = await helper.getWorkspaceId()
-      await helper.runCliCommand(binChectl, ['workspace:start', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'])
-      await helper.waitWorkspaceStatus('RUNNING', WORKSPACE_START_TIMEOUT_MS)
-    })
-  })
+  //     const workspaceId = await helper.getWorkspaceId()
+  //     await helper.runCliCommand(binChectl, ['workspace:start', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'])
+  //     await helper.waitWorkspaceStatus('RUNNING', WORKSPACE_START_TIMEOUT_MS)
+  //   })
+  // })
 
   describe('Test Che downgrade', () => {
     it('Downgrade Che', async () => {
