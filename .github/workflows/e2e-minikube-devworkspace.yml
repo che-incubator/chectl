@@ -34,4 +34,4 @@ jobs:
           mkdir -p /tmp/devworkspace-operator/templates/ && \
           mv /tmp/devfile-devworkspace-operator-*/deploy templates/devworkspace
 
-        ./bin/run server:deploy --telemetry=off --workspace-engine=dev-workspace -p minikube
+        ./bin/run server:deploy --telemetry=off --workspace-engine=dev-workspace -p minikube --batch

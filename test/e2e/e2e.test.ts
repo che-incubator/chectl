@@ -46,7 +46,7 @@ function getDeployCommand(): string {
       if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_OLM)) {
         throw new Error(`Unknown installer ${INSTALLER}`)
       }
-      command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
+      command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
       break
 
     case PLATFORM_CRC:
@@ -54,7 +54,7 @@ function getDeployCommand(): string {
       if (INSTALLER !== INSTALLER_OPERATOR) {
         throw new Error(`Unknown installer ${INSTALLER}`)
       }
-      command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
+      command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
       break
 
     case PLATFORM_MINIKUBE:
@@ -62,7 +62,7 @@ function getDeployCommand(): string {
         throw new Error(`Unknown installer ${INSTALLER}`)
       }
       const patchOption = INSTALLER === INSTALLER_HELM ? '--helm-patch-yaml=test/e2e/resources/helm-patch.yaml' : '--che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml'
-      command = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --telemetry=off --chenamespace=${NAMESPACE} ${patchOption} --multiuser --skip-cluster-availability-check`
+      command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --telemetry=off --chenamespace=${NAMESPACE} ${patchOption} --multiuser --skip-cluster-availability-check`
       break
 
     default:

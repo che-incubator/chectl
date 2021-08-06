@@ -31,7 +31,7 @@ describe('Test Che upgrade', () => {
       // Retrieve latest stable Che version
       cheVersion = await helper.getLatestReleasedVersion()
 
-      const deployCommand = `${binChectl} server:deploy --platform=${PLATFORM} --installer=${INSTALLER} --version=${cheVersion} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
+      const deployCommand = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --version=${cheVersion} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
       await helper.runCliCommand(deployCommand)
 
       await helper.waitForVersionInCheCR(cheVersion, CHE_VERSION_TIMEOUT_MS)
