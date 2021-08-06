@@ -30,7 +30,7 @@ const INSTALLER = 'operator'
 
 const UPDATE_CHE_TIMEOUT_MS = 10 * 60 * 1000
 const WORKSPACE_START_TIMEOUT_MS = 10 * 60 * 1000
-const CHE_VERSION_TIMEOUT_MS = 5 * 60 * 1000
+const CHE_VERSION_TIMEOUT_MS = 10 * 60 * 1000
 
 describe('Test Che upgrade', () => {
   let cheVersion: string
@@ -46,26 +46,26 @@ describe('Test Che upgrade', () => {
       await helper.waitForVersionInCheCR(cheVersion, CHE_VERSION_TIMEOUT_MS)
     })
 
-    it('Prepare test workspace', async () => {
-      await runLoginTest()
+    // it('Prepare test workspace', async () => {
+    //   await runLoginTest()
 
-      // Create
-      await helper.runCliCommand(binChectl, ['workspace:create', `--devfile=${DEVFILE_URL}`, '--telemetry=off', `-n ${NAMESPACE}`])
-      const workspaceId = await helper.getWorkspaceId()
+    //   // Create
+    //   await helper.runCliCommand(binChectl, ['workspace:create', `--devfile=${DEVFILE_URL}`, '--telemetry=off', `-n ${NAMESPACE}`])
+    //   const workspaceId = await helper.getWorkspaceId()
 
-      // Start
-      await helper.runCliCommand(binChectl, ['workspace:start', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'])
-      await helper.waitWorkspaceStatus('RUNNING', WORKSPACE_START_TIMEOUT_MS)
+    //   // Start
+    //   await helper.runCliCommand(binChectl, ['workspace:start', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'])
+    //   await helper.waitWorkspaceStatus('RUNNING', WORKSPACE_START_TIMEOUT_MS)
 
-      // Logs
-      await helper.runCliCommand(binChectl, ['workspace:logs', `-w ${workspaceId}`, `-n ${WORKSPACE_NAMESPACE}`, `-d ${LOGS_DIR}`, '--telemetry=off'])
+    //   // Logs
+    //   await helper.runCliCommand(binChectl, ['workspace:logs', `-w ${workspaceId}`, `-n ${WORKSPACE_NAMESPACE}`, `-d ${LOGS_DIR}`, '--telemetry=off'])
 
-      // Stop
-      await helper.runCliCommand(binChectl, ['workspace:stop', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'])
-      const workspaceStatus = await helper.getWorkspaceStatus()
-      // The status could be STOPPING or STOPPED
-      expect(workspaceStatus).to.contain('STOP')
-    })
+    //   // Stop
+    //   await helper.runCliCommand(binChectl, ['workspace:stop', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'])
+    //   const workspaceStatus = await helper.getWorkspaceStatus()
+    //   // The status could be STOPPING or STOPPED
+    //   expect(workspaceStatus).to.contain('STOP')
+    // })
   })
 
   describe('Test Che update', () => {
@@ -75,12 +75,7 @@ describe('Test Che upgrade', () => {
     })
 
     it('Check updated Che version', async () => {
-      try {
         await helper.waitForVersionInCheCR(helper.getNewVersion(), CHE_VERSION_TIMEOUT_MS)
-      } catch (error) {
-        await helper.runCliCommand(binChectl, ['server:logs', `-n ${NAMESPACE}`, `-d ${LOGS_DIR}`, '--telemetry=off'])
-        throw error
-      }
     })
   })
 
