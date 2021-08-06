@@ -9,19 +9,10 @@
  **********************************************************************/
 
 // tslint:disable: no-console
-
-// import { expect } from '@oclif/test'
-
-// import { isKubernetesPlatformFamily } from '../../src/util'
-
-// import { DEVFILE_URL, E2eHelper, NAMESPACE } from './util'
 import { E2eHelper, NAMESPACE } from './util'
 
 const helper = new E2eHelper()
 jest.setTimeout(1000000)
-
-// const WORKSPACE_NAMESPACE = 'admin-che'
-// const LOGS_DIR = '/tmp/logs'
 
 const binChectl = E2eHelper.getChectlBinaries()
 
@@ -30,7 +21,6 @@ const PLATFORM = process.env.PLATFORM || 'minikube'
 const INSTALLER = 'operator'
 
 const UPDATE_CHE_TIMEOUT_MS = 10 * 60 * 1000
-// const WORKSPACE_START_TIMEOUT_MS = 10 * 60 * 1000
 const CHE_VERSION_TIMEOUT_MS = 10 * 60 * 1000
 
 describe('Test Che upgrade', () => {
@@ -46,27 +36,6 @@ describe('Test Che upgrade', () => {
 
       await helper.waitForVersionInCheCR(cheVersion, CHE_VERSION_TIMEOUT_MS)
     })
-
-    // it('Prepare test workspace', async () => {
-    //   await runLoginTest()
-
-    //   // Create
-    //   await helper.runCliCommand(binChectl, ['workspace:create', `--devfile=${DEVFILE_URL}`, '--telemetry=off', `-n ${NAMESPACE}`])
-    //   const workspaceId = await helper.getWorkspaceId()
-
-    //   // Start
-    //   await helper.runCliCommand(binChectl, ['workspace:start', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'])
-    //   await helper.waitWorkspaceStatus('RUNNING', WORKSPACE_START_TIMEOUT_MS)
-
-    //   // Logs
-    //   await helper.runCliCommand(binChectl, ['workspace:logs', `-w ${workspaceId}`, `-n ${WORKSPACE_NAMESPACE}`, `-d ${LOGS_DIR}`, '--telemetry=off'])
-
-    //   // Stop
-    //   await helper.runCliCommand(binChectl, ['workspace:stop', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'])
-    //   const workspaceStatus = await helper.getWorkspaceStatus()
-    //   // The status could be STOPPING or STOPPED
-    //   expect(workspaceStatus).to.contain('STOP')
-    // })
   })
 
   describe('Test Che update', () => {
@@ -80,17 +49,6 @@ describe('Test Che upgrade', () => {
     })
   })
 
-  // describe('Test updated Che', () => {
-  //   it('Start existing workspace after update', async () => {
-  //     // Relogin
-  //     await runLoginTest()
-
-  //     const workspaceId = await helper.getWorkspaceId()
-  //     await helper.runCliCommand(binChectl, ['workspace:start', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'])
-  //     await helper.waitWorkspaceStatus('RUNNING', WORKSPACE_START_TIMEOUT_MS)
-  //   })
-  // })
-
   describe('Test Che downgrade', () => {
     it('Downgrade Che', async () => {
       await helper.runCliCommand(binChectl, ['server:update', '-y', `--version=${cheVersion}`, `-n ${NAMESPACE}`, '--telemetry=off'])
@@ -103,15 +61,3 @@ describe('Test Che upgrade', () => {
   })
 
 })
-
-// async function runLoginTest() {
-//   let cheApiEndpoint: string
-//   if (isKubernetesPlatformFamily(PLATFORM)) {
-//     cheApiEndpoint = await helper.K8SHostname('che', NAMESPACE) + '/api'
-//   } else {
-//     cheApiEndpoint = await helper.OCHostname('che', NAMESPACE) + '/api'
-//   }
-
-//   const stdout = await helper.runCliCommand(binChectl, ['auth:login', cheApiEndpoint, '-u', 'admin', '-p', 'admin', '-n', `${NAMESPACE}`, '--telemetry=off'])
-//   expect(stdout).to.contain('Successfully logged into')
-// }
