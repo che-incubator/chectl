@@ -12,20 +12,20 @@
 
 import axios from 'axios'
 import { cli } from 'cli-ux'
-import execa = require('execa')
 import * as fs from 'fs-extra'
 import * as https from 'https'
-import Listr = require('listr')
 import * as path from 'path'
 import * as semver from 'semver'
-
 import { CHECTL_REPO, CheGithubClient, ECLIPSE_CHE_INCUBATOR_ORG } from '../api/github-client'
 import { CHECTL_PROJECT_NAME } from '../constants'
 import { CheTasks } from '../tasks/che'
-import { getClusterClientCommand, getProjectName, getProjectVersion } from '../util'
-
+import { getClusterClientCommand, getProjectName, getProjectVersion, isKubernetesPlatformFamily } from '../util'
 import { ChectlContext } from './context'
 import { KubeHelper } from './kube'
+import execa = require('execa')
+import Listr = require('listr')
+
+
 
 export const CHECTL_DEVELOPMENT_VERSION = '0.0.2'
 
@@ -88,8 +88,8 @@ export namespace VersionHelper {
           task.title = `${task.title}: Unknown.`
         }
 
-        if (!flags['skip-version-check'] && actualVersion) {
-          const checkPassed = checkMinimalVersion(actualVersion, MINIMAL_K8S_VERSION)
+        if (isKubernetesPlatformFamily(flags.platform) && !flags['skip-version-check'] && actualVersion) {
+          const checkPassed = checkMinimalK8sVersion(actualVersion)
           if (!checkPassed) {
             throw getMinimalVersionError(actualVersion, MINIMAL_K8S_VERSION, 'Kubernetes')
           }
