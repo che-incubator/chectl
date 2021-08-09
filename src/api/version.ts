@@ -25,8 +25,6 @@ import { KubeHelper } from './kube'
 import execa = require('execa')
 import Listr = require('listr')
 
-
-
 export const CHECTL_DEVELOPMENT_VERSION = '0.0.2'
 
 const UPDATE_INFO_FILENAME = 'update-info.json'
