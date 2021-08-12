@@ -840,9 +840,12 @@ update the chectl CLI
 ```
 USAGE
   $ chectl update [CHANNEL]
+
+OPTIONS
+  --from-local  interactively choose an already installed version
 ```
 
-_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.3.10/src/commands/update.ts)_
+_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.5.0/src/commands/update.ts)_
 
 ## `chectl workspace:create`
 
