@@ -377,7 +377,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.2/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.3/src/commands/help.ts)_
 
 ## `chectl server:backup`
 
@@ -500,9 +500,6 @@ OPTIONS
 
   -i, --cheimage=cheimage
       Eclipse Che server container image
-
-  -m, --multiuser
-      Starts Eclipse Che in multi-user mode
 
   -n, --chenamespace=chenamespace
       Eclipse Che Kubernetes namespace. Default to 'eclipse-che'

@@ -18,12 +18,12 @@ import * as fs from 'fs'
 import * as Listr from 'listr'
 import * as path from 'path'
 import * as semver from 'semver'
-
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
 import { CertManagerTasks } from '../../tasks/component-installers/cert-manager'
 import { generatePassword, newError, safeSaveYamlToFile } from '../../util'
+
 
 interface HelmChartDependency {
   name: string
@@ -361,11 +361,9 @@ error: E_COMMAND_FAILED`)
 
     ctx.isCheDeployed = true
     ctx.isDashboardDeployed = true
-    if (flags.multiuser) {
-      ctx.isPostgresDeployed = true
-      ctx.isKeycloakDeployed = true
-      multiUserFlag = `-f ${destDir}values/multi-user.yaml`
-    }
+    ctx.isPostgresDeployed = true
+    ctx.isKeycloakDeployed = true
+    multiUserFlag = `-f ${destDir}values/multi-user.yaml`
 
     if (flags.tls) {
       setOptions.push(`--set global.cheDomain=${flags.domain}`)
@@ -395,12 +393,10 @@ error: E_COMMAND_FAILED`)
       setOptions.push(`--set global.chePostgresPVCStorageClassName=${flags['postgres-pvc-storage-class-name']}`)
     }
 
-    if (flags.multiuser) {
-      // Generate Keycloak admin password
-      ctx.identityProviderUsername = 'admin'
-      ctx.identityProviderPassword = generatePassword(12)
-      setOptions.push(`--set che-keycloak.keycloakAdminUserPassword=${ctx.identityProviderPassword}`)
-    }
+    // Generate Keycloak admin password
+    ctx.identityProviderUsername = 'admin'
+    ctx.identityProviderPassword = generatePassword(12)
+    setOptions.push(`--set che-keycloak.keycloakAdminUserPassword=${ctx.identityProviderPassword}`)
 
     if (flags.cheimage) {
       setOptions.push(`--set cheImage=${flags.cheimage}`)
