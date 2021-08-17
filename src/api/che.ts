@@ -24,11 +24,9 @@ import * as os from 'os'
 import * as path from 'path'
 import * as rimraf from 'rimraf'
 import * as unzipper from 'unzipper'
-
 import { OpenShiftHelper } from '../api/openshift'
 import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME, OPERATOR_TEMPLATE_DIR } from '../constants'
 import { base64Decode, downloadFile } from '../util'
-
 import { CheApiClient } from './che-api-client'
 import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
@@ -490,7 +488,7 @@ export class CheHelper {
     await downloadFile(url, zipFile)
     await this.unzipTemplates(zipFile, destDir)
     // Clean up zip. Do not wait when finishes.
-    rimraf(tempDir, () => {})
+    rimraf(tempDir, () => { })
   }
 
   /**
@@ -501,11 +499,12 @@ export class CheHelper {
   private async unzipTemplates(zipFile: string, destDir: string) {
     // Gets path from: repo-name/deploy/path
     const deployDirRegex = new RegExp('(?:^[\\\w-]*\\\/deploy\\\/)(.*)')
+    const configDirRegex = new RegExp('(?:^[\\\w-]*\\\/config\\\/)(.*)')
 
     const zip = fs.createReadStream(zipFile).pipe(unzipper.Parse({ forceStream: true }))
     for await (const entry of zip) {
       const entryPathInZip: string = entry.path
-      const templatesPathMatch = entryPathInZip.match(deployDirRegex)
+      const templatesPathMatch = entryPathInZip.match(deployDirRegex) || entryPathInZip.match(configDirRegex)
       if (templatesPathMatch && templatesPathMatch.length > 1 && templatesPathMatch[1]) {
         // Remove prefix from in-zip path
         const entryPathWhenExtracted = templatesPathMatch[1]
@@ -533,6 +532,21 @@ export class CheHelper {
         // No need to extract this item
         entry.autodrain()
       }
+    }
+
+    // Is a new project structure?
+    if (fs.existsSync(path.join(destDir, 'manager', 'manager.yaml'))) {
+      fs.moveSync(path.join(destDir, 'manager', 'manager.yaml'), path.join(destDir, 'operator.yaml'))
+      fs.moveSync(path.join(destDir, 'rbac', 'service_account.yaml'), path.join(destDir, 'service_account.yaml'))
+      fs.moveSync(path.join(destDir, 'rbac', 'role.yaml'), path.join(destDir, 'role.yaml'))
+      fs.moveSync(path.join(destDir, 'rbac', 'role_binding.yaml'), path.join(destDir, 'role_binding.yaml'))
+      fs.moveSync(path.join(destDir, 'rbac', 'cluster_role.yaml'), path.join(destDir, 'cluster_role.yaml'))
+      fs.moveSync(path.join(destDir, 'rbac', 'cluster_rolebinding.yaml'), path.join(destDir, 'cluster_rolebinding.yaml'))
+      fs.moveSync(path.join(destDir, 'crd', 'bases'), path.join(destDir, 'crds'))
+      fs.moveSync(path.join(destDir, 'samples', 'org.eclipse.che_v1_checluster.yaml'), path.join(destDir, 'crds', 'org_v1_che_cr.yaml'))
+      fs.moveSync(path.join(destDir, 'samples', 'org_v1_chebackupserverconfiguration.yaml'), path.join(destDir, 'crds', 'org.eclipse.che_v1_chebackupserverconfiguration_cr.yaml'))
+      fs.moveSync(path.join(destDir, 'samples', 'org_v1_checlusterbackup.yaml'), path.join(destDir, 'crds', 'org.eclipse.che_v1_checlusterbackup_cr.yaml'))
+      fs.moveSync(path.join(destDir, 'samples', 'org_v1_checlusterrestore.yaml'), path.join(destDir, 'crds', 'org.eclipse.che_v1_checlusterrestore_cr.yaml'))
     }
   }
 }
