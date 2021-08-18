@@ -24,7 +24,6 @@ import { CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
 import { CertManagerTasks } from '../../tasks/component-installers/cert-manager'
 import { generatePassword, newError, safeSaveYamlToFile } from '../../util'
 
-
 interface HelmChartDependency {
   name: string
   repository: string
