@@ -2362,10 +2362,10 @@ core-util-is@1.0.2, core-util-is@~1.0.0:
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"
   integrity sha1-tf1UIgqivFq1eqtxQMlAdUUDwac=
 
-countries-and-timezones@^3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/countries-and-timezones/-/countries-and-timezones-3.0.1.tgz#25819ab60ea32a071db4aa1765615982d37abd82"
-  integrity sha512-f/uuA41LRxu2f0JVWphdBuF+hSK23dtGE72HI7Ztu40nuxK7rovKgWNNqFVKIif6xYuWppCOeRdwCrXhnXLb9A==
+countries-and-timezones@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/countries-and-timezones/-/countries-and-timezones-3.2.1.tgz#5be0bbb3a4c27ae01ed4dafba68337769acce490"
+  integrity sha512-ksg02vvHTEo+feCcBVFN7zAe+8EO7yfIJhLhwM9O3JsVMaxEYo+LrikxaiQnqSTbKgRwJlRZ8mYrpvAKQE0rsQ==
 
 cpx@^1.5.0:
   version "1.5.0"
