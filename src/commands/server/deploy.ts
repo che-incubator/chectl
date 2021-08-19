@@ -390,7 +390,7 @@ export default class Deploy extends Command {
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Deploy.id, flags })
 
     if (!flags.batch && flags.installer === 'helm') {
-      if (await cli.confirm('\'helm\' installer is deprecated. Do you want to proceed? [y/n]')) {
+      if (!await cli.confirm('\'helm\' installer is deprecated. Do you want to proceed? [y/n]')) {
         cli.exit(0)
       }
     }
