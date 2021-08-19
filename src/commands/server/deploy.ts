@@ -69,7 +69,7 @@ export default class Deploy extends Command {
     [LOG_DIRECTORY_KEY]: logsDirectory,
     multiuser: flags.boolean({
       char: 'm',
-      description: 'Deprecated. The flag is ignored. Eclipse Che is deployed in multi-user mode by default.',
+      description: 'Deprecated. The flag is ignored. Eclipse Che is always deployed in multi-user mode.',
       default: false,
       hidden: true,
     }),
