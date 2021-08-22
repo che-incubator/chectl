@@ -15,7 +15,7 @@
     "@oclif/plugin-autocomplete": "^0.3.0",
     "@oclif/plugin-help": "^3",
     "@oclif/plugin-update": "^1.5.0",
-    "@octokit/rest": "^18.9.0",
+    "@octokit/rest": "^18.9.1",
     "analytics-node": "^5.0.0",
     "ansi-colors": "4.1.1",
     "axios": "^0.21.1",
