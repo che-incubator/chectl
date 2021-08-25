@@ -68,7 +68,8 @@ function getDeployCommand(): string {
     default:
       throw new Error(`Unknown platform: ${PLATFORM}`)
   }
-  return command
+  // Append version to deploy command.
+  return command + `--version=${helper.getNewVersion()}`
 }
 
 describe('Eclipse Che deploy deployemnt', () => {
