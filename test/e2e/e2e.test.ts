@@ -40,6 +40,8 @@ const INSTALLER_OLM = 'olm'
 const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse-che/che-devfile-registry/master/devfiles/go/devfile.yaml'
 
 function getDeployCommand(): string {
+  const cheVersion = helper.getNewVersion()
+
   let command: string
   switch (PLATFORM) {
     case PLATFORM_OPENSHIFT:
@@ -68,6 +70,10 @@ function getDeployCommand(): string {
     default:
       throw new Error(`Unknown platform: ${PLATFORM}`)
   }
+  if (cheVersion != 'next') {
+    command = command + ` --version=${cheVersion}`
+  }
+
   return command
 }
 
