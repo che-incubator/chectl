@@ -69,8 +69,9 @@ export default class Deploy extends Command {
     [LOG_DIRECTORY_KEY]: logsDirectory,
     multiuser: flags.boolean({
       char: 'm',
-      description: 'Starts Eclipse Che in multi-user mode',
+      description: 'Deprecated. The flag is ignored. Eclipse Che is always deployed in multi-user mode.',
       default: false,
+      hidden: true,
     }),
     tls: flags.boolean({
       char: 's',
@@ -272,7 +273,6 @@ export default class Deploy extends Command {
       flags.cheimage && ignoredFlags.push('--cheimage')
       flags.debug && ignoredFlags.push('--debug')
       flags.domain && ignoredFlags.push('--domain')
-      flags.multiuser && ignoredFlags.push('--multiuser')
 
       if (ignoredFlags.length) {
         this.warn(`--${CHE_OPERATOR_CR_YAML_KEY} is used. The following flag(s) will be ignored: ${ignoredFlags.join('\t')}`)
