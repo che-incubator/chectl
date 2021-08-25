@@ -296,9 +296,9 @@
     "@cspotcode/source-map-consumer" "0.8.0"
 
 "@eclipse-che/api@latest":
-  version "7.35.0"
-  resolved "https://registry.yarnpkg.com/@eclipse-che/api/-/api-7.35.0.tgz#977ae932295fc0502358a71c38a2785fc7d4f908"
-  integrity sha512-3syuIQxGou8jPN1ZkVAm8BoOpwMCu4/46RdeRD1vGSFAhfxClIy09iNaBJq4OkqWcNlCelxyip3wp9/tLq4mGg==
+  version "7.35.1"
+  resolved "https://registry.yarnpkg.com/@eclipse-che/api/-/api-7.35.1.tgz#7ec5f18bffd9da7b64f0547528ba38e506d9184e"
+  integrity sha512-zYoKKqCaY2gQ9VWTxGYXkRq49LfB588V4XPpPiKa7rjccocKphGTs0qvCz220gBqOxQKRFFR+kr1RZavKxWCfg==
 
 "@eslint/eslintrc@^0.4.3":
   version "0.4.3"
