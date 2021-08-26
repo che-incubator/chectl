@@ -1627,13 +1627,35 @@ export class KubeHelper {
    * Returns `checlusters.org.eclipse.che' in the given namespace.
    */
   async getCheCluster(cheNamespace: string): Promise<any | undefined> {
-    return this.getCustomResource(cheNamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
+    return this.findCustomResource(cheNamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
   }
 
   /**
-   * Returns custom resource in the given namespace.
+   * Deletes `checlusters.org.eclipse.che' resources in the given namespace.
    */
-  async getCustomResource(namespace: string, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any | undefined> {
+  async getAllCheClusters(): Promise<any[]> {
+    return this.getAllCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
+  }
+
+  /**
+   * Returns custom resource object by its name in the given namespace.
+   */
+  async getCustomResource(namespace: string, name: string, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any | undefined> {
+    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      return await customObjectsApi.getNamespacedCustomObject(resourceAPIGroup, resourceAPIVersion, namespace, resourcePlural, name)
+    } catch (e) {
+      if (e.response && e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
+    }
+  }
+
+  /**
+   * Returns the only custom resource in the given namespace.
+   * Throws error if there is more than one object of given kind.
+   */
+  async findCustomResource(namespace: string, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any | undefined> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.listNamespacedCustomObject(resourceAPIGroup, resourceAPIVersion, namespace, resourcePlural)
@@ -1654,13 +1676,6 @@ export class KubeHelper {
         throw this.wrapK8sClientError(e)
       }
     }
-  }
-
-  /**
-   * Deletes `checlusters.org.eclipse.che' resources in the given namespace.
-   */
-  async getAllCheClusters(): Promise<any[]> {
-    return this.getAllCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
   }
 
   /**

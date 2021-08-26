@@ -52,9 +52,6 @@ export interface SftpBackupServerCredentials {
   sshKey: string
 }
 
-export const BACKUP_CR_NAME = 'eclipse-che-backup'
-export const RESTORE_CR_NAME = 'eclipse-che-restore'
-
 export const BACKUP_SERVER_CONFIG_NAME = 'eclipse-che-backup-server-config'
 
 export const BACKUP_REPOSITORY_PASSWORD_SECRET_NAME = 'chectl-backup-repository-password'
@@ -80,26 +77,28 @@ export function getBackupServerType(url: string): BackupServerType {
 /**
  * Submits backup of Che installation task.
  * @param namespace namespace in which Che is installed
+ * @param name name of the backup CR to create
  * @param backupServerConfig backup server configuration data or name of the config CR
  */
-export async function requestBackup(namespace: string, backupServerConfig?: BackupServerConfig | string): Promise<V1CheClusterBackup> {
+export async function requestBackup(namespace: string, name: string, backupServerConfig?: BackupServerConfig | string): Promise<V1CheClusterBackup> {
   const kube = new KubeHelper()
   const backupServerConfigName = await getBackupServerConfigurationName(namespace, backupServerConfig)
-  return kube.recreateBackupCr(namespace, BACKUP_CR_NAME, backupServerConfigName)
+  return kube.recreateBackupCr(namespace, name, backupServerConfigName)
 }
 
 /**
  * Submits Che restore task.
  * @param namespace namespace in which Che should be restored
+ * @param name name of the restore CR to create
  * @param backupServerConfig backup server configuration data or name of the config CR
  */
-export async function requestRestore(namespace: string, backupServerConfig?: BackupServerConfig | string, snapshotId?: string): Promise<V1CheClusterBackup> {
+export async function requestRestore(namespace: string, name: string, backupServerConfig?: BackupServerConfig | string, snapshotId?: string): Promise<V1CheClusterBackup> {
   const kube = new KubeHelper()
   const backupServerConfigName = await getBackupServerConfigurationName(namespace, backupServerConfig)
   if (!backupServerConfigName) {
     throw new Error(`No backup server configuration found in ${namespace} namespace`)
   }
-  return kube.recreateRestoreCr(namespace, RESTORE_CR_NAME, backupServerConfigName, snapshotId)
+  return kube.recreateRestoreCr(namespace, name, backupServerConfigName, snapshotId)
 }
 
 /**
@@ -118,7 +117,7 @@ async function getBackupServerConfigurationName(namespace: string, backupServerC
     if (typeof backupServerConfig === 'string') {
       // Name of CR with backup server configuration provided
       // Check if it exists
-      const backupServerConfigCr = await kube.getCustomResource(namespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_BACKUP_SERVER_CONFIG_KIND_PLURAL)
+      const backupServerConfigCr = await kube.getCustomResource(namespace, backupServerConfig, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_BACKUP_SERVER_CONFIG_KIND_PLURAL)
       if (!backupServerConfigCr) {
         throw new Error(`Backup server configuration with '${backupServerConfig}' name not found in '${namespace}' namespace.`)
       }
