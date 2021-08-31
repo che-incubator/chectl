@@ -18,7 +18,7 @@ import * as semver from 'semver'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, devWorkspaceControllerNamespace, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_HELM_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION, STABLE_ALL_NAMESPACES_CHANNEL_NAME } from '../../constants'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_HELM_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
@@ -295,7 +295,7 @@ export default class Deploy extends Command {
         this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
       }
 
-      if (flags['olm-channel'] === STABLE_ALL_NAMESPACES_CHANNEL_NAME && isKubernetesPlatformFamily(flags.platform)) {
+      if (flags['olm-channel'] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME && isKubernetesPlatformFamily(flags.platform)) {
         this.error('"stable-all-namespaces" channel is supported only in "openshift" platform')
       }
 
@@ -418,7 +418,7 @@ export default class Deploy extends Command {
       enabled: () => (this.isDevWorkspaceEnabled(ctx) || flags['workspace-engine'] === 'dev-workspace') && !ctx.isOpenShift,
       task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags)),
     })
-    const installTasks = new Listr(installerTasks.installTasks(flags, this), ctx.listrOptions)
+    const installTasks = new Listr(await installerTasks.installTasks(flags, this), ctx.listrOptions)
 
     // Post Install Checks
     const postInstallTasks = new Listr([

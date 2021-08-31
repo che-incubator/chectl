@@ -44,6 +44,7 @@ export const LEGACY_CHE_NAMESPACE = 'che'
 // OLM
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'eclipse-che'
 export const OLM_STABLE_CHANNEL_NAME = 'stable'
+export const OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME = 'stable-all-namespaces'
 export const OLM_NEXT_CHANNEL_NAME = 'next'
 export const DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE = 'openshift-marketplace'
 export const DEFAULT_OLM_KUBERNETES_NAMESPACE = 'olm'
@@ -55,6 +56,7 @@ export const OPENSHIFT_OLM_CATALOG = 'community-operators'
 export const CVS_PREFIX = 'eclipse-che'
 export const NEXT_CATALOG_SOURCE_NAME = 'eclipse-che-preview'
 export const DEFAULT_OLM_SUGGESTED_NAMESPACE = 'eclipse-che'
+export const DEFAULT_OPENSHIFT_OPERATORS_NS_NAME = 'openshift-operators'
 
 // Documentation links
 export const DOC_LINK = 'https://www.eclipse.org/che/docs/'
@@ -90,6 +92,3 @@ export const CHE_CLUSTER_BACKUP_CRD = 'checlusterbackups.org.eclipse.che'
 export const CHE_CLUSTER_BACKUP_KIND_PLURAL = 'checlusterbackups'
 export const CHE_CLUSTER_RESTORE_CRD = 'checlusterrestores.org.eclipse.che'
 export const CHE_CLUSTER_RESTORE_KIND_PLURAL = 'checlusterrestores'
-
-export const DEFAULT_OPENSHIFT_OPERATORS_NS_NAME = 'openshift-operators'
-export const STABLE_ALL_NAMESPACES_CHANNEL_NAME = 'tech-preview-stable-all-namespaces'

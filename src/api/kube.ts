@@ -1199,6 +1199,19 @@ export class KubeHelper {
     }
   }
 
+  async deleteDeployment(namespace: string, name: string): Promise<boolean> {
+    const k8sAppsApi = this.kubeConfig.makeApiClient(AppsV1Api)
+    try {
+      k8sAppsApi.deleteNamespacedDeployment(name, namespace)
+    } catch (error) {
+      if (error.response && error.response.statusCode === 404) {
+        return false
+      }
+      throw this.wrapK8sClientError(error)
+    }
+    return true
+  }
+
   async deleteAllDeployments(namespace: string): Promise<void> {
     const k8sAppsApi = this.kubeConfig.makeApiClient(AppsV1Api)
     try {

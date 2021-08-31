@@ -20,7 +20,7 @@ import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/typings/olm'
 import { VersionHelper } from '../../api/version'
-import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, STABLE_ALL_NAMESPACES_CHANNEL_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME } from '../../constants'
+import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME } from '../../constants'
 import { isKubernetesPlatformFamily } from '../../util'
 
 import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
@@ -33,10 +33,10 @@ export class OLMTasks {
   /**
    * Returns list of tasks which perform preflight platform checks.
    */
-  startTasks(flags: any, command: Command): Listr {
+  startTasks(flags: any, command: Command): Listr.ListrTask<any>[] {
     const kube = new KubeHelper(flags)
     const che = new CheHelper(flags)
-    return new Listr([
+    return [
       this.isOlmPreInstalledTask(command, kube),
       createNamespaceTask(flags.chenamespace, this.getOlmNamespaceLabels(flags)),
       {
@@ -162,9 +162,9 @@ export class OLMTasks {
           } else if (VersionHelper.isDeployingStableVersion(flags) || flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME) {
             // stable Che CatalogSource
             subscription = this.constructSubscription(ctx.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
-          } else if (flags['olm-channel'] === STABLE_ALL_NAMESPACES_CHANNEL_NAME) {
+          } else if (flags['olm-channel'] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME) {
             // stable Che CatalogSource
-            subscription = this.constructSubscription(ctx.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, STABLE_ALL_NAMESPACES_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
+            subscription = this.constructSubscription(ctx.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
           } else {
             // next Che CatalogSource
             subscription = this.constructSubscription(ctx.subscriptionName, `eclipse-che-preview-${ctx.generalPlatformName}`, ctx.operatorNamespace, ctx.operatorNamespace, OLM_NEXT_CHANNEL_NAME, NEXT_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
@@ -227,7 +227,7 @@ export class OLMTasks {
         },
       },
       createEclipseCheCluster(flags, kube),
-    ], { renderer: flags['listr-renderer'] as any })
+    ]
   }
 
   preUpdateTasks(flags: any, command: Command): Listr {

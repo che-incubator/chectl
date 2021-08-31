@@ -81,7 +81,7 @@ export class InstallerTasks {
     }]
   }
 
-  installTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
+  async installTasks(flags: any, command: Command): Promise<ReadonlyArray<Listr.ListrTask>> {
     const helmTasks = new HelmTasks(flags)
     const operatorTasks = new OperatorTasks()
     const olmTasks = new OLMTasks()

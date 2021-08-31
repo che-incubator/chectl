@@ -14,13 +14,17 @@ import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import * as Listr from 'listr'
 
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_ANALYTIC_HOOK_NAME, OPERATOR_DEPLOYMENT_NAME } from '../../constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPERATOR_DEPLOYMENT_NAME, SUBSCRIPTION_NAME } from '../../constants'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
+import { Subscription } from '../../api/typings/olm'
 import { cheNamespace } from '../../common-flags'
 import { requestRestore } from '../../api/backup-restore'
 import { cli } from 'cli-ux'
 import { ApiTasks } from '../../tasks/platforms/api'
+import { OLMTasks } from '../../tasks/installers/olm'
+import { OperatorTasks } from '../../tasks/installers/operator'
+import { checkChectlAndCheVersionCompatibility, downloadTemplates } from '../../tasks/installers/common-tasks'
 import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 import { V1CheClusterBackup, V1CheClusterRestore, V1CheClusterRestoreStatus } from '../../api/typings/backup-restore-crds'
 
@@ -110,12 +114,17 @@ export default class Restore extends Command {
         enabled: flags.version || flags.rollback || flags['backup-cr'],
         task: async (ctx: any, task: any) => {
           const kube = new KubeHelper(flags)
-          const operatorDeploymentYaml = await kube.getDeployment(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
+          let operatorDeploymentYaml = await kube.getDeployment(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
           if (!operatorDeploymentYaml) {
-            // There is no operator deployment
-            ctx.currentOperatorVersion = ''
-            task.title = `${task.title} operator is not deployed`
-            return
+            // There is no operator deployment in the namespace
+            // Check if the operator in all namespaces mode
+            operatorDeploymentYaml = await kube.getDeployment(OPERATOR_DEPLOYMENT_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+            if (!operatorDeploymentYaml) {
+              // Still no operator deployment found
+              ctx.currentOperatorVersion = ''
+              task.title = `${task.title} operator is not deployed`
+              return
+            }
           }
           const operatorEnv = operatorDeploymentYaml.spec!.template.spec!.containers[0].env!
           const currentVersionEnvVar = operatorEnv.find(envVar => envVar.name === 'CHE_VERSION')
@@ -125,6 +134,36 @@ export default class Restore extends Command {
           ctx.currentOperatorVersion = currentVersionEnvVar.value
           task.title = `${task.title} ${ctx.currentOperatorVersion} found`
         },
+      },
+      {
+        title: 'Detecting operator installer...',
+        // It is possible to skip '&& (flags.version || flags.rollback || flags['backup-cr'])' in the nabled condition below,
+        // as ctx.currentOperatorVersion is set only if previous task, that has the condition, is executed.
+        enabled: (ctx: any) => ctx.currentOperatorVersion && !flags['olm-channel'],
+        task: async (ctx: any, task: any) => {
+          const kube = new KubeHelper(flags)
+          let operatorSubscriptionYaml: Subscription = await kube.getOperatorSubscription(SUBSCRIPTION_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+          if (operatorSubscriptionYaml) {
+            // OLM in all namespaces mode
+            flags.installer = 'olm'
+            flags['olm-channel'] = operatorSubscriptionYaml.spec.channel
+            task.title = `${task.title}OLM`
+            return
+          }
+
+          operatorSubscriptionYaml = await kube.getOperatorSubscription(SUBSCRIPTION_NAME, flags.chenamespace)
+          if (operatorSubscriptionYaml) {
+            // OLM in single namespace mode
+            flags.installer = 'olm'
+            flags['olm-channel'] = operatorSubscriptionYaml.spec.channel
+            task.title = `${task.title}OLM`
+            return
+          }
+
+          // As ctx.currentOperatorVersion is set, the operator deployment exists
+          flags.installer = 'operator'
+          task.title = `${task.title}Operator`
+        }
       },
       {
         title: 'Looking for corresponding backup object...',
@@ -181,16 +220,89 @@ export default class Restore extends Command {
         },
       },
       {
-        title: 'Deploy Che operator of requested version',
+        title: 'Detecting additional parameters...',
+        task: async (ctx: any, task: any) => {
+          const kube = new KubeHelper(flags)
+          ctx.isOpenshift = await kube.isOpenShift()
+
+          // Set defaults for some parameters if they weren't set
+          if (!flags.installer) {
+            flags.installer = ctx.isOpenshift ? 'olm' : 'operator'
+          }
+          if (flags.installer === 'olm' && !flags['olm-channel']) {
+            if (await kube.getOperatorSubscription(SUBSCRIPTION_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)) {
+              flags['olm-channel'] = OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME
+            } else {
+              flags['olm-channel'] = OLM_STABLE_CHANNEL_NAME
+            }
+          }
+          if (ctx.isOpenshift) {
+            flags.platform = 'openshift'
+            flags['cluster-monitoring'] = true
+          } else {
+            flags.platform = 'kubernetes'
+          }
+
+          task.title = `${task.title}OK`
+        }
+      },
+      {
+        title: 'Remove current Che operator',
+        enabled: (ctx: any) => ctx.currentOperatorVersion && flags.version && ctx.currentOperatorVersion !== flags.version,
+        task: async (ctx: any, _task: any) => {
+          // All preparations and validations must be done before this task!
+
+          // Delete old operator if any
+          if (flags.installer === 'olm') {
+            const olmTasks = new OLMTasks()
+            const olmDeleteTasks = olmTasks.deleteTasks(flags)
+            return new Listr(olmDeleteTasks, ctx.listrOptions)
+          } else {
+            // Operator
+            const operatorTasks = new OperatorTasks()
+            const operatorDeleteTasks = operatorTasks.deleteTasks(flags)
+            return new Listr(operatorDeleteTasks, ctx.listrOptions)
+          }
+        }
+      },
+      {
+        title: 'Deploy requested version of Che operator',
         enabled: (ctx: any) => flags.version && ctx.currentOperatorVersion !== flags.version,
-        task: async (_ctx: any, _task: any) => {
-          // All preparations and validations must be done before this task
-          return this.getRedeployOperatorTasks(flags)
+        task: async (ctx: any, _task: any) => {
+          // Use plain operator on Kubernetes or if it is requested instead of OLM
+          if (!ctx.isOpenshift || flags.installer === 'operator') {
+            const deployOperatorOnlyTasks = new Listr(undefined, ctx.listrOptions)
+            deployOperatorOnlyTasks.add(checkChectlAndCheVersionCompatibility(flags))
+            deployOperatorOnlyTasks.add(downloadTemplates(flags))
+
+            const operatorTasks = new OperatorTasks()
+            const operatorInstallTasks = await operatorTasks.deployTasks(flags, this)
+            // Remove last tasks that deploys CR (it will be done on restore)
+            operatorInstallTasks.splice(-2)
+            deployOperatorOnlyTasks.add(operatorInstallTasks)
+
+            return deployOperatorOnlyTasks
+          } else {
+            // OLM on Openshift
+            const olmTasks = new OLMTasks()
+            let olmInstallTasks = olmTasks.startTasks(flags, this)
+            // Remove last tasks that deploys CR (it will be done on restore)
+            olmInstallTasks.splice(-2)
+            // Remove other redundant for restoring tasks
+            const tasksToDelete = [
+              'Create custom catalog source from file',
+              'Set custom operator image',
+            ]
+            olmInstallTasks = olmInstallTasks.filter(task => tasksToDelete.indexOf(task.title) === -1)
+
+            return new Listr(olmInstallTasks, ctx.listrOptions)
+          }
         },
       },
       {
         title: 'Scheduling restore...',
         task: async (ctx: any, task: any) => {
+          // At this point deployed operator should be of the version to restore to
           await requestRestore(flags.chenamespace, RESTORE_CR_NAME, ctx.backupServerConfig, flags['snapshot-id'])
           task.title = `${task.title}OK`
         },
@@ -222,19 +334,4 @@ export default class Restore extends Command {
       },
     ]
   }
-
-  /**
-   * Returns list of tasks that (re)deploys the flags.version version of Che operator.
-   */
-  private getRedeployOperatorTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
-    return [
-      {
-        title: '',
-        task: async (ctx: any, task: any) => {
-
-        }
-      },
-    ]
-  }
-
 }
