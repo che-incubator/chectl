@@ -2622,15 +2622,15 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-devfile-workspace-operator@git://github.com/devfile/devworkspace-operator#main":
   version "0.0.0"
-  resolved "git://github.com/devfile/devworkspace-operator#1843a88c7040b0fbb03efd96dc2eb2a87e766b3d"
+  resolved "git://github.com/devfile/devworkspace-operator#bfaedf7081170657c6f4e10adca406644ff54890"
 
 "eclipse-che-operator@git://github.com/eclipse-che/che-operator#main":
   version "0.0.0"
-  resolved "git://github.com/eclipse-che/che-operator#228365481997ebe880619fd4c104ceb5d5c10310"
+  resolved "git://github.com/eclipse-che/che-operator#cf52e132464998172654f6d046557e01bcfe874f"
 
 "eclipse-che-server@git://github.com/eclipse-che/che-server#main":
   version "0.0.0"
-  resolved "git://github.com/eclipse-che/che-server#bc71f9549134408a19c0461e11fe6bc86615134b"
+  resolved "git://github.com/eclipse-che/che-server#c273bd43a59f06702710bce3ff54b9957a4debfe"
 
 editorconfig@^0.15.0:
   version "0.15.3"
