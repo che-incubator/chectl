@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { ExtensionsV1beta1Ingress, V1Deployment, V1DeploymentSpec, V1ObjectMeta, V1PersistentVolumeClaim, V1PersistentVolumeClaimSpec, V1PodTemplateSpec, V1Service, V1ServicePort, V1ServiceSpec } from '@kubernetes/client-node'
+import { V1Deployment, V1DeploymentSpec, V1Ingress, V1ObjectMeta, V1PersistentVolumeClaim, V1PersistentVolumeClaimSpec, V1PodTemplateSpec, V1Service, V1ServicePort, V1ServiceSpec } from '@kubernetes/client-node'
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as yaml from 'js-yaml'
@@ -315,14 +315,14 @@ export default class Generate extends Command {
     return items
   }
 
-  private async getIngressesBySelector(labelSelector: string, namespace = ''): Promise<Array<ExtensionsV1beta1Ingress>> {
-    const items = new Array<ExtensionsV1beta1Ingress>()
+  private async getIngressesBySelector(labelSelector: string, namespace = ''): Promise<Array<V1Ingress>> {
+    const items = new Array<V1Ingress>()
 
     const k8sIngressesList = await kube.getIngressesBySelector(labelSelector, namespace)
     k8sIngressesList.items.forEach(async item => {
-      const ingress = new ExtensionsV1beta1Ingress()
+      const ingress = new V1Ingress()
       ingress.kind = 'Ingress'
-      ingress.apiVersion = 'extensions/v1beta1'
+      ingress.apiVersion = 'networking/v1'
       ingress.metadata = new V1ObjectMeta()
       ingress.metadata.labels = { ...item.metadata!.labels }
       ingress.metadata.name = item.metadata!.name
