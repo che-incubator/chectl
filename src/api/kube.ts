@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { AdmissionregistrationV1Api, ApiextensionsV1Api, ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1ClusterRole, V1ClusterRoleBinding, V1ClusterRoleBindingList, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1ContainerStateTerminated, V1ContainerStateWaiting, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1MutatingWebhookConfiguration, V1Namespace, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleBindingList, V1RoleList, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
+import { AdmissionregistrationV1Api, ApiextensionsV1Api, ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, KubeConfig, Log, NetworkingV1Api, PortForward, RbacAuthorizationV1Api, V1ClusterRole, V1ClusterRoleBinding, V1ClusterRoleBindingList, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1ContainerStateTerminated, V1ContainerStateWaiting, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1IngressList, V1Job, V1JobSpec, V1LabelSelector, V1MutatingWebhookConfiguration, V1Namespace, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleBindingList, V1RoleList, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
 import { Cluster, Context } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
@@ -1379,10 +1379,10 @@ export class KubeHelper {
     }
   }
 
-  async ingressExist(name = '', namespace = ''): Promise<boolean> {
-    const k8sExtensionsApi = this.kubeConfig.makeApiClient(ExtensionsV1beta1Api)
+  async ingressExist(name: string, namespace: string): Promise<boolean> {
+    const networkingV1Api = this.kubeConfig.makeApiClient(NetworkingV1Api)
     try {
-      const { body } = await k8sExtensionsApi.readNamespacedIngress(name, namespace)
+      const { body } = await networkingV1Api.readNamespacedIngress(name, namespace)
       return this.compare(body, name)
     } catch {
       return false
@@ -1390,9 +1390,9 @@ export class KubeHelper {
   }
 
   async deleteAllIngresses(namespace: string): Promise<void> {
-    const k8sExtensionsApi = this.kubeConfig.makeApiClient(ExtensionsV1beta1Api)
+    const networkingV1Api = this.kubeConfig.makeApiClient(NetworkingV1Api)
     try {
-      await k8sExtensionsApi.deleteCollectionNamespacedIngress(namespace)
+      await networkingV1Api.deleteCollectionNamespacedIngress(namespace)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -2453,10 +2453,10 @@ export class KubeHelper {
     }
   }
 
-  async getIngressHost(name = '', namespace = ''): Promise<string> {
-    const k8sExtensionsApi = this.kubeConfig.makeApiClient(ExtensionsV1beta1Api)
+  async getIngressHost(name: string, namespace: string): Promise<string> {
+    const networkingV1Api = this.kubeConfig.makeApiClient(NetworkingV1Api)
     try {
-      const res = await k8sExtensionsApi.readNamespacedIngress(name, namespace)
+      const res = await networkingV1Api.readNamespacedIngress(name, namespace)
       if (res && res.body &&
         res.body.spec &&
         res.body.spec.rules &&
@@ -2469,10 +2469,10 @@ export class KubeHelper {
     }
   }
 
-  async getIngressProtocol(name = '', namespace = ''): Promise<string> {
-    const k8sExtensionsApi = this.kubeConfig.makeApiClient(ExtensionsV1beta1Api)
+  async getIngressProtocol(name: string, namespace: string): Promise<string> {
+    const networkingV1Api = this.kubeConfig.makeApiClient(NetworkingV1Api)
     try {
-      const res = await k8sExtensionsApi.readNamespacedIngress(name, namespace)
+      const res = await networkingV1Api.readNamespacedIngress(name, namespace)
       if (!res || !res.body || !res.body.spec) {
         throw new Error('ERR_INGRESS_NO_HOST')
       }
@@ -2486,10 +2486,10 @@ export class KubeHelper {
     }
   }
 
-  async getIngressesBySelector(labelSelector = '', namespace = ''): Promise<ExtensionsV1beta1IngressList> {
-    const k8sV1Beta = this.kubeConfig.makeApiClient(ExtensionsV1beta1Api)
+  async getIngressesBySelector(labelSelector: string, namespace: string): Promise<V1IngressList> {
+    const networkingV1Api = this.kubeConfig.makeApiClient(NetworkingV1Api)
     try {
-      const res = await k8sV1Beta.listNamespacedIngress(namespace, 'true', undefined, undefined, undefined, labelSelector)
+      const res = await networkingV1Api.listNamespacedIngress(namespace, 'true', undefined, undefined, undefined, labelSelector)
       if (res && res.body) {
         return res.body
       }
