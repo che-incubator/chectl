@@ -412,7 +412,7 @@ export class OLMTasks {
         if (!await kube.isPreInstalledOLM()) {
           cli.warn('Looks like your platform hasn\'t got embedded OLM, so you should install it manually. For quick start you can use:')
           cli.url('install.sh', 'https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/install.sh')
-          command.error('OLM is required for installation Eclipse Che with installer flag \'olm\'')
+          command.error('OLM is required for installation of Eclipse Che with installer flag \'olm\'')
         }
         task.title = `${task.title}...done.`
       },

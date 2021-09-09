@@ -1656,7 +1656,8 @@ export class KubeHelper {
   async getCustomResource(namespace: string, name: string, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any | undefined> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      return await customObjectsApi.getNamespacedCustomObject(resourceAPIGroup, resourceAPIVersion, namespace, resourcePlural, name)
+      const res = await customObjectsApi.getNamespacedCustomObject(resourceAPIGroup, resourceAPIVersion, namespace, resourcePlural, name)
+      return res.body
     } catch (e) {
       if (e.response && e.response.statusCode !== 404) {
         throw this.wrapK8sClientError(e)

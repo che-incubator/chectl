@@ -17,7 +17,6 @@ import * as Listr from 'listr'
 import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPERATOR_DEPLOYMENT_NAME, SUBSCRIPTION_NAME } from '../../constants'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { Subscription } from '../../api/typings/olm'
 import { cheNamespace } from '../../common-flags'
 import { requestRestore } from '../../api/backup-restore'
 import { cli } from 'cli-ux'
@@ -25,7 +24,7 @@ import { ApiTasks } from '../../tasks/platforms/api'
 import { OLMTasks } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { checkChectlAndCheVersionCompatibility, downloadTemplates } from '../../tasks/installers/common-tasks'
-import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import { findWorkingNamespace, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 import { V1CheClusterBackup, V1CheClusterRestore, V1CheClusterRestoreStatus } from '../../api/typings/backup-restore-crds'
 
 import { awsAccessKeyId, awsSecretAccessKey, AWS_ACCESS_KEY_ID_KEY, AWS_SECRET_ACCESS_KEY_KEY, backupRepositoryPassword, backupRepositoryUrl, backupRestServerPassword, backupRestServerUsername, backupServerConfigName, BACKUP_REPOSITORY_PASSWORD_KEY, BACKUP_REPOSITORY_URL_KEY, BACKUP_REST_SERVER_PASSWORD_KEY, BACKUP_REST_SERVER_USERNAME_KEY, BACKUP_SERVER_CONFIG_CR_NAME_KEY, getBackupServerConfiguration, sshKey, sshKeyFile, SSH_KEY_FILE_KEY, SSH_KEY_KEY } from './backup'
@@ -43,9 +42,15 @@ export default class Restore extends Command {
     '# Create and use configuration for REST backup server:\n' +
     'chectl server:resotre -r rest:http://my-sert-server.net:4000/che-backup -p repopassword',
     '# Create and use configuration for AWS S3 (and API compatible) backup server (bucket should be precreated):\n' +
-    'chectl server:backup -r s3:s3.amazonaws.com/bucketche -p repopassword',
+    'chectl server:restore -r s3:s3.amazonaws.com/bucketche -p repopassword',
     '# Create and use configuration for SFTP backup server:\n' +
-    'chectl server:backup -r=sftp:user@my-server.net:/srv/sftp/che-data -p repopassword',
+    'chectl server:restore -r=sftp:user@my-server.net:/srv/sftp/che-data -p repopassword',
+    '# Rollback to previous version (if it was installed):\n' +
+    'chectl server:restore --rollback',
+    '# Restore from specific backup object:\n' +
+    'chectl server:restore --backup-cr=backup-object-name',
+    '# Restore from specific backup of different version:\n' +
+    'chectl server:restore --version=7.35.2 --snapshot-id=9ea02f58 -r rest:http://my-sert-server.net:4000/che-backup -p repopassword',
   ]
 
   static flags: flags.Input<any> = {
@@ -111,7 +116,7 @@ export default class Restore extends Command {
     return [
       {
         title: 'Detecting existing operator version...',
-        enabled: flags.version || flags.rollback || flags['backup-cr'],
+        enabled: () => flags.version || flags.rollback || flags['backup-cr'],
         task: async (ctx: any, task: any) => {
           const kube = new KubeHelper(flags)
           let operatorDeploymentYaml = await kube.getDeployment(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
@@ -136,24 +141,25 @@ export default class Restore extends Command {
         },
       },
       {
-        title: 'Detecting operator installer...',
-        // It is possible to skip '&& (flags.version || flags.rollback || flags['backup-cr'])' in the nabled condition below,
+        title: 'Detecting installer...',
+        // It is possible to skip '&& (flags.version || flags.rollback || flags['backup-cr'])' in the enabled condition below,
         // as ctx.currentOperatorVersion is set only if previous task, that has the condition, is executed.
         enabled: (ctx: any) => ctx.currentOperatorVersion && !flags['olm-channel'],
         task: async (ctx: any, task: any) => {
           const kube = new KubeHelper(flags)
-          let operatorSubscriptionYaml: Subscription = await kube.getOperatorSubscription(SUBSCRIPTION_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
-          if (operatorSubscriptionYaml) {
+
+          if (await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)) {
             // OLM in all namespaces mode
+            const operatorSubscriptionYaml = await kube.getOperatorSubscription(SUBSCRIPTION_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
             flags.installer = 'olm'
             flags['olm-channel'] = operatorSubscriptionYaml.spec.channel
             task.title = `${task.title}OLM`
             return
           }
 
-          operatorSubscriptionYaml = await kube.getOperatorSubscription(SUBSCRIPTION_NAME, flags.chenamespace)
-          if (operatorSubscriptionYaml) {
+          if (await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, flags.chenamespace)) {
             // OLM in single namespace mode
+            const operatorSubscriptionYaml = await kube.getOperatorSubscription(SUBSCRIPTION_NAME, flags.chenamespace)
             flags.installer = 'olm'
             flags['olm-channel'] = operatorSubscriptionYaml.spec.channel
             task.title = `${task.title}OLM`
@@ -167,13 +173,13 @@ export default class Restore extends Command {
       },
       {
         title: 'Looking for corresponding backup object...',
-        enabled: flags.rollback,
+        enabled: () => flags.rollback,
         task: async (ctx: any, task: any) => {
           const currentOperatorVersion: string | undefined = ctx.currentOperatorVersion
           if (!currentOperatorVersion) {
             throw new Error('Che operator not found. Cannot detect version to use.')
           }
-          const backupCrName = "backup-before-update-to-" + currentOperatorVersion.replace(/./g, '-')
+          const backupCrName = "backup-before-update-to-" + currentOperatorVersion.replace(/\./g, '-')
 
           const kube = new KubeHelper(flags)
           const backupCr = await kube.getCustomResource(flags.chenamespace, backupCrName, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL)
@@ -186,8 +192,8 @@ export default class Restore extends Command {
       },
       {
         title: 'Gathering information about backup...',
-        enabled: flags['backup-cr'],
-        task: async (ctx: any, task: any) => {
+        enabled: () => flags['backup-cr'],
+        task: async (_ctx: any, task: any) => {
           const backupCrName = flags['backup-cr']
           const kube = new KubeHelper(flags)
           const backupCr: V1CheClusterBackup | undefined = await kube.getCustomResource(flags.chenamespace, backupCrName, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL)
@@ -230,13 +236,17 @@ export default class Restore extends Command {
             flags.installer = ctx.isOpenshift ? 'olm' : 'operator'
           }
           if (flags.installer === 'olm' && !flags['olm-channel']) {
-            if (await kube.getOperatorSubscription(SUBSCRIPTION_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)) {
+            if (await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)) {
               flags['olm-channel'] = OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME
             } else {
               flags['olm-channel'] = OLM_STABLE_CHANNEL_NAME
             }
           }
           if (ctx.isOpenshift) {
+            // Using embedded templates here as they are used in install flow for OLM.
+            // OLM install flow should be reworked to use templates of a version,
+            // then templates should be downloaded in deploy task below.
+            flags.templates = getEmbeddedTemplatesDirectory()
             flags.platform = 'openshift'
             flags['cluster-monitoring'] = true
           } else {
@@ -323,7 +333,7 @@ export default class Restore extends Command {
             if (restoreStatus.stage) {
               task.title = `Waiting until restore process finishes: ${restoreStatus.stage}`
             }
-          } while (restoreStatus.state === 'InProgress')
+          } while (!restoreStatus.state || restoreStatus.state === 'InProgress')
 
           if (restoreStatus.state === 'Failed') {
             throw new Error(`Failed to restore installation: ${restoreStatus.message}`)

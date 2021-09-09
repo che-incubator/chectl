@@ -306,9 +306,6 @@ export default class Deploy extends Command {
         if (flags['starting-csv']) {
           this.error('"starting-csv" and "version" flags are mutually exclusive. Please specify only one of them.')
         }
-        if (flags['olm-channel']) {
-          this.error('"starting-csv" and "version" flags are mutually exclusive. Use "starting-csv" with "olm-channel" flag.')
-        }
         if (flags['auto-update']) {
           this.error('enabled "auto-update" flag cannot be used with version flag. Deploy latest version instead.')
         }

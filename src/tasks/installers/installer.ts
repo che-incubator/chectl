@@ -13,6 +13,8 @@
 import Command from '@oclif/command'
 import * as Listr from 'listr'
 
+import { ChectlContext } from '../../api/context'
+
 import { HelmTasks } from './helm'
 import { OLMTasks } from './olm'
 import { OperatorTasks } from './operator'
@@ -82,6 +84,8 @@ export class InstallerTasks {
   }
 
   async installTasks(flags: any, command: Command): Promise<ReadonlyArray<Listr.ListrTask>> {
+    const ctx = ChectlContext.get()
+
     const helmTasks = new HelmTasks(flags)
     const operatorTasks = new OperatorTasks()
     const olmTasks = new OLMTasks()
@@ -91,10 +95,12 @@ export class InstallerTasks {
 
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the Eclipse Che operator'
-      task = () => operatorTasks.deployTasks(flags, command)
+      task = async () => {
+        return new Listr(await operatorTasks.deployTasks(flags, command), ctx.listrOptions)
+      }
     } else if (flags.installer === 'olm') {
       title = '🏃‍  Running Olm installaion Eclipse Che'
-      task = () => olmTasks.startTasks(flags, command)
+      task = () => new Listr(olmTasks.startTasks(flags, command), ctx.listrOptions)
     // installer.ts BEGIN CHE ONLY
     } else if (flags.installer === 'helm') {
       title = '🏃‍  Running Helm to install Eclipse Che'
