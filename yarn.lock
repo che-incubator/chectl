@@ -295,10 +295,10 @@
   dependencies:
     "@cspotcode/source-map-consumer" "0.8.0"
 
-"@eclipse-che/api@latest":
-  version "7.35.2"
-  resolved "https://registry.yarnpkg.com/@eclipse-che/api/-/api-7.35.2.tgz#86d06cba2a7df9a7aca9a0108d226566e5b472b6"
-  integrity sha512-OqHrcXdMkE76QTfukv/CVn7OU1M7Go+50X0nKMiQunjF/jI+iwEreh0SumBuztbODMNrGXpCju7EPm6h6RYsaQ==
+"@eclipse-che/api@7.36.0":
+  version "7.36.0"
+  resolved "https://registry.yarnpkg.com/@eclipse-che/api/-/api-7.36.0.tgz#db8774cbf688df140631c0e60107bef36c194fb1"
+  integrity sha512-ephKJ3rDG53CdhfWHZ5byR2MRnTlbKObOph4+aNH9DO+rI44GTX2f9U2DjwQmHCAyGEXJkT1DdRum6C6ZbfCKA==
 
 "@eslint/eslintrc@^0.4.3":
   version "0.4.3"
@@ -2663,17 +2663,17 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
-"eclipse-che-devfile-workspace-operator@git://github.com/devfile/devworkspace-operator#main":
+"eclipse-che-devfile-workspace-operator@git://github.com/devfile/devworkspace-operator#v0.9.0":
   version "0.0.0"
-  resolved "git://github.com/devfile/devworkspace-operator#aad56eb6c557bcfdee9a9a6716d6702b48531a00"
+  resolved "git://github.com/devfile/devworkspace-operator#d20389a87a75359e88e32de961f4bd43baeb484e"
 
-"eclipse-che-operator@git://github.com/eclipse-che/che-operator#main":
+"eclipse-che-operator@git://github.com/eclipse-che/che-operator#7.36.0":
   version "0.0.0"
-  resolved "git://github.com/eclipse-che/che-operator#9cfd823f536b69dd44b8ee308750157adba2e258"
+  resolved "git://github.com/eclipse-che/che-operator#b91b009f35509be8253cc52cc98429d50c95ee00"
 
-"eclipse-che-server@git://github.com/eclipse-che/che-server#main":
+"eclipse-che-server@git://github.com/eclipse-che/che-server#7.36.0":
   version "0.0.0"
-  resolved "git://github.com/eclipse-che/che-server#6d4ee34fe8eefcbe686cdd1e400779ea19f7c60d"
+  resolved "git://github.com/eclipse-che/che-server#4321e503a5f9220e8744fd50279edf60140d5a6f"
 
 editorconfig@^0.15.0:
   version "0.15.3"
