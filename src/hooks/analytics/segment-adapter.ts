@@ -135,7 +135,7 @@ export class SegmentAdapter {
         version: os.release(),
       },
       location: {
-        country: getTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)?.country || 'XX',
+        country: getTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)?.countries || 'XX',
       },
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }

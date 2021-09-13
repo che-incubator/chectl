@@ -21,7 +21,7 @@
     "axios": "^0.21.1",
     "cli-ux": "^5.6.3",
     "command-exists": "^1.2.9",
-    "countries-and-timezones": "^3.0.1",
+    "countries-and-timezones": "^3.2.2",
     "debug": "^4.3.2",
     "eclipse-che-devfile-workspace-operator": "git://github.com/devfile/devworkspace-operator#main",
     "eclipse-che-operator": "git://github.com/eclipse-che/che-operator#main",
