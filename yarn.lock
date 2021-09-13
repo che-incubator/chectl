@@ -1003,10 +1003,12 @@
   resolved "https://registry.yarnpkg.com/@types/command-exists/-/command-exists-1.2.0.tgz#d97e0ed10097090e4ab0367ed425b0312fad86f3"
   integrity sha512-ugsxEJfsCuqMLSuCD4PIJkp5Uk2z6TCMRCgYVuhRo5cYQY3+1xXTQkSlPtkpGHuvWMjS2KTeVQXxkXRACMbM6A==
 
-"@types/countries-and-timezones@^2.0.3":
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/@types/countries-and-timezones/-/countries-and-timezones-2.0.3.tgz#0b889d6105ad33c4995b5fc3b84636156aa3acfd"
-  integrity sha512-P1LCigalHJA3fOsMNqXAzjkiaK5VCFaXUpHqIwUoc19clJoD/2VlC9JuRWizP3YCPeNekJBANEY9IFSIp0prBw==
+"@types/countries-and-timezones@^3.2.3":
+  version "3.2.3"
+  resolved "https://registry.yarnpkg.com/@types/countries-and-timezones/-/countries-and-timezones-3.2.3.tgz#d061175012ae6d5cca31bb00985a84abb55d20af"
+  integrity sha512-/XfbS9GQWYRUD5xUGAMNx308M/TZ2LzvoK4x5WP5Bz3DuNX1QksVHZgiKCWE1io421myXseI//cOF5VvQlwr5A==
+  dependencies:
+    countries-and-timezones "*"
 
 "@types/eslint-visitor-keys@^1.0.0":
   version "1.0.0"
@@ -2400,7 +2402,7 @@ core-util-is@1.0.2, core-util-is@~1.0.0:
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"
   integrity sha1-tf1UIgqivFq1eqtxQMlAdUUDwac=
 
-countries-and-timezones@^3.2.2:
+countries-and-timezones@*, countries-and-timezones@^3.2.2:
   version "3.2.2"
   resolved "https://registry.yarnpkg.com/countries-and-timezones/-/countries-and-timezones-3.2.2.tgz#c328f0b5acd717326babcf9bd9313733acfd87e0"
   integrity sha512-bhWSUQRxYeyjJn9C3eGzo7FZe1wOt/8Efcl8rxWaD9Rqrh4r+9ofJjfRYvU2IHQ0TyjtF2lSV+TfZTmfhdTHOw==
