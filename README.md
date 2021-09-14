@@ -671,13 +671,23 @@ OPTIONS
 
   -s, --snapshot-id=snapshot-id                          ID of a snapshot to restore from
 
+  -v, --version=version                                  Che Operator version to restore to (e.g. 7.35.1).
+                                                         Must comply with the version in backup snapshot.
+                                                         Defaults to the existing operator version or to chectl
+                                                         version if none deployed.
+
   --aws-access-key-id=aws-access-key-id                  AWS access key ID
 
   --aws-secret-access-key=aws-secret-access-key          AWS secret access key
 
+  --backup-cr=backup-cr                                  Name of a backup custom resource to restore from
+
   --backup-server-config-name=backup-server-config-name  Name of custom resource with backup server config
 
   --password=password                                    Authentication password for backup REST server
+
+  --rollback                                             Rolling back to previous version of Eclipse Che if a backup of
+                                                         that version is available
 
   --ssh-key=ssh-key                                      Private SSH key for authentication on SFTP server
 
@@ -694,9 +704,16 @@ EXAMPLES
   # Create and use configuration for REST backup server:
   chectl server:resotre -r rest:http://my-sert-server.net:4000/che-backup -p repopassword
   # Create and use configuration for AWS S3 (and API compatible) backup server (bucket should be precreated):
-  chectl server:backup -r s3:s3.amazonaws.com/bucketche -p repopassword
+  chectl server:restore -r s3:s3.amazonaws.com/bucketche -p repopassword
   # Create and use configuration for SFTP backup server:
-  chectl server:backup -r=sftp:user@my-server.net:/srv/sftp/che-data -p repopassword
+  chectl server:restore -r=sftp:user@my-server.net:/srv/sftp/che-data -p repopassword
+  # Rollback to previous version (if it was installed):
+  chectl server:restore --rollback
+  # Restore from specific backup object:
+  chectl server:restore --backup-cr=backup-object-name
+  # Restore from specific backup of different version:
+  chectl server:restore --version=7.35.2 --snapshot-id=9ea02f58 -r rest:http://my-sert-server.net:4000/che-backup -p 
+  repopassword
 ```
 
 _See code: [src/commands/server/restore.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/restore.ts)_

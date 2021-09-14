@@ -84,7 +84,7 @@ export default class Restore extends Command {
       required: false,
       exclusive: ['version', 'snapshot-id', BACKUP_REPOSITORY_URL_KEY, BACKUP_SERVER_CONFIG_CR_NAME_KEY],
     }),
-    'rollback': boolean({
+    rollback: boolean({
       description: 'Rolling back to previous version of Eclipse Che if a backup of that version is available',
       required: false,
       exclusive: ['version', 'snapshot-id', 'backup-cr', BACKUP_REPOSITORY_URL_KEY, BACKUP_SERVER_CONFIG_CR_NAME_KEY],
@@ -121,8 +121,8 @@ export default class Restore extends Command {
           const kube = new KubeHelper(flags)
           let operatorDeploymentYaml = await kube.getDeployment(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
           if (!operatorDeploymentYaml) {
-            // There is no operator deployment in the namespace
-            // Check if the operator in all namespaces mode
+            // There is no operator deployment in Che namespace
+            // Check if the operator is in all namespaces mode
             operatorDeploymentYaml = await kube.getDeployment(OPERATOR_DEPLOYMENT_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
             if (!operatorDeploymentYaml) {
               // Still no operator deployment found
@@ -169,7 +169,7 @@ export default class Restore extends Command {
           // As ctx.currentOperatorVersion is set, the operator deployment exists
           flags.installer = 'operator'
           task.title = `${task.title}Operator`
-        }
+        },
       },
       {
         title: 'Looking for corresponding backup object...',
@@ -179,7 +179,7 @@ export default class Restore extends Command {
           if (!currentOperatorVersion) {
             throw new Error('Che operator not found. Cannot detect version to use.')
           }
-          const backupCrName = "backup-before-update-to-" + currentOperatorVersion.replace(/\./g, '-')
+          const backupCrName = 'backup-before-update-to-' + currentOperatorVersion.replace(/\./g, '-')
 
           const kube = new KubeHelper(flags)
           const backupCr = await kube.getCustomResource(flags.chenamespace, backupCrName, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL)
@@ -188,7 +188,7 @@ export default class Restore extends Command {
           }
           flags['backup-cr'] = backupCrName
           task.title = `${task.title} ${backupCrName} found`
-        }
+        },
       },
       {
         title: 'Gathering information about backup...',
@@ -214,7 +214,7 @@ export default class Restore extends Command {
           flags.version = backupCr.status.cheVersion
           flags['snapshot-id'] = backupCr.status.snapshotId
           task.title = `${task.title}OK`
-        }
+        },
       },
       {
         title: 'Getting backup server info...',
@@ -243,10 +243,6 @@ export default class Restore extends Command {
             }
           }
           if (ctx.isOpenshift) {
-            // Using embedded templates here as they are used in install flow for OLM.
-            // OLM install flow should be reworked to use templates of a version,
-            // then templates should be downloaded in deploy task below.
-            flags.templates = getEmbeddedTemplatesDirectory()
             flags.platform = 'openshift'
             flags['cluster-monitoring'] = true
           } else {
@@ -254,26 +250,36 @@ export default class Restore extends Command {
           }
 
           task.title = `${task.title}OK`
-        }
+        },
+      },
+      {
+        title: 'Getting installation templates...',
+        enabled: (ctx: any) => flags.version && ctx.currentOperatorVersion !== flags.version && !flags.templates,
+        task: async (ctx: any, task: any) => {
+          if (flags.installer === 'olm') {
+            // Using embedded templates here as they are used in install flow for OLM.
+            // OLM install flow should be reworked to not to use templates, but OLM dependencies.
+            flags.templates = getEmbeddedTemplatesDirectory()
+          } else {
+            const getTemplatesTasks = new Listr(undefined, ctx.listrOptions)
+            getTemplatesTasks.add(checkChectlAndCheVersionCompatibility(flags))
+            getTemplatesTasks.add(downloadTemplates(flags))
+            return getTemplatesTasks
+          }
+          task.title = `${task.title}OK`
+        },
       },
       {
         title: 'Remove current Che operator',
-        enabled: (ctx: any) => ctx.currentOperatorVersion && flags.version && ctx.currentOperatorVersion !== flags.version,
+        enabled: (ctx: any) => flags.installer === 'olm' && ctx.currentOperatorVersion && flags.version && ctx.currentOperatorVersion !== flags.version,
         task: async (ctx: any, _task: any) => {
           // All preparations and validations must be done before this task!
-
-          // Delete old operator if any
-          if (flags.installer === 'olm') {
-            const olmTasks = new OLMTasks()
-            const olmDeleteTasks = olmTasks.deleteTasks(flags)
-            return new Listr(olmDeleteTasks, ctx.listrOptions)
-          } else {
-            // Operator
-            const operatorTasks = new OperatorTasks()
-            const operatorDeleteTasks = operatorTasks.deleteTasks(flags)
-            return new Listr(operatorDeleteTasks, ctx.listrOptions)
-          }
-        }
+          // Delete old operator if any in case of OLM installer.
+          // For Operator installer, the operator deployment will be downgraded if needed.
+          const olmTasks = new OLMTasks()
+          const olmDeleteTasks = olmTasks.deleteTasks(flags)
+          return new Listr(olmDeleteTasks, ctx.listrOptions)
+        },
       },
       {
         title: 'Deploy requested version of Che operator',
@@ -281,17 +287,11 @@ export default class Restore extends Command {
         task: async (ctx: any, _task: any) => {
           // Use plain operator on Kubernetes or if it is requested instead of OLM
           if (!ctx.isOpenshift || flags.installer === 'operator') {
-            const deployOperatorOnlyTasks = new Listr(undefined, ctx.listrOptions)
-            deployOperatorOnlyTasks.add(checkChectlAndCheVersionCompatibility(flags))
-            deployOperatorOnlyTasks.add(downloadTemplates(flags))
-
             const operatorTasks = new OperatorTasks()
-            const operatorInstallTasks = await operatorTasks.deployTasks(flags, this)
+            const operatorUpdateTasks = operatorTasks.updateTasks(flags, this)
             // Remove last tasks that deploys CR (it will be done on restore)
-            operatorInstallTasks.splice(-2)
-            deployOperatorOnlyTasks.add(operatorInstallTasks)
-
-            return deployOperatorOnlyTasks
+            operatorUpdateTasks.splice(-1)
+            return new Listr(operatorUpdateTasks, ctx.listrOptions)
           } else {
             // OLM on Openshift
             const olmTasks = new OLMTasks()

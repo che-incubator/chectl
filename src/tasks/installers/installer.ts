@@ -32,8 +32,8 @@ export class InstallerTasks {
 
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the Eclipse Che operator Update'
-      task = () => {
-        return operatorTasks.updateTasks(flags, command)
+      task = (ctx: any) => {
+        return new Listr(operatorTasks.updateTasks(flags, command), ctx.listrOptions)
       }
     } else if (flags.installer === 'olm') {
       title = '🏃‍  Running the Eclipse Che operator Update using OLM'

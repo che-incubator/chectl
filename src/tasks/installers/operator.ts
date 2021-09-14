@@ -310,11 +310,11 @@ export class OperatorTasks {
     ])
   }
 
-  updateTasks(flags: any, command: Command): Listr {
+  updateTasks(flags: any, command: Command): Array<Listr.ListrTask> {
     const kube = new KubeHelper(flags)
     const ctx = ChectlContext.get()
     ctx.resourcesPath = path.join(flags.templates, OPERATOR_TEMPLATE_DIR)
-    return new Listr([
+    return [
       {
         title: `Updating ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
@@ -429,7 +429,7 @@ export class OperatorTasks {
         },
       },
       patchingEclipseCheCluster(flags, kube, command),
-    ], { renderer: flags['listr-renderer'] as any })
+    ]
   }
 
   /**
