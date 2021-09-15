@@ -48,16 +48,4 @@ describe('Test Che upgrade', () => {
         await helper.waitForVersionInCheCR(helper.getNewVersion(), CHE_VERSION_TIMEOUT_MS)
     })
   })
-
-  describe('Test Che downgrade', () => {
-    it('Downgrade Che', async () => {
-      await helper.runCliCommand(binChectl, ['server:update', '-y', `--version=${cheVersion}`, `-n ${NAMESPACE}`, '--telemetry=off'])
-      await helper.waitForCheServerImageTag(cheVersion, UPDATE_CHE_TIMEOUT_MS)
-    })
-
-    it('Check downgraded Che version', async () => {
-      await helper.waitForVersionInCheCR(cheVersion, CHE_VERSION_TIMEOUT_MS)
-    })
-  })
-
 })
