@@ -280,22 +280,7 @@ export default class Update extends Command {
         }
       } else {
         // Downgrade
-
-        let isVersionAllowed = false
-        try {
-          isVersionAllowed = semver.gte(flags.version, MIN_CHE_OPERATOR_INSTALLER_VERSION)
-        } catch (error) {
-          // not to fail unexpectedly
-          cli.debug(`Failed to compare versions '${flags.version}' and '${MIN_CHE_OPERATOR_INSTALLER_VERSION}': ${error}`)
-        }
-
-        if (!isVersionAllowed) {
-          cli.info(`Given Eclipse Che version ${flags.version} is too old to be downgraded to`)
-          return false
-        }
-
-        cli.info(`You are going to downgrade Eclipse Che ${ctx.deployedCheOperatorImageTag} to ${ctx.newCheOperatorImageTag}`)
-        cli.warn('DOWNGRADE IS NOT OFFICIALLY SUPPORTED, PROCEED ON YOUR OWN RISK')
+        cli.error('Downgrading is not supported.')
       }
     } else {
       // At least one of the images is custom
