@@ -55,7 +55,7 @@
     "@oclif/test": "^1",
     "@types/chai": "^4",
     "@types/command-exists": "^1.2.0",
-    "@types/countries-and-timezones": "^2.0.3",
+    "@types/countries-and-timezones": "^3.2.3",
     "@types/fs-extra": "^9.0.12",
     "@types/getos": "^3.0.1",
     "@types/inquirer": "^8.1.1",
