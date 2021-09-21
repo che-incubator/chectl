@@ -182,9 +182,12 @@ export default class Restore extends Command {
           const backupCrName = 'backup-before-update-to-' + currentOperatorVersion.replace(/\./g, '-')
 
           const kube = new KubeHelper(flags)
-          const backupCr = await kube.getCustomResource(flags.chenamespace, backupCrName, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL)
+          const backupCr: V1CheClusterBackup = await kube.getCustomResource(flags.chenamespace, backupCrName, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL)
           if (!backupCr) {
             throw new Error(`Cannot find backup: ${backupCrName}`)
+          }
+          if (!backupCr.status || backupCr.status.state !== 'Succeeded') {
+            throw new Error(`Backup with name '${backupCrName}' is not successful`)
           }
           flags['backup-cr'] = backupCrName
           task.title = `${task.title} ${backupCrName} found`

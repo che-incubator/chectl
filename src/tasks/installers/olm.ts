@@ -96,7 +96,13 @@ export class OLMTasks {
             // Convert version flag to channel (see subscription object), starting CSV and approval starategy
             flags.version = VersionHelper.removeVPrefix(flags.version, true)
             // Need to point to specific CSV
-            ctx.startingCSV = `eclipse-che.v${flags.version}`
+            if (flags['starting-csv']) {
+              ctx.startingCSV = flags['starting-csv']
+            } else if (flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME) {
+              ctx.startingCSV = `eclipse-che.v${flags.version}`
+            } else if (flags['olm-channel'] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME) {
+              ctx.startingCSV = `eclipse-che-preview-openshift.v${flags.version}-all-namespaces`
+            } // else use latest in the channel
             // Set approval starategy to manual to prevent autoupdate to the latest version right before installation
             ctx.approvalStarategy = 'Manual'
           } else {
@@ -159,7 +165,7 @@ export class OLMTasks {
             // custom Che CatalogSource
             const catalogSourceNamespace = flags['catalog-source-namespace'] || ctx.operatorNamespace
             subscription = this.constructSubscription(ctx.subscriptionName, flags['package-manifest-name'], ctx.operatorNamespace, catalogSourceNamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, ctx.startingCSV)
-          } else if (VersionHelper.isDeployingStableVersion(flags) || flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME) {
+          } else if (flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME || (VersionHelper.isDeployingStableVersion(flags) && !flags['olm-channel'])) {
             // stable Che CatalogSource
             subscription = this.constructSubscription(ctx.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
           } else if (flags['olm-channel'] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME) {
@@ -354,12 +360,26 @@ export class OLMTasks {
         },
       },
       {
+        title: `Delete(OLM) Eclipse Che cluster service versions for all namespaces mode`,
+        enabled: ctx => ctx.isPreInstalledOLM && flags.chenamespace !== ctx.operatorNamespace,
+        task: async (ctx: any, task: any) => {
+          const csvs = await kube.getClusterServiceVersions(ctx.operatorNamespace)
+          const csvsToDelete = csvs.items.filter(csv => csv.metadata.name!.startsWith(CVS_PREFIX))
+          for (const csv of csvsToDelete) {
+            await kube.deleteClusterServiceVersion(ctx.operatorNamespace, csv.metadata.name!)
+          }
+          task.title = `${task.title}...OK`
+        },
+      },
+      {
         title: 'Delete(OLM) Eclipse Che cluster service versions',
         enabled: ctx => ctx.isPreInstalledOLM,
         task: async (_ctx: any, task: any) => {
           const csvs = await kube.getClusterServiceVersions(flags.chenamespace)
           const csvsToDelete = csvs.items.filter(csv => csv.metadata.name!.startsWith(CVS_PREFIX))
-          csvsToDelete.forEach(csv => kube.deleteClusterServiceVersion(flags.chenamespace, csv.metadata.name!))
+          for (const csv of csvsToDelete) {
+            await kube.deleteClusterServiceVersion(flags.chenamespace, csv.metadata.name!)
+          }
           task.title = `${task.title}...OK`
         },
       },
