@@ -17,10 +17,11 @@ import * as Listr from 'listr'
 import { merge } from 'lodash'
 import * as semver from 'semver'
 
+import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { assumeYes, batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OPERATOR_INSTALLER_VERSION, NEXT_TAG, SUBSCRIPTION_NAME } from '../../constants'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OPERATOR_INSTALLER_VERSION, NEXT_TAG } from '../../constants'
 import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
@@ -361,11 +362,10 @@ export default class Update extends Command {
    * Sets installer type depending on the previous installation.
    */
   private async setDefaultInstaller(flags: any): Promise<void> {
-    const kubeHelper = new KubeHelper(flags)
-    try {
-      await kubeHelper.getOperatorSubscription(SUBSCRIPTION_NAME, flags.chenamespace)
+    const cheHelper = new CheHelper(flags)
+    if (await cheHelper.findCheSubscriptionName(flags.chenamespace)) {
       flags.installer = 'olm'
-    } catch {
+    } else {
       flags.installer = 'operator'
     }
   }

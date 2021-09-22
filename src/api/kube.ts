@@ -2018,6 +2018,19 @@ export class KubeHelper {
     }
   }
 
+  async listOperatorSubscriptions(namespace: string): Promise<Subscription[]> {
+    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      const response = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions')
+      if (response.body && (response.body as any).items) {
+        return (response.body as any).items
+      }
+      return []
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
   async operatorSubscriptionExists(name: string, namespace: string): Promise<boolean> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {

@@ -25,11 +25,12 @@ import * as path from 'path'
 import * as rimraf from 'rimraf'
 import * as unzipper from 'unzipper'
 import { OpenShiftHelper } from '../api/openshift'
-import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME, OPERATOR_TEMPLATE_DIR } from '../constants'
+import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OPERATOR_TEMPLATE_DIR } from '../constants'
 import { base64Decode, downloadFile } from '../util'
 import { CheApiClient } from './che-api-client'
 import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
+import { Subscription } from './typings/olm'
 
 export class CheHelper {
   defaultCheResponseTimeoutMs = 3000
@@ -547,6 +548,28 @@ export class CheHelper {
       fs.moveSync(path.join(destDir, 'samples', 'org_v1_chebackupserverconfiguration.yaml'), path.join(destDir, 'crds', 'org.eclipse.che_v1_chebackupserverconfiguration_cr.yaml'))
       fs.moveSync(path.join(destDir, 'samples', 'org_v1_checlusterbackup.yaml'), path.join(destDir, 'crds', 'org.eclipse.che_v1_checlusterbackup_cr.yaml'))
       fs.moveSync(path.join(destDir, 'samples', 'org_v1_checlusterrestore.yaml'), path.join(destDir, 'crds', 'org.eclipse.che_v1_checlusterrestore_cr.yaml'))
+    }
+  }
+
+  async findCheSubscription(namespace: string): Promise<Subscription | undefined> {
+    const subscriptions = await this.kube.listOperatorSubscriptions(namespace)
+    const cheSubscriptions = subscriptions.filter(subscription => subscription.spec.name === DEFAULT_CHE_OLM_PACKAGE_NAME)
+    if (cheSubscriptions.length > 1) {
+      throw new Error('Found more than one Che subscription')
+    }
+    if (cheSubscriptions.length === 1) {
+      return cheSubscriptions[0]
+    }
+    // No subscriptions found, check if Che is installed in all namespaces mode
+    if (namespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME) {
+      return this.findCheSubscription(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+    }
+  }
+
+  async findCheSubscriptionName(namespace: string): Promise<string | undefined> {
+    const subscription = await this.findCheSubscription(namespace)
+    if (subscription) {
+      return subscription.metadata.name
     }
   }
 }
