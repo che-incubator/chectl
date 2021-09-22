@@ -672,9 +672,9 @@ OPTIONS
   -s, --snapshot-id=snapshot-id                          ID of a snapshot to restore from
 
   -v, --version=version                                  Che Operator version to restore to (e.g. 7.35.1).
-                                                         Must comply with the version in backup snapshot.
-                                                         Defaults to the existing operator version or to chectl
-                                                         version if none deployed.
+                                                         Must comply with the version in used backup snapshot.
+                                                         Defaults to the existing operator version or to chectl version
+                                                         if none deployed.
 
   --aws-access-key-id=aws-access-key-id                  AWS access key ID
 

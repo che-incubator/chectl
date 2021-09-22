@@ -72,11 +72,10 @@ export default class Restore extends Command {
     }),
     version: string({
       char: 'v',
-      description: `
-        Che Operator version to restore to (e.g. 7.35.1).
-        Must comply with the version in backup snapshot.
-        Defaults to the existing operator version or to chectl version if none deployed.
-      `,
+      description:
+        'Che Operator version to restore to (e.g. 7.35.1). ' +
+        'Must comply with the version in used backup snapshot. ' +
+        'Defaults to the existing operator version or to chectl version if none deployed.',
       required: false,
     }),
     'backup-cr': string({
@@ -127,6 +126,7 @@ export default class Restore extends Command {
             if (!operatorDeploymentYaml) {
               // Still no operator deployment found
               ctx.currentOperatorVersion = ''
+              ctx.isOperatorDeployed = false
               task.title = `${task.title} operator is not deployed`
               return
             }
@@ -137,14 +137,15 @@ export default class Restore extends Command {
             throw new Error(`Failed to find Che operator version in '${OPERATOR_DEPLOYMENT_NAME}' deployment in '${flags.chenamespace}' namespace`)
           }
           ctx.currentOperatorVersion = currentVersionEnvVar.value
+          ctx.isOperatorDeployed = true
           task.title = `${task.title} ${ctx.currentOperatorVersion} found`
         },
       },
       {
         title: 'Detecting installer...',
         // It is possible to skip '&& (flags.version || flags.rollback || flags['backup-cr'])' in the enabled condition below,
-        // as ctx.currentOperatorVersion is set only if previous task, that has the condition, is executed.
-        enabled: (ctx: any) => ctx.currentOperatorVersion && !flags['olm-channel'],
+        // as ctx.isOperatorDeployed is set only if previous task, that has the condition, is executed.
+        enabled: (ctx: any) => ctx.isOperatorDeployed,
         task: async (ctx: any, task: any) => {
           const kube = new KubeHelper(flags)
 
@@ -166,7 +167,7 @@ export default class Restore extends Command {
             return
           }
 
-          // As ctx.currentOperatorVersion is set, the operator deployment exists
+          // As isOperatorDeployed is set, the operator deployment exists
           flags.installer = 'operator'
           task.title = `${task.title}Operator`
         },
@@ -274,7 +275,7 @@ export default class Restore extends Command {
       },
       {
         title: 'Remove current Che operator',
-        enabled: (ctx: any) => flags.installer === 'olm' && ctx.currentOperatorVersion && flags.version && ctx.currentOperatorVersion !== flags.version,
+        enabled: (ctx: any) => ctx.isOperatorDeployed && flags.installer === 'olm' && flags.version && ctx.currentOperatorVersion !== flags.version,
         task: async (ctx: any, _task: any) => {
           // All preparations and validations must be done before this task!
           // Delete old operator if any in case of OLM installer.
@@ -291,6 +292,7 @@ export default class Restore extends Command {
           // Use plain operator on Kubernetes or if it is requested instead of OLM
           if (!ctx.isOpenshift || flags.installer === 'operator') {
             const operatorTasks = new OperatorTasks()
+            // Update tasks can deploy operator as well
             const operatorUpdateTasks = operatorTasks.updateTasks(flags, this)
             // Remove last tasks that deploys CR (it will be done on restore)
             operatorUpdateTasks.splice(-1)
