@@ -360,7 +360,7 @@ export class OLMTasks {
         },
       },
       {
-        title: `Delete(OLM) Eclipse Che cluster service versions for all namespaces mode`,
+        title: 'Delete(OLM) Eclipse Che cluster service versions for all namespaces mode',
         enabled: ctx => ctx.isPreInstalledOLM && flags.chenamespace !== ctx.operatorNamespace,
         task: async (ctx: any, task: any) => {
           const csvs = await kube.getClusterServiceVersions(ctx.operatorNamespace)
