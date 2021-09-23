@@ -360,25 +360,13 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Delete(OLM) Eclipse Che cluster service versions for all namespaces mode',
-        enabled: ctx => ctx.isPreInstalledOLM && flags.chenamespace !== ctx.operatorNamespace,
+        title: 'Delete(OLM) Eclipse Che cluster service versions',
+        enabled: ctx => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
           const csvs = await kube.getClusterServiceVersions(ctx.operatorNamespace)
           const csvsToDelete = csvs.items.filter(csv => csv.metadata.name!.startsWith(CVS_PREFIX))
           for (const csv of csvsToDelete) {
             await kube.deleteClusterServiceVersion(ctx.operatorNamespace, csv.metadata.name!)
-          }
-          task.title = `${task.title}...OK`
-        },
-      },
-      {
-        title: 'Delete(OLM) Eclipse Che cluster service versions',
-        enabled: ctx => ctx.isPreInstalledOLM,
-        task: async (_ctx: any, task: any) => {
-          const csvs = await kube.getClusterServiceVersions(flags.chenamespace)
-          const csvsToDelete = csvs.items.filter(csv => csv.metadata.name!.startsWith(CVS_PREFIX))
-          for (const csv of csvsToDelete) {
-            await kube.deleteClusterServiceVersion(flags.chenamespace, csv.metadata.name!)
           }
           task.title = `${task.title}...OK`
         },

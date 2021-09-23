@@ -75,7 +75,6 @@ export default class Restore extends Command {
       char: 'v',
       description:
         'Che Operator version to restore to (e.g. 7.35.1). ' +
-        'Must comply with the version in used backup snapshot. ' +
         'Defaults to the existing operator version or to chectl version if none deployed.',
       required: false,
     }),
@@ -278,13 +277,12 @@ export default class Restore extends Command {
             flags['cluster-monitoring'] = true
           } else {
             flags.platform = 'kubernetes'
-            // TODO domain ?
           }
 
-          // Use plain operator on Kubernetes or if it is requested instead of OLM
-          if (!isOpenshift || flags.installer === 'operator') {
+          if (flags.installer === 'operator') {
             const operatorTasks = new OperatorTasks()
-            // Update tasks can deploy operator as well
+            // Update tasks can also deploy operator. If a resource already exist, it will be replaced.
+            // When operator of requested version is deployed, then restore will rollout data from the backup.
             const operatorUpdateTasks = operatorTasks.updateTasks(flags, this)
             // Remove last tasks that deploys CR (it will be done on restore)
             operatorUpdateTasks.splice(-1)
