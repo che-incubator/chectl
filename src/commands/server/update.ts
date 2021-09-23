@@ -363,7 +363,7 @@ export default class Update extends Command {
    */
   private async setDefaultInstaller(flags: any): Promise<void> {
     const cheHelper = new CheHelper(flags)
-    if (await cheHelper.findCheSubscriptionName(flags.chenamespace)) {
+    if (await cheHelper.findCheSubscription(flags.chenamespace)) {
       flags.installer = 'olm'
     } else {
       flags.installer = 'operator'

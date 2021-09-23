@@ -146,15 +146,14 @@ export class OLMTasks {
       {
         title: 'Create operator subscription',
         task: async (ctx: any, task: any) => {
-          const existingSubscriptionName = await che.findCheSubscriptionName(ctx.operatorNamespace)
-          if (existingSubscriptionName) {
-            ctx.subscriptionName = existingSubscriptionName
+          let subscription = await che.findCheSubscription(ctx.operatorNamespace)
+          if (subscription) {
+            ctx.subscriptionName = subscription.metadata.name
             task.title = `${task.title}...It already exists.`
             return
           }
-
           ctx.subscriptionName = DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME
-          let subscription: Subscription
+
           if (flags['catalog-source-yaml'] || flags['catalog-source-name']) {
             // custom Che CatalogSource
             const catalogSourceNamespace = flags['catalog-source-namespace'] || ctx.operatorNamespace
@@ -247,7 +246,7 @@ export class OLMTasks {
       {
         title: 'Check if operator subscription exists',
         task: async (ctx: any, task: any) => {
-          if (!await che.findCheSubscriptionName(ctx.operatorNamespace)) {
+          if (!await che.findCheSubscription(ctx.operatorNamespace)) {
             command.error('Unable to find operator subscription')
           }
           task.title = `${task.title}...done.`
@@ -329,21 +328,21 @@ export class OLMTasks {
         },
       },
       {
-        title: `Check if operator is installed in ${DEFAULT_OPENSHIFT_OPERATORS_NS_NAME} namespace`,
+        title: `Check if operator is installed`,
         task: async (ctx: any, task: any) => {
-          ctx.subscriptionName = await che.findCheSubscriptionName(flags.chenamespace) || DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME
-          if (await kube.operatorSubscriptionExists(ctx.subscriptionName, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)) {
-            ctx.operatorNamespace = DEFAULT_OPENSHIFT_OPERATORS_NS_NAME
-            task.title = `${task.title}...Found`
-          } else {
-            ctx.operatorNamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
-            task.title = `${task.title}...Not Found`
+          const subscription = await che.findCheSubscription(flags.chenamespace)
+          if (subscription) {
+            ctx.subscriptionName = subscription.metadata.name
+            ctx.operatorNamespace = subscription.metadata.namespace
+            task.title = `${task.title}...Found ${ctx.subscriptionName}`
           }
+          ctx.operatorNamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
+          task.title = `${task.title}...Not Found`
         },
       },
       {
         title: 'Delete(OLM) operator subscription',
-        enabled: ctx => ctx.isPreInstalledOLM,
+        enabled: ctx => ctx.isPreInstalledOLM && ctx.subscriptionName,
         task: async (ctx: any, task: any) => {
           await kube.deleteOperatorSubscription(ctx.subscriptionName, ctx.operatorNamespace)
           task.title = `${task.title}...OK`

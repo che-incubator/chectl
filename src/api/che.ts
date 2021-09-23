@@ -565,11 +565,4 @@ export class CheHelper {
       return this.findCheSubscription(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
     }
   }
-
-  async findCheSubscriptionName(namespace: string): Promise<string | undefined> {
-    const subscription = await this.findCheSubscription(namespace)
-    if (subscription) {
-      return subscription.metadata.name
-    }
-  }
 }
