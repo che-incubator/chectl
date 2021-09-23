@@ -14,9 +14,10 @@ import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import * as Listr from 'listr'
 
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPERATOR_DEPLOYMENT_NAME, SUBSCRIPTION_NAME } from '../../constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OLM_STABLE_CHANNEL_NAME, OPERATOR_DEPLOYMENT_NAME } from '../../constants'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
+import { CheHelper } from '../../api/che'
 import { cheNamespace } from '../../common-flags'
 import { requestRestore } from '../../api/backup-restore'
 import { cli } from 'cli-ux'
@@ -113,6 +114,7 @@ export default class Restore extends Command {
 
   private getRestoreTasks(flags: any): Listr.ListrTask[] {
     const kube = new KubeHelper(flags)
+    const che = new CheHelper(flags)
     return [
       {
         title: 'Detecting existing operator version...',
@@ -147,30 +149,19 @@ export default class Restore extends Command {
           if (!ctx.isOperatorDeployed) {
             setDefaultInstaller(flags)
             if (flags.installer === 'olm') {
-              if (await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)) {
-                flags['olm-channel'] = OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME
-              } else {
-                flags['olm-channel'] = OLM_STABLE_CHANNEL_NAME
-              }
+              flags['olm-channel'] = OLM_STABLE_CHANNEL_NAME
+              task.title = `${task.title}OLM`
+            } else {
+              task.title = `${task.title}Operator`
             }
-            task.title = `${task.title}${flags.installer}`
             return
           }
 
-          if (await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)) {
-            // OLM in all namespaces mode
-            const operatorSubscriptionYaml = await kube.getOperatorSubscription(SUBSCRIPTION_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+          const subscription = await che.findCheOperatorSubscription(flags.chenamespace)
+          if (subscription) {
+            // OLM
             flags.installer = 'olm'
-            flags['olm-channel'] = operatorSubscriptionYaml.spec.channel
-            task.title = `${task.title}OLM`
-            return
-          }
-
-          if (await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, flags.chenamespace)) {
-            // OLM in single namespace mode
-            const operatorSubscriptionYaml = await kube.getOperatorSubscription(SUBSCRIPTION_NAME, flags.chenamespace)
-            flags.installer = 'olm'
-            flags['olm-channel'] = operatorSubscriptionYaml.spec.channel
+            flags['olm-channel'] = subscription.spec.channel
             task.title = `${task.title}OLM`
             return
           }
