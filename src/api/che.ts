@@ -553,7 +553,7 @@ export class CheHelper {
 
   async findCheSubscription(namespace: string): Promise<Subscription | undefined> {
     const subscriptions = await this.kube.listOperatorSubscriptions(namespace)
-    const cheSubscriptions = subscriptions.filter(subscription => subscription.spec.name === DEFAULT_CHE_OLM_PACKAGE_NAME)
+    const cheSubscriptions = subscriptions.filter(subscription => subscription.spec.name && subscription.spec.name.includes(DEFAULT_CHE_OLM_PACKAGE_NAME))
     if (cheSubscriptions.length > 1) {
       throw new Error('Found more than one Che subscription')
     }

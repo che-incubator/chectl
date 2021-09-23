@@ -330,7 +330,7 @@ export class OLMTasks {
       {
         title: 'Check if operator is installed',
         task: async (ctx: any, task: any) => {
-          const subscription = await che.findCheSubscription(flags.chenamespace)
+          const subscription = await che.findCheSubscription(flags.chenamespace || DEFAULT_CHE_NAMESPACE)
           if (subscription) {
             ctx.subscriptionName = subscription.metadata.name
             ctx.operatorNamespace = subscription.metadata.namespace
