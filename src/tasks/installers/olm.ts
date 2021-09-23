@@ -328,7 +328,7 @@ export class OLMTasks {
         },
       },
       {
-        title: `Check if operator is installed`,
+        title: 'Check if operator is installed',
         task: async (ctx: any, task: any) => {
           const subscription = await che.findCheSubscription(flags.chenamespace)
           if (subscription) {
