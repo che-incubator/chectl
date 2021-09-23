@@ -671,16 +671,15 @@ OPTIONS
 
   -s, --snapshot-id=snapshot-id                          ID of a snapshot to restore from
 
-  -v, --version=version                                  Che Operator version to restore to (e.g. 7.35.1).
-                                                         Must comply with the version in used backup snapshot.
-                                                         Defaults to the existing operator version or to chectl version
-                                                         if none deployed.
+  -v, --version=version                                  Che Operator version to restore to (e.g. 7.35.1). Defaults to
+                                                         the existing operator version or to chectl version if none
+                                                         deployed.
 
   --aws-access-key-id=aws-access-key-id                  AWS access key ID
 
   --aws-secret-access-key=aws-secret-access-key          AWS secret access key
 
-  --backup-cr=backup-cr                                  Name of a backup custom resource to restore from
+  --backup-cr-name=backup-cr-name                        Name of a backup custom resource to restore from
 
   --backup-server-config-name=backup-server-config-name  Name of custom resource with backup server config
 
@@ -710,7 +709,7 @@ EXAMPLES
   # Rollback to previous version (if it was installed):
   chectl server:restore --rollback
   # Restore from specific backup object:
-  chectl server:restore --backup-cr=backup-object-name
+  chectl server:restore --backup-cr-name=backup-object-name
   # Restore from specific backup of different version:
   chectl server:restore --version=7.35.2 --snapshot-id=9ea02f58 -r rest:http://my-sert-server.net:4000/che-backup -p 
   repopassword
