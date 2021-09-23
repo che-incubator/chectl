@@ -28,6 +28,7 @@ import { findWorkingNamespace, getCommandSuccessMessage, getEmbeddedTemplatesDir
 import { V1CheClusterBackup, V1CheClusterRestore, V1CheClusterRestoreStatus } from '../../api/typings/backup-restore-crds'
 
 import { awsAccessKeyId, awsSecretAccessKey, AWS_ACCESS_KEY_ID_KEY, AWS_SECRET_ACCESS_KEY_KEY, backupRepositoryPassword, backupRepositoryUrl, backupRestServerPassword, backupRestServerUsername, backupServerConfigName, BACKUP_REPOSITORY_PASSWORD_KEY, BACKUP_REPOSITORY_URL_KEY, BACKUP_REST_SERVER_PASSWORD_KEY, BACKUP_REST_SERVER_USERNAME_KEY, BACKUP_SERVER_CONFIG_CR_NAME_KEY, getBackupServerConfiguration, sshKey, sshKeyFile, SSH_KEY_FILE_KEY, SSH_KEY_KEY } from './backup'
+import { setDefaultInstaller } from './deploy'
 
 const RESTORE_CR_NAME = 'eclipse-che-restore'
 
@@ -48,7 +49,7 @@ export default class Restore extends Command {
     '# Rollback to previous version (if it was installed):\n' +
     'chectl server:restore --rollback',
     '# Restore from specific backup object:\n' +
-    'chectl server:restore --backup-cr=backup-object-name',
+    'chectl server:restore --backup-cr-name=backup-object-name',
     '# Restore from specific backup of different version:\n' +
     'chectl server:restore --version=7.35.2 --snapshot-id=9ea02f58 -r rest:http://my-sert-server.net:4000/che-backup -p repopassword',
   ]
@@ -78,7 +79,7 @@ export default class Restore extends Command {
         'Defaults to the existing operator version or to chectl version if none deployed.',
       required: false,
     }),
-    'backup-cr': string({
+    'backup-cr-name': string({
       description: 'Name of a backup custom resource to restore from',
       required: false,
       exclusive: ['version', 'snapshot-id', BACKUP_REPOSITORY_URL_KEY, BACKUP_SERVER_CONFIG_CR_NAME_KEY],
@@ -86,7 +87,7 @@ export default class Restore extends Command {
     rollback: boolean({
       description: 'Rolling back to previous version of Eclipse Che if a backup of that version is available',
       required: false,
-      exclusive: ['version', 'snapshot-id', 'backup-cr', BACKUP_REPOSITORY_URL_KEY, BACKUP_SERVER_CONFIG_CR_NAME_KEY],
+      exclusive: ['version', 'snapshot-id', 'backup-cr-name', BACKUP_REPOSITORY_URL_KEY, BACKUP_SERVER_CONFIG_CR_NAME_KEY],
     }),
   }
 
@@ -112,10 +113,10 @@ export default class Restore extends Command {
   }
 
   private getRestoreTasks(flags: any): Listr.ListrTask[] {
+    const kube = new KubeHelper(flags)
     return [
       {
         title: 'Detecting existing operator version...',
-        enabled: () => flags.version || flags.rollback || flags['backup-cr'],
         task: async (ctx: any, task: any) => {
           const kube = new KubeHelper(flags)
           let operatorDeploymentYaml = await kube.getDeployment(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
@@ -143,11 +144,19 @@ export default class Restore extends Command {
       },
       {
         title: 'Detecting installer...',
-        // It is possible to skip '&& (flags.version || flags.rollback || flags['backup-cr'])' in the enabled condition below,
-        // as ctx.isOperatorDeployed is set only if previous task, that has the condition, is executed.
-        enabled: (ctx: any) => ctx.isOperatorDeployed,
         task: async (ctx: any, task: any) => {
-          const kube = new KubeHelper(flags)
+          if (!ctx.isOperatorDeployed) {
+            setDefaultInstaller(flags)
+            if (flags.installer === 'olm') {
+              if (await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)) {
+                flags['olm-channel'] = OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME
+              } else {
+                flags['olm-channel'] = OLM_STABLE_CHANNEL_NAME
+              }
+            }
+            task.title = `${task.title}${flags.installer}`
+            return
+          }
 
           if (await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)) {
             // OLM in all namespaces mode
@@ -176,10 +185,10 @@ export default class Restore extends Command {
         title: 'Looking for corresponding backup object...',
         enabled: () => flags.rollback,
         task: async (ctx: any, task: any) => {
-          const currentOperatorVersion: string | undefined = ctx.currentOperatorVersion
-          if (!currentOperatorVersion) {
+          if (!ctx.isOperatorDeployed) {
             throw new Error('Che operator not found. Cannot detect version to use.')
           }
+          const currentOperatorVersion: string = ctx.currentOperatorVersion
           const backupCrName = 'backup-before-update-to-' + currentOperatorVersion.replace(/\./g, '-')
 
           const kube = new KubeHelper(flags)
@@ -190,15 +199,15 @@ export default class Restore extends Command {
           if (!backupCr.status || backupCr.status.state !== 'Succeeded') {
             throw new Error(`Backup with name '${backupCrName}' is not successful`)
           }
-          flags['backup-cr'] = backupCrName
+          flags['backup-cr-name'] = backupCrName
           task.title = `${task.title} ${backupCrName} found`
         },
       },
       {
         title: 'Gathering information about backup...',
-        enabled: () => flags['backup-cr'],
+        enabled: () => flags['backup-cr-name'],
         task: async (_ctx: any, task: any) => {
-          const backupCrName = flags['backup-cr']
+          const backupCrName = flags['backup-cr-name']
           const kube = new KubeHelper(flags)
           const backupCr: V1CheClusterBackup | undefined = await kube.getCustomResource(flags.chenamespace, backupCrName, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL)
           if (!backupCr) {
@@ -226,33 +235,6 @@ export default class Restore extends Command {
           // Get all information about backup server and validate it where possible
           // before redeploying operator to requested version.
           ctx.backupServerConfig = getBackupServerConfiguration(flags)
-          task.title = `${task.title}OK`
-        },
-      },
-      {
-        title: 'Detecting additional parameters...',
-        task: async (ctx: any, task: any) => {
-          const kube = new KubeHelper(flags)
-          ctx.isOpenshift = await kube.isOpenShift()
-
-          // Set defaults for some parameters if they weren't set
-          if (!flags.installer) {
-            flags.installer = ctx.isOpenshift ? 'olm' : 'operator'
-          }
-          if (flags.installer === 'olm' && !flags['olm-channel']) {
-            if (await kube.operatorSubscriptionExists(SUBSCRIPTION_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)) {
-              flags['olm-channel'] = OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME
-            } else {
-              flags['olm-channel'] = OLM_STABLE_CHANNEL_NAME
-            }
-          }
-          if (ctx.isOpenshift) {
-            flags.platform = 'openshift'
-            flags['cluster-monitoring'] = true
-          } else {
-            flags.platform = 'kubernetes'
-          }
-
           task.title = `${task.title}OK`
         },
       },
@@ -289,8 +271,18 @@ export default class Restore extends Command {
         title: 'Deploy requested version of Che operator',
         enabled: (ctx: any) => flags.version && ctx.currentOperatorVersion !== flags.version,
         task: async (ctx: any, _task: any) => {
+          const isOpenshift = await kube.isOpenShift()
+          // Set defaults for some parameters if they weren't set
+          if (isOpenshift) {
+            flags.platform = 'openshift'
+            flags['cluster-monitoring'] = true
+          } else {
+            flags.platform = 'kubernetes'
+            // TODO domain ?
+          }
+
           // Use plain operator on Kubernetes or if it is requested instead of OLM
-          if (!ctx.isOpenshift || flags.installer === 'operator') {
+          if (!isOpenshift || flags.installer === 'operator') {
             const operatorTasks = new OperatorTasks()
             // Update tasks can deploy operator as well
             const operatorUpdateTasks = operatorTasks.updateTasks(flags, this)

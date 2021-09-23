@@ -385,6 +385,7 @@ export class OLMTasks {
       },
       {
         title: 'Delete(OLM) operator group',
+        // Do not delete global operator group if operator is in all namespaces mode
         enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
         task: async (ctx: any, task: any) => {
           const opgr = ctx.operatorGroup

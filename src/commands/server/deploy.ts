@@ -210,7 +210,7 @@ export default class Deploy extends Command {
     }
 
     if (!flags.installer) {
-      await this.setDefaultInstaller(flags, ctx)
+      await setDefaultInstaller(flags)
       cli.info(`› Installer type is set to: '${flags.installer}'`)
     }
 
@@ -457,24 +457,24 @@ export default class Deploy extends Command {
     notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
+}
 
-  /**
-   * Sets default installer which is `olm` for OpenShift 4 with stable version of chectl
-   * and `operator` for other cases.
-   */
-  async setDefaultInstaller(flags: any, _ctx: any): Promise<void> {
-    const kubeHelper = new KubeHelper(flags)
+/**
+ * Sets default installer which is `olm` for OpenShift 4 with stable version of chectl
+ * and `operator` for other cases.
+ */
+export async function setDefaultInstaller(flags: any): Promise<void> {
+  const kubeHelper = new KubeHelper(flags)
 
-    const isOlmPreinstalled = await kubeHelper.isPreInstalledOLM()
-    if ((flags['catalog-source-name'] || flags['catalog-source-yaml']) && isOlmPreinstalled) {
-      flags.installer = 'olm'
-      return
-    }
+  const isOlmPreinstalled = await kubeHelper.isPreInstalledOLM()
+  if ((flags['catalog-source-name'] || flags['catalog-source-yaml']) && isOlmPreinstalled) {
+    flags.installer = 'olm'
+    return
+  }
 
-    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isOlmPreinstalled) {
-      flags.installer = 'olm'
-    } else {
-      flags.installer = 'operator'
-    }
+  if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isOlmPreinstalled) {
+    flags.installer = 'olm'
+  } else {
+    flags.installer = 'operator'
   }
 }
