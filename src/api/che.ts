@@ -552,17 +552,21 @@ export class CheHelper {
   }
 
   async findCheSubscription(namespace: string): Promise<Subscription | undefined> {
-    const subscriptions = await this.kube.listOperatorSubscriptions(namespace)
-    const cheSubscriptions = subscriptions.filter(subscription => subscription.spec.name && subscription.spec.name.includes(DEFAULT_CHE_OLM_PACKAGE_NAME))
-    if (cheSubscriptions.length > 1) {
-      throw new Error('Found more than one Che subscription')
-    }
-    if (cheSubscriptions.length === 1) {
-      return cheSubscriptions[0]
-    }
-    // No subscriptions found, check if Che is installed in all namespaces mode
-    if (namespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME) {
-      return this.findCheSubscription(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+    try {
+      const subscriptions = await this.kube.listOperatorSubscriptions(namespace)
+      const cheSubscriptions = subscriptions.filter(subscription => subscription.spec.name && subscription.spec.name.includes(DEFAULT_CHE_OLM_PACKAGE_NAME))
+      if (cheSubscriptions.length > 1) {
+        throw new Error('Found more than one Che subscription')
+      }
+      if (cheSubscriptions.length === 1) {
+        return cheSubscriptions[0]
+      }
+      // No subscriptions found, check if Che is installed in all namespaces mode
+      if (namespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME) {
+        return this.findCheSubscription(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+      }
+    } catch {
+      // Do nothing, just return undefined
     }
   }
 }
