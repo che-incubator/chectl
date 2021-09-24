@@ -73,11 +73,12 @@ export class OLMTasks {
         // 'stable-all-namespaces' channel install the operator in openshift-operators namespace and there already exists a pre-created operator-group.
         enabled: (ctx: any) => ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
         task: async (_ctx: any, task: any) => {
-          if (await kube.operatorGroupExists(OPERATOR_GROUP_NAME, flags.chenamespace)) {
-            task.title = `${task.title}...It already exists.`
+          const operatorGroup = await che.findCheOperatorOperatorGroup(flags.chenamespace)
+          if (operatorGroup) {
+            task.title = `${task.title}...it already exists: ${operatorGroup.metadata.name}`
           } else {
             await kube.createOperatorGroup(OPERATOR_GROUP_NAME, flags.chenamespace)
-            task.title = `${task.title}...created new one.`
+            task.title = `${task.title}...created a new one: ${OPERATOR_GROUP_NAME}`
           }
         },
       },
@@ -146,7 +147,7 @@ export class OLMTasks {
       {
         title: 'Create operator subscription',
         task: async (ctx: any, task: any) => {
-          let subscription = await che.findCheSubscription(ctx.operatorNamespace)
+          let subscription = await che.findCheOperatorSubscription(ctx.operatorNamespace)
           if (subscription) {
             ctx.subscriptionName = subscription.metadata.name
             task.title = `${task.title}...It already exists.`
@@ -236,9 +237,10 @@ export class OLMTasks {
       this.isOlmPreInstalledTask(command, kube),
       {
         title: 'Check if operator group exists',
+        enabled: ctx => ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
         task: async (ctx: any, task: any) => {
-          if (!await kube.operatorGroupExists(OPERATOR_GROUP_NAME, ctx.operatorNamespace)) {
-            command.error(`Unable to find operator group ${OPERATOR_GROUP_NAME}`)
+          if (!await che.findCheOperatorOperatorGroup(ctx.operatorNamespace)) {
+            command.error(`Unable to find Che operator group in ${ctx.operatorNamespace} namespace`)
           }
           task.title = `${task.title}...done.`
         },
@@ -246,7 +248,7 @@ export class OLMTasks {
       {
         title: 'Check if operator subscription exists',
         task: async (ctx: any, task: any) => {
-          if (!await che.findCheSubscription(ctx.operatorNamespace)) {
+          if (!await che.findCheOperatorSubscription(ctx.operatorNamespace)) {
             command.error('Unable to find operator subscription')
           }
           task.title = `${task.title}...done.`
@@ -263,7 +265,7 @@ export class OLMTasks {
         title: 'Get operator installation plan',
         task: async (ctx: any, task: any) => {
           // We can be sure that the subscription exist, because it was checked in preupdate tasks
-          const subscription: Subscription = (await che.findCheSubscription(ctx.operatorNamespace))!
+          const subscription: Subscription = (await che.findCheOperatorSubscription(ctx.operatorNamespace))!
 
           if (subscription.status) {
             if (subscription.status.state === 'AtLatestKnown') {
@@ -330,14 +332,17 @@ export class OLMTasks {
       {
         title: 'Check if operator is installed',
         task: async (ctx: any, task: any) => {
-          const subscription = await che.findCheSubscription(flags.chenamespace || DEFAULT_CHE_NAMESPACE)
+          const subscription = await che.findCheOperatorSubscription(flags.chenamespace || DEFAULT_CHE_NAMESPACE)
           if (subscription) {
             ctx.subscriptionName = subscription.metadata.name
             ctx.operatorNamespace = subscription.metadata.namespace
             task.title = `${task.title}...Found ${ctx.subscriptionName}`
+          } else {
+            ctx.operatorNamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
+            task.title = `${task.title}...Not Found`
           }
-          ctx.operatorNamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
-          task.title = `${task.title}...Not Found`
+          // Also get operator group here, because if delete subscription and csv we'll lose the link to it
+          ctx.operatorGroup = await che.findCheOperatorOperatorGroup(ctx.operatorNamespace)
         },
       },
       {
@@ -359,10 +364,13 @@ export class OLMTasks {
         },
       },
       {
-        title: `Delete(OLM) operator group ${OPERATOR_GROUP_NAME}`,
-        enabled: ctx => ctx.isPreInstalledOLM,
+        title: 'Delete(OLM) operator group',
+        enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
         task: async (ctx: any, task: any) => {
-          await kube.deleteOperatorGroup(OPERATOR_GROUP_NAME, ctx.operatorNamespace)
+          const opgr = ctx.operatorGroup
+          if (opgr && opgr.metadata && opgr.metadata.name && opgr.metadata.namespace) {
+            await kube.deleteOperatorGroup(opgr.metadata.name, opgr.metadata.namespace)
+          }
           task.title = `${task.title}...OK`
         },
       },

@@ -1963,6 +1963,21 @@ export class KubeHelper {
     }
   }
 
+  async getOperatorGroup(name: string, namespace: string): Promise<OperatorGroup | undefined> {
+    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      const response = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorgroups', name)
+      if (response && response.body) {
+        return response.body as OperatorGroup
+      }
+    } catch (error) {
+      if (error.response && error.response.statusCode === 404) {
+        return
+      }
+      throw this.wrapK8sClientError(error)
+    }
+  }
+
   async createOperatorGroup(operatorGroupName: string, namespace: string) {
     const operatorGroup: OperatorGroup = {
       apiVersion: 'operators.coreos.com/v1',
