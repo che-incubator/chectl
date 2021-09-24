@@ -700,11 +700,12 @@ EXAMPLES
   chectl server:restore
   # Restore from specific backup snapshot using previos backup configuration:
   chectl server:restore -s 585421f3
-  # Create and use configuration for REST backup server:
+  # Restore from latest snapshot located in provided REST backup server:
   chectl server:resotre -r rest:http://my-sert-server.net:4000/che-backup -p repopassword
-  # Create and use configuration for AWS S3 (and API compatible) backup server (bucket should be precreated):
+  # Restore from latest snapshot located in provided AWS S3 (or API compatible) backup server (bucket should be 
+  precreated):
   chectl server:restore -r s3:s3.amazonaws.com/bucketche -p repopassword
-  # Create and use configuration for SFTP backup server:
+  # Restore from latest snapshot located in provided SFTP backup server:
   chectl server:restore -r=sftp:user@my-server.net:/srv/sftp/che-data -p repopassword
   # Rollback to previous version (if it was installed):
   chectl server:restore --rollback

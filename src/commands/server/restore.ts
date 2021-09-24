@@ -41,11 +41,11 @@ export default class Restore extends Command {
     'chectl server:restore',
     '# Restore from specific backup snapshot using previos backup configuration:\n' +
     'chectl server:restore -s 585421f3',
-    '# Create and use configuration for REST backup server:\n' +
+    '# Restore from latest snapshot located in provided REST backup server:\n' +
     'chectl server:resotre -r rest:http://my-sert-server.net:4000/che-backup -p repopassword',
-    '# Create and use configuration for AWS S3 (and API compatible) backup server (bucket should be precreated):\n' +
+    '# Restore from latest snapshot located in provided AWS S3 (or API compatible) backup server (bucket should be precreated):\n' +
     'chectl server:restore -r s3:s3.amazonaws.com/bucketche -p repopassword',
-    '# Create and use configuration for SFTP backup server:\n' +
+    '# Restore from latest snapshot located in provided SFTP backup server:\n' +
     'chectl server:restore -r=sftp:user@my-server.net:/srv/sftp/che-data -p repopassword',
     '# Rollback to previous version (if it was installed):\n' +
     'chectl server:restore --rollback',
@@ -78,6 +78,7 @@ export default class Restore extends Command {
         'Che Operator version to restore to (e.g. 7.35.1). ' +
         'Defaults to the existing operator version or to chectl version if none deployed.',
       required: false,
+      dependsOn: ['snapshot-id'],
     }),
     'backup-cr-name': string({
       description: 'Name of a backup custom resource to restore from',
