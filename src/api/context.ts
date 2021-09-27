@@ -16,7 +16,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, LOG_DIRECTORY_KEY } from '../common-flags'
-import { CHECTL_PROJECT_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, STABLE_ALL_NAMESPACES_CHANNEL_NAME } from '../constants'
+import { CHECTL_PROJECT_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, NEXT_ALL_NAMESPACES_CHANNEL_NAME, STABLE_ALL_NAMESPACES_CHANNEL_NAME } from '../constants'
 import { getProjectName, getProjectVersion, readCRFile } from '../util'
 
 import { CHECTL_DEVELOPMENT_VERSION } from './version'
@@ -50,7 +50,7 @@ export namespace ChectlContext {
       ctx.listrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
     }
 
-    if (flags['olm-channel'] === STABLE_ALL_NAMESPACES_CHANNEL_NAME) {
+    if (flags['olm-channel'] === STABLE_ALL_NAMESPACES_CHANNEL_NAME || flags['olm-channel'] === NEXT_ALL_NAMESPACES_CHANNEL_NAME) {
       ctx.operatorNamespace = DEFAULT_OPENSHIFT_OPERATORS_NS_NAME
     }
 

@@ -132,9 +132,9 @@ export class OLMTasks {
           const customCatalogSource: CatalogSource = kube.readCatalogSourceFromFile(flags['catalog-source-yaml'])
           if (!await kube.catalogSourceExists(customCatalogSource.metadata!.name!, flags.chenamespace)) {
             customCatalogSource.metadata.name = ctx.sourceName
-            customCatalogSource.metadata.namespace = flags.chenamespace
+            customCatalogSource.metadata.namespace = ctx.operatorNamespace
             await kube.createCatalogSource(customCatalogSource)
-            await kube.waitCatalogSource(flags.chenamespace, CUSTOM_CATALOG_SOURCE_NAME)
+            await kube.waitCatalogSource(ctx.operatorNamespace, CUSTOM_CATALOG_SOURCE_NAME)
             task.title = `${task.title}...created new one, with name ${CUSTOM_CATALOG_SOURCE_NAME} in the namespace ${flags.chenamespace}.`
           } else {
             task.title = `${task.title}...It already exists.`

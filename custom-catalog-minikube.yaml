@@ -4,7 +4,7 @@ metadata:
   name:         eclipse-che-preview-custom
   namespace:    che-namespace
 spec:
-  image:        quay.io/eclipse/eclipse-che-kubernetes-opm-catalog:preview
+  image:        quay.io/eclipse/eclipse-che-openshift-opm-catalog:preview
   sourceType:  grpc
   updateStrategy:
     registryPoll:
