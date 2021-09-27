@@ -71,7 +71,7 @@
     "@types/unzipper": "^0.10.4",
     "@types/uuid": "^8.3.1",
     "@types/websocket": "^1.0.4",
-    "@types/ws": "^7.4.7",
+    "@types/ws": "^8.2.0",
     "@typescript-eslint/eslint-plugin": "^4.31.2",
     "@typescript-eslint/parser": "^4.31.2",
     "chai": "^4.3.4",
