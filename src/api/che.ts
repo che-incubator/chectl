@@ -30,7 +30,7 @@ import { base64Decode, downloadFile } from '../util'
 import { CheApiClient } from './che-api-client'
 import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
-import { Subscription } from './typings/olm'
+import { OperatorGroup, Subscription } from './typings/olm'
 
 export class CheHelper {
   defaultCheResponseTimeoutMs = 3000
@@ -551,7 +551,7 @@ export class CheHelper {
     }
   }
 
-  async findCheSubscription(namespace: string): Promise<Subscription | undefined> {
+  async findCheOperatorSubscription(namespace: string): Promise<Subscription | undefined> {
     try {
       const subscriptions = await this.kube.listOperatorSubscriptions(namespace)
       const cheSubscriptions = subscriptions.filter(subscription => subscription.spec.name && subscription.spec.name.includes(DEFAULT_CHE_OLM_PACKAGE_NAME))
@@ -563,10 +563,34 @@ export class CheHelper {
       }
       // No subscriptions found, check if Che is installed in all namespaces mode
       if (namespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME) {
-        return this.findCheSubscription(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+        return this.findCheOperatorSubscription(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
       }
     } catch {
       // Do nothing, just return undefined
     }
+  }
+
+  async findCheOperatorOperatorGroup(namespace: string): Promise<OperatorGroup | undefined> {
+    const subscription = await this.findCheOperatorSubscription(namespace)
+    if (!subscription || !subscription.status || !subscription.status.installedCSV) {
+      return
+    }
+
+    const csvName = subscription.status.installedCSV
+    if (subscription.metadata.namespace) {
+      namespace = subscription.metadata.namespace
+    }
+    const csv = await this.kube.getCSV(csvName, namespace)
+    if (!csv || !csv.metadata || !csv.metadata.annotations) {
+      return
+    }
+
+    const operatorGroupName = csv.metadata.annotations['olm.operatorGroup']
+    const operatorGroupNamespace = csv.metadata.annotations['olm.operatorNamespace']
+    if (!operatorGroupName || !operatorGroupNamespace) {
+      return
+    }
+
+    return this.kube.getOperatorGroup(operatorGroupName, operatorGroupNamespace)
   }
 }
