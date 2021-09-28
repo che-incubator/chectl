@@ -683,6 +683,8 @@ OPTIONS
 
   --backup-server-config-name=backup-server-config-name  Name of custom resource with backup server config
 
+  --batch                                                Batch mode. Running a command without end user interaction.
+
   --password=password                                    Authentication password for backup REST server
 
   --rollback                                             Rolling back to previous version of Eclipse Che if a backup of
@@ -699,14 +701,14 @@ EXAMPLES
   # Reuse existing backup configuration:
   chectl server:restore
   # Restore from specific backup snapshot using previos backup configuration:
-  chectl server:restore -s 585421f3
+  chectl server:restore --snapshot-id=585421f3
   # Restore from latest snapshot located in provided REST backup server:
   chectl server:resotre -r rest:http://my-sert-server.net:4000/che-backup -p repopassword
   # Restore from latest snapshot located in provided AWS S3 (or API compatible) backup server (bucket should be 
   precreated):
   chectl server:restore -r s3:s3.amazonaws.com/bucketche -p repopassword
   # Restore from latest snapshot located in provided SFTP backup server:
-  chectl server:restore -r=sftp:user@my-server.net:/srv/sftp/che-data -p repopassword
+  chectl server:restore -r sftp:user@my-server.net:/srv/sftp/che-data -p repopassword
   # Rollback to previous version (if it was installed):
   chectl server:restore --rollback
   # Restore from specific backup object:
@@ -714,6 +716,8 @@ EXAMPLES
   # Restore from specific backup of different version:
   chectl server:restore --version=7.35.2 --snapshot-id=9ea02f58 -r rest:http://my-sert-server.net:4000/che-backup -p 
   repopassword
+  # Restore from the latest backup of different version:
+  chectl server:restore --version=7.36.1 --snapshot-id=latest
 ```
 
 _See code: [src/commands/server/restore.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/restore.ts)_

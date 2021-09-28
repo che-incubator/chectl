@@ -110,7 +110,7 @@ export async function requestRestore(namespace: string, name: string, backupServ
  * @param backupServerConfig backup server configuration data or name of the backup server config CR
  * @returns name of existing backup server configuration in the given namespace or empty string if none suitable
  */
-async function getBackupServerConfigurationName(namespace: string, backupServerConfig?: BackupServerConfig | string): Promise<string> {
+export async function getBackupServerConfigurationName(namespace: string, backupServerConfig?: BackupServerConfig | string): Promise<string> {
   const kube = new KubeHelper()
 
   if (backupServerConfig) {

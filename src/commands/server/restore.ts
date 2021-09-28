@@ -14,19 +14,20 @@ import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import * as Listr from 'listr'
 
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OLM_STABLE_CHANNEL_NAME, OPERATOR_DEPLOYMENT_NAME } from '../../constants'
+import { CHE_BACKUP_SERVER_CONFIG_KIND_PLURAL, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OLM_STABLE_CHANNEL_NAME, OPERATOR_DEPLOYMENT_NAME } from '../../constants'
+import { batch, listrRenderer } from '../../common-flags'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { CheHelper } from '../../api/che'
 import { cheNamespace } from '../../common-flags'
-import { requestRestore } from '../../api/backup-restore'
+import { getBackupServerConfigurationName, parseBackupServerConfig, requestRestore } from '../../api/backup-restore'
 import { cli } from 'cli-ux'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { OLMTasks } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { checkChectlAndCheVersionCompatibility, downloadTemplates } from '../../tasks/installers/common-tasks'
-import { findWorkingNamespace, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
-import { V1CheClusterBackup, V1CheClusterRestore, V1CheClusterRestoreStatus } from '../../api/typings/backup-restore-crds'
+import { confirmYN, findWorkingNamespace, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import { V1CheBackupServerConfiguration, V1CheClusterBackup, V1CheClusterRestore, V1CheClusterRestoreStatus } from '../../api/typings/backup-restore-crds'
 
 import { awsAccessKeyId, awsSecretAccessKey, AWS_ACCESS_KEY_ID_KEY, AWS_SECRET_ACCESS_KEY_KEY, backupRepositoryPassword, backupRepositoryUrl, backupRestServerPassword, backupRestServerUsername, backupServerConfigName, BACKUP_REPOSITORY_PASSWORD_KEY, BACKUP_REPOSITORY_URL_KEY, BACKUP_REST_SERVER_PASSWORD_KEY, BACKUP_REST_SERVER_USERNAME_KEY, BACKUP_SERVER_CONFIG_CR_NAME_KEY, getBackupServerConfiguration, sshKey, sshKeyFile, SSH_KEY_FILE_KEY, SSH_KEY_KEY } from './backup'
 import { setDefaultInstaller } from './deploy'
@@ -40,24 +41,28 @@ export default class Restore extends Command {
     '# Reuse existing backup configuration:\n' +
     'chectl server:restore',
     '# Restore from specific backup snapshot using previos backup configuration:\n' +
-    'chectl server:restore -s 585421f3',
+    'chectl server:restore --snapshot-id=585421f3',
     '# Restore from latest snapshot located in provided REST backup server:\n' +
     'chectl server:resotre -r rest:http://my-sert-server.net:4000/che-backup -p repopassword',
     '# Restore from latest snapshot located in provided AWS S3 (or API compatible) backup server (bucket should be precreated):\n' +
     'chectl server:restore -r s3:s3.amazonaws.com/bucketche -p repopassword',
     '# Restore from latest snapshot located in provided SFTP backup server:\n' +
-    'chectl server:restore -r=sftp:user@my-server.net:/srv/sftp/che-data -p repopassword',
+    'chectl server:restore -r sftp:user@my-server.net:/srv/sftp/che-data -p repopassword',
     '# Rollback to previous version (if it was installed):\n' +
     'chectl server:restore --rollback',
     '# Restore from specific backup object:\n' +
     'chectl server:restore --backup-cr-name=backup-object-name',
     '# Restore from specific backup of different version:\n' +
     'chectl server:restore --version=7.35.2 --snapshot-id=9ea02f58 -r rest:http://my-sert-server.net:4000/che-backup -p repopassword',
+    '# Restore from the latest backup of different version:\n' +
+    'chectl server:restore --version=7.36.1 --snapshot-id=latest',
   ]
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
+    'listr-renderer': listrRenderer,
+    batch,
     [BACKUP_REPOSITORY_URL_KEY]: backupRepositoryUrl,
     [BACKUP_REPOSITORY_PASSWORD_KEY]: backupRepositoryPassword,
     [BACKUP_REST_SERVER_USERNAME_KEY]: backupRestServerUsername,
@@ -148,7 +153,7 @@ export default class Restore extends Command {
         title: 'Detecting installer...',
         task: async (ctx: any, task: any) => {
           if (!ctx.isOperatorDeployed) {
-            setDefaultInstaller(flags)
+            await setDefaultInstaller(flags)
             if (flags.installer === 'olm') {
               flags['olm-channel'] = OLM_STABLE_CHANNEL_NAME
               task.title = `${task.title}OLM`
@@ -244,6 +249,90 @@ export default class Restore extends Command {
             return getTemplatesTasks
           }
           task.title = `${task.title}OK`
+        },
+      },
+      {
+        title: 'Print restore information',
+        task: async (ctx: any) => {
+          const outputLines: string[] = []
+
+          // Che Operator version change
+          if (ctx.isOperatorDeployed && flags.version && ctx.currentOperatorVersion !== flags.version) {
+            outputLines.push(`Change Che version from ${ctx.currentOperatorVersion} to ${flags.version}`)
+          } else if (!ctx.isOperatorDeployed && flags.version) {
+            outputLines.push(`Deploy Che version ${flags.version}`)
+          } else if (ctx.isOperatorDeployed && !flags.version) {
+            outputLines.push(`Che version is ${flags.version}`)
+          }
+
+          // Backup server configuration
+          try {
+            let backupServerConfigCr: V1CheBackupServerConfiguration
+            if (ctx.backupServerConfig && typeof ctx.backupServerConfig !== 'string') {
+              // ctx.backupServerConfig is BackupServerConfig
+              backupServerConfigCr = parseBackupServerConfig(ctx.backupServerConfig)
+            } else {
+              // ctx.backupServerConfig is string | undefined
+              const backupServerConfigName = ctx.backupServerConfig ? ctx.backupServerConfig : await getBackupServerConfigurationName(flags.chenamespace)
+              backupServerConfigCr = await kube.getCustomResource(flags.chenamespace, backupServerConfigName, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_BACKUP_SERVER_CONFIG_KIND_PLURAL)
+              if (!backupServerConfigCr) {
+                throw new Error('No backup server config found, nothing to restore from')
+              }
+            }
+
+            let hostname: string
+            let repository: string
+            if (backupServerConfigCr.spec.rest) {
+              hostname = backupServerConfigCr.spec.rest.hostname
+              repository = backupServerConfigCr.spec.rest.repositoryPath
+            } else if (backupServerConfigCr.spec.awss3) {
+              hostname = backupServerConfigCr.spec.awss3.hostname || 's3.amazonaws.com'
+              repository = backupServerConfigCr.spec.awss3.repositoryPath
+            } else if (backupServerConfigCr.spec.sftp) {
+              hostname = backupServerConfigCr.spec.sftp.hostname
+              repository = backupServerConfigCr.spec.sftp.repositoryPath
+            } else {
+              throw new Error('Unknown backup server config type')
+            }
+
+            outputLines.push(`Use ${repository} backup repository on ${hostname}`)
+          } catch (error) {
+            const details = error.message ? `: ${error.message}` : ''
+            outputLines.push(`Failed to get backup server info ${details}`)
+          }
+
+          // Backup snapshot id
+          const snapshotId = flags['snapshot-id'] ? flags['snapshot-id'] : 'latest'
+          outputLines.push(`Use ${snapshotId} snapshot to restore Che`)
+
+          // Print information
+          const printTasks = new Listr([], ctx.listrOptions)
+          for (const line of outputLines) {
+            printTasks.add({
+              title: line,
+              task: () => { },
+            })
+          }
+          return printTasks
+        },
+      },
+      {
+        title: 'Asking for restore confirmation: Do you want to proceed? [y/n]',
+        enabled: () => !flags.batch,
+        task: async (_ctx: any, task: any) => {
+          let isConfirmed: boolean
+          try {
+            isConfirmed = await confirmYN()
+          } catch {
+            isConfirmed = false
+          }
+
+          if (isConfirmed) {
+            task.title = 'Asking for restore confirmation...OK'
+          } else {
+            task.title = 'Asking for restore confirmation...Cancelled'
+            this.exit(0)
+          }
         },
       },
       {
