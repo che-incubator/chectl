@@ -14,7 +14,7 @@ set -e
 set -u
 
 usage ()
-{   echo "Usage: ./make-release.sh -v <version> -dwo <devworkpace-operator version>"
+{   echo "Usage: ./make-release.sh -v <version>"
     exit
 }
 
@@ -23,7 +23,6 @@ if [[ $# -lt 1 ]]; then usage; fi
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     '-v'|'--version') VERSION="$2"; shift 1;;
-    '-dwo'|'--dwo-version') DWO_VERSION="$2"; shift 1;;
     '--help'|'-h') usage;;
   esac
   shift 1
@@ -70,23 +69,9 @@ release() {
   # Create VERSION file
   echo "$VERSION" > VERSION
 
-  # Get DevWorkspace operator commit sha (if version is not specified, use latest commit from main branch)
-  if [[ -n "${DWO_VERSION}" ]]; then
-    DWO_GIT_VERSION=${DWO_VERSION}
-  else
-    # Get DevWorkspace operator commit sha
-    DWO_GIT_VERSION=$(echo ${SHA1_DEV_WORKSPACE_OPERATOR} | cut -c1-7)
-  fi
-
-  if [[ -z ${DWO_GIT_VERSION} ]]; then
-    echo "[ERROR] DevWorkspace Operator version is not defined"
-    exit 1
-  fi
-
   # now replace package.json dependencies
   apply_sed "s;github.com/eclipse-che/che-server#\(.*\)\",;github.com/eclipse-che/che-server#${VERSION}\",;g" package.json
   apply_sed "s;github.com/eclipse-che/che-operator#\(.*\)\",;github.com/eclipse-che/che-operator#${VERSION}\",;g" package.json
-  apply_sed "s;github.com/devfile/devworkspace-operator#\(.*\)\",;github.com/devfile/devworkspace-operator#${DWO_GIT_VERSION}\",;g" package.json
   apply_sed "s;\"@eclipse-che/api\": \"\(.*\)\",;\"@eclipse-che/api\": \"${VERSION}\",;g" package.json
 
   if ! grep -q "github.com/eclipse-che/che-server#${VERSION}" package.json; then
@@ -95,10 +80,6 @@ release() {
 
   if ! grep -q "github.com/eclipse-che/che-operator#${VERSION}" package.json; then
     echo "[ERROR] Unable to find Che Operator version ${VERSION} in the package.json"; exit 1
-  fi
-
-  if ! grep -q "github.com/devfile/devworkspace-operator#${DWO_GIT_VERSION}" package.json; then
-    echo "[ERROR] Unable to find Dev Workspace Operator version ${DWO_GIT_VERSION} in the package.json"; exit 1
   fi
 
   # build
