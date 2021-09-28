@@ -11,7 +11,6 @@
  */
 
 import * as Listr from 'listr'
-import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
@@ -84,18 +83,11 @@ export class DevWorkspaceTasks {
 
   protected WTONamespace = 'openshift-operators'
 
-  constructor(private readonly flags: any) {
+  constructor(flags: any) {
     this.kubeHelper = new KubeHelper(flags)
     this.cheHelper = new CheHelper(flags)
     this.openShiftHelper = new OpenShiftHelper()
     this.certManagerTask = new CertManagerTasks({ flags })
-  }
-
-  getTemplatePath(ctx: any) {
-    if (ctx.isOpenShift) {
-      return path.join(this.flags.templates, 'devworkspace', 'deployment', 'openshift', 'objects')
-    }
-    return path.join(this.flags.templates, 'devworkspace', 'deployment', 'kubernetes', 'objects')
   }
 
   /**
