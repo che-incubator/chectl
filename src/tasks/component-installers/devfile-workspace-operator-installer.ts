@@ -83,7 +83,7 @@ export class DevWorkspaceTasks {
 
   protected WTONamespace = 'openshift-operators'
 
-  constructor(private readonly flags: any) {
+  constructor(flags: any) {
     this.kubeHelper = new KubeHelper(flags)
     this.cheHelper = new CheHelper(flags)
     this.openShiftHelper = new OpenShiftHelper()
