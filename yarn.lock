@@ -2649,8 +2649,8 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-server@git://github.com/eclipse-che/che-server#main":
   version "0.0.0"
-  uid d217fd6ecf4b2dd3c8c2d352071d866d06bb359e
-  resolved "git://github.com/eclipse-che/che-server#d217fd6ecf4b2dd3c8c2d352071d866d06bb359e"
+  uid "738a663e7227d0f607e50c8f7beb413f00eca359"
+  resolved "git://github.com/eclipse-che/che-server#738a663e7227d0f607e50c8f7beb413f00eca359"
 
 editorconfig@^0.15.0:
   version "0.15.3"
