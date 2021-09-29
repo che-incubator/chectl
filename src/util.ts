@@ -85,6 +85,10 @@ export function base64Decode(arg: string): string {
   return Buffer.from(arg, 'base64').toString('ascii')
 }
 
+export function base64Encode(arg: string): string {
+  return Buffer.from(arg).toString('base64')
+}
+
 /**
  * Separates docker image repository and tag.
  * @param image string with image and tag separated by a colon

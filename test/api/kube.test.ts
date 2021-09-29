@@ -75,4 +75,25 @@ describe('Kube API helper', () => {
       const res = await kube.getDeploymentsBySelector(selector, namespace)
       expect(res.items.length).to.equal(1)
     })
+  fancy
+    .it('should compare secrets data', () => {
+      const equalSecretsData: Array<Array<{ [key: string]: string }>> = [
+        [{a: 'a', b: 'b', c: '5'}, {a: 'a', b: 'b', c: '5'}],
+        [{a: 'a', b: 'b', c: '5'}, {a: 'a', c: '5', b: 'b'}],
+      ]
+
+      const differentSecretsData: Array<Array<{ [key: string]: string }>> = [
+        [{a: 'a', b: 'b', c: '5'}, {a: 'a', b: 'b'}],
+        [{a: 'a', b: 'b', c: '5'}, {a: 'a', b: 'b', c: 'c'}],
+        [{a: 'a', b: 'b'}, {a: 'a', c: 'b'}],
+      ]
+
+      for (const pair of equalSecretsData) {
+        expect(kube.isSecretsDataEqual(pair[0], pair[1])).to.be.true
+      }
+
+      for (const pair of differentSecretsData) {
+        expect(kube.isSecretsDataEqual(pair[0], pair[1])).to.be.false
+      }
+    })
 })

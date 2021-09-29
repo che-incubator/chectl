@@ -22,7 +22,7 @@ import * as net from 'net'
 import { Writable } from 'stream'
 
 import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
-import { getClusterClientCommand, getImageNameAndTag, isKubernetesPlatformFamily, newError, safeLoadFromYamlFile } from '../util'
+import { base64Encode, getClusterClientCommand, getImageNameAndTag, isKubernetesPlatformFamily, newError, safeLoadFromYamlFile } from '../util'
 import { V1CheClusterBackup, V1CheClusterRestore } from './typings/backup-restore-crds'
 
 import { V1Certificate } from './typings/cert-manager'
@@ -2584,10 +2584,21 @@ export class KubeHelper {
   async createOrReplaceSecret(namespace: string, name: string, data: { [key: string]: string }): Promise<V1Secret | undefined> {
     const existingSecret =  await this.getSecret(name, namespace)
     if (existingSecret) {
-      if (existingSecret.data === data) {
+      const base64encodedData: { [key: string]: string } = {}
+      for (const key of Object.keys(data)) {
+        base64encodedData[key] = base64Encode(data[key])
+      }
+
+      if (this.isSecretsDataEqual(existingSecret.data || {}, base64encodedData)) {
         return existingSecret
       }
-      existingSecret.data = data
+
+      // The secrets are different, replace existing secret
+      existingSecret.stringData = data
+      delete existingSecret.data
+      if (existingSecret.metadata) {
+        delete existingSecret.metadata.resourceVersion
+      }
 
       const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
       try {
@@ -2598,6 +2609,18 @@ export class KubeHelper {
       }
     }
     return this.createSecret(namespace, name, data)
+  }
+
+  isSecretsDataEqual(data1: { [key: string]: string }, data2: { [key: string]: string }): boolean {
+    if (Object.keys(data1).length !== Object.keys(data2).length) {
+      return false
+    }
+    for (const key in data1) {
+      if (data1[key] !== data2[key]) {
+        return false
+      }
+    }
+    return true
   }
 
   /**
