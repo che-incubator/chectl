@@ -359,19 +359,23 @@ export function confirmYN(): Promise<boolean> {
       process.stdin.setRawMode(true)
     }
 
+    const removeKeyPressHandler = () => {
+      process.stdin.removeListener('keypress', keyPressHandler)
+      process.stdin.setRawMode(false)
+    }
     const keyPressHandler = (_string: any, key: any) => {
       // Handle brake
       if (key.ctrl && key.name === 'c') {
-        process.stdin.removeListener('keypress', keyPressHandler)
+        removeKeyPressHandler()
         reject('Interrupted')
       }
 
       // Check if y or n pressed
       if (key.name === 'y' || key.name === 'Y') {
-        process.stdin.removeListener('keypress', keyPressHandler)
+        removeKeyPressHandler()
         resolve(true)
       } else if (key.name === 'n' || key.name === 'N') {
-        process.stdin.removeListener('keypress', keyPressHandler)
+        removeKeyPressHandler()
         resolve(false)
       }
     }

@@ -262,7 +262,7 @@ export default class Restore extends Command {
           } else if (!ctx.isOperatorDeployed && flags.version) {
             outputLines.push(`Deploy Che version ${flags.version}`)
           } else if (ctx.isOperatorDeployed && !flags.version) {
-            outputLines.push(`Che version is ${flags.version}`)
+            outputLines.push(`Che version is ${ctx.currentOperatorVersion}`)
           }
 
           // Backup server configuration
