@@ -669,11 +669,11 @@ OPTIONS
   -r, --repository-url=repository-url                    Full address of backup repository. Format is identical to
                                                          restic.
 
-  -s, --snapshot-id=snapshot-id                          ID of a snapshot to restore from
+  -s, --snapshot-id=snapshot-id                          (required) ID of a snapshot to restore from. Value "latest"
+                                                         means restoring from the most recent snapshot.
 
-  -v, --version=version                                  Che Operator version to restore to (e.g. 7.35.1). Defaults to
-                                                         the existing operator version or to chectl version if none
-                                                         deployed.
+  -v, --version=version                                  Che Operator version to restore to (e.g. 7.35.1). If the flag
+                                                         is not set, restore to the current version.
 
   --aws-access-key-id=aws-access-key-id                  AWS access key ID
 
@@ -698,26 +698,24 @@ OPTIONS
   --username=username                                    Username for authentication in backup REST server
 
 EXAMPLES
-  # Reuse existing backup configuration:
-  chectl server:restore
   # Restore from specific backup snapshot using previos backup configuration:
   chectl server:restore --snapshot-id=585421f3
   # Restore from latest snapshot located in provided REST backup server:
-  chectl server:resotre -r rest:http://my-sert-server.net:4000/che-backup -p repopassword
+  chectl server:resotre -r rest:http://my-sert-server.net:4000/che-backup -p repopassword --snapshot-id=latest
   # Restore from latest snapshot located in provided AWS S3 (or API compatible) backup server (bucket should be 
   precreated):
-  chectl server:restore -r s3:s3.amazonaws.com/bucketche -p repopassword
+  chectl server:restore -r s3:s3.amazonaws.com/bucketche -p repopassword --snapshot-id=latest
   # Restore from latest snapshot located in provided SFTP backup server:
-  chectl server:restore -r sftp:user@my-server.net:/srv/sftp/che-data -p repopassword
-  # Rollback to previous version (if it was installed):
+  chectl server:restore -r sftp:user@my-server.net:/srv/sftp/che-data -p repopassword --snapshot-id=latest
+  # Restore from the latest backup of different version:
+  chectl server:restore --version=7.36.1 --snapshot-id=latest
+  # Restore from specific backup located on another backup server and of different version:
+  chectl server:restore --version=7.35.2 --snapshot-id=9ea02f58 -r rest:http://my-sert-server.net:4000/che-backup -p 
+  repopassword
+  # Rollback to the previous version (if it was installed):
   chectl server:restore --rollback
   # Restore from specific backup object:
   chectl server:restore --backup-cr-name=backup-object-name
-  # Restore from specific backup of different version:
-  chectl server:restore --version=7.35.2 --snapshot-id=9ea02f58 -r rest:http://my-sert-server.net:4000/che-backup -p 
-  repopassword
-  # Restore from the latest backup of different version:
-  chectl server:restore --version=7.36.1 --snapshot-id=latest
 ```
 
 _See code: [src/commands/server/restore.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/restore.ts)_

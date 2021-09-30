@@ -23,7 +23,7 @@ import { cheNamespace } from '../../common-flags'
 import { getBackupServerConfigurationName, parseBackupServerConfig, requestRestore } from '../../api/backup-restore'
 import { cli } from 'cli-ux'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { OLMTasks } from '../../tasks/installers/olm'
+import { CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE_TASK_TITLE, DELETE_CUSTOM_CATALOG_SOURCE_TASK_TITLE, DELETE_NIGHTLY_CATALOG_SOURCE_TASK_TITLE, DELETE_OPERATOR_GROUP_TASK_TITLE, OLMTasks, SET_CUSTOM_OPERATOR_IMAGE_TASK_TITLE } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { checkChectlAndCheVersionCompatibility, downloadTemplates } from '../../tasks/installers/common-tasks'
 import { confirmYN, findWorkingNamespace, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
@@ -38,24 +38,22 @@ export default class Restore extends Command {
   static description = 'Restore Eclipse Che installation'
 
   static examples = [
-    '# Reuse existing backup configuration:\n' +
-    'chectl server:restore',
     '# Restore from specific backup snapshot using previos backup configuration:\n' +
     'chectl server:restore --snapshot-id=585421f3',
     '# Restore from latest snapshot located in provided REST backup server:\n' +
-    'chectl server:resotre -r rest:http://my-sert-server.net:4000/che-backup -p repopassword',
+    'chectl server:resotre -r rest:http://my-sert-server.net:4000/che-backup -p repopassword --snapshot-id=latest',
     '# Restore from latest snapshot located in provided AWS S3 (or API compatible) backup server (bucket should be precreated):\n' +
-    'chectl server:restore -r s3:s3.amazonaws.com/bucketche -p repopassword',
+    'chectl server:restore -r s3:s3.amazonaws.com/bucketche -p repopassword --snapshot-id=latest',
     '# Restore from latest snapshot located in provided SFTP backup server:\n' +
-    'chectl server:restore -r sftp:user@my-server.net:/srv/sftp/che-data -p repopassword',
-    '# Rollback to previous version (if it was installed):\n' +
+    'chectl server:restore -r sftp:user@my-server.net:/srv/sftp/che-data -p repopassword --snapshot-id=latest',
+    '# Restore from the latest backup of different version:\n' +
+    'chectl server:restore --version=7.36.1 --snapshot-id=latest',
+    '# Restore from specific backup located on another backup server and of different version:\n' +
+    'chectl server:restore --version=7.35.2 --snapshot-id=9ea02f58 -r rest:http://my-sert-server.net:4000/che-backup -p repopassword',
+    '# Rollback to the previous version (if it was installed):\n' +
     'chectl server:restore --rollback',
     '# Restore from specific backup object:\n' +
     'chectl server:restore --backup-cr-name=backup-object-name',
-    '# Restore from specific backup of different version:\n' +
-    'chectl server:restore --version=7.35.2 --snapshot-id=9ea02f58 -r rest:http://my-sert-server.net:4000/che-backup -p repopassword',
-    '# Restore from the latest backup of different version:\n' +
-    'chectl server:restore --version=7.36.1 --snapshot-id=latest',
   ]
 
   static flags: flags.Input<any> = {
@@ -74,14 +72,16 @@ export default class Restore extends Command {
     [BACKUP_SERVER_CONFIG_CR_NAME_KEY]: backupServerConfigName,
     'snapshot-id': string({
       char: 's',
-      description: 'ID of a snapshot to restore from',
-      required: false,
+      description:
+        'ID of a snapshot to restore from. ' +
+        'Value "latest" means restoring from the most recent snapshot.',
+      required: true,
     }),
     version: string({
       char: 'v',
       description:
         'Che Operator version to restore to (e.g. 7.35.1). ' +
-        'Defaults to the existing operator version or to chectl version if none deployed.',
+        'If the flag is not set, restore to the current version.',
       required: false,
       dependsOn: ['snapshot-id'],
     }),
@@ -236,7 +236,7 @@ export default class Restore extends Command {
       },
       {
         title: 'Getting installation templates...',
-        enabled: (ctx: any) => flags.version && ctx.currentOperatorVersion !== flags.version && !flags.templates,
+        enabled: (ctx: any) => flags.version && ctx.currentOperatorVersion !== flags.version,
         task: async (ctx: any, task: any) => {
           if (flags.installer === 'olm') {
             // Using embedded templates here as they are used in install flow for OLM.
@@ -254,18 +254,13 @@ export default class Restore extends Command {
       {
         title: 'Print restore information',
         task: async (ctx: any) => {
-          const outputLines: string[] = []
+          const currentVersion = ctx.isOperatorDeployed ? ctx.currentOperatorVersion : 'Not deployed'
+          const restoreVersion = flags.version ? flags.version : currentVersion
+          const snapshotId = flags['snapshot-id'] ? flags['snapshot-id'] : 'latest'
 
-          // Che Operator version change
-          if (ctx.isOperatorDeployed && flags.version && ctx.currentOperatorVersion !== flags.version) {
-            outputLines.push(`Change Che version from ${ctx.currentOperatorVersion} to ${flags.version}`)
-          } else if (!ctx.isOperatorDeployed && flags.version) {
-            outputLines.push(`Deploy Che version ${flags.version}`)
-          } else if (ctx.isOperatorDeployed && !flags.version) {
-            outputLines.push(`Che version is ${ctx.currentOperatorVersion}`)
-          }
-
-          // Backup server configuration
+          // Get backup server configuration
+          let backupServer: string
+          let backupRepository: string
           try {
             let backupServerConfigCr: V1CheBackupServerConfiguration
             if (ctx.backupServerConfig && typeof ctx.backupServerConfig !== 'string') {
@@ -281,31 +276,41 @@ export default class Restore extends Command {
             }
 
             let hostname: string
+            let port: number | undefined
             let repository: string
             if (backupServerConfigCr.spec.rest) {
               hostname = backupServerConfigCr.spec.rest.hostname
+              port = backupServerConfigCr.spec.rest.port
               repository = backupServerConfigCr.spec.rest.repositoryPath
             } else if (backupServerConfigCr.spec.awss3) {
               hostname = backupServerConfigCr.spec.awss3.hostname || 's3.amazonaws.com'
+              port = backupServerConfigCr.spec.awss3.port
               repository = backupServerConfigCr.spec.awss3.repositoryPath
             } else if (backupServerConfigCr.spec.sftp) {
               hostname = backupServerConfigCr.spec.sftp.hostname
+              port = backupServerConfigCr.spec.sftp.port
               repository = backupServerConfigCr.spec.sftp.repositoryPath
             } else {
               throw new Error('Unknown backup server config type')
             }
 
-            outputLines.push(`Use ${repository} backup repository on ${hostname}`)
+            backupServer = hostname + (port ? `:${port}` : '')
+            backupRepository = repository
           } catch (error) {
             const details = error.message ? `: ${error.message}` : ''
-            outputLines.push(`Failed to get backup server info ${details}`)
+            backupServer = `Failed to get backup server info ${details}`
+            backupRepository = 'Unknown'
           }
 
-          // Backup snapshot id
-          const snapshotId = flags['snapshot-id'] ? flags['snapshot-id'] : 'latest'
-          outputLines.push(`Use ${snapshotId} snapshot to restore Che`)
+          const outputLines = [
+            `Current version:   ${currentVersion}`,
+            `Restore version:   ${restoreVersion}`,
+            `Backup server:     ${backupServer}`,
+            `Backup repository: ${backupRepository}`,
+            `Snapshot:          ${snapshotId}`,
+          ]
 
-          // Print information
+          // Print the information
           const printTasks = new Listr([], ctx.listrOptions)
           for (const line of outputLines) {
             printTasks.add({
@@ -336,19 +341,26 @@ export default class Restore extends Command {
         },
       },
       {
-        title: 'Remove current Che operator',
-        enabled: (ctx: any) => ctx.isOperatorDeployed && flags.installer === 'olm' && flags.version && ctx.currentOperatorVersion !== flags.version,
+        title: 'Uninstall Eclipse Che operator',
+        enabled: (ctx: any) => ctx.isOperatorDeployed && flags.version && ctx.currentOperatorVersion !== flags.version && flags.installer === 'olm',
         task: async (ctx: any, _task: any) => {
           // All preparations and validations must be done before this task!
           // Delete old operator if any in case of OLM installer.
           // For Operator installer, the operator deployment will be downgraded if needed.
           const olmTasks = new OLMTasks()
-          const olmDeleteTasks = olmTasks.deleteTasks(flags)
+          let olmDeleteTasks = olmTasks.deleteTasks(flags)
+          const tasksToDelete = [
+            DELETE_OPERATOR_GROUP_TASK_TITLE,
+            DELETE_CUSTOM_CATALOG_SOURCE_TASK_TITLE,
+            DELETE_NIGHTLY_CATALOG_SOURCE_TASK_TITLE,
+          ]
+          olmDeleteTasks = olmDeleteTasks.filter(task => tasksToDelete.indexOf(task.title) === -1)
           return new Listr(olmDeleteTasks, ctx.listrOptions)
         },
       },
       {
         title: 'Deploy requested version of Che operator',
+        // Deploy new operator only if there is a request for a different version given through flags.version
         enabled: (ctx: any) => flags.version && ctx.currentOperatorVersion !== flags.version,
         task: async (ctx: any, _task: any) => {
           const isOpenshift = await kube.isOpenShift()
@@ -376,8 +388,8 @@ export default class Restore extends Command {
             olmInstallTasks.splice(-2)
             // Remove other redundant for restoring tasks
             const tasksToDelete = [
-              'Create custom catalog source from file',
-              'Set custom operator image',
+              CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE_TASK_TITLE,
+              SET_CUSTOM_OPERATOR_IMAGE_TASK_TITLE,
             ]
             olmInstallTasks = olmInstallTasks.filter(task => tasksToDelete.indexOf(task.title) === -1)
 

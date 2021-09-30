@@ -25,6 +25,13 @@ import { isKubernetesPlatformFamily } from '../../util'
 
 import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
 
+export const SET_CUSTOM_OPERATOR_IMAGE_TASK_TITLE = 'Set custom operator image'
+export const CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE_TASK_TITLE = 'Create custom catalog source from file'
+
+export const DELETE_OPERATOR_GROUP_TASK_TITLE = 'Delete(OLM) operator group'
+export const DELETE_CUSTOM_CATALOG_SOURCE_TASK_TITLE = `Delete(OLM) custom catalog source ${CUSTOM_CATALOG_SOURCE_NAME}`
+export const DELETE_NIGHTLY_CATALOG_SOURCE_TASK_TITLE = `Delete(OLM) nigthly catalog source ${NEXT_CATALOG_SOURCE_NAME}`
+
 export class OLMTasks {
   prometheusRoleName = 'prometheus-k8s'
 
@@ -135,8 +142,8 @@ export class OLMTasks {
         },
       },
       {
+        title: CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE_TASK_TITLE,
         enabled: () => flags['catalog-source-yaml'],
-        title: 'Create custom catalog source from file',
         task: async (ctx: any, task: any) => {
           const customCatalogSource: CatalogSource = kube.readCatalogSourceFromFile(flags['catalog-source-yaml'])
           if (!await kube.catalogSourceExists(customCatalogSource.metadata!.name!, flags.chenamespace)) {
@@ -203,7 +210,7 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Set custom operator image',
+        title: SET_CUSTOM_OPERATOR_IMAGE_TASK_TITLE,
         enabled: () => flags['che-operator-image'],
         task: async (_ctx: any, task: any) => {
           const csvList = await kube.getClusterServiceVersions(flags.chenamespace)
@@ -372,7 +379,7 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Delete(OLM) operator group',
+        title: DELETE_OPERATOR_GROUP_TASK_TITLE,
         // Do not delete global operator group if operator is in all namespaces mode
         enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
         task: async (ctx: any, task: any) => {
@@ -384,14 +391,14 @@ export class OLMTasks {
         },
       },
       {
-        title: `Delete(OLM) custom catalog source ${CUSTOM_CATALOG_SOURCE_NAME}`,
+        title: DELETE_CUSTOM_CATALOG_SOURCE_TASK_TITLE,
         task: async (ctx: any, task: any) => {
           await kube.deleteCatalogSource(ctx.operatorNamespace, CUSTOM_CATALOG_SOURCE_NAME)
           task.title = `${task.title}...OK`
         },
       },
       {
-        title: `Delete(OLM) nigthly catalog source ${NEXT_CATALOG_SOURCE_NAME}`,
+        title: DELETE_NIGHTLY_CATALOG_SOURCE_TASK_TITLE,
         task: async (ctx: any, task: any) => {
           await kube.deleteCatalogSource(ctx.operatorNamespace, NEXT_CATALOG_SOURCE_NAME)
           task.title = `${task.title}...OK`

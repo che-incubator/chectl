@@ -172,7 +172,7 @@ export default class Backup extends Command {
             if (backupStatus.stage) {
               task.title = `Waiting until backup process finishes: ${backupStatus.stage}`
             }
-          } while (backupStatus.state === 'InProgress')
+          } while (!backupStatus.state || backupStatus.state === 'InProgress')
 
           if (backupStatus.state === 'Failed') {
             throw new Error(`Failed to create backup: ${backupStatus.message}`)
