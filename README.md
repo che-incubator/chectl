@@ -669,8 +669,8 @@ OPTIONS
   -r, --repository-url=repository-url                    Full address of backup repository. Format is identical to
                                                          restic.
 
-  -s, --snapshot-id=snapshot-id                          (required) ID of a snapshot to restore from. Value "latest"
-                                                         means restoring from the most recent snapshot.
+  -s, --snapshot-id=snapshot-id                          (required) snapshot identificator to restore from. Value
+                                                         "latest" means restoring from the most recent snapshot.
 
   -v, --version=version                                  Che Operator version to restore to (e.g. 7.35.1). If the flag
                                                          is not set, restore to the current version.
@@ -698,8 +698,6 @@ OPTIONS
   --username=username                                    Username for authentication in backup REST server
 
 EXAMPLES
-  # Restore from specific backup snapshot using previos backup configuration:
-  chectl server:restore --snapshot-id=585421f3
   # Restore from latest snapshot located in provided REST backup server:
   chectl server:resotre -r rest:http://my-sert-server.net:4000/che-backup -p repopassword --snapshot-id=latest
   # Restore from latest snapshot located in provided AWS S3 (or API compatible) backup server (bucket should be 

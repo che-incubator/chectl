@@ -25,12 +25,13 @@ import { isKubernetesPlatformFamily } from '../../util'
 
 import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
 
-export const SET_CUSTOM_OPERATOR_IMAGE_TASK_TITLE = 'Set custom operator image'
-export const CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE_TASK_TITLE = 'Create custom catalog source from file'
+export const TASK_TITLE_SET_CUSTOM_OPERATOR_IMAGE = 'Set custom operator image'
+export const TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE = 'Create custom catalog source from file'
+export const TASK_TITLE_PREPARE_CHE_CLUSTER_CR = 'Prepare Eclipse Che cluster CR'
 
-export const DELETE_OPERATOR_GROUP_TASK_TITLE = 'Delete(OLM) operator group'
-export const DELETE_CUSTOM_CATALOG_SOURCE_TASK_TITLE = `Delete(OLM) custom catalog source ${CUSTOM_CATALOG_SOURCE_NAME}`
-export const DELETE_NIGHTLY_CATALOG_SOURCE_TASK_TITLE = `Delete(OLM) nigthly catalog source ${NEXT_CATALOG_SOURCE_NAME}`
+export const TASK_TITLE_DELETE_OPERATOR_GROUP = 'Delete(OLM) operator group'
+export const TASK_TITLE_DELETE_CUSTOM_CATALOG_SOURCE = `Delete(OLM) custom catalog source ${CUSTOM_CATALOG_SOURCE_NAME}`
+export const TASK_TITLE_DELETE_NIGHTLY_CATALOG_SOURCE = `Delete(OLM) nigthly catalog source ${NEXT_CATALOG_SOURCE_NAME}`
 
 export class OLMTasks {
   prometheusRoleName = 'prometheus-k8s'
@@ -142,7 +143,7 @@ export class OLMTasks {
         },
       },
       {
-        title: CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE_TASK_TITLE,
+        title: TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE,
         enabled: () => flags['catalog-source-yaml'],
         task: async (ctx: any, task: any) => {
           const customCatalogSource: CatalogSource = kube.readCatalogSourceFromFile(flags['catalog-source-yaml'])
@@ -210,7 +211,7 @@ export class OLMTasks {
         },
       },
       {
-        title: SET_CUSTOM_OPERATOR_IMAGE_TASK_TITLE,
+        title: TASK_TITLE_SET_CUSTOM_OPERATOR_IMAGE,
         enabled: () => flags['che-operator-image'],
         task: async (_ctx: any, task: any) => {
           const csvList = await kube.getClusterServiceVersions(flags.chenamespace)
@@ -224,7 +225,7 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Prepare Eclipse Che cluster CR',
+        title: TASK_TITLE_PREPARE_CHE_CLUSTER_CR,
         task: async (ctx: any, task: any) => {
           const cheCluster = await kube.getCheCluster(flags.chenamespace)
           if (cheCluster) {
@@ -379,7 +380,7 @@ export class OLMTasks {
         },
       },
       {
-        title: DELETE_OPERATOR_GROUP_TASK_TITLE,
+        title: TASK_TITLE_DELETE_OPERATOR_GROUP,
         // Do not delete global operator group if operator is in all namespaces mode
         enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
         task: async (ctx: any, task: any) => {
@@ -391,14 +392,14 @@ export class OLMTasks {
         },
       },
       {
-        title: DELETE_CUSTOM_CATALOG_SOURCE_TASK_TITLE,
+        title: TASK_TITLE_DELETE_CUSTOM_CATALOG_SOURCE,
         task: async (ctx: any, task: any) => {
           await kube.deleteCatalogSource(ctx.operatorNamespace, CUSTOM_CATALOG_SOURCE_NAME)
           task.title = `${task.title}...OK`
         },
       },
       {
-        title: DELETE_NIGHTLY_CATALOG_SOURCE_TASK_TITLE,
+        title: TASK_TITLE_DELETE_NIGHTLY_CATALOG_SOURCE,
         task: async (ctx: any, task: any) => {
           await kube.deleteCatalogSource(ctx.operatorNamespace, NEXT_CATALOG_SOURCE_NAME)
           task.title = `${task.title}...OK`

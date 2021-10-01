@@ -23,9 +23,9 @@ import { cheNamespace } from '../../common-flags'
 import { getBackupServerConfigurationName, parseBackupServerConfig, requestRestore } from '../../api/backup-restore'
 import { cli } from 'cli-ux'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE_TASK_TITLE, DELETE_CUSTOM_CATALOG_SOURCE_TASK_TITLE, DELETE_NIGHTLY_CATALOG_SOURCE_TASK_TITLE, DELETE_OPERATOR_GROUP_TASK_TITLE, OLMTasks, SET_CUSTOM_OPERATOR_IMAGE_TASK_TITLE } from '../../tasks/installers/olm'
+import { TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE, TASK_TITLE_DELETE_CUSTOM_CATALOG_SOURCE, TASK_TITLE_DELETE_NIGHTLY_CATALOG_SOURCE, TASK_TITLE_DELETE_OPERATOR_GROUP, OLMTasks, TASK_TITLE_SET_CUSTOM_OPERATOR_IMAGE, TASK_TITLE_PREPARE_CHE_CLUSTER_CR } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
-import { checkChectlAndCheVersionCompatibility, downloadTemplates } from '../../tasks/installers/common-tasks'
+import { checkChectlAndCheVersionCompatibility, downloadTemplates, TASK_TITLE_CREATE_CHE_CLUSTER_CRD, TASK_TITLE_PATCH_CHECLUSTER_CR } from '../../tasks/installers/common-tasks'
 import { confirmYN, findWorkingNamespace, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 import { V1CheBackupServerConfiguration, V1CheClusterBackup, V1CheClusterRestore, V1CheClusterRestoreStatus } from '../../api/typings/backup-restore-crds'
 
@@ -38,8 +38,6 @@ export default class Restore extends Command {
   static description = 'Restore Eclipse Che installation'
 
   static examples = [
-    '# Restore from specific backup snapshot using previos backup configuration:\n' +
-    'chectl server:restore --snapshot-id=585421f3',
     '# Restore from latest snapshot located in provided REST backup server:\n' +
     'chectl server:resotre -r rest:http://my-sert-server.net:4000/che-backup -p repopassword --snapshot-id=latest',
     '# Restore from latest snapshot located in provided AWS S3 (or API compatible) backup server (bucket should be precreated):\n' +
@@ -73,7 +71,7 @@ export default class Restore extends Command {
     'snapshot-id': string({
       char: 's',
       description:
-        'ID of a snapshot to restore from. ' +
+        'snapshot identificator to restore from. ' +
         'Value "latest" means restoring from the most recent snapshot.',
       required: true,
     }),
@@ -350,9 +348,9 @@ export default class Restore extends Command {
           const olmTasks = new OLMTasks()
           let olmDeleteTasks = olmTasks.deleteTasks(flags)
           const tasksToDelete = [
-            DELETE_OPERATOR_GROUP_TASK_TITLE,
-            DELETE_CUSTOM_CATALOG_SOURCE_TASK_TITLE,
-            DELETE_NIGHTLY_CATALOG_SOURCE_TASK_TITLE,
+            TASK_TITLE_DELETE_OPERATOR_GROUP,
+            TASK_TITLE_DELETE_CUSTOM_CATALOG_SOURCE,
+            TASK_TITLE_DELETE_NIGHTLY_CATALOG_SOURCE,
           ]
           olmDeleteTasks = olmDeleteTasks.filter(task => tasksToDelete.indexOf(task.title) === -1)
           return new Listr(olmDeleteTasks, ctx.listrOptions)
@@ -376,20 +374,26 @@ export default class Restore extends Command {
             const operatorTasks = new OperatorTasks()
             // Update tasks can also deploy operator. If a resource already exist, it will be replaced.
             // When operator of requested version is deployed, then restore will rollout data from the backup.
-            const operatorUpdateTasks = operatorTasks.updateTasks(flags, this)
-            // Remove last tasks that deploys CR (it will be done on restore)
-            operatorUpdateTasks.splice(-1)
+            let operatorUpdateTasks = operatorTasks.updateTasks(flags, this)
+            // Remove redundant for restoring tasks
+            const tasksToDelete = [
+              TASK_TITLE_PATCH_CHECLUSTER_CR,
+            ]
+            operatorUpdateTasks = operatorUpdateTasks.filter(task => tasksToDelete.indexOf(task.title) === -1)
+
             return new Listr(operatorUpdateTasks, ctx.listrOptions)
           } else {
             // OLM on Openshift
             const olmTasks = new OLMTasks()
             let olmInstallTasks = olmTasks.startTasks(flags, this)
-            // Remove last tasks that deploys CR (it will be done on restore)
-            olmInstallTasks.splice(-2)
-            // Remove other redundant for restoring tasks
+            // Remove redundant for restoring tasks
             const tasksToDelete = [
-              CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE_TASK_TITLE,
-              SET_CUSTOM_OPERATOR_IMAGE_TASK_TITLE,
+              // Remove customization and dev tasks
+              TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE,
+              TASK_TITLE_SET_CUSTOM_OPERATOR_IMAGE,
+              // Remove tasks that deploys CR (it will be done on restore)
+              TASK_TITLE_PREPARE_CHE_CLUSTER_CR,
+              TASK_TITLE_CREATE_CHE_CLUSTER_CRD,
             ]
             olmInstallTasks = olmInstallTasks.filter(task => tasksToDelete.indexOf(task.title) === -1)
 
