@@ -14,7 +14,7 @@ import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import * as Listr from 'listr'
 
-import { CHE_BACKUP_SERVER_CONFIG_KIND_PLURAL, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OLM_STABLE_CHANNEL_NAME, OPERATOR_DEPLOYMENT_NAME } from '../../constants'
+import { CHE_BACKUP_SERVER_CONFIG_KIND_PLURAL, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OPERATOR_DEPLOYMENT_NAME } from '../../constants'
 import { batch, listrRenderer } from '../../common-flags'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
@@ -30,7 +30,6 @@ import { confirmYN, findWorkingNamespace, getCommandSuccessMessage, getEmbeddedT
 import { V1CheBackupServerConfiguration, V1CheClusterBackup, V1CheClusterRestore, V1CheClusterRestoreStatus } from '../../api/typings/backup-restore-crds'
 
 import { awsAccessKeyId, awsSecretAccessKey, AWS_ACCESS_KEY_ID_KEY, AWS_SECRET_ACCESS_KEY_KEY, backupRepositoryPassword, backupRepositoryUrl, backupRestServerPassword, backupRestServerUsername, backupServerConfigName, BACKUP_REPOSITORY_PASSWORD_KEY, BACKUP_REPOSITORY_URL_KEY, BACKUP_REST_SERVER_PASSWORD_KEY, BACKUP_REST_SERVER_USERNAME_KEY, BACKUP_SERVER_CONFIG_CR_NAME_KEY, getBackupServerConfiguration, sshKey, sshKeyFile, SSH_KEY_FILE_KEY, SSH_KEY_KEY } from './backup'
-import { setDefaultInstaller } from './deploy'
 
 const RESTORE_CR_NAME = 'eclipse-che-restore'
 
@@ -38,19 +37,17 @@ export default class Restore extends Command {
   static description = 'Restore Eclipse Che installation'
 
   static examples = [
-    '# Restore from latest snapshot located in provided REST backup server:\n' +
-    'chectl server:resotre -r rest:http://my-sert-server.net:4000/che-backup -p repopassword --snapshot-id=latest',
-    '# Restore from latest snapshot located in provided AWS S3 (or API compatible) backup server (bucket should be precreated):\n' +
+    '# Restore from the latest snapshot from a provided REST backup server:\n' +
+    'chectl server:restore -r rest:http://my-sert-server.net:4000/che-backup -p repopassword --snapshot-id=latest',
+    '# Restore from the latest snapshot from a provided AWS S3 (or API compatible) backup server (bucket must be precreated):\n' +
     'chectl server:restore -r s3:s3.amazonaws.com/bucketche -p repopassword --snapshot-id=latest',
-    '# Restore from latest snapshot located in provided SFTP backup server:\n' +
+    '# Restore from the latest snapshot from a provided SFTP backup server:\n' +
     'chectl server:restore -r sftp:user@my-server.net:/srv/sftp/che-data -p repopassword --snapshot-id=latest',
-    '# Restore from the latest backup of different version:\n' +
-    'chectl server:restore --version=7.36.1 --snapshot-id=latest',
-    '# Restore from specific backup located on another backup server and of different version:\n' +
-    'chectl server:restore --version=7.35.2 --snapshot-id=9ea02f58 -r rest:http://my-sert-server.net:4000/che-backup -p repopassword',
-    '# Rollback to the previous version (if it was installed):\n' +
+    '# Restore from a specific snapshot to a given Eclipse Che version from a provided REST backup server:\n' +
+    'chectl server:restore -r rest:http://my-sert-server.net:4000/che-backup -p repopassword --version=7.35.2 --snapshot-id=9ea02f58',
+    '# Rollback to a previous version only if backup exists:\n' +
     'chectl server:restore --rollback',
-    '# Restore from specific backup object:\n' +
+    '# Restore from a specific backup object:\n' +
     'chectl server:restore --backup-cr-name=backup-object-name',
   ]
 
@@ -89,9 +86,20 @@ export default class Restore extends Command {
       exclusive: ['version', 'snapshot-id', BACKUP_REPOSITORY_URL_KEY, BACKUP_SERVER_CONFIG_CR_NAME_KEY],
     }),
     rollback: boolean({
-      description: 'Rolling back to previous version of Eclipse Che if a backup of that version is available',
+      description: 'Rolling back to previous version of Eclipse Che only if backup exists',
       required: false,
       exclusive: ['version', 'snapshot-id', 'backup-cr-name', BACKUP_REPOSITORY_URL_KEY, BACKUP_SERVER_CONFIG_CR_NAME_KEY],
+    }),
+    installer: string({
+      description: 'Installer type. Should be passed only if restoring without previous installation in place.',
+      options: ['operator', 'olm'],
+      hidden: true,
+    }),
+    'olm-channel': string({
+      description:
+        'Olm channel that was used when backup was done, e.g. "stable".' +
+        'Should be passed only if restoring without previous installation in place and installer type is "olm".',
+      hidden: true,
     }),
   }
 
@@ -151,9 +159,14 @@ export default class Restore extends Command {
         title: 'Detecting installer...',
         task: async (ctx: any, task: any) => {
           if (!ctx.isOperatorDeployed) {
-            await setDefaultInstaller(flags)
+            if (!flags.installer) {
+              throw new Error('Cannot detect previous installer automatically, provide --installer flag')
+            }
+
             if (flags.installer === 'olm') {
-              flags['olm-channel'] = OLM_STABLE_CHANNEL_NAME
+              if (!flags['olm-channel']) {
+                throw new Error('Cannot detect OLM channel automatically, provide --olm-channel flag')
+              }
               task.title = `${task.title}OLM`
             } else {
               task.title = `${task.title}Operator`
@@ -382,8 +395,7 @@ export default class Restore extends Command {
             operatorUpdateTasks = operatorUpdateTasks.filter(task => tasksToDelete.indexOf(task.title) === -1)
 
             return new Listr(operatorUpdateTasks, ctx.listrOptions)
-          } else {
-            // OLM on Openshift
+          } else { // OLM
             const olmTasks = new OLMTasks()
             let olmInstallTasks = olmTasks.startTasks(flags, this)
             // Remove redundant for restoring tasks
