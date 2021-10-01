@@ -687,8 +687,8 @@ OPTIONS
 
   --password=password                                    Authentication password for backup REST server
 
-  --rollback                                             Rolling back to previous version of Eclipse Che if a backup of
-                                                         that version is available
+  --rollback                                             Rolling back to previous version of Eclipse Che only if backup
+                                                         exists
 
   --ssh-key=ssh-key                                      Private SSH key for authentication on SFTP server
 
@@ -698,21 +698,19 @@ OPTIONS
   --username=username                                    Username for authentication in backup REST server
 
 EXAMPLES
-  # Restore from latest snapshot located in provided REST backup server:
-  chectl server:resotre -r rest:http://my-sert-server.net:4000/che-backup -p repopassword --snapshot-id=latest
-  # Restore from latest snapshot located in provided AWS S3 (or API compatible) backup server (bucket should be 
+  # Restore from the latest snapshot from a provided REST backup server:
+  chectl server:restore -r rest:http://my-sert-server.net:4000/che-backup -p repopassword --snapshot-id=latest
+  # Restore from the latest snapshot from a provided AWS S3 (or API compatible) backup server (bucket must be 
   precreated):
   chectl server:restore -r s3:s3.amazonaws.com/bucketche -p repopassword --snapshot-id=latest
-  # Restore from latest snapshot located in provided SFTP backup server:
+  # Restore from the latest snapshot from a provided SFTP backup server:
   chectl server:restore -r sftp:user@my-server.net:/srv/sftp/che-data -p repopassword --snapshot-id=latest
-  # Restore from the latest backup of different version:
-  chectl server:restore --version=7.36.1 --snapshot-id=latest
-  # Restore from specific backup located on another backup server and of different version:
-  chectl server:restore --version=7.35.2 --snapshot-id=9ea02f58 -r rest:http://my-sert-server.net:4000/che-backup -p 
-  repopassword
-  # Rollback to the previous version (if it was installed):
+  # Restore from a specific snapshot to a given Eclipse Che version from a provided REST backup server:
+  chectl server:restore -r rest:http://my-sert-server.net:4000/che-backup -p repopassword --version=7.35.2 
+  --snapshot-id=9ea02f58
+  # Rollback to a previous version only if backup exists:
   chectl server:restore --rollback
-  # Restore from specific backup object:
+  # Restore from a specific backup object:
   chectl server:restore --backup-cr-name=backup-object-name
 ```
 
