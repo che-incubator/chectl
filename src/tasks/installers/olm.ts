@@ -214,7 +214,7 @@ export class OLMTasks {
           }
 
           if (!ctx.customCR) {
-            ctx.defaultCR = await this.getCRFromCSV(kube, flags.chenamespace)
+            ctx.defaultCR = await this.getCRFromCSV(kube, ctx.operatorNamespace)
           }
 
           task.title = `${task.title}...Done.`
@@ -255,7 +255,10 @@ export class OLMTasks {
       {
         title: 'Get operator installation plan',
         task: async (ctx: any, task: any) => {
-          const subscription: Subscription = await kube.getOperatorSubscription(SUBSCRIPTION_NAME, ctx.operatorNamespace)
+          const subscription = await kube.getOperatorSubscription(SUBSCRIPTION_NAME, ctx.operatorNamespace)
+          if (!subscription) {
+            throw new Error(`Subscription '${SUBSCRIPTION_NAME}' not found in namespace '${ctx.operatorNamespace}'.`)
+          }
 
           if (subscription.status) {
             if (subscription.status.state === 'AtLatestKnown') {
@@ -440,10 +443,14 @@ export class OLMTasks {
     }
   }
 
-  private async getCRFromCSV(kube: KubeHelper, cheNamespace: string): Promise<any> {
-    const subscription: Subscription = await kube.getOperatorSubscription(SUBSCRIPTION_NAME, cheNamespace)
+  private async getCRFromCSV(kube: KubeHelper, namespace: string): Promise<any> {
+    const subscription = await kube.getOperatorSubscription(SUBSCRIPTION_NAME, namespace)
+    if (!subscription) {
+      throw new Error(`Subscription '${SUBSCRIPTION_NAME}' not found in namespace '${namespace}'.`)
+    }
+
     const currentCSV = subscription.status!.currentCSV
-    const csv = await kube.getCSV(currentCSV, cheNamespace)
+    const csv = await kube.getCSV(currentCSV, namespace)
     if (csv && csv.metadata.annotations) {
       const CRRaw = csv.metadata.annotations!['alm-examples']
       return (yaml.load(CRRaw) as Array<any>).find(cr => cr.kind === 'CheCluster')
