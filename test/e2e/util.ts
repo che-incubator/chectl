@@ -15,7 +15,7 @@ import { CheHelper } from '../../src/api/che'
 import { CheGithubClient, TagInfo } from '../../src/api/github-client'
 import { KubeHelper } from '../../src/api/kube'
 import { OpenShiftHelper } from '../../src/api/openshift'
-import { DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
 
 // Fields which chectl returns for workspace:list commands
 interface WorkspaceInfo {
@@ -215,6 +215,28 @@ export class E2eHelper {
     throw new Error(`Che server image tag ${tag} has not appeared in ${timeoutMs / 1000}s `)
   }
 
+  async waitForSuccessfulBackup(backupCrName: string, timeoutMs: number): Promise<void> {
+    const delayMs = 5 * 1000
+
+    let totalTimeMs = 0
+    while (totalTimeMs < timeoutMs) {
+      const backupCr = await this.kubeHelper.getCustomResource(NAMESPACE, backupCrName, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL)
+      if (backupCr && backupCr.status && backupCr.status.state) {
+        if (backupCr.status.state === 'Succeeded') {
+          // Backup successfully created
+          return
+        } else if (backupCr.status.state === 'Failed') {
+          throw new Error(`Backup '${backupCrName}' failed: ${backupCr.status.message}`)
+        }
+        // Wait more
+      }
+
+      await this.sleep(delayMs)
+      totalTimeMs += delayMs
+    }
+    throw new Error(`Backup CR '${backupCrName}' has not appeared in ${timeoutMs / 1000}s`)
+  }
+
   /**
    * Gets last 50 tags from the given repository.
    * @param repo repository name to list tag in
@@ -232,6 +254,15 @@ export class E2eHelper {
     const githubClient = new CheGithubClient()
     const latestTag = githubClient.getLatestTag(await this.listLatestTags(CHECTL_REPONAME))
     return latestTag.name
+  }
+
+  /**
+   * Gets pre-latest and latest released version from chectl repository
+   */
+   async getTwoLatestReleasedVersions(): Promise<[string, string]> {
+    const githubClient = new CheGithubClient()
+    const latestTags = (githubClient as any).sortSemanticTags(await this.listLatestTags(CHECTL_REPONAME))
+    return latestTags[1].name, latestTags[0].name
   }
 
   /**
