@@ -70,7 +70,7 @@ export default class Restore extends Command {
       description:
         'snapshot identificator to restore from. ' +
         'Value "latest" means restoring from the most recent snapshot.',
-      required: true,
+      required: false,
     }),
     version: string({
       char: 'v',
@@ -109,6 +109,10 @@ export default class Restore extends Command {
     flags.chenamespace = await findWorkingNamespace(flags)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Restore.id, flags })
+
+    if (!flags['snapshot-id'] && !(flags.rollback || flags['backup-cr-name'])) {
+      this.error('"--snapshot-id" flag is required')
+    }
 
     const tasks = new Listr([], ctx.listrOptions)
     const apiTasks = new ApiTasks()
