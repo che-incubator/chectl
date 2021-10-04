@@ -23,7 +23,7 @@ import { cheNamespace } from '../../common-flags'
 import { getBackupServerConfigurationName, parseBackupServerConfig, requestRestore } from '../../api/backup-restore'
 import { cli } from 'cli-ux'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE, TASK_TITLE_DELETE_CUSTOM_CATALOG_SOURCE, TASK_TITLE_DELETE_NIGHTLY_CATALOG_SOURCE, TASK_TITLE_DELETE_OPERATOR_GROUP, OLMTasks, TASK_TITLE_SET_CUSTOM_OPERATOR_IMAGE, TASK_TITLE_PREPARE_CHE_CLUSTER_CR } from '../../tasks/installers/olm'
+import { TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE, TASK_TITLE_DELETE_CUSTOM_CATALOG_SOURCE, TASK_TITLE_DELETE_NIGHTLY_CATALOG_SOURCE, OLMTasks, TASK_TITLE_SET_CUSTOM_OPERATOR_IMAGE, TASK_TITLE_PREPARE_CHE_CLUSTER_CR } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { checkChectlAndCheVersionCompatibility, downloadTemplates, TASK_TITLE_CREATE_CHE_CLUSTER_CRD, TASK_TITLE_PATCH_CHECLUSTER_CR } from '../../tasks/installers/common-tasks'
 import { confirmYN, findWorkingNamespace, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
@@ -365,7 +365,6 @@ export default class Restore extends Command {
           const olmTasks = new OLMTasks()
           let olmDeleteTasks = olmTasks.deleteTasks(flags)
           const tasksToDelete = [
-            TASK_TITLE_DELETE_OPERATOR_GROUP,
             TASK_TITLE_DELETE_CUSTOM_CATALOG_SOURCE,
             TASK_TITLE_DELETE_NIGHTLY_CATALOG_SOURCE,
           ]

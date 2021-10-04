@@ -29,7 +29,6 @@ export const TASK_TITLE_SET_CUSTOM_OPERATOR_IMAGE = 'Set custom operator image'
 export const TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE = 'Create custom catalog source from file'
 export const TASK_TITLE_PREPARE_CHE_CLUSTER_CR = 'Prepare Eclipse Che cluster CR'
 
-export const TASK_TITLE_DELETE_OPERATOR_GROUP = 'Delete(OLM) operator group'
 export const TASK_TITLE_DELETE_CUSTOM_CATALOG_SOURCE = `Delete(OLM) custom catalog source ${CUSTOM_CATALOG_SOURCE_NAME}`
 export const TASK_TITLE_DELETE_NIGHTLY_CATALOG_SOURCE = `Delete(OLM) nigthly catalog source ${NEXT_CATALOG_SOURCE_NAME}`
 
@@ -380,7 +379,7 @@ export class OLMTasks {
         },
       },
       {
-        title: TASK_TITLE_DELETE_OPERATOR_GROUP,
+        title: 'Delete(OLM) operator group',
         // Do not delete global operator group if operator is in all namespaces mode
         enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
         task: async (ctx: any, task: any) => {
