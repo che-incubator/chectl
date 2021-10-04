@@ -669,8 +669,8 @@ OPTIONS
   -r, --repository-url=repository-url                    Full address of backup repository. Format is identical to
                                                          restic.
 
-  -s, --snapshot-id=snapshot-id                          (required) snapshot identificator to restore from. Value
-                                                         "latest" means restoring from the most recent snapshot.
+  -s, --snapshot-id=snapshot-id                          snapshot identificator to restore from. Value "latest" means
+                                                         restoring from the most recent snapshot.
 
   -v, --version=version                                  Che Operator version to restore to (e.g. 7.35.1). If the flag
                                                          is not set, restore to the current version.
