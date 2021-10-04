@@ -92,6 +92,8 @@ export const backupServerConfigName = string({
   exclusive: [BACKUP_REPOSITORY_URL_KEY, BACKUP_REPOSITORY_PASSWORD_KEY],
 })
 
+const BACKUP_CR_NAME = 'eclipse-che-backup'
+
 export default class Backup extends Command {
   static description = 'Backup Eclipse Che installation'
 
@@ -150,7 +152,7 @@ export default class Backup extends Command {
         title: 'Scheduling backup...',
         task: async (_ctx: any, task: any) => {
           const backupServerConfig = getBackupServerConfiguration(flags)
-          await requestBackup(flags.chenamespace, backupServerConfig)
+          await requestBackup(flags.chenamespace, BACKUP_CR_NAME, backupServerConfig)
           task.title = `${task.title}OK`
         },
       },
@@ -161,7 +163,7 @@ export default class Backup extends Command {
           let backupStatus: V1CheClusterBackupStatus = {}
           do {
             await cli.wait(1000)
-            const backupCr: V1CheClusterBackup = await kube.getCustomResource(flags.chenamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL)
+            const backupCr: V1CheClusterBackup = await kube.getCustomResource(flags.chenamespace, BACKUP_CR_NAME, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL)
             if (!backupCr.status) {
               continue
             }
@@ -170,7 +172,7 @@ export default class Backup extends Command {
             if (backupStatus.stage) {
               task.title = `Waiting until backup process finishes: ${backupStatus.stage}`
             }
-          } while (backupStatus.state === 'InProgress')
+          } while (!backupStatus.state || backupStatus.state === 'InProgress')
 
           if (backupStatus.state === 'Failed') {
             throw new Error(`Failed to create backup: ${backupStatus.message}`)

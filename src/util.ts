@@ -21,6 +21,7 @@ import * as yaml from 'js-yaml'
 import * as notifier from 'node-notifier'
 import * as os from 'os'
 import * as path from 'path'
+import * as readline from 'readline'
 import { promisify } from 'util'
 
 import { ChectlContext } from './api/context'
@@ -348,4 +349,40 @@ export function addTrailingSlash(url: string): string {
     return url
   }
   return url + '/'
+}
+
+/**
+ * Waits until y or n is pressed (no return press needed) and returns confirmation result.
+ * ctrl+c causes exception.
+ * This function doesn't print anything, this is the task of the code that invokes it.
+ */
+export function confirmYN(): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    readline.emitKeypressEvents(process.stdin)
+    if (process.stdin.isTTY) {
+      process.stdin.setRawMode(true)
+    }
+
+    const removeKeyPressHandler = () => {
+      process.stdin.removeListener('keypress', keyPressHandler)
+      process.stdin.setRawMode(false)
+    }
+    const keyPressHandler = (_string: any, key: any) => {
+      // Handle brake
+      if (key.ctrl && key.name === 'c') {
+        removeKeyPressHandler()
+        reject('Interrupted')
+      }
+
+      // Check if y or n pressed
+      if (key.name === 'y' || key.name === 'Y') {
+        removeKeyPressHandler()
+        resolve(true)
+      } else if (key.name === 'n' || key.name === 'N') {
+        removeKeyPressHandler()
+        resolve(false)
+      }
+    }
+    process.stdin.on('keypress', keyPressHandler)
+  })
 }

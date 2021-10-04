@@ -29,6 +29,7 @@ export interface V1CheClusterBackupStatus {
   message?: string
   state?: string
   stage?: string
+  cheVersion?: string
   snapshotId?: string
 }
 

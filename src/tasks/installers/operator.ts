@@ -148,7 +148,7 @@ export class OperatorTasks {
   /**
    * Returns tasks list which perform preflight platform checks.
    */
-  async deployTasks(flags: any, command: Command): Promise<Listr> {
+  async deployTasks(flags: any, command: Command): Promise<Listr.ListrTask[]> {
     const kube = new KubeHelper(flags)
     const kubeTasks = new KubeTasks(flags)
     const ctx = ChectlContext.get()
@@ -156,7 +156,7 @@ export class OperatorTasks {
     if (VersionHelper.isDeployingStableVersion(flags) && !await kube.isOpenShift3()) {
       command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of Eclipse Che (--installer=olm).')
     }
-    return new Listr([
+    return [
       createNamespaceTask(flags.chenamespace, {}),
       {
         title: `Create ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
@@ -268,7 +268,7 @@ export class OperatorTasks {
         },
       },
       createEclipseCheCluster(flags, kube),
-    ], { renderer: flags['listr-renderer'] as any })
+    ]
   }
 
   preUpdateTasks(flags: any, command: Command): Listr {
@@ -310,11 +310,11 @@ export class OperatorTasks {
     ])
   }
 
-  updateTasks(flags: any, command: Command): Listr {
+  updateTasks(flags: any, command: Command): Array<Listr.ListrTask> {
     const kube = new KubeHelper(flags)
     const ctx = ChectlContext.get()
     ctx.resourcesPath = path.join(flags.templates, OPERATOR_TEMPLATE_DIR)
-    return new Listr([
+    return [
       {
         title: `Updating ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
@@ -429,7 +429,7 @@ export class OperatorTasks {
         },
       },
       patchingEclipseCheCluster(flags, kube, command),
-    ], { renderer: flags['listr-renderer'] as any })
+    ]
   }
 
   /**

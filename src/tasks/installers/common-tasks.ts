@@ -26,6 +26,9 @@ import { VersionHelper } from '../../api/version'
 import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER, OPERATOR_TEMPLATE_DIR } from '../../constants'
 import { getProjectVersion } from '../../util'
 
+export const TASK_TITLE_CREATE_CHE_CLUSTER_CRD = `Create the Custom Resource of type ${CHE_CLUSTER_CRD}`
+export const TASK_TITLE_PATCH_CHECLUSTER_CR = `Patching the Custom Resource of type ${CHE_CLUSTER_CRD}`
+
 export function createNamespaceTask(namespaceName: string, labels: {}): Listr.ListrTask {
   return {
     title: `Create Namespace (${namespaceName})`,
@@ -117,9 +120,11 @@ export function downloadTemplates(flags: any): Listr.ListrTask {
 
 export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.ListrTask {
   return {
-    title: `Create the Custom Resource of type ${CHE_CLUSTER_CRD} in the namespace ${flags.chenamespace}`,
+    title: TASK_TITLE_CREATE_CHE_CLUSTER_CRD,
     enabled: ctx => Boolean(ctx.customCR) || Boolean(ctx.defaultCR),
     task: async (ctx: any, task: any) => {
+      task.title = `${task.title} in the namespace ${flags.chenamespace}`
+
       ctx.isCheDeployed = true
       ctx.isPostgresDeployed = true
       ctx.isKeycloakDeployed = true
@@ -160,9 +165,10 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
  */
 export function patchingEclipseCheCluster(flags: any, kube: KubeHelper, command: Command): Listr.ListrTask {
   return {
-    title: `Patching the Custom Resource of type '${CHE_CLUSTER_CRD}' in the namespace '${flags.chenamespace}'`,
+    title: TASK_TITLE_PATCH_CHECLUSTER_CR,
     skip: (ctx: any) => isEmpty(ctx[ChectlContext.CR_PATCH]),
     task: async (ctx: any, task: any) => {
+      task.title = `${task.title} in the namespace ${flags.chenamespace}`
       const cheCluster = await kube.getCheCluster(flags.chenamespace)
       if (!cheCluster) {
         command.error(`Eclipse Che cluster CR is not found in the namespace '${flags.chenamespace}'`)

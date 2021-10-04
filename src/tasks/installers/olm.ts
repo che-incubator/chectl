@@ -20,10 +20,17 @@ import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/typings/olm'
 import { VersionHelper } from '../../api/version'
-import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, STABLE_ALL_NAMESPACES_CHANNEL_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME } from '../../constants'
+import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME } from '../../constants'
 import { isKubernetesPlatformFamily } from '../../util'
 
 import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
+
+export const TASK_TITLE_SET_CUSTOM_OPERATOR_IMAGE = 'Set custom operator image'
+export const TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE = 'Create custom catalog source from file'
+export const TASK_TITLE_PREPARE_CHE_CLUSTER_CR = 'Prepare Eclipse Che cluster CR'
+
+export const TASK_TITLE_DELETE_CUSTOM_CATALOG_SOURCE = `Delete(OLM) custom catalog source ${CUSTOM_CATALOG_SOURCE_NAME}`
+export const TASK_TITLE_DELETE_NIGHTLY_CATALOG_SOURCE = `Delete(OLM) nigthly catalog source ${NEXT_CATALOG_SOURCE_NAME}`
 
 export class OLMTasks {
   prometheusRoleName = 'prometheus-k8s'
@@ -33,10 +40,10 @@ export class OLMTasks {
   /**
    * Returns list of tasks which perform preflight platform checks.
    */
-  startTasks(flags: any, command: Command): Listr {
+  startTasks(flags: any, command: Command): Listr.ListrTask<any>[] {
     const kube = new KubeHelper(flags)
     const che = new CheHelper(flags)
-    return new Listr([
+    return [
       this.isOlmPreInstalledTask(command, kube),
       createNamespaceTask(flags.chenamespace, this.getOlmNamespaceLabels(flags)),
       {
@@ -96,7 +103,13 @@ export class OLMTasks {
             // Convert version flag to channel (see subscription object), starting CSV and approval starategy
             flags.version = VersionHelper.removeVPrefix(flags.version, true)
             // Need to point to specific CSV
-            ctx.startingCSV = `eclipse-che.v${flags.version}`
+            if (flags['starting-csv']) {
+              ctx.startingCSV = flags['starting-csv']
+            } else if (flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME) {
+              ctx.startingCSV = `eclipse-che.v${flags.version}`
+            } else if (flags['olm-channel'] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME) {
+              ctx.startingCSV = `eclipse-che-preview-openshift.v${flags.version}-all-namespaces`
+            } // else use latest in the channel
             // Set approval starategy to manual to prevent autoupdate to the latest version right before installation
             ctx.approvalStarategy = 'Manual'
           } else {
@@ -129,8 +142,8 @@ export class OLMTasks {
         },
       },
       {
+        title: TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE,
         enabled: () => flags['catalog-source-yaml'],
-        title: 'Create custom catalog source from file',
         task: async (ctx: any, task: any) => {
           const customCatalogSource: CatalogSource = kube.readCatalogSourceFromFile(flags['catalog-source-yaml'])
           if (!await kube.catalogSourceExists(customCatalogSource.metadata!.name!, flags.chenamespace)) {
@@ -159,12 +172,12 @@ export class OLMTasks {
             // custom Che CatalogSource
             const catalogSourceNamespace = flags['catalog-source-namespace'] || ctx.operatorNamespace
             subscription = this.constructSubscription(ctx.subscriptionName, flags['package-manifest-name'], ctx.operatorNamespace, catalogSourceNamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, ctx.startingCSV)
-          } else if (VersionHelper.isDeployingStableVersion(flags) || flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME) {
+          } else if (flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME || (VersionHelper.isDeployingStableVersion(flags) && !flags['olm-channel'])) {
             // stable Che CatalogSource
             subscription = this.constructSubscription(ctx.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
-          } else if (flags['olm-channel'] === STABLE_ALL_NAMESPACES_CHANNEL_NAME) {
+          } else if (flags['olm-channel'] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME) {
             // stable Che CatalogSource
-            subscription = this.constructSubscription(ctx.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, STABLE_ALL_NAMESPACES_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
+            subscription = this.constructSubscription(ctx.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
           } else {
             // next Che CatalogSource
             subscription = this.constructSubscription(ctx.subscriptionName, `eclipse-che-preview-${ctx.generalPlatformName}`, ctx.operatorNamespace, ctx.operatorNamespace, OLM_NEXT_CHANNEL_NAME, NEXT_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
@@ -197,7 +210,7 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Set custom operator image',
+        title: TASK_TITLE_SET_CUSTOM_OPERATOR_IMAGE,
         enabled: () => flags['che-operator-image'],
         task: async (_ctx: any, task: any) => {
           const csvList = await kube.getClusterServiceVersions(flags.chenamespace)
@@ -211,7 +224,7 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Prepare Eclipse Che cluster CR',
+        title: TASK_TITLE_PREPARE_CHE_CLUSTER_CR,
         task: async (ctx: any, task: any) => {
           const cheCluster = await kube.getCheCluster(flags.chenamespace)
           if (cheCluster) {
@@ -227,7 +240,7 @@ export class OLMTasks {
         },
       },
       createEclipseCheCluster(flags, kube),
-    ], { renderer: flags['listr-renderer'] as any })
+    ]
   }
 
   preUpdateTasks(flags: any, command: Command): Listr {
@@ -356,15 +369,18 @@ export class OLMTasks {
       {
         title: 'Delete(OLM) Eclipse Che cluster service versions',
         enabled: ctx => ctx.isPreInstalledOLM,
-        task: async (_ctx: any, task: any) => {
-          const csvs = await kube.getClusterServiceVersions(flags.chenamespace)
+        task: async (ctx: any, task: any) => {
+          const csvs = await kube.getClusterServiceVersions(ctx.operatorNamespace)
           const csvsToDelete = csvs.items.filter(csv => csv.metadata.name!.startsWith(CVS_PREFIX))
-          csvsToDelete.forEach(csv => kube.deleteClusterServiceVersion(flags.chenamespace, csv.metadata.name!))
+          for (const csv of csvsToDelete) {
+            await kube.deleteClusterServiceVersion(ctx.operatorNamespace, csv.metadata.name!)
+          }
           task.title = `${task.title}...OK`
         },
       },
       {
         title: 'Delete(OLM) operator group',
+        // Do not delete global operator group if operator is in all namespaces mode
         enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
         task: async (ctx: any, task: any) => {
           const opgr = ctx.operatorGroup
@@ -375,14 +391,14 @@ export class OLMTasks {
         },
       },
       {
-        title: `Delete(OLM) custom catalog source ${CUSTOM_CATALOG_SOURCE_NAME}`,
+        title: TASK_TITLE_DELETE_CUSTOM_CATALOG_SOURCE,
         task: async (ctx: any, task: any) => {
           await kube.deleteCatalogSource(ctx.operatorNamespace, CUSTOM_CATALOG_SOURCE_NAME)
           task.title = `${task.title}...OK`
         },
       },
       {
-        title: `Delete(OLM) nigthly catalog source ${NEXT_CATALOG_SOURCE_NAME}`,
+        title: TASK_TITLE_DELETE_NIGHTLY_CATALOG_SOURCE,
         task: async (ctx: any, task: any) => {
           await kube.deleteCatalogSource(ctx.operatorNamespace, NEXT_CATALOG_SOURCE_NAME)
           task.title = `${task.title}...OK`
@@ -412,7 +428,7 @@ export class OLMTasks {
         if (!await kube.isPreInstalledOLM()) {
           cli.warn('Looks like your platform hasn\'t got embedded OLM, so you should install it manually. For quick start you can use:')
           cli.url('install.sh', 'https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/install.sh')
-          command.error('OLM is required for installation Eclipse Che with installer flag \'olm\'')
+          command.error('OLM is required for installation of Eclipse Che with installer flag \'olm\'')
         }
         task.title = `${task.title}...done.`
       },
