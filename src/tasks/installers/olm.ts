@@ -233,7 +233,7 @@ export class OLMTasks {
           }
 
           if (!ctx.customCR) {
-            ctx.defaultCR = await this.getCRFromCSV(kube, flags.chenamespace, ctx.subscriptionName)
+            ctx.defaultCR = await this.getCRFromCSV(kube, ctx.operatorNamespace, ctx.subscriptionName)
           }
 
           task.title = `${task.title}...Done.`
@@ -474,10 +474,13 @@ export class OLMTasks {
     }
   }
 
-  private async getCRFromCSV(kube: KubeHelper, cheNamespace: string, subscriptionName: string): Promise<any> {
-    const subscription: Subscription = await kube.getOperatorSubscription(subscriptionName, cheNamespace)
+  private async getCRFromCSV(kube: KubeHelper, namespace: string, subscriptionName: string): Promise<any> {
+    const subscription = await kube.getOperatorSubscription(subscriptionName, namespace)
+    if (!subscription) {
+      throw new Error(`Subscription '${subscriptionName}' not found in namespace '${namespace}'`)
+    }
     const currentCSV = subscription.status!.currentCSV
-    const csv = await kube.getCSV(currentCSV, cheNamespace)
+    const csv = await kube.getCSV(currentCSV, namespace)
     if (csv && csv.metadata.annotations) {
       const CRRaw = csv.metadata.annotations!['alm-examples']
       return (yaml.load(CRRaw) as Array<any>).find(cr => cr.kind === 'CheCluster')
