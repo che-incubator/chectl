@@ -16,7 +16,6 @@ import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 import { merge } from 'lodash'
 import * as semver from 'semver'
-
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { assumeYes, batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
@@ -378,8 +377,11 @@ export default class Update extends Command {
   private async setDefaultInstaller(flags: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
     try {
-      await kubeHelper.getOperatorSubscription(SUBSCRIPTION_NAME, flags.chenamespace)
-      flags.installer = 'olm'
+      if (await kubeHelper.getOperatorSubscription(SUBSCRIPTION_NAME, flags.chenamespace)) {
+        flags.installer = 'olm'
+      } else {
+        flags.installer = 'operator'
+      }
     } catch {
       flags.installer = 'operator'
     }

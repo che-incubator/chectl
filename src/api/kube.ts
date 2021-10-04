@@ -2008,13 +2008,15 @@ export class KubeHelper {
     }
   }
 
-  async getOperatorSubscription(name: string, namespace: string): Promise<Subscription> {
+  async getOperatorSubscription(name: string, namespace: string): Promise<Subscription | undefined> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', name)
       return body as Subscription
     } catch (e) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
