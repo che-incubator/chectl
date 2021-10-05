@@ -2668,36 +2668,13 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-operator@git://github.com/eclipse-che/che-operator#main":
   version "0.0.0"
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
   uid ce230cde1834344b39b61e17dc09bea5031db261
   resolved "git://github.com/eclipse-che/che-operator#ce230cde1834344b39b61e17dc09bea5031db261"
-=======
-  resolved "git://github.com/eclipse-che/che-operator#a7ee1e6d7ea2bd61e189cddb1a336118564479d7"
->>>>>>> Fixes
-=======
-  resolved "git://github.com/eclipse-che/che-operator#acc98201a6604cfe8526341075d0635fbcff2edf"
->>>>>>> Fixes
-=======
-  resolved "git://github.com/eclipse-che/che-operator#597d9cdedf72d79ea60c8f0ef7280b82d2c8fe1b"
->>>>>>> fixes
-=======
-  resolved "git://github.com/eclipse-che/che-operator#b8cc02bf9a6a0d6f4eb5d64e02feae8b51653bcd"
->>>>>>> fixes
-=======
-  resolved "git://github.com/eclipse-che/che-operator#ce230cde1834344b39b61e17dc09bea5031db261"
->>>>>>> Fixes
-=======
-  resolved "git://github.com/eclipse-che/che-operator#d52d5adb16e751699f257561836b3582cd6e26f9"
->>>>>>> FIxes
 
 "eclipse-che-server@git://github.com/eclipse-che/che-server#main":
   version "0.0.0"
-  resolved "git://github.com/eclipse-che/che-server#47ebe7c372ea0d405a4bdb707a7166808c8d6240"
+  uid d217fd6ecf4b2dd3c8c2d352071d866d06bb359e
+  resolved "git://github.com/eclipse-che/che-server#d217fd6ecf4b2dd3c8c2d352071d866d06bb359e"
 
 editorconfig@^0.15.0:
   version "0.15.3"
