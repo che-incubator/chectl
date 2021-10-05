@@ -54,13 +54,14 @@ describe('Test rollback Che upgrade', () => {
 
     it('Wait updated Che version', async () => {
       await helper.waitForVersionInCheCR(latestCheVersion, CHE_VERSION_TIMEOUT_MS)
+      // Wait some time to reconcile old resources
+      await helper.sleep(60 * 1000)
     })
   })
 
   describe('Rollback Che update', () => {
     it('Rollback Che to the previous version', async () => {
       console.log(`Rolling back from ${latestCheVersion} to ${previousCheVersion}`)
-
       await helper.runCliCommand(binChectl, ['server:restore', '--batch', '--rollback', `-n ${NAMESPACE}`])
     })
 

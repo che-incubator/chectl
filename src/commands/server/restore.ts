@@ -128,7 +128,6 @@ export default class Restore extends Command {
     if (!flags.batch) {
       notifyCommandCompletedSuccessfully()
     }
-    process.exit(1)
   }
 
   private getRestoreTasks(flags: any): Listr.ListrTask[] {
