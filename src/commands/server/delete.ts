@@ -89,7 +89,8 @@ export default class Delete extends Command {
           return new Listr(devWorkspaceTasks.getUninstallTasks())
         }
         task.title = `${task.title}...Skipped: another Eclipse Che deployment found.`
-      }})
+      },
+    })
 
     if (flags['delete-namespace']) {
       tasks.add(cheTasks.deleteNamespace(flags))
