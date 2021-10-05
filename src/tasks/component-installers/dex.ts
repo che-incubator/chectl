@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { V1ConfigMap, V1Ingress, V1ObjectMeta } from '@kubernetes/client-node'
+import { V1ConfigMap, V1ObjectMeta } from '@kubernetes/client-node'
 import { cli } from 'cli-ux'
 import * as crypto from 'crypto'
 import * as fs from 'fs-extra'
@@ -37,7 +37,7 @@ namespace DexContextKeys {
   export const DEX_CA_CRT = 'dex-ca.crt'
 }
 
-namespace ConfigMapDexCA {
+namespace DexCaConfigMap {
   export const NAME = 'dex-ca'
   export const LABELS = { 'app.kubernetes.io/part-of': 'che.eclipse.org', 'app.kubernetes.io/component': 'ca-bundle' }
 }
@@ -126,13 +126,13 @@ export class DexTasks {
                 {
                   title: 'Add Dex certificate to Eclipse Che certificates bundle',
                   task: async (ctx: any, task: any) => {
-                    if (await this.kube.isConfigMapExists(ConfigMapDexCA.NAME, this.flags.chenamespace)) {
+                    if (await this.kube.isConfigMapExists(DexCaConfigMap.NAME, this.flags.chenamespace)) {
                       task.title = `${task.title}...[Exists]`
                     } else {
                       const dexCa = new V1ConfigMap()
                       dexCa.metadata = new V1ObjectMeta()
-                      dexCa.metadata.name = ConfigMapDexCA.NAME
-                      dexCa.metadata.labels = ConfigMapDexCA.LABELS
+                      dexCa.metadata.name = DexCaConfigMap.NAME
+                      dexCa.metadata.labels = DexCaConfigMap.LABELS
                       dexCa.data = { 'ca.crt': ctx[DexContextKeys.DEX_CA_CRT] }
 
                       await this.kube.createNamespacedConfigMap(this.flags.chenamespace, dexCa)
@@ -192,23 +192,23 @@ export class DexTasks {
                 }
               },
             },
-            {
-              title: 'Create Dex ingress',
-              task: async (_ctx: any, task: any) => {
-                if (await this.kube.isIngressExist(this.dexName, this.namespaceName)) {
-                  task.title = `${task.title}...[Exists]`
-                } else {
-                  const yamlFilePath = this.getDexResourceFilePath('ingress.yaml')
-                  let yamlContent = fs.readFileSync(yamlFilePath).toString()
-                  yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DOMAIN, 'g'), this.flags.domain)
+            // {
+            //   title: 'Create Dex ingress',
+            //   task: async (_ctx: any, task: any) => {
+            //     if (await this.kube.isIngressExist(this.dexName, this.namespaceName)) {
+            //       task.title = `${task.title}...[Exists]`
+            //     } else {
+            //       const yamlFilePath = this.getDexResourceFilePath('ingress.yaml')
+            //       let yamlContent = fs.readFileSync(yamlFilePath).toString()
+            //       yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DOMAIN, 'g'), this.flags.domain)
 
-                  const ingress = yaml.load(yamlContent) as V1Ingress
-                  await this.kube.createIngressFromObj(ingress, this.namespaceName)
+            //       const ingress = yaml.load(yamlContent) as V1Ingress
+            //       await this.kube.createIngressFromObj(ingress, this.namespaceName)
 
-                  task.title = `${task.title}...[OK]`
-                }
-              },
-            },
+            //       task.title = `${task.title}...[OK]`
+            //     }
+            //   },
+            // },
             {
               title: 'Create Dex configmap',
               task: async (ctx: any, task: any) => {
@@ -274,7 +274,7 @@ export class DexTasks {
               title: 'Configure API server',
               task: async (ctx: any) => {
                 ctx[OIDCContextKeys.CLIENT_ID] = this.clientId
-                ctx[OIDCContextKeys.ISSUER_URL] = `https://dex.${this.flags.domain}`
+                ctx[OIDCContextKeys.ISSUER_URL] = `https://dex.${this.flags.domain}:32000`
                 ctx[OIDCContextKeys.CA_FILE] = this.getDexCaCertificateFilePath()
                 return new Listr(this.platform.configureApiServer(this.flags), ctx.listrOptions)
               },

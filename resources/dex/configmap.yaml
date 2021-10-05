@@ -7,7 +7,7 @@ metadata:
     app: dex
 data:
   config.yaml: |
-    issuer: https://dex.{{DOMAIN}}
+    issuer: https://dex.{{DOMAIN}}:32000
     storage:
       type: kubernetes
       config:
