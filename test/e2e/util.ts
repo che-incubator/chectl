@@ -262,7 +262,7 @@ export class E2eHelper {
    async getTwoLatestReleasedVersions(): Promise<[string, string]> {
     const githubClient = new CheGithubClient()
     const latestTags = (githubClient as any).sortSemanticTags(await this.listLatestTags(CHECTL_REPONAME))
-    return latestTags[1].name, latestTags[0].name
+    return [latestTags[1].name, latestTags[0].name]
   }
 
   /**

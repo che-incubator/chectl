@@ -33,7 +33,7 @@ describe('Test rollback Che upgrade', () => {
       // Retrieve pre-latest and latest stable Che version
       [previousCheVersion, latestCheVersion] = await helper.getTwoLatestReleasedVersions()
 
-      const deployCommand = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --channel=${OLM_CHANNEL} --version=${previousCheVersion} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
+      const deployCommand = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --olm-channel=${OLM_CHANNEL} --version=${previousCheVersion} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
       await helper.runCliCommand(deployCommand)
 
       await helper.waitForVersionInCheCR(previousCheVersion, CHE_VERSION_TIMEOUT_MS)
@@ -42,6 +42,8 @@ describe('Test rollback Che upgrade', () => {
 
   describe('Update Che update', () => {
     it('Update Eclipse Che Version to the latest', async () => {
+      console.log(`Updating from ${previousCheVersion} to ${latestCheVersion}`)
+
       await helper.runCliCommand(binChectl, ['server:update', '-y', `-n ${NAMESPACE}`, '--telemetry=off'])
     })
 
@@ -57,7 +59,9 @@ describe('Test rollback Che upgrade', () => {
 
   describe('Rollback Che update', () => {
     it('Rollback Che to the previous version', async () => {
-      await helper.runCliCommand(binChectl, ['server:restore', '--rollback', `-n ${NAMESPACE}`])
+      console.log(`Rolling back from ${latestCheVersion} to ${previousCheVersion}`)
+
+      await helper.runCliCommand(binChectl, ['server:restore', '--batch', '--rollback', `-n ${NAMESPACE}`])
     })
 
     it('Wait previous Che', async () => {

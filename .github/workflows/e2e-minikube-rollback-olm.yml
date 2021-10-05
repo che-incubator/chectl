@@ -28,7 +28,7 @@ jobs:
         export OLM_VERSION=v0.17.0
         curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/${OLM_VERSION}/install.sh | bash -s ${OLM_VERSION}
         sleep 60
-    - name: Run OLM e2e rollback tests on minikube
+    - name: Run OLM e2e rollback tests
       run: |
         export PLATFORM=minikube
         export INSTALLER=olm

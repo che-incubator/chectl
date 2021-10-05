@@ -383,7 +383,7 @@ export default class Restore extends Command {
             flags.platform = 'openshift'
             flags['cluster-monitoring'] = true
           } else {
-            flags.platform = 'kubernetes'
+            flags.platform = 'k8s'
           }
 
           if (flags.installer === 'operator') {
