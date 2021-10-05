@@ -32,7 +32,7 @@ jobs:
       run: |
         export PLATFORM=minikube
         export INSTALLER=olm
-        yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e-rollback.test.ts
+        yarn test --coverage=false --forceExit --detectOpenHandles --testRegex=test/e2e/e2e-rollback.test.ts
     - uses: actions/upload-artifact@v2
       if: ${{ always() }}
       with:

@@ -366,6 +366,7 @@ export function confirmYN(): Promise<boolean> {
     const removeKeyPressHandler = () => {
       process.stdin.removeListener('keypress', keyPressHandler)
       process.stdin.setRawMode(false)
+      process.stdin.destroy()
     }
     const keyPressHandler = (_string: any, key: any) => {
       // Handle brake

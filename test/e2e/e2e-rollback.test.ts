@@ -40,7 +40,7 @@ describe('Test rollback Che upgrade', () => {
     })
   })
 
-  describe('Update Che update', () => {
+  describe('Update Che to the latest stable version', () => {
     it('Update Eclipse Che Version to the latest', async () => {
       console.log(`Updating from ${previousCheVersion} to ${latestCheVersion}`)
 

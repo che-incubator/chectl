@@ -125,7 +125,9 @@ export default class Restore extends Command {
     }
 
     cli.info(getCommandSuccessMessage())
-    notifyCommandCompletedSuccessfully()
+    if (!flags.batch) {
+      notifyCommandCompletedSuccessfully()
+    }
   }
 
   private getRestoreTasks(flags: any): Listr.ListrTask[] {
