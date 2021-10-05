@@ -11,18 +11,12 @@
  */
 import { boolean, string } from '@oclif/parser/lib/flags'
 
-import { DEFAULT_CHE_NAMESPACE, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH } from './constants'
+import { DEFAULT_CHE_NAMESPACE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH } from './constants'
 
 export const cheNamespace = string({
   char: 'n',
   description: `Eclipse Che Kubernetes namespace. Default to '${DEFAULT_CHE_NAMESPACE}'`,
   env: 'CHE_NAMESPACE',
-})
-
-export const devWorkspaceControllerNamespace = string({
-  description: 'Namespace for the DevWorkspace controller.  This parameter is used only when the workspace engine is the DevWorkspace',
-  default: DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE,
-  env: 'DEV_WORKSPACE_OPERATOR_NAMESPACE',
 })
 
 export const batch = boolean({

@@ -17,7 +17,6 @@ import { KubeHelper } from '../../api/kube'
 import { OpenShiftHelper } from '../../api/openshift'
 import { DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE } from '../../constants'
 import { CertManagerTasks } from '../component-installers/cert-manager'
-import { createNamespaceTask } from '../installers/common-tasks'
 
 /**
  * Handle setup of the dev workspace operator controller.
@@ -95,7 +94,6 @@ export class DevWorkspaceTasks {
    */
   getInstallTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
-      createNamespaceTask(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE, {}),
       {
         title: 'Verify cert-manager installation',
         enabled: (ctx: any) => !ctx.isOpenShift,
@@ -222,6 +220,16 @@ export class DevWorkspaceTasks {
           await this.kubeHelper.deleteCrd(this.workspaceRoutingsCrdName)
 
           task.title = await `${task.title}...OK`
+        },
+      },
+      {
+        title: 'Delete DevWorkspace Operator Namespace',
+        task: async (_ctx: any, task: any) => {
+          const namespaceExist = await this.kubeHelper.getNamespace(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+          if (namespaceExist) {
+            await this.kubeHelper.deleteNamespace(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+          }
+          task.title = `${task.title}...OK`
         },
       },
     ]

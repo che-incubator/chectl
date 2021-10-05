@@ -82,7 +82,7 @@ export default class Delete extends Command {
 
     // Remove devworkspace controller only if there are no more cheClusters after olm/operator tasks
     tasks.add({
-      title: 'Uninstall DevWorkspace Controller and DevWorkspace Che Controller',
+      title: 'Uninstall DevWorkspace Controller',
       task: async (_ctx: any, task: any) => {
         const checlusters = await kube.getAllCheClusters()
         if (checlusters.length === 0) {
