@@ -76,3 +76,9 @@ export namespace ChectlContext {
     return ctx
   }
 }
+
+export namespace OIDCContextKeys {
+  export const ISSUER_URL = 'oidc-issuer-url'
+  export const CLIENT_ID = 'oidc-client-id'
+  export const CA_FILE = 'oidc-ca-file'
+}

@@ -12,7 +12,9 @@
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
-
+import * as fs from 'fs-extra'
+import * as os from 'os'
+import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
@@ -58,7 +60,7 @@ export default class Export extends Command {
     try {
       const cheCaCert = await cheHelper.retrieveCheCaCert(flags.chenamespace)
       if (cheCaCert) {
-        const targetFile = await cheHelper.saveCheCaCert(cheCaCert, flags.destination)
+        const targetFile = await cheHelper.saveCaCert(cheCaCert, this.getTargetFile(flags.destination))
         this.log(`Eclipse Che self-signed CA certificate is exported to ${targetFile}`)
       } else {
         this.log('Self signed certificate secret not found. Is commonly trusted certificate used?')
@@ -66,5 +68,20 @@ export default class Export extends Command {
     } catch (err) {
       this.error(wrapCommandError(err))
     }
+  }
+
+  /**
+   * Handles certificate target location and returns string which points to the target file.
+   */
+  private getTargetFile(destination: string | undefined): string {
+    if (!destination) {
+      return path.join(os.tmpdir(), DEFAULT_CA_CERT_FILE_NAME)
+    }
+
+    if (fs.existsSync(destination)) {
+      return fs.lstatSync(destination).isDirectory() ? path.join(destination, DEFAULT_CA_CERT_FILE_NAME) : destination
+    }
+
+    throw new Error(`Given path \'${destination}\' doesn't exist.`)
   }
 }

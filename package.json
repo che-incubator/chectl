@@ -94,7 +94,7 @@
   "files": [
     "/bin",
     "/lib",
-    "/installers",
+    "/resources",
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json",
     "/prepare-che-operator-templates.js"

@@ -21,7 +21,7 @@ import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/types/olm'
 import { VersionHelper } from '../../api/version'
 import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME } from '../../constants'
-import { isKubernetesPlatformFamily } from '../../util'
+import { getEmbeddedTemplatesDirectory, isKubernetesPlatformFamily } from '../../util'
 
 import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
 
@@ -50,7 +50,7 @@ export class OLMTasks {
         enabled: () => flags['cluster-monitoring'] && flags.platform === 'openshift',
         title: `Create Role ${this.prometheusRoleName} in namespace ${flags.chenamespace}`,
         task: async (_ctx: any, task: any) => {
-          const yamlFilePath = path.join(flags.templates, '..', 'installers', 'prometheus-role.yaml')
+          const yamlFilePath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'prometheus-role.yaml')
           const exist = await kube.roleExist(this.prometheusRoleName, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exists.`
@@ -65,7 +65,7 @@ export class OLMTasks {
         title: `Create RoleBinding ${this.prometheusRoleBindingName} in namespace ${flags.chenamespace}`,
         task: async (_ctx: any, task: any) => {
           const exist = await kube.roleBindingExist(this.prometheusRoleBindingName, flags.chenamespace)
-          const yamlFilePath = path.join(flags.templates, '..', 'installers', 'prometheus-role-binding.yaml')
+          const yamlFilePath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'prometheus-role-binding.yaml')
 
           if (exist) {
             task.title = `${task.title}...It already exists.`
@@ -133,8 +133,8 @@ export class OLMTasks {
         task: async (ctx: any, task: any) => {
           if (!await kube.catalogSourceExists(NEXT_CATALOG_SOURCE_NAME, flags.chenamespace)) {
             const catalogSourceImage = `quay.io/eclipse/eclipse-che-${ctx.generalPlatformName}-opm-catalog:preview`
-            const nigthlyCatalogSource = this.constructIndexCatalogSource(flags.chenamespace, catalogSourceImage)
-            await kube.createCatalogSource(nigthlyCatalogSource)
+            const nightlyCatalogSource = this.constructIndexCatalogSource(flags.chenamespace, catalogSourceImage)
+            await kube.createCatalogSource(nightlyCatalogSource)
             await kube.waitCatalogSource(flags.chenamespace, NEXT_CATALOG_SOURCE_NAME)
           } else {
             task.title = `${task.title}...It already exists.`

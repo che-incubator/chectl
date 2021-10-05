@@ -147,7 +147,7 @@ export class CheTasks {
       {
         title: `Verify if Eclipse Che is deployed into namespace \"${this.cheNamespace}\"`,
         task: async (ctx: any, task: any) => {
-          if (await this.kube.deploymentExist(this.cheDeploymentName, this.cheNamespace)) {
+          if (await this.kube.isDeploymentExist(this.cheDeploymentName, this.cheNamespace)) {
             // helm chart and Eclipse Che operator use a deployment
             ctx.isCheDeployed = true
             ctx.isCheReady = await this.kube.deploymentReady(this.cheDeploymentName, this.cheNamespace)
@@ -155,7 +155,7 @@ export class CheTasks {
               ctx.isCheStopped = await this.kube.deploymentStopped(this.cheDeploymentName, this.cheNamespace)
             }
 
-            ctx.isDashboardDeployed = await this.kube.deploymentExist(this.dashboardDeploymentName, this.cheNamespace)
+            ctx.isDashboardDeployed = await this.kube.isDeploymentExist(this.dashboardDeploymentName, this.cheNamespace)
             if (ctx.isDashboardDeployed) {
               ctx.isDashboardReady = await this.kube.deploymentReady(this.dashboardDeploymentName, this.cheNamespace)
               if (!ctx.isDashboardReady) {
@@ -163,7 +163,7 @@ export class CheTasks {
               }
             }
 
-            ctx.isKeycloakDeployed = await this.kube.deploymentExist(this.keycloakDeploymentName, this.cheNamespace)
+            ctx.isKeycloakDeployed = await this.kube.isDeploymentExist(this.keycloakDeploymentName, this.cheNamespace)
             if (ctx.isKeycloakDeployed) {
               ctx.isKeycloakReady = await this.kube.deploymentReady(this.keycloakDeploymentName, this.cheNamespace)
               if (!ctx.isKeycloakReady) {
@@ -171,7 +171,7 @@ export class CheTasks {
               }
             }
 
-            ctx.isPostgresDeployed = await this.kube.deploymentExist(this.postgresDeploymentName, this.cheNamespace)
+            ctx.isPostgresDeployed = await this.kube.isDeploymentExist(this.postgresDeploymentName, this.cheNamespace)
             if (ctx.isPostgresDeployed) {
               ctx.isPostgresReady = await this.kube.deploymentReady(this.postgresDeploymentName, this.cheNamespace)
               if (!ctx.isPostgresReady) {
@@ -179,7 +179,7 @@ export class CheTasks {
               }
             }
 
-            ctx.isDevfileRegistryDeployed = await this.kube.deploymentExist(this.devfileRegistryDeploymentName, this.cheNamespace)
+            ctx.isDevfileRegistryDeployed = await this.kube.isDeploymentExist(this.devfileRegistryDeploymentName, this.cheNamespace)
             if (ctx.isDevfileRegistryDeployed) {
               ctx.isDevfileRegistryReady = await this.kube.deploymentReady(this.devfileRegistryDeploymentName, this.cheNamespace)
               if (!ctx.isDevfileRegistryReady) {
@@ -187,7 +187,7 @@ export class CheTasks {
               }
             }
 
-            ctx.isPluginRegistryDeployed = await this.kube.deploymentExist(this.pluginRegistryDeploymentName, this.cheNamespace)
+            ctx.isPluginRegistryDeployed = await this.kube.isDeploymentExist(this.pluginRegistryDeploymentName, this.cheNamespace)
             if (ctx.isPluginRegistryDeployed) {
               ctx.isPluginRegistryReady = await this.kube.deploymentReady(this.pluginRegistryDeploymentName, this.cheNamespace)
               if (!ctx.isPluginRegistryReady) {

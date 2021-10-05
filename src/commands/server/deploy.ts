@@ -21,6 +21,7 @@ import { batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatc
 import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_HELM_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
+import { DexTasks } from '../../tasks/component-installers/dex'
 import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
@@ -203,7 +204,7 @@ export default class Deploy extends Command {
   }
 
   async setPlaformDefaults(flags: any, ctx: any): Promise<void> {
-    flags.tls = await this.checkTlsMode(ctx)
+    flags.tls = this.getTlsSupport(ctx)
     if (flags['self-signed-cert']) {
       this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
     }
@@ -233,8 +234,8 @@ export default class Deploy extends Command {
    * Checks if TLS is disabled via operator custom resource.
    * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
    */
-  async checkTlsMode(ctx: any): Promise<boolean> {
-    const crPatch = ctx.crPatch
+  private getTlsSupport(ctx: any): boolean {
+    const crPatch = ctx[ChectlContext.CR_PATCH]
     if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
       return false
     }
@@ -248,13 +249,27 @@ export default class Deploy extends Command {
   }
 
   private isDevWorkspaceEnabled(ctx: any): boolean {
-    const crPatch = ctx.crPatch
+    const crPatch = ctx[ChectlContext.CR_PATCH]
     if (crPatch && crPatch.spec && crPatch.spec.devWorkspace && crPatch.spec.devWorkspace.enable) {
       return true
     }
 
     const customCR = ctx.customCR
     if (customCR && customCR.spec && customCR.spec.devWorkspace && customCR.spec.devWorkspace.enable) {
+      return true
+    }
+
+    return false
+  }
+
+  private isNativeUserModeEnabled(ctx: any): boolean {
+    const crPatch = ctx[ChectlContext.CR_PATCH]
+    if (crPatch && crPatch.spec && crPatch.spec.auth && crPatch.spec.auth.nativeUserMode) {
+      return true
+    }
+
+    const customCR = ctx.customCR
+    if (customCR && customCR.spec && customCR.spec.auth && customCR.spec.auth.nativeUserMode) {
       return true
     }
 
@@ -391,8 +406,9 @@ export default class Deploy extends Command {
       }
     }
 
+    const dexTasks = new DexTasks(flags)
     const cheTasks = new CheTasks(flags)
-    const platformTasks = new PlatformTasks()
+    const platformTasks = new PlatformTasks(flags)
     const installerTasks = new InstallerTasks()
     const apiTasks = new ApiTasks()
     const devWorkspaceTasks = new DevWorkspaceTasks(flags)
@@ -414,7 +430,12 @@ export default class Deploy extends Command {
       enabled: () => (this.isDevWorkspaceEnabled(ctx) || flags['workspace-engine'] === 'dev-workspace') && !ctx.isOpenShift,
       task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags)),
     })
-    const installTasks = new Listr(await installerTasks.installTasks(flags, this), ctx.listrOptions)
+
+    const installTasks = new Listr(undefined, ctx.listrOptions)
+    if (this.isNativeUserModeEnabled(ctx)) {
+      installTasks.add(dexTasks.getInstallTasks())
+    }
+    installTasks.add(await installerTasks.installTasks(flags, this))
 
     // Post Install Checks
     const postInstallTasks = new Listr([

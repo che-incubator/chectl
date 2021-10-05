@@ -61,7 +61,7 @@ describe('Eclipse Che helper', () => {
       })
     fancy
       .stub(kube, 'getNamespace', () => ({}))
-      .stub(kube, 'ingressExist', () => true)
+      .stub(kube, 'isIngressExist', () => true)
       .stub(kube, 'isOpenShift', () => false)
       .stub(kube, 'getIngressProtocol', () => 'https')
       .stub(kube, 'getIngressHost', () => 'example.org')
@@ -71,7 +71,7 @@ describe('Eclipse Che helper', () => {
       })
     fancy
       .stub(kube, 'getNamespace', () => ({}))
-      .stub(kube, 'ingressExist', () => false)
+      .stub(kube, 'isIngressExist', () => false)
       .stub(kube, 'isOpenShift', () => true)
       .stub(oc, 'routeExist', () => false)
       .do(() => ch.cheURL('che-namespace')) //ERR_ROUTE_NO_EXIST
@@ -79,7 +79,7 @@ describe('Eclipse Che helper', () => {
       .it('fails fetching Eclipse Che URL when ingress does not exist')
     fancy
       .stub(kube, 'getNamespace', () => ({}))
-      .stub(kube, 'ingressExist', () => false)
+      .stub(kube, 'isIngressExist', () => false)
       .stub(kube, 'isOpenShift', () => false)
       .do(() => ch.cheURL('che-namespace'))
       .catch(err => expect(err.message).to.match(/ERR_INGRESS_NO_EXIST/))
@@ -195,7 +195,7 @@ describe('Eclipse Che helper', () => {
       })
     fancy
       .stub(kube, 'getNamespace', () => ({}))
-      .stub(kube, 'ingressExist', () => true)
+      .stub(kube, 'isIngressExist', () => true)
       .stub(kube, 'isOpenShift', () => false)
       .stub(kube, 'getIngressProtocol', () => 'https')
       .stub(kube, 'getIngressHost', () => 'example.org')
@@ -205,7 +205,7 @@ describe('Eclipse Che helper', () => {
       })
     fancy
       .stub(kube, 'getNamespace', () => ({}))
-      .stub(kube, 'ingressExist', () => false)
+      .stub(kube, 'isIngressExist', () => false)
       .stub(kube, 'isOpenShift', () => true)
       .stub(oc, 'routeExist', () => false)
       .do(() => ch.chePluginRegistryURL('che-namespace')) //ERR_ROUTE_NO_EXIST
@@ -213,7 +213,7 @@ describe('Eclipse Che helper', () => {
       .it('fails fetching Plugin Registry URL when ingress does not exist')
     fancy
       .stub(kube, 'getNamespace', () => ({}))
-      .stub(kube, 'ingressExist', () => false)
+      .stub(kube, 'isIngressExist', () => false)
       .stub(kube, 'isOpenShift', () => false)
       .do(() => ch.chePluginRegistryURL('che-namespace'))
       .catch(err => expect(err.message).to.match(/ERR_INGRESS_NO_EXIST/))
