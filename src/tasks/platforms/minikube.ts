@@ -14,10 +14,10 @@ import { Command } from '@oclif/command'
 import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
-import { sleep } from '../../util'
 import { OIDCContextKeys } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
+import { sleep } from '../../util'
 import { CommonPlatformTasks } from './common-platform-tasks'
 
 export class MinikubeTasks {
@@ -135,6 +135,7 @@ export class MinikubeTasks {
     return [
       {
         title: 'Copy Dex certificate into Minikube',
+        enabled: (ctx: any) => Boolean(ctx[OIDCContextKeys.CA_FILE]),
         task: async (ctx: any, task: any) => {
           const args: string[] = []
           args.push('cp')
@@ -152,7 +153,11 @@ export class MinikubeTasks {
           const args: string[] = []
           args.push(`--extra-config=apiserver.oidc-issuer-url=${ctx[OIDCContextKeys.ISSUER_URL]}`)
           args.push(`--extra-config=apiserver.oidc-client-id=${ctx[OIDCContextKeys.CLIENT_ID]}`)
-          args.push('--extra-config=apiserver.oidc-ca-file=/etc/ca-certificates/dex-ca.crt')
+
+          if (ctx[OIDCContextKeys.CA_FILE]) {
+            args.push('--extra-config=apiserver.oidc-ca-file=/etc/ca-certificates/dex-ca.crt')
+          }
+
           args.push('--extra-config=apiserver.oidc-username-claim=email')
           args.push('--extra-config=apiserver.oidc-groups-claim=groups')
           args.push('start')

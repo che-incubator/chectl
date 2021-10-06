@@ -190,7 +190,7 @@ export function retrieveCheCaCertificateTask(flags: any): Listr.ListrTask {
       const cheCaCert = await che.retrieveCheCaCert(flags.chenamespace)
       if (cheCaCert) {
         const caCertFilePath = path.join(os.tmpdir(), DEFAULT_CA_CERT_FILE_NAME)
-        await che.saveCaCert(cheCaCert, caCertFilePath)
+        fs.writeFileSync(caCertFilePath, cheCaCert)
         task.title = `${task.title}...OK`
         const serverStrategy = await kube.getConfigMapValue('che', flags.chenamespace, 'CHE_INFRA_KUBERNETES_SERVER__STRATEGY')
         if (serverStrategy !== 'single-host') {

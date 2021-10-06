@@ -11,6 +11,7 @@
  */
 import { Command } from '@oclif/command'
 import * as Listr from 'listr'
+import { DexContextKeys } from '../api/context'
 
 import { CheHelper } from '../api/che'
 import { CheApiClient } from '../api/che-api-client'
@@ -758,6 +759,12 @@ export class CheTasks {
               messages.push(OUTPUT_SEPARATOR)
             }
           }
+
+          if (ctx[DexContextKeys.DEX_USERNAME] && ctx[DexContextKeys.DEX_PASSWORD]) {
+            messages.push(`Dex admin credentials     : ${ctx[DexContextKeys.DEX_USERNAME]}:${ctx[DexContextKeys.DEX_PASSWORD]}`)
+            messages.push(OUTPUT_SEPARATOR)
+          }
+
           ctx.highlightedMessages = messages.concat(ctx.highlightedMessages)
           task.title = `${task.title}...done`
         },

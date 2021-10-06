@@ -7,7 +7,7 @@ metadata:
     app: dex
 data:
   config.yaml: |
-    issuer: https://dex.{{DOMAIN}}:32000
+    issuer: https://dex.{{DOMAIN}}
     storage:
       type: kubernetes
       config:
@@ -29,7 +29,6 @@ data:
     enablePasswordDB: true
     staticPasswords:
     - email: "che@eclipse.org"
-      # bcrypt hash of the string "password"
-      hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
+      hash: "{{DEX_PASSWORD_HASH}}"
       username: "admin"
       userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"

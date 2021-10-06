@@ -244,7 +244,7 @@ export class CertManagerTasks {
           if (cheSecret && cheSecret.data) {
             const cheCaCrt = base64Decode(cheSecret.data['ca.crt'])
             const caCertFilePath = path.join(os.tmpdir(), DEFAULT_CA_CERT_FILE_NAME)
-            await this.cheHelper.saveCaCert(cheCaCrt, caCertFilePath)
+            fs.writeFileSync(caCertFilePath, cheCaCrt)
 
             // We need to put self-signed CA certificate separately into CHE_ROOT_CA_SECRET_NAME secret
             await this.kubeHelper.createSecret(flags.chenamespace, CHE_ROOT_CA_SECRET_NAME, { 'ca.crt': cheCaCrt })

@@ -26,7 +26,7 @@ import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighl
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, isKubernetesPlatformFamily, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, getTlsSupport, isDevWorkspaceEnabled, isKubernetesPlatformFamily, isNativeUserModeEnabled, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Deploy extends Command {
   static description = 'Deploy Eclipse Che server'
@@ -204,7 +204,7 @@ export default class Deploy extends Command {
   }
 
   async setPlaformDefaults(flags: any, ctx: any): Promise<void> {
-    flags.tls = this.getTlsSupport(ctx)
+    flags.tls = getTlsSupport(ctx)
     if (flags['self-signed-cert']) {
       this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
     }
@@ -228,52 +228,6 @@ export default class Deploy extends Command {
       // All flavors should use embedded templates if not custom templates is given.
       flags.templates = getEmbeddedTemplatesDirectory()
     }
-  }
-
-  /**
-   * Checks if TLS is disabled via operator custom resource.
-   * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
-   */
-  private getTlsSupport(ctx: any): boolean {
-    const crPatch = ctx[ChectlContext.CR_PATCH]
-    if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
-      return false
-    }
-
-    const customCR = ctx.customCR
-    if (customCR && customCR.spec && customCR.spec.server && customCR.spec.server.tlsSupport === false) {
-      return false
-    }
-
-    return true
-  }
-
-  private isDevWorkspaceEnabled(ctx: any): boolean {
-    const crPatch = ctx[ChectlContext.CR_PATCH]
-    if (crPatch && crPatch.spec && crPatch.spec.devWorkspace && crPatch.spec.devWorkspace.enable) {
-      return true
-    }
-
-    const customCR = ctx.customCR
-    if (customCR && customCR.spec && customCR.spec.devWorkspace && customCR.spec.devWorkspace.enable) {
-      return true
-    }
-
-    return false
-  }
-
-  private isNativeUserModeEnabled(ctx: any): boolean {
-    const crPatch = ctx[ChectlContext.CR_PATCH]
-    if (crPatch && crPatch.spec && crPatch.spec.auth && crPatch.spec.auth.nativeUserMode) {
-      return true
-    }
-
-    const customCR = ctx.customCR
-    if (customCR && customCR.spec && customCR.spec.auth && customCR.spec.auth.nativeUserMode) {
-      return true
-    }
-
-    return false
   }
 
   private checkCompatibility(flags: any) {
@@ -427,12 +381,12 @@ export default class Deploy extends Command {
     preInstallTasks.add(downloadTemplates(flags))
     preInstallTasks.add({
       title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
-      enabled: () => (this.isDevWorkspaceEnabled(ctx) || flags['workspace-engine'] === 'dev-workspace') && !ctx.isOpenShift,
+      enabled: () => (isDevWorkspaceEnabled(ctx) || flags['workspace-engine'] === 'dev-workspace') && !ctx.isOpenShift,
       task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags)),
     })
 
     const installTasks = new Listr(undefined, ctx.listrOptions)
-    if (this.isNativeUserModeEnabled(ctx)) {
+    if (isNativeUserModeEnabled(ctx)) {
       installTasks.add(dexTasks.getInstallTasks())
     }
     installTasks.add(await installerTasks.installTasks(flags, this))

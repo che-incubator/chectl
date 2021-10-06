@@ -10,7 +10,8 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { V1ConfigMap, V1ObjectMeta } from '@kubernetes/client-node'
+import { V1ConfigMap, V1Ingress, V1ObjectMeta } from '@kubernetes/client-node'
+import * as bcrypt from 'bcrypt'
 import { cli } from 'cli-ux'
 import * as crypto from 'crypto'
 import * as fs from 'fs-extra'
@@ -20,9 +21,9 @@ import { merge } from 'lodash'
 import * as os from 'os'
 import * as path from 'path'
 import { CheHelper } from '../../api/che'
-import { ChectlContext, OIDCContextKeys } from '../../api/context'
+import { ChectlContext, DexContextKeys, OIDCContextKeys } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { base64Decode, getEmbeddedTemplatesDirectory } from '../../util'
+import { base64Decode, generatePassword, getEmbeddedTemplatesDirectory, getTlsSecretName } from '../../util'
 import { PlatformTasks } from '../platforms/platform'
 import { CertManagerTasks } from './cert-manager'
 
@@ -31,10 +32,7 @@ namespace TemplatePlaceholders {
   export const CHE_NAMESPACE = '{{NAMESPACE}}'
   export const CLIENT_ID = '{{CLIENT_ID}}'
   export const CLIENT_SECRET = '{{CLIENT_SECRET}}'
-}
-
-namespace DexContextKeys {
-  export const DEX_CA_CRT = 'dex-ca.crt'
+  export const DEX_PASSWORD_HASH = '{{DEX_PASSWORD_HASH}}'
 }
 
 namespace DexCaConfigMap {
@@ -91,6 +89,18 @@ export class DexTasks {
               task: async (ctx: any) => {
                 const certs = new Listr(undefined, ctx.listrOptions)
 
+                if (getTlsSecretName(ctx) === '') {
+                  // Eclipse Che will use a default k8s certificate.
+                  // No need to generate something for dex
+                  certs.add([{
+                    title: 'Use default k8s certificate',
+                    task: async (_ctx: any, task: any) => {
+                      task.title = `${task.title}...[OK]`
+                    },
+                  }])
+                  return certs
+                }
+
                 if (!await this.kube.getSecret(this.tlsSecretName, this.namespaceName)) {
                   const certManager = new CertManagerTasks(this.flags)
                   certs.add(certManager.getDeployCertManagerTasks(this.flags))
@@ -119,7 +129,7 @@ export class DexTasks {
                   title: 'Save Dex certificate',
                   task: async (ctx: any, task: any) => {
                     const dexCaCertificateFilePath = this.getDexCaCertificateFilePath()
-                    await this.che.saveCaCert(ctx[DexContextKeys.DEX_CA_CRT], dexCaCertificateFilePath)
+                    fs.writeFileSync(dexCaCertificateFilePath, ctx[DexContextKeys.DEX_CA_CRT])
                     task.title = `${task.title}...[OK: ${dexCaCertificateFilePath}]`
                   },
                 },
@@ -192,23 +202,43 @@ export class DexTasks {
                 }
               },
             },
-            // {
-            //   title: 'Create Dex ingress',
-            //   task: async (_ctx: any, task: any) => {
-            //     if (await this.kube.isIngressExist(this.dexName, this.namespaceName)) {
-            //       task.title = `${task.title}...[Exists]`
-            //     } else {
-            //       const yamlFilePath = this.getDexResourceFilePath('ingress.yaml')
-            //       let yamlContent = fs.readFileSync(yamlFilePath).toString()
-            //       yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DOMAIN, 'g'), this.flags.domain)
+            {
+              title: 'Create Dex ingress',
+              task: async (_ctx: any, task: any) => {
+                if (await this.kube.isIngressExist(this.dexName, this.namespaceName)) {
+                  task.title = `${task.title}...[Exists]`
+                } else {
+                  const yamlFilePath = this.getDexResourceFilePath('ingress.yaml')
+                  let yamlContent = fs.readFileSync(yamlFilePath).toString()
+                  yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DOMAIN, 'g'), this.flags.domain)
 
-            //       const ingress = yaml.load(yamlContent) as V1Ingress
-            //       await this.kube.createIngressFromObj(ingress, this.namespaceName)
+                  const ingress = yaml.load(yamlContent) as V1Ingress
+                  await this.kube.createIngressFromObj(ingress, this.namespaceName)
 
-            //       task.title = `${task.title}...[OK]`
-            //     }
-            //   },
-            // },
+                  task.title = `${task.title}...[OK]`
+                }
+              },
+            },
+            {
+              title: 'Generate Dex username and password',
+              task: async (ctx: any, task: any) => {
+                const dexConfigMap = await this.kube.getConfigMap(this.dexName, this.namespaceName)
+                if (dexConfigMap && dexConfigMap.data) {
+                  task.title = `${task.title}...[Exists]`
+                } else {
+                  const dexPassword = generatePassword(12)
+
+                  const salt = bcrypt.genSaltSync(10)
+                  const dexPasswordHash = bcrypt.hashSync(dexPassword, salt)
+
+                  ctx[DexContextKeys.DEX_USERNAME] = 'admin'
+                  ctx[DexContextKeys.DEX_PASSWORD] = dexPassword
+                  ctx[DexContextKeys.DEX_PASSWORD_HASH] = dexPasswordHash
+
+                  task.title = `${task.title}...[OK: ${ctx[DexContextKeys.DEX_USERNAME]}:${ctx[DexContextKeys.DEX_PASSWORD]}]`
+                }
+              },
+            },
             {
               title: 'Create Dex configmap',
               task: async (ctx: any, task: any) => {
@@ -236,10 +266,11 @@ export class DexTasks {
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DOMAIN, 'g'), this.flags.domain)
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.CHE_NAMESPACE, 'g'), this.flags.chenamespace)
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.CLIENT_ID, 'g'), this.clientId)
-
                   // generate client secret
                   const clientSecret = crypto.randomBytes(32).toString('base64')
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.CLIENT_SECRET, 'g'), clientSecret)
+
+                  yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DEX_PASSWORD_HASH, 'g'), ctx[DexContextKeys.DEX_PASSWORD_HASH])
 
                   const configMap = yaml.load(yamlContent) as V1ConfigMap
                   await this.kube.createNamespacedConfigMap(this.namespaceName, configMap)
@@ -274,7 +305,7 @@ export class DexTasks {
               title: 'Configure API server',
               task: async (ctx: any) => {
                 ctx[OIDCContextKeys.CLIENT_ID] = this.clientId
-                ctx[OIDCContextKeys.ISSUER_URL] = `https://dex.${this.flags.domain}:32000`
+                ctx[OIDCContextKeys.ISSUER_URL] = `https://dex.${this.flags.domain}`
                 ctx[OIDCContextKeys.CA_FILE] = this.getDexCaCertificateFilePath()
                 return new Listr(this.platform.configureApiServer(this.flags), ctx.listrOptions)
               },

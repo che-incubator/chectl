@@ -185,10 +185,6 @@ export class CheHelper {
     throw new Error(`Secret "${CHE_ROOT_CA_SECRET_NAME}" has invalid format: "ca.crt" key not found in data.`)
   }
 
-  async saveCaCert(cheCaCert: string, destination: string): Promise<void> {
-    fs.writeFileSync(destination, cheCaCert)
-  }
-
   /**
    * Retrieves Keycloak admin user credentials.
    * Works only with installers which use Che CR (operator, olm).

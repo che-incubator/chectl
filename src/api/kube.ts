@@ -20,7 +20,7 @@ import * as https from 'https'
 import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_CHE_TLS_SECRET_NAME, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
 import { base64Encode, getClusterClientCommand, getImageNameAndTag, isKubernetesPlatformFamily, newError, safeLoadFromYamlFile } from '../util'
 import { ChectlContext } from './context'
 import { V1CheClusterBackup, V1CheClusterRestore } from './types/backup-restore-crds'
@@ -1663,7 +1663,7 @@ export class KubeHelper {
       if (flags.tls) {
         cheClusterCR.spec.server.tlsSupport = flags.tls
         if (!cheClusterCR.spec.k8s.tlsSecretName) {
-          cheClusterCR.spec.k8s.tlsSecretName = 'che-tls'
+          cheClusterCR.spec.k8s.tlsSecretName = DEFAULT_CHE_TLS_SECRET_NAME
         }
       }
       if (flags.domain) {

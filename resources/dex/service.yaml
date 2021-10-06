@@ -7,12 +7,9 @@ metadata:
   labels:
     app: dex
 spec:
-  type: NodePort
   ports:
   - name: dex
     port: 5556
     protocol: TCP
-    targetPort: 5556
-    nodePort: 32000
   selector:
     app: dex
