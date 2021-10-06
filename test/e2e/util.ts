@@ -9,6 +9,7 @@
  **********************************************************************/
 import { Octokit } from '@octokit/rest'
 import * as execa from 'execa'
+import { spawn } from 'child_process'
 import * as fs from 'fs-extra'
 
 import { CheHelper } from '../../src/api/che'
@@ -65,6 +66,10 @@ export class E2eHelper {
     return `${process.cwd()}/bin/run`
   }
 
+  /**
+   * Runs given command and returns its output (including error stream if any).
+   * See also runCliCommandVerbose for debug purposes.
+   */
   async runCliCommand(command: string, args?: string[], printOutput = true): Promise<string> {
     if (printOutput) {
       // tslint:disable-next-line: no-console
@@ -85,6 +90,37 @@ export class E2eHelper {
     expect(exitCode).toEqual(0)
 
     return stdout
+  }
+
+  /**
+   * Runs given cli command.
+   * Unlike runCliCommand, it listens to the command output and prints it immediatly.
+   * This function is useful for debigging, especially if the command hungs at some point.
+   */
+  async runCliCommandVerbose(command: string, args?: string[]): Promise<void> {
+    const argsString = args ? args.join(' ') : ''
+    // tslint:disable-next-line: no-console
+    console.log(`Running command ${command} ${argsString}`)
+
+    return new Promise(resolve => {
+      const process = spawn(command, args)
+
+      process.stdout.on('data', data => {
+        // tslint:disable-next-line: no-console
+        console.log(`[output] ${data}`)
+      })
+      process.stderr.on('data', data => {
+        // tslint:disable-next-line: no-console
+        console.log(`[error] ${data}`)
+      })
+
+      process.on('exit', code => {
+        // tslint:disable-next-line: no-console
+        console.log(`Command ${command} ${argsString} exited with code ${code}`)
+
+        resolve()
+      })
+    })
   }
 
   // Return an array with all user workspaces

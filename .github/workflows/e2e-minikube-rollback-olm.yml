@@ -12,7 +12,7 @@ name: Minikube E2E
 on: pull_request
 jobs:
   minikube-e2e-olm-rollback:
-    name: OLM installer update rollback
+    name: OLM installer rollback update
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1

@@ -695,6 +695,9 @@ OPTIONS
   --ssh-key-file=ssh-key-file                            Path to file with private SSH key for authentication on SFTP
                                                          server
 
+  --telemetry=on|off                                     Enable or disable telemetry. This flag skips a prompt and
+                                                         enable/disable telemetry
+
   --username=username                                    Username for authentication in backup REST server
 
 EXAMPLES

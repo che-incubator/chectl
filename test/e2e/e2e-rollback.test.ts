@@ -24,7 +24,7 @@ const OLM_CHANNEL = 'stable'
 const CHE_VERSION_TIMEOUT_MS = 12 * 60 * 1000
 const CHE_BACKUP_TIMEOUT_MS = 2 * 60 * 1000
 
-describe('Test rollback Che upgrade', () => {
+describe('Test rollback Che update', () => {
   let previousCheVersion: string
   let latestCheVersion: string
 
@@ -62,11 +62,13 @@ describe('Test rollback Che upgrade', () => {
   describe('Rollback Che update', () => {
     it('Rollback Che to the previous version', async () => {
       console.log(`Rolling back from ${latestCheVersion} to ${previousCheVersion}`)
-      await helper.runCliCommand(binChectl, ['server:restore', '--batch', '--rollback', `-n ${NAMESPACE}`])
+
+      await helper.runCliCommand(binChectl, ['server:restore', '--batch', '--rollback', '-n', NAMESPACE, '--telemetry=off'])
     })
 
     it('Wait previous Che', async () => {
-      await helper.waitForVersionInCheCR(previousCheVersion, CHE_VERSION_TIMEOUT_MS)
+      // It is possible to reduce awaiting timeout, because rollback itself waits for the restore to complete.
+      await helper.waitForVersionInCheCR(previousCheVersion, 2 * 60 * 1000)
     })
   })
 })

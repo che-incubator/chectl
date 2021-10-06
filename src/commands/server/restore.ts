@@ -15,7 +15,7 @@ import { boolean, string } from '@oclif/parser/lib/flags'
 import * as Listr from 'listr'
 
 import { CHE_BACKUP_SERVER_CONFIG_KIND_PLURAL, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OPERATOR_DEPLOYMENT_NAME } from '../../constants'
-import { batch, listrRenderer } from '../../common-flags'
+import { batch, CHE_TELEMETRY, listrRenderer } from '../../common-flags'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { CheHelper } from '../../api/che'
@@ -55,6 +55,7 @@ export default class Restore extends Command {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'listr-renderer': listrRenderer,
+    telemetry: CHE_TELEMETRY,
     batch,
     [BACKUP_REPOSITORY_URL_KEY]: backupRepositoryUrl,
     [BACKUP_REPOSITORY_PASSWORD_KEY]: backupRepositoryPassword,
