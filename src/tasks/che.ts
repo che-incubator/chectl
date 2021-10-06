@@ -105,7 +105,7 @@ export class CheTasks {
           if (await this.skipKeycloakDeploy()) {
             task.title = `${task.title}...skipped`
             return {
-              task: () => {},
+              task: () => { },
             }
           }
           return this.kubeTasks.podStartTasks(this.keycloakSelector, this.cheNamespace)
@@ -272,7 +272,7 @@ export class CheTasks {
           if (await this.skipKeycloakDeploy()) {
             task.title = `${task.title}...skipped`
             return {
-              task: () => {},
+              task: () => { },
             }
           }
           await this.kube.scaleDeployment(this.keycloakDeploymentName, this.cheNamespace, 1)

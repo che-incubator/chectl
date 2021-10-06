@@ -11,18 +11,18 @@
  */
 
 export interface OAuth {
-    apiVersion: string;
-    kind: string;
-    metadata: V1ObjectMeta;
+  apiVersion: string;
+  kind: string;
+  metadata: V1ObjectMeta;
 
-    spec: OAuthSpec;
+  spec: OAuthSpec;
 }
 
 export interface OAuthSpec {
-    identityProviders: IdentityProvider[];
+  identityProviders: IdentityProvider[];
 }
 
 export interface IdentityProvider {
-    name: string;
-    type: string;
+  name: string;
+  type: string;
 }

@@ -2612,7 +2612,7 @@ export class KubeHelper {
    * Data should not be base64 encoded.
    */
   async createOrReplaceSecret(namespace: string, name: string, data: { [key: string]: string }): Promise<V1Secret | undefined> {
-    const existingSecret =  await this.getSecret(name, namespace)
+    const existingSecret = await this.getSecret(name, namespace)
     if (existingSecret) {
       const base64encodedData: { [key: string]: string } = {}
       for (const key of Object.keys(data)) {
