@@ -295,10 +295,10 @@
   dependencies:
     "@cspotcode/source-map-consumer" "0.8.0"
 
-"@eclipse-che/api@7.37.0":
-  version "7.37.0"
-  resolved "https://registry.yarnpkg.com/@eclipse-che/api/-/api-7.37.0.tgz#7ce350cf5860b61b431fe0c0d51c7808cbb2f24f"
-  integrity sha512-WBVr3jiKtlXJsievL/X29+30qs7pFTi5IvY34syLb66Xh+sZo+hEkZxoFPHKb6CuVRRt2/LlDzdURi9fIUjJlA==
+"@eclipse-che/api@7.37.1":
+  version "7.37.1"
+  resolved "https://registry.yarnpkg.com/@eclipse-che/api/-/api-7.37.1.tgz#c59e524f9a9353068448ee71bc6ac25dc4721fe3"
+  integrity sha512-oWhh40mhW/GpBmhf4SVhTw4B/nBuM9q6m9kB4VH6K+TTpzkzeNDAjyo3OzXvMl+/o4HQ9JXPV7JFVnAuJ2YYPw==
 
 "@eslint/eslintrc@^0.4.3":
   version "0.4.3"
@@ -2643,13 +2643,13 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
-"eclipse-che-operator@git://github.com/eclipse-che/che-operator#7.37.0":
+"eclipse-che-operator@git://github.com/eclipse-che/che-operator#7.37.1":
   version "0.0.0"
-  resolved "git://github.com/eclipse-che/che-operator#f5c4eaed8ccb30b6593737ebe32c59e75c7e5bb9"
+  resolved "git://github.com/eclipse-che/che-operator#cffc3e517e19b0809f18cff20a7a7565293ebab7"
 
-"eclipse-che-server@git://github.com/eclipse-che/che-server#7.37.0":
+"eclipse-che-server@git://github.com/eclipse-che/che-server#7.37.1":
   version "0.0.0"
-  resolved "git://github.com/eclipse-che/che-server#b4ef1c1a4d56d918844226cc109ca9c879dd3638"
+  resolved "git://github.com/eclipse-che/che-server#7fe01350d000f991e5c1b9ed648d116ed8748635"
 
 editorconfig@^0.15.0:
   version "0.15.3"
