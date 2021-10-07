@@ -63,7 +63,7 @@ describe('Test rollback Che update', () => {
     it('Rollback Che to the previous version', async () => {
       console.log(`Rolling back from ${latestCheVersion} to ${previousCheVersion}`)
 
-      await helper.runCliCommand(binChectl, ['server:restore', '--batch', '--rollback', '-n', NAMESPACE, '--telemetry=off'])
+      await helper.runCliCommandVerbose(binChectl, ['server:restore', '--batch', '--rollback', '-n', NAMESPACE, '--telemetry=off'])
     })
 
     it('Wait previous Che', async () => {
