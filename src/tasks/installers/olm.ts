@@ -23,7 +23,7 @@ import { VersionHelper } from '../../api/version'
 import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME } from '../../constants'
 import { getEmbeddedTemplatesDirectory, isKubernetesPlatformFamily } from '../../util'
 
-import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
+import { createEclipseCheCluster, patchingEclipseCheCluster } from './common-tasks'
 
 export const TASK_TITLE_SET_CUSTOM_OPERATOR_IMAGE = 'Set custom operator image'
 export const TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE = 'Create custom catalog source from file'
@@ -45,7 +45,6 @@ export class OLMTasks {
     const che = new CheHelper(flags)
     return [
       this.isOlmPreInstalledTask(command, kube),
-      createNamespaceTask(flags.chenamespace, this.getOlmNamespaceLabels(flags)),
       {
         enabled: () => flags['cluster-monitoring'] && flags.platform === 'openshift',
         title: `Create Role ${this.prometheusRoleName} in namespace ${flags.chenamespace}`,
@@ -487,13 +486,5 @@ export class OLMTasks {
     } else {
       throw new Error(`Unable to retrieve Che cluster CR definition from CSV: ${currentCSV}`)
     }
-  }
-
-  private getOlmNamespaceLabels(flags: any): any {
-    // The label values must be strings
-    if (flags['cluster-monitoring'] && flags.platform === 'openshift') {
-      return { 'openshift.io/cluster-monitoring': 'true' }
-    }
-    return {}
   }
 }

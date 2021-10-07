@@ -72,7 +72,7 @@ export class DexTasks {
         task: async (ctx: any, _task: any) => {
           return new Listr([
             {
-              title: 'Create Dex namespace',
+              title: `Create namespace: ${this.namespaceName}`,
               task: async (_ctx: any, task: any) => {
                 if (await this.kube.getNamespace(this.namespaceName)) {
                   task.title = `${task.title}...[Exists]`

@@ -21,7 +21,7 @@ import { VersionHelper } from '../../api/version'
 import { CHE_BACKUP_SERVER_CONFIG_CRD, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_CRD, CHE_CLUSTER_CRD, CHE_CLUSTER_KIND_PLURAL, CHE_CLUSTER_RESTORE_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME, OPERATOR_TEMPLATE_DIR } from '../../constants'
 import { getImageNameAndTag, safeLoadFromYamlFile } from '../../util'
 import { KubeTasks } from '../kube'
-import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
+import { createEclipseCheCluster, patchingEclipseCheCluster } from './common-tasks'
 
 export class OperatorTasks {
   operatorServiceAccount = 'che-operator'
@@ -155,7 +155,6 @@ export class OperatorTasks {
       command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of Eclipse Che (--installer=olm).')
     }
     return [
-      createNamespaceTask(flags.chenamespace, {}),
       {
         title: `Create ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {

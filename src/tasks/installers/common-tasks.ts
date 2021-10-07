@@ -32,18 +32,18 @@ export const TASK_TITLE_PATCH_CHECLUSTER_CR = `Patching the Custom Resource of t
 
 export function createNamespaceTask(namespaceName: string, labels: {}): Listr.ListrTask {
   return {
-    title: `Create Namespace (${namespaceName})`,
+    title: `Create Namespace ${namespaceName}`,
     task: async (_ctx: any, task: any) => {
       const kube = new KubeHelper()
 
       const namespace = await kube.getNamespace(namespaceName)
       if (namespace) {
         await kube.waitNamespaceActive(namespaceName)
-        task.title = `${task.title}...It already exists.`
+        task.title = `${task.title}...[Exists]`
       } else {
         await kube.createNamespace(namespaceName, labels)
         await kube.waitNamespaceActive(namespaceName)
-        task.title = `${task.title}...Done.`
+        task.title = `${task.title}...[OK]`
       }
     },
   }

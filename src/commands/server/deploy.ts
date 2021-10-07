@@ -22,7 +22,7 @@ import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTE
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { DexTasks } from '../../tasks/component-installers/dex'
-import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
+import { checkChectlAndCheVersionCompatibility, createNamespaceTask, downloadTemplates, getPrintHighlightedMessagesTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
@@ -386,6 +386,7 @@ export default class Deploy extends Command {
     })
 
     const installTasks = new Listr(undefined, ctx.listrOptions)
+    installTasks.add([createNamespaceTask(flags.chenamespace, this.getNamespaceLabels(flags))])
     if (isNativeUserModeEnabled(ctx)) {
       installTasks.add(dexTasks.getInstallTasks())
     }
@@ -432,6 +433,14 @@ export default class Deploy extends Command {
       notifyCommandCompletedSuccessfully()
     }
     this.exit(0)
+  }
+
+  private getNamespaceLabels(flags: any): any {
+    // The label values must be strings
+    if (flags['cluster-monitoring'] && flags.platform === 'openshift') {
+      return { 'openshift.io/cluster-monitoring': 'true' }
+    }
+    return {}
   }
 }
 
