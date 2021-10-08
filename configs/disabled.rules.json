@@ -26,6 +26,8 @@
       "no-else-return": 0,
       "no-useless-return": 0,
       "no-case-declarations": 0,
+      "lines-between-class-members": 0,
+      "max-params": 0,
       "complexity": 0
     }
 }
