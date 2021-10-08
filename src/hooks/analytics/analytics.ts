@@ -29,13 +29,17 @@ export const hook = async (options: { command: string, flags: any, config: IConf
 
     // Prompt question if user allow chectl to collect data anonymous data.
     if (!options.flags.telemetry && !segmentTelemetry) {
+      // Do not ask for enabling telemetry in batch mode. Just skip it if the telemetry flag is not set.
+      if (options.flags.batch) {
+        return
+      }
       const confirmed = await cli.confirm('Enable CLI usage data to be sent to Red Hat online services. More info: https://developers.redhat.com/article/tool-data-collection [y/n]')
       segmentTelemetry = confirmed ? 'on' : 'off'
       configManager.setProperty(SegmentProperties.Telemetry, segmentTelemetry)
     }
 
-    // In case of negative confirmation chectl don't collect any data
-    if (segmentTelemetry === 'off') {
+    // If not confirmed, chectl doesn't collect any data.
+    if (segmentTelemetry !== 'on') {
       return
     }
 

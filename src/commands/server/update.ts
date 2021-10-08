@@ -164,7 +164,9 @@ export default class Update extends Command {
       this.error(wrapCommandError(err))
     }
 
-    notifyCommandCompletedSuccessfully()
+    if (!flags.batch) {
+      notifyCommandCompletedSuccessfully()
+    }
   }
 
   /**

@@ -107,7 +107,9 @@ export default class Delete extends Command {
       this.exit(0)
     }
 
-    notifyCommandCompletedSuccessfully()
+    if (!flags.batch) {
+      notifyCommandCompletedSuccessfully()
+    }
     this.exit(0)
   }
 
