@@ -2360,6 +2360,10 @@ export class KubeHelper {
   }
 
   async createCheClusterCertificate(certificate: V1Certificate, version: string): Promise<void> {
+    if (!certificate.metadata || !certificate.metadata.namespace) {
+      throw new Error('Expected namespace in metadata')
+    }
+
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     try {
