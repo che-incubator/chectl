@@ -106,9 +106,9 @@ export class PlatformTasks {
     return [task]
   }
 
-  configureApiServer(flags: any): ReadonlyArray<Listr.ListrTask> {
+  configureApiServerForDex(flags: any): ReadonlyArray<Listr.ListrTask> {
     if (flags.platform === 'minikube') {
-      return this.minikubeTasks.configureApiServer(flags)
+      return this.minikubeTasks.configureApiServerForDex(flags)
     } else {
       cli.error(`It is not possible to configure API server for ${flags.platform}.`)
     }

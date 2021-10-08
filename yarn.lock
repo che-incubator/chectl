@@ -2738,11 +2738,11 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-operator@git://github.com/eclipse-che/che-operator#main":
   version "0.0.0"
-  resolved "git://github.com/eclipse-che/che-operator#5e7dc085d4ef905994d18f0ab1330d3d2a8c149c"
+  resolved "git://github.com/eclipse-che/che-operator#c68fb1da6c9fda951c9000988f3821eebadfeab1"
 
 "eclipse-che-server@git://github.com/eclipse-che/che-server#main":
   version "0.0.0"
-  resolved "git://github.com/eclipse-che/che-server#3a99240d2f57cf65b08f03ad660cd0857dfd079b"
+  resolved "git://github.com/eclipse-che/che-server#63b33cabc088ee950c334a4cd6d17e5a7bfcd807"
 
 editorconfig@^0.15.0:
   version "0.15.3"

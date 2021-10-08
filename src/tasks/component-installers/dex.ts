@@ -23,7 +23,7 @@ import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { ChectlContext, DexContextKeys, OIDCContextKeys } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { base64Decode, generatePassword, getEmbeddedTemplatesDirectory, getTlsSecretName } from '../../util'
+import { base64Decode, getEmbeddedTemplatesDirectory, getTlsSecretName } from '../../util'
 import { PlatformTasks } from '../platforms/platform'
 import { CertManagerTasks } from './cert-manager'
 
@@ -41,17 +41,23 @@ namespace DexCaConfigMap {
 }
 
 export class DexTasks {
-  protected clientId = 'eclipse-che'
+  private static readonly DEX_USERNAME = 'admin'
 
-  protected dexName = 'dex'
+  private static readonly DEX_PASSWORD = 'admin'
 
-  protected namespaceName = 'dex'
+  private static readonly CLIENT_ID = 'eclipse-che'
 
-  protected tlsSecretName = 'dex.tls'
+  private static readonly DEX_NAME = 'dex'
 
-  protected caCertificateFileName = 'dex-ca.crt'
+  private static readonly NAMESPACE_NAME = 'dex'
 
-  protected selector = 'app=dex'
+  private static readonly TLS_SECRET_NAME = 'dex.tls'
+
+  private static readonly CREDENTIALS_SECRET_NAME = 'dex-credentials'
+
+  private static readonly CA_CERTIFICATE_FILENAME = 'dex-ca.crt'
+
+  private static readonly SELECTOR = 'app=dex'
 
   protected kube: KubeHelper
 
@@ -72,14 +78,14 @@ export class DexTasks {
         task: async (ctx: any, _task: any) => {
           return new Listr([
             {
-              title: `Create namespace: ${this.namespaceName}`,
+              title: `Create namespace: ${DexTasks.NAMESPACE_NAME}`,
               task: async (_ctx: any, task: any) => {
-                if (await this.kube.getNamespace(this.namespaceName)) {
+                if (await this.kube.getNamespace(DexTasks.NAMESPACE_NAME)) {
                   task.title = `${task.title}...[Exists]`
                 } else {
                   const yamlFilePath = this.getDexResourceFilePath('namespace.yaml')
                   await this.kube.createNamespaceFromFile(yamlFilePath)
-                  await this.kube.waitNamespaceActive(this.namespaceName)
+                  await this.kube.waitNamespaceActive(DexTasks.NAMESPACE_NAME)
                   task.title = `${task.title}...[OK]`
                 }
               },
@@ -101,7 +107,7 @@ export class DexTasks {
                   return certs
                 }
 
-                if (!await this.kube.getSecret(this.tlsSecretName, this.namespaceName)) {
+                if (!await this.kube.getSecret(DexTasks.TLS_SECRET_NAME, DexTasks.NAMESPACE_NAME)) {
                   const certManager = new CertManagerTasks(this.flags)
                   certs.add(certManager.getDeployCertManagerTasks(this.flags))
                   certs.add(certManager.getGenerateCertManagerCACertificateTasks(this.flags))
@@ -110,18 +116,18 @@ export class DexTasks {
                   const domain = 'dex.' + this.flags.domain
                   const commonName = '*.' + domain
                   const dnsNames = [domain, commonName]
-                  certs.add(certManager.getGenerateCertificatesTasks(this.flags, commonName, dnsNames, this.tlsSecretName, this.namespaceName))
+                  certs.add(certManager.getGenerateCertificatesTasks(this.flags, commonName, dnsNames, DexTasks.TLS_SECRET_NAME, DexTasks.NAMESPACE_NAME))
                 }
 
                 certs.add([{
                   title: 'Read Dex certificate',
                   task: async (ctx: any, task: any) => {
-                    const secret = await this.kube.getSecret(this.tlsSecretName, this.namespaceName)
+                    const secret = await this.kube.getSecret(DexTasks.TLS_SECRET_NAME, DexTasks.NAMESPACE_NAME)
                     if (secret && secret.data) {
                       ctx[DexContextKeys.DEX_CA_CRT] = base64Decode(secret.data['ca.crt'])
                       task.title = `${task.title}...[OK]`
                     } else {
-                      throw new Error(`Dex certificate not found in the secret '${this.tlsSecretName}' in the namespace '${this.namespaceName}'.`)
+                      throw new Error(`Dex certificate not found in the secret '${DexTasks.TLS_SECRET_NAME}' in the namespace '${DexTasks.NAMESPACE_NAME}'.`)
                     }
                   },
                 },
@@ -157,11 +163,11 @@ export class DexTasks {
             {
               title: 'Create Dex service account',
               task: async (_ctx: any, task: any) => {
-                if (await this.kube.isServiceAccountExist(this.dexName, this.namespaceName)) {
+                if (await this.kube.isServiceAccountExist(DexTasks.DEX_NAME, DexTasks.NAMESPACE_NAME)) {
                   task.title = `${task.title}...[Exists]`
                 } else {
                   const yamlFilePath = this.getDexResourceFilePath('service-account.yaml')
-                  await this.kube.createServiceAccountFromFile(yamlFilePath, this.namespaceName)
+                  await this.kube.createServiceAccountFromFile(yamlFilePath, DexTasks.NAMESPACE_NAME)
                   task.title = `${task.title}...[OK]`
                 }
               },
@@ -169,7 +175,7 @@ export class DexTasks {
             {
               title: 'Create Dex cluster role',
               task: async (_ctx: any, task: any) => {
-                if (await this.kube.isClusterRoleExist(this.dexName)) {
+                if (await this.kube.isClusterRoleExist(DexTasks.DEX_NAME)) {
                   task.title = `${task.title}...[Exists]`
                 } else {
                   const yamlFilePath = this.getDexResourceFilePath('cluster-role.yaml')
@@ -181,7 +187,7 @@ export class DexTasks {
             {
               title: 'Create Dex cluster role binding',
               task: async (_ctx: any, task: any) => {
-                if (await this.kube.isClusterRoleBindingExist(this.dexName)) {
+                if (await this.kube.isClusterRoleBindingExist(DexTasks.DEX_NAME)) {
                   task.title = `${task.title}...[Exists]`
                 } else {
                   const yamlFilePath = this.getDexResourceFilePath('cluster-role-binding.yaml')
@@ -193,11 +199,11 @@ export class DexTasks {
             {
               title: 'Create Dex service',
               task: async (_ctx: any, task: any) => {
-                if (await this.kube.isServiceExists(this.dexName, this.namespaceName)) {
+                if (await this.kube.isServiceExists(DexTasks.DEX_NAME, DexTasks.NAMESPACE_NAME)) {
                   task.title = `${task.title}...[Exists]`
                 } else {
                   const yamlFilePath = this.getDexResourceFilePath('service.yaml')
-                  await this.kube.createServiceFromFile(yamlFilePath, this.namespaceName)
+                  await this.kube.createServiceFromFile(yamlFilePath, DexTasks.NAMESPACE_NAME)
                   task.title = `${task.title}...[OK]`
                 }
               },
@@ -205,7 +211,7 @@ export class DexTasks {
             {
               title: 'Create Dex ingress',
               task: async (_ctx: any, task: any) => {
-                if (await this.kube.isIngressExist(this.dexName, this.namespaceName)) {
+                if (await this.kube.isIngressExist(DexTasks.DEX_NAME, DexTasks.NAMESPACE_NAME)) {
                   task.title = `${task.title}...[Exists]`
                 } else {
                   const yamlFilePath = this.getDexResourceFilePath('ingress.yaml')
@@ -213,7 +219,7 @@ export class DexTasks {
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DOMAIN, 'g'), this.flags.domain)
 
                   const ingress = yaml.load(yamlContent) as V1Ingress
-                  await this.kube.createIngressFromObj(ingress, this.namespaceName)
+                  await this.kube.createIngressFromObj(ingress, DexTasks.NAMESPACE_NAME)
 
                   task.title = `${task.title}...[OK]`
                 }
@@ -222,18 +228,23 @@ export class DexTasks {
             {
               title: 'Generate Dex username and password',
               task: async (ctx: any, task: any) => {
-                const dexConfigMap = await this.kube.getConfigMap(this.dexName, this.namespaceName)
+                const dexConfigMap = await this.kube.getConfigMap(DexTasks.DEX_NAME, DexTasks.NAMESPACE_NAME)
                 if (dexConfigMap && dexConfigMap.data) {
                   task.title = `${task.title}...[Exists]`
                 } else {
-                  const dexPassword = generatePassword(12)
+                  // use the fixed password for now
+                  const dexPassword = DexTasks.DEX_PASSWORD
 
                   const salt = bcrypt.genSaltSync(10)
                   const dexPasswordHash = bcrypt.hashSync(dexPassword, salt)
 
-                  ctx[DexContextKeys.DEX_USERNAME] = 'admin'
+                  ctx[DexContextKeys.DEX_USERNAME] = DexTasks.DEX_USERNAME
                   ctx[DexContextKeys.DEX_PASSWORD] = dexPassword
                   ctx[DexContextKeys.DEX_PASSWORD_HASH] = dexPasswordHash
+
+                  // create a secret to store credentials
+                  const credentials: any = { user: DexTasks.DEX_USERNAME, password: dexPassword}
+                  await this.kube.createSecret(DexTasks.NAMESPACE_NAME, DexTasks.CREDENTIALS_SECRET_NAME, credentials)
 
                   task.title = `${task.title}...[OK: ${ctx[DexContextKeys.DEX_USERNAME]}:${ctx[DexContextKeys.DEX_PASSWORD]}]`
                 }
@@ -242,22 +253,23 @@ export class DexTasks {
             {
               title: 'Create Dex configmap',
               task: async (ctx: any, task: any) => {
-                const dexConfigMap = await this.kube.getConfigMap(this.dexName, this.namespaceName)
+                const dexConfigMap = await this.kube.getConfigMap(DexTasks.DEX_NAME, DexTasks.NAMESPACE_NAME)
                 if (dexConfigMap && dexConfigMap.data) {
                   // read client secret
-                  const config = yaml.load(dexConfigMap.data['config.yaml']) as any
-                  if (!config) {
-                    throw new Error(`'config.yaml' not defined in the configmap '${this.dexName}' in the namespace '${this.namespaceName}'`)
+                  const configYamlData = dexConfigMap.data['config.yaml']
+                  if (!configYamlData) {
+                    throw new Error(`'config.yaml' not defined in the configmap '${DexTasks.DEX_NAME}' in the namespace '${DexTasks.NAMESPACE_NAME}'`)
                   }
 
-                  const eclipseCheClient = (config.staticClients as Array<any>).find(client => client.id === this.clientId)
+                  const config = yaml.load(configYamlData) as any
+                  const eclipseCheClient = (config.staticClients as Array<any>).find(client => client.id === DexTasks.CLIENT_ID)
                   if (!eclipseCheClient) {
-                    cli.error(`'${this.clientId}' client not found in the configmap '${this.dexName}' in the namespace '${this.namespaceName}'.`)
+                    cli.error(`'${DexTasks.CLIENT_ID}' client not found in the configmap '${DexTasks.DEX_NAME}' in the namespace '${DexTasks.NAMESPACE_NAME}'.`)
                   }
 
                   // set in a CR
                   ctx[ChectlContext.CR_PATCH] = ctx[ChectlContext.CR_PATCH] || {}
-                  merge(ctx[ChectlContext.CR_PATCH], { spec: { auth: { oAuthClientName: this.clientId, oAuthSecret: eclipseCheClient.secret } } })
+                  merge(ctx[ChectlContext.CR_PATCH], { spec: { auth: { oAuthClientName: DexTasks.CLIENT_ID, oAuthSecret: eclipseCheClient.secret } } })
 
                   task.title = `${task.title}...[Exists]`
                 } else {
@@ -265,7 +277,7 @@ export class DexTasks {
                   let yamlContent = fs.readFileSync(yamlFilePath).toString()
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DOMAIN, 'g'), this.flags.domain)
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.CHE_NAMESPACE, 'g'), this.flags.chenamespace)
-                  yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.CLIENT_ID, 'g'), this.clientId)
+                  yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.CLIENT_ID, 'g'), DexTasks.CLIENT_ID)
                   // generate client secret
                   const clientSecret = crypto.randomBytes(32).toString('base64')
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.CLIENT_SECRET, 'g'), clientSecret)
@@ -273,10 +285,10 @@ export class DexTasks {
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DEX_PASSWORD_HASH, 'g'), ctx[DexContextKeys.DEX_PASSWORD_HASH])
 
                   const configMap = yaml.load(yamlContent) as V1ConfigMap
-                  await this.kube.createNamespacedConfigMap(this.namespaceName, configMap)
+                  await this.kube.createNamespacedConfigMap(DexTasks.NAMESPACE_NAME, configMap)
 
                   // set in a CR
-                  merge(ctx[ChectlContext.CR_PATCH], { spec: { auth: { oAuthClientName: this.clientId, oAuthSecret: clientSecret } } })
+                  merge(ctx[ChectlContext.CR_PATCH], { spec: { auth: { oAuthClientName: DexTasks.CLIENT_ID, oAuthSecret: clientSecret } } })
 
                   task.title = `${task.title}...[OK]`
                 }
@@ -285,11 +297,11 @@ export class DexTasks {
             {
               title: 'Create Dex deployment',
               task: async (_ctx: any, task: any) => {
-                if (await this.kube.isDeploymentExist(this.dexName, this.namespaceName)) {
+                if (await this.kube.isDeploymentExist(DexTasks.DEX_NAME, DexTasks.NAMESPACE_NAME)) {
                   task.title = `${task.title}...[Exists]`
                 } else {
                   const yamlFilePath = this.getDexResourceFilePath('deployment.yaml')
-                  await this.kube.createDeploymentFromFile(yamlFilePath, this.namespaceName)
+                  await this.kube.createDeploymentFromFile(yamlFilePath, DexTasks.NAMESPACE_NAME)
                   task.title = `${task.title}...[OK]`
                 }
               },
@@ -297,17 +309,17 @@ export class DexTasks {
             {
               title: 'Wait for Dex is ready',
               task: async (_ctx: any, task: any) => {
-                await this.kube.waitForPodReady(this.selector, this.namespaceName)
+                await this.kube.waitForPodReady(DexTasks.SELECTOR, DexTasks.NAMESPACE_NAME)
                 task.title = `${task.title}...[OK]`
               },
             },
             {
               title: 'Configure API server',
               task: async (ctx: any) => {
-                ctx[OIDCContextKeys.CLIENT_ID] = this.clientId
+                ctx[OIDCContextKeys.CLIENT_ID] = DexTasks.CLIENT_ID
                 ctx[OIDCContextKeys.ISSUER_URL] = `https://dex.${this.flags.domain}`
                 ctx[OIDCContextKeys.CA_FILE] = this.getDexCaCertificateFilePath()
-                return new Listr(this.platform.configureApiServer(this.flags), ctx.listrOptions)
+                return new Listr(this.platform.configureApiServerForDex(this.flags), ctx.listrOptions)
               },
             },
           ], ctx.listrOptions)
@@ -317,7 +329,7 @@ export class DexTasks {
   }
 
   getDexCaCertificateFilePath(): string {
-    return path.join(os.tmpdir(), this.caCertificateFileName)
+    return path.join(os.tmpdir(), DexTasks.CA_CERTIFICATE_FILENAME)
   }
 
   getDexResourceFilePath(fileName: string): string {

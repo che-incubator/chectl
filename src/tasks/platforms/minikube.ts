@@ -131,7 +131,7 @@ export class MinikubeTasks {
     ], { renderer: flags['listr-renderer'] as any })
   }
 
-  configureApiServer(flags: any): ReadonlyArray<Listr.ListrTask> {
+  configureApiServerForDex(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Copy Dex certificate into Minikube',
@@ -169,7 +169,7 @@ export class MinikubeTasks {
       },
       {
         title: 'Wait for Minikube API server',
-        task: async (_: any, task: any) => {
+        task: async (_ctx: any, task: any) => {
           const kube = new KubeHelper(flags)
           await sleep(30 * 1000)
           await kube.waitForPodReady('component=kube-apiserver', 'kube-system')
