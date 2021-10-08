@@ -20,7 +20,7 @@ import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/typings/olm'
 import { VersionHelper } from '../../api/version'
-import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME } from '../../constants'
+import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME, OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME } from '../../constants'
 import { isKubernetesPlatformFamily } from '../../util'
 
 import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
@@ -77,7 +77,7 @@ export class OLMTasks {
       },
       {
         title: 'Create operator group',
-        // 'stable-all-namespaces' channel install the operator in openshift-operators namespace and there already exists a pre-created operator-group.
+        // 'stable-all-namespaces' and 'next-all-namespaces' channels install the operator in openshift-operators namespace and there already exists a pre-created operator-group.
         enabled: (ctx: any) => ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
         task: async (_ctx: any, task: any) => {
           const operatorGroup = await che.findCheOperatorOperatorGroup(flags.chenamespace)
@@ -129,13 +129,13 @@ export class OLMTasks {
       },
       {
         enabled: () => !VersionHelper.isDeployingStableVersion(flags) && !flags['catalog-source-name'] && !flags['catalog-source-yaml'] && flags['olm-channel'] !== OLM_STABLE_CHANNEL_NAME,
-        title: `Create next index CatalogSource in the namespace ${flags.chenamespace}`,
+        title: `Create next index CatalogSource`,
         task: async (ctx: any, task: any) => {
-          if (!await kube.catalogSourceExists(NEXT_CATALOG_SOURCE_NAME, flags.chenamespace)) {
+          if (!await kube.catalogSourceExists(NEXT_CATALOG_SOURCE_NAME, ctx.operatorNamespace)) {
             const catalogSourceImage = `quay.io/eclipse/eclipse-che-${ctx.generalPlatformName}-opm-catalog:preview`
-            const nigthlyCatalogSource = this.constructIndexCatalogSource(flags.chenamespace, catalogSourceImage)
-            await kube.createCatalogSource(nigthlyCatalogSource)
-            await kube.waitCatalogSource(flags.chenamespace, NEXT_CATALOG_SOURCE_NAME)
+            const nextCatalogSource = this.constructIndexCatalogSource(ctx.operatorNamespace, catalogSourceImage)
+            await kube.createCatalogSource(nextCatalogSource)
+            await kube.waitCatalogSource(ctx.operatorNamespace, NEXT_CATALOG_SOURCE_NAME)
           } else {
             task.title = `${task.title}...It already exists.`
           }
@@ -178,9 +178,13 @@ export class OLMTasks {
           } else if (flags['olm-channel'] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME) {
             // stable Che CatalogSource
             subscription = this.constructSubscription(ctx.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
-          } else {
+          } else if (flags['olm-channel'] === OLM_NEXT_CHANNEL_NAME) {
             // next Che CatalogSource
-            subscription = this.constructSubscription(ctx.subscriptionName, `eclipse-che-preview-${ctx.generalPlatformName}`, ctx.operatorNamespace, ctx.operatorNamespace, OLM_NEXT_CHANNEL_NAME, NEXT_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
+            subscription = this.constructSubscription(ctx.subscriptionName, `eclipse-che-preview-${ctx.generalPlatformName}`, ctx.operatorNamespace, ctx.operatorNamespace, flags['olm-channel'], NEXT_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
+          } else if (flags['olm-channel'] === OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME) {
+            subscription = this.constructSubscription(ctx.subscriptionName, `eclipse-che-preview-${ctx.generalPlatformName}`, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, flags['olm-channel'], NEXT_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
+          } else {
+            throw new Error(`Unknown OLM channel ${flags['olm-channel']}`);
           }
           await kube.createOperatorSubscription(subscription)
           task.title = `${task.title}...created new one.`
@@ -345,7 +349,7 @@ export class OLMTasks {
       {
         title: 'Check if operator is installed',
         task: async (ctx: any, task: any) => {
-          const subscription = await che.findCheOperatorSubscription(flags.chenamespace || DEFAULT_CHE_NAMESPACE)
+          const subscription = await che.findCheOperatorSubscription(ctx.operatorNamespace || DEFAULT_CHE_NAMESPACE)
           if (subscription) {
             ctx.subscriptionName = subscription.metadata.name
             ctx.operatorNamespace = subscription.metadata.namespace
