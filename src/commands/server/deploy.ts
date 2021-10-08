@@ -453,7 +453,9 @@ export default class Deploy extends Command {
       this.error(wrapCommandError(err))
     }
 
-    notifyCommandCompletedSuccessfully()
+    if (!flags.batch) {
+      notifyCommandCompletedSuccessfully()
+    }
     this.exit(0)
   }
 }
