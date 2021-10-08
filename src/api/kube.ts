@@ -23,11 +23,11 @@ import { Writable } from 'stream'
 
 import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
 import { base64Encode, getClusterClientCommand, getImageNameAndTag, isKubernetesPlatformFamily, newError, safeLoadFromYamlFile } from '../util'
-import { V1CheClusterBackup, V1CheClusterRestore } from './typings/backup-restore-crds'
+import { V1CheClusterBackup, V1CheClusterRestore } from './types/backup-restore-crds'
 
-import { V1Certificate } from './typings/cert-manager'
-import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './typings/olm'
-import { IdentityProvider, OAuth } from './typings/openshift'
+import { V1Certificate } from './types/cert-manager'
+import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './types/olm'
+import { IdentityProvider, OAuth } from './types/openshift'
 import { VersionHelper } from './version'
 
 const AWAIT_TIMEOUT_S = 30
@@ -2357,6 +2357,10 @@ export class KubeHelper {
   }
 
   async createCheClusterCertificate(certificate: V1Certificate, version: string): Promise<void> {
+    if (!certificate.metadata?.namespace) {
+      throw new Error('Expected namespace in metadata')
+    }
+
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     try {

@@ -27,7 +27,7 @@ import { TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE, TASK_TITLE_DELETE_CU
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { checkChectlAndCheVersionCompatibility, downloadTemplates, TASK_TITLE_CREATE_CHE_CLUSTER_CRD, TASK_TITLE_PATCH_CHECLUSTER_CR } from '../../tasks/installers/common-tasks'
 import { confirmYN, findWorkingNamespace, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
-import { V1CheBackupServerConfiguration, V1CheClusterBackup, V1CheClusterRestore, V1CheClusterRestoreStatus } from '../../api/typings/backup-restore-crds'
+import { V1CheBackupServerConfiguration, V1CheClusterBackup, V1CheClusterRestore, V1CheClusterRestoreStatus } from '../../api/types/backup-restore-crds'
 
 import { awsAccessKeyId, awsSecretAccessKey, AWS_ACCESS_KEY_ID_KEY, AWS_SECRET_ACCESS_KEY_KEY, backupRepositoryPassword, backupRepositoryUrl, backupRestServerPassword, backupRestServerUsername, backupServerConfigName, BACKUP_REPOSITORY_PASSWORD_KEY, BACKUP_REPOSITORY_URL_KEY, BACKUP_REST_SERVER_PASSWORD_KEY, BACKUP_REST_SERVER_USERNAME_KEY, BACKUP_SERVER_CONFIG_CR_NAME_KEY, getBackupServerConfiguration, sshKey, sshKeyFile, SSH_KEY_FILE_KEY, SSH_KEY_KEY } from './backup'
 

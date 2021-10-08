@@ -18,7 +18,7 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { CatalogSource, Subscription } from '../../api/typings/olm'
+import { CatalogSource, Subscription } from '../../api/types/olm'
 import { VersionHelper } from '../../api/version'
 import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME } from '../../constants'
 import { isKubernetesPlatformFamily } from '../../util'
