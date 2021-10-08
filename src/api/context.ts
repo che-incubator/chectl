@@ -76,3 +76,16 @@ export namespace ChectlContext {
     return ctx
   }
 }
+
+export namespace OIDCContextKeys {
+  export const ISSUER_URL = 'oidc-issuer-url'
+  export const CLIENT_ID = 'oidc-client-id'
+  export const CA_FILE = 'oidc-ca-file'
+}
+
+export namespace DexContextKeys {
+  export const DEX_CA_CRT = 'dex-ca.crt'
+  export const DEX_USERNAME = 'dex-username'
+  export const DEX_PASSWORD = 'dex-password'
+  export const DEX_PASSWORD_HASH = 'dex-password-hash'
+}

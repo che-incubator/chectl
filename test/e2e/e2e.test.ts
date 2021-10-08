@@ -37,7 +37,7 @@ const INSTALLER_OPERATOR = 'operator'
 const INSTALLER_HELM = 'helm'
 const INSTALLER_OLM = 'olm'
 
-const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse-che/che-devfile-registry/master/devfiles/go/devfile.yaml'
+const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse-che/che-devfile-registry/main/devfiles/nodejs/devfile.yaml'
 
 function getDeployCommand(): string {
   const cheVersion = helper.getNewVersion()

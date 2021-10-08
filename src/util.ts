@@ -23,11 +23,10 @@ import * as os from 'os'
 import * as path from 'path'
 import * as readline from 'readline'
 import { promisify } from 'util'
-
 import { ChectlContext } from './api/context'
 import { KubeHelper } from './api/kube'
 import { VersionHelper } from './api/version'
-import { DEFAULT_CHE_NAMESPACE, LEGACY_CHE_NAMESPACE } from './constants'
+import { DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_TLS_SECRET_NAME, LEGACY_CHE_NAMESPACE } from './constants'
 
 const pkjson = require('../package.json')
 
@@ -386,4 +385,64 @@ export function confirmYN(): Promise<boolean> {
     }
     process.stdin.on('keypress', keyPressHandler)
   })
+}
+
+/**
+ * Checks if TLS is disabled via operator custom resource.
+ * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
+ */
+export function getTlsSupport(ctx: any): boolean {
+  const crPatch = ctx[ChectlContext.CR_PATCH]
+  if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
+    return false
+  }
+
+  const customCR = ctx.customCR
+  if (customCR && customCR.spec && customCR.spec.server && customCR.spec.server.tlsSupport === false) {
+    return false
+  }
+
+  return true
+}
+
+export function isDevWorkspaceEnabled(ctx: any): boolean {
+  const crPatch = ctx[ChectlContext.CR_PATCH]
+  if (crPatch && crPatch.spec && crPatch.spec.devWorkspace && crPatch.spec.devWorkspace.enable) {
+    return true
+  }
+
+  const customCR = ctx.customCR
+  if (customCR && customCR.spec && customCR.spec.devWorkspace && customCR.spec.devWorkspace.enable) {
+    return true
+  }
+
+  return false
+}
+
+export function isNativeUserModeEnabled(ctx: any): boolean {
+  const crPatch = ctx[ChectlContext.CR_PATCH]
+  if (crPatch && crPatch.spec && crPatch.spec.auth && crPatch.spec.auth.nativeUserMode) {
+    return true
+  }
+
+  const customCR = ctx.customCR
+  if (customCR && customCR.spec && customCR.spec.auth && customCR.spec.auth.nativeUserMode) {
+    return true
+  }
+
+  return false
+}
+
+export function getTlsSecretName(ctx: any): string {
+  const crPatch = ctx[ChectlContext.CR_PATCH]
+  if (crPatch && crPatch.spec && crPatch.spec.k8s && crPatch.spec.k8s.tlsSecretName) {
+    return crPatch.spec.k8s.tlsSecretName
+  }
+
+  const customCR = ctx.customCR
+  if (customCR && customCR.spec && customCR.spec.k8s && customCR.spec.k8s.tlsSecretName) {
+    return customCR.spec.k8s.tlsSecretName
+  }
+
+  return DEFAULT_CHE_TLS_SECRET_NAME
 }

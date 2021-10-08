@@ -115,11 +115,17 @@ export class HelmTasks {
             task.title = `${task.title}...going to generate self-signed one`
 
             const certManagerTasks = new CertManagerTasks(flags)
-            const certManagerListTasks = new Listr(undefined, ctx.listrOptions)
-            certManagerListTasks.add(certManagerTasks.getDeployCertManagerTasks(flags))
-            certManagerListTasks.add(certManagerTasks.getGenerateCertificatesTasks(flags))
+            const certManagerTasksList = new Listr(undefined, ctx.listrOptions)
+            certManagerTasksList.add(certManagerTasks.getDeployCertManagerTasks(flags))
+            certManagerTasksList.add(certManagerTasks.getGenerateCertManagerCACertificateTasks(flags))
+            certManagerTasksList.add(certManagerTasks.getCreateCertificateIssuerTasks(flags))
 
-            return certManagerListTasks
+            const commonName = '*.' + flags.domain
+            const dnsNames = [flags.domain, commonName]
+            certManagerTasksList.add(certManagerTasks.getGenerateCertificatesTasks(flags, commonName, dnsNames, CHE_TLS_SECRET_NAME, flags.chenamespace))
+            certManagerTasksList.add(certManagerTasks.getRetrieveCheCACertificate(flags))
+
+            return certManagerTasksList
           }
         },
       },

@@ -201,7 +201,7 @@ export class E2eHelper {
 
   // Return ingress and protocol from minikube platform
   async K8SHostname(ingressName: string, namespace: string): Promise<string> {
-    if (await this.kubeHelper.ingressExist(ingressName, namespace)) {
+    if (await this.kubeHelper.isIngressExist(ingressName, namespace)) {
       const protocol = await this.kubeHelper.getIngressProtocol(ingressName, namespace)
       const hostname = await this.kubeHelper.getIngressHost(ingressName, namespace)
 

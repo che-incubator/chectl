@@ -14,7 +14,6 @@ import { che as chetypes } from '@eclipse-che/api'
 import { CoreV1Api, V1Pod, Watch } from '@kubernetes/client-node'
 import axios, { AxiosInstance } from 'axios'
 import * as cp from 'child_process'
-import { cli } from 'cli-ux'
 import * as commandExists from 'command-exists'
 import * as fs from 'fs-extra'
 import * as https from 'https'
@@ -25,7 +24,7 @@ import * as path from 'path'
 import * as rimraf from 'rimraf'
 import * as unzipper from 'unzipper'
 import { OpenShiftHelper } from '../api/openshift'
-import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OPERATOR_TEMPLATE_DIR } from '../constants'
+import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OPERATOR_TEMPLATE_DIR } from '../constants'
 import { base64Decode, downloadFile } from '../util'
 import { CheApiClient } from './che-api-client'
 import { Devfile } from './types/devfile'
@@ -186,27 +185,6 @@ export class CheHelper {
     throw new Error(`Secret "${CHE_ROOT_CA_SECRET_NAME}" has invalid format: "ca.crt" key not found in data.`)
   }
 
-  async saveCheCaCert(cheCaCert: string, destination?: string): Promise<string> {
-    const cheCaCertFile = this.getTargetFile(destination)
-    fs.writeFileSync(cheCaCertFile, cheCaCert)
-    return cheCaCertFile
-  }
-
-  /**
-   * Handles certificate target location and returns string which points to the target file.
-   */
-  private getTargetFile(destination: string | undefined): string {
-    if (!destination) {
-      return path.join(os.tmpdir(), DEFAULT_CA_CERT_FILE_NAME)
-    }
-
-    if (fs.existsSync(destination)) {
-      return fs.lstatSync(destination).isDirectory() ? path.join(destination, DEFAULT_CA_CERT_FILE_NAME) : destination
-    }
-
-    throw new Error(`Given path \'${destination}\' doesn't exist.`)
-  }
-
   /**
    * Retrieves Keycloak admin user credentials.
    * Works only with installers which use Che CR (operator, olm).
@@ -240,7 +218,7 @@ export class CheHelper {
   }
 
   async chePluginRegistryK8sURL(namespace = ''): Promise<string> {
-    if (await this.kube.ingressExist('plugin-registry', namespace)) {
+    if (await this.kube.isIngressExist('plugin-registry', namespace)) {
       const protocol = await this.kube.getIngressProtocol('plugin-registry', namespace)
       const hostname = await this.kube.getIngressHost('plugin-registry', namespace)
       return `${protocol}://${hostname}`
@@ -260,7 +238,7 @@ export class CheHelper {
   async cheK8sURL(namespace = ''): Promise<string> {
     const ingress_names = ['che', 'che-ingress']
     for (const ingress_name of ingress_names) {
-      if (await this.kube.ingressExist(ingress_name, namespace)) {
+      if (await this.kube.isIngressExist(ingress_name, namespace)) {
         const protocol = await this.kube.getIngressProtocol(ingress_name, namespace)
         const hostname = await this.kube.getIngressHost(ingress_name, namespace)
         return `${protocol}://${hostname}`
@@ -402,22 +380,6 @@ export class CheHelper {
       },
       // ignore errors
       () => { })
-  }
-
-  /**
-   * Wait until workspace is in 'Active` state.
-   */
-  async waitNamespaceActive(namespaceName: string, intervalMs = 500, timeoutMs = 60000) {
-    const iterations = timeoutMs / intervalMs
-    for (let index = 0; index < iterations; index++) {
-      const namespace = await this.kube.getNamespace(namespaceName)
-      if (namespace && namespace.status && namespace.status.phase && namespace.status.phase === 'Active') {
-        return
-      }
-      await cli.wait(intervalMs)
-    }
-
-    throw new Error(`ERR_TIMEOUT: ${namespaceName} is not 'Active'.`)
   }
 
   /**
