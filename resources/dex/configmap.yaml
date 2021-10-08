@@ -13,9 +13,7 @@ data:
       config:
         inCluster: true
     web:
-      https: 0.0.0.0:5556
-      tlsCert: /etc/dex/tls/tls.crt
-      tlsKey: /etc/dex/tls/tls.key
+      http: 0.0.0.0:5556
 
     oauth2:
       skipApprovalScreen: true
@@ -23,7 +21,7 @@ data:
     staticClients:
     - id: {{CLIENT_ID}}
       redirectURIs:
-      - 'https://{{NAMESPACE}}.{{DOMAIN}}/oauth2/callback'
+      - 'https://che-{{NAMESPACE}}.{{DOMAIN}}/oauth2/callback'
       name: 'Eclipse Che'
       secret: {{CLIENT_SECRET}}
     enablePasswordDB: true
