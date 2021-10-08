@@ -16,7 +16,7 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { V1Certificate } from '../../api/typings/cert-manager'
+import { V1Certificate } from '../../api/types/cert-manager'
 import { CA_CERT_GENERATION_JOB_IMAGE, CERT_MANAGER_NAMESPACE_NAME, CHE_RELATED_COMPONENT_LABEL, CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
 import { base64Decode } from '../../util'
 import { getMessageImportCaCertIntoBrowser } from '../installers/common-tasks'

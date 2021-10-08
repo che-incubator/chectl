@@ -28,9 +28,9 @@ import { OpenShiftHelper } from '../api/openshift'
 import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OPERATOR_TEMPLATE_DIR } from '../constants'
 import { base64Decode, downloadFile } from '../util'
 import { CheApiClient } from './che-api-client'
-import { Devfile } from './devfile'
+import { Devfile } from './types/devfile'
 import { KubeHelper } from './kube'
-import { OperatorGroup, Subscription } from './typings/olm'
+import { OperatorGroup, Subscription } from './types/olm'
 
 export class CheHelper {
   defaultCheResponseTimeoutMs = 3000
