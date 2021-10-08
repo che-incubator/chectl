@@ -387,7 +387,7 @@ export default class Deploy extends Command {
 
     const installTasks = new Listr(undefined, ctx.listrOptions)
     installTasks.add([createNamespaceTask(flags.chenamespace, this.getNamespaceLabels(flags))])
-    if (isNativeUserModeEnabled(ctx)) {
+    if (isKubernetesPlatformFamily(flags.platform) && isNativeUserModeEnabled(ctx)) {
       installTasks.add(dexTasks.getInstallTasks())
     }
     installTasks.add(await installerTasks.installTasks(flags, this))
