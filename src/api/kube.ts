@@ -38,11 +38,8 @@ export class KubeHelper {
   readonly API_EXTENSIONS_V1BETA1 = 'apiextensions.k8s.io/v1beta1'
 
   podWaitTimeout: number
-
   podDownloadImageTimeout: number
-
   podReadyTimeout: number
-
   podErrorRecheckTimeout: number
 
   constructor(flags?: any) {
