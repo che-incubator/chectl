@@ -1151,10 +1151,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/node-forge@^0.10.5":
-  version "0.10.5"
-  resolved "https://registry.yarnpkg.com/@types/node-forge/-/node-forge-0.10.5.tgz#f79925c88202817a7ec0958c3a9d3a915d362b4f"
-  integrity sha512-P+Q+MPSDr0RgIzv5h0gJuJDCm1e4RaSu/EMJZTUS4ZzboWH2uX/T7TiqAAcEFTHzCKtgMRqCgTVTX9SD72fMTQ==
+"@types/node-forge@^0.10.7":
+  version "0.10.7"
+  resolved "https://registry.yarnpkg.com/@types/node-forge/-/node-forge-0.10.7.tgz#5ca98fb02c9c93012e5c310ae0ab30bed66535ff"
+  integrity sha512-Eq8e24JegOZ+3BfBkYcp31V/C8v72edG3U/flsWnoOAZDV1u0yFjTpzIRS9FZtp15jZjmjsQ/sUNx0WckVd2Zw==
   dependencies:
     "@types/node" "*"
 
