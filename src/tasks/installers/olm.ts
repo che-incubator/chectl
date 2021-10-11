@@ -15,7 +15,7 @@ import { cli } from 'cli-ux'
 import * as yaml from 'js-yaml'
 import Listr = require('listr')
 import * as path from 'path'
-
+import { OLM, OLMInstallationUpdate } from '../../api/context'
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/types/olm'
@@ -95,31 +95,31 @@ export class OLMTasks {
           // catalog source name for stable Che version
           ctx.catalogSourceNameStable = isKubernetesPlatformFamily(flags.platform) ? KUBERNETES_OLM_CATALOG : OPENSHIFT_OLM_CATALOG
 
-          ctx.sourceName = flags['catalog-source-name'] || CUSTOM_CATALOG_SOURCE_NAME
+          ctx.sourceName = flags[OLM.CATALOG_SOURCE_NAME] || CUSTOM_CATALOG_SOURCE_NAME
           ctx.generalPlatformName = isKubernetesPlatformFamily(flags.platform) ? 'kubernetes' : 'openshift'
 
           if (flags.version) {
             // Convert version flag to channel (see subscription object), starting CSV and approval starategy
             flags.version = VersionHelper.removeVPrefix(flags.version, true)
             // Need to point to specific CSV
-            if (flags['starting-csv']) {
-              ctx.startingCSV = flags['starting-csv']
-            } else if (flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME) {
+            if (flags[OLM.STARTING_CSV]) {
+              ctx.startingCSV = flags[OLM.STARTING_CSV]
+            } else if (flags[OLM.CHANNEL] === OLM_STABLE_CHANNEL_NAME) {
               ctx.startingCSV = `eclipse-che.v${flags.version}`
-            } else if (flags['olm-channel'] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME) {
+            } else if (flags[OLM.CHANNEL] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME) {
               ctx.startingCSV = `eclipse-che-preview-openshift.v${flags.version}-all-namespaces`
             } // else use latest in the channel
             // Set approval starategy to manual to prevent autoupdate to the latest version right before installation
-            ctx.approvalStarategy = 'Manual'
+            ctx.approvalStarategy = OLMInstallationUpdate.MANUAL
           } else {
-            ctx.startingCSV = flags['starting-csv']
+            ctx.startingCSV = flags[OLM.STARTING_CSV]
             if (ctx.startingCSV) {
-              // Ignore auto-update flag, otherwise it will automatically update to the latest version and starting-csv will not have any effect.
-              ctx.approvalStarategy = 'Manual'
-            } else if (flags['auto-update'] === undefined) {
-              ctx.approvalStarategy = 'Automatic'
+              // Ignore auto-update flag, otherwise it will automatically update to the latest version and 'starting-csv' will not have any effect.
+              ctx.approvalStarategy = OLMInstallationUpdate.MANUAL
+            } else if (flags[OLM.AUTO_UPDATE] === undefined) {
+              ctx.approvalStarategy = OLMInstallationUpdate.AUTO
             } else {
-              ctx.approvalStarategy = flags['auto-update'] ? 'Automatic' : 'Manual'
+              ctx.approvalStarategy = flags[OLM.AUTO_UPDATE] ? OLMInstallationUpdate.AUTO : OLMInstallationUpdate.MANUAL
             }
           }
 
@@ -127,7 +127,7 @@ export class OLMTasks {
         },
       },
       {
-        enabled: () => !VersionHelper.isDeployingStableVersion(flags) && !flags['catalog-source-name'] && !flags['catalog-source-yaml'] && flags['olm-channel'] !== OLM_STABLE_CHANNEL_NAME,
+        enabled: () => !VersionHelper.isDeployingStableVersion(flags) && !flags[OLM.CATALOG_SOURCE_NAME] && !flags[OLM.CATALOG_SOURCE_YAML] && flags[OLM.CHANNEL] !== OLM_STABLE_CHANNEL_NAME,
         title: `Create next index CatalogSource`,
         task: async (ctx: any, task: any) => {
           if (!await kube.catalogSourceExists(NEXT_CATALOG_SOURCE_NAME, ctx.operatorNamespace)) {
@@ -142,9 +142,9 @@ export class OLMTasks {
       },
       {
         title: TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE,
-        enabled: () => flags['catalog-source-yaml'],
+        enabled: () => flags[OLM.CATALOG_SOURCE_YAML],
         task: async (ctx: any, task: any) => {
-          const customCatalogSource: CatalogSource = kube.readCatalogSourceFromFile(flags['catalog-source-yaml'])
+          const customCatalogSource: CatalogSource = kube.readCatalogSourceFromFile(flags[OLM.CATALOG_SOURCE_YAML])
           if (!await kube.catalogSourceExists(customCatalogSource.metadata!.name!, flags.chenamespace)) {
             customCatalogSource.metadata.name = ctx.sourceName
             customCatalogSource.metadata.namespace = flags.chenamespace
@@ -167,23 +167,23 @@ export class OLMTasks {
           }
           ctx.subscriptionName = DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME
 
-          if (flags['catalog-source-yaml'] || flags['catalog-source-name']) {
+          if (flags[OLM.CATALOG_SOURCE_YAML] || flags[OLM.CATALOG_SOURCE_NAME]) {
             // custom Che CatalogSource
-            const catalogSourceNamespace = flags['catalog-source-namespace'] || ctx.operatorNamespace
-            subscription = this.constructSubscription(ctx.subscriptionName, flags['package-manifest-name'], ctx.operatorNamespace, catalogSourceNamespace, flags['olm-channel'], ctx.sourceName, ctx.approvalStarategy, ctx.startingCSV)
-          } else if (flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME || (VersionHelper.isDeployingStableVersion(flags) && !flags['olm-channel'])) {
+            const catalogSourceNamespace = flags[OLM.CATALOG_SOURCE_NAMESPACE] || ctx.operatorNamespace
+            subscription = this.constructSubscription(ctx.subscriptionName, flags[OLM.PACKAGE_MANIFEST_NAME], ctx.operatorNamespace, catalogSourceNamespace, flags[OLM.CHANNEL], ctx.sourceName, ctx.approvalStarategy, ctx.startingCSV)
+          } else if (flags[OLM.CHANNEL] === OLM_STABLE_CHANNEL_NAME || (VersionHelper.isDeployingStableVersion(flags) && !flags[OLM.CHANNEL])) {
             // stable Che CatalogSource
             subscription = this.constructSubscription(ctx.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
-          } else if (flags['olm-channel'] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME) {
+          } else if (flags[OLM.CHANNEL] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME) {
             // stable Che CatalogSource
             subscription = this.constructSubscription(ctx.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
-          } else if (flags['olm-channel'] === OLM_NEXT_CHANNEL_NAME) {
+          } else if (flags[OLM.CHANNEL] === OLM_NEXT_CHANNEL_NAME) {
             // next Che CatalogSource
-            subscription = this.constructSubscription(ctx.subscriptionName, `eclipse-che-preview-${ctx.generalPlatformName}`, ctx.operatorNamespace, ctx.operatorNamespace, flags['olm-channel'], NEXT_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
-          } else if (flags['olm-channel'] === OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME) {
-            subscription = this.constructSubscription(ctx.subscriptionName, `eclipse-che-preview-${ctx.generalPlatformName}`, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, flags['olm-channel'], NEXT_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
+            subscription = this.constructSubscription(ctx.subscriptionName, `eclipse-che-preview-${ctx.generalPlatformName}`, ctx.operatorNamespace, ctx.operatorNamespace, flags[OLM.CHANNEL], NEXT_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
+          } else if (flags[OLM.CHANNEL] === OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME) {
+            subscription = this.constructSubscription(ctx.subscriptionName, `eclipse-che-preview-${ctx.generalPlatformName}`, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, flags[OLM.CHANNEL], NEXT_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
           } else {
-            throw new Error(`Unknown OLM channel ${flags['olm-channel']}`);
+            throw new Error(`Unknown OLM channel ${flags[OLM.CHANNEL]}`);
           }
           await kube.createOperatorSubscription(subscription)
           task.title = `${task.title}...created new one.`
@@ -199,7 +199,7 @@ export class OLMTasks {
       },
       {
         title: 'Approve installation',
-        enabled: ctx => ctx.approvalStarategy === 'Manual',
+        enabled: ctx => ctx.approvalStarategy === OLMInstallationUpdate.MANUAL,
         task: async (ctx: any, task: any) => {
           await kube.approveOperatorInstallationPlan(ctx.installPlanName, ctx.operatorNamespace)
           task.title = `${task.title}...done.`

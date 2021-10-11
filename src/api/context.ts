@@ -50,7 +50,7 @@ export namespace ChectlContext {
     }
 
     ctx.operatorNamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
-    if (flags['olm-channel'] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME || flags['olm-channel'] === OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME) {
+    if (flags[OLM.CHANNEL] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME || flags[OLM.CHANNEL] === OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME) {
       ctx.operatorNamespace = DEFAULT_OPENSHIFT_OPERATORS_NS_NAME
     }
 
@@ -88,4 +88,22 @@ export namespace DexContextKeys {
   export const DEX_USERNAME = 'dex-username'
   export const DEX_PASSWORD = 'dex-password'
   export const DEX_PASSWORD_HASH = 'dex-password-hash'
+}
+
+export namespace OLM {
+  export const CHANNEL = 'olm-channel'
+  export const STARTING_CSV = 'starting-csv'
+  export const AUTO_UPDATE = 'auto-update'
+
+
+  // Custom catalog source
+  export const CATALOG_SOURCE_NAME = 'catalog-source-name'
+  export const CATALOG_SOURCE_NAMESPACE = 'catalog-source-namespace'
+  export const CATALOG_SOURCE_YAML = 'catalog-source-yaml'
+  export const PACKAGE_MANIFEST_NAME = 'package-manifest-name'
+}
+
+export enum OLMInstallationUpdate {
+  MANUAL = 'Manual',
+  AUTO = 'Automatic'
 }
