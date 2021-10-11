@@ -11,14 +11,14 @@
  */
 
 import * as fs from 'fs-extra'
+import * as os from 'os'
 import * as Listr from 'listr'
 import * as path from 'path'
-
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { V1Certificate } from '../../api/typings/cert-manager'
-import { CA_CERT_GENERATION_JOB_IMAGE, CERT_MANAGER_NAMESPACE_NAME, CHE_RELATED_COMPONENT_LABEL, CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
-import { base64Decode } from '../../util'
+import { V1Certificate } from '../../api/types/cert-manager'
+import { CA_CERT_GENERATION_JOB_IMAGE, CERT_MANAGER_NAMESPACE_NAME, CHE_RELATED_COMPONENT_LABEL, CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
+import { base64Decode, getEmbeddedTemplatesDirectory } from '../../util'
 import { getMessageImportCaCertIntoBrowser } from '../installers/common-tasks'
 
 export const CERT_MANAGER_CA_SECRET_NAME = 'ca'
@@ -52,14 +52,14 @@ export class CertManagerTasks {
         },
       },
       {
-        title: 'Deploy cert-manager',
+        title: 'Deploy Cert Manager',
         enabled: ctx => !ctx.certManagerInstalled,
         task: async (ctx: any, task: any) => {
           let yamlPath = path.join(flags.templates, 'cert-manager', 'cert-manager.yaml')
           if (!await fs.pathExists(yamlPath)) {
             // Older Che versions don't have Cert Manager install yaml in templates
             // Try to use embedded in chectl version
-            yamlPath = path.join(__dirname, '../../../installers/cert-manager.yml')
+            yamlPath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'cert-manager.yml')
           }
           // Apply additional --validate=false flag to be able to deploy Cert Manager on Kubernetes v1.15.4 or below
           await this.kubeHelper.applyResource(yamlPath, '--validate=false')
@@ -69,7 +69,7 @@ export class CertManagerTasks {
         },
       },
       {
-        title: 'Wait for cert-manager',
+        title: 'Wait for Cert Manager',
         enabled: ctx => ctx.certManagerInstalled,
         task: async (ctx: any, task: any) => {
           if (!ctx.certManagerInstalled) {
@@ -89,10 +89,7 @@ export class CertManagerTasks {
     ]
   }
 
-  /**
-   * Returns list of tasks which perform cert-manager checks and requests self-signed certificate for Che.
-   */
-  getGenerateCertificatesTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+  getGenerateCertManagerCACertificateTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Check Cert Manager CA certificate',
@@ -148,6 +145,11 @@ export class CertManagerTasks {
           }
         },
       },
+    ]
+  }
+
+  getCreateCertificateIssuerTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+    return [
       {
         title: 'Set up Eclipse Che certificates issuer',
         task: async (ctx: any, task: any) => {
@@ -182,8 +184,18 @@ export class CertManagerTasks {
           }
         },
       },
+    ]
+  }
+
+  getGenerateCertificatesTasks(
+    flags: any,
+    commonName: string,
+    dnsNames: string[],
+    secretName: string,
+    namespace: string): ReadonlyArray<Listr.ListrTask> {
+    return [
       {
-        title: 'Request certificate',
+        title: `Request certificate for dnsNames: [${dnsNames}]`,
         task: async (ctx: any, task: any) => {
           if (ctx.cheCertificateExists) {
             throw new Error('Eclipse Che certificate already exists.')
@@ -193,18 +205,14 @@ export class CertManagerTasks {
           }
 
           const certificateTemplatePath = path.join(flags.templates, '/cert-manager/che-certificate.yml')
-          const certifiateYaml = this.kubeHelper.safeLoadFromYamlFile(certificateTemplatePath) as V1Certificate
+          const certificate = this.kubeHelper.safeLoadFromYamlFile(certificateTemplatePath) as V1Certificate
+          certificate.metadata.namespace = namespace
+          certificate.spec.secretName = secretName
+          certificate.spec.commonName = commonName
+          certificate.spec.dnsNames = dnsNames
+          certificate.spec.issuerRef.name = ctx.clusterIssuersName
 
-          const CN = '*.' + flags.domain
-          certifiateYaml.spec.commonName = CN
-          certifiateYaml.spec.dnsNames = [flags.domain, CN]
-          if (ctx.clusterIssuersName) {
-            certifiateYaml.spec.issuerRef.name = ctx.clusterIssuersName
-          }
-
-          certifiateYaml.metadata.namespace = flags.chenamespace
-
-          await this.kubeHelper.createCheClusterCertificate(certifiateYaml, ctx.certManagerK8sApiVersion)
+          await this.kubeHelper.createCheClusterCertificate(certificate, ctx.certManagerK8sApiVersion)
           ctx.cheCertificateExists = true
 
           task.title = `${task.title}...done`
@@ -216,12 +224,15 @@ export class CertManagerTasks {
           if (ctx.clusterIssuersName === DEFAULT_CHE_CLUSTER_ISSUER_NAME) {
             task.title = 'Wait for self-signed certificate'
           }
-
-          await this.kubeHelper.waitSecret(CHE_TLS_SECRET_NAME, flags.chenamespace, ['tls.key', 'tls.crt', 'ca.crt'])
-
+          await this.kubeHelper.waitSecret(secretName, namespace, ['tls.key', 'tls.crt', 'ca.crt'])
           task.title = `${task.title}...ready`
         },
       },
+    ]
+  }
+
+  getRetrieveCheCACertificate(flags: any): ReadonlyArray<Listr.ListrTask> {
+    return [
       {
         title: 'Retrieving Che CA certificate',
         task: async (ctx: any, task: any) => {
@@ -232,14 +243,15 @@ export class CertManagerTasks {
           const cheSecret = await this.kubeHelper.getSecret(CHE_TLS_SECRET_NAME, flags.chenamespace)
           if (cheSecret && cheSecret.data) {
             const cheCaCrt = base64Decode(cheSecret.data['ca.crt'])
-            const cheCaCertPath = await this.cheHelper.saveCheCaCert(cheCaCrt)
+            const caCertFilePath = path.join(os.tmpdir(), DEFAULT_CA_CERT_FILE_NAME)
+            fs.writeFileSync(caCertFilePath, cheCaCrt)
 
             // We need to put self-signed CA certificate separately into CHE_ROOT_CA_SECRET_NAME secret
             await this.kubeHelper.createSecret(flags.chenamespace, CHE_ROOT_CA_SECRET_NAME, { 'ca.crt': cheCaCrt })
 
             const serverStrategy = await this.kubeHelper.getConfigMapValue('che', flags.chenamespace, 'CHE_INFRA_KUBERNETES_SERVER__STRATEGY')
             if (serverStrategy !== 'single-host') {
-              ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(cheCaCertPath))
+              ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(caCertFilePath))
             }
             task.title = `${task.title}... done`
           } else {

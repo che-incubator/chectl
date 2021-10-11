@@ -10,6 +10,8 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
+import { V1ObjectMeta } from '@kubernetes/client-node'
+
 export interface OAuth {
   apiVersion: string;
   kind: string;

@@ -403,12 +403,17 @@ OPTIONS
 
   --backup-server-config-name=backup-server-config-name  Name of custom resource with backup server config
 
+  --batch                                                Batch mode. Running a command without end user interaction.
+
   --password=password                                    Authentication password for backup REST server
 
   --ssh-key=ssh-key                                      Private SSH key for authentication on SFTP server
 
   --ssh-key-file=ssh-key-file                            Path to file with private SSH key for authentication on SFTP
                                                          server
+
+  --telemetry=on|off                                     Enable or disable telemetry. This flag skips a prompt and
+                                                         enable/disable telemetry
 
   --username=username                                    Username for authentication in backup REST server
 
@@ -691,6 +696,9 @@ OPTIONS
   --ssh-key-file=ssh-key-file                            Path to file with private SSH key for authentication on SFTP
                                                          server
 
+  --telemetry=on|off                                     Enable or disable telemetry. This flag skips a prompt and
+                                                         enable/disable telemetry
+
   --username=username                                    Username for authentication in backup REST server
 
 EXAMPLES
@@ -724,6 +732,7 @@ OPTIONS
   -d, --directory=directory                                Directory to store logs into
   -h, --help                                               show CLI help
   -n, --chenamespace=chenamespace                          Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
+  --batch                                                  Batch mode. Running a command without end user interaction.
   --deployment-name=deployment-name                        [default: che] Eclipse Che deployment name
 
   --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 600000] Waiting time for Pod downloading image (in

@@ -18,9 +18,9 @@ import * as Listr from 'listr'
 import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { cheNamespace } from '../../common-flags'
+import { batch, cheNamespace, CHE_TELEMETRY } from '../../common-flags'
 import { requestBackup, BackupServerConfig, getBackupServerType } from '../../api/backup-restore'
-import { V1CheClusterBackup, V1CheClusterBackupStatus } from '../../api/typings/backup-restore-crds'
+import { V1CheClusterBackup, V1CheClusterBackupStatus } from '../../api/types/backup-restore-crds'
 import { cli } from 'cli-ux'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
@@ -110,6 +110,8 @@ export default class Backup extends Command {
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
+    telemetry: CHE_TELEMETRY,
+    batch,
     chenamespace: cheNamespace,
     [BACKUP_REPOSITORY_URL_KEY]: backupRepositoryUrl,
     [BACKUP_REPOSITORY_PASSWORD_KEY]: backupRepositoryPassword,
@@ -143,7 +145,9 @@ export default class Backup extends Command {
       cli.info(`Backup snapshot ID: ${ctx.snapshotId}`)
     }
     cli.info(getCommandSuccessMessage())
-    notifyCommandCompletedSuccessfully()
+    if (!flags.batch) {
+      notifyCommandCompletedSuccessfully()
+    }
   }
 
   private getBackupTasks(flags: any): Listr.ListrTask[] {

@@ -9,13 +9,14 @@
  **********************************************************************/
 import { Octokit } from '@octokit/rest'
 import * as execa from 'execa'
+import { spawn } from 'child_process'
 import * as fs from 'fs-extra'
 
 import { CheHelper } from '../../src/api/che'
 import { CheGithubClient, TagInfo } from '../../src/api/github-client'
 import { KubeHelper } from '../../src/api/kube'
 import { OpenShiftHelper } from '../../src/api/openshift'
-import { DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
 
 // Fields which chectl returns for workspace:list commands
 interface WorkspaceInfo {
@@ -65,6 +66,10 @@ export class E2eHelper {
     return `${process.cwd()}/bin/run`
   }
 
+  /**
+   * Runs given command and returns its output (including error stream if any).
+   * See also runCliCommandVerbose for debug purposes.
+   */
   async runCliCommand(command: string, args?: string[], printOutput = true): Promise<string> {
     if (printOutput) {
       // tslint:disable-next-line: no-console
@@ -85,6 +90,37 @@ export class E2eHelper {
     expect(exitCode).toEqual(0)
 
     return stdout
+  }
+
+  /**
+   * Runs given cli command.
+   * Unlike runCliCommand, it listens to the command output and prints it immediatly.
+   * This function is useful for debigging, especially if the command hungs at some point.
+   */
+  async runCliCommandVerbose(command: string, args?: string[]): Promise<void> {
+    const argsString = args ? args.join(' ') : ''
+    // tslint:disable-next-line: no-console
+    console.log(`Running command ${command} ${argsString}`)
+
+    return new Promise(resolve => {
+      const process = spawn(command, args)
+
+      process.stdout.on('data', data => {
+        // tslint:disable-next-line: no-console
+        console.log(`[output] ${data}`)
+      })
+      process.stderr.on('data', data => {
+        // tslint:disable-next-line: no-console
+        console.log(`[error] ${data}`)
+      })
+
+      process.on('exit', code => {
+        // tslint:disable-next-line: no-console
+        console.log(`Command ${command} ${argsString} exited with code ${code}`)
+
+        resolve()
+      })
+    })
   }
 
   // Return an array with all user workspaces
@@ -165,7 +201,7 @@ export class E2eHelper {
 
   // Return ingress and protocol from minikube platform
   async K8SHostname(ingressName: string, namespace: string): Promise<string> {
-    if (await this.kubeHelper.ingressExist(ingressName, namespace)) {
+    if (await this.kubeHelper.isIngressExist(ingressName, namespace)) {
       const protocol = await this.kubeHelper.getIngressProtocol(ingressName, namespace)
       const hostname = await this.kubeHelper.getIngressHost(ingressName, namespace)
 
@@ -215,6 +251,28 @@ export class E2eHelper {
     throw new Error(`Che server image tag ${tag} has not appeared in ${timeoutMs / 1000}s `)
   }
 
+  async waitForSuccessfulBackup(backupCrName: string, timeoutMs: number): Promise<void> {
+    const delayMs = 5 * 1000
+
+    let totalTimeMs = 0
+    while (totalTimeMs < timeoutMs) {
+      const backupCr = await this.kubeHelper.getCustomResource(NAMESPACE, backupCrName, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL)
+      if (backupCr && backupCr.status && backupCr.status.state) {
+        if (backupCr.status.state === 'Succeeded') {
+          // Backup successfully created
+          return
+        } else if (backupCr.status.state === 'Failed') {
+          throw new Error(`Backup '${backupCrName}' failed: ${backupCr.status.message}`)
+        }
+        // Wait more
+      }
+
+      await this.sleep(delayMs)
+      totalTimeMs += delayMs
+    }
+    throw new Error(`Backup CR '${backupCrName}' has not appeared in ${timeoutMs / 1000}s`)
+  }
+
   /**
    * Gets last 50 tags from the given repository.
    * @param repo repository name to list tag in
@@ -232,6 +290,15 @@ export class E2eHelper {
     const githubClient = new CheGithubClient()
     const latestTag = githubClient.getLatestTag(await this.listLatestTags(CHECTL_REPONAME))
     return latestTag.name
+  }
+
+  /**
+   * Gets pre-latest and latest released version from chectl repository
+   */
+   async getTwoLatestReleasedVersions(): Promise<[string, string]> {
+    const githubClient = new CheGithubClient()
+    const latestTags = (githubClient as any).sortSemanticTags(await this.listLatestTags(CHECTL_REPONAME))
+    return [latestTags[1].name, latestTags[0].name]
   }
 
   /**

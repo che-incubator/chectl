@@ -13,7 +13,7 @@
 import { V1ObjectMeta } from '@kubernetes/client-node'
 import { CHE_BACKUP_SERVER_CONFIG_KIND_PLURAL, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION } from '../constants'
 import { KubeHelper } from './kube'
-import { V1AwsS3ServerConfig, V1CheBackupServerConfiguration, V1CheClusterBackup, V1RestServerConfig, V1SftpServerConfing } from './typings/backup-restore-crds'
+import { V1AwsS3ServerConfig, V1CheBackupServerConfiguration, V1CheClusterBackup, V1RestServerConfig, V1SftpServerConfing } from './types/backup-restore-crds'
 
 export type BackupServerType = 'rest' | 'sftp' | 's3' | ''
 

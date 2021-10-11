@@ -15,15 +15,13 @@ import { cli } from 'cli-ux'
 import * as fs from 'fs'
 import * as Listr from 'listr'
 import * as path from 'path'
-
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { CHE_BACKUP_SERVER_CONFIG_CRD, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_CRD, CHE_CLUSTER_CRD, CHE_CLUSTER_KIND_PLURAL, CHE_CLUSTER_RESTORE_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME, OPERATOR_TEMPLATE_DIR } from '../../constants'
 import { getImageNameAndTag, safeLoadFromYamlFile } from '../../util'
 import { KubeTasks } from '../kube'
-
-import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
+import { createEclipseCheCluster, patchingEclipseCheCluster } from './common-tasks'
 
 export class OperatorTasks {
   operatorServiceAccount = 'che-operator'
@@ -94,20 +92,20 @@ export class OperatorTasks {
         for (const role of ctx.roles as V1Role[]) {
           if (await kube.roleExist(role.metadata!.name, flags.chenamespace)) {
             if (shouldUpdate) {
-              await kube.replaceRoleFrom(role, flags.chenamespace)
+              await kube.replaceRoleFromObj(role, flags.chenamespace)
             }
           } else {
-            await kube.createRoleFrom(role, flags.chenamespace)
+            await kube.createRoleFromObj(role, flags.chenamespace)
           }
         }
 
         for (const roleBinding of ctx.roleBindings as V1RoleBinding[]) {
           if (await kube.roleBindingExist(roleBinding.metadata!.name, flags.chenamespace)) {
             if (shouldUpdate) {
-              await kube.replaceRoleBindingFrom(roleBinding, flags.chenamespace)
+              await kube.replaceRoleBindingFromObj(roleBinding, flags.chenamespace)
             }
           } else {
-            await kube.createRoleBindingFrom(roleBinding, flags.chenamespace)
+            await kube.createRoleBindingFromObj(roleBinding, flags.chenamespace)
           }
         }
 
@@ -116,12 +114,12 @@ export class OperatorTasks {
 
         for (const clusterRole of ctx.clusterRoles as V1ClusterRole[]) {
           const clusterRoleName = clusterObjectNamePrefix + clusterRole.metadata!.name
-          if (await kube.clusterRoleExist(clusterRoleName)) {
+          if (await kube.isClusterRoleExist(clusterRoleName)) {
             if (shouldUpdate) {
-              await kube.replaceClusterRoleFrom(clusterRole, clusterRoleName)
+              await kube.replaceClusterRoleFromObj(clusterRole, clusterRoleName)
             }
           } else {
-            await kube.createClusterRoleFrom(clusterRole, clusterRoleName)
+            await kube.createClusterRoleFromObj(clusterRole, clusterRoleName)
           }
         }
 
@@ -131,12 +129,12 @@ export class OperatorTasks {
           for (const subj of clusterRoleBinding.subjects || []) {
             subj.namespace = flags.chenamespace
           }
-          if (await kube.clusterRoleBindingExist(clusterRoleBinding.metadata!.name)) {
+          if (await kube.isClusterRoleBindingExist(clusterRoleBinding.metadata!.name)) {
             if (shouldUpdate) {
-              await kube.replaceClusterRoleBindingFrom(clusterRoleBinding)
+              await kube.replaceClusterRoleBindingFromObj(clusterRoleBinding)
             }
           } else {
-            await kube.createClusterRoleBindingFrom(clusterRoleBinding)
+            await kube.createClusterRoleBindingFromObj(clusterRoleBinding)
           }
         }
 
@@ -157,11 +155,10 @@ export class OperatorTasks {
       command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of Eclipse Che (--installer=olm).')
     }
     return [
-      createNamespaceTask(flags.chenamespace, {}),
       {
         title: `Create ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
-          const exist = await kube.serviceAccountExist(this.operatorServiceAccount, flags.chenamespace)
+          const exist = await kube.isServiceAccountExist(this.operatorServiceAccount, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
@@ -235,13 +232,13 @@ export class OperatorTasks {
       {
         title: `Create deployment ${OPERATOR_DEPLOYMENT_NAME} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
-          const exist = await kube.deploymentExist(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
+          const exist = await kube.isDeploymentExist(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
             const deploymentPath = path.join(ctx.resourcesPath, 'operator.yaml')
             const operatorDeployment = await this.readOperatorDeployment(deploymentPath, flags)
-            await kube.createDeploymentFrom(operatorDeployment)
+            await kube.createDeploymentFromObj(operatorDeployment, flags.chenamespace)
             task.title = `${task.title}...done.`
           }
         },
@@ -318,7 +315,7 @@ export class OperatorTasks {
       {
         title: `Updating ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
-          const exist = await kube.serviceAccountExist(this.operatorServiceAccount, flags.chenamespace)
+          const exist = await kube.isServiceAccountExist(this.operatorServiceAccount, flags.chenamespace)
           const yamlFilePath = path.join(ctx.resourcesPath, 'service_account.yaml')
           if (exist) {
             await kube.replaceServiceAccountFromFile(yamlFilePath, flags.chenamespace)
@@ -409,14 +406,14 @@ export class OperatorTasks {
       {
         title: `Updating deployment ${OPERATOR_DEPLOYMENT_NAME} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
-          const exist = await kube.deploymentExist(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
+          const exist = await kube.isDeploymentExist(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
           const deploymentPath = path.join(ctx.resourcesPath, 'operator.yaml')
           const operatorDeployment = await this.readOperatorDeployment(deploymentPath, flags)
           if (exist) {
-            await kube.replaceDeploymentFrom(operatorDeployment)
+            await kube.replaceDeploymentFromObj(operatorDeployment)
             task.title = `${task.title}...updated.`
           } else {
-            await kube.createDeploymentFrom(operatorDeployment)
+            await kube.createDeploymentFromObj(operatorDeployment, flags.chenamespace)
             task.title = `${task.title}...created new one.`
           }
         },

@@ -14,10 +14,10 @@ import { Command } from '@oclif/command'
 import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
-
+import { OIDCContextKeys } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-
+import { sleep } from '../../util'
 import { CommonPlatformTasks } from './common-platform-tasks'
 
 export class MinikubeTasks {
@@ -86,7 +86,7 @@ export class MinikubeTasks {
       {
         title: 'Checking minikube version',
         task: async (ctx: any, task: any) => {
-          const version = await this.getMinikbeVersion()
+          const version = await this.getMinikubeVersion()
           const versionComponents = version.split('.')
           ctx.minikubeVersionMajor = parseInt(versionComponents[0], 10)
           ctx.minikubeVersionMinor = parseInt(versionComponents[1], 10)
@@ -131,6 +131,55 @@ export class MinikubeTasks {
     ], { renderer: flags['listr-renderer'] as any })
   }
 
+  configureApiServerForDex(flags: any): ReadonlyArray<Listr.ListrTask> {
+    return [
+      {
+        title: 'Copy Dex certificate into Minikube',
+        enabled: (ctx: any) => Boolean(ctx[OIDCContextKeys.CA_FILE]),
+        task: async (ctx: any, task: any) => {
+          const args: string[] = []
+          args.push('cp')
+          args.push(ctx[OIDCContextKeys.CA_FILE])
+          args.push('/etc/ca-certificates/dex-ca.crt')
+
+          await execa('minikube', args, { timeout: 60000 })
+
+          task.title = `${task.title}...[OK]`
+        },
+      },
+      {
+        title: 'Configure Minikube API server',
+        task: async (ctx: any, task: any) => {
+          const args: string[] = []
+          args.push(`--extra-config=apiserver.oidc-issuer-url=${ctx[OIDCContextKeys.ISSUER_URL]}`)
+          args.push(`--extra-config=apiserver.oidc-client-id=${ctx[OIDCContextKeys.CLIENT_ID]}`)
+
+          if (ctx[OIDCContextKeys.CA_FILE]) {
+            args.push('--extra-config=apiserver.oidc-ca-file=/etc/ca-certificates/dex-ca.crt')
+          }
+
+          args.push('--extra-config=apiserver.oidc-username-claim=email')
+          args.push('--extra-config=apiserver.oidc-groups-claim=groups')
+          args.push('start')
+
+          await execa('minikube', args, { timeout: 60000 })
+
+          task.title = `${task.title}...[OK]`
+        },
+      },
+      {
+        title: 'Wait for Minikube API server',
+        task: async (_ctx: any, task: any) => {
+          const kube = new KubeHelper(flags)
+          await sleep(30 * 1000)
+          await kube.waitForPodReady('component=kube-apiserver', 'kube-system')
+
+          task.title = `${task.title}...[OK]`
+        },
+      },
+    ]
+  }
+
   async isMinikubeRunning(): Promise<boolean> {
     const { exitCode } = await execa('minikube', ['status'], { timeout: 10000, reject: false })
     if (exitCode === 0) {
@@ -167,10 +216,11 @@ export class MinikubeTasks {
     return stdout
   }
 
-  async getMinikbeVersion(): Promise<string> {
+  async getMinikubeVersion(): Promise<string> {
     const { stdout } = await execa('minikube', ['version'], { timeout: 10000 })
     const versionLine = stdout.split('\n')[0]
     const versionString = versionLine.trim().split(' ')[2].substr(1)
     return versionString
   }
 }
+

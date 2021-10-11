@@ -15,7 +15,7 @@ import { boolean, string } from '@oclif/parser/lib/flags'
 import * as Listr from 'listr'
 
 import { CHE_BACKUP_SERVER_CONFIG_KIND_PLURAL, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OPERATOR_DEPLOYMENT_NAME } from '../../constants'
-import { batch, listrRenderer } from '../../common-flags'
+import { batch, CHE_TELEMETRY, listrRenderer } from '../../common-flags'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { CheHelper } from '../../api/che'
@@ -27,7 +27,7 @@ import { TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE, TASK_TITLE_DELETE_CU
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { checkChectlAndCheVersionCompatibility, downloadTemplates, TASK_TITLE_CREATE_CHE_CLUSTER_CRD, TASK_TITLE_PATCH_CHECLUSTER_CR } from '../../tasks/installers/common-tasks'
 import { confirmYN, findWorkingNamespace, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
-import { V1CheBackupServerConfiguration, V1CheClusterBackup, V1CheClusterRestore, V1CheClusterRestoreStatus } from '../../api/typings/backup-restore-crds'
+import { V1CheBackupServerConfiguration, V1CheClusterBackup, V1CheClusterRestore, V1CheClusterRestoreStatus } from '../../api/types/backup-restore-crds'
 
 import { awsAccessKeyId, awsSecretAccessKey, AWS_ACCESS_KEY_ID_KEY, AWS_SECRET_ACCESS_KEY_KEY, backupRepositoryPassword, backupRepositoryUrl, backupRestServerPassword, backupRestServerUsername, backupServerConfigName, BACKUP_REPOSITORY_PASSWORD_KEY, BACKUP_REPOSITORY_URL_KEY, BACKUP_REST_SERVER_PASSWORD_KEY, BACKUP_REST_SERVER_USERNAME_KEY, BACKUP_SERVER_CONFIG_CR_NAME_KEY, getBackupServerConfiguration, sshKey, sshKeyFile, SSH_KEY_FILE_KEY, SSH_KEY_KEY } from './backup'
 
@@ -55,6 +55,7 @@ export default class Restore extends Command {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'listr-renderer': listrRenderer,
+    telemetry: CHE_TELEMETRY,
     batch,
     [BACKUP_REPOSITORY_URL_KEY]: backupRepositoryUrl,
     [BACKUP_REPOSITORY_PASSWORD_KEY]: backupRepositoryPassword,
@@ -125,7 +126,9 @@ export default class Restore extends Command {
     }
 
     cli.info(getCommandSuccessMessage())
-    notifyCommandCompletedSuccessfully()
+    if (!flags.batch) {
+      notifyCommandCompletedSuccessfully()
+    }
   }
 
   private getRestoreTasks(flags: any): Listr.ListrTask[] {
@@ -383,7 +386,7 @@ export default class Restore extends Command {
             flags.platform = 'openshift'
             flags['cluster-monitoring'] = true
           } else {
-            flags.platform = 'kubernetes'
+            flags.platform = 'k8s'
           }
 
           if (flags.installer === 'operator') {

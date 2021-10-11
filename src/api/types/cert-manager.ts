@@ -10,6 +10,8 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
+import { V1ObjectMeta } from '@kubernetes/client-node'
+
 export interface V1Certificate {
   apiVersion: string
   kind: string
@@ -21,7 +23,7 @@ export interface V1CertificateSpec {
   secretName: string
   issuerRef: V1CertificateSpecIssuerReference
   commonName: string
-  dnsNames: List<string>
+  dnsNames: string[]
 }
 
 export interface V1CertificateSpecIssuerReference {

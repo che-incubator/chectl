@@ -16,7 +16,7 @@ import { string } from '@oclif/parser/lib/flags'
 import * as yaml from 'js-yaml'
 
 import { ChectlContext } from '../../api/context'
-import { Devfile, DevfileCommand, DevfileComponent, DevfileProject, ProjectSource, TheEndpointName } from '../../api/devfile'
+import { Devfile, DevfileCommand, DevfileComponent, DevfileProject, ProjectSource, TheEndpointName } from '../../api/types/devfile'
 import { KubeHelper } from '../../api/kube'
 import { CHE_TELEMETRY } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'

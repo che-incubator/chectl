@@ -1,0 +1,32 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: dex
+  namespace: dex
+  labels:
+    app: dex
+data:
+  config.yaml: |
+    issuer: https://dex.{{DOMAIN}}
+    storage:
+      type: kubernetes
+      config:
+        inCluster: true
+    web:
+      http: 0.0.0.0:5556
+
+    oauth2:
+      skipApprovalScreen: true
+
+    staticClients:
+    - id: {{CLIENT_ID}}
+      redirectURIs:
+      - 'https://che-{{NAMESPACE}}.{{DOMAIN}}/oauth2/callback'
+      name: 'Eclipse Che'
+      secret: {{CLIENT_SECRET}}
+    enablePasswordDB: true
+    staticPasswords:
+    - email: "che@eclipse.org"
+      hash: "{{DEX_PASSWORD_HASH}}"
+      username: "admin"
+      userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
