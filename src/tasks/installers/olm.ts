@@ -166,22 +166,18 @@ export class OLMTasks {
             return
           }
           ctx.subscriptionName = DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME
+          const channel = flags[OLM.CHANNEL]
 
           if (flags[OLM.CATALOG_SOURCE_YAML] || flags[OLM.CATALOG_SOURCE_NAME]) {
             // custom Che CatalogSource
             const catalogSourceNamespace = flags[OLM.CATALOG_SOURCE_NAMESPACE] || ctx.operatorNamespace
-            subscription = this.constructSubscription(ctx.subscriptionName, flags[OLM.PACKAGE_MANIFEST_NAME], ctx.operatorNamespace, catalogSourceNamespace, flags[OLM.CHANNEL], ctx.sourceName, ctx.approvalStarategy, ctx.startingCSV)
-          } else if (flags[OLM.CHANNEL] === OLM_STABLE_CHANNEL_NAME || (VersionHelper.isDeployingStableVersion(flags) && !flags[OLM.CHANNEL])) {
+            subscription = this.constructSubscription(ctx.subscriptionName, flags[OLM.PACKAGE_MANIFEST_NAME], ctx.operatorNamespace, catalogSourceNamespace, channel, ctx.sourceName, ctx.approvalStarategy, ctx.startingCSV)
+          } else if (channel === OLM_STABLE_CHANNEL_NAME || channel === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME || (VersionHelper.isDeployingStableVersion(flags) && !channel)) {
             // stable Che CatalogSource
-            subscription = this.constructSubscription(ctx.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
-          } else if (flags[OLM.CHANNEL] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME) {
-            // stable Che CatalogSource
-            subscription = this.constructSubscription(ctx.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
-          } else if (flags[OLM.CHANNEL] === OLM_NEXT_CHANNEL_NAME) {
+            subscription = this.constructSubscription(ctx.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, channel, ctx.catalogSourceNameStable, ctx.approvalStarategy, ctx.startingCSV)
+          } else if (channel === OLM_NEXT_CHANNEL_NAME || channel === OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME || !channel) {
             // next Che CatalogSource
-            subscription = this.constructSubscription(ctx.subscriptionName, `eclipse-che-preview-${ctx.generalPlatformName}`, ctx.operatorNamespace, ctx.operatorNamespace, flags[OLM.CHANNEL], NEXT_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
-          } else if (flags[OLM.CHANNEL] === OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME) {
-            subscription = this.constructSubscription(ctx.subscriptionName, `eclipse-che-preview-${ctx.generalPlatformName}`, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, flags[OLM.CHANNEL], NEXT_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
+            subscription = this.constructSubscription(ctx.subscriptionName, `eclipse-che-preview-${ctx.generalPlatformName}`, ctx.operatorNamespace, ctx.operatorNamespace, channel, NEXT_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
           } else {
             throw new Error(`Unknown OLM channel ${flags[OLM.CHANNEL]}`);
           }
