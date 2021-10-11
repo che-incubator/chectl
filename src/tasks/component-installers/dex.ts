@@ -44,7 +44,7 @@ export class DexTasks {
 
   private static readonly DEX_PASSWORD = 'admin'
 
-  private static readonly DEX_PASSWORD_HAS = '$2a$12$Cnptj8keBvBFuQkNebteYuGHnZRNKT6MivLrGmFRaTxrlyfEAOrSa'
+  private static readonly DEX_PASSWORD_HASH = '$2a$12$Cnptj8keBvBFuQkNebteYuGHnZRNKT6MivLrGmFRaTxrlyfEAOrSa'
 
   private static readonly CLIENT_ID = 'eclipse-che'
 
@@ -235,7 +235,7 @@ export class DexTasks {
                 } else {
                   ctx[DexContextKeys.DEX_USERNAME] = DexTasks.DEX_USERNAME
                   ctx[DexContextKeys.DEX_PASSWORD] = DexTasks.DEX_PASSWORD
-                  ctx[DexContextKeys.DEX_PASSWORD_HASH] = DexTasks.DEX_PASSWORD_HAS
+                  ctx[DexContextKeys.DEX_PASSWORD_HASH] = DexTasks.DEX_PASSWORD_HASH
 
                   // create a secret to store credentials
                   const credentials: any = { user: DexTasks.DEX_USERNAME, password: DexTasks.DEX_PASSWORD}
