@@ -44,8 +44,10 @@ export const LEGACY_CHE_NAMESPACE = 'che'
 // OLM common
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'eclipse-che'
 export const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME = 'eclipse-che-subscription'
+export const DEVWORKSPACE_OPERATOR_SUBSRIPTION_NAME = 'devworkspace-operator-fast-redhat-operators-openshift-marketplace'
 export const OPERATOR_GROUP_NAME = 'che-operator-group'
 export const CVS_PREFIX = 'eclipse-che'
+export const DEVWORKSPACE_CVS_PREFIX = 'devworkspace-operator'
 // OLM channels
 export const OLM_STABLE_CHANNEL_NAME = 'stable'
 export const OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME = 'tech-preview-stable-all-namespaces'

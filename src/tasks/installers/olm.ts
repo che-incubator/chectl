@@ -20,7 +20,7 @@ import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/types/olm'
 import { VersionHelper } from '../../api/version'
-import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME, OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME } from '../../constants'
+import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME, OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME, DEVWORKSPACE_OPERATOR_SUBSRIPTION_NAME, DEVWORKSPACE_CVS_PREFIX } from '../../constants'
 import { getEmbeddedTemplatesDirectory, isKubernetesPlatformFamily } from '../../util'
 
 import { createEclipseCheCluster, patchingEclipseCheCluster } from './common-tasks'
@@ -248,21 +248,13 @@ export class OLMTasks {
     return new Listr([
       this.isOlmPreInstalledTask(command, kube),
       {
-        title: 'Check if operator group exists',
-        enabled: ctx => ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
-        task: async (ctx: any, task: any) => {
-          if (!await che.findCheOperatorOperatorGroup(ctx.operatorNamespace)) {
-            command.error(`Unable to find Che operator group in ${ctx.operatorNamespace} namespace`)
-          }
-          task.title = `${task.title}...done.`
-        },
-      },
-      {
         title: 'Check if operator subscription exists',
         task: async (ctx: any, task: any) => {
-          if (!await che.findCheOperatorSubscription(ctx.operatorNamespace)) {
+          const subscription = await che.findCheOperatorSubscription(flags.chenamespace)
+          if (!subscription) {
             command.error('Unable to find operator subscription')
           }
+          ctx.operatorNamespace = subscription.metadata.namespace
           task.title = `${task.title}...done.`
         },
       },
@@ -344,7 +336,7 @@ export class OLMTasks {
       {
         title: 'Check if operator is installed',
         task: async (ctx: any, task: any) => {
-          const subscription = await che.findCheOperatorSubscription(ctx.operatorNamespace || DEFAULT_CHE_NAMESPACE)
+          const subscription = await che.findCheOperatorSubscription(flags.chenamespace)
           if (subscription) {
             ctx.subscriptionName = subscription.metadata.name
             ctx.operatorNamespace = subscription.metadata.namespace
@@ -371,6 +363,27 @@ export class OLMTasks {
         task: async (ctx: any, task: any) => {
           const csvs = await kube.getClusterServiceVersions(ctx.operatorNamespace)
           const csvsToDelete = csvs.items.filter(csv => csv.metadata.name!.startsWith(CVS_PREFIX))
+          for (const csv of csvsToDelete) {
+            await kube.deleteClusterServiceVersion(ctx.operatorNamespace, csv.metadata.name!)
+          }
+          task.title = `${task.title}...OK`
+        },
+      },
+      {
+        title: 'Delete(OLM) devworkspace dependency subscription',
+        enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace == DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
+        task: async (ctx: any, task: any) => {
+          await kube.deleteOperatorSubscription(DEVWORKSPACE_OPERATOR_SUBSRIPTION_NAME, ctx.operatorNamespace)
+          task.title = `${task.title}...OK`
+        },
+      },
+      // TODO: Cleanup devworkspace webhook stuff and crds...
+      {
+        title: 'Delete(OLM) Eclipse Devworkspace cluster service versions',
+        enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace == DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
+        task: async (ctx: any, task: any) => {
+          const csvs = await kube.getClusterServiceVersions(ctx.operatorNamespace)
+          const csvsToDelete = csvs.items.filter(csv => csv.metadata.name!.startsWith(DEVWORKSPACE_CVS_PREFIX))
           for (const csv of csvsToDelete) {
             await kube.deleteClusterServiceVersion(ctx.operatorNamespace, csv.metadata.name!)
           }
@@ -478,13 +491,13 @@ export class OLMTasks {
     if (!subscription) {
       throw new Error(`Subscription '${subscriptionName}' not found in namespace '${namespace}'`)
     }
-    const currentCSV = subscription.status!.currentCSV
-    const csv = await kube.getCSV(currentCSV, namespace)
+    const installedCSV = subscription.status!.installedCSV!
+    const csv = await kube.getCSV(installedCSV, namespace)
     if (csv && csv.metadata.annotations) {
       const CRRaw = csv.metadata.annotations!['alm-examples']
       return (yaml.load(CRRaw) as Array<any>).find(cr => cr.kind === 'CheCluster')
     } else {
-      throw new Error(`Unable to retrieve Che cluster CR definition from CSV: ${currentCSV}`)
+      throw new Error(`Unable to retrieve Che cluster CR definition from CSV: ${installedCSV}`)
     }
   }
 }
