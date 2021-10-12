@@ -184,7 +184,7 @@ export class OLMTasks {
             // next Che CatalogSource
             subscription = this.constructSubscription(ctx.subscriptionName, `eclipse-che-preview-${ctx.generalPlatformName}`, ctx.operatorNamespace, ctx.operatorNamespace, channel, NEXT_CATALOG_SOURCE_NAME, ctx.approvalStarategy, ctx.startingCSV)
           } else {
-            throw new Error(`Unknown OLM channel ${flags[OLM.CHANNEL]}`);
+            throw new Error(`Unknown OLM channel ${flags[OLM.CHANNEL]}`)
           }
           await kube.createOperatorSubscription(subscription)
           task.title = `${task.title}...created new one.`
