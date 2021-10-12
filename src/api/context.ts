@@ -49,11 +49,6 @@ export namespace ChectlContext {
       ctx.listrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
     }
 
-    ctx.operatorNamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
-    if (flags[OLM.CHANNEL] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME || flags[OLM.CHANNEL] === OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME) {
-      ctx.operatorNamespace = DEFAULT_OPENSHIFT_OPERATORS_NS_NAME
-    }
-
     ctx.highlightedMessages = [] as string[]
     ctx[START_TIME] = Date.now()
 
@@ -94,7 +89,6 @@ export namespace OLM {
   export const CHANNEL = 'olm-channel'
   export const STARTING_CSV = 'starting-csv'
   export const AUTO_UPDATE = 'auto-update'
-
 
   // Custom catalog source
   export const CATALOG_SOURCE_NAME = 'catalog-source-name'

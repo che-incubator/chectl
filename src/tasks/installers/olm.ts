@@ -75,22 +75,13 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Create operator group',
-        // 'stable-all-namespaces' and 'next-all-namespaces' channels install the operator in openshift-operators namespace and there already exists a pre-created operator-group.
-        enabled: (ctx: any) => ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
-        task: async (_ctx: any, task: any) => {
-          const operatorGroup = await che.findCheOperatorOperatorGroup(flags.chenamespace)
-          if (operatorGroup) {
-            task.title = `${task.title}...it already exists: ${operatorGroup.metadata.name}`
-          } else {
-            await kube.createOperatorGroup(OPERATOR_GROUP_NAME, flags.chenamespace)
-            task.title = `${task.title}...created a new one: ${OPERATOR_GROUP_NAME}`
-          }
-        },
-      },
-      {
         title: 'Configure context information',
         task: async (ctx: any, task: any) => {
+          ctx.operatorNamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
+          if (flags[OLM.CHANNEL] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME || flags[OLM.CHANNEL] === OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME) {
+            ctx.operatorNamespace = DEFAULT_OPENSHIFT_OPERATORS_NS_NAME
+          }
+
           ctx.defaultCatalogSourceNamespace = isKubernetesPlatformFamily(flags.platform) ? DEFAULT_OLM_KUBERNETES_NAMESPACE : DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE
           // catalog source name for stable Che version
           ctx.catalogSourceNameStable = isKubernetesPlatformFamily(flags.platform) ? KUBERNETES_OLM_CATALOG : OPENSHIFT_OLM_CATALOG
@@ -124,6 +115,20 @@ export class OLMTasks {
           }
 
           task.title = `${task.title}...done.`
+        },
+      },
+      {
+        title: 'Create operator group',
+        // 'stable-all-namespaces' and 'next-all-namespaces' channels install the operator in openshift-operators namespace and there already exists a pre-created operator-group.
+        enabled: (ctx: any) => ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
+        task: async (_ctx: any, task: any) => {
+          const operatorGroup = await che.findCheOperatorOperatorGroup(flags.chenamespace)
+          if (operatorGroup) {
+            task.title = `${task.title}...it already exists: ${operatorGroup.metadata.name}`
+          } else {
+            await kube.createOperatorGroup(OPERATOR_GROUP_NAME, flags.chenamespace)
+            task.title = `${task.title}...created a new one: ${OPERATOR_GROUP_NAME}`
+          }
         },
       },
       {
@@ -371,7 +376,7 @@ export class OLMTasks {
       },
       {
         title: 'Delete(OLM) devworkspace dependency subscription',
-        enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace == DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
+        enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace === DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
         task: async (ctx: any, task: any) => {
           await kube.deleteOperatorSubscription(DEVWORKSPACE_OPERATOR_SUBSRIPTION_NAME, ctx.operatorNamespace)
           task.title = `${task.title}...OK`
@@ -380,7 +385,7 @@ export class OLMTasks {
       // TODO: Cleanup devworkspace webhook stuff and crds...
       {
         title: 'Delete(OLM) Eclipse Devworkspace cluster service versions',
-        enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace == DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
+        enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace === DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
         task: async (ctx: any, task: any) => {
           const csvs = await kube.getClusterServiceVersions(ctx.operatorNamespace)
           const csvsToDelete = csvs.items.filter(csv => csv.metadata.name!.startsWith(DEVWORKSPACE_CVS_PREFIX))
