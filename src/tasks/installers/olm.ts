@@ -133,7 +133,7 @@ export class OLMTasks {
       },
       {
         enabled: () => !VersionHelper.isDeployingStableVersion(flags) && !flags[OLM.CATALOG_SOURCE_NAME] && !flags[OLM.CATALOG_SOURCE_YAML] && flags[OLM.CHANNEL] !== OLM_STABLE_CHANNEL_NAME,
-        title: `Create next index CatalogSource`,
+        title: 'Create next index CatalogSource',
         task: async (ctx: any, task: any) => {
           if (!await kube.catalogSourceExists(NEXT_CATALOG_SOURCE_NAME, ctx.operatorNamespace)) {
             const catalogSourceImage = `quay.io/eclipse/eclipse-che-${ctx.generalPlatformName}-opm-catalog:preview`
