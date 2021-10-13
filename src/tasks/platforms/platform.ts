@@ -25,17 +25,11 @@ import { OpenshiftTasks } from './openshift'
  */
 export class PlatformTasks {
   protected minikubeTasks: MinikubeTasks
-
   protected microk8sTasks: MicroK8sTasks
-
   protected minishiftTasks: MinishiftTasks
-
   protected openshiftTasks: OpenshiftTasks
-
   protected k8sTasks: K8sTasks
-
   protected crc: CRCHelper
-
   protected dockerDesktopTasks: DockerDesktopTasks
 
   constructor(flags: any) {
