@@ -2190,9 +2190,14 @@ export class KubeHelper {
         (_phase: string, obj: any) => {
           const subscription = obj as Subscription
           if (subscription.status && subscription.status.conditions) {
+            if (subscription.status.installedCSV) {
+              resolve(subscription.status.installplan)
+              return
+            }
             for (const condition of subscription.status.conditions) {
               if (condition.type === 'InstallPlanPending' && condition.status === 'True') {
                 resolve(subscription.status.installplan)
+                return
               }
             }
           }

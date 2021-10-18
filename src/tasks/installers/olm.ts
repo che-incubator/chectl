@@ -375,27 +375,6 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Delete(OLM) devworkspace dependency subscription',
-        enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace === DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
-        task: async (ctx: any, task: any) => {
-          await kube.deleteOperatorSubscription(DEVWORKSPACE_OPERATOR_SUBSRIPTION_NAME, ctx.operatorNamespace)
-          task.title = `${task.title}...OK`
-        },
-      },
-      // TODO: Cleanup devworkspace webhook stuff and crds...
-      {
-        title: 'Delete(OLM) Eclipse Devworkspace cluster service versions',
-        enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace === DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
-        task: async (ctx: any, task: any) => {
-          const csvs = await kube.getClusterServiceVersions(ctx.operatorNamespace)
-          const csvsToDelete = csvs.items.filter(csv => csv.metadata.name!.startsWith(DEVWORKSPACE_CVS_PREFIX))
-          for (const csv of csvsToDelete) {
-            await kube.deleteClusterServiceVersion(ctx.operatorNamespace, csv.metadata.name!)
-          }
-          task.title = `${task.title}...OK`
-        },
-      },
-      {
         title: 'Delete(OLM) operator group',
         // Do not delete global operator group if operator is in all namespaces mode
         enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
