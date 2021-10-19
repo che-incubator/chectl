@@ -13,7 +13,6 @@ import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 import { KubeHelper } from '../api/kube'
 
-
 interface FailState {
   reason?: string
   message?: string
