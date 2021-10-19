@@ -11,7 +11,6 @@
  */
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
-
 import { KubeHelper } from '../api/kube'
 
 interface FailState {
@@ -37,18 +36,30 @@ export class KubeTasks {
           for (let i = 1; i <= iterations; i++) {
             // check cheCluster status
             const cheClusterFailState = await this.getCheClusterFailState(namespace)
-            if (cheClusterFailState) {
-              task.title = `${task.title}...failed`
-              throw new Error(`Eclipse Che operator failed, reason: ${cheClusterFailState.reason}, message: ${cheClusterFailState.message}. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
-            }
-
             // check 'PodScheduled' condition
             const podFailState = await this.getPodFailState(namespace, selector, 'PodScheduled')
-            if (podFailState) {
-              // for instance we need some time for pvc provisioning...
-              await cli.wait(this.kubeHelper.podErrorRecheckTimeout)
 
-              const podFailState = await this.getPodFailState(namespace, selector, 'PodScheduled')
+            if (cheClusterFailState || podFailState) {
+              const iterations = this.kubeHelper.podErrorRecheckTimeout / 1000
+              let cheClusterFailState: FailState | undefined
+              let podFailState: FailState | undefined
+
+              for (let j = 0; j < iterations; j++) {
+                await cli.wait(1000)
+
+                cheClusterFailState = await this.getCheClusterFailState(namespace)
+                podFailState = await this.getPodFailState(namespace, selector, 'PodScheduled')
+
+                if (!cheClusterFailState && !podFailState) {
+                  break
+                }
+              }
+
+              if (cheClusterFailState) {
+                task.title = `${task.title}...failed`
+                throw new Error(`Eclipse Che operator failed, reason: ${cheClusterFailState.reason}, message: ${cheClusterFailState.message}. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
+              }
+
               if (podFailState) {
                 task.title = `${task.title}...failed`
                 throw new Error(`Failed to schedule a pod, reason: ${podFailState.reason}, message: ${podFailState.message}. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
@@ -74,9 +85,19 @@ export class KubeTasks {
           for (let i = 1; i <= iterations; i++) {
             const failedState = await this.getContainerFailState(namespace, selector, 'Pending')
             if (failedState) {
-              await cli.wait(this.kubeHelper.podErrorRecheckTimeout)
+              const iterations = this.kubeHelper.podErrorRecheckTimeout / 1000
+              let failedState: FailState | undefined
 
-              const failedState = await this.getContainerFailState(namespace, selector, 'Pending')
+              for (let j = 0; j < iterations; j++) {
+                await cli.wait(1000)
+
+                failedState = await this.getContainerFailState(namespace, selector, 'Pending')
+
+                if (!failedState) {
+                  break
+                }
+              }
+
               if (failedState) {
                 task.title = `${task.title}...failed`
                 throw new Error(`Failed to download image, reason: ${failedState.reason}, message: ${failedState.message}.`)
@@ -103,16 +124,28 @@ export class KubeTasks {
           for (let i = 1; i <= iterations; i++) {
             // check cheCluster status
             const cheClusterFailState = await this.getCheClusterFailState(namespace)
-            if (cheClusterFailState) {
-              task.title = `${task.title}...failed`
-              throw new Error(`Eclipse Che operator failed, reason: ${cheClusterFailState.reason}, message: ${cheClusterFailState.message}. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
-            }
-
             const failedState = await this.getContainerFailState(namespace, selector, 'Running')
-            if (failedState) {
-              await cli.wait(this.kubeHelper.podErrorRecheckTimeout)
+            if (cheClusterFailState || failedState) {
+              const iterations = this.kubeHelper.podErrorRecheckTimeout / 1000
+              let cheClusterFailState: FailState | undefined
+              let failedState: FailState | undefined
 
-              const failedState = await this.getContainerFailState(namespace, selector, 'Running')
+              for (let j = 0; j < iterations; j++) {
+                await cli.wait(1000)
+
+                cheClusterFailState = await this.getCheClusterFailState(namespace)
+                failedState = await this.getContainerFailState(namespace, selector, 'Running')
+
+                if (!cheClusterFailState && !failedState) {
+                  break
+                }
+              }
+
+              if (cheClusterFailState) {
+                task.title = `${task.title}...failed`
+                throw new Error(`Eclipse Che operator failed, reason: ${cheClusterFailState.reason}, message: ${cheClusterFailState.message}. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
+              }
+
               if (failedState) {
                 task.title = `${task.title}...failed`
                 throw new Error(`Failed to start a pod, reason: ${failedState.reason}, message: ${failedState.message}`)

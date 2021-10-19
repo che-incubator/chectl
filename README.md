@@ -575,7 +575,7 @@ OPTIONS
       [default: 600000] Waiting time for Pod downloading image (in milliseconds)
 
   --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout
-      [default: 15000] Waiting time for Pod rechecking error (in milliseconds)
+      [default: 60000] Waiting time for Pod rechecking error (in milliseconds)
 
   --k8spodreadytimeout=k8spodreadytimeout
       [default: 600000] Waiting time for Pod Ready condition (in milliseconds)
@@ -738,7 +738,7 @@ OPTIONS
   --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 600000] Waiting time for Pod downloading image (in
                                                            milliseconds)
 
-  --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout    [default: 15000] Waiting time for Pod rechecking error (in
+  --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout    [default: 60000] Waiting time for Pod rechecking error (in
                                                            milliseconds)
 
   --k8spodreadytimeout=k8spodreadytimeout                  [default: 600000] Waiting time for Pod Ready condition (in
