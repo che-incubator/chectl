@@ -11,7 +11,6 @@
  */
 
 import { V1ConfigMap, V1Ingress, V1ObjectMeta } from '@kubernetes/client-node'
-import * as bcrypt from 'bcrypt'
 import { cli } from 'cli-ux'
 import * as crypto from 'crypto'
 import * as fs from 'fs-extra'
@@ -44,6 +43,8 @@ export class DexTasks {
   private static readonly DEX_USERNAME = 'admin'
 
   private static readonly DEX_PASSWORD = 'admin'
+
+  private static readonly DEX_PASSWORD_HASH = '$2a$12$Cnptj8keBvBFuQkNebteYuGHnZRNKT6MivLrGmFRaTxrlyfEAOrSa'
 
   private static readonly CLIENT_ID = 'eclipse-che'
 
@@ -232,18 +233,12 @@ export class DexTasks {
                 if (dexConfigMap && dexConfigMap.data) {
                   task.title = `${task.title}...[Exists]`
                 } else {
-                  // use the fixed password for now
-                  const dexPassword = DexTasks.DEX_PASSWORD
-
-                  const salt = bcrypt.genSaltSync(10)
-                  const dexPasswordHash = bcrypt.hashSync(dexPassword, salt)
-
                   ctx[DexContextKeys.DEX_USERNAME] = DexTasks.DEX_USERNAME
-                  ctx[DexContextKeys.DEX_PASSWORD] = dexPassword
-                  ctx[DexContextKeys.DEX_PASSWORD_HASH] = dexPasswordHash
+                  ctx[DexContextKeys.DEX_PASSWORD] = DexTasks.DEX_PASSWORD
+                  ctx[DexContextKeys.DEX_PASSWORD_HASH] = DexTasks.DEX_PASSWORD_HASH
 
                   // create a secret to store credentials
-                  const credentials: any = { user: DexTasks.DEX_USERNAME, password: dexPassword}
+                  const credentials: any = { user: DexTasks.DEX_USERNAME, password: DexTasks.DEX_PASSWORD}
                   await this.kube.createSecret(DexTasks.NAMESPACE_NAME, DexTasks.CREDENTIALS_SECRET_NAME, credentials)
 
                   task.title = `${task.title}...[OK: ${ctx[DexContextKeys.DEX_USERNAME]}:${ctx[DexContextKeys.DEX_PASSWORD]}]`
