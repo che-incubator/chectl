@@ -22,7 +22,7 @@ import * as net from 'net'
 import { Writable } from 'stream'
 import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_CHE_TLS_SECRET_NAME, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
 import { base64Encode, getClusterClientCommand, getImageNameAndTag, isKubernetesPlatformFamily, newError, safeLoadFromYamlFile } from '../util'
-import { ChectlContext } from './context'
+import { ChectlContext, OLM } from './context'
 import { V1CheClusterBackup, V1CheClusterRestore } from './types/backup-restore-crds'
 
 import { V1Certificate } from './types/cert-manager'
@@ -1647,7 +1647,7 @@ export class KubeHelper {
         cheClusterCR.spec.server.cheImageTag = tag
       }
 
-      if ((flags.installer === 'olm' && !flags['catalog-source-yaml']) || (flags['catalog-source-yaml'] && flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME)) {
+      if ((flags.installer === 'olm' && !flags[OLM.CATALOG_SOURCE_YAML]) || (flags[OLM.CATALOG_SOURCE_YAML] && flags[OLM.CHANNEL] === OLM_STABLE_CHANNEL_NAME)) {
         // use default image tag for `olm` to install stable Che, because we don't have next channel for OLM catalog.
         cheClusterCR.spec.server.cheImageTag = ''
       }
@@ -2190,9 +2190,14 @@ export class KubeHelper {
         (_phase: string, obj: any) => {
           const subscription = obj as Subscription
           if (subscription.status && subscription.status.conditions) {
+            if (subscription.status.installedCSV) {
+              resolve(subscription.status.installplan)
+              return
+            }
             for (const condition of subscription.status.conditions) {
               if (condition.type === 'InstallPlanPending' && condition.status === 'True') {
                 resolve(subscription.status.installplan)
+                return
               }
             }
           }

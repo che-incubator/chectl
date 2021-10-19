@@ -41,22 +41,28 @@ export const CHE_OPERATOR_SELECTOR = 'app=che-operator'
 export const DEFAULT_CHE_NAMESPACE = 'eclipse-che'
 export const LEGACY_CHE_NAMESPACE = 'che'
 
-// OLM
+// OLM common
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'eclipse-che'
+export const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME = 'eclipse-che-subscription'
+export const DEVWORKSPACE_OPERATOR_SUBSRIPTION_NAME = 'devworkspace-operator-fast-redhat-operators-openshift-marketplace'
+export const OPERATOR_GROUP_NAME = 'che-operator-group'
+export const CVS_PREFIX = 'eclipse-che'
+export const DEVWORKSPACE_CVS_PREFIX = 'devworkspace-operator'
+// OLM channels
 export const OLM_STABLE_CHANNEL_NAME = 'stable'
 export const OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME = 'tech-preview-stable-all-namespaces'
 export const OLM_NEXT_CHANNEL_NAME = 'next'
+export const OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME = 'next-all-namespaces'
+// OLM namespaces
 export const DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE = 'openshift-marketplace'
 export const DEFAULT_OLM_KUBERNETES_NAMESPACE = 'olm'
+export const DEFAULT_OPENSHIFT_OPERATORS_NS_NAME = 'openshift-operators'
+// OLM catalogs
 export const CUSTOM_CATALOG_SOURCE_NAME = 'eclipse-che-custom-catalog-source'
-export const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME = 'eclipse-che-subscription'
-export const OPERATOR_GROUP_NAME = 'che-operator-group'
-export const KUBERNETES_OLM_CATALOG = 'operatorhubio-catalog'
-export const OPENSHIFT_OLM_CATALOG = 'community-operators'
-export const CVS_PREFIX = 'eclipse-che'
 export const NEXT_CATALOG_SOURCE_NAME = 'eclipse-che-preview'
 export const DEFAULT_OLM_SUGGESTED_NAMESPACE = 'eclipse-che'
-export const DEFAULT_OPENSHIFT_OPERATORS_NS_NAME = 'openshift-operators'
+export const KUBERNETES_OLM_CATALOG = 'operatorhubio-catalog'
+export const OPENSHIFT_OLM_CATALOG = 'community-operators'
 
 // Documentation links
 export const DOC_LINK = 'https://www.eclipse.org/che/docs/'

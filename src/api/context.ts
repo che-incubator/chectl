@@ -16,7 +16,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, LOG_DIRECTORY_KEY } from '../common-flags'
-import { CHECTL_PROJECT_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME } from '../constants'
+import { CHECTL_PROJECT_NAME } from '../constants'
 import { getProjectName, getProjectVersion, readCRFile } from '../util'
 
 import { CHECTL_DEVELOPMENT_VERSION } from './version'
@@ -47,11 +47,6 @@ export namespace ChectlContext {
     ctx.isDevVersion = getProjectVersion().includes('next') || getProjectVersion() === CHECTL_DEVELOPMENT_VERSION
     if (flags['listr-renderer'] as any) {
       ctx.listrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
-    }
-
-    ctx.operatorNamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
-    if (flags['olm-channel'] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME) {
-      ctx.operatorNamespace = DEFAULT_OPENSHIFT_OPERATORS_NS_NAME
     }
 
     ctx.highlightedMessages = [] as string[]
@@ -88,4 +83,21 @@ export namespace DexContextKeys {
   export const DEX_USERNAME = 'dex-username'
   export const DEX_PASSWORD = 'dex-password'
   export const DEX_PASSWORD_HASH = 'dex-password-hash'
+}
+
+export namespace OLM {
+  export const CHANNEL = 'olm-channel'
+  export const STARTING_CSV = 'starting-csv'
+  export const AUTO_UPDATE = 'auto-update'
+
+  // Custom catalog source
+  export const CATALOG_SOURCE_NAME = 'catalog-source-name'
+  export const CATALOG_SOURCE_NAMESPACE = 'catalog-source-namespace'
+  export const CATALOG_SOURCE_YAML = 'catalog-source-yaml'
+  export const PACKAGE_MANIFEST_NAME = 'package-manifest-name'
+}
+
+export enum OLMInstallationUpdate {
+  MANUAL = 'Manual',
+  AUTO = 'Automatic'
 }

@@ -15,7 +15,7 @@ import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 import * as semver from 'semver'
-import { ChectlContext } from '../../api/context'
+import { ChectlContext, OLM } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_HELM_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME } from '../../constants'
@@ -263,47 +263,47 @@ export default class Deploy extends Command {
         this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
       }
 
-      if (flags['olm-channel'] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME && isKubernetesPlatformFamily(flags.platform)) {
+      if (flags[OLM.CHANNEL] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME && isKubernetesPlatformFamily(flags.platform)) {
         this.error('"stable-all-namespaces" channel is supported only in "openshift" platform')
       }
 
-      if (flags['catalog-source-name'] && flags['catalog-source-yaml']) {
-        this.error('should be provided only one argument: "catalog-source-name" or "catalog-source-yaml"')
+      if (flags[OLM.CATALOG_SOURCE_NAME] && flags[OLM.CATALOG_SOURCE_YAML]) {
+        this.error(`should be provided only one argument: "${OLM.CATALOG_SOURCE_NAME}" or "${OLM.CATALOG_SOURCE_YAML}"`)
       }
       if (flags.version) {
-        if (flags['starting-csv']) {
-          this.error('"starting-csv" and "version" flags are mutually exclusive. Please specify only one of them.')
+        if (flags[OLM.STARTING_CSV]) {
+          this.error(`"${OLM.STARTING_CSV}" and "version" flags are mutually exclusive. Please specify only one of them.`)
         }
-        if (flags['auto-update']) {
-          this.error('enabled "auto-update" flag cannot be used with version flag. Deploy latest version instead.')
+        if (flags[OLM.AUTO_UPDATE]) {
+          this.error(`enabled "${OLM.AUTO_UPDATE}" flag cannot be used with version flag. Deploy latest version instead.`)
         }
       }
 
-      if (!flags['package-manifest-name'] && flags['catalog-source-yaml']) {
-        this.error('you need to define "package-manifest-name" flag to use "catalog-source-yaml".')
+      if (!flags[OLM.PACKAGE_MANIFEST_NAME] && flags[OLM.CATALOG_SOURCE_YAML]) {
+        this.error(`you need to define "${OLM.PACKAGE_MANIFEST_NAME}" flag to use "${OLM.CATALOG_SOURCE_YAML}".`)
       }
-      if (!flags['olm-channel'] && flags['catalog-source-yaml']) {
-        this.error('you need to define "olm-channel" flag to use "catalog-source-yaml".')
+      if (!flags[OLM.CHANNEL] && flags[OLM.CATALOG_SOURCE_YAML]) {
+        this.error(`you need to define "${OLM.CHANNEL}" flag to use "${OLM.CATALOG_SOURCE_YAML}".`)
       }
     } else {
       // Not OLM installer
-      if (flags['starting-csv']) {
-        this.error('"starting-csv" flag should be used only with "olm" installer.')
+      if (flags[OLM.STARTING_CSV]) {
+        this.error(`"${OLM.STARTING_CSV}" flag should be used only with "olm" installer.`)
       }
-      if (flags['catalog-source-yaml']) {
-        this.error('"catalog-source-yaml" flag should be used only with "olm" installer.')
+      if (flags[OLM.CATALOG_SOURCE_YAML]) {
+        this.error(`"${OLM.CATALOG_SOURCE_YAML}" flag should be used only with "olm" installer.`)
       }
-      if (flags['olm-channel']) {
-        this.error('"olm-channel" flag should be used only with "olm" installer.')
+      if (flags[OLM.CHANNEL]) {
+        this.error(`"${OLM.CHANNEL}" flag should be used only with "olm" installer.`)
       }
-      if (flags['package-manifest-name']) {
-        this.error('"package-manifest-name" flag should be used only with "olm" installer.')
+      if (flags[OLM.PACKAGE_MANIFEST_NAME]) {
+        this.error(`"${OLM.PACKAGE_MANIFEST_NAME}" flag should be used only with "olm" installer.`)
       }
-      if (flags['catalog-source-name']) {
-        this.error('"catalog-source-name" flag should be used only with "olm" installer.')
+      if (flags[OLM.CATALOG_SOURCE_NAME]) {
+        this.error(`"${OLM.CATALOG_SOURCE_NAME}" flag should be used only with "olm" installer.`)
       }
-      if (flags['catalog-source-namespace']) {
-        this.error('"package-manifest-name" flag should be used only with "olm" installer.')
+      if (flags[OLM.CATALOG_SOURCE_NAMESPACE]) {
+        this.error(`"${OLM.CATALOG_SOURCE_NAMESPACE}" flag should be used only with "olm" installer.`)
       }
       if (flags['cluster-monitoring'] && flags.platform !== 'openshift') {
         this.error('"cluster-monitoring" flag should be used only with "olm" installer and "openshift" platform.')
@@ -452,7 +452,7 @@ export async function setDefaultInstaller(flags: any): Promise<void> {
   const kubeHelper = new KubeHelper(flags)
 
   const isOlmPreinstalled = await kubeHelper.isPreInstalledOLM()
-  if ((flags['catalog-source-name'] || flags['catalog-source-yaml']) && isOlmPreinstalled) {
+  if ((flags[OLM.CATALOG_SOURCE_NAME] || flags[OLM.CATALOG_SOURCE_YAML]) && isOlmPreinstalled) {
     flags.installer = 'olm'
     return
   }

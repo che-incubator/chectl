@@ -16,7 +16,7 @@ import * as Listr from 'listr'
 
 import { CHE_BACKUP_SERVER_CONFIG_KIND_PLURAL, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OPERATOR_DEPLOYMENT_NAME } from '../../constants'
 import { batch, CHE_TELEMETRY, listrRenderer } from '../../common-flags'
-import { ChectlContext } from '../../api/context'
+import { ChectlContext, OLM } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { CheHelper } from '../../api/che'
 import { cheNamespace } from '../../common-flags'
@@ -171,7 +171,7 @@ export default class Restore extends Command {
             }
 
             if (flags.installer === 'olm') {
-              if (!flags['olm-channel']) {
+              if (!flags[OLM.CHANNEL]) {
                 throw new Error('Cannot detect OLM channel automatically, provide --olm-channel flag')
               }
               task.title = `${task.title}OLM`
@@ -185,7 +185,7 @@ export default class Restore extends Command {
           if (subscription) {
             // OLM
             flags.installer = 'olm'
-            flags['olm-channel'] = subscription.spec.channel
+            flags[OLM.CHANNEL] = subscription.spec.channel
             task.title = `${task.title}OLM`
             return
           }
