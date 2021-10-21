@@ -450,7 +450,7 @@ _See code: [src/commands/server/debug.ts](https://github.com/che-incubator/chect
 
 ## `chectl server:delete`
 
-delete any Eclipse Che related resource: Kubernetes/OpenShift/Helm
+delete any Eclipse Che related resource: Kubernetes/OpenShift
 
 ```
 USAGE
@@ -485,7 +485,7 @@ USAGE
   $ chectl server:deploy
 
 OPTIONS
-  -a, --installer=helm|operator|olm
+  -a, --installer=operator|olm
       Installer type. If not set, default is "olm" for OpenShift 4.x platform otherwise "operator".
 
   -b, --domain=domain
@@ -565,11 +565,6 @@ OPTIONS
 
   --devfile-registry-url=devfile-registry-url
       The URL of the external Devfile registry.
-
-  --helm-patch-yaml=helm-patch-yaml
-      Path to yaml file with Helm Chart values patch.
-                           The file format is identical to values.yaml from the chart.
-                           Note, Provided command line arguments take precedence over patch file.
 
   --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout
       [default: 600000] Waiting time for Pod downloading image (in milliseconds)

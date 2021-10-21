@@ -37,7 +37,7 @@ export class CertManagerTasks {
   /**
    * Verify if cert-manager is installed in cluster
    */
-  getDeployCertManagerTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+  getDeployCertManagerTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Check Cert Manager deployment',
@@ -55,12 +55,8 @@ export class CertManagerTasks {
         title: 'Deploy Cert Manager',
         enabled: ctx => !ctx.certManagerInstalled,
         task: async (ctx: any, task: any) => {
-          let yamlPath = path.join(flags.templates, 'cert-manager', 'cert-manager.yaml')
-          if (!await fs.pathExists(yamlPath)) {
-            // Older Che versions don't have Cert Manager install yaml in templates
-            // Try to use embedded in chectl version
-            yamlPath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'cert-manager.yml')
-          }
+          const yamlPath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'cert-manager.yml')
+
           // Apply additional --validate=false flag to be able to deploy Cert Manager on Kubernetes v1.15.4 or below
           await this.kubeHelper.applyResource(yamlPath, '--validate=false')
           ctx.certManagerInstalled = true

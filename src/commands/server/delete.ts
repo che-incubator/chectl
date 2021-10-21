@@ -22,14 +22,13 @@ import { assumeYes, batch, cheDeployment, cheNamespace, CHE_TELEMETRY, listrRend
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
-import { HelmTasks } from '../../tasks/installers/helm'
 import { OLMTasks } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Delete extends Command {
-  static description = 'delete any Eclipse Che related resource: Kubernetes/OpenShift/Helm'
+  static description = 'delete any Eclipse Che related resource: Kubernetes/OpenShift'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
@@ -66,7 +65,6 @@ export default class Delete extends Command {
 
     const apiTasks = new ApiTasks()
     const kube = new KubeHelper(flags)
-    const helmTasks = new HelmTasks(flags)
     const operatorTasks = new OperatorTasks()
     const olmTasks = new OLMTasks()
     const cheTasks = new CheTasks(flags)
@@ -77,7 +75,6 @@ export default class Delete extends Command {
     tasks.add(operatorTasks.deleteTasks(flags))
     tasks.add(olmTasks.deleteTasks(flags))
     tasks.add(cheTasks.deleteTasks(flags))
-    tasks.add(helmTasks.deleteTasks(flags))
     tasks.add(cheTasks.waitPodsDeletedTasks())
 
     // Remove devworkspace controller only if there are no more cheClusters after olm/operator tasks

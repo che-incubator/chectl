@@ -149,7 +149,6 @@ export class CheTasks {
         title: `Verify if Eclipse Che is deployed into namespace \"${this.cheNamespace}\"`,
         task: async (ctx: any, task: any) => {
           if (await this.kube.isDeploymentExist(this.cheDeploymentName, this.cheNamespace)) {
-            // helm chart and Eclipse Che operator use a deployment
             ctx.isCheDeployed = true
             ctx.isCheReady = await this.kube.deploymentReady(this.cheDeploymentName, this.cheNamespace)
             if (!ctx.isCheReady) {
@@ -595,7 +594,6 @@ export class CheTasks {
     return [
       {
         title: `${follow ? 'Start following' : 'Read'} Operator logs`,
-        skip: () => flags.installer === 'helm',
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, CHE_OPERATOR_SELECTOR, ctx.directory, follow)
           task.title = `${task.title}...done`

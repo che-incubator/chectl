@@ -34,7 +34,6 @@ const PLATFORM_MINISHIFT = 'minishift'
 const PLATFORM_MINIKUBE = 'minikube'
 
 const INSTALLER_OPERATOR = 'operator'
-const INSTALLER_HELM = 'helm'
 const INSTALLER_OLM = 'olm'
 
 const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse-che/che-devfile-registry/main/devfiles/nodejs/devfile.yaml'
@@ -60,10 +59,10 @@ function getDeployCommand(): string {
       break
 
     case PLATFORM_MINIKUBE:
-      if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_HELM || INSTALLER === INSTALLER_OLM)) {
+      if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_OLM)) {
         throw new Error(`Unknown installer ${INSTALLER}`)
       }
-      const patchOption = INSTALLER === INSTALLER_HELM ? '--helm-patch-yaml=test/e2e/resources/helm-patch.yaml' : '--che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml'
+      const patchOption = '--che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml'
       command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --telemetry=off --chenamespace=${NAMESPACE} ${patchOption} --multiuser --skip-cluster-availability-check`
       break
 
@@ -101,8 +100,7 @@ describe('Eclipse Che server authentication', () => {
   it('Should login in to Che server with username and password', async () => {
     let cheApiEndpoint: string
     if (isKubernetesPlatformFamily(PLATFORM)) {
-      const ingressName = INSTALLER === INSTALLER_HELM ? 'che-ingress' : 'che'
-      cheApiEndpoint = await helper.K8SHostname(ingressName, NAMESPACE) + '/api'
+      cheApiEndpoint = await helper.K8SHostname('che', NAMESPACE) + '/api'
     } else {
       cheApiEndpoint = await helper.OCHostname('che', NAMESPACE) + '/api'
     }

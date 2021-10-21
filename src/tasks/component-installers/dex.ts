@@ -110,7 +110,7 @@ export class DexTasks {
 
                 if (!await this.kube.getSecret(DexTasks.TLS_SECRET_NAME, DexTasks.NAMESPACE_NAME)) {
                   const certManager = new CertManagerTasks(this.flags)
-                  certs.add(certManager.getDeployCertManagerTasks(this.flags))
+                  certs.add(certManager.getDeployCertManagerTasks())
                   certs.add(certManager.getGenerateCertManagerCACertificateTasks(this.flags))
                   certs.add(certManager.getCreateCertificateIssuerTasks(this.flags))
 

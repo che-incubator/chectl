@@ -92,13 +92,13 @@ export class DevWorkspaceTasks {
   /**
    * Returns list of tasks which setup dev-workspace.
    */
-  getInstallTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+  getInstallTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Verify cert-manager installation',
         enabled: (ctx: any) => !ctx.isOpenShift,
         task: async (ctx: any, _task: any) => {
-          return new Listr(this.certManagerTask.getDeployCertManagerTasks(flags), ctx.listrOptions)
+          return new Listr(this.certManagerTask.getDeployCertManagerTasks(), ctx.listrOptions)
         },
       },
     ]
