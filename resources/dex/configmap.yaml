@@ -21,7 +21,7 @@ data:
     staticClients:
     - id: {{CLIENT_ID}}
       redirectURIs:
-      - 'https://che-{{NAMESPACE}}.{{DOMAIN}}/oauth2/callback'
+      - 'https://che-{{NAMESPACE}}.{{DOMAIN}}/oauth/callback'
       name: 'Eclipse Che'
       secret: {{CLIENT_SECRET}}
     enablePasswordDB: true
