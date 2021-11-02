@@ -16,7 +16,6 @@ export const OPERATOR_TEMPLATE_DIR = 'che-operator'
 // minimal installable versions by current chectl
 export const MIN_OLM_INSTALLER_VERSION = '7.17.0'
 export const MIN_CHE_OPERATOR_INSTALLER_VERSION = '7.13.1'
-export const MIN_HELM_INSTALLER_VERSION = '7.10.0'
 
 // labels
 export const CHE_RELATED_COMPONENT_LABEL = 'client/org.eclipse.che=true'

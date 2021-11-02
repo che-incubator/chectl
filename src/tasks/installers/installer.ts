@@ -15,7 +15,6 @@ import * as Listr from 'listr'
 
 import { ChectlContext } from '../../api/context'
 
-import { HelmTasks } from './helm'
 import { OLMTasks } from './olm'
 import { OperatorTasks } from './operator'
 
@@ -86,7 +85,6 @@ export class InstallerTasks {
   async installTasks(flags: any, command: Command): Promise<ReadonlyArray<Listr.ListrTask>> {
     const ctx = ChectlContext.get()
 
-    const helmTasks = new HelmTasks(flags)
     const operatorTasks = new OperatorTasks()
     const olmTasks = new OLMTasks()
 
@@ -102,10 +100,6 @@ export class InstallerTasks {
       title = '🏃‍  Running Olm installaion Eclipse Che'
       task = () => new Listr(olmTasks.startTasks(flags, command), ctx.listrOptions)
       // installer.ts BEGIN CHE ONLY
-    } else if (flags.installer === 'helm') {
-      title = '🏃‍  Running Helm to install Eclipse Che'
-      task = () => helmTasks.deployTasks(flags, command)
-      // installer.ts END CHE ONLY
     } else {
       title = '🏃‍  Installer preflight check'
       task = () => {

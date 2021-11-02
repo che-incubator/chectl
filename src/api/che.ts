@@ -443,7 +443,6 @@ export class CheHelper {
     if (installer === 'operator') {
       destDir = path.join(destDir, OPERATOR_TEMPLATE_DIR)
     }
-    // No need to add kubernetes folder for Helm installer as it already present in the archive
 
     const tempDir = path.join(os.tmpdir(), Date.now().toString())
     await fs.mkdirp(tempDir)

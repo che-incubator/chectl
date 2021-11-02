@@ -15,7 +15,6 @@ import { Octokit } from '@octokit/rest'
 export const ECLIPSE_CHE_ORG = 'eclipse-che'
 export const ECLIPSE_CHE_INCUBATOR_ORG = 'che-incubator'
 
-export const CHE_REPO = 'che-server'
 export const CHE_OPERATOR_REPO = 'che-operator'
 export const CHECTL_REPO = 'chectl'
 
@@ -45,8 +44,6 @@ export class CheGithubClient {
   async getTemplatesTagInfo(installer: string, version?: string): Promise<TagInfo | undefined> {
     if (installer === 'operator' || installer === 'olm') {
       return this.getTagInfoByVersion(ECLIPSE_CHE_ORG, CHE_OPERATOR_REPO, version)
-    } else if (installer === 'helm') {
-      return this.getTagInfoByVersion(ECLIPSE_CHE_ORG, CHE_REPO, version)
     }
     throw new Error(`Unsupported installer: ${installer}`)
   }

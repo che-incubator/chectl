@@ -38,7 +38,6 @@ const A_DAY_IN_MS = 24 * 60 * 60 * 1000
 export namespace VersionHelper {
   export const MINIMAL_OPENSHIFT_VERSION = '3.11'
   export const MINIMAL_K8S_VERSION = '1.19'
-  export const MINIMAL_HELM_VERSION = '2.15'
   export const CHE_POD_MANIFEST_FILE = '/home/user/eclipse-che/tomcat/webapps/ROOT/META-INF/MANIFEST.MF'
   export const CHE_PREFFIX_VERSION = 'Implementation-Version: '
 
@@ -114,10 +113,6 @@ export namespace VersionHelper {
 
   export function checkMinimalOpenShiftVersion(actualVersion: string): boolean {
     return checkMinimalVersion(actualVersion, MINIMAL_OPENSHIFT_VERSION)
-  }
-
-  export function checkMinimalHelmVersion(actualVersion: string): boolean {
-    return checkMinimalVersion(actualVersion, MINIMAL_HELM_VERSION)
   }
 
   /**

@@ -89,9 +89,6 @@ export function downloadTemplates(flags: any): Listr.ListrTask {
       case 'operator':
         installerTemplatesSubDir = OPERATOR_TEMPLATE_DIR
         break
-      case 'helm':
-        installerTemplatesSubDir = 'kubernetes'
-        break
       case 'olm':
         // Should be handled on install phase when catalog source is deployed
         return
@@ -183,7 +180,7 @@ export function retrieveCheCaCertificateTask(flags: any): Listr.ListrTask {
   return {
     title: 'Retrieving Che self-signed CA certificate',
     // It makes sense to retrieve CA certificate only if self-signed certificate is used.
-    enabled: () => flags.tls && flags.installer !== 'helm',
+    enabled: () => flags.tls,
     task: async (ctx: any, task: any) => {
       const che = new CheHelper(flags)
       const kube = new KubeHelper()

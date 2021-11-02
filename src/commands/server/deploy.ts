@@ -18,7 +18,7 @@ import * as semver from 'semver'
 import { ChectlContext, OLM } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_HELM_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME } from '../../constants'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { DexTasks } from '../../tasks/component-installers/dex'
@@ -97,7 +97,7 @@ export default class Deploy extends Command {
     installer: string({
       char: 'a',
       description: 'Installer type. If not set, default is "olm" for OpenShift 4.x platform otherwise "operator".',
-      options: ['helm', 'operator', 'olm'],
+      options: ['operator', 'olm'],
     }),
     domain: string({
       char: 'b',
@@ -118,12 +118,6 @@ export default class Deploy extends Command {
     }),
     [CHE_OPERATOR_CR_YAML_KEY]: cheOperatorCRYaml,
     [CHE_OPERATOR_CR_PATCH_YAML_KEY]: cheOperatorCRPatchYaml,
-    'helm-patch-yaml': string({
-      description: `Path to yaml file with Helm Chart values patch.
-                    The file format is identical to values.yaml from the chart.
-                    Note, Provided command line arguments take precedence over patch file.`,
-      default: '',
-    }),
     'workspace-pvc-storage-class-name': string({
       description: 'persistent volume(s) storage class name to use to store Eclipse Che workspaces data',
       env: 'CHE_INFRA_KUBERNETES_PVC_STORAGE__CLASS__NAME',
@@ -251,12 +245,6 @@ export default class Deploy extends Command {
       this.warn('"--domain" flag is ignored for Openshift family infrastructures. It should be done on the cluster level.')
     }
 
-    if (flags.installer === 'helm') {
-      if (!isKubernetesPlatformFamily(flags.platform) && flags.platform !== 'docker-desktop') {
-        this.error(`🛑 Current platform is ${flags.platform}. Helm installer is only available on top of Kubernetes flavor platform (including Minikube, Docker Desktop).`)
-      }
-    }
-
     if (flags.installer === 'olm') {
       // OLM installer only checks
       if (flags.platform === 'minishift') {
@@ -320,9 +308,6 @@ export default class Deploy extends Command {
       case 'operator':
         minAllowedVersion = MIN_CHE_OPERATOR_INSTALLER_VERSION
         break
-      case 'helm':
-        minAllowedVersion = MIN_HELM_INSTALLER_VERSION
-        break
       default:
         // Should never happen
         minAllowedVersion = 'latest'
@@ -354,8 +339,8 @@ export default class Deploy extends Command {
     await this.setPlaformDefaults(flags, ctx)
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Deploy.id, flags })
 
-    if (!flags.batch && flags.installer === 'helm') {
-      if (!await cli.confirm('\'helm\' installer is deprecated. Do you want to proceed? [y/n]')) {
+    if (!flags.batch && isKubernetesPlatformFamily(flags.platform) && (isDevWorkspaceEnabled(ctx) || flags['workspace-engine'] === 'dev-workspace')) {
+      if (!await cli.confirm('DevWorkspace is experimental feature. It requires direct access to the underlying infrastructure REST API.\nThis results in huge privilege escalation. Do you want to proceed? [y/n]')) {
         cli.exit(0)
       }
     }
@@ -388,7 +373,7 @@ export default class Deploy extends Command {
     preInstallTasks.add({
       title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
       enabled: () => (isDevWorkspaceEnabled(ctx) || flags['workspace-engine'] === 'dev-workspace') && !ctx.isOpenShift,
-      task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags)),
+      task: () => new Listr(devWorkspaceTasks.getInstallTasks()),
     })
 
     const installTasks = new Listr(undefined, ctx.listrOptions)

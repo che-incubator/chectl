@@ -11,7 +11,7 @@
 name: Minikube E2E
 on: pull_request
 jobs:
-  minikube-e2e-helm:
+  minikube-e2e-olm:
     name: OLM installer
     runs-on: ubuntu-20.04
     steps:
