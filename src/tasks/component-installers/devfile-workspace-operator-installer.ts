@@ -124,7 +124,7 @@ export class DevWorkspaceTasks {
         task: async (ctx: any, task: any) => {
           ctx.isDevWorkspaceInstalledViaOLM = Boolean(await this.isDevWorkspaceInstalledViaOLM())
 
-          task.title = await `${task.title} ...${ctx.isDevWorkspaceInstalledViaOLM ? "Installed": "Not installed"}`
+          task.title = await `${task.title} ...${ctx.isDevWorkspaceInstalledViaOLM ? 'Installed' : 'Not installed'}`
         },
       },
       {
