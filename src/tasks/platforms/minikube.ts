@@ -158,7 +158,8 @@ export class MinikubeTasks {
             args.push('--extra-config=apiserver.oidc-ca-file=/etc/ca-certificates/dex-ca.crt')
           }
 
-          args.push('--extra-config=apiserver.oidc-username-claim=email')
+          args.push('--extra-config=apiserver.oidc-username-claim=name')
+          args.push('--extra-config=apiserver.oidc-username-prefix=-')
           args.push('--extra-config=apiserver.oidc-groups-claim=groups')
           args.push('start')
 
