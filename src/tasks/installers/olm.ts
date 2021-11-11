@@ -136,7 +136,7 @@ export class OLMTasks {
         title: 'Create next index CatalogSource',
         task: async (ctx: any, task: any) => {
           if (!await kube.catalogSourceExists(NEXT_CATALOG_SOURCE_NAME, ctx.operatorNamespace)) {
-            const catalogSourceImage = `quay.io/eclipse/eclipse-che-${ctx.generalPlatformName}-opm-catalog:preview`
+            const catalogSourceImage = `quay.io/eclipse/eclipse-che-${ctx.generalPlatformName}-opm-catalog:next`
             const nextCatalogSource = this.constructIndexCatalogSource(ctx.operatorNamespace, catalogSourceImage)
             await kube.createCatalogSource(nextCatalogSource)
             await kube.waitCatalogSource(ctx.operatorNamespace, NEXT_CATALOG_SOURCE_NAME)
