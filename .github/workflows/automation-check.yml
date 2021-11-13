@@ -42,6 +42,7 @@ jobs:
           go-version: 1.15
       - name: Check license headers
         run: |
+          export GO111MODULE=on
           go get -u github.com/che-incubator/check-license-header@379ba18fdb906d341ae451ea155cc34f1c4b4f1a
           go get -u github.com/google/addlicense@99ebc9c9db7bceb8623073e894533b978d7b7c8a
           echo "[INFO] Check license headers."
