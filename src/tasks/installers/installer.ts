@@ -99,7 +99,6 @@ export class InstallerTasks {
     } else if (flags.installer === 'olm') {
       title = '🏃‍  Running Olm installaion Eclipse Che'
       task = () => new Listr(olmTasks.startTasks(flags, command), ctx.listrOptions)
-      // installer.ts BEGIN CHE ONLY
     } else {
       title = '🏃‍  Installer preflight check'
       task = () => {
