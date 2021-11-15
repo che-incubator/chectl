@@ -44,7 +44,6 @@ jobs:
         run: |
           export GO111MODULE=on
           go get -u github.com/che-incubator/check-license-header@379ba18fdb906d341ae451ea155cc34f1c4b4f1a
-          go get -u github.com/google/addlicense@99ebc9c9db7bceb8623073e894533b978d7b7c8a
           echo "[INFO] Check license headers."
           FILES_TO_CHECK_LICENSE=$(find . \
           -not -path "./tmp/*" \
@@ -54,7 +53,6 @@ jobs:
           -not -path "./lib/*" \
           \( -name "*.ts" -o -name "*.yaml" -o -name "*.yml" -o -name "*.sh" \))
 
-          LICENSE_TEMPLATE="${GITHUB_WORKSPACE}/license-header.txt"
+          LICENSE_TEMPLATE="${GITHUB_WORKSPACE}/hack/license-header.txt"
 
-          addlicense --check -f "${LICENSE_TEMPLATE}" ${FILES_TO_CHECK_LICENSE}
           check-license-header -f "${LICENSE_TEMPLATE}" ${FILES_TO_CHECK_LICENSE}
