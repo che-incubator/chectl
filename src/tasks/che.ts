@@ -9,6 +9,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
+
 import { Command } from '@oclif/command'
 import * as Listr from 'listr'
 import { DexContextKeys } from '../api/context'

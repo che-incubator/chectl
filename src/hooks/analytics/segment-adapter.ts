@@ -9,6 +9,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
+
 import { cli } from 'cli-ux'
 import { getTimezone } from 'countries-and-timezones'
 import * as fs from 'fs-extra'

@@ -1,3 +1,15 @@
+#
+# Copyright (c) 2019-2021 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
 name: Chectl
 on: [pull_request]
 
@@ -24,3 +36,23 @@ jobs:
             echo "[ERROR] README.md it is not up to date. Please run 'yarn oclif-dev readme' to update and commit the changes."
             exit 1
           fi
+      - name: Set up Go 1.15
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.15
+      - name: Check license headers
+        run: |
+          export GO111MODULE=on
+          go get -u github.com/che-incubator/check-license-header@379ba18fdb906d341ae451ea155cc34f1c4b4f1a
+          echo "[INFO] Check license headers."
+          FILES_TO_CHECK_LICENSE=$(find . \
+          -not -path "./tmp/*" \
+          -not -path "./node_modules/*" \
+          -not -path "./resources/*" \
+          -not -path "./templates/*" \
+          -not -path "./lib/*" \
+          \( -name "*.ts" -o -name "*.yaml" -o -name "*.yml" -o -name "*.sh" \))
+
+          LICENSE_TEMPLATE="${GITHUB_WORKSPACE}/hack/license-header.txt"
+
+          check-license-header -f "${LICENSE_TEMPLATE}" ${FILES_TO_CHECK_LICENSE}
