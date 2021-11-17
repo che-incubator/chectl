@@ -345,12 +345,6 @@ export default class Deploy extends Command {
       }
     }
 
-    if (!flags.batch && isKubernetesPlatformFamily(flags.platform) && (isDevWorkspaceEnabled(ctx) || flags['workspace-engine'] === 'dev-workspace')) {
-      if (!await cli.confirm('DevWorkspace is experimental feature. It requires direct access to the underlying infrastructure REST API.\nThis results in huge privilege escalation. Do you want to proceed? [y/n]')) {
-        cli.exit(0)
-      }
-    }
-
     const dexTasks = new DexTasks(flags)
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks(flags)

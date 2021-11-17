@@ -111,8 +111,8 @@ export class DexTasks {
                 if (!await this.kube.getSecret(DexTasks.TLS_SECRET_NAME, DexTasks.NAMESPACE_NAME)) {
                   const certManager = new CertManagerTasks(this.flags)
                   certs.add(certManager.getDeployCertManagerTasks())
-                  certs.add(certManager.getGenerateCertManagerCACertificateTasks(this.flags))
-                  certs.add(certManager.getCreateCertificateIssuerTasks(this.flags))
+                  certs.add(certManager.getGenerateCertManagerCACertificateTasks())
+                  certs.add(certManager.getCreateCertificateIssuerTasks())
 
                   const domain = 'dex.' + this.flags.domain
                   const commonName = '*.' + domain
