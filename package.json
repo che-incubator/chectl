@@ -67,7 +67,7 @@
     "@types/rimraf": "^3.0.2",
     "@types/semver": "^7.3.9",
     "@types/unzipper": "^0.10.4",
-    "@types/uuid": "^8.3.1",
+    "@types/uuid": "^8.3.3",
     "@types/websocket": "^1.0.4",
     "@types/ws": "^8.2.0",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
