@@ -55,7 +55,7 @@ export class CertManagerTasks {
         title: 'Deploy Cert Manager',
         enabled: ctx => !ctx.certManagerInstalled,
         task: async (ctx: any, task: any) => {
-          const yamlPath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'cert-manager.yml')
+          const yamlPath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'cert-manager', 'cert-manager.yml')
 
           // Apply additional --validate=false flag to be able to deploy Cert Manager on Kubernetes v1.15.4 or below
           await this.kubeHelper.applyResource(yamlPath, '--validate=false')
@@ -85,7 +85,7 @@ export class CertManagerTasks {
     ]
   }
 
-  getGenerateCertManagerCACertificateTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+  getGenerateCertManagerCACertificateTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Check Cert Manager CA certificate',
@@ -105,8 +105,8 @@ export class CertManagerTasks {
             try {
               // Configure permissions for CA key pair generation job
               await this.kubeHelper.createServiceAccount(CA_CERT_GENERATION_SERVICE_ACCOUNT_NAME, CERT_MANAGER_NAMESPACE_NAME)
-              await this.kubeHelper.createRoleFromFile(path.join(flags.templates, 'cert-manager', 'ca-cert-generator-role.yml'), CERT_MANAGER_NAMESPACE_NAME)
-              await this.kubeHelper.createRoleBindingFromFile(path.join(flags.templates, 'cert-manager', 'ca-cert-generator-role-binding.yml'), CERT_MANAGER_NAMESPACE_NAME)
+              await this.kubeHelper.createRoleFromFile(path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'cert-manager', 'ca-cert-generator-role.yml'), CERT_MANAGER_NAMESPACE_NAME)
+              await this.kubeHelper.createRoleBindingFromFile(path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'cert-manager', 'ca-cert-generator-role-binding.yml'), CERT_MANAGER_NAMESPACE_NAME)
 
               // Await created resources to be available
               await this.kubeHelper.waitServiceAccount(CA_CERT_GENERATION_SERVICE_ACCOUNT_NAME, CERT_MANAGER_NAMESPACE_NAME)
@@ -144,7 +144,7 @@ export class CertManagerTasks {
     ]
   }
 
-  getCreateCertificateIssuerTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+  getCreateCertificateIssuerTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Set up Eclipse Che certificates issuer',
@@ -171,7 +171,7 @@ export class CertManagerTasks {
           ctx.clusterIssuersName = DEFAULT_CHE_CLUSTER_ISSUER_NAME
           const cheClusterIssuerExists = await this.kubeHelper.clusterIssuerExists(DEFAULT_CHE_CLUSTER_ISSUER_NAME, ctx.certManagerK8sApiVersion)
           if (!cheClusterIssuerExists) {
-            const cheCertificateClusterIssuerTemplatePath = path.join(flags.templates, '/cert-manager/che-cluster-issuer.yml')
+            const cheCertificateClusterIssuerTemplatePath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'cert-manager', 'che-cluster-issuer.yml')
             await this.kubeHelper.createCheClusterIssuer(cheCertificateClusterIssuerTemplatePath, ctx.certManagerK8sApiVersion)
 
             task.title = `${task.title}...done`
@@ -200,7 +200,7 @@ export class CertManagerTasks {
             task.title = 'Request self-signed certificate'
           }
 
-          const certificateTemplatePath = path.join(flags.templates, '/cert-manager/che-certificate.yml')
+          const certificateTemplatePath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'cert-manager', 'che-certificate.yml')
           const certificate = this.kubeHelper.safeLoadFromYamlFile(certificateTemplatePath) as V1Certificate
           certificate.metadata.namespace = namespace
           certificate.spec.secretName = secretName
