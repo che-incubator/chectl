@@ -1478,14 +1478,14 @@ ajv@^8.0.1:
     require-from-string "^2.0.2"
     uri-js "^4.2.2"
 
-analytics-node@^5.1.0:
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/analytics-node/-/analytics-node-5.1.0.tgz#69f2183af07b7e9aeef129232c6c1e44ef2f28d9"
-  integrity sha512-qojiIIQs+ruKS4BEb7+nLIim0TpmifMnYQYYQWBHcYBurv/IXRs3bL28wCuv1aKpRKpyDjAvugYSA7V7pw8t8g==
+analytics-node@^5.1.2:
+  version "5.1.2"
+  resolved "https://registry.yarnpkg.com/analytics-node/-/analytics-node-5.1.2.tgz#317841d432eda3e8855b50fdad1d70eb31d28e4e"
+  integrity sha512-WZ8gkXtLuqD2Q2xEOr/2/LJiR0AnhWHfXZhfPnMZpB7vEwCsh3HapYAUmA1cPj1abrhAqBX7POWuWo/1wUu/Fw==
   dependencies:
     "@segment/loosely-validate-event" "^2.0.0"
     axios "^0.21.4"
-    axios-retry "^3.0.2"
+    axios-retry "3.2.0"
     lodash.isstring "^4.0.1"
     md5 "^2.2.1"
     ms "^2.0.0"
@@ -1704,10 +1704,10 @@ aws4@^1.8.0:
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.10.1.tgz#e1e82e4f3e999e2cfd61b161280d16a111f86428"
   integrity sha512-zg7Hz2k5lI8kb7U32998pRRFin7zJlkfezGJjUc2heaD4Pw2wObakCDVzkKztTm/Ln7eiVvYsjqak0Ed4LkMDA==
 
-axios-retry@^3.0.2:
-  version "3.1.9"
-  resolved "https://registry.yarnpkg.com/axios-retry/-/axios-retry-3.1.9.tgz#6c30fc9aeb4519aebaec758b90ef56fa03fe72e8"
-  integrity sha512-NFCoNIHq8lYkJa6ku4m+V1837TP6lCa7n79Iuf8/AqATAHYB0ISaAS1eyIenDOfHOLtym34W65Sjke2xjg2fsA==
+axios-retry@3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/axios-retry/-/axios-retry-3.2.0.tgz#eb48e72f90b177fde62329b2896aa8476cfb90ba"
+  integrity sha512-RK2cLMgIsAQBDhlIsJR5dOhODPigvel18XUv1dDXW+4k1FzebyfRk+C+orot6WPZOYFKSfhLwHPwVmTVOODQ5w==
   dependencies:
     is-retry-allowed "^1.1.0"
 
