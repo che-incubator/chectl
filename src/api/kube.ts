@@ -250,7 +250,7 @@ export class KubeHelper {
     }
   }
 
-  async roleExist(name = '', namespace = ''): Promise<boolean> {
+  async isRoleExist(name = '', namespace = ''): Promise<boolean> {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
       const { body } = await k8sRbacAuthApi.readNamespacedRole(name, namespace)
@@ -468,7 +468,7 @@ export class KubeHelper {
     }
   }
 
-  async roleBindingExist(name = '', namespace = ''): Promise<boolean> {
+  async isRoleBindingExist(name = '', namespace = ''): Promise<boolean> {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
       await k8sRbacAuthApi.readNamespacedRoleBinding(name, namespace)
@@ -1934,7 +1934,7 @@ export class KubeHelper {
     }
   }
 
-  async catalogSourceExists(name: string, namespace: string): Promise<boolean> {
+  async IsCatalogSourceExists(name: string, namespace: string): Promise<boolean> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', name)

@@ -48,7 +48,9 @@ export const CVS_PREFIX = 'eclipse-che'
 export const DEVWORKSPACE_CVS_PREFIX = 'devworkspace-operator'
 // OLM channels
 export const OLM_STABLE_CHANNEL_NAME = 'stable'
+export const OLM_STABLE_CHANNEL_STARTING_CSV_TEMPLATE = 'eclipse-che.v{{VERSION}}'
 export const OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME = 'tech-preview-stable-all-namespaces'
+export const OLM_STABLE_ALL_NAMESPACES_CHANNEL_STARTING_CSV_TEMPLATE = 'eclipse-che.v{{VERSION}}-all-namespaces'
 export const OLM_NEXT_CHANNEL_NAME = 'next'
 export const OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME = 'next-all-namespaces'
 // OLM namespaces

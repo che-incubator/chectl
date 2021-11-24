@@ -91,7 +91,7 @@ export class OperatorTasks {
         }
 
         for (const role of ctx.roles as V1Role[]) {
-          if (await kube.roleExist(role.metadata!.name, flags.chenamespace)) {
+          if (await kube.isRoleExist(role.metadata!.name, flags.chenamespace)) {
             if (shouldUpdate) {
               await kube.replaceRoleFromObj(role, flags.chenamespace)
             }
@@ -101,7 +101,7 @@ export class OperatorTasks {
         }
 
         for (const roleBinding of ctx.roleBindings as V1RoleBinding[]) {
-          if (await kube.roleBindingExist(roleBinding.metadata!.name, flags.chenamespace)) {
+          if (await kube.isRoleBindingExist(roleBinding.metadata!.name, flags.chenamespace)) {
             if (shouldUpdate) {
               await kube.replaceRoleBindingFromObj(roleBinding, flags.chenamespace)
             }
