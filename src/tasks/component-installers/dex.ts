@@ -207,6 +207,10 @@ export class DexTasks {
                   await this.kube.createServiceFromFile(yamlFilePath, DexTasks.NAMESPACE_NAME)
                   task.title = `${task.title}...[OK]`
                 }
+
+                // set service in a CR
+                ctx[ChectlContext.CR_PATCH] = ctx[ChectlContext.CR_PATCH] || {}
+                merge(ctx[ChectlContext.CR_PATCH], { spec: { auth: { identityProviderURL: 'http://dex.dex:5556' } } })
               },
             },
             {
@@ -271,7 +275,6 @@ export class DexTasks {
                   const yamlFilePath = this.getDexResourceFilePath('configmap.yaml')
                   let yamlContent = fs.readFileSync(yamlFilePath).toString()
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DOMAIN, 'g'), this.flags.domain)
-                  yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.CHE_NAMESPACE, 'g'), this.flags.chenamespace)
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.CLIENT_ID, 'g'), DexTasks.CLIENT_ID)
                   // generate client secret
                   const clientSecret = crypto.randomBytes(32).toString('base64')
