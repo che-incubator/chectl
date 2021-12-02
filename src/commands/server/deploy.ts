@@ -251,6 +251,10 @@ export default class Deploy extends Command {
         this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
       }
 
+      if (isKubernetesPlatformFamily(flags.platform)) {
+        this.error(`🛑 The specified installer ${flags.installer} does not support Kubernentes`)
+      }
+
       if (flags[OLM.CHANNEL] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME && isKubernetesPlatformFamily(flags.platform)) {
         this.error('"stable-all-namespaces" channel is supported only in "openshift" platform')
       }
