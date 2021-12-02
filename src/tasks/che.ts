@@ -12,18 +12,18 @@
 
 import { Command } from '@oclif/command'
 import * as Listr from 'listr'
-import { DexContextKeys } from '../api/context'
-
 import { CheHelper } from '../api/che'
 import { CheApiClient } from '../api/che-api-client'
 import { CheServerLoginManager } from '../api/che-login-manager'
+import { DexContextKeys } from '../api/context'
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
 import { VersionHelper } from '../api/version'
 import { CHE_OPERATOR_SELECTOR, DOC_LINK, DOC_LINK_RELEASE_NOTES, OUTPUT_SEPARATOR } from '../constants'
-import { addTrailingSlash, base64Decode, newError } from '../util'
-
+import { addTrailingSlash, base64Decode, isDevWorkspaceEnabled, newError } from '../util'
 import { KubeTasks } from './kube'
+
+
 
 /**
  * Holds tasks to work with Eclipse Che component.
@@ -743,7 +743,7 @@ export class CheTasks {
             }
             messages.push(OUTPUT_SEPARATOR)
 
-            if (cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL) {
+            if (!isDevWorkspaceEnabled(ctx, flags) && cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL) {
               messages.push(`Identity Provider URL     : ${addTrailingSlash(cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL)}`)
 
               if (ctx.identityProviderUsername && ctx.identityProviderPassword) {

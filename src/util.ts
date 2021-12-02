@@ -405,7 +405,7 @@ export function getTlsSupport(ctx: any): boolean {
   return true
 }
 
-export function isDevWorkspaceEnabled(ctx: any): boolean {
+export function isDevWorkspaceEnabled(ctx: any, flags: any): boolean {
   const crPatch = ctx[ChectlContext.CR_PATCH]
   if (crPatch && crPatch.spec && crPatch.spec.devWorkspace && crPatch.spec.devWorkspace.enable) {
     return true
@@ -416,21 +416,7 @@ export function isDevWorkspaceEnabled(ctx: any): boolean {
     return true
   }
 
-  return false
-}
-
-export function isNativeUserModeEnabled(ctx: any): boolean {
-  const crPatch = ctx[ChectlContext.CR_PATCH]
-  if (crPatch && crPatch.spec && crPatch.spec.auth && crPatch.spec.auth.nativeUserMode) {
-    return true
-  }
-
-  const customCR = ctx.customCR
-  if (customCR && customCR.spec && customCR.spec.auth && customCR.spec.auth.nativeUserMode) {
-    return true
-  }
-
-  return false
+  return flags['workspace-engine'] === 'dev-workspace'
 }
 
 export function getTlsSecretName(ctx: any): string {

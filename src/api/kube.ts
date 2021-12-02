@@ -1687,6 +1687,10 @@ export class KubeHelper {
         cheClusterCR.spec.devWorkspace.enable = true
       }
 
+      if (cheClusterCR.spec.devWorkspace.enable) {
+        cheClusterCR.spec.auth.nativeUserMode = true
+      }
+
       // Use self-signed TLS certificate by default (for versions before 7.14.3).
       // In modern versions of Che this field is ignored.
       cheClusterCR.spec.server.selfSignedCert = true

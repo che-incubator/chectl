@@ -26,7 +26,7 @@ import { checkChectlAndCheVersionCompatibility, createNamespaceTask, downloadTem
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, getTlsSupport, isDevWorkspaceEnabled, isKubernetesPlatformFamily, isNativeUserModeEnabled, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, getTlsSupport, isDevWorkspaceEnabled, isKubernetesPlatformFamily, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Deploy extends Command {
   static description = 'Deploy Eclipse Che server'
@@ -302,15 +302,15 @@ export default class Deploy extends Command {
       // Check minimal allowed version to install
       let minAllowedVersion: string
       switch (flags.installer) {
-      case 'olm':
-        minAllowedVersion = MIN_OLM_INSTALLER_VERSION
-        break
-      case 'operator':
-        minAllowedVersion = MIN_CHE_OPERATOR_INSTALLER_VERSION
-        break
-      default:
-        // Should never happen
-        minAllowedVersion = 'latest'
+        case 'olm':
+          minAllowedVersion = MIN_OLM_INSTALLER_VERSION
+          break
+        case 'operator':
+          minAllowedVersion = MIN_CHE_OPERATOR_INSTALLER_VERSION
+          break
+        default:
+          // Should never happen
+          minAllowedVersion = 'latest'
       }
 
       let isVersionAllowed = false
@@ -339,7 +339,7 @@ export default class Deploy extends Command {
     await this.setPlaformDefaults(flags, ctx)
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Deploy.id, flags })
 
-    if (!flags.batch && isKubernetesPlatformFamily(flags.platform) && (isDevWorkspaceEnabled(ctx) || flags['workspace-engine'] === 'dev-workspace') && !isNativeUserModeEnabled(ctx)) {
+    if (!flags.batch && isKubernetesPlatformFamily(flags.platform) && isDevWorkspaceEnabled(ctx, flags)) {
       if (!await cli.confirm('DevWorkspace is experimental feature. It requires direct access to the underlying infrastructure REST API.\nThis results in huge privilege escalation. Do you want to proceed? [y/n]')) {
         cli.exit(0)
       }
@@ -366,13 +366,13 @@ export default class Deploy extends Command {
     preInstallTasks.add(downloadTemplates(flags))
     preInstallTasks.add({
       title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
-      enabled: () => (isDevWorkspaceEnabled(ctx) || flags['workspace-engine'] === 'dev-workspace') && !ctx.isOpenShift,
+      enabled: () => isDevWorkspaceEnabled(ctx, flags) && !ctx.isOpenShift,
       task: () => new Listr(devWorkspaceTasks.getInstallTasks()),
     })
 
     const installTasks = new Listr(undefined, ctx.listrOptions)
     installTasks.add([createNamespaceTask(flags.chenamespace, this.getNamespaceLabels(flags))])
-    if (isKubernetesPlatformFamily(flags.platform) && isNativeUserModeEnabled(ctx)) {
+    if (flags.platform === 'minikube' && isDevWorkspaceEnabled(ctx, flags)) {
       installTasks.add(dexTasks.getInstallTasks())
     }
     installTasks.add(await installerTasks.installTasks(flags, this))
