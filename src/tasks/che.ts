@@ -743,7 +743,17 @@ export class CheTasks {
             }
             messages.push(OUTPUT_SEPARATOR)
 
-            if (!isDevWorkspaceEnabled(ctx, flags) && cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL) {
+            if (isDevWorkspaceEnabled(ctx, flags)) {
+              if (flags.platform === 'minikube') {
+                messages.push('Dex user credentials      : che@eclipse.org:admin')
+                messages.push('Dex user credentials      : user1@che:password')
+                messages.push('Dex user credentials      : user2@che:password')
+                messages.push('Dex user credentials      : user3@che:password')
+                messages.push('Dex user credentials      : user4@che:password')
+                messages.push('Dex user credentials      : user5@che:password')
+                messages.push(OUTPUT_SEPARATOR)
+              }
+            } else if (cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL) {
               messages.push(`Identity Provider URL     : ${addTrailingSlash(cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL)}`)
 
               if (ctx.identityProviderUsername && ctx.identityProviderPassword) {
@@ -757,11 +767,6 @@ export class CheTasks {
 
               messages.push(OUTPUT_SEPARATOR)
             }
-          }
-
-          if (ctx[DexContextKeys.DEX_USERNAME] && ctx[DexContextKeys.DEX_PASSWORD]) {
-            messages.push(`Dex admin credentials     : ${ctx[DexContextKeys.DEX_USERNAME]}:${ctx[DexContextKeys.DEX_PASSWORD]}`)
-            messages.push(OUTPUT_SEPARATOR)
           }
 
           ctx.highlightedMessages = messages.concat(ctx.highlightedMessages)

@@ -302,15 +302,15 @@ export default class Deploy extends Command {
       // Check minimal allowed version to install
       let minAllowedVersion: string
       switch (flags.installer) {
-        case 'olm':
-          minAllowedVersion = MIN_OLM_INSTALLER_VERSION
-          break
-        case 'operator':
-          minAllowedVersion = MIN_CHE_OPERATOR_INSTALLER_VERSION
-          break
-        default:
-          // Should never happen
-          minAllowedVersion = 'latest'
+      case 'olm':
+        minAllowedVersion = MIN_OLM_INSTALLER_VERSION
+        break
+      case 'operator':
+        minAllowedVersion = MIN_CHE_OPERATOR_INSTALLER_VERSION
+        break
+      default:
+        // Should never happen
+        minAllowedVersion = 'latest'
       }
 
       let isVersionAllowed = false
@@ -338,12 +338,6 @@ export default class Deploy extends Command {
 
     await this.setPlaformDefaults(flags, ctx)
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Deploy.id, flags })
-
-    if (!flags.batch && isKubernetesPlatformFamily(flags.platform) && isDevWorkspaceEnabled(ctx, flags)) {
-      if (!await cli.confirm('DevWorkspace is experimental feature. It requires direct access to the underlying infrastructure REST API.\nThis results in huge privilege escalation. Do you want to proceed? [y/n]')) {
-        cli.exit(0)
-      }
-    }
 
     const dexTasks = new DexTasks(flags)
     const cheTasks = new CheTasks(flags)
