@@ -134,6 +134,19 @@ export class MinikubeTasks {
   configureApiServerForDex(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
+        title: 'Create /etc/ca-certificates directory',
+        enabled: (ctx: any) => Boolean(ctx[OIDCContextKeys.CA_FILE]),
+        task: async (_ctx: any, task: any) => {
+          const args: string[] = []
+          args.push('ssh')
+          args.push('sudo mkdir -p /etc/ca-certificates')
+
+          await execa('minikube', args, { timeout: 60000 })
+
+          task.title = `${task.title}...[OK]`
+        },
+      },
+      {
         title: 'Copy Dex certificate into Minikube',
         enabled: (ctx: any) => Boolean(ctx[OIDCContextKeys.CA_FILE]),
         task: async (ctx: any, task: any) => {
