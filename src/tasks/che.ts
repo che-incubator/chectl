@@ -12,8 +12,6 @@
 
 import { Command } from '@oclif/command'
 import * as Listr from 'listr'
-import { DexContextKeys } from '../api/context'
-
 import { CheHelper } from '../api/che'
 import { CheApiClient } from '../api/che-api-client'
 import { CheServerLoginManager } from '../api/che-login-manager'
@@ -21,8 +19,7 @@ import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
 import { VersionHelper } from '../api/version'
 import { CHE_OPERATOR_SELECTOR, DOC_LINK, DOC_LINK_RELEASE_NOTES, OUTPUT_SEPARATOR } from '../constants'
-import { addTrailingSlash, base64Decode, newError } from '../util'
-
+import { addTrailingSlash, base64Decode, isDevWorkspaceEnabled, newError } from '../util'
 import { KubeTasks } from './kube'
 
 /**
@@ -743,7 +740,17 @@ export class CheTasks {
             }
             messages.push(OUTPUT_SEPARATOR)
 
-            if (cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL) {
+            if (isDevWorkspaceEnabled(ctx, flags)) {
+              if (flags.platform === 'minikube') {
+                messages.push('Dex user credentials      : che@eclipse.org:admin')
+                messages.push('Dex user credentials      : user1@che:password')
+                messages.push('Dex user credentials      : user2@che:password')
+                messages.push('Dex user credentials      : user3@che:password')
+                messages.push('Dex user credentials      : user4@che:password')
+                messages.push('Dex user credentials      : user5@che:password')
+                messages.push(OUTPUT_SEPARATOR)
+              }
+            } else if (cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL) {
               messages.push(`Identity Provider URL     : ${addTrailingSlash(cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL)}`)
 
               if (ctx.identityProviderUsername && ctx.identityProviderPassword) {
@@ -757,11 +764,6 @@ export class CheTasks {
 
               messages.push(OUTPUT_SEPARATOR)
             }
-          }
-
-          if (ctx[DexContextKeys.DEX_USERNAME] && ctx[DexContextKeys.DEX_PASSWORD]) {
-            messages.push(`Dex admin credentials     : ${ctx[DexContextKeys.DEX_USERNAME]}:${ctx[DexContextKeys.DEX_PASSWORD]}`)
-            messages.push(OUTPUT_SEPARATOR)
           }
 
           ctx.highlightedMessages = messages.concat(ctx.highlightedMessages)
