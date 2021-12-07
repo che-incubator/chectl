@@ -56,7 +56,7 @@ function getDeployCommand(): string {
       break
 
     case PLATFORM_MINIKUBE:
-      if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_OLM)) {
+      if (INSTALLER !== INSTALLER_OPERATOR) {
         throw new Error(`Unknown installer ${INSTALLER}`)
       }
       const patchOption = '--che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml'
@@ -69,6 +69,7 @@ function getDeployCommand(): string {
   if (cheVersion != 'next') {
     command = command + ` --version=${cheVersion}`
   }
+  command = command + ` --workspace-engine=dev-workspace`
 
   return command
 }
