@@ -17,6 +17,7 @@ on:
       - '7.*.x'
 jobs:
   happy-path:
+    needs: [unit-tests, license, readme.md, release-test]
     runs-on: ubuntu-20.04
     steps:
       - name: Clone source code

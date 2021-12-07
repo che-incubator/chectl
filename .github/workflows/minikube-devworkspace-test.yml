@@ -13,6 +13,7 @@
 name: Minikube DevWorkspace
 on: pull_request
 jobs:
+  needs: [unit-tests, license, readme.md]
   minikube-devworkspace:
     runs-on: ubuntu-20.04
     steps:
