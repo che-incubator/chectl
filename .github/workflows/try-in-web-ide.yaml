@@ -18,7 +18,7 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  add-link:
+  web-ide-add-link:
     runs-on: ubuntu-20.04
     steps:
       - name: Web IDE Pull Request Check

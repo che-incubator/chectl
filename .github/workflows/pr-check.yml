@@ -29,7 +29,7 @@ jobs:
         run: yarn lint
       - name: Run unit tests
         run: yarn test
-  readme-md:
+  readme-md-validation:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repo
@@ -50,7 +50,7 @@ jobs:
             echo "[ERROR] README.md it is not up to date. Please run 'yarn oclif-dev readme' to update and commit the changes."
             exit 1
           fi
-  license:
+  license-validation:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repo

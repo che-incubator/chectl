@@ -108,7 +108,7 @@ describe('Export CA certificate', () => {
 
 describe('Get Eclipse Che server status', () => {
   it('server:status command', async () => {
-    const { exitCode, stdout, stderr } = await execa(binChectl, ['server:status', `-chenamespace ${NAMESPACE}`, '--telemetry=off'], { shell: true })
+    const { exitCode, stdout, stderr } = await execa(binChectl, ['server:status', `--chenamespace ${NAMESPACE}`, '--telemetry=off'], { shell: true })
 
     console.log(`stdout: ${stdout}`)
     console.log(`stderr: ${stderr}`)

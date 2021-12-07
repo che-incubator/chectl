@@ -13,7 +13,7 @@
 name: Commands tests
 on: pull_request
 jobs:
-  deploy-commands:
+  chectl-deploy-commands:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
@@ -34,7 +34,7 @@ jobs:
       with:
         name: test-artifacts
         path: /tmp/logs/*
-  update-commands:
+  chectl-update-commands:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
