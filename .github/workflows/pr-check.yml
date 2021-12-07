@@ -29,7 +29,7 @@ jobs:
         run: yarn lint
       - name: Run unit tests
         run: yarn test
-  readme.md:
+  readme-md:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repo
