@@ -13,7 +13,6 @@
 name: Commands tests
 on: pull_request
 jobs:
-  needs: [unit-tests, license, readme.md, release-test]
   deploy-commands:
     runs-on: ubuntu-20.04
     steps:

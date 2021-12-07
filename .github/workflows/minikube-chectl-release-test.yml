@@ -13,7 +13,6 @@
 name: Test release binaries
 on: pull_request
 jobs:
-  needs: [unit-tests, license, readme.md]
   release-test:
     runs-on: ubuntu-20.04
     steps:
