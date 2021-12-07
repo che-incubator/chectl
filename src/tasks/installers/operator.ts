@@ -22,6 +22,7 @@ import { VersionHelper } from '../../api/version'
 import { CHE_BACKUP_SERVER_CONFIG_CRD, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_CRD, CHE_CLUSTER_CRD, CHE_CLUSTER_KIND_PLURAL, CHE_CLUSTER_RESTORE_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME, OPERATOR_TEMPLATE_DIR } from '../../constants'
 import { getImageNameAndTag, safeLoadFromYamlFile } from '../../util'
 import { KubeTasks } from '../kube'
+import { isDevWorkspaceEnabled } from '../../util'
 import { createEclipseCheCluster, patchingEclipseCheCluster } from './common-tasks'
 
 export class OperatorTasks {
@@ -271,6 +272,8 @@ export class OperatorTasks {
 
   preUpdateTasks(flags: any, command: Command): Listr {
     const kube = new KubeHelper(flags)
+    const ctx = ChectlContext.get()
+    ctx.resourcesPath = path.join(flags.templates, OPERATOR_TEMPLATE_DIR)
     return new Listr([
       {
         title: 'Checking existing operator deployment before update',
@@ -303,6 +306,24 @@ export class OperatorTasks {
           ctx.newCheOperatorImageTag = newTag
 
           task.title = `${task.title} ${ctx.deployedCheOperatorImageTag} -> ${ctx.newCheOperatorImageTag}`
+        },
+      },
+      {
+        title: 'Check workspace engine compatibility...',
+        task: async (_ctx: any, _task: any) => {
+          const cheCluster = await kube.getCheCluster(flags.chenamespace)
+
+          if (cheCluster) {
+            const yamlFilePath = path.join(ctx.resourcesPath, 'crds', 'org_v1_che_cr.yaml')
+            const defaultCR = safeLoadFromYamlFile(yamlFilePath)
+
+            const isDevWorkspaceEngineEnabledBeforeUpdate = cheCluster.spec.devWorkspace && cheCluster.spec.devWorkspace.enable
+            const isDevWorkspaceEngineEnabledAfterUpdate = isDevWorkspaceEnabled(ctx, flags) || (defaultCR.spec.devWorkspace && defaultCR.spec.devWorkspace.enable)
+
+            if (!isDevWorkspaceEngineEnabledBeforeUpdate && isDevWorkspaceEngineEnabledAfterUpdate) {
+              command.error('Unsupported operation: it is not possible to update current Che installation to new version with enabled \'devWorkspace\' engine.')
+            }
+          }
         },
       },
     ])

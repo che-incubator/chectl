@@ -119,8 +119,8 @@
             "group": "build"
         },
         {
-            "label": "Fix tslint",
-            "command": "yarn run tslint-fix",
+            "label": "Fix ts lint",
+            "command": "yarn run lint:fix",
             "type": "shell",
             "args": [],
             "problemMatcher": [
