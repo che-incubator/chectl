@@ -10,11 +10,10 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-name: Minikube E2E
+name: Test release binaries
 on: pull_request
 jobs:
-  minikube-e2e:
-    name: Test release binaries
+  release-test:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
@@ -22,7 +21,7 @@ jobs:
       id: run-minikube
       uses: che-incubator/setup-minikube-action@next
       with:
-        minikube-version: v1.21.0
+        minikube-version: v1.23.2
     - name: Pack chectl binaries
       run: yarn && npx oclif-dev pack --targets=linux-x64
     - name: UnPack chectl binaries in $HOME/chectl
@@ -31,7 +30,7 @@ jobs:
         tar -xvf dist/channels/*/chectl-linux-x64.tar.gz -C $HOME
         echo "$HOME/chectl/bin" >> $GITHUB_PATH
         rm -rf tmp/
-    - name: Run e2e tests minikube
+    - name: Run tests
       run: |
         export PLATFORM=minikube
         export ASSEMBLY_MODE=on

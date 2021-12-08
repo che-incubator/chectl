@@ -12,13 +12,10 @@
 
 // tslint:disable: no-console
 
-import { expect, test } from '@oclif/test'
+import { expect } from '@oclif/test'
 import * as execa from 'execa'
-
 import { DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
-import { isKubernetesPlatformFamily } from '../../src/util'
-
-import { E2eHelper, LOGS_DIR, WORKSPACE_NAMESPACE } from './util'
+import { E2eHelper } from './util'
 
 const helper = new E2eHelper()
 jest.setTimeout(1000000)
@@ -37,8 +34,6 @@ const PLATFORM_MINIKUBE = 'minikube'
 
 const INSTALLER_OPERATOR = 'operator'
 const INSTALLER_OLM = 'olm'
-
-const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse-che/che-devfile-registry/main/devfiles/nodejs/devfile.yaml'
 
 function getDeployCommand(): string {
   const cheVersion = helper.getNewVersion()
@@ -61,7 +56,7 @@ function getDeployCommand(): string {
       break
 
     case PLATFORM_MINIKUBE:
-      if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_OLM)) {
+      if (INSTALLER !== INSTALLER_OPERATOR) {
         throw new Error(`Unknown installer ${INSTALLER}`)
       }
       const patchOption = '--che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml'
@@ -74,70 +69,31 @@ function getDeployCommand(): string {
   if (cheVersion != 'next') {
     command = command + ` --version=${cheVersion}`
   }
+  command = command + ` --workspace-engine=dev-workspace`
 
   return command
 }
 
-describe('Eclipse Che deploy deployemnt', () => {
-  describe(`server:deploy using ${INSTALLER} installer and self signed certificates`, () => {
-    it(`server:deploy using ${INSTALLER} installer and self signed certificates`, async () => {
-      const command = getDeployCommand()
-      console.log(command)
-      const { exitCode, stdout, stderr } = await execa(command, { shell: true })
-
-      expect(exitCode).equal(0)
-      console.log(stdout)
-
-      if (exitCode !== 0) {
-        console.log(stderr)
-      }
-
-      // sleep after deploying
-      await execa('sleep 15s', { shell: true })
-    })
-  })
-})
-
-describe('Eclipse Che server authentication', () => {
-  it('Should login in to Che server with username and password', async () => {
-    let cheApiEndpoint: string
-    if (isKubernetesPlatformFamily(PLATFORM)) {
-      cheApiEndpoint = await helper.K8SHostname('che', NAMESPACE) + '/api'
-    } else {
-      cheApiEndpoint = await helper.OCHostname('che', NAMESPACE) + '/api'
-    }
-
-    const command = `${binChectl} auth:login`
-    const args = [cheApiEndpoint, '-u', 'admin', '-p', 'admin', '-n', `${NAMESPACE}`, '--telemetry', 'off']
-
-    const { exitCode, stdout, stderr } = await execa(command, args, { shell: true })
-
-    expect(exitCode).equal(0)
-    expect(stdout).to.contain('Successfully logged into')
-    console.log(stdout)
-
-    if (exitCode !== 0) {
-      console.log(stderr)
-    }
-  })
-
-  it('Should show current login session', async () => {
-    const command = `${binChectl} auth:get --telemetry=off`
-
+describe(`server:deploy using ${INSTALLER} installer`, () => {
+  it(`server:deploy using ${INSTALLER} installer command`, async () => {
+    const command = getDeployCommand()
+    console.log(command)
     const { exitCode, stdout, stderr } = await execa(command, { shell: true })
 
     expect(exitCode).equal(0)
-    expect(stdout).to.contain('admin')
     console.log(stdout)
 
     if (exitCode !== 0) {
       console.log(stderr)
     }
+
+    // sleep after deploying
+    await execa('sleep 15s', { shell: true })
   })
 })
 
 describe('Export CA certificate', () => {
-  it('Export CA certificate', async () => {
+  it('cacert:export command', async () => {
     const command = `${binChectl} cacert:export -n ${NAMESPACE} --telemetry=off`
 
     const { exitCode, stdout, stderr } = await execa(command, { shell: true })
@@ -151,159 +107,40 @@ describe('Export CA certificate', () => {
   })
 })
 
-describe('Workspace creation, list, start, inject, delete. Support stop and delete commands for Eclipse Che server', () => {
-  describe('Create workspace', () => {
-    it('Testing workspace:create command', async () => {
-      console.log('>>> Testing workspace:create command')
+describe('Get Eclipse Che server status', () => {
+  it('server:status command', async () => {
+    const { exitCode, stdout, stderr } = await execa(binChectl, ['server:status', `--chenamespace ${NAMESPACE}`, '--telemetry=off'], { shell: true })
 
-      const { exitCode, stdout, stderr, } = await execa(binChectl, ['workspace:create', `--devfile=${DEVFILE_URL}`, '--telemetry=off', `-n ${NAMESPACE}`], { shell: true })
-      console.log(`stdout: ${stdout}`)
-      console.log(`stderr: ${stderr}`)
-      expect(exitCode).equal(0)
-    })
+    console.log(`stdout: ${stdout}`)
+    console.log(`stderr: ${stderr}`)
+    expect(exitCode).equal(0)
   })
+})
 
-  describe('Start Workspace', () => {
-    it('Testing workspace:start command', async () => {
-      console.log('>>> Testing workspace:start command')
+describe('Stop Eclipse Che server', () => {
+  it('server:stop command', async () => {
+    const { exitCode, stdout, stderr } = await execa(binChectl, ['server:delete', `-n ${NAMESPACE}`, '--telemetry=off', '--delete-namespace', '--yes'], { shell: true })
 
-      const workspaceId = await helper.getWorkspaceId()
-      const { exitCode, stdout, stderr, } = await execa(binChectl, ['workspace:start', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'], { shell: true })
-      console.log(`stdout: ${stdout}`)
-      console.log(`stderr: ${stderr}`)
-      expect(exitCode).equal(0)
-
-      // Wait for workspace start 7 minutes.
-      // NOTE: Put 7 minutes because in GH actions minikube cluster we have lower memory and workspace creation can take some time
-      const desiredStatus = await helper.waitWorkspaceStatus('RUNNING', 450000)
-      expect(desiredStatus).to.be.true
-    })
+    console.log(`stdout: ${stdout}`)
+    console.log(`stderr: ${stderr}`)
+    expect(exitCode).equal(0)
   })
+})
 
-  describe('Get workspace logs', () => {
-    it('Testing workspace:logs command', async () => {
-      console.log('>>> Testing workspace:logs command')
-      const workspaceId = await helper.getWorkspaceId()
-      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:logs', `--workspace ${workspaceId}`, `-n ${WORKSPACE_NAMESPACE}`, `-d ${LOGS_DIR}`, '--telemetry=off'], { shell: true })
+describe('Delete Eclipse Che server', () => {
+  it('server:delete command', async () => {
+    let result = await execa(binChectl, ['server:delete', `-n ${NAMESPACE}`, '--telemetry=off', '--delete-namespace', '--yes'], { shell: true })
 
-      console.log(`stdout: ${stdout}`)
-      console.log(`stderr: ${stderr}`)
-      expect(exitCode).equal(0)
-    })
-  })
+    console.log(`stdout: ${result.stdout}`)
+    console.log(`stderr: ${result.stderr}`)
+    expect(result.exitCode).equal(0)
 
-  describe('Inject kubeconfig to workspaces', () => {
-    it('Testing workspace:inject command', async () => {
-      console.log('>>> Testing workspace:inject command')
+    // run deletion second time to ensure that
+    // server:delete does not fail if resource is absent
+    result = await execa(binChectl, ['server:delete', `-n ${NAMESPACE}`, '--telemetry=off', '--delete-namespace', '--yes'], { shell: true })
 
-      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:inject', '--kubeconfig', `-n ${NAMESPACE}`, '--telemetry=off'], { shell: true })
-
-      console.log(`stdout: ${stdout}`)
-      console.log(`stderr: ${stderr}`)
-      expect(exitCode).equal(0)
-    })
-  })
-
-  describe('List Workspace', () => {
-    test
-      .stdout({ print: true })
-      .stderr({ print: true })
-      .it('List workspaces', async () => {
-        console.log('>>> Testing workspace:list command')
-        const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:list', `--chenamespace=${NAMESPACE}`, '--telemetry=off'], { shell: true })
-
-        console.log(`stdout: ${stdout}`)
-        console.log(`stderr: ${stderr}`)
-        expect(exitCode).equal(0)
-      })
-  })
-
-  describe('Get Eclipse Che server status', () => {
-    test
-      .stdout({ print: true })
-      .stderr({ print: true })
-      .it('Get Che Server status', async () => {
-        console.log('>>> Testing server:status command')
-
-        const { exitCode, stdout, stderr } = await execa(binChectl, ['server:status', `--chenamespace=${NAMESPACE}`, '--telemetry=off'], { shell: true })
-
-        console.log(`stdout: ${stdout}`)
-        console.log(`stderr: ${stderr}`)
-        expect(exitCode).equal(0)
-      })
-  })
-
-  describe('Stop Workspace', () => {
-    it('Testing workspace:stop command', async () => {
-      console.log('>>> Testing workspace:stop command')
-
-      const workspaceId = await helper.getWorkspaceId()
-      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:stop', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'], { shell: true })
-
-      console.log(`stdout: ${stdout}`)
-      console.log(`stderr: ${stderr}`)
-      expect(exitCode).equal(0)
-
-      const workspaceStatus = await helper.getWorkspaceStatus()
-      // The status could be STOPPING or STOPPED
-      expect(workspaceStatus).to.contain('STOP')
-    })
-  })
-
-  describe('Delete Workspace', () => {
-    it('Testing workspace:delete command', async () => {
-      console.log('>>> Testing workspace:delete command')
-
-      const workspaceId = await helper.getWorkspaceId()
-      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:delete', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'], { shell: true })
-
-      console.log(`stdout: ${stdout}`)
-      console.log(`stderr: ${stderr}`)
-      expect(exitCode).equal(0)
-    })
-  })
-
-  describe('Get Eclipse Che server logs', () => {
-    it('Testing server:logs command', async () => {
-      console.log('>>> Testing server:logs command')
-
-      const { exitCode, stdout, stderr } = await execa(binChectl, ['server:logs', `-d ${LOGS_DIR}`, '--telemetry=off'], { shell: true })
-
-      console.log(`stdout: ${stdout}`)
-      console.log(`stderr: ${stderr}`)
-      expect(exitCode).equal(0)
-    })
-  })
-
-  describe('Stop Eclipse Che server', () => {
-    it('server:stop command coverage', async () => {
-      console.log('>>> Testing server:stop command')
-
-      const { exitCode, stdout, stderr } = await execa(binChectl, ['server:delete', `-n ${NAMESPACE}`, '--telemetry=off', '--delete-namespace', '--yes'], { shell: true })
-
-      console.log(`stdout: ${stdout}`)
-      console.log(`stderr: ${stderr}`)
-      expect(exitCode).equal(0)
-    })
-  })
-
-  describe('Delete Eclipse Che server', () => {
-    it('server:delete command coverage', async () => {
-      console.log('>>> Testing server:delete command')
-
-      let result = await execa(binChectl, ['server:delete', `-n ${NAMESPACE}`, '--telemetry=off', '--delete-namespace', '--yes'], { shell: true })
-
-      console.log(`stdout: ${result.stdout}`)
-      console.log(`stderr: ${result.stderr}`)
-      expect(result.exitCode).equal(0)
-
-      // run deletion second time to ensure that
-      // server:delete does not fail if resource is absent
-      result = await execa(binChectl, ['server:delete', `-n ${NAMESPACE}`, '--telemetry=off', '--delete-namespace', '--yes'], { shell: true })
-
-      console.log(`stdout: ${result.stdout}`)
-      console.log(`stderr: ${result.stderr}`)
-      expect(result.exitCode).equal(0)
-    })
+    console.log(`stdout: ${result.stdout}`)
+    console.log(`stderr: ${result.stderr}`)
+    expect(result.exitCode).equal(0)
   })
 })

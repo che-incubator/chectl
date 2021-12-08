@@ -10,12 +10,26 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-name: Chectl
+name: PR validation
 on: [pull_request]
-
 jobs:
-  run:
-    name: Automation checks
+  unit-tests:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.3.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12'
+      - name: Build chectl
+        run: yarn
+      - name: Run eslint
+        run: yarn lint
+      - name: Run unit tests
+        run: yarn test
+  readme-md-validation:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repo
@@ -24,9 +38,9 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - name: Install chectl dependencies
+      - name: Build chectl
         run: yarn
-      - name: Pack chectl
+      - name: Build README.md
         run: yarn oclif-dev readme
       - name: Check README.md state
         run: |
@@ -36,6 +50,17 @@ jobs:
             echo "[ERROR] README.md it is not up to date. Please run 'yarn oclif-dev readme' to update and commit the changes."
             exit 1
           fi
+  license-validation:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - name: Build chectl
+        run: yarn
       - name: Set up Go 1.15
         uses: actions/setup-go@v2
         with:

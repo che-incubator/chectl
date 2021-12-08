@@ -10,11 +10,10 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-name: Minikube E2E
+name: Commands tests
 on: pull_request
 jobs:
-  minikube-e2e-update:
-    name: e2e update tests
+  chectl-deploy-commands:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
@@ -22,10 +21,31 @@ jobs:
       id: run-minikube
       uses: che-incubator/setup-minikube-action@next
       with:
-        minikube-version: v1.21.0
-    - name: Install chectl dependencies
+        minikube-version: v1.23.2
+    - name: Build chectl
       run: yarn
-    - name: Run e2e update tests minikube
+    - name: Run e2e tests minikube
+      run: |
+        export PLATFORM=minikube
+        export INSTALLER=operator
+        yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
+    - uses: actions/upload-artifact@v2
+      if: ${{ always() }}
+      with:
+        name: test-artifacts
+        path: /tmp/logs/*
+  chectl-update-commands:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: Start minikube cluster
+      id: run-minikube
+      uses: che-incubator/setup-minikube-action@next
+      with:
+        minikube-version: v1.23.2
+    - name: Build chectl
+      run: yarn
+    - name: Run tests
       run: |
         export PLATFORM=minikube
         export INSTALLER=operator
