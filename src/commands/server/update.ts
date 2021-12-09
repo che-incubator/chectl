@@ -154,7 +154,7 @@ export default class Update extends Command {
           return
         }
       }
-      await this.checkComponentImages(flags)
+      await this.checkComponentImages(flags, ctx)
 
       await updateTasks.run(ctx)
       await postUpdateTasks.run(ctx)
@@ -173,9 +173,10 @@ export default class Update extends Command {
    * Tests if existing Che installation uses custom docker images.
    * If so, asks user whether keep custom images or revert to default images and update them.
    */
-  private async checkComponentImages(flags: any): Promise<void> {
+  private async checkComponentImages(flags: any, ctx: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
-    const cheCluster = await kubeHelper.getCheCluster(flags.chenamespace)
+    const namespace = flags.installer === 'olm' ? ctx.checlusterNamespace : flags.chenamespace
+    const cheCluster = await kubeHelper.getCheCluster(namespace)
     if (cheCluster.spec.server.cheImage ||
       cheCluster.spec.server.cheImageTag ||
       cheCluster.spec.server.devfileRegistryImage ||

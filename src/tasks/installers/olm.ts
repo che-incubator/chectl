@@ -260,6 +260,27 @@ export class OLMTasks {
           task.title = `${task.title}...[OK]`
         },
       },
+      {
+        title: 'Check if CheCluster CR exists',
+        task: async (ctx: any, _task: any) => {
+          if (ctx.operatorNamespace === DEFAULT_OPENSHIFT_OPERATORS_NS_NAME) {
+            const cheClusters = await kube.getAllCheClusters()
+            if (cheClusters.length === 0) {
+              command.error(`Eclipse Che cluster CR was not found in the namespace '${flags.chenamespace}'`)
+            }
+            if (cheClusters.length > 0) {
+              command.error('Eclipse Che does not support more than one installation in all namespaces mode.')
+            }
+            ctx.checlusterNamespace = cheClusters[0].metadata.namespace
+          } else {
+            const cheCluster = await kube.getCheCluster(ctx.operatorNamespace)
+            if (!cheCluster) {
+              command.error(`Eclipse Che cluster CR was not found in the namespace '${flags.chenamespace}'`)
+            }
+            ctx.checlusterNamespace = cheCluster.metadata.namespace
+          }
+        },
+      },
     ], { renderer: flags['listr-renderer'] as any })
   }
 
