@@ -106,14 +106,9 @@ export class DockerDesktopTasks {
   }
 
   async enableNginxIngress(execTimeout = 30000): Promise<void> {
-    const sha1 = '78d6ce6e6e7d77309bc1e8a563e4ee5308db5566'
+    const version = 'controller-v1.1.0'
 
-    // mandatory part
-    const mandatoryCommand = `kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/${sha1}/deploy/static/mandatory.yaml`
-    await execa(mandatoryCommand, { timeout: execTimeout, shell: true })
-
-    // mandatory part
-    const genericCommand = `kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/${sha1}/deploy/static/provider/cloud-generic.yaml`
+    const genericCommand = `kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/${version}/deploy/static/provider/cloud/deploy.yaml`
     await execa(genericCommand, { timeout: execTimeout, shell: true })
   }
 
