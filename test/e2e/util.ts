@@ -14,6 +14,7 @@ import { Octokit } from '@octokit/rest'
 import * as execa from 'execa'
 import { spawn } from 'child_process'
 import * as fs from 'fs-extra'
+import * as semver from 'semver'
 
 import { CheHelper } from '../../src/api/che'
 import { CheGithubClient, TagInfo } from '../../src/api/github-client'
@@ -287,6 +288,43 @@ export class E2eHelper {
   }
 
   /**
+   * Returns list of sorted CSVs in stable OLM channel of Che Operator published in community-operators repository.
+   * The CSVs are sorted from the latest to oldest.
+   */
+  private async listOLMReleasedCSV(): Promise<string[]> {
+    const response = await this.octokit.repos.getContent({
+      owner: 'redhat-openshift-ecosystem',
+      repo: 'community-operators-prod',
+      path: 'operators/eclipse-che',
+    })
+    // There is an array in the response as given path points to a directory
+    const data = response.data as {name: string}[]
+    const csvsNames: string[] = []
+    data.map(item => csvsNames.push(item.name))
+    const stableChannelCSVNames = csvsNames.filter(csvName => {
+      // Filter versions like 7.37.2-all-namespaces
+      if (csvName.indexOf('-') !== -1) {
+        return false
+      }
+
+      // Filter non x.y.z
+      const versionParts = csvName.split('.')
+      if (versionParts.length !== 3) {
+        return false
+      }
+      // Ensure each part is a number
+      for (const versionPart of versionParts) {
+        if (!versionPart.match(/^[0-9]+$/)) {
+          return false
+        }
+      }
+      return true
+    })
+
+    return stableChannelCSVNames.sort((verA: string, verB: string) => semver.lt(verA, verB) ? 1 : -1)
+  }
+
+  /**
    * Get previous version from chectl repository
    */
   async getLatestReleasedVersion(): Promise<string> {
@@ -298,10 +336,20 @@ export class E2eHelper {
   /**
    * Gets pre-latest and latest released version from chectl repository
    */
-   async getTwoLatestReleasedVersions(): Promise<[string, string]> {
-    const githubClient = new CheGithubClient()
-    const latestTags = (githubClient as any).sortSemanticTags(await this.listLatestTags(CHECTL_REPONAME))
-    return [latestTags[1].name, latestTags[0].name]
+   async getTwoLatestReleasedVersions(installer: string): Promise<[string, string]> {
+     if (installer === 'olm') {
+      // OLM installer uses community-operators marketplace.
+      // To list available versions see the following folder:
+      // https://github.com/redhat-openshift-ecosystem/community-operators-prod/tree/main/operators/eclipse-che
+      const csvs = await this.listOLMReleasedCSV()
+      return [csvs[1], csvs[0]]
+     } else if (installer === 'operator') {
+       // Operator installer uses templates from GitHub releases, which are marked with tags
+       const githubClient = new CheGithubClient()
+       const latestTags = (githubClient as any).sortSemanticTags(await this.listLatestTags(CHECTL_REPONAME))
+       return [latestTags[1].name, latestTags[0].name]
+     }
+     throw new Error(`Failed to get latest versions: unknown installer '${installer}'`)
   }
 
   /**

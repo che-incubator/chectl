@@ -18,10 +18,9 @@ jest.setTimeout(1000000)
 
 const binChectl = E2eHelper.getChectlBinaries()
 
-const PLATFORM = process.env.PLATFORM || 'minikube'
-
-const INSTALLER = 'olm'
-const OLM_CHANNEL = 'stable'
+const PLATFORM = process.env.PLATFORM || 'openshift'
+const INSTALLER = process.env.INSTALLER || 'olm'
+const OLM_CHANNEL = process.env.OLM_CHANNEL || 'stable'
 
 const CHE_VERSION_TIMEOUT_MS = 12 * 60 * 1000
 const CHE_BACKUP_TIMEOUT_MS = 2 * 60 * 1000
@@ -33,9 +32,12 @@ describe('Test rollback Che update', () => {
   describe('Prepare pre-latest stable Che', () => {
     it(`Deploy Che using ${INSTALLER} installer from ${OLM_CHANNEL} channel`, async () => {
       // Retrieve pre-latest and latest stable Che version
-      [previousCheVersion, latestCheVersion] = await helper.getTwoLatestReleasedVersions()
+      [previousCheVersion, latestCheVersion] = await helper.getTwoLatestReleasedVersions(INSTALLER)
 
-      const deployCommand = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --olm-channel=${OLM_CHANNEL} --version=${previousCheVersion} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
+      let deployCommand = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --version=${previousCheVersion} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
+      if (INSTALLER === 'olm') {
+        deployCommand += ` --olm-channel=${OLM_CHANNEL}`
+      }
       await helper.runCliCommand(deployCommand)
 
       await helper.waitForVersionInCheCR(previousCheVersion, CHE_VERSION_TIMEOUT_MS)
