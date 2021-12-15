@@ -48,7 +48,12 @@ describe('Test rollback Che update', () => {
     it('Update Eclipse Che Version to the latest', async () => {
       console.log(`Updating from ${previousCheVersion} to ${latestCheVersion}`)
 
-      await helper.runCliCommand(binChectl, ['server:update', '-y', `-n ${NAMESPACE}`, '--telemetry=off'])
+      let updateCommand = `${binChectl} server:update -y -n ${NAMESPACE} --telemetry=off`
+      if (INSTALLER === 'operator') {
+        // It is required to specify version for Operator installer, otherwise it will update Che to next as chectl is of next version
+        updateCommand += ` --version=${latestCheVersion}`
+      }
+      await helper.runCliCommand(updateCommand)
     })
 
     it('Wait backup done', async () => {
@@ -72,7 +77,7 @@ describe('Test rollback Che update', () => {
 
     it('Wait previous Che', async () => {
       // It is possible to reduce awaiting timeout, because rollback itself waits for the restore to complete.
-      await helper.waitForVersionInCheCR(previousCheVersion, 2 * 60 * 1000)
+      await helper.waitForVersionInCheCR(previousCheVersion, 5 * 60 * 1000)
     })
   })
 })
