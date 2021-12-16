@@ -34,11 +34,11 @@ describe('Test rollback Che update', () => {
       // Retrieve pre-latest and latest stable Che version
       [previousCheVersion, latestCheVersion] = await helper.getTwoLatestReleasedVersions(INSTALLER)
 
-      let deployCommand = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --version=${previousCheVersion} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
+      let deployCommandArgs = ['server:deploy', '--batch', `--platform=${PLATFORM}`, `--installer=${INSTALLER}`, `--version=${previousCheVersion}`, `--chenamespace=${NAMESPACE}`, '--telemetry=off', `--che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`]
       if (INSTALLER === 'olm') {
-        deployCommand += ` --olm-channel=${OLM_CHANNEL}`
+        deployCommandArgs.push(`--olm-channel=${OLM_CHANNEL}`)
       }
-      await helper.runCliCommand(deployCommand)
+      await helper.runCliCommand(binChectl, deployCommandArgs)
 
       await helper.waitForVersionInCheCR(previousCheVersion, CHE_VERSION_TIMEOUT_MS)
     })
@@ -48,12 +48,12 @@ describe('Test rollback Che update', () => {
     it('Update Eclipse Che Version to the latest', async () => {
       console.log(`Updating from ${previousCheVersion} to ${latestCheVersion}`)
 
-      let updateCommand = `${binChectl} server:update -y -n ${NAMESPACE} --telemetry=off`
+      let updateCommandArgs = ['server:update', '-y', `-n ${NAMESPACE}`, '--telemetry=off']
       if (INSTALLER === 'operator') {
         // It is required to specify version for Operator installer, otherwise it will update Che to next as chectl is of next version
-        updateCommand += ` --version=${latestCheVersion}`
+        updateCommandArgs.push(`--version=${latestCheVersion}`)
       }
-      await helper.runCliCommand(updateCommand)
+      await helper.runCliCommand(binChectl, updateCommandArgs)
     })
 
     it('Wait backup done', async () => {
