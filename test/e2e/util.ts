@@ -67,9 +67,6 @@ export class E2eHelper {
     if (process.env.ASSEMBLY_MODE === 'on') {
       return 'chectl'
     }
-    if (process.env.CHECTL_REPO) {
-      return `${process.env.CHECTL_REPO}/bin/run`
-    }
     return `${process.cwd()}/bin/run`
   }
 
