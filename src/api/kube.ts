@@ -1687,7 +1687,7 @@ export class KubeHelper {
         cheClusterCR.spec.devWorkspace.enable = true
       }
 
-      if (cheClusterCR.spec.devWorkspace.enable) {
+      if (cheClusterCR.spec.devWorkspace && cheClusterCR.spec.devWorkspace.enable) {
         cheClusterCR.spec.auth.nativeUserMode = true
       }
 

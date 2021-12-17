@@ -32,7 +32,7 @@ init() {
   export SCRIPT=$(readlink -f "$0")
   export SCRIPT_DIR=$(dirname "$SCRIPT")
 
-  # Env necessary for openshift CI to put che logs inside
+  # Env necсessary for openshift CI to put che logs inside
   export ARTIFACTS_DIR="/tmp/artifacts"
 
   # Suggested namespace
@@ -47,6 +47,8 @@ init() {
 }
 
 run() {
+  echo "[INFO] Environment:"
+  env
   # Before running the e2e tests we need to install all deps with yarn
   yarn --cwd ${CHECTL_REPO}
   export PLATFORM=openshift

@@ -18,10 +18,9 @@ jest.setTimeout(1000000)
 
 const binChectl = E2eHelper.getChectlBinaries()
 
-const PLATFORM = process.env.PLATFORM || 'minikube'
-
-const INSTALLER = 'olm'
-const OLM_CHANNEL = 'stable'
+const PLATFORM = process.env.PLATFORM || 'openshift'
+const INSTALLER = process.env.INSTALLER || 'olm'
+const OLM_CHANNEL = process.env.OLM_CHANNEL || 'stable'
 
 const CHE_VERSION_TIMEOUT_MS = 12 * 60 * 1000
 const CHE_BACKUP_TIMEOUT_MS = 2 * 60 * 1000
@@ -33,9 +32,12 @@ describe('Test rollback Che update', () => {
   describe('Prepare pre-latest stable Che', () => {
     it(`Deploy Che using ${INSTALLER} installer from ${OLM_CHANNEL} channel`, async () => {
       // Retrieve pre-latest and latest stable Che version
-      [previousCheVersion, latestCheVersion] = await helper.getTwoLatestReleasedVersions()
+      [previousCheVersion, latestCheVersion] = await helper.getTwoLatestReleasedVersions(INSTALLER)
 
-      const deployCommand = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --olm-channel=${OLM_CHANNEL} --version=${previousCheVersion} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
+      let deployCommand = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --version=${previousCheVersion} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
+      if (INSTALLER === 'olm') {
+        deployCommand += ` --olm-channel=${OLM_CHANNEL}`
+      }
       await helper.runCliCommand(deployCommand)
 
       await helper.waitForVersionInCheCR(previousCheVersion, CHE_VERSION_TIMEOUT_MS)
@@ -46,7 +48,12 @@ describe('Test rollback Che update', () => {
     it('Update Eclipse Che Version to the latest', async () => {
       console.log(`Updating from ${previousCheVersion} to ${latestCheVersion}`)
 
-      await helper.runCliCommand(binChectl, ['server:update', '-y', `-n ${NAMESPACE}`, '--telemetry=off'])
+      let updateCommand = `${binChectl} server:update -y -n ${NAMESPACE} --telemetry=off`
+      if (INSTALLER === 'operator') {
+        // It is required to specify version for Operator installer, otherwise it will update Che to next as chectl is of next version
+        updateCommand += ` --version=${latestCheVersion}`
+      }
+      await helper.runCliCommand(updateCommand)
     })
 
     it('Wait backup done', async () => {
@@ -70,7 +77,7 @@ describe('Test rollback Che update', () => {
 
     it('Wait previous Che', async () => {
       // It is possible to reduce awaiting timeout, because rollback itself waits for the restore to complete.
-      await helper.waitForVersionInCheCR(previousCheVersion, 2 * 60 * 1000)
+      await helper.waitForVersionInCheCR(previousCheVersion, 5 * 60 * 1000)
     })
   })
 })
