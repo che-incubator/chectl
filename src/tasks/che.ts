@@ -14,7 +14,6 @@ import { Command } from '@oclif/command'
 import * as Listr from 'listr'
 import { CheHelper } from '../api/che'
 import { CheApiClient } from '../api/che-api-client'
-import { CheServerLoginManager } from '../api/che-login-manager'
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
 import { VersionHelper } from '../api/version'
@@ -27,49 +26,28 @@ import { KubeTasks } from './kube'
  */
 export class CheTasks {
   kube: KubeHelper
-
   kubeTasks: KubeTasks
-
   oc = new OpenShiftHelper()
-
   che: CheHelper
-
   cheNamespace: string
-
-  cheAccessToken: string | undefined
-
   cheSelector = 'app=che,component=che'
-
   cheDeploymentName: string
-
   dashboardDeploymentName = 'che-dashboard'
-
   dashboardSelector = 'app=che,component=che-dashboard'
-
   keycloakDeploymentName = 'keycloak'
-
   keycloakSelector = 'app=che,component=keycloak'
-
   postgresDeploymentName = 'postgres'
-
   postgresSelector = 'app=che,component=postgres'
-
   devfileRegistryDeploymentName = 'devfile-registry'
-
   devfileRegistrySelector = 'app=che,component=devfile-registry'
-
   pluginRegistryDeploymentName = 'plugin-registry'
-
   pluginRegistrySelector = 'app=che,component=plugin-registry'
-
   cheConsoleLinkName = 'che'
 
   constructor(flags: any) {
     this.kube = new KubeHelper(flags)
     this.kubeTasks = new KubeTasks(flags)
     this.che = new CheHelper(flags)
-
-    this.cheAccessToken = flags['access-token']
 
     this.cheNamespace = flags.chenamespace
     this.cheDeploymentName = flags['deployment-name']
@@ -230,15 +208,13 @@ export class CheTasks {
       {
         title: 'Check Eclipse Che server status',
         enabled: (ctx: any) => ctx.isCheDeployed && ctx.isCheReady,
-        task: async (ctx: any, task: any) => {
+        task: async (_ctx: any, task: any) => {
           let cheURL = ''
           try {
             cheURL = await this.che.cheURL(this.cheNamespace)
             const cheApi = CheApiClient.getInstance(cheURL + '/api')
             const status = await cheApi.getCheServerStatus()
-            ctx.isAuthEnabled = await cheApi.isAuthenticationEnabled()
-            const auth = ctx.isAuthEnabled ? '(auth enabled)' : '(auth disabled)'
-            task.title = `${task.title}...${status} ${auth}`
+            task.title = `${task.title}...${status}`
           } catch (error) {
             return newError(`Failed to check Eclipse Che status (URL: ${cheURL}).`, error)
           }
@@ -321,32 +297,12 @@ export class CheTasks {
    */
   scaleCheDownTasks(): ReadonlyArray<Listr.ListrTask> {
     return [{
-      title: 'Stop Eclipse Che Server and wait until it\'s ready to shutdown',
-      enabled: (ctx: any) => !ctx.isCheStopped,
-      task: async (task: any) => {
-        try {
-          const cheURL = await this.che.cheURL(this.cheNamespace)
-          const cheApi = CheApiClient.getInstance(cheURL + '/api')
-          let cheAccessToken = this.cheAccessToken
-          if (!cheAccessToken && await cheApi.isAuthenticationEnabled()) {
-            const loginManager = await CheServerLoginManager.getInstance()
-            cheAccessToken = await loginManager.getNewAccessToken()
-          }
-          await cheApi.startCheServerShutdown(cheAccessToken)
-          await cheApi.waitUntilCheServerReadyToShutdown()
-          task.title = `${task.title}...done`
-        } catch (error) {
-          return newError('Failed to shutdown Eclipse Che server.', error)
-        }
-      },
-    },
-    {
       title: `Scale \"${this.cheDeploymentName}\" deployment to zero`,
       enabled: (ctx: any) => !ctx.isCheStopped,
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.cheDeploymentName, this.cheNamespace, 0)
-          task.title = await `${task.title}...done`
+          task.title = `${task.title}...done`
         } catch (error) {
           return newError(`Failed to scale ${this.cheDeploymentName} deployment.`, error)
         }
@@ -358,7 +314,7 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.dashboardDeploymentName, this.cheNamespace, 0)
-          task.title = await `${task.title}...done`
+          task.title = `${task.title}...done`
         } catch (error) {
           return newError('Failed to scale dashboard deployment.', error)
         }
@@ -370,7 +326,7 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.keycloakDeploymentName, this.cheNamespace, 0)
-          task.title = await `${task.title}...done`
+          task.title = `${task.title}...done`
         } catch (error) {
           return newError('Failed to scale keycloak deployment.', error)
         }
@@ -382,7 +338,7 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.postgresDeploymentName, this.cheNamespace, 0)
-          task.title = await `${task.title}...done`
+          task.title = `${task.title}...done`
         } catch (error) {
           return newError('Failed to scale postgres deployment.', error)
         }
@@ -394,7 +350,7 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.devfileRegistryDeploymentName, this.cheNamespace, 0)
-          task.title = await `${task.title}...done`
+          task.title = `${task.title}...done`
         } catch (error) {
           return newError('Failed to scale devfile registry deployment.', error)
         }
@@ -406,7 +362,7 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.pluginRegistryDeploymentName, this.cheNamespace, 0)
-          task.title = await `${task.title}...done`
+          task.title = `${task.title}...done`
         } catch (error) {
           return newError('Failed to scale plugin registry deployment.', error)
         }
@@ -423,14 +379,14 @@ export class CheTasks {
         title: 'Delete all deployments',
         task: async (_ctx: any, task: any) => {
           await this.kube.deleteAllDeployments(flags.chenamespace)
-          task.title = await `${task.title}...OK`
+          task.title = `${task.title}...OK`
         },
       },
       {
         title: 'Delete all services',
         task: async (_ctx: any, task: any) => {
           await this.kube.deleteAllServices(flags.chenamespace)
-          task.title = await `${task.title}...OK`
+          task.title = `${task.title}...OK`
         },
       },
       {
@@ -438,7 +394,7 @@ export class CheTasks {
         enabled: (ctx: any) => !ctx.isOpenShift,
         task: async (_ctx: any, task: any) => {
           await this.kube.deleteAllIngresses(flags.chenamespace)
-          task.title = await `${task.title}...OK`
+          task.title = `${task.title}...OK`
         },
       },
       {
@@ -446,7 +402,7 @@ export class CheTasks {
         enabled: (ctx: any) => ctx.isOpenShift,
         task: async (_ctx: any, task: any) => {
           await this.oc.deleteAllRoutes(flags.chenamespace)
-          task.title = await `${task.title}...OK`
+          task.title = `${task.title}...OK`
         },
       },
       {
@@ -454,7 +410,7 @@ export class CheTasks {
         task: async (_ctx: any, task: any) => {
           await this.kube.deleteConfigMap('che', flags.chenamespace)
           await this.kube.deleteConfigMap('che-operator', flags.chenamespace)
-          task.title = await `${task.title}...OK`
+          task.title = `${task.title}...OK`
         },
       },
       {
@@ -464,7 +420,7 @@ export class CheTasks {
           await this.kube.deleteRoleBinding('che-operator', flags.chenamespace)
           await this.kube.deleteRoleBinding('che-workspace-exec', flags.chenamespace)
           await this.kube.deleteRoleBinding('che-workspace-view', flags.chenamespace)
-          task.title = await `${task.title}...OK`
+          task.title = `${task.title}...OK`
         },
       },
       {
@@ -472,7 +428,7 @@ export class CheTasks {
         task: async (_ctx: any, task: any) => {
           await this.kube.deleteServiceAccount('che', flags.chenamespace)
           await this.kube.deleteServiceAccount('che-workspace', flags.chenamespace)
-          task.title = await `${task.title}...OK`
+          task.title = `${task.title}...OK`
         },
       },
       {
@@ -574,18 +530,6 @@ export class CheTasks {
   }
 
   /**
-   * Verifies if workspace running and puts #V1Pod into a context.
-   */
-  verifyWorkspaceRunTask(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
-    return [{
-      title: 'Verify if the workspaces is running',
-      task: async (ctx: any) => {
-        ctx.pod = await this.che.getWorkspacePodName(flags.chenamespace!, flags.workspace).catch(e => command.error(e.message))
-      },
-    }]
-  }
-
-  /**
    * Return tasks to collect Eclipse Che logs.
    */
   serverLogsTasks(flags: any, follow: boolean): ReadonlyArray<Listr.ListrTask> {
@@ -601,49 +545,49 @@ export class CheTasks {
         title: `${follow ? 'Start following' : 'Read'} Eclipse Che Server logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.cheSelector, ctx.directory, follow)
-          task.title = await `${task.title}...done`
+          task.title = `${task.title}...done`
         },
       },
       {
         title: `${follow ? 'Start following' : 'Read'} PostgreSQL logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.postgresSelector, ctx.directory, follow)
-          task.title = await `${task.title}...done`
+          task.title = `${task.title}...done`
         },
       },
       {
         title: `${follow ? 'Start following' : 'Read'} Keycloak logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.keycloakSelector, ctx.directory, follow)
-          task.title = await `${task.title}...done`
+          task.title = `${task.title}...done`
         },
       },
       {
         title: `${follow ? 'Start following' : 'Read'} Plug-in Registry logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.pluginRegistrySelector, ctx.directory, follow)
-          task.title = await `${task.title}...done`
+          task.title = `${task.title}...done`
         },
       },
       {
         title: `${follow ? 'Start following' : 'Read'} Devfile Registry logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.devfileRegistrySelector, ctx.directory, follow)
-          task.title = await `${task.title}...done`
+          task.title = `${task.title}...done`
         },
       },
       {
         title: `${follow ? 'Start following' : 'Read'} Eclipse Che Dashboard logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.dashboardSelector, ctx.directory, follow)
-          task.title = await `${task.title}...done`
+          task.title = `${task.title}...done`
         },
       },
       {
         title: `${follow ? 'Start following' : 'Read'} namespace events`,
         task: async (ctx: any, task: any) => {
           await this.che.readNamespaceEvents(flags.chenamespace, ctx.directory, follow)
-          task.title = await `${task.title}...done`
+          task.title = `${task.title}...done`
         },
       },
     ]
@@ -750,19 +694,6 @@ export class CheTasks {
                 messages.push('Dex user credentials      : user5@che:password')
                 messages.push(OUTPUT_SEPARATOR)
               }
-            } else if (cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL) {
-              messages.push(`Identity Provider URL     : ${addTrailingSlash(cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL)}`)
-
-              if (ctx.identityProviderUsername && ctx.identityProviderPassword) {
-                messages.push(`Identity Provider login   : "${ctx.identityProviderUsername}:${ctx.identityProviderPassword}".`)
-              } else {
-                const [login, password] = await this.che.retrieveKeycloakAdminCredentials(flags.chenamespace)
-                if (login && password) {
-                  messages.push(`Identity Provider login   : "${login}:${password}".`)
-                }
-              }
-
-              messages.push(OUTPUT_SEPARATOR)
             }
           }
 
