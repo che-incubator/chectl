@@ -25,7 +25,7 @@ import { CheGithubClient } from '../../api/github-client'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { CHE_CLUSTER_CRD, DEFAULT_CA_CERT_FILE_NAME, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER, OPERATOR_TEMPLATE_DIR } from '../../constants'
-import { getProjectVersion, isOpenshiftPlatformFamily } from '../../util'
+import { getProjectVersion } from '../../util'
 
 export const TASK_TITLE_CREATE_CHE_CLUSTER_CRD = `Create the Custom Resource of type ${CHE_CLUSTER_CRD}`
 export const TASK_TITLE_PATCH_CHECLUSTER_CR = `Patching the Custom Resource of type ${CHE_CLUSTER_CRD}`
@@ -111,37 +111,6 @@ export function downloadTemplates(flags: any): Listr.ListrTask {
       const cheHelper = new CheHelper(flags)
       await cheHelper.downloadAndUnpackTemplates(flags.installer, ctx.versionInfo.zipball_url, versionTemplatesDirPath)
       task.title = `${task.title} ... OK`
-    },
-  }
-}
-
-export function ensureOIDCProviderInstalled(flags: any): Listr.ListrTask {
-  return {
-    title: 'Check if OIDC Provider installed',
-    enabled: ctx => !isOpenshiftPlatformFamily(flags.platform) && !ctx.isCheDeployed,
-    skip: () => {
-      if (flags.platform === 'minikube') {
-        return 'Dex will be automatically installed'
-      }
-    },
-    task: async (_ctx: any, task: any) => {
-      const kube = new KubeHelper(flags)
-      const apiServerPods = await kube.getPodListByLabel('kube-system', 'component=kube-apiserver')
-      for (const pod of apiServerPods) {
-        if (!pod.spec) {
-          continue
-        }
-        for (const container of pod.spec.containers) {
-          if (container.command) {
-            if (container.command.some(value => value.includes('oidc-username'))) {
-              task.title = `${task.title}...OK`
-              return
-            }
-          }
-        }
-      }
-      task.title = `${task.title}...NOT INSTALLED`
-      throw new Error('OIDC Provider is not installed, but required in order to run Che')
     },
   }
 }

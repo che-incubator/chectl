@@ -22,7 +22,7 @@ import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTE
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { DexTasks } from '../../tasks/component-installers/dex'
-import { checkChectlAndCheVersionCompatibility, createNamespaceTask, downloadTemplates, ensureOIDCProviderInstalled, getPrintHighlightedMessagesTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
+import { checkChectlAndCheVersionCompatibility, createNamespaceTask, downloadTemplates, getPrintHighlightedMessagesTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
@@ -133,6 +133,10 @@ export default class Deploy extends Command {
     }),
     'skip-cluster-availability-check': flags.boolean({
       description: 'Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.',
+      default: false,
+    }),
+    'skip-oidc-provider-check': flags.boolean({
+      description: 'Skip check for configured OIDC Provider.',
       default: false,
     }),
     'auto-update': flags.boolean({
@@ -422,6 +426,37 @@ export default class Deploy extends Command {
       return { 'openshift.io/cluster-monitoring': 'true' }
     }
     return {}
+  }
+}
+
+function ensureOIDCProviderInstalled(flags: any): Listr.ListrTask {
+  return {
+    title: 'Check if OIDC Provider installed',
+    enabled: ctx => !flags['skip-oidc-provider-check'] && !isOpenshiftPlatformFamily(flags.platform) && !ctx.isCheDeployed,
+    skip: () => {
+      if (flags.platform === 'minikube') {
+        return 'Dex will be automatically installed'
+      }
+    },
+    task: async (_ctx: any, task: any) => {
+      const kube = new KubeHelper(flags)
+      const apiServerPods = await kube.getPodListByLabel('kube-system', 'component=kube-apiserver')
+      for (const pod of apiServerPods) {
+        if (!pod.spec) {
+          continue
+        }
+        for (const container of pod.spec.containers) {
+          if (container.command) {
+            if (container.command.some(value => value.includes('oidc-username'))) {
+              task.title = `${task.title}...OK`
+              return
+            }
+          }
+        }
+      }
+      task.title = `${task.title}...NOT INSTALLED`
+      throw new Error('OIDC Provider is not installed, but required in order to run Che')
+    },
   }
 }
 

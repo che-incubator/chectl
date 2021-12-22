@@ -407,6 +407,9 @@ OPTIONS
   --skip-kubernetes-health-check
       Skip Kubernetes health check
 
+  --skip-oidc-provider-check
+      Skip check for configured OIDC Provider.
+
   --skip-version-check
       Skip minimal versions check.
 
