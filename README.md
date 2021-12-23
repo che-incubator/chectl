@@ -289,12 +289,9 @@ USAGE
 OPTIONS
   -d, --destination=destination
       Destination where to store Che self-signed CA certificate.
-                           If the destination is a file (might not exist), then the certificate will be saved there in PEM 
-      format.
-                           If the destination is a directory, then cheCA.crt file will be created there with Che 
-      certificate in PEM format.
-                           If this option is omitted, then Che certificate will be stored in a user's temporary directory 
-      as cheCA.crt.
+      If the destination is a file (might not exist), then the certificate will be saved there in PEM format.
+      If the destination is a directory, then cheCA.crt file will be created there with Che certificate in PEM format.
+      If this option is omitted, then Che certificate will be stored in a user's temporary directory as cheCA.crt.
 
   -h, --help
       show CLI help
@@ -342,7 +339,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.3/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.14/src/commands/help.ts)_
 
 ## `chectl server:backup`
 
@@ -455,12 +452,12 @@ OPTIONS
 
   -b, --domain=domain
       Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
-                           This flag makes sense only for Kubernetes family infrastructures and will be autodetected for 
-      Minikube and MicroK8s in most cases.
-                           However, for Kubernetes cluster it is required to specify.
-                           Please note, that just setting this flag will not likely work out of the box.
-                           According changes should be done in Kubernetes cluster configuration as well.
-                           In case of Openshift, domain adjustment should be done on the cluster configuration level.
+      This flag makes sense only for Kubernetes family infrastructures and will be autodetected for Minikube and MicroK8s
+      in most cases.
+      However, for Kubernetes cluster it is required to specify.
+      Please note, that just setting this flag will not likely work out of the box.
+      According changes should be done in Kubernetes cluster configuration as well.
+      In case of Openshift, domain adjustment should be done on the cluster configuration level.
 
   -d, --directory=directory
       Directory to store logs into
@@ -478,7 +475,7 @@ OPTIONS
       (required) [default: 40000] Eclipse Che server bootstrap timeout (in milliseconds)
 
   -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc
-      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc 
+      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc
       (for CodeReady Containers)", "microk8s".
 
   -t, --templates=templates
@@ -489,40 +486,40 @@ OPTIONS
 
   --[no-]auto-update
       Auto update approval strategy for installation Eclipse Che.
-                           With this strategy will be provided auto-update Eclipse Che without any human interaction.
-                           By default this flag is enabled.
-                           This parameter is used only when the installer is 'olm'.
+      With this strategy will be provided auto-update Eclipse Che without any human interaction.
+      By default this flag is enabled.
+      This parameter is used only when the installer is 'olm'.
 
   --batch
       Batch mode. Running a command without end user interaction.
 
   --catalog-source-name=catalog-source-name
       OLM catalog source to install Eclipse Che operator.
-                           This parameter is used only when the installer is the 'olm'.
+      This parameter is used only when the installer is the 'olm'.
 
   --catalog-source-namespace=catalog-source-namespace
       Namespace for OLM catalog source to install Eclipse Che operator.
-                           This parameter is used only when the installer is the 'olm'.
+      This parameter is used only when the installer is the 'olm'.
 
   --catalog-source-yaml=catalog-source-yaml
       Path to a yaml file that describes custom catalog source for installation Eclipse Che operator.
-                           Catalog source will be applied to the namespace with Che operator.
-                           Also you need define 'olm-channel' name and 'package-manifest-name'.
-                           This parameter is used only when the installer is the 'olm'.
+      Catalog source will be applied to the namespace with Che operator.
+      Also you need define 'olm-channel' name and 'package-manifest-name'.
+      This parameter is used only when the installer is the 'olm'.
 
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
-      Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used 
+      Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used
       only when the installer is the 'operator' or the 'olm'.
 
   --che-operator-cr-yaml=che-operator-cr-yaml
-      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer 
+      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer
       is the 'operator' or the 'olm'.
 
   --che-operator-image=che-operator-image
       Container image of the operator. This parameter is used only when the installer is the operator or OLM.
 
   --debug
-      Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug' 
+      Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug'
       command.
 
   --deployment-name=deployment-name
@@ -545,17 +542,17 @@ OPTIONS
 
   --olm-channel=olm-channel
       Olm channel to install Eclipse Che, f.e. stable.
-                           If options was not set, will be used default version for package manifest.
-                           This parameter is used only when the installer is the 'olm'.
+      If options was not set, will be used default version for package manifest.
+      This parameter is used only when the installer is the 'olm'.
 
   --[no-]olm-suggested-namespace
       Indicate to deploy Eclipse Che in OLM suggested namespace: 'eclipse-che'.
-                           Flag 'chenamespace' is ignored in this case
-                           This parameter is used only when the installer is 'olm'.
+      Flag 'chenamespace' is ignored in this case
+      This parameter is used only when the installer is 'olm'.
 
   --package-manifest-name=package-manifest-name
       Package manifest name to subscribe to Eclipse Che OLM package manifest.
-                           This parameter is used only when the installer is the 'olm'.
+      This parameter is used only when the installer is the 'olm'.
 
   --plugin-registry-url=plugin-registry-url
       The URL of the external plugin registry.
@@ -574,12 +571,12 @@ OPTIONS
 
   --starting-csv=starting-csv
       Starting cluster service version(CSV) for installation Eclipse Che.
-                           Flags uses to set up start installation version Che.
-                           For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
-                           Then OLM will install Eclipse Che with version 7.10.0.
-                           Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs 
-      the latest known version.
-                           This parameter is used only when the installer is 'olm'.
+      Flags uses to set up start installation version Che.
+      For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
+      Then OLM will install Eclipse Che with version 7.10.0.
+      Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known
+      version.
+      This parameter is used only when the installer is 'olm'.
 
   --telemetry=on|off
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
@@ -737,30 +734,22 @@ USAGE
   $ chectl server:stop
 
 OPTIONS
-  -h, --help
-      show CLI help
+  -h, --help                         show CLI help
+  -n, --chenamespace=chenamespace    Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
 
-  -n, --chenamespace=chenamespace
-      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
+  --access-token=access-token        Eclipse Che OIDC Access Token. See the documentation how to obtain token:
+                                     https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#o
+                                     btaining-the-token-from-keycloak_authenticating-to-the-che-server and https://www.e
+                                     clipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-
+                                     token-from-openshift-token-through-keycloak_authenticating-to-the-che-server.
 
-  --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
-      -token-through-keycloak_authenticating-to-the-che-server.
+  --che-selector=che-selector        [default: app=che,component=che] Selector for Eclipse Che server resources
 
-  --che-selector=che-selector
-      [default: app=che,component=che] Selector for Eclipse Che server resources
+  --deployment-name=deployment-name  [default: che] Eclipse Che deployment name
 
-  --deployment-name=deployment-name
-      [default: che] Eclipse Che deployment name
+  --skip-kubernetes-health-check     Skip Kubernetes health check
 
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
-
-  --telemetry=on|off
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+  --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
 _See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
@@ -834,7 +823,7 @@ USAGE
 
 OPTIONS
   -d, --debug
-      Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup. This 
+      Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup. This
       flag is used in conjunction with --start flag.
 
   -f, --devfile=devfile
@@ -850,9 +839,8 @@ OPTIONS
       Starts the workspace after creation
 
   --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and 
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: https://www.eclipse.org/che/docs/che-7/adm
+      inistration-guide/authenticating-users/#obtaining-the-token-from-keycloak_authenticating-to-the-che-server and
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
 
@@ -890,9 +878,8 @@ OPTIONS
       Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
 
   --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and 
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: https://www.eclipse.org/che/docs/che-7/adm
+      inistration-guide/authenticating-users/#obtaining-the-token-from-keycloak_authenticating-to-the-che-server and
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
 
@@ -934,12 +921,11 @@ OPTIONS
 
   -w, --workspace=workspace
       The workspace id to inject configuration into. It can be omitted if the only one running workspace exists.
-                           Use workspace:list command to get all workspaces and their statuses.
+      Use workspace:list command to get all workspaces and their statuses.
 
   --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and 
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: https://www.eclipse.org/che/docs/che-7/adm
+      inistration-guide/authenticating-users/#obtaining-the-token-from-keycloak_authenticating-to-the-che-server and
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
 
@@ -974,9 +960,8 @@ OPTIONS
       Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
 
   --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and 
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: https://www.eclipse.org/che/docs/che-7/adm
+      inistration-guide/authenticating-users/#obtaining-the-token-from-keycloak_authenticating-to-the-che-server and
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
 
@@ -1040,9 +1025,8 @@ OPTIONS
       Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
 
   --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and 
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: https://www.eclipse.org/che/docs/che-7/adm
+      inistration-guide/authenticating-users/#obtaining-the-token-from-keycloak_authenticating-to-the-che-server and
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
 
@@ -1077,9 +1061,8 @@ OPTIONS
       Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
 
   --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and 
+      Eclipse Che OIDC Access Token. See the documentation how to obtain token: https://www.eclipse.org/che/docs/che-7/adm
+      inistration-guide/authenticating-users/#obtaining-the-token-from-keycloak_authenticating-to-the-che-server and
       https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
       -token-through-keycloak_authenticating-to-the-che-server.
 
