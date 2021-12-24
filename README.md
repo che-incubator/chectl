@@ -80,12 +80,6 @@ USAGE
 ```
 # Commands
 <!-- commands -->
-* [`chectl auth:delete CHE-API-ENDPOINT`](#chectl-authdelete-che-api-endpoint)
-* [`chectl auth:get`](#chectl-authget)
-* [`chectl auth:list`](#chectl-authlist)
-* [`chectl auth:login [CHE-API-ENDPOINT]`](#chectl-authlogin-che-api-endpoint)
-* [`chectl auth:logout`](#chectl-authlogout)
-* [`chectl auth:use [CHE-API-ENDPOINT]`](#chectl-authuse-che-api-endpoint)
 * [`chectl autocomplete [SHELL]`](#chectl-autocomplete-shell)
 * [`chectl cacert:export`](#chectl-cacertexport)
 * [`chectl dashboard:open`](#chectl-dashboardopen)
@@ -101,159 +95,6 @@ USAGE
 * [`chectl server:stop`](#chectl-serverstop)
 * [`chectl server:update`](#chectl-serverupdate)
 * [`chectl update [CHANNEL]`](#chectl-update-channel)
-* [`chectl workspace:create`](#chectl-workspacecreate)
-* [`chectl workspace:delete WORKSPACE`](#chectl-workspacedelete-workspace)
-* [`chectl workspace:inject`](#chectl-workspaceinject)
-* [`chectl workspace:list`](#chectl-workspacelist)
-* [`chectl workspace:logs`](#chectl-workspacelogs)
-* [`chectl workspace:start WORKSPACE`](#chectl-workspacestart-workspace)
-* [`chectl workspace:stop WORKSPACE`](#chectl-workspacestop-workspace)
-
-## `chectl auth:delete CHE-API-ENDPOINT`
-
-Delete specified login session(s)
-
-```
-USAGE
-  $ chectl auth:delete CHE-API-ENDPOINT
-
-ARGUMENTS
-  CHE-API-ENDPOINT  Eclipse Che server API endpoint
-
-OPTIONS
-  -h, --help               show CLI help
-  -u, --username=username  Eclipse Che username
-  --telemetry=on|off       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-
-EXAMPLES
-  # Delete login session of the specified user on the cluster:
-  chectl auth:delete che-che.apps-crc.testing/api -u username
-
-
-  # Delete all login sessions on the cluster:
-  chectl auth:delete che-che.apps-crc.testing
-```
-
-_See code: [src/commands/auth/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/delete.ts)_
-
-## `chectl auth:get`
-
-Display active login session
-
-```
-USAGE
-  $ chectl auth:get
-
-OPTIONS
-  -h, --help          show CLI help
-  --telemetry=on|off  Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/auth/get.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/get.ts)_
-
-## `chectl auth:list`
-
-Show all existing login sessions
-
-```
-USAGE
-  $ chectl auth:list
-
-OPTIONS
-  -h, --help          show CLI help
-  --telemetry=on|off  Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/auth/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/list.ts)_
-
-## `chectl auth:login [CHE-API-ENDPOINT]`
-
-Log in to Eclipse Che server
-
-```
-USAGE
-  $ chectl auth:login [CHE-API-ENDPOINT]
-
-ARGUMENTS
-  CHE-API-ENDPOINT  Eclipse Che server API endpoint
-
-OPTIONS
-  -h, --help                         show CLI help
-  -n, --chenamespace=chenamespace    Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
-  -p, --password=password            Eclipse Che user password
-  -t, --refresh-token=refresh-token  Keycloak refresh token
-  -u, --username=username            Eclipse Che username
-  --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-
-EXAMPLES
-  # Log in with username and password (when OpenShift OAuth is not enabled):
-  chectl auth:login https://che-che.apps-crc.testing/api -u username -p password
-
-
-  # Log in with username and password (password will be asked interactively):
-  chectl auth:login che-che.apps-crc.testing -u username
-
-
-  # Log in with token (when OpenShift OAuth is enabled):
-  chectl auth:login che.openshift.io -t token
-
-
-  # Log in with oc token (when logged into an OpenShift cluster with oc and OpenShift OAuth is enabled):
-  chectl auth:login che.my.server.net
-```
-
-_See code: [src/commands/auth/login.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/login.ts)_
-
-## `chectl auth:logout`
-
-Log out of the active login session
-
-```
-USAGE
-  $ chectl auth:logout
-
-OPTIONS
-  -h, --help          show CLI help
-  --telemetry=on|off  Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/auth/logout.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/logout.ts)_
-
-## `chectl auth:use [CHE-API-ENDPOINT]`
-
-Set active login session
-
-```
-USAGE
-  $ chectl auth:use [CHE-API-ENDPOINT]
-
-ARGUMENTS
-  CHE-API-ENDPOINT  Eclipse Che server API endpoint
-
-OPTIONS
-  -h, --help               show CLI help
-  -i, --interactive        Select an active login session in interactive mode
-  -u, --username=username  Eclipse Che username
-  --telemetry=on|off       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-
-EXAMPLES
-  # Set an active login session for the specified user on the given cluster:
-  chectl auth:use che-che.apps-crc.testing/api -u username
-
-
-  # Switch to another user on the same cluster:
-  chectl auth:use -u another-user-on-this-server
-
-
-  # Switch to the only user on the given cluster:
-  chectl auth:use my.cluster.net
-
-
-  # Select an active login session in interactive mode:
-  chectl auth:use -i
-```
-
-_See code: [src/commands/auth/use.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/auth/use.ts)_
 
 ## `chectl autocomplete [SHELL]`
 
@@ -289,12 +130,9 @@ USAGE
 OPTIONS
   -d, --destination=destination
       Destination where to store Che self-signed CA certificate.
-                           If the destination is a file (might not exist), then the certificate will be saved there in PEM 
-      format.
-                           If the destination is a directory, then cheCA.crt file will be created there with Che 
-      certificate in PEM format.
-                           If this option is omitted, then Che certificate will be stored in a user's temporary directory 
-      as cheCA.crt.
+      If the destination is a file (might not exist), then the certificate will be saved there in PEM format.
+      If the destination is a directory, then cheCA.crt file will be created there with Che certificate in PEM format.
+      If this option is omitted, then Che certificate will be stored in a user's temporary directory as cheCA.crt.
 
   -h, --help
       show CLI help
@@ -342,7 +180,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.3/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.14/src/commands/help.ts)_
 
 ## `chectl server:backup`
 
@@ -455,12 +293,12 @@ OPTIONS
 
   -b, --domain=domain
       Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
-                           This flag makes sense only for Kubernetes family infrastructures and will be autodetected for 
-      Minikube and MicroK8s in most cases.
-                           However, for Kubernetes cluster it is required to specify.
-                           Please note, that just setting this flag will not likely work out of the box.
-                           According changes should be done in Kubernetes cluster configuration as well.
-                           In case of Openshift, domain adjustment should be done on the cluster configuration level.
+      This flag makes sense only for Kubernetes family infrastructures and will be autodetected for Minikube and MicroK8s
+      in most cases.
+      However, for Kubernetes cluster it is required to specify.
+      Please note, that just setting this flag will not likely work out of the box.
+      According changes should be done in Kubernetes cluster configuration as well.
+      In case of Openshift, domain adjustment should be done on the cluster configuration level.
 
   -d, --directory=directory
       Directory to store logs into
@@ -478,7 +316,7 @@ OPTIONS
       (required) [default: 40000] Eclipse Che server bootstrap timeout (in milliseconds)
 
   -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc
-      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc 
+      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc
       (for CodeReady Containers)", "microk8s".
 
   -t, --templates=templates
@@ -489,40 +327,40 @@ OPTIONS
 
   --[no-]auto-update
       Auto update approval strategy for installation Eclipse Che.
-                           With this strategy will be provided auto-update Eclipse Che without any human interaction.
-                           By default this flag is enabled.
-                           This parameter is used only when the installer is 'olm'.
+      With this strategy will be provided auto-update Eclipse Che without any human interaction.
+      By default this flag is enabled.
+      This parameter is used only when the installer is 'olm'.
 
   --batch
       Batch mode. Running a command without end user interaction.
 
   --catalog-source-name=catalog-source-name
       OLM catalog source to install Eclipse Che operator.
-                           This parameter is used only when the installer is the 'olm'.
+      This parameter is used only when the installer is the 'olm'.
 
   --catalog-source-namespace=catalog-source-namespace
       Namespace for OLM catalog source to install Eclipse Che operator.
-                           This parameter is used only when the installer is the 'olm'.
+      This parameter is used only when the installer is the 'olm'.
 
   --catalog-source-yaml=catalog-source-yaml
       Path to a yaml file that describes custom catalog source for installation Eclipse Che operator.
-                           Catalog source will be applied to the namespace with Che operator.
-                           Also you need define 'olm-channel' name and 'package-manifest-name'.
-                           This parameter is used only when the installer is the 'olm'.
+      Catalog source will be applied to the namespace with Che operator.
+      Also you need define 'olm-channel' name and 'package-manifest-name'.
+      This parameter is used only when the installer is the 'olm'.
 
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
-      Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used 
+      Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used
       only when the installer is the 'operator' or the 'olm'.
 
   --che-operator-cr-yaml=che-operator-cr-yaml
-      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer 
+      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer
       is the 'operator' or the 'olm'.
 
   --che-operator-image=che-operator-image
       Container image of the operator. This parameter is used only when the installer is the operator or OLM.
 
   --debug
-      Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug' 
+      Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug'
       command.
 
   --deployment-name=deployment-name
@@ -545,17 +383,17 @@ OPTIONS
 
   --olm-channel=olm-channel
       Olm channel to install Eclipse Che, f.e. stable.
-                           If options was not set, will be used default version for package manifest.
-                           This parameter is used only when the installer is the 'olm'.
+      If options was not set, will be used default version for package manifest.
+      This parameter is used only when the installer is the 'olm'.
 
   --[no-]olm-suggested-namespace
       Indicate to deploy Eclipse Che in OLM suggested namespace: 'eclipse-che'.
-                           Flag 'chenamespace' is ignored in this case
-                           This parameter is used only when the installer is 'olm'.
+      Flag 'chenamespace' is ignored in this case
+      This parameter is used only when the installer is 'olm'.
 
   --package-manifest-name=package-manifest-name
       Package manifest name to subscribe to Eclipse Che OLM package manifest.
-                           This parameter is used only when the installer is the 'olm'.
+      This parameter is used only when the installer is the 'olm'.
 
   --plugin-registry-url=plugin-registry-url
       The URL of the external plugin registry.
@@ -574,12 +412,12 @@ OPTIONS
 
   --starting-csv=starting-csv
       Starting cluster service version(CSV) for installation Eclipse Che.
-                           Flags uses to set up start installation version Che.
-                           For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
-                           Then OLM will install Eclipse Che with version 7.10.0.
-                           Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs 
-      the latest known version.
-                           This parameter is used only when the installer is 'olm'.
+      Flags uses to set up start installation version Che.
+      For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
+      Then OLM will install Eclipse Che with version 7.10.0.
+      Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known
+      version.
+      This parameter is used only when the installer is 'olm'.
 
   --telemetry=on|off
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
@@ -737,30 +575,22 @@ USAGE
   $ chectl server:stop
 
 OPTIONS
-  -h, --help
-      show CLI help
+  -h, --help                         show CLI help
+  -n, --chenamespace=chenamespace    Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
 
-  -n, --chenamespace=chenamespace
-      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
+  --access-token=access-token        Eclipse Che OIDC Access Token. See the documentation how to obtain token:
+                                     https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#o
+                                     btaining-the-token-from-keycloak_authenticating-to-the-che-server and https://www.e
+                                     clipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-
+                                     token-from-openshift-token-through-keycloak_authenticating-to-the-che-server.
 
-  --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
-      -token-through-keycloak_authenticating-to-the-che-server.
+  --che-selector=che-selector        [default: app=che,component=che] Selector for Eclipse Che server resources
 
-  --che-selector=che-selector
-      [default: app=che,component=che] Selector for Eclipse Che server resources
+  --deployment-name=deployment-name  [default: che] Eclipse Che deployment name
 
-  --deployment-name=deployment-name
-      [default: che] Eclipse Che deployment name
+  --skip-kubernetes-health-check     Skip Kubernetes health check
 
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
-
-  --telemetry=on|off
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+  --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
 _See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
@@ -823,277 +653,6 @@ OPTIONS
 ```
 
 _See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.5.0/src/commands/update.ts)_
-
-## `chectl workspace:create`
-
-Creates a workspace from a devfile
-
-```
-USAGE
-  $ chectl workspace:create
-
-OPTIONS
-  -d, --debug
-      Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup. This 
-      flag is used in conjunction with --start flag.
-
-  -f, --devfile=devfile
-      Path or URL to a valid devfile
-
-  -h, --help
-      show CLI help
-
-  -n, --chenamespace=chenamespace
-      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
-
-  -s, --start
-      Starts the workspace after creation
-
-  --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
-      -token-through-keycloak_authenticating-to-the-che-server.
-
-  --che-api-endpoint=che-api-endpoint
-      Eclipse Che server API endpoint
-
-  --name=name
-      Workspace name: overrides the workspace name to use instead of the one defined in the devfile.
-
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
-
-  --telemetry=on|off
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/workspace/create.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/create.ts)_
-
-## `chectl workspace:delete WORKSPACE`
-
-Delete a stopped workspace - use workspace:stop to stop the workspace before deleting it
-
-```
-USAGE
-  $ chectl workspace:delete WORKSPACE
-
-ARGUMENTS
-  WORKSPACE  The workspace id to delete
-
-OPTIONS
-  -h, --help
-      show CLI help
-
-  -n, --chenamespace=chenamespace
-      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
-
-  --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
-      -token-through-keycloak_authenticating-to-the-che-server.
-
-  --che-api-endpoint=che-api-endpoint
-      Eclipse Che server API endpoint
-
-  --delete-namespace
-      Indicates that a Kubernetes namespace where workspace was created will be deleted as well
-
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
-
-  --telemetry=on|off
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/workspace/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/delete.ts)_
-
-## `chectl workspace:inject`
-
-Inject configurations and tokens in a workspace
-
-```
-USAGE
-  $ chectl workspace:inject
-
-OPTIONS
-  -c, --container=container
-      The container name. If not specified, configuration files will be injected in all containers of the workspace pod
-
-  -h, --help
-      show CLI help
-
-  -k, --kubeconfig
-      (required) Inject the local Kubernetes configuration
-
-  -n, --chenamespace=chenamespace
-      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
-
-  -w, --workspace=workspace
-      The workspace id to inject configuration into. It can be omitted if the only one running workspace exists.
-                           Use workspace:list command to get all workspaces and their statuses.
-
-  --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
-      -token-through-keycloak_authenticating-to-the-che-server.
-
-  --che-api-endpoint=che-api-endpoint
-      Eclipse Che server API endpoint
-
-  --kube-context=kube-context
-      Kubeconfig context to inject
-
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
-
-  --telemetry=on|off
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/workspace/inject.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/inject.ts)_
-
-## `chectl workspace:list`
-
-List workspaces
-
-```
-USAGE
-  $ chectl workspace:list
-
-OPTIONS
-  -h, --help
-      show CLI help
-
-  -n, --chenamespace=chenamespace
-      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
-
-  --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
-      -token-through-keycloak_authenticating-to-the-che-server.
-
-  --che-api-endpoint=che-api-endpoint
-      Eclipse Che server API endpoint
-
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
-
-  --telemetry=on|off
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/list.ts)_
-
-## `chectl workspace:logs`
-
-Collect workspace(s) logs
-
-```
-USAGE
-  $ chectl workspace:logs
-
-OPTIONS
-  -d, --directory=directory       Directory to store logs into
-  -h, --help                      show CLI help
-
-  -n, --namespace=namespace       (required) The namespace where workspace is located. Can be found in workspace
-                                  configuration 'attributes.infrastructureNamespace' field.
-
-  -w, --workspace=workspace       (required) Target workspace id. Can be found in workspace configuration 'id' field.
-
-  --follow                        Indicate if logs should be streamed
-
-  --skip-kubernetes-health-check  Skip Kubernetes health check
-
-  --telemetry=on|off              Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/workspace/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/logs.ts)_
-
-## `chectl workspace:start WORKSPACE`
-
-Starts a workspace
-
-```
-USAGE
-  $ chectl workspace:start WORKSPACE
-
-ARGUMENTS
-  WORKSPACE  The workspace id to start
-
-OPTIONS
-  -d, --debug
-      Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup.
-
-  -h, --help
-      show CLI help
-
-  -n, --chenamespace=chenamespace
-      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
-
-  --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
-      -token-through-keycloak_authenticating-to-the-che-server.
-
-  --che-api-endpoint=che-api-endpoint
-      Eclipse Che server API endpoint
-
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
-
-  --telemetry=on|off
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
-
-## `chectl workspace:stop WORKSPACE`
-
-Stop a running workspace
-
-```
-USAGE
-  $ chectl workspace:stop WORKSPACE
-
-ARGUMENTS
-  WORKSPACE  The workspace id to stop
-
-OPTIONS
-  -h, --help
-      show CLI help
-
-  -n, --chenamespace=chenamespace
-      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
-
-  --access-token=access-token
-      Eclipse Che OIDC Access Token. See the documentation how to obtain token: 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and 
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift
-      -token-through-keycloak_authenticating-to-the-che-server.
-
-  --che-api-endpoint=che-api-endpoint
-      Eclipse Che server API endpoint
-
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
-
-  --telemetry=on|off
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_
 <!-- commandsstop -->
 
 

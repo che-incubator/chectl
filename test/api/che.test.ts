@@ -16,11 +16,6 @@ import { expect, fancy } from 'fancy-test'
 import { CheHelper } from '../../src/api/che'
 
 const namespace = 'che'
-const workspace = 'workspace-0123'
-const theiaContainer = 'theia-123'
-const cheURL = 'https://che-che.192.168.64.34.nip.io'
-const devfileServerURL = 'https://devfile-server'
-const devfileEndpoint = '/api/workspace/devfile'
 let ch = new CheHelper({})
 let kube = ch.kube
 let oc = ch.oc
@@ -116,36 +111,6 @@ describe('Eclipse Che helper', () => {
         expect(res).to.equal(true)
       })
   })
-  describe('createWorkspaceFromDevfile', () => {
-    fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(ch, 'cheURL', () => cheURL)
-      .do(() => ch.createWorkspaceFromDevfile(namespace, __dirname + '/requests/devfile.inexistent', undefined))
-      .catch(/E_NOT_FOUND_DEVFILE/)
-      .it('fails creating a workspace from a non-existing devfile')
-    fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(ch, 'cheURL', () => cheURL)
-      .nock(devfileServerURL, api => api
-        .get('/devfile.yaml')
-        .replyWithFile(200, __dirname + '/requests/devfile.valid', { 'Content-Type': 'text/plain; charset=utf-8' }))
-      .nock(cheURL, api => api
-        .post(devfileEndpoint)
-        .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
-      .it('succeeds creating a workspace from a remote devfile', async () => {
-        const res = await ch.createWorkspaceFromDevfile(cheURL + '/api', devfileServerURL + '/devfile.yaml')
-        expect(res.links!.ide).to.equal('https://che-che.192.168.64.39.nip.io/che/chectl')
-      })
-    fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(ch, 'cheURL', () => cheURL)
-      .nock(devfileServerURL, api => api
-        .get('/devfile.yaml')
-        .reply(404, '404 - Not Found'))
-      .do(() => ch.createWorkspaceFromDevfile(namespace, devfileServerURL + '/devfile.yaml', undefined))
-      .catch(/E_NOT_FOUND_DEVFILE/)
-      .it('fails creating a workspace from a non-existing remote devfile')
-  })
   describe('buildDashboardURL', () => {
     fancy
       .it('builds the Dashboard URL of a workspace given the IDE link', async () => {
@@ -154,85 +119,6 @@ describe('Eclipse Che helper', () => {
         let res = await ch.buildDashboardURL(ideURL)
         expect(res).to.equal(dashboardURL)
       })
-  })
-  describe('getWorkspacePod', () => {
-    fancy
-      .stub(kube.kubeConfig, 'makeApiClient', () => k8sApi)
-      .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: { name: 'pod-name', labels: { 'che.workspace_id': workspace } } }] } }))
-      .it('should return pod name where workspace with the given ID is running', async () => {
-        const pod = await ch.getWorkspacePodName(namespace, workspace)
-        expect(pod).to.equal('pod-name')
-      })
-    fancy
-      .stub(kube.kubeConfig, 'makeApiClient', () => k8sApi)
-      .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: { labels: { 'che.workspace_id': `${workspace}1` } } }] } }))
-      .do(() => ch.getWorkspacePodName(namespace, workspace))
-      .catch(/Pod is not found for the given workspace ID/)
-      .it('should fail if no workspace is found for the given ID')
-  })
-  describe('getWorkspacePodContainers', () => {
-    fancy
-      .stub(kube.kubeConfig, 'makeApiClient', () => k8sApi)
-      .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: { name: 'pod-name', labels: { 'che.workspace_id': workspace } }, spec : { containers : [{ name: theiaContainer }] } }] } }))
-      .it('should return pod name where workspace with the given ID is running', async () => {
-        const wsPodContainers = await ch.getWorkspacePodContainers(namespace, workspace)
-        expect(wsPodContainers).to.contain(theiaContainer)
-      })
-    fancy
-      .stub(kube.kubeConfig, 'makeApiClient', () => k8sApi)
-      .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: { name: 'pod-name', labels: { 'che.workspace_id': `${workspace}1` } }, spec : { containers : [{ name: theiaContainer }] } }] } }))
-      .do(() => ch.getWorkspacePodContainers(namespace, workspace))
-      .catch(/Pod is not found for the given workspace ID/)
-      .it('should fail if no workspace is found for the given ID')
-  })
-  describe('chePluginRegistryURL', () => {
-    fancy
-      .stub(kube, 'getNamespace', () => ({}))
-      .stub(kube, 'isOpenShift', () => true)
-      .stub(oc, 'routeExist', () => true)
-      .stub(oc, 'getRouteProtocol', () => 'https')
-      .stub(oc, 'getRouteHost', () => 'ocp-plugins-example.org')
-      .it('computes Plugin Registry URL on Openshift', async () => {
-        const chePluginRegistryURL = await ch.chePluginRegistryURL('che-namespace')
-        expect(chePluginRegistryURL).to.equals('https://ocp-plugins-example.org')
-      })
-    fancy
-      .stub(kube, 'getNamespace', () => ({}))
-      .stub(kube, 'isIngressExist', () => true)
-      .stub(kube, 'isOpenShift', () => false)
-      .stub(kube, 'getIngressProtocol', () => 'https')
-      .stub(kube, 'getIngressHost', () => 'example.org')
-      .it('computes Plugin Registry URL on K8s', async () => {
-        const chePluginRegistryURL = await ch.chePluginRegistryURL('che-namespace')
-        expect(chePluginRegistryURL).to.equals('https://example.org')
-      })
-    fancy
-      .stub(kube, 'getNamespace', () => ({}))
-      .stub(kube, 'isIngressExist', () => false)
-      .stub(kube, 'isOpenShift', () => true)
-      .stub(oc, 'routeExist', () => false)
-      .do(() => ch.chePluginRegistryURL('che-namespace')) //ERR_ROUTE_NO_EXIST
-      .catch(err => expect(err.message).to.match(/ERR_ROUTE_NO_EXIST/))
-      .it('fails fetching Plugin Registry URL when ingress does not exist')
-    fancy
-      .stub(kube, 'getNamespace', () => ({}))
-      .stub(kube, 'isIngressExist', () => false)
-      .stub(kube, 'isOpenShift', () => false)
-      .do(() => ch.chePluginRegistryURL('che-namespace'))
-      .catch(err => expect(err.message).to.match(/ERR_INGRESS_NO_EXIST/))
-      .it('fails fetching Plugin Registry URL when ingress does not exist')
-    fancy
-      .stub(kube, 'getNamespace', () => ({}))
-      .stub(kube, 'isOpenShift', () => true)
-      .stub(oc, 'routeExist', () => false)
-      .do(() => ch.chePluginRegistryURL('che-namespace'))
-      .catch(/ERR_ROUTE_NO_EXIST/)
-      .it('fails fetching Plugin Registry URL when route does not exist')
-    fancy
-      .stub(kube, 'getNamespace', () => undefined)
-      .do(() => ch.chePluginRegistryURL('che-namespace'))
-      .catch(err => expect(err.message).to.match(/ERR_NAMESPACE_NO_EXIST/))
-      .it('fails fetching Plugin Registry URL when namespace does not exist')
   })
   describe('isSelfSignedCertificateSecretExist', () => {
     fancy

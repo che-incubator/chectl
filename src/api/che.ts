@@ -10,14 +10,10 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { che as chetypes } from '@eclipse-che/api'
-import { CoreV1Api, V1Pod, Watch } from '@kubernetes/client-node'
-import axios, { AxiosInstance } from 'axios'
+import { V1Pod, Watch } from '@kubernetes/client-node'
 import * as cp from 'child_process'
 import * as commandExists from 'command-exists'
 import * as fs from 'fs-extra'
-import * as https from 'https'
-import * as yaml from 'js-yaml'
 import * as nodeforge from 'node-forge'
 import * as os from 'os'
 import * as path from 'path'
@@ -26,8 +22,6 @@ import * as unzipper from 'unzipper'
 import { OpenShiftHelper } from '../api/openshift'
 import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OPERATOR_TEMPLATE_DIR } from '../constants'
 import { base64Decode, downloadFile } from '../util'
-import { CheApiClient } from './che-api-client'
-import { Devfile } from './types/devfile'
 import { KubeHelper } from './kube'
 import { OperatorGroup, Subscription } from './types/olm'
 
@@ -35,73 +29,10 @@ export class CheHelper {
   defaultCheResponseTimeoutMs = 3000
 
   kube: KubeHelper
-
   oc = new OpenShiftHelper()
 
-  private readonly axios: AxiosInstance
-
-  constructor(private readonly flags: any) {
+  constructor(flags: any) {
     this.kube = new KubeHelper(flags)
-
-    // Make axios ignore untrusted certificate error for self-signed certificate case.
-    const httpsAgent = new https.Agent({ rejectUnauthorized: false })
-
-    this.axios = axios.create({
-      httpsAgent,
-    })
-  }
-
-  /**
-   * Finds a pod where workspace is running.
-   * Rejects if no workspace is found for the given workspace ID
-   * or if workspace ID wasn't specified but more than one workspace is found.
-   */
-  async getWorkspacePodName(namespace: string, cheWorkspaceId: string): Promise<string> {
-    const k8sApi = this.kube.kubeConfig.makeApiClient(CoreV1Api)
-
-    const res = await k8sApi.listNamespacedPod(namespace)
-    const pods = res.body.items
-    const wsPods = pods.filter(pod => pod.metadata!.labels!['che.workspace_id'] && pod.metadata!.labels!['che.original_name'] !== 'che-jwtproxy')
-    if (wsPods.length === 0) {
-      throw new Error('No workspace pod is found')
-    }
-
-    if (cheWorkspaceId) {
-      const wsPod = wsPods.find(p => p.metadata!.labels!['che.workspace_id'] === cheWorkspaceId)
-      if (wsPod) {
-        return wsPod.metadata!.name!
-      }
-      throw new Error('Pod is not found for the given workspace ID')
-    } else {
-      if (wsPods.length === 1) {
-        return wsPods[0].metadata!.name!
-      }
-      throw new Error('More than one pod with running workspace is found. Please, specify Workspace ID.')
-    }
-  }
-
-  async getWorkspacePodContainers(namespace: string, cheWorkspaceId?: string): Promise<string[]> {
-    const k8sApi = this.kube.kubeConfig.makeApiClient(CoreV1Api)
-
-    const res = await k8sApi.listNamespacedPod(namespace)
-    const pods = res.body.items
-    const wsPods = pods.filter(pod => pod.metadata!.labels!['che.workspace_id'] && pod.metadata!.labels!['che.original_name'] !== 'che-jwtproxy')
-    if (wsPods.length === 0) {
-      throw new Error('No workspace pod is found')
-    }
-
-    if (cheWorkspaceId) {
-      const wsPod = wsPods.find(p => p.metadata!.labels!['che.workspace_id'] === cheWorkspaceId)
-      if (wsPod) {
-        return wsPod.spec!.containers.map(c => c.name)
-      }
-      throw new Error('Pod is not found for the given workspace ID')
-    } else {
-      if (wsPods.length === 1) {
-        return wsPods[0].spec!.containers.map(c => c.name)
-      }
-      throw new Error('More than one pod with running workspace is found. Please, specify Workspace ID.')
-    }
   }
 
   async cheURL(namespace = ''): Promise<string> {
@@ -113,24 +44,6 @@ export class CheHelper {
       return this.cheOpenShiftURL(namespace)
     } else {
       return this.cheK8sURL(namespace)
-    }
-  }
-
-  async chePluginRegistryURL(namespace = ''): Promise<string> {
-    // provided through command line ?
-    if (this.flags['plugin-registry-url']) {
-      return this.flags['plugin-registry-url']
-    }
-    // check
-    if (!await this.kube.getNamespace(namespace)) {
-      throw new Error(`ERR_NAMESPACE_NO_EXIST - No namespace ${namespace} is found`)
-    }
-
-    // grab URL
-    if (await this.kube.isOpenShift()) {
-      return this.chePluginRegistryOpenShiftURL(namespace)
-    } else {
-      return this.chePluginRegistryK8sURL(namespace)
     }
   }
 
@@ -185,38 +98,6 @@ export class CheHelper {
     throw new Error(`Secret "${CHE_ROOT_CA_SECRET_NAME}" has invalid format: "ca.crt" key not found in data.`)
   }
 
-  /**
-   * Retrieves Keycloak admin user credentials.
-   * Works only with installers which use Che CR (operator, olm).
-   * Returns credentials as an array of two values: [login, password]
-   * In case of an error an array with undefined values will be returned.
-   */
-  async retrieveKeycloakAdminCredentials(cheNamespace: string): Promise<string[]> {
-    let adminUsername
-    let adminPassword
-
-    const cheCluster = await this.kube.getCheCluster(cheNamespace)
-    if (!cheCluster || cheCluster.spec.auth.externalIdentityProvider) {
-      return []
-    }
-
-    const keycloakCredentialsSecretName = cheCluster.spec.auth.identityProviderSecret
-    if (keycloakCredentialsSecretName) {
-      // Keycloak credentials are stored in secret
-      const keycloakCredentialsSecret = await this.kube.getSecret(keycloakCredentialsSecretName, cheNamespace)
-      if (keycloakCredentialsSecret && keycloakCredentialsSecret.data) {
-        adminUsername = base64Decode(keycloakCredentialsSecret.data.user)
-        adminPassword = base64Decode(keycloakCredentialsSecret.data.password)
-      }
-    } else {
-      // Keycloak credentials are stored in Che custom resource
-      adminUsername = cheCluster.spec.auth.identityProviderAdminUserName
-      adminPassword = cheCluster.spec.auth.identityProviderPassword
-    }
-
-    return [adminUsername, adminPassword]
-  }
-
   async chePluginRegistryK8sURL(namespace = ''): Promise<string> {
     if (await this.kube.isIngressExist('plugin-registry', namespace)) {
       const protocol = await this.kube.getIngressProtocol('plugin-registry', namespace)
@@ -259,46 +140,8 @@ export class CheHelper {
     throw new Error(`ERR_ROUTE_NO_EXIST - No route ${route_names} in namespace ${namespace}`)
   }
 
-  async createWorkspaceFromDevfile(cheApiEndpoint: string, devfilePath: string, workspaceName?: string, accessToken?: string): Promise<chetypes.workspace.Workspace> {
-    let devfile: string | undefined
-    try {
-      devfile = await this.parseDevfile(devfilePath)
-      if (workspaceName) {
-        const json = yaml.load(devfile) as Devfile
-        json.metadata.name = workspaceName
-        devfile = yaml.dump(json)
-      }
-    } catch (error) {
-      if (!devfile) {
-        throw new Error(`E_NOT_FOUND_DEVFILE - ${devfilePath} - ${error.message}`)
-      }
-    }
-
-    const cheApi = CheApiClient.getInstance(cheApiEndpoint)
-    return cheApi.createWorkspaceFromDevfile(devfile, accessToken)
-  }
-
-  async parseDevfile(devfilePath = ''): Promise<string> {
-    if (devfilePath.startsWith('http')) {
-      const response = await this.axios.get(devfilePath)
-      return response.data
-    } else {
-      return fs.readFileSync(devfilePath, 'utf8')
-    }
-  }
-
   async buildDashboardURL(ideURL: string): Promise<string> {
     return ideURL.replace(/\/[^/|.]*\/[^/|.]*$/g, '\/dashboard\/#\/ide$&')
-  }
-
-  /**
-   * Finds workspace pods and reads logs from it.
-   */
-  async readWorkspacePodLog(namespace: string, workspaceId: string, directory: string, follow: boolean): Promise<void> {
-    const podLabelSelector = `che.workspace_id=${workspaceId}`
-
-    await this.readPodLog(namespace, podLabelSelector, directory, follow)
-    await this.readNamespaceEvents(namespace, directory, follow)
   }
 
   /**
