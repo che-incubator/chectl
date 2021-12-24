@@ -136,7 +136,8 @@ export async function getBackupServerConfigurationName(namespace: string, backup
 
   // No backup server configuration provided.
   // Read all existing backup server configurations within the namespace.
-  const backupServerConfigs: V1CheBackupServerConfiguration[] = await kube.getAllCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_BACKUP_SERVER_CONFIG_KIND_PLURAL)
+  const backupServerConfigsAllNamespaces: V1CheBackupServerConfiguration[] = await kube.getAllCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_BACKUP_SERVER_CONFIG_KIND_PLURAL)
+  const backupServerConfigs: V1CheBackupServerConfiguration[] = backupServerConfigsAllNamespaces.filter(config => config.metadata!.namespace === namespace)
   switch (backupServerConfigs.length) {
   case 0:
     // There is no backup server configurations
