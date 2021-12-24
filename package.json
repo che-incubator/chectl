@@ -151,7 +151,6 @@
     "test": "jest --collect-coverage",
     "test-watch": "jest --watchAll",
     "e2e-minikube-operator": "export PLATFORM=minikube && export INSTALLER=operator && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
-    "e2e-minishift": "export PLATFORM=minishift && export INSTALLER=operator && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
     "e2e-openshift": "export PLATFORM=openshift && export INSTALLER=operator && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
     "gnirts-ci": "node .ci/obfuscate/gnirts.js",
     "prepack": "yarn lint && rm -rf lib && rm -rf tsconfig.tsbuildinfo && tsc -b && oclif-dev manifest && oclif-dev readme && yarn gnirts-ci",

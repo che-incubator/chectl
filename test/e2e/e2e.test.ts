@@ -27,49 +27,13 @@ const NAMESPACE = DEFAULT_OLM_SUGGESTED_NAMESPACE
 const PLATFORM = process.env.PLATFORM || ''
 const INSTALLER = process.env.INSTALLER || ''
 
-const PLATFORM_OPENSHIFT = 'openshift'
-const PLATFORM_CRC = 'crc'
-const PLATFORM_MINISHIFT = 'minishift'
-const PLATFORM_MINIKUBE = 'minikube'
-
-const INSTALLER_OPERATOR = 'operator'
-const INSTALLER_OLM = 'olm'
-
 function getDeployCommand(): string {
+  let command = `${binChectl} server:deploy --batch --workspace-engine=dev-workspace --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off`
+
   const cheVersion = helper.getNewVersion()
-
-  let command: string
-  switch (PLATFORM) {
-    case PLATFORM_OPENSHIFT:
-      if (!(INSTALLER === INSTALLER_OPERATOR || INSTALLER === INSTALLER_OLM)) {
-        throw new Error(`Unknown installer ${INSTALLER}`)
-      }
-      command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
-      break
-
-    case PLATFORM_CRC:
-    case PLATFORM_MINISHIFT:
-      if (INSTALLER !== INSTALLER_OPERATOR) {
-        throw new Error(`Unknown installer ${INSTALLER}`)
-      }
-      command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off --che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml`
-      break
-
-    case PLATFORM_MINIKUBE:
-      if (INSTALLER !== INSTALLER_OPERATOR) {
-        throw new Error(`Unknown installer ${INSTALLER}`)
-      }
-      const patchOption = '--che-operator-cr-patch-yaml=test/e2e/resources/cr-patch.yaml'
-      command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --telemetry=off --chenamespace=${NAMESPACE} ${patchOption} --multiuser --skip-cluster-availability-check`
-      break
-
-    default:
-      throw new Error(`Unknown platform: ${PLATFORM}`)
-  }
   if (cheVersion != 'next') {
     command = command + ` --version=${cheVersion}`
   }
-  command = command + ` --workspace-engine=dev-workspace`
 
   return command
 }
