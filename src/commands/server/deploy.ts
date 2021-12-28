@@ -136,7 +136,7 @@ export default class Deploy extends Command {
       default: false,
     }),
     'skip-oidc-provider-check': flags.boolean({
-      description: 'Skip check for configured OIDC Provider.',
+      description: 'Skip OIDC Provider check',
       default: false,
     }),
     'auto-update': flags.boolean({
@@ -432,7 +432,7 @@ export default class Deploy extends Command {
 function ensureOIDCProviderInstalled(flags: any): Listr.ListrTask {
   return {
     title: 'Check if OIDC Provider installed',
-    enabled: ctx => !flags['skip-oidc-provider-check'] && !isOpenshiftPlatformFamily(flags.platform) && !ctx.isCheDeployed,
+    enabled: () => !flags['skip-oidc-provider-check'] && isKubernetesPlatformFamily(flags.platform),
     skip: () => {
       if (flags.platform === 'minikube') {
         return 'Dex will be automatically installed'
