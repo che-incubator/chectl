@@ -72,7 +72,10 @@ export class MinikubeTasks {
             return 'Ingress addon is already enabled.'
           }
         },
-        task: () => this.enableIngressAddon(),
+        task: async () => {
+          await this.enableIngressAddon()
+          await kube.waitForPodReady('app.kubernetes.io/instance=ingress-nginx,app.kubernetes.io/component=controller', 'ingress-nginx')
+        },
       },
       {
         title: 'Retrieving minikube IP and domain for ingress URLs',
@@ -221,7 +224,7 @@ export class MinikubeTasks {
     }
   }
 
-  async enableIngressAddon() {
+  async enableIngressAddon(): Promise<void> {
     await execa('minikube', ['addons', 'enable', 'ingress'], { timeout: 60000 })
   }
 
