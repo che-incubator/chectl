@@ -684,7 +684,7 @@ export class CheTasks {
             }
             messages.push(OUTPUT_SEPARATOR)
 
-            if (isDevWorkspaceEnabled(ctx, flags)) {
+            if (isDevWorkspaceEnabled(ctx)) {
               if (flags.platform === 'minikube') {
                 messages.push('Dex user credentials      : che@eclipse.org:admin')
                 messages.push('Dex user credentials      : user1@che:password')

@@ -314,11 +314,8 @@ export class OperatorTasks {
           const cheCluster = await kube.getCheCluster(flags.chenamespace)
 
           if (cheCluster) {
-            const yamlFilePath = path.join(ctx.resourcesPath, 'crds', 'org_v1_che_cr.yaml')
-            const defaultCR = safeLoadFromYamlFile(yamlFilePath)
-
             const isDevWorkspaceEngineEnabledBeforeUpdate = cheCluster.spec.devWorkspace && cheCluster.spec.devWorkspace.enable
-            const isDevWorkspaceEngineEnabledAfterUpdate = isDevWorkspaceEnabled(ctx, flags) || (defaultCR.spec.devWorkspace && defaultCR.spec.devWorkspace.enable)
+            const isDevWorkspaceEngineEnabledAfterUpdate = isDevWorkspaceEnabled(ctx)
 
             if (!isDevWorkspaceEngineEnabledBeforeUpdate && isDevWorkspaceEngineEnabledAfterUpdate) {
               command.error('Unsupported operation: it is not possible to update current Che installation to new version with enabled \'devWorkspace\' engine.')

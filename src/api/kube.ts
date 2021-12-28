@@ -24,11 +24,11 @@ import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND
 import { base64Encode, getClusterClientCommand, getImageNameAndTag, isKubernetesPlatformFamily, newError, safeLoadFromYamlFile } from '../util'
 import { ChectlContext, OLM } from './context'
 import { V1CheClusterBackup, V1CheClusterRestore } from './types/backup-restore-crds'
-
 import { V1Certificate } from './types/cert-manager'
 import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './types/olm'
 import { IdentityProvider, OAuth } from './types/openshift'
 import { VersionHelper } from './version'
+
 
 const AWAIT_TIMEOUT_S = 30
 
@@ -177,25 +177,25 @@ export class KubeHelper {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher
-      .watch(`/api/v1/namespaces/${namespace}/serviceaccounts`, {},
-        (_phase: string, obj: any) => {
-          const serviceAccount = obj as V1ServiceAccount
+        .watch(`/api/v1/namespaces/${namespace}/serviceaccounts`, {},
+          (_phase: string, obj: any) => {
+            const serviceAccount = obj as V1ServiceAccount
 
-          // Filter other service accounts in the given namespace
-          if (serviceAccount && serviceAccount.metadata && serviceAccount.metadata.name === name) {
-            // The service account is present, stop watching
-            if (request) {
-              request.abort()
+            // Filter other service accounts in the given namespace
+            if (serviceAccount && serviceAccount.metadata && serviceAccount.metadata.name === name) {
+              // The service account is present, stop watching
+              if (request) {
+                request.abort()
+              }
+              // Release awaiter
+              resolve()
             }
-            // Release awaiter
-            resolve()
-          }
-        },
-        error => {
-          if (error) {
-            reject(error)
-          }
-        })
+          },
+          error => {
+            if (error) {
+              reject(error)
+            }
+          })
 
       // Automatically stop watching after timeout
       const timeoutHandler = setTimeout(() => {
@@ -1397,28 +1397,28 @@ export class KubeHelper {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher
-      .watch(`/apis/batch/v1/namespaces/${namespace}/jobs/`, {},
-        (_phase: string, obj: any) => {
-          const job = obj as V1Job
+        .watch(`/apis/batch/v1/namespaces/${namespace}/jobs/`, {},
+          (_phase: string, obj: any) => {
+            const job = obj as V1Job
 
-          // Filter other jobs in the given namespace
-          if (job && job.metadata && job.metadata.name === jobName) {
-            // Check job status
-            if (job.status && job.status.succeeded && job.status.succeeded >= 1) {
-              // Job is finished, stop watching
-              if (request) {
-                request.abort()
+            // Filter other jobs in the given namespace
+            if (job && job.metadata && job.metadata.name === jobName) {
+              // Check job status
+              if (job.status && job.status.succeeded && job.status.succeeded >= 1) {
+                // Job is finished, stop watching
+                if (request) {
+                  request.abort()
+                }
+                // Release awaiter
+                resolve()
               }
-              // Release awaiter
-              resolve()
             }
-          }
-        },
-        error => {
-          if (error) {
-            reject(error)
-          }
-        })
+          },
+          error => {
+            if (error) {
+              reject(error)
+            }
+          })
 
       // Automatically stop watching after timeout
       const timeoutHandler = setTimeout(() => {
@@ -1683,13 +1683,8 @@ export class KubeHelper {
       cheClusterCR.spec.storage.postgresPVCStorageClassName = flags['postgres-pvc-storage-class-name']
       cheClusterCR.spec.storage.workspacePVCStorageClassName = flags['workspace-pvc-storage-class-name']
 
-      if (flags['workspace-engine'] === 'dev-workspace') {
-        cheClusterCR.spec.devWorkspace.enable = true
-      }
-
-      if (cheClusterCR.spec.devWorkspace && cheClusterCR.spec.devWorkspace.enable) {
-        cheClusterCR.spec.auth.nativeUserMode = true
-      }
+      cheClusterCR.spec.devWorkspace.enable = true
+      cheClusterCR.spec.auth.nativeUserMode = true
 
       // Use self-signed TLS certificate by default (for versions before 7.14.3).
       // In modern versions of Che this field is ignored.
@@ -2758,32 +2753,32 @@ export class KubeHelper {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher
-      .watch(`/api/v1/namespaces/${namespace}/secrets/`, { fieldSelector: `metadata.name=${secretName}` },
-        (_phase: string, obj: any) => {
-          const secret = obj as V1Secret
+        .watch(`/api/v1/namespaces/${namespace}/secrets/`, { fieldSelector: `metadata.name=${secretName}` },
+          (_phase: string, obj: any) => {
+            const secret = obj as V1Secret
 
-          // Check all required data fields to be present
-          if (dataKeys.length > 0 && secret.data) {
-            for (const key of dataKeys) {
-              if (!secret.data[key]) {
-                // Key is missing or empty
-                return
+            // Check all required data fields to be present
+            if (dataKeys.length > 0 && secret.data) {
+              for (const key of dataKeys) {
+                if (!secret.data[key]) {
+                  // Key is missing or empty
+                  return
+                }
               }
             }
-          }
 
-          // The secret with all specified fields is present, stop watching
-          if (request) {
-            request.abort()
-          }
-          // Release awaiter
-          resolve()
-        },
-        error => {
-          if (error) {
-            reject(error)
-          }
-        })
+            // The secret with all specified fields is present, stop watching
+            if (request) {
+              request.abort()
+            }
+            // Release awaiter
+            resolve()
+          },
+          error => {
+            if (error) {
+              reject(error)
+            }
+          })
 
       // Automatically stop watching after timeout
       const timeoutHandler = setTimeout(() => {

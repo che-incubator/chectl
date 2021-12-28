@@ -28,7 +28,7 @@ const PLATFORM = process.env.PLATFORM || ''
 const INSTALLER = process.env.INSTALLER || ''
 
 function getDeployCommand(): string {
-  let command = `${binChectl} server:deploy --batch --workspace-engine=dev-workspace --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off`
+  let command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off`
 
   const cheVersion = helper.getNewVersion()
   if (cheVersion != 'next') {

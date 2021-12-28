@@ -405,7 +405,7 @@ export function getTlsSupport(ctx: any): boolean {
   return true
 }
 
-export function isDevWorkspaceEnabled(ctx: any, flags: any): boolean {
+export function isDevWorkspaceEnabled(ctx: any): boolean {
   const crPatch = ctx[ChectlContext.CR_PATCH]
   if (crPatch && crPatch.spec && crPatch.spec.devWorkspace && crPatch.spec.devWorkspace.enable) {
     return true
@@ -416,7 +416,7 @@ export function isDevWorkspaceEnabled(ctx: any, flags: any): boolean {
     return true
   }
 
-  return flags['workspace-engine'] === 'dev-workspace'
+  return true
 }
 
 export function getTlsSecretName(ctx: any): string {
