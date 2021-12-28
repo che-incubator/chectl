@@ -58,7 +58,7 @@
     "@types/listr": "^0.14.4",
     "@types/node": "^12",
     "@types/node-forge": "^0.10.10",
-    "@types/node-notifier": "^8.0.1",
+    "@types/node-notifier": "^8.0.2",
     "@types/request": "^2.48.7",
     "@types/rimraf": "^3.0.2",
     "@types/semver": "^7.3.9",
