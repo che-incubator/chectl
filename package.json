@@ -21,7 +21,7 @@
     "axios": "^0.21.1",
     "cli-ux": "^6.0.6",
     "command-exists": "^1.2.9",
-    "countries-and-timezones": "^3.2.3",
+    "countries-and-timezones": "^3.3.0",
     "debug": "^4.3.3",
     "eclipse-che-operator": "git://github.com/eclipse-che/che-operator#main",
     "execa": "^5.1.1",

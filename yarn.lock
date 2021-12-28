@@ -2432,10 +2432,10 @@ core-util-is@1.0.2, core-util-is@~1.0.0:
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"
   integrity sha1-tf1UIgqivFq1eqtxQMlAdUUDwac=
 
-countries-and-timezones@*, countries-and-timezones@^3.2.3:
-  version "3.2.3"
-  resolved "https://registry.yarnpkg.com/countries-and-timezones/-/countries-and-timezones-3.2.3.tgz#3b158405a0e7c576e2b801a70ca09b39dc890ecf"
-  integrity sha512-0thBj2T0cFndkCSRAmcMdUXISgX4lZIwqyPg3XfstNy5zT2EGgy5Hx+J4k5GU6X5ZLlveRW8KF7WhLH3/qMp4g==
+countries-and-timezones@*, countries-and-timezones@^3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/countries-and-timezones/-/countries-and-timezones-3.3.0.tgz#c2a0c319cf1c6240bda9d69edcbd2d6861a091e6"
+  integrity sha512-HkuEKmiHSAOoRW6FAQsCywd6XI6V0g7a4EfQXc99c7bh4vnCAhnoZ1jHEV0QliJumbFX8lFbCX2nu5d8eUiEJw==
 
 create-require@^1.1.0:
   version "1.1.1"
@@ -2518,13 +2518,6 @@ debug@^2.2.0, debug@^2.3.3:
     ms "2.0.0"
 
 debug@^4.0.0, debug@^4.0.1, debug@^4.1.0, debug@^4.1.1, debug@^4.3.1, debug@^4.3.3:
-  version "4.3.3"
-  resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.3.tgz#04266e0b70a98d4462e6e288e38259213332b664"
-  integrity sha512-/zxw5+vh1Tfv+4Qn7a5nsbcJKPaSvCDhojn6FEl9vupwK2VCSDtEiEtqr8DFtzYFOdz63LBkxec7DYuc2jon6Q==
-  dependencies:
-    ms "2.1.2"
-
-debug@^4.3.3:
   version "4.3.3"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.3.tgz#04266e0b70a98d4462e6e288e38259213332b664"
   integrity sha512-/zxw5+vh1Tfv+4Qn7a5nsbcJKPaSvCDhojn6FEl9vupwK2VCSDtEiEtqr8DFtzYFOdz63LBkxec7DYuc2jon6Q==
