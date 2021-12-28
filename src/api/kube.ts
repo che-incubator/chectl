@@ -29,7 +29,6 @@ import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, Instal
 import { IdentityProvider, OAuth } from './types/openshift'
 import { VersionHelper } from './version'
 
-
 const AWAIT_TIMEOUT_S = 30
 
 export class KubeHelper {
