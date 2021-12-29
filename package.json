@@ -46,7 +46,7 @@
   "devDependencies": {
     "@eclipse-che/api": "latest",
     "@oclif/dev-cli": "^1",
-    "@oclif/test": "^1",
+    "@oclif/test": "^2",
     "@types/chai": "^4",
     "@types/command-exists": "^1.2.0",
     "@types/countries-and-timezones": "^3.2.3",
