@@ -34,7 +34,7 @@ describe('Test rollback Che update', () => {
       // Retrieve pre-latest and latest stable Che version
       [previousCheVersion, latestCheVersion] = await helper.getTwoLatestReleasedVersions(INSTALLER)
 
-      let deployCommand = `${binChectl} server:deploy --workspace-engine=dev-workspace --batch --platform=${PLATFORM} --installer=${INSTALLER} --version=${previousCheVersion} --chenamespace=${NAMESPACE} --telemetry=off`
+      let deployCommand = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --version=${previousCheVersion} --chenamespace=${NAMESPACE} --telemetry=off`
       if (INSTALLER === 'olm') {
         deployCommand += ` --olm-channel=${OLM_CHANNEL}`
       }

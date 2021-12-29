@@ -24,7 +24,6 @@ import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND
 import { base64Encode, getClusterClientCommand, getImageNameAndTag, isKubernetesPlatformFamily, newError, safeLoadFromYamlFile } from '../util'
 import { ChectlContext, OLM } from './context'
 import { V1CheClusterBackup, V1CheClusterRestore } from './types/backup-restore-crds'
-
 import { V1Certificate } from './types/cert-manager'
 import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './types/olm'
 import { IdentityProvider, OAuth } from './types/openshift'
@@ -1683,13 +1682,8 @@ export class KubeHelper {
       cheClusterCR.spec.storage.postgresPVCStorageClassName = flags['postgres-pvc-storage-class-name']
       cheClusterCR.spec.storage.workspacePVCStorageClassName = flags['workspace-pvc-storage-class-name']
 
-      if (flags['workspace-engine'] === 'dev-workspace') {
-        cheClusterCR.spec.devWorkspace.enable = true
-      }
-
-      if (cheClusterCR.spec.devWorkspace && cheClusterCR.spec.devWorkspace.enable) {
-        cheClusterCR.spec.auth.nativeUserMode = true
-      }
+      cheClusterCR.spec.devWorkspace.enable = true
+      cheClusterCR.spec.auth.nativeUserMode = true
 
       // Use self-signed TLS certificate by default (for versions before 7.14.3).
       // In modern versions of Che this field is ignored.
