@@ -3118,19 +3118,6 @@ extsprintf@^1.2.0:
   resolved "https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.4.0.tgz#e2689f8f356fad62cca65a3a91c5df5f9551692f"
   integrity sha1-4mifjzVvrWLMplo6kcXfX5VRaS8=
 
-fancy-test@^1.4.9:
-  version "1.4.9"
-  resolved "https://registry.yarnpkg.com/fancy-test/-/fancy-test-1.4.9.tgz#13dd99dee9872043763bee4ff3e9d84bab6191c6"
-  integrity sha512-Tro3lkXPX438G3t2N9BDgD3ac5iUhNnxIE8tg/KL6z7eZ5GOCexs7fDEMacduqvJWPvsRlmyQ69V1jiTVcqkXQ==
-  dependencies:
-    "@types/chai" "*"
-    "@types/lodash" "*"
-    "@types/node" "*"
-    "@types/sinon" "*"
-    lodash "^4.17.13"
-    mock-stdin "^1.0.0"
-    stdout-stderr "^0.1.9"
-
 fancy-test@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/fancy-test/-/fancy-test-2.0.0.tgz#f1477ae4190820318816914aabe273c0a0dbd597"
