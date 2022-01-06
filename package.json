@@ -23,7 +23,7 @@
     "command-exists": "^1.2.9",
     "countries-and-timezones": "^3.2.3",
     "debug": "^4.3.2",
-    "eclipse-che-operator": "git://github.com/eclipse-che/che-operator#7.41.1",
+    "eclipse-che-operator": "git://github.com/eclipse-che/che-operator#7.41.2",
     "esprima": "^4.0.1",
     "execa": "^5.1.1",
     "fancy-test": "^1.4.9",
@@ -48,7 +48,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@eclipse-che/api": "7.41.1",
+    "@eclipse-che/api": "7.41.2",
     "@oclif/dev-cli": "^1",
     "@oclif/test": "^1",
     "@types/chai": "^4",
