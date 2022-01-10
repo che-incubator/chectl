@@ -15,7 +15,7 @@ import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 import * as semver from 'semver'
-import { ChectlContext, OLM } from '../../api/context'
+import { ChectlContext, OIDCContextKeys, OLM } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION } from '../../constants'
@@ -447,7 +447,7 @@ function ensureOIDCProviderInstalled(flags: any): Listr.ListrTask {
         }
         for (const container of pod.spec.containers) {
           if (container.command) {
-            if (container.command.some(value => value.includes('oidc-username'))) {
+            if (container.command.some(value => value.includes(OIDCContextKeys.ISSUER_URL) && value.includes(OIDCContextKeys.CLIENT_ID))) {
               task.title = `${task.title}...OK`
               return
             }
