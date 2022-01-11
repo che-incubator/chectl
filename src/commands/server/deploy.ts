@@ -15,7 +15,7 @@ import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 import * as semver from 'semver'
-import { ChectlContext, OLM } from '../../api/context'
+import { ChectlContext, OIDCContextKeys, OLM } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION } from '../../constants'
@@ -133,6 +133,10 @@ export default class Deploy extends Command {
     }),
     'skip-cluster-availability-check': flags.boolean({
       description: 'Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.',
+      default: false,
+    }),
+    'skip-oidc-provider-check': flags.boolean({
+      description: 'Skip OIDC Provider check',
       default: false,
     }),
     'auto-update': flags.boolean({
@@ -357,6 +361,7 @@ export default class Deploy extends Command {
       title: '👀  Looking for an already existing Eclipse Che instance',
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags)),
     })
+    preInstallTasks.add(ensureOIDCProviderInstalled(flags))
     preInstallTasks.add(checkChectlAndCheVersionCompatibility(flags))
     preInstallTasks.add(downloadTemplates(flags))
     preInstallTasks.add({
@@ -421,6 +426,37 @@ export default class Deploy extends Command {
       return { 'openshift.io/cluster-monitoring': 'true' }
     }
     return {}
+  }
+}
+
+function ensureOIDCProviderInstalled(flags: any): Listr.ListrTask {
+  return {
+    title: 'Check if OIDC Provider installed',
+    enabled: ctx => !flags['skip-oidc-provider-check'] && isKubernetesPlatformFamily(flags.platform) && !ctx.isCheDeployed,
+    skip: () => {
+      if (flags.platform === 'minikube') {
+        return 'Dex will be automatically installed'
+      }
+    },
+    task: async (_ctx: any, task: any) => {
+      const kube = new KubeHelper(flags)
+      const apiServerPods = await kube.getPodListByLabel('kube-system', 'component=kube-apiserver')
+      for (const pod of apiServerPods) {
+        if (!pod.spec) {
+          continue
+        }
+        for (const container of pod.spec.containers) {
+          if (container.command) {
+            if (container.command.some(value => value.includes(OIDCContextKeys.ISSUER_URL) && value.includes(OIDCContextKeys.CLIENT_ID))) {
+              task.title = `${task.title}...OK`
+              return
+            }
+          }
+        }
+      }
+      task.title = `${task.title}...NOT INSTALLED`
+      throw new Error('OIDC Provider is not installed in order to deploy Eclipse Che. To bypass OIDC Provider check use \'--skip-oidc-provider-check\' flag')
+    },
   }
 }
 
