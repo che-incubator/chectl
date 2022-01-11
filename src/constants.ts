@@ -25,6 +25,9 @@ export const DEFAULT_CHE_OPERATOR_IMAGE_NAME = 'quay.io/eclipse/che-operator'
 // This image should be updated manually when needed.
 // Repository location: https://github.com/che-dockerfiles/che-cert-manager-ca-cert-generator-image
 export const CA_CERT_GENERATION_JOB_IMAGE = 'quay.io/eclipse/che-cert-manager-ca-cert-generator:671342c'
+export const INDEX_IMG = 'quay.io/eclipse/eclipse-che-openshift-opm-catalog:next'
+export const INDEX_IMG_DEV_WORKSPACE_NEXT_OPERATOR = 'quay.io/devfile/devworkspace-operator-index:next'
+export const INDEX_IMG_DEV_WORKSPACE_STABLE_OPERATOR = 'quay.io/devfile/devworkspace-operator-index:release'
 
 export const NEXT_TAG = 'next'
 
@@ -44,8 +47,8 @@ export const LEGACY_CHE_NAMESPACE = 'che'
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'eclipse-che'
 export const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME = 'eclipse-che-subscription'
 export const OPERATOR_GROUP_NAME = 'che-operator-group'
-export const CVS_PREFIX = 'eclipse-che'
-export const DEVWORKSPACE_CVS_PREFIX = 'devworkspace-operator'
+export const CSV_PREFIX = 'eclipse-che'
+export const DEVWORKSPACE_CSV_PREFIX = 'devworkspace-operator'
 // OLM channels
 export const OLM_STABLE_CHANNEL_NAME = 'stable'
 export const OLM_STABLE_CHANNEL_STARTING_CSV_TEMPLATE = 'eclipse-che.v{{VERSION}}'
@@ -57,6 +60,8 @@ export const DEFAULT_OPENSHIFT_OPERATORS_NS_NAME = 'openshift-operators'
 // OLM catalogs
 export const CUSTOM_CATALOG_SOURCE_NAME = 'eclipse-che-custom-catalog-source'
 export const NEXT_CATALOG_SOURCE_NAME = 'eclipse-che-preview'
+export const NEXT_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR = 'custom-devworkspace-operator-catalog'
+export const STABLE_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR = 'stable-custom-devworkspace-operator-catalog'
 export const DEFAULT_OLM_SUGGESTED_NAMESPACE = 'eclipse-che'
 export const KUBERNETES_OLM_CATALOG = 'operatorhubio-catalog'
 export const OPENSHIFT_OLM_CATALOG = 'community-operators'
@@ -95,5 +100,13 @@ export const CHE_CLUSTER_BACKUP_CRD = 'checlusterbackups.org.eclipse.che'
 export const CHE_CLUSTER_BACKUP_KIND_PLURAL = 'checlusterbackups'
 export const CHE_CLUSTER_RESTORE_CRD = 'checlusterrestores.org.eclipse.che'
 export const CHE_CLUSTER_RESTORE_KIND_PLURAL = 'checlusterrestores'
+
+export const DEVFILE_WORKSPACE_API_GROUP = 'workspace.devfile.io'
+export const DEVFILE_WORKSPACE_API_VERSION = 'v1alpha2'
+export const DEVFILE_WORKSPACE_KIND_PLURAL = 'devworkspaces'
+
+export const DEVFILE_WORKSPACE_ROUTINGS_API_GROUP = 'controller.devfile.io'
+export const DEVFILE_WORKSPACE_ROUTINGS_VERSION = 'v1alpha1'
+export const DEVFILE_WORKSPACE_ROUTINGS_KIND_PLURAL = 'devworkspaceroutings'
 
 export const DEFAULT_CHE_TLS_SECRET_NAME = 'che-tls'

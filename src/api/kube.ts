@@ -20,7 +20,7 @@ import * as https from 'https'
 import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_CHE_TLS_SECRET_NAME, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_CHE_TLS_SECRET_NAME, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, DEVFILE_WORKSPACE_API_GROUP, DEVFILE_WORKSPACE_API_VERSION, DEVFILE_WORKSPACE_KIND_PLURAL, OLM_STABLE_CHANNEL_NAME } from '../constants'
 import { base64Encode, getClusterClientCommand, getImageNameAndTag, isKubernetesPlatformFamily, newError, safeLoadFromYamlFile } from '../util'
 import { ChectlContext, OLM } from './context'
 import { V1CheClusterBackup, V1CheClusterRestore } from './types/backup-restore-crds'
@@ -91,6 +91,18 @@ export class KubeHelper {
     }
 
     throw new Error(`Namespace '${name}' is not in 'Active' phase.`)
+  }
+
+  async deleteService(name: string, namespace: string): Promise<void> {
+    const k8sApi = this.kubeConfig.makeApiClient(CoreV1Api)
+
+    try {
+      await k8sApi.deleteNamespacedService(name, namespace)
+    } catch (error: any) {
+      if (error.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(error)
+      }
+    }
   }
 
   async deleteAllServices(namespace: string): Promise<void> {
@@ -1731,6 +1743,60 @@ export class KubeHelper {
     return this.getAllCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
   }
 
+  async getAllDevfileWorkspaces(): Promise<any[]> {
+    return this.getAllCustomResources(DEVFILE_WORKSPACE_API_GROUP, DEVFILE_WORKSPACE_API_VERSION, DEVFILE_WORKSPACE_KIND_PLURAL)
+  }
+
+  async deleteAllCustomResources(apiGroup: string, version: string, plural: string): Promise<any[]> {
+    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      let resources = await this.getAllCustomResources(apiGroup, version, plural)
+      for (const resource of resources) {
+        const name = resource.metadata.name
+        const namespace = resource.metadata.namespace
+        try {
+          await customObjectsApi.deleteNamespacedCustomObject(apiGroup, version, namespace, plural, name, 60)
+        } catch (e) {}
+      }
+
+      // wait while workspaces will be removed...
+      let timeout = 15 * resources.length
+      // no more than 60 sec...
+      timeout = timeout > 60 ? 60 : timeout
+
+      const minSec = 3
+      for (let i = 0; i < timeout; i += minSec) {
+        await cli.wait(minSec * 1000)
+        resources = await this.getAllCustomResources(apiGroup, version, plural)
+        if (resources.length === 0) {
+          return []
+        }
+      }
+
+      // remove finalizers
+      for (const resource of resources) {
+        const name = resource.metadata.name
+        const namespace = resource.metadata.namespace
+        try {
+          await this.patchCustomResource(name, namespace, { metadata: { finalizers: null } }, apiGroup, version, plural)
+        } catch (error) {
+          if (await this.getCustomResource(namespace, name, apiGroup, version, plural)) {
+            continue // successfully removed
+          }
+          throw error
+        }
+      }
+
+      return []
+    } catch (e: any) {
+      if (e.response && e.response.statusCode === 404) {
+        // There is no CRD
+        return []
+      }
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
   /**
    * Returns custom resource object by its name in the given namespace.
    */
@@ -2145,6 +2211,30 @@ export class KubeHelper {
     }
   }
 
+  async waitInstalledCSV(namespace: string, subscriptionName: string, timeout = AWAIT_TIMEOUT_S): Promise<string> {
+    return new Promise<string>(async (resolve, reject) => {
+      const watcher = new Watch(this.kubeConfig)
+      const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
+        { fieldSelector: `metadata.name=${subscriptionName}` },
+        (_phase: string, obj: any) => {
+          const subscription = obj as Subscription
+          if (subscription.status && subscription.status.installedCSV) {
+            resolve(subscription.status.installedCSV)
+          }
+        },
+        error => {
+          if (error) {
+            reject(error)
+          }
+        })
+
+      setTimeout(() => {
+        request.abort()
+        reject(`Timeout reached while waiting for "${subscriptionName}" subscription is ready.`)
+      }, timeout * 1000)
+    })
+  }
+
   async listOperatorSubscriptions(namespace: string): Promise<Subscription[]> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
@@ -2227,7 +2317,7 @@ export class KubeHelper {
     }
   }
 
-  async waitUntilOperatorIsInstalled(installPlanName: string, namespace: string, timeout = 240) {
+  async waitOperatorInstallPlan(installPlanName: string, namespace: string, timeout = 240) {
     return new Promise<InstallPlan>(async (resolve, reject) => {
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`,

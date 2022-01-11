@@ -87,11 +87,19 @@ export interface ClusterServiceVersion {
   kind: string
   metadata: V1ObjectMeta
   spec: ClusterServiceVersionSpec
+  status: ClusterServiceVersionStatus
 }
 
 export interface ClusterServiceVersionSpec {
   displayName: string
   install: OperatorInstall
+  version: string
+}
+
+export interface ClusterServiceVersionStatus {
+  phase: string
+  message: string
+  reason: string
 }
 
 export interface OperatorInstall {

@@ -14,18 +14,18 @@ import { Command, flags } from '@oclif/command'
 import { boolean } from '@oclif/command/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
-import Listr = require('listr')
-
+import { OLMDevWorkspaceTasks } from '../../tasks/installers/olm-dev-workspace-operator'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { assumeYes, batch, cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { OLMTasks } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import Listr = require('listr')
 
 export default class Delete extends Command {
   static description = 'delete any Eclipse Che related resource: Kubernetes/OpenShift'
@@ -66,8 +66,9 @@ export default class Delete extends Command {
     const apiTasks = new ApiTasks()
     const kube = new KubeHelper(flags)
     const operatorTasks = new OperatorTasks()
-    const olmTasks = new OLMTasks()
+    const olmTasks = new OLMTasks(flags)
     const cheTasks = new CheTasks(flags)
+    const olmDevTasks = new OLMDevWorkspaceTasks(flags)
     const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
     const tasks = new Listrq([], ctx.listrOptions)
@@ -83,7 +84,22 @@ export default class Delete extends Command {
       task: async (_ctx: any, task: any) => {
         const checlusters = await kube.getAllCheClusters()
         if (checlusters.length === 0) {
-          return new Listr(devWorkspaceTasks.getUninstallTasks())
+          const delTasks = new Listr()
+
+          const isCustomCatalog = await olmDevTasks.isCustomCatalog()
+          if (isCustomCatalog) {
+            delTasks.add(devWorkspaceTasks.deleteDevOperatorCRsAndCRDsTasks())
+            delTasks.add(olmDevTasks.deleteTasks())
+            delTasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME))
+          }
+
+          if (!await olmDevTasks.isOperatorInstalledViaOLM()) {
+            delTasks.add(devWorkspaceTasks.deleteDevOperatorCRsAndCRDsTasks())
+            delTasks.add(devWorkspaceTasks.deleteTasks())
+            delTasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE))
+          }
+
+          return delTasks
         }
         task.title = `${task.title}...Skipped: another Eclipse Che deployment found.`
       },
