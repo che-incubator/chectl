@@ -256,7 +256,9 @@ export class DevWorkspaceTasks {
       {
         title: 'Delete DevWorkspace Controller webhooks deployment',
         task: async (_ctx: any, task: any) => {
-          await this.kubeHelper.deleteDeployment(namespace, this.deploymentWebhookName)
+          if (await this.kubeHelper.getDeployment(this.deploymentWebhookName, namespace)) {
+            await this.kubeHelper.deleteDeployment(namespace, this.deploymentWebhookName)
+          }
           task.title = `${task.title}...[OK]`
         },
       },
