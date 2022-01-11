@@ -432,7 +432,7 @@ export default class Deploy extends Command {
 function ensureOIDCProviderInstalled(flags: any): Listr.ListrTask {
   return {
     title: 'Check if OIDC Provider installed',
-    enabled: () => !flags['skip-oidc-provider-check'] && isKubernetesPlatformFamily(flags.platform),
+    enabled: ctx => !flags['skip-oidc-provider-check'] && isKubernetesPlatformFamily(flags.platform) && !ctx.isCheDeployed,
     skip: () => {
       if (flags.platform === 'minikube') {
         return 'Dex will be automatically installed'
@@ -455,7 +455,7 @@ function ensureOIDCProviderInstalled(flags: any): Listr.ListrTask {
         }
       }
       task.title = `${task.title}...NOT INSTALLED`
-      throw new Error('OIDC Provider is not installed, but required in order to run Che')
+      throw new Error('OIDC Provider is not installed in order to deploy Eclipse Che. To bypass OIDC Provider check use \'--skip-oidc-provider-check\' flag')
     },
   }
 }

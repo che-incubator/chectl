@@ -117,7 +117,7 @@ EXAMPLES
   $ chectl autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.3.0/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v1.1.0/src/commands/autocomplete/index.ts)_
 
 ## `chectl cacert:export`
 
@@ -180,7 +180,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.14/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.18/src/commands/help.ts)_
 
 ## `chectl server:backup`
 
@@ -652,7 +652,7 @@ OPTIONS
   --from-local  interactively choose an already installed version
 ```
 
-_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.5.0/src/commands/update.ts)_
+_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v2.1.3/src/commands/update.ts)_
 <!-- commandsstop -->
 
 
