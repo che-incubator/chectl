@@ -97,6 +97,12 @@ export namespace OLM {
   export const PACKAGE_MANIFEST_NAME = 'package-manifest-name'
 }
 
+export namespace DevWorkspaceContextKeys {
+  export const IS_DEV_WORKSPACE_INSTALLED_VIA_OPERATOR_HUB = 'is-dev-workspace-installed-via-operator-hub'
+  export const CATALOG_SOURCE_NAME = 'dev-workspace-catalog-source-name'
+  export const INSTALL_PLAN = 'dev-workspace-install-plan'
+}
+
 export enum OLMInstallationUpdate {
   MANUAL = 'Manual',
   AUTO = 'Automatic'

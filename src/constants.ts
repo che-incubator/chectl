@@ -26,8 +26,8 @@ export const DEFAULT_CHE_OPERATOR_IMAGE_NAME = 'quay.io/eclipse/che-operator'
 // Repository location: https://github.com/che-dockerfiles/che-cert-manager-ca-cert-generator-image
 export const CA_CERT_GENERATION_JOB_IMAGE = 'quay.io/eclipse/che-cert-manager-ca-cert-generator:671342c'
 export const INDEX_IMG = 'quay.io/eclipse/eclipse-che-openshift-opm-catalog:next'
-export const INDEX_IMG_DEV_WORKSPACE_NEXT_OPERATOR = 'quay.io/devfile/devworkspace-operator-index:next'
-export const INDEX_IMG_DEV_WORKSPACE_STABLE_OPERATOR = 'quay.io/devfile/devworkspace-operator-index:release'
+export const DEV_WORKSPACE_NEXT_CATALOG_SOURCE_IMAGE = 'quay.io/devfile/devworkspace-operator-index:next'
+export const DEV_WORKSPACE_STABLE_CATALOG_SOURCE_IMAGE = 'quay.io/devfile/devworkspace-operator-index:release'
 
 export const NEXT_TAG = 'next'
 

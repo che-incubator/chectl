@@ -92,7 +92,7 @@ export default class Delete extends Command {
             tasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME))
           }
 
-          if (!await olmDevWorkspaceTasks.isOperatorInstalledViaOLM()) {
+          if (!await olmDevWorkspaceTasks.isDevWorkspaceOperatorInstalledViaOLM()) {
             tasks.add(devWorkspaceTasks.deleteDevOperatorCRsAndCRDsTasks())
             tasks.add(devWorkspaceTasks.deleteResourcesTasks())
             tasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE))
