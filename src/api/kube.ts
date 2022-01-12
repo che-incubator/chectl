@@ -188,25 +188,25 @@ export class KubeHelper {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher
-        .watch(`/api/v1/namespaces/${namespace}/serviceaccounts`, {},
-          (_phase: string, obj: any) => {
-            const serviceAccount = obj as V1ServiceAccount
+      .watch(`/api/v1/namespaces/${namespace}/serviceaccounts`, {},
+        (_phase: string, obj: any) => {
+          const serviceAccount = obj as V1ServiceAccount
 
-            // Filter other service accounts in the given namespace
-            if (serviceAccount && serviceAccount.metadata && serviceAccount.metadata.name === name) {
-              // The service account is present, stop watching
-              if (request) {
-                request.abort()
-              }
-              // Release awaiter
-              resolve()
+          // Filter other service accounts in the given namespace
+          if (serviceAccount && serviceAccount.metadata && serviceAccount.metadata.name === name) {
+            // The service account is present, stop watching
+            if (request) {
+              request.abort()
             }
-          },
-          error => {
-            if (error) {
-              reject(error)
-            }
-          })
+            // Release awaiter
+            resolve()
+          }
+        },
+        error => {
+          if (error) {
+            reject(error)
+          }
+        })
 
       // Automatically stop watching after timeout
       const timeoutHandler = setTimeout(() => {
@@ -1408,28 +1408,28 @@ export class KubeHelper {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher
-        .watch(`/apis/batch/v1/namespaces/${namespace}/jobs/`, {},
-          (_phase: string, obj: any) => {
-            const job = obj as V1Job
+      .watch(`/apis/batch/v1/namespaces/${namespace}/jobs/`, {},
+        (_phase: string, obj: any) => {
+          const job = obj as V1Job
 
-            // Filter other jobs in the given namespace
-            if (job && job.metadata && job.metadata.name === jobName) {
-              // Check job status
-              if (job.status && job.status.succeeded && job.status.succeeded >= 1) {
-                // Job is finished, stop watching
-                if (request) {
-                  request.abort()
-                }
-                // Release awaiter
-                resolve()
+          // Filter other jobs in the given namespace
+          if (job && job.metadata && job.metadata.name === jobName) {
+            // Check job status
+            if (job.status && job.status.succeeded && job.status.succeeded >= 1) {
+              // Job is finished, stop watching
+              if (request) {
+                request.abort()
               }
+              // Release awaiter
+              resolve()
             }
-          },
-          error => {
-            if (error) {
-              reject(error)
-            }
-          })
+          }
+        },
+        error => {
+          if (error) {
+            reject(error)
+          }
+        })
 
       // Automatically stop watching after timeout
       const timeoutHandler = setTimeout(() => {
@@ -2837,32 +2837,32 @@ export class KubeHelper {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher
-        .watch(`/api/v1/namespaces/${namespace}/secrets/`, { fieldSelector: `metadata.name=${secretName}` },
-          (_phase: string, obj: any) => {
-            const secret = obj as V1Secret
+      .watch(`/api/v1/namespaces/${namespace}/secrets/`, { fieldSelector: `metadata.name=${secretName}` },
+        (_phase: string, obj: any) => {
+          const secret = obj as V1Secret
 
-            // Check all required data fields to be present
-            if (dataKeys.length > 0 && secret.data) {
-              for (const key of dataKeys) {
-                if (!secret.data[key]) {
-                  // Key is missing or empty
-                  return
-                }
+          // Check all required data fields to be present
+          if (dataKeys.length > 0 && secret.data) {
+            for (const key of dataKeys) {
+              if (!secret.data[key]) {
+                // Key is missing or empty
+                return
               }
             }
+          }
 
-            // The secret with all specified fields is present, stop watching
-            if (request) {
-              request.abort()
-            }
-            // Release awaiter
-            resolve()
-          },
-          error => {
-            if (error) {
-              reject(error)
-            }
-          })
+          // The secret with all specified fields is present, stop watching
+          if (request) {
+            request.abort()
+          }
+          // Release awaiter
+          resolve()
+        },
+        error => {
+          if (error) {
+            reject(error)
+          }
+        })
 
       // Automatically stop watching after timeout
       const timeoutHandler = setTimeout(() => {

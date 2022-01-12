@@ -110,7 +110,7 @@ export class OLMDevWorkspaceTasks {
     ]
   }
 
-  deleteTasks(): ReadonlyArray<Listr.ListrTask> {
+  deleteResourcesTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Delete(OLM) dev-workspace operator \'next\' subscription',

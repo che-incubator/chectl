@@ -38,17 +38,14 @@ export class OLMTasks {
   private readonly prometheusRoleBindingName = 'prometheus-k8s'
   private readonly kube: KubeHelper
   private readonly che: CheHelper
-  private readonly devWorkspaceTasks: OLMDevWorkspaceTasks
+  private readonly olmDevWorkspaceTasks: OLMDevWorkspaceTasks
 
   constructor(flags: any) {
     this.kube = new KubeHelper(flags)
     this.che = new CheHelper(flags)
-    this.devWorkspaceTasks = new OLMDevWorkspaceTasks(flags)
+    this.olmDevWorkspaceTasks = new OLMDevWorkspaceTasks(flags)
   }
 
-  /**
-   * Returns list of tasks which perform preflight platform checks.
-   */
   startTasks(flags: any, command: Command): Listr.ListrTask<any>[] {
     return [
       this.isOlmPreInstalledTask(command),
@@ -142,7 +139,7 @@ export class OLMTasks {
           }
         },
       },
-      ...this.devWorkspaceTasks.startTasks(flags, command),
+      ...this.olmDevWorkspaceTasks.startTasks(flags, command),
       {
         title: TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE,
         enabled: () => flags[OLM.CATALOG_SOURCE_YAML],
@@ -531,7 +528,7 @@ export class OLMTasks {
       const CRRaw = csv.metadata.annotations!['alm-examples']
       return (yaml.load(CRRaw) as Array<any>).find(cr => cr.kind === 'CheCluster')
     } else {
-      throw new Error(`Unable to retrieve Che cluster CR definition ${!csv ? '' : 'from CSV: ' + csv.spec.displayName}`)
+      throw new Error(`Unable to retrieve CheCluster CR ${!csv ? '' : 'from CSV: ' + csv.spec.displayName}`)
     }
   }
 }

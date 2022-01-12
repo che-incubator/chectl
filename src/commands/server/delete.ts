@@ -84,21 +84,21 @@ export default class Delete extends Command {
       task: async (_ctx: any, task: any) => {
         const checlusters = await kube.getAllCheClusters()
         if (checlusters.length === 0) {
-          const delTasks = new Listr()
+          const tasks = new Listr()
 
           if (await olmDevWorkspaceTasks.isCustomDevWorkspaceCatalogExists()) {
-            delTasks.add(devWorkspaceTasks.deleteDevOperatorCRsAndCRDsTasks())
-            delTasks.add(olmDevWorkspaceTasks.deleteTasks())
-            delTasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME))
+            tasks.add(devWorkspaceTasks.deleteDevOperatorCRsAndCRDsTasks())
+            tasks.add(olmDevWorkspaceTasks.deleteResourcesTasks())
+            tasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME))
           }
 
           if (!await olmDevWorkspaceTasks.isOperatorInstalledViaOLM()) {
-            delTasks.add(devWorkspaceTasks.deleteDevOperatorCRsAndCRDsTasks())
-            delTasks.add(devWorkspaceTasks.deleteTasks())
-            delTasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE))
+            tasks.add(devWorkspaceTasks.deleteDevOperatorCRsAndCRDsTasks())
+            tasks.add(devWorkspaceTasks.deleteResourcesTasks())
+            tasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE))
           }
 
-          return delTasks
+          return tasks
         }
         task.title = `${task.title}...Skipped: another Eclipse Che deployment found.`
       },
@@ -112,7 +112,7 @@ export default class Delete extends Command {
       try {
         await tasks.run()
         cli.log(getCommandSuccessMessage())
-      } catch (err) {
+      } catch (err: any) {
         this.error(wrapCommandError(err))
       }
     } else {

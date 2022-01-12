@@ -114,7 +114,7 @@ export class DevWorkspaceTasks {
   /**
    * Returns list of tasks which uninstall dev-workspace operator.
    */
-  deleteTasks(): ReadonlyArray<Listr.ListrTask> {
+  deleteResourcesTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Delete all DevWorkspace Controller deployments',
