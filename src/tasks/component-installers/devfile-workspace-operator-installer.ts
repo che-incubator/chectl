@@ -11,7 +11,6 @@
  */
 
 import * as Listr from 'listr'
-
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { OpenShiftHelper } from '../../api/openshift'
@@ -224,21 +223,21 @@ export class DevWorkspaceTasks {
   deleteDevOperatorCRsAndCRDsTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Delete devworkspace CRs',
+        title: `Delete ${DEVFILE_WORKSPACE_API_GROUP}/${DEVFILE_WORKSPACE_API_VERSION} resources`,
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteAllCustomResources(DEVFILE_WORKSPACE_API_GROUP, DEVFILE_WORKSPACE_API_VERSION, DEVFILE_WORKSPACE_KIND_PLURAL)
           task.title = `${task.title}...[OK]`
         },
       },
       {
-        title: 'Delete devworkspace routing CRs',
+        title: `Delete ${DEVFILE_WORKSPACE_ROUTINGS_API_GROUP}/${DEVFILE_WORKSPACE_ROUTINGS_VERSION} resources`,
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteAllCustomResources(DEVFILE_WORKSPACE_ROUTINGS_API_GROUP, DEVFILE_WORKSPACE_ROUTINGS_VERSION, DEVFILE_WORKSPACE_ROUTINGS_KIND_PLURAL)
           task.title = `${task.title}...[OK]`
         },
       },
       {
-        title: 'Delete DevWorkspace Controller CRDs',
+        title: 'Delete Dev Workspace CRDs',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteCrd(this.devWorkspacesCrdName)
           await this.kubeHelper.deleteCrd(this.devWorkspaceTemplatesCrdName)
@@ -254,34 +253,30 @@ export class DevWorkspaceTasks {
   deleteDevWorkspaceWebhooksTasks(namespace: string): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Delete DevWorkspace Controller webhooks deployment',
+        title: 'Delete Dev Workspace webhooks deployment',
         task: async (_ctx: any, task: any) => {
-          if (await this.kubeHelper.getDeployment(this.deploymentWebhookName, namespace)) {
-            await this.kubeHelper.deleteDeployment(namespace, this.deploymentWebhookName)
-          }
+          await this.kubeHelper.deleteDeployment(namespace, this.deploymentWebhookName)
           task.title = `${task.title}...[OK]`
         },
       },
       {
-        title: 'Delete all DevWorkspace Controller webhooks service',
+        title: 'Delete all Dev Workspace webhooks services',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteService(this.serviceWebhookName, namespace)
           task.title = `${task.title}...[OK]`
         },
       },
       {
-        title: 'Delete DevWorkspace Controller webhooks cluster rolebinding',
+        title: 'Delete Dev Workspace webhook Cluster RoleBinding',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteClusterRoleBinding(this.devWorkspaceWebhookServerClusterRole)
-
           task.title = `${task.title}...[OK]`
         },
       },
       {
-        title: 'Delete DevWorkspace Controller webhooks cluster role',
+        title: 'Delete Dev Workspace webhook Cluster Role',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteClusterRole(this.devWorkspaceWebhookServerClusterRole)
-
           task.title = `${task.title}...[OK]`
         },
       },
@@ -289,17 +284,15 @@ export class DevWorkspaceTasks {
         title: 'Delete DevWorkspace Controller webhooks service account',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteServiceAccount(this.devWorkspaceWebhookServiceAccount, namespace)
-
           task.title = `${task.title}...[OK]`
         },
       },
       {
-        title: 'Delete DevWorkspace Controller webhooks configurations',
+        title: 'Delete De vWorkspace webhooks configurations',
         enabled: ctx => !ctx.isOLMStableDevWorkspaceOperator && !ctx.devWorkspacesPresent,
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteMutatingWebhookConfiguration(this.webhooksName)
           await this.kubeHelper.deleteValidatingWebhookConfiguration(this.webhooksName)
-
           task.title = `${task.title} ...[OK]`
         },
       },

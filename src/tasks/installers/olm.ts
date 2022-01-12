@@ -127,7 +127,7 @@ export class OLMTasks {
       },
       {
         enabled: () => !flags[OLM.CATALOG_SOURCE_NAME] && !flags[OLM.CATALOG_SOURCE_YAML] && flags[OLM.CHANNEL] !== OLM_STABLE_CHANNEL_NAME,
-        title: 'Create CatalogSource with \'next\' channel',
+        title: 'Create CatalogSource for \'next\' channel',
         task: async (ctx: any, task: any) => {
           if (!await this.kube.IsCatalogSourceExists(NEXT_CATALOG_SOURCE_NAME, ctx.operatorNamespace)) {
             const nextCatalogSource = this.constructNextCatalogSource(ctx.operatorNamespace)
