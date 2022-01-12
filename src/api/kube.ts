@@ -114,7 +114,7 @@ export class KubeHelper {
         await serviceList.items.forEach(async service => {
           try {
             await k8sApi.deleteNamespacedService(service.metadata!.name!, namespace)
-          } catch (error) {
+          } catch (error: any) {
             if (error.response.statusCode !== 404) {
               throw error
             }
@@ -188,25 +188,25 @@ export class KubeHelper {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher
-      .watch(`/api/v1/namespaces/${namespace}/serviceaccounts`, {},
-        (_phase: string, obj: any) => {
-          const serviceAccount = obj as V1ServiceAccount
+        .watch(`/api/v1/namespaces/${namespace}/serviceaccounts`, {},
+          (_phase: string, obj: any) => {
+            const serviceAccount = obj as V1ServiceAccount
 
-          // Filter other service accounts in the given namespace
-          if (serviceAccount && serviceAccount.metadata && serviceAccount.metadata.name === name) {
-            // The service account is present, stop watching
-            if (request) {
-              request.abort()
+            // Filter other service accounts in the given namespace
+            if (serviceAccount && serviceAccount.metadata && serviceAccount.metadata.name === name) {
+              // The service account is present, stop watching
+              if (request) {
+                request.abort()
+              }
+              // Release awaiter
+              resolve()
             }
-            // Release awaiter
-            resolve()
-          }
-        },
-        error => {
-          if (error) {
-            reject(error)
-          }
-        })
+          },
+          error => {
+            if (error) {
+              reject(error)
+            }
+          })
 
       // Automatically stop watching after timeout
       const timeoutHandler = setTimeout(() => {
@@ -1408,28 +1408,28 @@ export class KubeHelper {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher
-      .watch(`/apis/batch/v1/namespaces/${namespace}/jobs/`, {},
-        (_phase: string, obj: any) => {
-          const job = obj as V1Job
+        .watch(`/apis/batch/v1/namespaces/${namespace}/jobs/`, {},
+          (_phase: string, obj: any) => {
+            const job = obj as V1Job
 
-          // Filter other jobs in the given namespace
-          if (job && job.metadata && job.metadata.name === jobName) {
-            // Check job status
-            if (job.status && job.status.succeeded && job.status.succeeded >= 1) {
-              // Job is finished, stop watching
-              if (request) {
-                request.abort()
+            // Filter other jobs in the given namespace
+            if (job && job.metadata && job.metadata.name === jobName) {
+              // Check job status
+              if (job.status && job.status.succeeded && job.status.succeeded >= 1) {
+                // Job is finished, stop watching
+                if (request) {
+                  request.abort()
+                }
+                // Release awaiter
+                resolve()
               }
-              // Release awaiter
-              resolve()
             }
-          }
-        },
-        error => {
-          if (error) {
-            reject(error)
-          }
-        })
+          },
+          error => {
+            if (error) {
+              reject(error)
+            }
+          })
 
       // Automatically stop watching after timeout
       const timeoutHandler = setTimeout(() => {
@@ -1747,53 +1747,48 @@ export class KubeHelper {
     return this.getAllCustomResources(DEVFILE_WORKSPACE_API_GROUP, DEVFILE_WORKSPACE_API_VERSION, DEVFILE_WORKSPACE_KIND_PLURAL)
   }
 
-  async deleteAllCustomResources(apiGroup: string, version: string, plural: string): Promise<any[]> {
+  async deleteAllCustomResources(apiGroup: string, version: string, plural: string): Promise<void> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-    try {
-      let resources = await this.getAllCustomResources(apiGroup, version, plural)
-      for (const resource of resources) {
-        const name = resource.metadata.name
-        const namespace = resource.metadata.namespace
-        try {
-          await customObjectsApi.deleteNamespacedCustomObject(apiGroup, version, namespace, plural, name, 60)
-        } catch (e) {}
+
+    let resources = await this.getAllCustomResources(apiGroup, version, plural)
+    for (const resource of resources) {
+      const name = resource.metadata.name
+      const namespace = resource.metadata.namespace
+      try {
+        await customObjectsApi.deleteNamespacedCustomObject(apiGroup, version, namespace, plural, name, 60)
+      } catch (e) {
+        // ignore, check existence later
       }
+    }
 
-      // wait while workspaces will be removed...
-      let timeout = 15 * resources.length
-      // no more than 60 sec...
-      timeout = timeout > 60 ? 60 : timeout
+    for (let i = 0; i < 12; i++) {
+      await cli.wait(5 * 1000)
+      const resources = await this.getAllCustomResources(apiGroup, version, plural)
+      if (resources.length === 0) {
+        return
+      }
+    }
 
-      const minSec = 3
-      for (let i = 0; i < timeout; i += minSec) {
-        await cli.wait(minSec * 1000)
-        resources = await this.getAllCustomResources(apiGroup, version, plural)
-        if (resources.length === 0) {
-          return []
+    // remove finalizers
+    for (const resource of resources) {
+      const name = resource.metadata.name
+      const namespace = resource.metadata.namespace
+      try {
+        await this.patchCustomResource(name, namespace, { metadata: { finalizers: null } }, apiGroup, version, plural)
+      } catch (error) {
+        if (!await this.getCustomResource(namespace, name, apiGroup, version, plural)) {
+          continue // successfully removed
         }
+        throw error
       }
+    }
 
-      // remove finalizers
-      for (const resource of resources) {
-        const name = resource.metadata.name
-        const namespace = resource.metadata.namespace
-        try {
-          await this.patchCustomResource(name, namespace, { metadata: { finalizers: null } }, apiGroup, version, plural)
-        } catch (error) {
-          if (await this.getCustomResource(namespace, name, apiGroup, version, plural)) {
-            continue // successfully removed
-          }
-          throw error
-        }
-      }
+    // wait for some time and check again
+    await cli.wait(5000)
 
-      return []
-    } catch (e: any) {
-      if (e.response && e.response.statusCode === 404) {
-        // There is no CRD
-        return []
-      }
-      throw this.wrapK8sClientError(e)
+    resources = await this.getAllCustomResources(apiGroup, version, plural)
+    if (resources.length !== 0) {
+      throw new Error(`Failed to remove Custom Resource ${apiGroup}/${version}, ${resources.length} left.`)
     }
   }
 
@@ -1847,7 +1842,7 @@ export class KubeHelper {
     try {
       const { body } = await customObjectsApi.listClusterCustomObject(resourceAPIGroup, resourceAPIVersion, resourcePlural)
       return (body as any).items ? (body as any).items : []
-    } catch (e) {
+    } catch (e: any) {
       if (e.response && e.response.statusCode === 404) {
         // There is no CRD
         return []
@@ -2230,7 +2225,7 @@ export class KubeHelper {
 
       setTimeout(() => {
         request.abort()
-        reject(`Timeout reached while waiting for "${subscriptionName}" subscription is ready.`)
+        reject(`Timeout reached while waiting for installed CSV of '${subscriptionName}' subscription.`)
       }, timeout * 1000)
     })
   }
@@ -2842,32 +2837,32 @@ export class KubeHelper {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher
-      .watch(`/api/v1/namespaces/${namespace}/secrets/`, { fieldSelector: `metadata.name=${secretName}` },
-        (_phase: string, obj: any) => {
-          const secret = obj as V1Secret
+        .watch(`/api/v1/namespaces/${namespace}/secrets/`, { fieldSelector: `metadata.name=${secretName}` },
+          (_phase: string, obj: any) => {
+            const secret = obj as V1Secret
 
-          // Check all required data fields to be present
-          if (dataKeys.length > 0 && secret.data) {
-            for (const key of dataKeys) {
-              if (!secret.data[key]) {
-                // Key is missing or empty
-                return
+            // Check all required data fields to be present
+            if (dataKeys.length > 0 && secret.data) {
+              for (const key of dataKeys) {
+                if (!secret.data[key]) {
+                  // Key is missing or empty
+                  return
+                }
               }
             }
-          }
 
-          // The secret with all specified fields is present, stop watching
-          if (request) {
-            request.abort()
-          }
-          // Release awaiter
-          resolve()
-        },
-        error => {
-          if (error) {
-            reject(error)
-          }
-        })
+            // The secret with all specified fields is present, stop watching
+            if (request) {
+              request.abort()
+            }
+            // Release awaiter
+            resolve()
+          },
+          error => {
+            if (error) {
+              reject(error)
+            }
+          })
 
       // Automatically stop watching after timeout
       const timeoutHandler = setTimeout(() => {

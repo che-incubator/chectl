@@ -68,7 +68,7 @@ export default class Delete extends Command {
     const operatorTasks = new OperatorTasks()
     const olmTasks = new OLMTasks(flags)
     const cheTasks = new CheTasks(flags)
-    const olmDevTasks = new OLMDevWorkspaceTasks(flags)
+    const olmDevWorkspaceTasks = new OLMDevWorkspaceTasks(flags)
     const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
     const tasks = new Listrq([], ctx.listrOptions)
@@ -86,14 +86,13 @@ export default class Delete extends Command {
         if (checlusters.length === 0) {
           const delTasks = new Listr()
 
-          const isCustomCatalog = await olmDevTasks.isCustomCatalog()
-          if (isCustomCatalog) {
+          if (await olmDevWorkspaceTasks.isCustomDevWorkspaceCatalogExists()) {
             delTasks.add(devWorkspaceTasks.deleteDevOperatorCRsAndCRDsTasks())
-            delTasks.add(olmDevTasks.deleteTasks())
+            delTasks.add(olmDevWorkspaceTasks.deleteTasks())
             delTasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME))
           }
 
-          if (!await olmDevTasks.isOperatorInstalledViaOLM()) {
+          if (!await olmDevWorkspaceTasks.isOperatorInstalledViaOLM()) {
             delTasks.add(devWorkspaceTasks.deleteDevOperatorCRsAndCRDsTasks())
             delTasks.add(devWorkspaceTasks.deleteTasks())
             delTasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE))

@@ -37,7 +37,7 @@ export class OLMDevWorkspaceTasks {
         title: 'Check dev-workspace operator installation',
         task: async (ctx: any, task: any) => {
           const isOperatorInstalled = await this.isOperatorInstalledViaOLM()
-          const isCustomCatalog = await this.isCustomCatalog()
+          const isCustomCatalog = await this.isCustomDevWorkspaceCatalogExists()
           ctx.isOperatorHubInstallationPresent = isOperatorInstalled && !isCustomCatalog
 
           task.title = `${task.title}...${ctx.isOperatorHubInstallationPresent ? '[Exists]' : '[OK]'}`
@@ -192,7 +192,7 @@ export class OLMDevWorkspaceTasks {
     }
   }
 
-  async isCustomCatalog(): Promise<boolean> {
+  async isCustomDevWorkspaceCatalogExists(): Promise<boolean> {
     const IsPreInstalledOLM = await this.kube.isPreInstalledOLM()
     if (!IsPreInstalledOLM) {
       return false
