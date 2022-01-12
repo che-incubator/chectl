@@ -281,14 +281,14 @@ export class DevWorkspaceTasks {
         },
       },
       {
-        title: 'Delete DevWorkspace Controller webhooks service account',
+        title: 'Delete DevWorkspace webhooks service account',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteServiceAccount(this.devWorkspaceWebhookServiceAccount, namespace)
           task.title = `${task.title}...[OK]`
         },
       },
       {
-        title: 'Delete De vWorkspace webhooks configurations',
+        title: 'Delete Dev Workspace webhooks configurations',
         enabled: ctx => !ctx.isOLMStableDevWorkspaceOperator && !ctx.devWorkspacesPresent,
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteMutatingWebhookConfiguration(this.webhooksName)
