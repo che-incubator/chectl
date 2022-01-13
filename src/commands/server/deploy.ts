@@ -365,7 +365,7 @@ export default class Deploy extends Command {
     preInstallTasks.add(checkChectlAndCheVersionCompatibility(flags))
     preInstallTasks.add(downloadTemplates(flags))
     preInstallTasks.add({
-      title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
+      title: '🧪  DevWorkspace engine',
       enabled: () => isDevWorkspaceEnabled(ctx) && !ctx.isOpenShift,
       task: () => new Listr(devWorkspaceTasks.getInstallTasks()),
     })
