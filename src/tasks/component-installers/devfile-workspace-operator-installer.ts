@@ -116,21 +116,21 @@ export class DevWorkspaceTasks {
   deleteResourcesTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Delete all DevWorkspace Controller deployments',
+        title: 'Delete all Dev Workspace Controller deployments',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteAllDeployments(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
           task.title = `${task.title}...[OK]`
         },
       },
       {
-        title: 'Delete all DevWorkspace Controller services',
+        title: 'Delete all Dev Workspace Controller services',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteAllServices(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
           task.title = `${task.title}...[OK]`
         },
       },
       {
-        title: 'Delete all DevWorkspace Controller routes',
+        title: 'Delete all Dev Workspace Controller routes',
         enabled: (ctx: any) => !ctx.isOpenShift,
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteAllIngresses(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
@@ -138,7 +138,7 @@ export class DevWorkspaceTasks {
         },
       },
       {
-        title: 'Delete all DevWorkspace Controller routes',
+        title: 'Delete all Dev Workspace Controller routes',
         enabled: (ctx: any) => ctx.isOpenShift,
         task: async (_ctx: any, task: any) => {
           await this.openShiftHelper.deleteAllRoutes(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
@@ -146,7 +146,7 @@ export class DevWorkspaceTasks {
         },
       },
       {
-        title: 'Delete DevWorkspace Controller configmaps',
+        title: 'Delete Dev Workspace Controller configmaps',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteConfigMap(this.devWorkspaceConfigMap, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
 
@@ -154,7 +154,7 @@ export class DevWorkspaceTasks {
         },
       },
       {
-        title: 'Delete DevWorkspace Controller ClusterRoleBindings',
+        title: 'Delete Dev Workspace Controller ClusterRoleBindings',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteClusterRoleBinding(this.devWorkspaceRoleBinding)
           await this.kubeHelper.deleteClusterRoleBinding(this.devworkspaceProxyClusterRoleBinding)
@@ -163,7 +163,7 @@ export class DevWorkspaceTasks {
         },
       },
       {
-        title: 'Delete DevWorkspace Controller role',
+        title: 'Delete Dev Workspace Controller role',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteRole(this.devWorkspaceLeaderElectionRole, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
 
@@ -171,7 +171,7 @@ export class DevWorkspaceTasks {
         },
       },
       {
-        title: 'Delete DevWorkspace Controller roleBinding',
+        title: 'Delete Dev Workspace Controller roleBinding',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteRoleBinding(this.devWorkspaceLeaderElectionRoleBinding, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
 
@@ -179,7 +179,7 @@ export class DevWorkspaceTasks {
         },
       },
       {
-        title: 'Delete DevWorkspace Controller cluster roles',
+        title: 'Delete Dev Workspace Controller cluster roles',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteClusterRole(this.devWorkspaceEditWorkspaceClusterRole)
           await this.kubeHelper.deleteClusterRole(this.devWorkspaceViewWorkspaceClusterRole)
@@ -190,7 +190,7 @@ export class DevWorkspaceTasks {
         },
       },
       {
-        title: 'Delete DevWorkspace Controller service account',
+        title: 'Delete Dev Workspace Controller service account',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteServiceAccount(this.devWorkspaceServiceAccount, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
 
@@ -198,7 +198,7 @@ export class DevWorkspaceTasks {
         },
       },
       {
-        title: 'Delete DevWorkspace Controller self-signed certificates',
+        title: 'Delete Dev Workspace Controller self-signed certificates',
         enabled: async (ctx: any) => !ctx.IsOpenshift,
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteNamespacedCertificate(this.devWorkspaceCertificate, 'v1', DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
