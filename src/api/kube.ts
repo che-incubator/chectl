@@ -98,9 +98,9 @@ export class KubeHelper {
 
     try {
       await k8sApi.deleteNamespacedService(name, namespace)
-    } catch (error: any) {
-      if (error.response.statusCode !== 404) {
-        throw this.wrapK8sClientError(error)
+    } catch (e) {
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
       }
     }
   }
@@ -1280,12 +1280,12 @@ export class KubeHelper {
   async deleteDeployment(namespace: string, name: string): Promise<void> {
     const k8sAppsApi = this.kubeConfig.makeApiClient(AppsV1Api)
     try {
-      k8sAppsApi.deleteNamespacedDeployment(name, namespace)
-    } catch (error) {
-      if (error.response && error.response.statusCode === 404) {
+      await k8sAppsApi.deleteNamespacedDeployment(name, namespace)
+    } catch (e: any) {
+      if (e.response && e.response.statusCode === 404) {
         return
       }
-      throw this.wrapK8sClientError(error)
+      throw this.wrapK8sClientError(e)
     }
   }
 

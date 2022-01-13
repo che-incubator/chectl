@@ -83,7 +83,7 @@ describe('Get Eclipse Che server status', () => {
 
 describe('Stop Eclipse Che server', () => {
   it('server:stop command', async () => {
-    const { exitCode, stdout, stderr } = await execa(binChectl, ['server:delete', `-n ${NAMESPACE}`, '--telemetry=off', '--delete-namespace', '--yes'], { shell: true })
+    const { exitCode, stdout, stderr } = await execa(binChectl, ['server:stop', `-n ${NAMESPACE}`, '--telemetry=off'], { shell: true })
 
     console.log(`stdout: ${stdout}`)
     console.log(`stderr: ${stderr}`)

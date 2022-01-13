@@ -401,7 +401,7 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Delete(OLM) operator subscription',
+        title: 'Delete operator subscription',
         enabled: ctx => ctx.isPreInstalledOLM && ctx.subscriptionName,
         task: async (ctx: any, task: any) => {
           await kube.deleteOperatorSubscription(ctx.subscriptionName, ctx.operatorNamespace)
@@ -409,7 +409,7 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Delete(OLM) Eclipse Che cluster service versions',
+        title: 'Delete Eclipse Che cluster service versions',
         enabled: ctx => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
           const csvs = await kube.getClusterServiceVersions(ctx.operatorNamespace)
@@ -421,7 +421,7 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Delete(OLM) operator group',
+        title: 'Delete operator group',
         // Do not delete global operator group if operator is in all namespaces mode
         enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
         task: async (ctx: any, task: any) => {
