@@ -24,7 +24,7 @@ import { OperatorTasks } from './operator'
 export class InstallerTasks {
   updateTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     const operatorTasks = new OperatorTasks()
-    const olmTasks = new OLMTasks()
+    const olmTasks = new OLMTasks(flags)
 
     let title: string
     let task: any
@@ -54,7 +54,7 @@ export class InstallerTasks {
 
   preUpdateTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     const operatorTasks = new OperatorTasks()
-    const olmTasks = new OLMTasks()
+    const olmTasks = new OLMTasks(flags)
 
     let title: string
     let task: any
@@ -86,7 +86,7 @@ export class InstallerTasks {
     const ctx = ChectlContext.get()
 
     const operatorTasks = new OperatorTasks()
-    const olmTasks = new OLMTasks()
+    const olmTasks = new OLMTasks(flags)
 
     let title: string
     let task: any

@@ -484,7 +484,7 @@ export class OperatorTasks {
           try {
             await kh.patchCustomResource(checluster.metadata.name, flags.chenamespace, { metadata: { finalizers: null } }, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
           } catch (error) {
-            if (await kh.getCheCluster(flags.chenamespace)) {
+            if (!await kh.getCheCluster(flags.chenamespace)) {
               task.title = `${task.title}...OK`
               return // successfully removed
             }

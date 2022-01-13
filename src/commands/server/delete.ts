@@ -14,18 +14,18 @@ import { Command, flags } from '@oclif/command'
 import { boolean } from '@oclif/command/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
-import Listr = require('listr')
-
+import { OLMDevWorkspaceTasks } from '../../tasks/installers/olm-dev-workspace-operator'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { assumeYes, batch, cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { OLMTasks } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import Listr = require('listr')
 
 export default class Delete extends Command {
   static description = 'delete any Eclipse Che related resource: Kubernetes/OpenShift'
@@ -66,8 +66,9 @@ export default class Delete extends Command {
     const apiTasks = new ApiTasks()
     const kube = new KubeHelper(flags)
     const operatorTasks = new OperatorTasks()
-    const olmTasks = new OLMTasks()
+    const olmTasks = new OLMTasks(flags)
     const cheTasks = new CheTasks(flags)
+    const olmDevWorkspaceTasks = new OLMDevWorkspaceTasks(flags)
     const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
     const tasks = new Listrq([], ctx.listrOptions)
@@ -79,11 +80,25 @@ export default class Delete extends Command {
 
     // Remove devworkspace controller only if there are no more cheClusters after olm/operator tasks
     tasks.add({
-      title: 'Uninstall DevWorkspace Controller',
+      title: 'Uninstall Dev Workspace Controller',
       task: async (_ctx: any, task: any) => {
         const checlusters = await kube.getAllCheClusters()
         if (checlusters.length === 0) {
-          return new Listr(devWorkspaceTasks.getUninstallTasks())
+          const tasks = new Listr()
+
+          if (await olmDevWorkspaceTasks.isCustomDevWorkspaceCatalogExists()) {
+            tasks.add(devWorkspaceTasks.deleteDevOperatorCRsAndCRDsTasks())
+            tasks.add(olmDevWorkspaceTasks.deleteResourcesTasks())
+            tasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME))
+          }
+
+          if (!await olmDevWorkspaceTasks.isDevWorkspaceOperatorInstalledViaOLM()) {
+            tasks.add(devWorkspaceTasks.deleteDevOperatorCRsAndCRDsTasks())
+            tasks.add(devWorkspaceTasks.deleteResourcesTasks())
+            tasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE))
+          }
+
+          return tasks
         }
         task.title = `${task.title}...Skipped: another Eclipse Che deployment found.`
       },
@@ -97,7 +112,7 @@ export default class Delete extends Command {
       try {
         await tasks.run()
         cli.log(getCommandSuccessMessage())
-      } catch (err) {
+      } catch (err: any) {
         this.error(wrapCommandError(err))
       }
     } else {
