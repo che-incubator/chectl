@@ -1694,7 +1694,11 @@ export class KubeHelper {
       cheClusterCR.spec.storage.postgresPVCStorageClassName = flags['postgres-pvc-storage-class-name']
       cheClusterCR.spec.storage.workspacePVCStorageClassName = flags['workspace-pvc-storage-class-name']
 
+      if (!cheClusterCR.spec.devWorkspace) {
+        cheClusterCR.spec.devWorkspace = {}
+      }
       cheClusterCR.spec.devWorkspace.enable = true
+
       cheClusterCR.spec.auth.nativeUserMode = true
 
       // Use self-signed TLS certificate by default (for versions before 7.14.3).
