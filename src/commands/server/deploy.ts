@@ -196,7 +196,6 @@ export default class Deploy extends Command {
       description: 'Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.',
       options: ['che-server', 'dev-workspace'],
       default: 'che-server',
-      hidden: true,
     }),
     telemetry: CHE_TELEMETRY,
     [DEPLOY_VERSION_KEY]: cheDeployVersion,
@@ -366,13 +365,13 @@ export default class Deploy extends Command {
     preInstallTasks.add(downloadTemplates(flags))
     preInstallTasks.add({
       title: '🧪  DevWorkspace engine',
-      enabled: () => isDevWorkspaceEnabled(ctx) && !ctx.isOpenShift,
+      enabled: () => isDevWorkspaceEnabled(ctx, flags) && !ctx.isOpenShift,
       task: () => new Listr(devWorkspaceTasks.getInstallTasks()),
     })
 
     const installTasks = new Listr(undefined, ctx.listrOptions)
     installTasks.add([createNamespaceTask(flags.chenamespace, this.getNamespaceLabels(flags))])
-    if (flags.platform === 'minikube' && isDevWorkspaceEnabled(ctx)) {
+    if (flags.platform === 'minikube' && isDevWorkspaceEnabled(ctx, flags)) {
       installTasks.add(dexTasks.getInstallTasks())
     }
     installTasks.add(await installerTasks.installTasks(flags, this))
@@ -432,9 +431,9 @@ export default class Deploy extends Command {
 function ensureOIDCProviderInstalled(flags: any): Listr.ListrTask {
   return {
     title: 'Check if OIDC Provider installed',
-    enabled: ctx => !flags['skip-oidc-provider-check'] && isKubernetesPlatformFamily(flags.platform) && !ctx.isCheDeployed,
-    skip: () => {
-      if (flags.platform === 'minikube') {
+    enabled: ctx => !flags['skip-oidc-provider-check'] && isKubernetesPlatformFamily(flags.platform) && !ctx.isCheDeployed && isDevWorkspaceEnabled(ctx, flags),
+    skip: ctx => {
+      if (flags.platform === 'minikube' && isDevWorkspaceEnabled(ctx, flags)) {
         return 'Dex will be automatically installed'
       }
     },

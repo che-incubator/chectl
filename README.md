@@ -425,6 +425,9 @@ OPTIONS
   --telemetry=on|off
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 
+  --workspace-engine=che-server|dev-workspace
+      [default: che-server] Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.
+
   --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
       persistent volume(s) storage class name to use to store Eclipse Che workspaces data
 ```
