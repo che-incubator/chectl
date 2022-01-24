@@ -90,7 +90,7 @@ export class OLMDevWorkspaceTasks {
       {
         title: 'Wait Dev Workspace CSV',
         enabled: ctx => !ctx[DevWorkspaceContextKeys.IS_DEV_WORKSPACE_INSTALLED_VIA_OPERATOR_HUB],
-        task: async (ctx: any, task: any) => {
+        task: async (_ctx: any, task: any) => {
           const installedCSV = await this.kube.waitInstalledCSV(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, this.DEV_WORKSPACE_OPERATOR_SUBSCRIPTION)
           const csv = await this.kube.getCSV(installedCSV, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
           if (!csv) {
