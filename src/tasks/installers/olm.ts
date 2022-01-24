@@ -13,18 +13,17 @@
 import Command from '@oclif/command'
 import { cli } from 'cli-ux'
 import * as yaml from 'js-yaml'
-import Listr = require('listr')
 import * as path from 'path'
-import { OLM, OLMInstallationUpdate } from '../../api/context'
 import { CheHelper } from '../../api/che'
+import { OLM, OLMInstallationUpdate } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/types/olm'
 import { VersionHelper } from '../../api/version'
-import { CUSTOM_CATALOG_SOURCE_NAME, CSV_PREFIX, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME, OLM_STABLE_CHANNEL_STARTING_CSV_TEMPLATE, INDEX_IMG } from '../../constants'
-import { getEmbeddedTemplatesDirectory, isKubernetesPlatformFamily } from '../../util'
-
+import { CHECTL_PROJECT_NAME, CSV_PREFIX, CUSTOM_CATALOG_SOURCE_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, INDEX_IMG, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OLM_STABLE_CHANNEL_STARTING_CSV_TEMPLATE, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME } from '../../constants'
+import { getEmbeddedTemplatesDirectory, getProjectName, isKubernetesPlatformFamily } from '../../util'
 import { createEclipseCheCluster, patchingEclipseCheCluster } from './common-tasks'
 import { OLMDevWorkspaceTasks } from './olm-dev-workspace-operator'
+import Listr = require('listr')
 
 export const TASK_TITLE_SET_CUSTOM_OPERATOR_IMAGE = 'Set custom operator image'
 export const TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE = 'Create custom catalog source from file'
@@ -139,7 +138,11 @@ export class OLMTasks {
           }
         },
       },
-      ...this.olmDevWorkspaceTasks.startTasks(flags, command),
+      {
+        enabled: () => getProjectName() === CHECTL_PROJECT_NAME,
+        title: 'Deploy Dev Workspace operator',
+        task: async () => this.olmDevWorkspaceTasks.startTasks(flags, command),
+      },
       {
         title: TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE,
         enabled: () => flags[OLM.CATALOG_SOURCE_YAML],
@@ -175,7 +178,7 @@ export class OLMTasks {
           } else if (channel === OLM_STABLE_CHANNEL_NAME || (VersionHelper.isDeployingStableVersion(flags) && !channel)) {
             // stable Che CatalogSource
             subscription = this.constructSubscription(ctx.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, channel || OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStrategy, ctx.startingCSV)
-          } else if (channel === OLM_NEXT_CHANNEL_NAME  || !channel) {
+          } else if (channel === OLM_NEXT_CHANNEL_NAME || !channel) {
             // next Che CatalogSource
             subscription = this.constructSubscription(ctx.subscriptionName, `eclipse-che-preview-${ctx.generalPlatformName}`, ctx.operatorNamespace, ctx.operatorNamespace, channel || OLM_NEXT_CHANNEL_NAME, NEXT_CATALOG_SOURCE_NAME, ctx.approvalStrategy, ctx.startingCSV)
           } else {
@@ -274,7 +277,7 @@ export class OLMTasks {
             return new Listr([
               {
                 title: '[Warning] OLM itself manage operator update with installation mode \'Automatic\'.',
-                task: () => {},
+                task: () => { },
               },
               {
                 title: '[Warning] Use \'chectl server:update\' command only with \'Manual\' installation plan approval.',
