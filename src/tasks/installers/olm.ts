@@ -19,7 +19,7 @@ import { OLM, OLMInstallationUpdate } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/types/olm'
 import { VersionHelper } from '../../api/version'
-import { CHECTL_PROJECT_NAME, CSV_PREFIX, CUSTOM_CATALOG_SOURCE_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, INDEX_IMG, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OLM_STABLE_CHANNEL_STARTING_CSV_TEMPLATE, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME } from '../../constants'
+import { CHECTL_PROJECT_NAME, CSV_PREFIX, CUSTOM_CATALOG_SOURCE_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, INDEX_IMG, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME, OLM_STABLE_ALL_NAMESPACES_CHANNEL_STARTING_CSV_TEMPLATE, OLM_STABLE_CHANNEL_NAME, OLM_STABLE_CHANNEL_STARTING_CSV_TEMPLATE, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME } from '../../constants'
 import { getEmbeddedTemplatesDirectory, getProjectName, isKubernetesPlatformFamily } from '../../util'
 import { createEclipseCheCluster, patchingEclipseCheCluster } from './common-tasks'
 import { OLMDevWorkspaceTasks } from './olm-dev-workspace-operator'
@@ -52,7 +52,10 @@ export class OLMTasks {
         title: 'Configure context information',
         task: async (ctx: any, task: any) => {
           ctx.operatorNamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
-          ctx.operatorNamespace = DEFAULT_OPENSHIFT_OPERATORS_NS_NAME
+          if (flags[OLM.CHANNEL] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME || flags[OLM.CHANNEL] === OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME) {
+            ctx.operatorNamespace = DEFAULT_OPENSHIFT_OPERATORS_NS_NAME
+          }
+
           ctx.defaultCatalogSourceNamespace = isKubernetesPlatformFamily(flags.platform) ? DEFAULT_OLM_KUBERNETES_NAMESPACE : DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE
           // catalog source name for stable Che version
           ctx.catalogSourceNameStable = isKubernetesPlatformFamily(flags.platform) ? KUBERNETES_OLM_CATALOG : OPENSHIFT_OLM_CATALOG
@@ -68,6 +71,8 @@ export class OLMTasks {
               ctx.startingCSV = flags[OLM.STARTING_CSV]
             } else if (flags[OLM.CHANNEL] === OLM_STABLE_CHANNEL_NAME) {
               ctx.startingCSV = OLM_STABLE_CHANNEL_STARTING_CSV_TEMPLATE.replace(new RegExp('{{VERSION}}', 'g'), flags.version)
+            } else if (flags[OLM.CHANNEL] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME) {
+              ctx.startingCSV = OLM_STABLE_ALL_NAMESPACES_CHANNEL_STARTING_CSV_TEMPLATE.replace(new RegExp('{{VERSION}}', 'g'), flags.version)
             } // else use latest in the channel
             // Set approval starategy to manual to prevent autoupdate to the latest version right before installation
             ctx.approvalStrategy = OLMInstallationUpdate.MANUAL
@@ -175,10 +180,10 @@ export class OLMTasks {
             // custom Che CatalogSource
             const catalogSourceNamespace = flags[OLM.CATALOG_SOURCE_NAMESPACE] || ctx.operatorNamespace
             subscription = this.constructSubscription(ctx.subscriptionName, flags[OLM.PACKAGE_MANIFEST_NAME], ctx.operatorNamespace, catalogSourceNamespace, channel || OLM_STABLE_CHANNEL_NAME, ctx.sourceName, ctx.approvalStrategy, ctx.startingCSV)
-          } else if (channel === OLM_STABLE_CHANNEL_NAME || (VersionHelper.isDeployingStableVersion(flags) && !channel)) {
+          } else if (channel === OLM_STABLE_CHANNEL_NAME || channel === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME || (VersionHelper.isDeployingStableVersion(flags) && !channel)) {
             // stable Che CatalogSource
             subscription = this.constructSubscription(ctx.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, channel || OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStrategy, ctx.startingCSV)
-          } else if (channel === OLM_NEXT_CHANNEL_NAME || !channel) {
+          } else if (channel === OLM_NEXT_CHANNEL_NAME || channel === OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME || !channel) {
             // next Che CatalogSource
             subscription = this.constructSubscription(ctx.subscriptionName, `eclipse-che-preview-${ctx.generalPlatformName}`, ctx.operatorNamespace, ctx.operatorNamespace, channel || OLM_NEXT_CHANNEL_NAME, NEXT_CATALOG_SOURCE_NAME, ctx.approvalStrategy, ctx.startingCSV)
           } else {
