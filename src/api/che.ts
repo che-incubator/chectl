@@ -140,8 +140,8 @@ export class CheHelper {
     throw new Error(`ERR_ROUTE_NO_EXIST - No route ${route_names} in namespace ${namespace}`)
   }
 
-  async buildDashboardURL(ideURL: string): Promise<string> {
-    return ideURL.replace(/\/[^/|.]*\/[^/|.]*$/g, '\/dashboard\/#\/ide$&')
+  buildDashboardURL(cheUrl: string): string {
+    return cheUrl.endsWith('/') ? `${cheUrl}dashboard/` : `${cheUrl}/dashboard/`
   }
 
   /**

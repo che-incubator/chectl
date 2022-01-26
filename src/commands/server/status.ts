@@ -15,14 +15,12 @@ import { cli } from 'cli-ux'
 
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
-import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { cheNamespace, CHE_TELEMETRY } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { findWorkingNamespace } from '../../util'
 
 export default class Status extends Command {
-  // Implementation-Version it is a property from Manifest.ml inside of che server pod which indicate Eclipse Che build version.
   static description = 'Status Eclipse Che server'
 
   static flags: flags.Input<any> = {
@@ -36,20 +34,12 @@ export default class Status extends Command {
     flags.chenamespace = await findWorkingNamespace(flags)
     await ChectlContext.init(flags, this)
 
-    const kube = new KubeHelper(flags)
-    const che = new CheHelper(flags)
-    let openshiftOauth = 'No'
-
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Status.id, flags })
-    const cr = await kube.getCheCluster(flags.chenamespace)
-    if (cr && cr.spec && cr.spec.auth && cr.spec.auth.openShiftoAuth && await kube.isOpenShift()) {
-      openshiftOauth = 'Yes'
-    }
 
+    const che = new CheHelper(flags)
     const cheVersion = await VersionHelper.getCheVersion(flags)
 
     cli.log(`Eclipse Che Version    : ${cheVersion}`)
-    cli.log(`Eclipse Che Url        : ${await che.cheURL(flags.chenamespace)}`)
-    cli.log(`OpenShift OAuth enabled: ${openshiftOauth}\n`)
+    cli.log(`Eclipse Che Url        : ${che.buildDashboardURL(await che.cheURL(flags.chenamespace))}`)
   }
 }
