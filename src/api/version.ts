@@ -18,8 +18,7 @@ import * as path from 'path'
 import * as semver from 'semver'
 import { CHECTL_REPO, CheGithubClient, ECLIPSE_CHE_INCUBATOR_ORG } from '../api/github-client'
 import { CHECTL_PROJECT_NAME } from '../constants'
-import { CheTasks } from '../tasks/che'
-import { getClusterClientCommand, getProjectName, getProjectVersion, isKubernetesPlatformFamily } from '../util'
+import { getProjectName, getProjectVersion, isKubernetesPlatformFamily, sleep } from '../util'
 import { ChectlContext } from './context'
 import { KubeHelper } from './kube'
 import execa = require('execa')
@@ -156,26 +155,18 @@ export namespace VersionHelper {
    */
   export async function getCheVersion(flags: any): Promise<string> {
     const kube = new KubeHelper(flags)
-    const cheTasks = new CheTasks(flags)
-    const cheCluster = await kube.getCheCluster(flags.chenamespace)
-    if (cheCluster && cheCluster.spec.server.cheFlavor !== 'che') {
-      return cheCluster.status.cheVersion
+    for (let i = 0; i < 10; i++) {
+      const cheCluster = await kube.getCheCluster(flags.chenamespace)
+      if (cheCluster) {
+        if (cheCluster.status.cheVersion) {
+          return cheCluster.status.cheVersion
+        }
+      }
+
+      await sleep(1000) // wait a bit, operator has not updated version yet
     }
 
-    const chePodList = await kube.getPodListByLabel(flags.chenamespace, cheTasks.cheSelector)
-    const [chePodName] = chePodList.map(pod => pod.metadata && pod.metadata.name)
-    if (!chePodName) {
-      return 'UNKNOWN'
-    }
-
-    const command = getClusterClientCommand()
-    const args = ['exec', chePodName, '--namespace', flags.chenamespace, 'cat', CHE_POD_MANIFEST_FILE]
-    try {
-      const { stdout } = await execa(command, args, { timeout: 60000 })
-      return stdout.split('\n').filter(value => value.startsWith(CHE_PREFFIX_VERSION)).map(value => value.substring(CHE_PREFFIX_VERSION.length))[0]
-    } catch {
-      return 'UNKNOWN'
-    }
+    return ''
   }
 
   /**

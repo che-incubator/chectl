@@ -114,9 +114,9 @@ describe('Eclipse Che helper', () => {
   describe('buildDashboardURL', () => {
     fancy
       .it('builds the Dashboard URL of a workspace given the IDE link', async () => {
-        let ideURL = 'https://che-che.192.168.64.40.nip.io/che/name-with-dashes'
-        let dashboardURL = 'https://che-che.192.168.64.40.nip.io/dashboard/#/ide/che/name-with-dashes'
-        let res = await ch.buildDashboardURL(ideURL)
+        let cheURL = 'https://che-che.192.168.64.40.nip.io'
+        let dashboardURL = 'https://che-che.192.168.64.40.nip.io/dashboard/'
+        let res = await ch.buildDashboardURL(cheURL)
         expect(res).to.equal(dashboardURL)
       })
   })

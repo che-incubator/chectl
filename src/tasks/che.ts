@@ -635,14 +635,14 @@ export class CheTasks {
           const messages: string[] = []
 
           const version = await VersionHelper.getCheVersion(flags)
-          messages.push(`Eclipse Che ${version.trim()} has been successfully deployed.`)
+          messages.push(`Eclipse Che '${version.trim()}' has been successfully deployed.`)
           messages.push(`Documentation             : ${DOC_LINK}`)
           if (DOC_LINK_RELEASE_NOTES) {
             messages.push(`Release Notes           : ${DOC_LINK_RELEASE_NOTES}`)
           }
           messages.push(OUTPUT_SEPARATOR)
 
-          const cheUrl = await this.che.cheURL(flags.chenamespace)
+          const cheUrl = this.che.buildDashboardURL(await this.che.cheURL(flags.chenamespace))
           messages.push(`Users Dashboard           : ${cheUrl}`)
 
           const cr = await this.kube.getCheCluster(flags.chenamespace)
@@ -669,7 +669,7 @@ export class CheTasks {
                 messages.push(`HTPasswd user credentials : "${user}:${password}".`)
               }
             }
-          } else {
+          } else if (!isDevWorkspaceEnabled(ctx)) {
             messages.push('Admin user login          : "admin:admin". NOTE: must change after first login.')
           }
           messages.push(OUTPUT_SEPARATOR)
