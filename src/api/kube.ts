@@ -2167,7 +2167,7 @@ export class KubeHelper {
         namespace,
       },
       spec: {
-        targetNamespaces: [],
+        targetNamespaces: [namespace],
       },
     }
 
