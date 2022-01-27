@@ -19,7 +19,6 @@ import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { newError } from '../../util'
 
-
 export class DockerDesktopTasks {
   private readonly kh: KubeHelper
 
