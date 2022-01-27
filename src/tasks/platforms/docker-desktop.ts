@@ -115,13 +115,11 @@ export class DockerDesktopTasks {
     const networkInterfaces = os.networkInterfaces()
     const allIps: string[] = []
     Object.keys(networkInterfaces).forEach(interfaceName => {
-      if (networkInterfaces[interfaceName]) {
-        networkInterfaces[interfaceName].forEach(iface => {
-          if (iface.family === 'IPv4' && iface.internal !== true) {
-            allIps.push(iface.address)
-          }
-        })
-      }
+      networkInterfaces[interfaceName]?.forEach(iface => {
+        if (iface.family === 'IPv4' && iface.internal !== true) {
+          allIps.push(iface.address)
+        }
+      })
     })
     return allIps
   }
