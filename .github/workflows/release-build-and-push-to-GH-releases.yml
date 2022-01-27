@@ -24,10 +24,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2.3.1
         with:
+          fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v1
+      - name: Install NodeJS
+        uses: actions/setup-node@v2.1.2
         with:
-          node-version: '12'
+          node-version: 16.13
       - name: Generate tag utilities
         id: TAG_UTIL
         run: |
@@ -42,7 +44,7 @@ jobs:
             echo "::set-output name=chectl_version::0.0.$CURRENT_DAY-next"
             echo "::set-output name=gh_release_name::0.0.$CURRENT_DAY-next.$SHORT_SHA1"
           fi
-      - name: Install chectl dependencies
+      - name: Build chectl
         run: yarn
       - name: Run unit tests
         run: yarn test
