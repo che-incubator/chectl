@@ -15,7 +15,6 @@ import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
 import * as os from 'os'
-
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { newError } from '../../util'
@@ -116,7 +115,7 @@ export class DockerDesktopTasks {
     const networkInterfaces = os.networkInterfaces()
     const allIps: string[] = []
     Object.keys(networkInterfaces).forEach(interfaceName => {
-      networkInterfaces[interfaceName].forEach(iface => {
+      networkInterfaces[interfaceName]?.forEach(iface => {
         if (iface.family === 'IPv4' && iface.internal !== true) {
           allIps.push(iface.address)
         }

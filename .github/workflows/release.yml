@@ -27,10 +27,16 @@ jobs:
     name: Create pull request for upcoming release
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2.3.1
         with:
           fetch-depth: 0
+          persist-credentials: false
           token: ${{ secrets.CHE_INCUBATOR_BOT_GITHUB_TOKEN }}
+      - name: Install NodeJS
+        uses: actions/setup-node@v2.1.2
+        with:
+          node-version: 16.13
       - name: Check existing tags
         run: |
           set +e
@@ -49,9 +55,6 @@ jobs:
           else
             echo "[INFO] No existing tags detected for $VERSION"
           fi
-      - uses: actions/setup-node@v2.1.2
-        with:
-          node-version: 12.18.2
       - name: Run make-release.sh script (commit changes, create branch, create PR)
         run: |
           # since we're using Flavius' token below to generate PRs, should also make tags/branches/commits by same owner

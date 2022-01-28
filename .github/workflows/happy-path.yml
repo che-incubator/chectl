@@ -19,29 +19,31 @@ jobs:
   happy-path:
     runs-on: ubuntu-20.04
     steps:
-      - name: Clone source code
-        uses: actions/checkout@v1
+      - name: Checkout
+        uses: actions/checkout@v2.3.1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Start minikube cluster
-        id: run-minikube
         uses: che-incubator/setup-minikube-action@next
         with:
-          minikube-version: v1.21.0
-      - name: Add chectl to PATH
-        id: chectl-path
+          minikube-version: v1.23.2
+      - name: Install NodeJS
+        uses: actions/setup-node@v2.1.2
+        with:
+          node-version: 16.13.2
+      - name: Build chectl
+        run: yarn
+      - name: Add chectl to $PATH
         run: |
-          yarn
           ln -s $(pwd)/bin/run $(pwd)/bin/chectl
           echo "$PWD/bin" >> $GITHUB_PATH
       - name: Deploy Eclipse Che
-        id: deploy-che
         uses: che-incubator/che-deploy-action@next
         with:
           # use custom chectl built by this PR
           skip-chectl-install: true
       - name: Run Happy Path tests
-        id: run-happy-path-tests
         uses: che-incubator/happy-path-tests-action@next
         with:
           che-url: ${{ steps.deploy-che.outputs.che-url }}

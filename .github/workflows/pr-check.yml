@@ -19,10 +19,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2.3.1
         with:
+          fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v1
+      - name: Install NodeJS
+        uses: actions/setup-node@v2.1.2
         with:
-          node-version: '12'
+          node-version: 16.13.2
       - name: Build chectl
         run: yarn
       - name: Run eslint
@@ -32,12 +34,15 @@ jobs:
   readme-md-validation:
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-      - name: Set up Node.js
-        uses: actions/setup-node@v1
+      - name: Checkout
+        uses: actions/checkout@v2.3.1
         with:
-          node-version: 12.x
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install NodeJS
+        uses: actions/setup-node@v2.1.2
+        with:
+          node-version: 16.13
       - name: Build chectl
         run: yarn
       - name: Build README.md
@@ -53,12 +58,15 @@ jobs:
   license-validation:
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-      - name: Set up Node.js
-        uses: actions/setup-node@v1
+      - name: Checkout
+        uses: actions/checkout@v2.3.1
         with:
-          node-version: 12.x
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install NodeJS
+        uses: actions/setup-node@v2.1.2
+        with:
+          node-version: 16.13
       - name: Build chectl
         run: yarn
       - name: Set up Go 1.15
