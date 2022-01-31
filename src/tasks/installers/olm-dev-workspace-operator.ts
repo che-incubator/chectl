@@ -21,7 +21,8 @@ import Listr = require('listr')
 export class OLMDevWorkspaceTasks {
   private readonly DEV_WORKSPACE_OPERATOR_SUBSCRIPTION = 'devworkspace-operator'
 
-  private readonly OLM_CHANNEL = 'fast'
+  private readonly NEXT_CHANNEL = 'next'
+  private readonly STABLE_CHANNEL = 'fast'
 
   private readonly OLM_PACKAGE_NAME = 'devworkspace-operator'
   private readonly kube: KubeHelper
@@ -30,7 +31,7 @@ export class OLMDevWorkspaceTasks {
     this.kube = new KubeHelper(flags)
   }
 
-  startTasks(flags: any, _command: Command): Listr.ListrTask<any>[] {
+  startTasks(flags: any, _command: Command): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Check Dev Workspace operator installation',
@@ -62,7 +63,8 @@ export class OLMDevWorkspaceTasks {
         task: async (ctx: any, task: any) => {
           const subscription = await this.kube.getOperatorSubscription(this.DEV_WORKSPACE_OPERATOR_SUBSCRIPTION, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
           if (!subscription) {
-            const subscription = this.constructSubscription(this.DEV_WORKSPACE_OPERATOR_SUBSCRIPTION, ctx[DevWorkspaceContextKeys.CATALOG_SOURCE_NAME])
+            const channel = VersionHelper.isDeployingStableVersion(flags) ? this.STABLE_CHANNEL : this.NEXT_CHANNEL
+            const subscription = this.constructSubscription(this.DEV_WORKSPACE_OPERATOR_SUBSCRIPTION, ctx[DevWorkspaceContextKeys.CATALOG_SOURCE_NAME], channel)
             await this.kube.createOperatorSubscription(subscription)
             task.title = `${task.title}...[OK]`
           } else {
@@ -162,7 +164,7 @@ export class OLMDevWorkspaceTasks {
     }
   }
 
-  private constructSubscription(name: string, source: string): Subscription {
+  private constructSubscription(name: string, source: string, channel: string): Subscription {
     return {
       apiVersion: 'operators.coreos.com/v1alpha1',
       kind: 'Subscription',
@@ -171,7 +173,7 @@ export class OLMDevWorkspaceTasks {
         namespace: DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
       },
       spec: {
-        channel: this.OLM_CHANNEL,
+        channel: channel,
         installPlanApproval: OLMInstallationUpdate.AUTO,
         name: this.OLM_PACKAGE_NAME,
         source,

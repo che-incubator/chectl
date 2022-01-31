@@ -141,7 +141,11 @@ export class OLMTasks {
       {
         enabled: () => getProjectName() === CHECTL_PROJECT_NAME,
         title: 'Deploy Dev Workspace operator',
-        task: async () => this.olmDevWorkspaceTasks.startTasks(flags, command),
+        task: (ctx: any, _task: any) => {
+          const devWorkspaceTasks = new Listr(undefined, ctx.listrOptions)
+          devWorkspaceTasks.add(this.olmDevWorkspaceTasks.startTasks(flags, command))
+          return devWorkspaceTasks
+        },
       },
       {
         title: TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE,
