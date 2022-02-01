@@ -84,12 +84,10 @@ USAGE
 * [`chectl cacert:export`](#chectl-cacertexport)
 * [`chectl dashboard:open`](#chectl-dashboardopen)
 * [`chectl help [COMMAND]`](#chectl-help-command)
-* [`chectl server:backup`](#chectl-serverbackup)
 * [`chectl server:debug`](#chectl-serverdebug)
 * [`chectl server:delete`](#chectl-serverdelete)
 * [`chectl server:deploy`](#chectl-serverdeploy)
 * [`chectl server:logs`](#chectl-serverlogs)
-* [`chectl server:restore`](#chectl-serverrestore)
 * [`chectl server:start`](#chectl-serverstart)
 * [`chectl server:status`](#chectl-serverstatus)
 * [`chectl server:stop`](#chectl-serverstop)
@@ -181,57 +179,6 @@ OPTIONS
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.18/src/commands/help.ts)_
-
-## `chectl server:backup`
-
-Backup Eclipse Che installation
-
-```
-USAGE
-  $ chectl server:backup
-
-OPTIONS
-  -h, --help                                             show CLI help
-  -n, --chenamespace=chenamespace                        Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
-
-  -p, --repository-password=repository-password          Password that is used to encrypt / decrypt backup repository
-                                                         content
-
-  -r, --repository-url=repository-url                    Full address of backup repository. Format is identical to
-                                                         restic.
-
-  --aws-access-key-id=aws-access-key-id                  AWS access key ID
-
-  --aws-secret-access-key=aws-secret-access-key          AWS secret access key
-
-  --backup-server-config-name=backup-server-config-name  Name of custom resource with backup server config
-
-  --batch                                                Batch mode. Running a command without end user interaction.
-
-  --password=password                                    Authentication password for backup REST server
-
-  --ssh-key=ssh-key                                      Private SSH key for authentication on SFTP server
-
-  --ssh-key-file=ssh-key-file                            Path to file with private SSH key for authentication on SFTP
-                                                         server
-
-  --telemetry=on|off                                     Enable or disable telemetry. This flag skips a prompt and
-                                                         enable/disable telemetry
-
-  --username=username                                    Username for authentication in backup REST server
-
-EXAMPLES
-  # Reuse existing backup configuration or create and use internal backup server if none exists:
-  chectl server:backup
-  # Create and use configuration for REST backup server:
-  chectl server:backup -r rest:http://my-sert-server.net:4000/che-backup -p repopassword
-  # Create and use configuration for AWS S3 (and API compatible) backup server (bucket should be precreated):
-  chectl server:backup -r s3:s3.amazonaws.com/bucketche -p repopassword
-  # Create and use configuration for SFTP backup server:
-  chectl server:backup -r sftp:user@my-server.net:/srv/sftp/che-data -p repopassword
-```
-
-_See code: [src/commands/server/backup.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/backup.ts)_
 
 ## `chectl server:debug`
 
@@ -449,74 +396,6 @@ OPTIONS
 ```
 
 _See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/logs.ts)_
-
-## `chectl server:restore`
-
-Restore Eclipse Che installation
-
-```
-USAGE
-  $ chectl server:restore
-
-OPTIONS
-  -h, --help                                             show CLI help
-  -n, --chenamespace=chenamespace                        Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
-
-  -p, --repository-password=repository-password          Password that is used to encrypt / decrypt backup repository
-                                                         content
-
-  -r, --repository-url=repository-url                    Full address of backup repository. Format is identical to
-                                                         restic.
-
-  -s, --snapshot-id=snapshot-id                          snapshot identificator to restore from. Value "latest" means
-                                                         restoring from the most recent snapshot.
-
-  -v, --version=version                                  Che Operator version to restore to (e.g. 7.35.1). If the flag
-                                                         is not set, restore to the current version.
-
-  --aws-access-key-id=aws-access-key-id                  AWS access key ID
-
-  --aws-secret-access-key=aws-secret-access-key          AWS secret access key
-
-  --backup-cr-name=backup-cr-name                        Name of a backup custom resource to restore from
-
-  --backup-server-config-name=backup-server-config-name  Name of custom resource with backup server config
-
-  --batch                                                Batch mode. Running a command without end user interaction.
-
-  --password=password                                    Authentication password for backup REST server
-
-  --rollback                                             Rolling back to previous version of Eclipse Che only if backup
-                                                         exists
-
-  --ssh-key=ssh-key                                      Private SSH key for authentication on SFTP server
-
-  --ssh-key-file=ssh-key-file                            Path to file with private SSH key for authentication on SFTP
-                                                         server
-
-  --telemetry=on|off                                     Enable or disable telemetry. This flag skips a prompt and
-                                                         enable/disable telemetry
-
-  --username=username                                    Username for authentication in backup REST server
-
-EXAMPLES
-  # Restore from the latest snapshot from a provided REST backup server:
-  chectl server:restore -r rest:http://my-sert-server.net:4000/che-backup -p repopassword --snapshot-id=latest
-  # Restore from the latest snapshot from a provided AWS S3 (or API compatible) backup server (bucket must be 
-  precreated):
-  chectl server:restore -r s3:s3.amazonaws.com/bucketche -p repopassword --snapshot-id=latest
-  # Restore from the latest snapshot from a provided SFTP backup server:
-  chectl server:restore -r sftp:user@my-server.net:/srv/sftp/che-data -p repopassword --snapshot-id=latest
-  # Restore from a specific snapshot to a given Eclipse Che version from a provided REST backup server:
-  chectl server:restore -r rest:http://my-sert-server.net:4000/che-backup -p repopassword --version=7.35.2 
-  --snapshot-id=9ea02f58
-  # Rollback to a previous version only if backup exists:
-  chectl server:restore --rollback
-  # Restore from a specific backup object:
-  chectl server:restore --backup-cr-name=backup-object-name
-```
-
-_See code: [src/commands/server/restore.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/restore.ts)_
 
 ## `chectl server:start`
 

@@ -95,13 +95,6 @@ export const CHE_CLUSTER_API_GROUP = 'org.eclipse.che'
 export const CHE_CLUSTER_API_VERSION = 'v1'
 export const CHE_CLUSTER_KIND_PLURAL = 'checlusters'
 
-export const CHE_BACKUP_SERVER_CONFIG_CRD = 'chebackupserverconfigurations.org.eclipse.che'
-export const CHE_BACKUP_SERVER_CONFIG_KIND_PLURAL = 'chebackupserverconfigurations'
-export const CHE_CLUSTER_BACKUP_CRD = 'checlusterbackups.org.eclipse.che'
-export const CHE_CLUSTER_BACKUP_KIND_PLURAL = 'checlusterbackups'
-export const CHE_CLUSTER_RESTORE_CRD = 'checlusterrestores.org.eclipse.che'
-export const CHE_CLUSTER_RESTORE_KIND_PLURAL = 'checlusterrestores'
-
 export const DEVFILE_WORKSPACE_API_GROUP = 'workspace.devfile.io'
 export const DEVFILE_WORKSPACE_API_VERSION = 'v1alpha2'
 export const DEVFILE_WORKSPACE_KIND_PLURAL = 'devworkspaces'

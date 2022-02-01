@@ -20,10 +20,9 @@ import * as https from 'https'
 import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_KIND_PLURAL, CHE_CLUSTER_KIND_PLURAL, CHE_CLUSTER_RESTORE_KIND_PLURAL, DEFAULT_CHE_TLS_SECRET_NAME, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, DEVFILE_WORKSPACE_API_GROUP, DEVFILE_WORKSPACE_API_VERSION, DEVFILE_WORKSPACE_KIND_PLURAL, OLM_STABLE_CHANNEL_NAME } from '../constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL, DEFAULT_CHE_TLS_SECRET_NAME, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, DEVFILE_WORKSPACE_API_GROUP, DEVFILE_WORKSPACE_API_VERSION, DEVFILE_WORKSPACE_KIND_PLURAL, OLM_STABLE_CHANNEL_NAME } from '../constants'
 import { base64Encode, getClusterClientCommand, getImageNameAndTag, isKubernetesPlatformFamily, newError, safeLoadFromYamlFile } from '../util'
 import { ChectlContext, OLM } from './context'
-import { V1CheClusterBackup, V1CheClusterRestore } from './types/backup-restore-crds'
 import { V1Certificate } from './types/cert-manager'
 import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './types/olm'
 import { IdentityProvider, OAuth } from './types/openshift'
@@ -1909,40 +1908,6 @@ export class KubeHelper {
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
-  }
-
-  async recreateBackupCr(namespace: string, name: string, backupServerConfigName?: string): Promise<V1CheClusterBackup> {
-    const backupCr: V1CheClusterBackup = {
-      apiVersion: `${CHE_CLUSTER_API_GROUP}/${CHE_CLUSTER_API_VERSION}`,
-      kind: 'CheClusterBackup',
-      spec: {},
-    }
-    backupCr.metadata = new V1ObjectMeta()
-    backupCr.metadata.name = name
-    backupCr.metadata.namespace = namespace
-    if (backupServerConfigName) {
-      backupCr.spec.backupServerConfigRef = backupServerConfigName
-      backupCr.spec.useInternalBackupServer = false
-    } else {
-      backupCr.spec.useInternalBackupServer = true
-    }
-
-    return this.recreateCheGroupCr(backupCr, CHE_CLUSTER_BACKUP_KIND_PLURAL)
-  }
-
-  async recreateRestoreCr(namespace: string, name: string, backupServerConfigName?: string, snapshotId?: string): Promise<V1CheClusterBackup> {
-    const restoreCr: V1CheClusterRestore = {
-      apiVersion: `${CHE_CLUSTER_API_GROUP}/${CHE_CLUSTER_API_VERSION}`,
-      kind: 'CheClusterRestore',
-      spec: {},
-    }
-    restoreCr.metadata = new V1ObjectMeta()
-    restoreCr.metadata.name = name
-    restoreCr.metadata.namespace = namespace
-    restoreCr.spec.backupServerConfigRef = backupServerConfigName
-    restoreCr.spec.snapshotId = snapshotId
-
-    return this.recreateCheGroupCr(restoreCr, CHE_CLUSTER_RESTORE_KIND_PLURAL)
   }
 
   async isPreInstalledOLM(): Promise<boolean> {
