@@ -105,14 +105,8 @@
       "@oclif/plugin-update"
     ],
     "topics": {
-      "auth": {
-        "description": "Manage Eclipse Che server login sessions"
-      },
       "server": {
         "description": "Control Eclipse Che server"
-      },
-      "workspace": {
-        "description": "Control Che workspaces"
       }
     },
     "update": {
