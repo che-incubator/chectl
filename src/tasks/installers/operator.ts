@@ -19,7 +19,7 @@ import * as path from 'path'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { CHE_BACKUP_SERVER_CONFIG_CRD, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_BACKUP_CRD, CHE_CLUSTER_CRD, CHE_CLUSTER_KIND_PLURAL, CHE_CLUSTER_RESTORE_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME, OPERATOR_TEMPLATE_DIR } from '../../constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_CRD, CHE_CLUSTER_KIND_PLURAL, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME, OPERATOR_TEMPLATE_DIR } from '../../constants'
 import { getImageNameAndTag, safeLoadFromYamlFile } from '../../util'
 import { KubeTasks } from '../kube'
 import { isDevWorkspaceEnabled } from '../../util'
@@ -186,45 +186,6 @@ export class OperatorTasks {
         },
       },
       {
-        title: 'Create backup and restore CRDs',
-        task: async (ctx: any, task: any) => {
-          const backupServerConfigCrdExist = await kube.getCrd(CHE_BACKUP_SERVER_CONFIG_CRD)
-          const backupCrdExist = await kube.getCrd(CHE_CLUSTER_BACKUP_CRD)
-          const restoreCrdExist = await kube.getCrd(CHE_CLUSTER_RESTORE_CRD)
-          if (backupCrdExist && restoreCrdExist) {
-            task.title = `${task.title}...already exist.`
-            return
-          }
-
-          let done = false
-          const [backupServerConfigFileName, backupCrdFileName, restoreCrdFileName] = await this.getBackupRestoreCrdFilesNames(kube)
-
-          const backupServerConfigPath = path.join(ctx.resourcesPath, 'crds', backupServerConfigFileName)
-          if (!backupServerConfigCrdExist && fs.existsSync(backupServerConfigPath)) {
-            await kube.createCrdFromFile(backupServerConfigPath)
-            done = true
-          }
-
-          const backupCrdPath = path.join(ctx.resourcesPath, 'crds', backupCrdFileName)
-          if (!backupCrdExist && fs.existsSync(backupCrdPath)) {
-            await kube.createCrdFromFile(backupCrdPath)
-            done = true
-          }
-
-          const restoreCrdPath = path.join(ctx.resourcesPath, 'crds', restoreCrdFileName)
-          if (!restoreCrdExist && fs.existsSync(restoreCrdPath)) {
-            await kube.createCrdFromFile(restoreCrdPath)
-            done = true
-          }
-
-          if (done) {
-            task.title = `${task.title}...done.`
-          } else {
-            task.title = `${task.title}...skipped.`
-          }
-        },
-      },
-      {
         title: 'Waiting 5 seconds for the new Kubernetes resources to get flushed',
         task: async (_ctx: any, task: any) => {
           await cli.wait(5000)
@@ -367,55 +328,6 @@ export class OperatorTasks {
         },
       },
       {
-        title: 'Updating backup and restore CRDs',
-        task: async (ctx: any, task: any) => {
-          const [backupServerConfigFileName, backupCrdFileName, restoreCrdFileName] = await this.getBackupRestoreCrdFilesNames(kube)
-
-          const existedBackupServerConfigCRD = await kube.getCrd(CHE_BACKUP_SERVER_CONFIG_CRD)
-          const newBackupServerConfigCRDPath = path.join(ctx.resourcesPath, 'crds', backupServerConfigFileName)
-          if (fs.existsSync(newBackupServerConfigCRDPath)) {
-            if (existedBackupServerConfigCRD) {
-              if (!existedBackupServerConfigCRD.metadata || !existedBackupServerConfigCRD.metadata.resourceVersion) {
-                throw new Error(`Fetched CRD ${CHE_BACKUP_SERVER_CONFIG_CRD} without resource version`)
-              }
-              await kube.replaceCrdFromFile(newBackupServerConfigCRDPath, existedBackupServerConfigCRD.metadata.resourceVersion)
-            } else {
-              await kube.createCrdFromFile(newBackupServerConfigCRDPath)
-            }
-          }
-
-          const existedBackupCRD = await kube.getCrd(CHE_CLUSTER_BACKUP_CRD)
-          const newBackupCRDPath = path.join(ctx.resourcesPath, 'crds', backupCrdFileName)
-          if (fs.existsSync(newBackupCRDPath)) {
-            if (existedBackupCRD) {
-              if (!existedBackupCRD.metadata || !existedBackupCRD.metadata.resourceVersion) {
-                throw new Error(`Fetched CRD ${CHE_CLUSTER_BACKUP_CRD} without resource version`)
-              }
-              await kube.replaceCrdFromFile(newBackupCRDPath, existedBackupCRD.metadata.resourceVersion)
-            } else {
-              await kube.createCrdFromFile(newBackupCRDPath)
-            }
-          }
-
-          const existedRestoreCRD = await kube.getCrd(CHE_CLUSTER_RESTORE_CRD)
-          const newRestoreCRDPath = path.join(ctx.resourcesPath, 'crds', restoreCrdFileName)
-          if (fs.existsSync(newRestoreCRDPath)) {
-            if (existedRestoreCRD) {
-              if (!existedRestoreCRD.metadata || !existedRestoreCRD.metadata.resourceVersion) {
-                throw new Error(`Fetched CRD ${CHE_CLUSTER_RESTORE_CRD} without resource version`)
-              }
-              await kube.replaceCrdFromFile(newRestoreCRDPath, existedRestoreCRD.metadata.resourceVersion)
-              task.title = `${task.title}...updated.`
-            } else {
-              await kube.createCrdFromFile(newRestoreCRDPath)
-              task.title = `${task.title}...created new one.`
-            }
-          } else {
-            task.title = `${task.title}...skipped.`
-          }
-        },
-      },
-      {
         title: 'Waiting 5 seconds for the new Kubernetes resources to get flushed',
         task: async (_ctx: any, task: any) => {
           await cli.wait(5000)
@@ -510,9 +422,6 @@ export class OperatorTasks {
           task.title = `${task.title}...Skipped: another Eclipse Che deployment found.`
         } else {
           await kh.deleteCrd(CHE_CLUSTER_CRD)
-          await kh.deleteCrd(CHE_CLUSTER_BACKUP_CRD)
-          await kh.deleteCrd(CHE_CLUSTER_RESTORE_CRD)
-          await kh.deleteCrd(CHE_BACKUP_SERVER_CONFIG_CRD)
           task.title = `${task.title}...OK`
         }
       },
@@ -604,24 +513,6 @@ export class OperatorTasks {
     }
 
     return path.join(ctx.resourcesPath, 'crds', 'org_v1_che_crd.yaml')
-  }
-
-  // Delete this method and use default v1 CRDs when Openshift 3.x support dropped
-  private async getBackupRestoreCrdFilesNames(kube: KubeHelper): Promise<[string, string, string]> {
-    let backupServerConfigFileName: string
-    let backupCrdFileName: string
-    let restoreCrdFileName: string
-    if (!await kube.IsAPIExtensionSupported('v1')) {
-      // Needed for Openshift 3.x
-      backupServerConfigFileName = 'org.eclipse.che_chebackupserverconfigurations_crd-v1beta1.yaml'
-      backupCrdFileName = 'org.eclipse.che_checlusterbackups_crd-v1beta1.yaml'
-      restoreCrdFileName = 'org.eclipse.che_checlusterrestores_crd-v1beta1.yaml'
-    } else {
-      backupServerConfigFileName = 'org.eclipse.che_chebackupserverconfigurations_crd.yaml'
-      backupCrdFileName = 'org.eclipse.che_checlusterbackups_crd.yaml'
-      restoreCrdFileName = 'org.eclipse.che_checlusterrestores_crd.yaml'
-    }
-    return [backupServerConfigFileName, backupCrdFileName, restoreCrdFileName]
   }
 
   /**

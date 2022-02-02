@@ -32,7 +32,7 @@ function prepareTemplates() {
                     return true
                 }
             } else {
-                var dirName = path.basename(src) 
+                var dirName = path.basename(src)
                 if (dirName === 'rbac') {
                     return true
                 }
@@ -43,9 +43,6 @@ function prepareTemplates() {
         fs.copySync(path.join(configFolder, 'manager', 'manager.yaml'), path.join(cheOperatorTemplates, 'operator.yaml'))
         fs.copySync(path.join(configFolder, 'crd', 'bases'), path.join(cheOperatorTemplates, 'crds'))
         fs.copySync(path.join(configFolder, 'samples', 'org.eclipse.che_v1_checluster.yaml'), path.join(cheOperatorTemplates, 'crds', 'org_v1_che_cr.yaml'))
-        fs.copySync(path.join(configFolder, 'samples', 'org_v1_chebackupserverconfiguration.yaml'), path.join(cheOperatorTemplates, 'crds', 'org.eclipse.che_v1_chebackupserverconfiguration_cr.yaml'))
-        fs.copySync(path.join(configFolder, 'samples', 'org_v1_checlusterbackup.yaml'), path.join(cheOperatorTemplates, 'crds', 'org.eclipse.che_v1_checlusterbackup_cr.yaml'))
-        fs.copySync(path.join(configFolder, 'samples', 'org_v1_checlusterrestore.yaml'), path.join(cheOperatorTemplates, 'crds', 'org.eclipse.che_v1_checlusterrestore_cr.yaml'))
     } else {
         throw new Error("Unable to prepare che-operator templates")
     }

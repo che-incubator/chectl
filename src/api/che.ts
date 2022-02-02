@@ -349,9 +349,6 @@ export class CheHelper {
       fs.moveSync(path.join(destDir, 'rbac', 'cluster_rolebinding.yaml'), path.join(destDir, 'cluster_rolebinding.yaml'))
       fs.moveSync(path.join(destDir, 'crd', 'bases'), path.join(destDir, 'crds'))
       fs.moveSync(path.join(destDir, 'samples', 'org.eclipse.che_v1_checluster.yaml'), path.join(destDir, 'crds', 'org_v1_che_cr.yaml'))
-      fs.moveSync(path.join(destDir, 'samples', 'org_v1_chebackupserverconfiguration.yaml'), path.join(destDir, 'crds', 'org.eclipse.che_v1_chebackupserverconfiguration_cr.yaml'))
-      fs.moveSync(path.join(destDir, 'samples', 'org_v1_checlusterbackup.yaml'), path.join(destDir, 'crds', 'org.eclipse.che_v1_checlusterbackup_cr.yaml'))
-      fs.moveSync(path.join(destDir, 'samples', 'org_v1_checlusterrestore.yaml'), path.join(destDir, 'crds', 'org.eclipse.che_v1_checlusterrestore_cr.yaml'))
     }
   }
 
