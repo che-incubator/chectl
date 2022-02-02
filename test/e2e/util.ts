@@ -20,7 +20,7 @@ import { CheHelper } from '../../src/api/che'
 import { CheGithubClient, TagInfo } from '../../src/api/github-client'
 import { KubeHelper } from '../../src/api/kube'
 import { OpenShiftHelper } from '../../src/api/openshift'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
+import { DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
 
 // Fields which chectl returns for workspace:list commands
 interface WorkspaceInfo {
