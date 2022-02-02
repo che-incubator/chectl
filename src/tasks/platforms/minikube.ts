@@ -179,7 +179,7 @@ export class MinikubeTasks {
           args.push('--extra-config=apiserver.oidc-groups-claim=groups')
           args.push('start')
 
-          await execa('minikube', args, { timeout: 60000 })
+          await execa('minikube', args, { timeout: 180000 })
 
           task.title = `${task.title}...[OK]`
         },
@@ -187,8 +187,9 @@ export class MinikubeTasks {
       {
         title: 'Wait for Minikube API server',
         task: async (_ctx: any, task: any) => {
-          const kube = new KubeHelper(flags)
           await sleep(30 * 1000)
+
+          const kube = new KubeHelper(flags)
           await kube.waitForPodReady('component=kube-apiserver', 'kube-system')
 
           task.title = `${task.title}...[OK]`
