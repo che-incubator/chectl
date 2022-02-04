@@ -2171,7 +2171,7 @@ export class KubeHelper {
     }
   }
 
-  async waitInstalledCSV(namespace: string, subscriptionName: string, timeout = AWAIT_TIMEOUT_S): Promise<string> {
+  async waitInstalledCSVInSubscription(namespace: string, subscriptionName: string, timeout = AWAIT_TIMEOUT_S): Promise<string> {
     return new Promise<string>(async (resolve, reject) => {
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
@@ -2191,6 +2191,30 @@ export class KubeHelper {
       setTimeout(() => {
         request.abort()
         reject(`Timeout reached while waiting for installed CSV of '${subscriptionName}' subscription.`)
+      }, timeout * 1000)
+    })
+  }
+
+  async waitCSVStatusPhase(namespace: string, csvName: string, timeout = AWAIT_TIMEOUT_S): Promise<string> {
+    return new Promise<string>(async (resolve, reject) => {
+      const watcher = new Watch(this.kubeConfig)
+      const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/clusterserviceversions`,
+        { fieldSelector: `metadata.name=${csvName}` },
+        (_phase: string, obj: any) => {
+          const csv = obj as ClusterServiceVersion
+          if (csv.status && csv.status.phase) {
+            resolve(csv.status.phase)
+          }
+        },
+        error => {
+          if (error) {
+            reject(error)
+          }
+        })
+
+      setTimeout(() => {
+        request.abort()
+        reject(`Timeout reached while waiting CSV '${csvName}' status.`)
       }, timeout * 1000)
     })
   }
@@ -2315,12 +2339,28 @@ export class KubeHelper {
     })
   }
 
-  async getCSV(csvName: string, namespace: string): Promise<ClusterServiceVersion | undefined> {
-    const csvs = await this.getClusterServiceVersions(namespace)
-    return csvs.items.find(item => item.metadata.name === csvName)
+  async getCSV(name: string, namespace: string): Promise<ClusterServiceVersion | undefined> {
+    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions', name)
+      return body as ClusterServiceVersion
+    } catch (e) {
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
+    }
   }
 
-  async getClusterServiceVersions(namespace: string): Promise<ClusterServiceVersionList> {
+  async getCSVWithPrefix(namePrefix: string, namespace: string): Promise<ClusterServiceVersion[]> {
+    try {
+      const csvs = await this.getAllCSV(namespace)
+      return csvs.items.filter(csv => csv.metadata.name!.startsWith(namePrefix))
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async getAllCSV(namespace: string): Promise<ClusterServiceVersionList> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions')
