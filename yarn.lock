@@ -2106,10 +2106,10 @@ cli-ux@5.6.7, cli-ux@^5.5.1:
     supports-hyperlinks "^2.1.0"
     tslib "^2.0.0"
 
-cli-ux@^6.0.6, cli-ux@^6.0.8:
-  version "6.0.8"
-  resolved "https://registry.yarnpkg.com/cli-ux/-/cli-ux-6.0.8.tgz#a3943e889df827ceab2ffbe3e46c1fff194099e9"
-  integrity sha512-ERJ61QDVS1fqnWhzp3cPFHbfucmkzWh/K6SlMlf5GweIb0wB4G/wtZiAeWK6TOTSFXGQdGczVHzWrG1BMqTmSw==
+cli-ux@^6.0.6, cli-ux@^6.0.9:
+  version "6.0.9"
+  resolved "https://registry.yarnpkg.com/cli-ux/-/cli-ux-6.0.9.tgz#b5ab690314348b45b2c7458dad7621ae1be7c61d"
+  integrity sha512-0Ku29QLf+P6SeBNWM7zyoJ49eKKOjxZBZ4OH2aFeRtC0sNXU3ftdJxQPKJ1SJ+axX34I1NsfTFahpXdnxklZgA==
   dependencies:
     "@oclif/core" "^1.1.1"
     "@oclif/linewrap" "^1.0.0"
