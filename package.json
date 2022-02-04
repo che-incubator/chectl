@@ -13,7 +13,7 @@
     "@oclif/config": "^1",
     "@oclif/parser": "^3.8.6",
     "@oclif/plugin-autocomplete": "^1.1.1",
-    "@oclif/plugin-help": "^3",
+    "@oclif/plugin-help": "^5",
     "@oclif/plugin-update": "^1.5.0",
     "@octokit/rest": "^18.12.0",
     "analytics-node": "^6.0.0",
