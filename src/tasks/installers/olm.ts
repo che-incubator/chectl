@@ -218,13 +218,14 @@ export class OLMTasks {
       {
         title: 'Check cluster service version resource',
         task: async (ctx: any, task: any) => {
-          const installedCSV = await this.kube.waitInstalledCSV(ctx.operatorNamespace, ctx.subscriptionName)
-          const csv = await this.kube.getCSV(installedCSV, ctx.operatorNamespace)
-          if (!csv) {
-            throw new Error(`cluster service version resource ${installedCSV} not found`)
-          }
-          if (csv.status.phase === 'Failed') {
-            throw new Error(`cluster service version resource failed. Cause: ${csv.status.message}. Reason: ${csv.status.reason}.`)
+          const installedCSVName = await this.kube.waitInstalledCSVInSubscription(ctx.operatorNamespace, ctx.subscriptionName)
+          const phase = await this.kube.waitCSVStatusPhase(ctx.operatorNamespace, installedCSVName)
+          if (phase === 'Failed') {
+            const csv = await this.kube.getCSV(installedCSVName, ctx.operatorNamespace)
+            if (!csv) {
+              throw new Error(`Cluster service version '${installedCSVName}' not found.`)
+            }
+            throw new Error(`Cluster service version resource failed, cause: ${csv.status.message}, reason: ${csv.status.reason}.`)
           }
           task.title = `${task.title}...[OK]`
         },
@@ -232,14 +233,13 @@ export class OLMTasks {
       {
         title: TASK_TITLE_SET_CUSTOM_OPERATOR_IMAGE,
         enabled: () => flags['che-operator-image'],
-        task: async (_ctx: any, task: any) => {
-          const csvList = await this.kube.getClusterServiceVersions(flags.chenamespace)
-          if (csvList.items.length < 1) {
-            throw new Error('Failed to get CSV for Che operator')
+        task: async (ctx: any, task: any) => {
+          const csvs = await this.kube.getCSVWithPrefix(CSV_PREFIX, ctx.operatorNamespace)
+          if (csvs.length !== 1) {
+            throw new Error('Eclipse Che operator CSV not found.')
           }
-          const csv = csvList.items[0]
           const jsonPatch = [{ op: 'replace', path: '/spec/install/spec/deployments/0/spec/template/spec/containers/0/image', value: flags['che-operator-image'] }]
-          await this.kube.patchClusterServiceVersion(csv.metadata.namespace!, csv.metadata.name!, jsonPatch)
+          await this.kube.patchClusterServiceVersion(csvs[0].metadata.namespace!, csvs[0].metadata.name!, jsonPatch)
           task.title = `${task.title}...[OK]`
         },
       },
@@ -419,9 +419,8 @@ export class OLMTasks {
         title: 'Delete Eclipse Che cluster service versions',
         enabled: ctx => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
-          const csvs = await kube.getClusterServiceVersions(ctx.operatorNamespace)
-          const csvsToDelete = csvs.items.filter(csv => csv.metadata.name!.startsWith(CSV_PREFIX))
-          for (const csv of csvsToDelete) {
+          const csvs = await kube.getCSVWithPrefix(CSV_PREFIX, ctx.operatorNamespace)
+          for (const csv of csvs) {
             await kube.deleteClusterServiceVersion(ctx.operatorNamespace, csv.metadata.name!)
           }
           task.title = `${task.title}...[OK]`

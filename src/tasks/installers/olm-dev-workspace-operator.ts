@@ -93,12 +93,13 @@ export class OLMDevWorkspaceTasks {
         title: 'Wait Dev Workspace CSV',
         enabled: ctx => !ctx[DevWorkspaceContextKeys.IS_DEV_WORKSPACE_INSTALLED_VIA_OPERATOR_HUB],
         task: async (_ctx: any, task: any) => {
-          const installedCSV = await this.kube.waitInstalledCSV(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, this.DEV_WORKSPACE_OPERATOR_SUBSCRIPTION)
-          const csv = await this.kube.getCSV(installedCSV, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
-          if (!csv) {
-            throw new Error(`Cluster service version resource ${installedCSV} not found`)
-          }
-          if (csv.status.phase === 'Failed') {
+          const installedCSVName = await this.kube.waitInstalledCSVInSubscription(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, this.DEV_WORKSPACE_OPERATOR_SUBSCRIPTION)
+          const phase = await this.kube.waitCSVStatusPhase(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, installedCSVName)
+          if (phase === 'Failed') {
+            const csv = await this.kube.getCSV(installedCSVName, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+            if (!csv) {
+              throw new Error(`Cluster service version '${installedCSVName}' not found.`)
+            }
             throw new Error(`Cluster service version resource failed for Dev Workspace operator, cause: ${csv.status.message}, reason: ${csv.status.reason}.`)
           }
           task.title = `${task.title}...[OK]`
@@ -119,9 +120,8 @@ export class OLMDevWorkspaceTasks {
       {
         title: 'Delete Dev Workspace operator CSV',
         task: async (_ctx: any, task: any) => {
-          const csvs = await this.kube.getClusterServiceVersions(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
-          const csvsToDelete = csvs.items.filter(csv => csv.metadata.name!.startsWith(DEVWORKSPACE_CSV_PREFIX))
-          for (const csv of csvsToDelete) {
+          const csvs = await this.kube.getCSVWithPrefix(DEVWORKSPACE_CSV_PREFIX, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+          for (const csv of csvs) {
             await this.kube.deleteClusterServiceVersion(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, csv.metadata.name!)
           }
           task.title = `${task.title}...[OK]`
@@ -200,8 +200,7 @@ export class OLMDevWorkspaceTasks {
       return false
     }
 
-    const csvAll = await this.kube.getClusterServiceVersions(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
-    const devWorkspaceCSVs = csvAll.items.filter(csv => csv.metadata.name!.startsWith(DEVWORKSPACE_CSV_PREFIX))
-    return devWorkspaceCSVs.length > 0
+    const csvs = await this.kube.getCSVWithPrefix(DEVWORKSPACE_CSV_PREFIX, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+    return csvs.length > 0
   }
 }
