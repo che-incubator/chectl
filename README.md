@@ -70,9 +70,6 @@ running command...
 $ chectl server:stop
 running command...
 
-$ chectl workspace:start --devfile
-running command...
-
 $ chectl --help [COMMAND]
 USAGE
   $ chectl COMMAND
