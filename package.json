@@ -51,7 +51,7 @@
     "@types/jest": "27.4.0",
     "@types/js-yaml": "^4.0.5",
     "@types/listr": "^0.14.4",
-    "@types/node": "^16",
+    "@types/node": "^17",
     "@types/node-forge": "^1.0.0",
     "@types/node-notifier": "^8.0.2",
     "@types/rimraf": "^3.0.2",
