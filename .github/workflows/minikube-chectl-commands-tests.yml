@@ -53,6 +53,8 @@ jobs:
       uses: che-incubator/setup-minikube-action@next
       with:
         minikube-version: v1.23.2
+    - name: Install chectl from the stable channel
+      run: bash <(curl -sL  https://www.eclipse.org/che/chectl/) --channel=stable
     - name: Install NodeJS
       uses: actions/setup-node@v2.1.2
       with:

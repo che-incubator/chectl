@@ -17,7 +17,6 @@ import * as execa from 'execa'
 import { DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
 import { E2eHelper } from './util'
 
-const helper = new E2eHelper()
 jest.setTimeout(1000000)
 
 const binChectl = E2eHelper.getChectlBinaries()
@@ -28,14 +27,7 @@ const PLATFORM = process.env.PLATFORM || ''
 const INSTALLER = process.env.INSTALLER || ''
 
 function getDeployCommand(): string {
-  let command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off`
-
-  const cheVersion = helper.getNewVersion()
-  if (cheVersion != 'next') {
-    command = command + ` --version=${cheVersion}`
-  }
-
-  return command
+  return `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off`
 }
 
 describe(`server:deploy using ${INSTALLER} installer`, () => {

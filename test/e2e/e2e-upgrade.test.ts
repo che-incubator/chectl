@@ -30,10 +30,9 @@ describe('Test Che upgrade', () => {
 
   describe('Prepare latest stable Che', () => {
     it(`Deploy Che using ${INSTALLER} installer and self signed certificates`, async () => {
-      // Retrieve latest stable Che version
-      cheVersion = await helper.getLatestReleasedVersion()
-
-      const deployCommand = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --version=${cheVersion} --chenamespace=${NAMESPACE} --telemetry=off`
+      // uses installed chectl (from a stable channel)
+      // see github workflow
+      const deployCommand = `chectl server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off`
       await helper.runCliCommand(deployCommand)
 
       await helper.waitForVersionInCheCR(cheVersion, CHE_VERSION_TIMEOUT_MS)

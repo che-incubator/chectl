@@ -17,15 +17,11 @@ import * as os from 'os'
 import * as Listr from 'listr'
 import { isEmpty } from 'lodash'
 import * as path from 'path'
-import * as semver from 'semver'
 
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
-import { CheGithubClient } from '../../api/github-client'
 import { KubeHelper } from '../../api/kube'
-import { VersionHelper } from '../../api/version'
-import { CHE_CLUSTER_CRD, DEFAULT_CA_CERT_FILE_NAME, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER, OPERATOR_TEMPLATE_DIR } from '../../constants'
-import { getProjectVersion } from '../../util'
+import { CHE_CLUSTER_CRD, DEFAULT_CA_CERT_FILE_NAME, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
 
 export const TASK_TITLE_CREATE_CHE_CLUSTER_CRD = `Create the Custom Resource of type ${CHE_CLUSTER_CRD}`
 export const TASK_TITLE_PATCH_CHECLUSTER_CR = `Patching the Custom Resource of type ${CHE_CLUSTER_CRD}`
@@ -45,72 +41,6 @@ export function createNamespaceTask(namespaceName: string, labels: {}): Listr.Li
         await kube.waitNamespaceActive(namespaceName)
         task.title = `${task.title}...[OK]`
       }
-    },
-  }
-}
-
-export function checkChectlAndCheVersionCompatibility(flags: any): Listr.ListrTask {
-  return {
-    title: 'Check versions compatibility',
-    enabled: ctx => ctx.isChectl && !flags.templates && flags.version && flags.installer !== 'olm',
-    task: async (ctx: any, task: any) => {
-      const githubClient = new CheGithubClient()
-      const verInfo = await githubClient.getTemplatesTagInfo(flags.installer, flags.version)
-      if (!verInfo) {
-        throw new Error(`Version ${flags.version} does not exist`)
-      }
-      ctx.versionInfo = verInfo
-      flags.version = VersionHelper.removeVPrefix(verInfo.name, true)
-
-      if (!ctx.isDevVersion && semver.lt(getProjectVersion(), flags.version)) {
-        throw new Error(`To deploy Eclipse Che ${flags.version}, please update your chectl first by running "chectl update".`)
-      }
-
-      task.title = `${task.title}... OK`
-    },
-  }
-}
-
-/**
- * Sets flags.templates based on required version and installer.
- * Does not support OLM.
- */
-export function downloadTemplates(flags: any): Listr.ListrTask {
-  return {
-    title: 'Download templates',
-    enabled: ctx => ctx.isChectl && flags.version && !flags.templates && flags.installer !== 'olm',
-    task: async (ctx: any, task: any) => {
-      // All templates are stored in the cache directory
-      // Example path: ~/.cache/chectl/templates/7.15.1/
-      const templatesRootDir = path.join(ctx[ChectlContext.CACHE_DIR], 'templates')
-
-      let installerTemplatesSubDir: string
-      switch (flags.installer) {
-      case 'operator':
-        installerTemplatesSubDir = OPERATOR_TEMPLATE_DIR
-        break
-      case 'olm':
-        // Should be handled on install phase when catalog source is deployed
-        return
-      default:
-        throw new Error(`Unknow installer ${flags.installer}`)
-      }
-
-      const versionTemplatesDirPath = path.join(templatesRootDir, flags.version)
-      flags.templates = versionTemplatesDirPath
-
-      const installerTemplatesDirPath = path.join(versionTemplatesDirPath, installerTemplatesSubDir)
-      if (await fs.pathExists(installerTemplatesDirPath)) {
-        // Use cached templates
-        task.title = `${task.title}... found cached templates for version ${flags.version}`
-        return
-      }
-
-      // Download templates
-      task.title = `${task.title} for version ${flags.version}`
-      const cheHelper = new CheHelper(flags)
-      await cheHelper.downloadAndUnpackTemplates(flags.installer, ctx.versionInfo.zipball_url, versionTemplatesDirPath)
-      task.title = `${task.title} ... OK`
     },
   }
 }

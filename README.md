@@ -53,14 +53,24 @@ $ bash <(curl -sL  https://www.eclipse.org/che/chectl/)
 $ bash <(curl -sL  https://www.eclipse.org/che/chectl/) --channel=next
 ```
 
-Assemblies of chectl are available at [https://github.com/che-incubator/chectl/releases](https://github.com/che-incubator/chectl/releases)
-
 Manual install:
 
-1) Download a .tgz file based on your Operating System / Arch
+1) Download a .tgz file based on your Operating System / Arch from [https://github.com/che-incubator/chectl/releases](https://github.com/che-incubator/chectl/releases)
 2) Unpack the assembly
 3) Move `chectl` folder into a folder like `$HOME/chectl`
 4) Add alias `alias chectl=$HOME/chectl/bin/run`
+
+# Updating
+
+1) Download a .tgz file based on your Operating System / Arch from [https://github.com/che-incubator/chectl/releases](https://github.com/che-incubator/chectl/releases)
+2) Unpack the assembly into a local repository
+```bash
+CHECTL_VERSION=<DOWNLOADED_CHECTL_VERSION>
+XDG_DATA_HOME=${XDG_DATA_HOME:="$(cd && pwd)/.local/share"}
+mkdir ${XDG_DATA_HOME}/chectl/client/${CHECTL_VERSION}
+tar -xzf <DOWNLOADED_CHECTL_BINARIES> -C ~/.local/share/chectl/client/${CHECTL_VERSION} --strip-components=1
+```
+3) Update `chectl` from the local repository `chect update --from-local` by prompting the downloaded version
 
 # Usage
 ```sh-session
@@ -268,9 +278,6 @@ OPTIONS
 
   -t, --templates=templates
       Path to the templates folder
-
-  -v, --version=version
-      Version to deploy (e.g. 7.15.2). Defaults to the same as chectl.
 
   --[no-]auto-update
       Auto update approval strategy for installation Eclipse Che.
@@ -486,9 +493,6 @@ OPTIONS
   -h, --help                                               show CLI help
   -n, --chenamespace=chenamespace                          Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
   -t, --templates=templates                                Path to the templates folder
-
-  -v, --version=version                                    Version to deploy (e.g. 7.15.2). Defaults to the same as
-                                                           chectl.
 
   -y, --yes                                                Automatic yes to prompts; assume "yes" as answer to all
                                                            prompts and run non-interactively
