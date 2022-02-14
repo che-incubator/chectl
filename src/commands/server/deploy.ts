@@ -447,7 +447,14 @@ function ensureOIDCProviderInstalled(flags: any): Listr.ListrTask {
         }
         for (const container of pod.spec.containers) {
           if (container.command) {
-            if (container.command.some(value => value.includes(OIDCContextKeys.ISSUER_URL) && value.includes(OIDCContextKeys.CLIENT_ID))) {
+            if (container.command.some(value => value.includes(OIDCContextKeys.ISSUER_URL)) && container.command.some(value => value.includes(OIDCContextKeys.CLIENT_ID))) {
+              task.title = `${task.title}...OK`
+              return
+            }
+          }
+
+          if (container.args) {
+            if (container.args.some(value => value.includes(OIDCContextKeys.ISSUER_URL)) && container.args.some(value => value.includes(OIDCContextKeys.CLIENT_ID))) {
               task.title = `${task.title}...OK`
               return
             }
