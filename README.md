@@ -19,6 +19,7 @@ Issues are tracked on the main Eclipse Che Repository: https://github.com/eclips
 
 <!-- toc -->
 * [Installation](#installation)
+* [Updating](#updating)
 * [Usage](#usage)
 * [Commands](#commands)
 * [Contributing](#contributing)
