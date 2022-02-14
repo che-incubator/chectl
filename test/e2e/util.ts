@@ -14,7 +14,6 @@ import { Octokit } from '@octokit/rest'
 import * as execa from 'execa'
 import { spawn } from 'child_process'
 import * as fs from 'fs-extra'
-import * as semver from 'semver'
 
 import { CheHelper } from '../../src/api/che'
 import { CheGithubClient, TagInfo } from '../../src/api/github-client'
