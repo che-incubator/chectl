@@ -14,19 +14,18 @@ import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
-import * as semver from 'semver'
 import { ChectlContext, OIDCContextKeys, OLM } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, DOC_LINK_CONFIGURE_API_SERVER, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION } from '../../constants'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, DOC_LINK_CONFIGURE_API_SERVER } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { DexTasks } from '../../tasks/component-installers/dex'
-import { checkChectlAndCheVersionCompatibility, createNamespaceTask, downloadTemplates, getPrintHighlightedMessagesTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
+import { createNamespaceTask, getPrintHighlightedMessagesTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, getTlsSupport, isDevWorkspaceEnabled, isKubernetesPlatformFamily, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getTlsSupport, getWarnVersionFlagMsg, isDevWorkspaceEnabled, isKubernetesPlatformFamily, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Deploy extends Command {
   static description = 'Deploy Eclipse Che server'
@@ -218,11 +217,7 @@ export default class Deploy extends Command {
       cli.info(` ❕olm-suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
     }
 
-    if (!ctx.isChectl && flags.version) {
-      // Flavors of chectl should not use upstream repositories, so version flag is not applicable
-      this.error(`${getProjectName()} does not support '--version' flag.`)
-    }
-    if (!flags.templates && !flags.version) {
+    if (!flags.templates) {
       // Use build-in templates if no custom templates nor version to deploy specified.
       // All flavors should use embedded templates if not custom templates is given.
       flags.templates = getEmbeddedTemplatesDirectory()
@@ -263,14 +258,6 @@ export default class Deploy extends Command {
       if (flags[OLM.CATALOG_SOURCE_NAME] && flags[OLM.CATALOG_SOURCE_YAML]) {
         this.error(`should be provided only one argument: "${OLM.CATALOG_SOURCE_NAME}" or "${OLM.CATALOG_SOURCE_YAML}"`)
       }
-      if (flags.version) {
-        if (flags[OLM.STARTING_CSV]) {
-          this.error(`"${OLM.STARTING_CSV}" and "version" flags are mutually exclusive. Please specify only one of them.`)
-        }
-        if (flags[OLM.AUTO_UPDATE]) {
-          this.error(`enabled "${OLM.AUTO_UPDATE}" flag cannot be used with version flag. Deploy latest version instead.`)
-        }
-      }
 
       if (!flags[OLM.PACKAGE_MANIFEST_NAME] && flags[OLM.CATALOG_SOURCE_YAML]) {
         this.error(`you need to define "${OLM.PACKAGE_MANIFEST_NAME}" flag to use "${OLM.CATALOG_SOURCE_YAML}".`)
@@ -302,34 +289,6 @@ export default class Deploy extends Command {
         this.error('"cluster-monitoring" flag should be used only with "olm" installer and "openshift" platform.')
       }
     }
-
-    if (flags.version) {
-      // Check minimal allowed version to install
-      let minAllowedVersion: string
-      switch (flags.installer) {
-      case 'olm':
-        minAllowedVersion = MIN_OLM_INSTALLER_VERSION
-        break
-      case 'operator':
-        minAllowedVersion = MIN_CHE_OPERATOR_INSTALLER_VERSION
-        break
-      default:
-        // Should never happen
-        minAllowedVersion = 'latest'
-      }
-
-      let isVersionAllowed = false
-      try {
-        isVersionAllowed = semver.gte(flags.version, minAllowedVersion)
-      } catch (error) {
-        // not to fail unexpectedly
-        cli.debug(`Failed to compare versions '${flags.version}' and '${minAllowedVersion}': ${error}`)
-      }
-
-      if (!isVersionAllowed) {
-        throw new Error(`This chectl version can deploy version ${minAllowedVersion} and higher. If you need to deploy ${flags.version} or lower, download the corresponding legacy chectl version.`)
-      }
-    }
   }
 
   async run() {
@@ -339,6 +298,11 @@ export default class Deploy extends Command {
 
     if (!flags.batch && ctx.isChectl) {
       await askForChectlUpdateIfNeeded()
+    }
+
+    if (flags.version) {
+      cli.info(getWarnVersionFlagMsg(flags))
+      this.exit(1)
     }
 
     await this.setPlaformDefaults(flags, ctx)
@@ -362,8 +326,6 @@ export default class Deploy extends Command {
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags)),
     })
     preInstallTasks.add(ensureOIDCProviderInstalled(flags))
-    preInstallTasks.add(checkChectlAndCheVersionCompatibility(flags))
-    preInstallTasks.add(downloadTemplates(flags))
     preInstallTasks.add({
       title: '🧪  DevWorkspace engine',
       enabled: () => isDevWorkspaceEnabled(ctx) && !ctx.isOpenShift,

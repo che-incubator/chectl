@@ -19,7 +19,7 @@ import { OLM, OLMInstallationUpdate } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/types/olm'
 import { VersionHelper } from '../../api/version'
-import { CHECTL_PROJECT_NAME, CSV_PREFIX, CUSTOM_CATALOG_SOURCE_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, INDEX_IMG, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OLM_STABLE_CHANNEL_STARTING_CSV_TEMPLATE, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME } from '../../constants'
+import { CHECTL_PROJECT_NAME, CSV_PREFIX, CUSTOM_CATALOG_SOURCE_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, INDEX_IMG, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME } from '../../constants'
 import { getEmbeddedTemplatesDirectory, getProjectName, isKubernetesPlatformFamily } from '../../util'
 import { createEclipseCheCluster, patchingEclipseCheCluster } from './common-tasks'
 import { OLMDevWorkspaceTasks } from './olm-dev-workspace-operator'
@@ -60,27 +60,14 @@ export class OLMTasks {
           ctx.sourceName = flags[OLM.CATALOG_SOURCE_NAME] || CUSTOM_CATALOG_SOURCE_NAME
           ctx.generalPlatformName = isKubernetesPlatformFamily(flags.platform) ? 'kubernetes' : 'openshift'
 
-          if (flags.version) {
-            // Convert version flag to channel (see subscription object), starting CSV and approval starategy
-            flags.version = VersionHelper.removeVPrefix(flags.version, true)
-            // Need to point to specific CSV
-            if (flags[OLM.STARTING_CSV]) {
-              ctx.startingCSV = flags[OLM.STARTING_CSV]
-            } else if (flags[OLM.CHANNEL] === OLM_STABLE_CHANNEL_NAME) {
-              ctx.startingCSV = OLM_STABLE_CHANNEL_STARTING_CSV_TEMPLATE.replace(new RegExp('{{VERSION}}', 'g'), flags.version)
-            } // else use latest in the channel
-            // Set approval starategy to manual to prevent autoupdate to the latest version right before installation
+          ctx.startingCSV = flags[OLM.STARTING_CSV]
+          if (ctx.startingCSV) {
+            // Ignore auto-update flag, otherwise it will automatically update to the latest version and 'starting-csv' will not have any effect.
             ctx.approvalStrategy = OLMInstallationUpdate.MANUAL
+          } else if (flags[OLM.AUTO_UPDATE] === undefined) {
+            ctx.approvalStrategy = OLMInstallationUpdate.AUTO
           } else {
-            ctx.startingCSV = flags[OLM.STARTING_CSV]
-            if (ctx.startingCSV) {
-              // Ignore auto-update flag, otherwise it will automatically update to the latest version and 'starting-csv' will not have any effect.
-              ctx.approvalStrategy = OLMInstallationUpdate.MANUAL
-            } else if (flags[OLM.AUTO_UPDATE] === undefined) {
-              ctx.approvalStrategy = OLMInstallationUpdate.AUTO
-            } else {
-              ctx.approvalStrategy = flags[OLM.AUTO_UPDATE] ? OLMInstallationUpdate.AUTO : OLMInstallationUpdate.MANUAL
-            }
+            ctx.approvalStrategy = flags[OLM.AUTO_UPDATE] ? OLMInstallationUpdate.AUTO : OLMInstallationUpdate.MANUAL
           }
 
           task.title = `${task.title}...[OK]`

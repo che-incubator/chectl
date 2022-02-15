@@ -21,11 +21,11 @@ import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { assumeYes, batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OPERATOR_INSTALLER_VERSION, NEXT_TAG } from '../../constants'
-import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, NEXT_TAG } from '../../constants'
+import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { askForChectlUpdateIfNeeded, findWorkingNamespace, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, getProjectVersion, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import { askForChectlUpdateIfNeeded, findWorkingNamespace, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, getProjectVersion, getWarnVersionFlagMsg, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -88,6 +88,11 @@ export default class Update extends Command {
       await askForChectlUpdateIfNeeded()
     }
 
+    if (flags.version) {
+      cli.info(getWarnVersionFlagMsg(flags))
+      this.exit(1)
+    }
+
     await this.setDomainFlag(flags)
     if (!flags.installer) {
       await this.setDefaultInstaller(flags)
@@ -96,32 +101,10 @@ export default class Update extends Command {
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Update.id, flags })
 
-    if (!flags.templates && !flags.version) {
+    if (!flags.templates) {
       // Use build-in templates if no custom templates nor version to deploy specified.
       // All flavors should use embedded templates if not custom templates is given.
       flags.templates = getEmbeddedTemplatesDirectory()
-    }
-
-    if (flags.version) {
-      if (!ctx.isChectl) {
-        // Flavors of chectl should not use upstream repositories, so version flag is not appliable
-        this.error(`${getProjectName()} does not support '--version' flag.`)
-      }
-      if (flags.installer === 'olm') {
-        this.error(`'--${DEPLOY_VERSION_KEY}' flag is not supported for OLM installer. 'server:update' command automatically updates to the next available version.`)
-      }
-
-      let isVersionAllowed = false
-      try {
-        isVersionAllowed = semver.gte(flags.version, MIN_CHE_OPERATOR_INSTALLER_VERSION)
-      } catch (error) {
-        // not to fail unexpectedly
-        cli.debug(`Failed to compare versions '${flags.version}' and '${MIN_CHE_OPERATOR_INSTALLER_VERSION}': ${error}`)
-      }
-
-      if (flags.installer === 'operator' && !isVersionAllowed) {
-        throw new Error(this.getWrongVersionMessage(flags.version, MIN_CHE_OPERATOR_INSTALLER_VERSION))
-      }
     }
 
     const installerTasks = new InstallerTasks()
@@ -130,8 +113,6 @@ export default class Update extends Command {
     const apiTasks = new ApiTasks()
     const preUpdateTasks = new Listr([], ctx.listrOptions)
     preUpdateTasks.add(apiTasks.testApiTasks(flags))
-    preUpdateTasks.add(checkChectlAndCheVersionCompatibility(flags))
-    preUpdateTasks.add(downloadTemplates(flags))
     preUpdateTasks.add(installerTasks.preUpdateTasks(flags, this))
 
     // update tasks
@@ -371,9 +352,5 @@ export default class Update extends Command {
     } else {
       flags.installer = 'operator'
     }
-  }
-
-  private getWrongVersionMessage(current: string, minimal: string): string {
-    return `This chectl version can deploy ${minimal} version and higher, but ${current} is provided. If you really need to deploy that old version, please download corresponding legacy chectl version.`
   }
 }

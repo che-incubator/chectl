@@ -309,8 +309,8 @@ export namespace VersionHelper {
   /**
    * Indicates if stable version of Eclipse Che is specified or meant implicitly.
    */
-  export function isDeployingStableVersion(flags: any): boolean {
-    return Boolean(flags.version) || !ChectlContext.get().isDevVersion
+  export function isDeployingStableVersion(_flags: any): boolean {
+    return !ChectlContext.get().isDevVersion
   }
 
   /**

@@ -432,3 +432,9 @@ export function getTlsSecretName(ctx: any): string {
 
   return DEFAULT_CHE_TLS_SECRET_NAME
 }
+
+export function getWarnVersionFlagMsg(_flags: any): string {
+  return `'--version' flag is not supported anymore.
+1. Update chectl to a specific version following the doc https://github.com/che-incubator/chectl#updating
+2. Use chectl of the specific version to deploy or to upgrade Eclipse Che`
+}

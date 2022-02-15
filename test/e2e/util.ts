@@ -14,23 +14,11 @@ import { Octokit } from '@octokit/rest'
 import * as execa from 'execa'
 import { spawn } from 'child_process'
 import * as fs from 'fs-extra'
-import * as semver from 'semver'
 
 import { CheHelper } from '../../src/api/che'
 import { CheGithubClient, TagInfo } from '../../src/api/github-client'
 import { KubeHelper } from '../../src/api/kube'
 import { OpenShiftHelper } from '../../src/api/openshift'
-import { DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
-
-// Fields which chectl returns for workspace:list commands
-interface WorkspaceInfo {
-  id: string
-  name: string
-  namespace: string
-  status: string
-}
-
-export const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse-che/che-devfile-registry/master/devfiles/go/devfile.yaml'
 
 export const NAMESPACE = 'eclipse-che'
 export const CHECTL_REPONAME = 'chectl'
@@ -127,71 +115,6 @@ export class E2eHelper {
     })
   }
 
-  // Return an array with all user workspaces
-  // async getAllWorkspaces(isOpenshiftPlatformFamily: string): Promise<chetypes.workspace.Workspace[]> {
-  private async getAllWorkspaces(): Promise<WorkspaceInfo[]> {
-    const workspaces: WorkspaceInfo[] = []
-    const { stdout } = await execa(E2eHelper.getChectlBinaries(), ['workspace:list', `--chenamespace=${DEFAULT_OLM_SUGGESTED_NAMESPACE}`, '--telemetry=off'], { shell: true })
-    const regEx = new RegExp('[A-Za-z0-9_-]+', 'g')
-    for (const line of stdout.split('\n')) {
-      const items = line.match(regEx)
-      if (items && items.length > 0 && !items[0].startsWith('Id') && !items[0].startsWith('Current')) {
-        workspaces.push({
-          id: items[0],
-          name: items[1],
-          namespace: items[2],
-          status: items[3],
-        })
-      }
-    }
-    return workspaces
-  }
-
-  // Return id of test workspaces(e2e-tests. Please look devfile-example.yaml file)
-  async getWorkspaceId(): Promise<any> {
-    const workspaces = await this.getAllWorkspaces()
-    if (workspaces.length === 0) {
-      throw Error('Workspace not found')
-    }
-
-    const workspaceId = workspaces[0].id
-    if (!workspaceId) {
-      throw Error('Error getting workspaceId')
-    }
-
-    return workspaceId
-  }
-
-  // Return the status of test workspaces(e2e-tests. Please look devfile-example.yaml file)
-  async getWorkspaceStatus(): Promise<any> {
-    const workspaces = await this.getAllWorkspaces()
-    if (workspaces.length === 0) {
-      throw Error('Workspace not found')
-    }
-
-    const workspaceStatus = workspaces[0].status
-    if (!workspaceStatus) {
-      throw Error('Error getting workspace status')
-    }
-
-    return workspaceStatus
-  }
-
-  async waitWorkspaceStatus(status: string, timeoutMs: number): Promise<boolean> {
-    const delayMs = 1000 * 5
-
-    let totalTimeMs = 0
-    while (totalTimeMs < timeoutMs) {
-      if (await this.getWorkspaceStatus() === status) {
-        return true
-      }
-      await this.sleep(delayMs)
-      totalTimeMs += delayMs
-    }
-
-    return false
-  }
-
   //Return a route from Openshift adding protocol
   async OCHostname(ingressName: string, namespace: string): Promise<string> {
     if (await this.oc.routeExist(ingressName, namespace)) {
@@ -266,68 +189,12 @@ export class E2eHelper {
   }
 
   /**
-   * Returns list of sorted CSVs in stable OLM channel of Che Operator published in community-operators repository.
-   * The CSVs are sorted from the latest to oldest.
-   */
-  private async listOLMReleasedCSV(): Promise<string[]> {
-    const response = await this.octokit.repos.getContent({
-      owner: 'redhat-openshift-ecosystem',
-      repo: 'community-operators-prod',
-      path: 'operators/eclipse-che',
-    })
-    // There is an array in the response as given path points to a directory
-    const data = response.data as {name: string}[]
-    const csvsNames: string[] = []
-    data.map(item => csvsNames.push(item.name))
-    const stableChannelCSVNames = csvsNames.filter(csvName => {
-      // Filter versions like 7.37.2-all-namespaces
-      if (csvName.indexOf('-') !== -1) {
-        return false
-      }
-
-      // Filter non x.y.z
-      const versionParts = csvName.split('.')
-      if (versionParts.length !== 3) {
-        return false
-      }
-      // Ensure each part is a number
-      for (const versionPart of versionParts) {
-        if (!versionPart.match(/^[0-9]+$/)) {
-          return false
-        }
-      }
-      return true
-    })
-
-    return stableChannelCSVNames.sort((verA: string, verB: string) => semver.lt(verA, verB) ? 1 : -1)
-  }
-
-  /**
    * Get previous version from chectl repository
    */
   async getLatestReleasedVersion(): Promise<string> {
     const githubClient = new CheGithubClient()
     const latestTag = githubClient.getLatestTag(await this.listLatestTags(CHECTL_REPONAME))
     return latestTag.name
-  }
-
-  /**
-   * Gets pre-latest and latest released version from chectl repository
-   */
-   async getTwoLatestReleasedVersions(installer: string): Promise<[string, string]> {
-     if (installer === 'olm') {
-      // OLM installer uses community-operators marketplace.
-      // To list available versions see the following folder:
-      // https://github.com/redhat-openshift-ecosystem/community-operators-prod/tree/main/operators/eclipse-che
-      const csvs = await this.listOLMReleasedCSV()
-      return [csvs[1], csvs[0]]
-     } else if (installer === 'operator') {
-       // Operator installer uses templates from GitHub releases, which are marked with tags
-       const githubClient = new CheGithubClient()
-       const latestTags = (githubClient as any).sortSemanticTags(await this.listLatestTags(CHECTL_REPONAME))
-       return [latestTags[1].name, latestTags[0].name]
-     }
-     throw new Error(`Failed to get latest versions: unknown installer '${installer}'`)
   }
 
   /**

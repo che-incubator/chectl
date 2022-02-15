@@ -126,6 +126,7 @@ export const cheDeployVersion = string({
   char: 'v',
   description: 'Version to deploy (e.g. 7.15.2). Defaults to the same as chectl.',
   env: 'CHE_DEPLOY_VERSION',
+  hidden: true,
 })
 
 export const FOLLOW_LOGS = boolean({
