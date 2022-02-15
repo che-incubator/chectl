@@ -67,7 +67,7 @@ Manual install:
 2) Unpack the assembly into a local repository
 ```bash
 CHECTL_VERSION=<DOWNLOADED_CHECTL_VERSION>
-CHECTL_BINARIES=<DOWNLOADED_BINARIES_PATH
+CHECTL_BINARIES=<DOWNLOADED_BINARIES_PATH>
 
 CLIENT_DIR=${XDG_DATA_HOME:="$(cd && pwd)/.local/share"}/chectl/client/${CHECTL_VERSION}
 mkdir ${CLIENT_DIR} -p
