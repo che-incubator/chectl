@@ -67,11 +67,13 @@ Manual install:
 2) Unpack the assembly into a local repository
 ```bash
 CHECTL_VERSION=<DOWNLOADED_CHECTL_VERSION>
-XDG_DATA_HOME=${XDG_DATA_HOME:="$(cd && pwd)/.local/share"}
-mkdir ${XDG_DATA_HOME}/chectl/client/${CHECTL_VERSION}
-tar -xzf <DOWNLOADED_CHECTL_BINARIES> -C ~/.local/share/chectl/client/${CHECTL_VERSION} --strip-components=1
+CHECTL_BINARIES=<DOWNLOADED_BINARIES_PATH
+
+CLIENT_DIR=${XDG_DATA_HOME:="$(cd && pwd)/.local/share"}/chectl/client/${CHECTL_VERSION}
+mkdir ${CLIENT_DIR} -p
+tar -xzf ${CHECTL_BINARIES} -C ${CLIENT_DIR} --strip-components=1
 ```
-3) Update `chectl` from the local repository `chect update --from-local` by prompting the downloaded version
+3) Update `chectl` from the local repository `chectl update --from-local` by prompting the downloaded version
 
 # Usage
 ```sh-session
