@@ -45,7 +45,7 @@ export function getClusterClientCommand(): string {
 }
 
 export function isKubernetesPlatformFamily(platform: string): boolean {
-  return platform === 'k8s' || platform === 'minikube' || platform === 'microk8s'
+  return platform === 'k8s' || platform === 'minikube' || platform === 'microk8s' || platform === 'docker-desktop'
 }
 
 export function isOpenshiftPlatformFamily(platform: string): boolean {
