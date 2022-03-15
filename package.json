@@ -52,7 +52,7 @@
     "@types/js-yaml": "^4.0.5",
     "@types/listr": "^0.14.4",
     "@types/node": "^16",
-    "@types/node-forge": "^1.0.0",
+    "@types/node-forge": "^1.0.1",
     "@types/node-notifier": "^8.0.2",
     "@types/rimraf": "^3.0.2",
     "@types/semver": "^7.3.9",
