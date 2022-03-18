@@ -33,7 +33,7 @@
     "listr-verbose-renderer": "^0.6.0",
     "lodash": "^4.17.21",
     "node-forge": "^1.2.1",
-    "node-notifier": "^10.0.0",
+    "node-notifier": "^10.0.1",
     "os-locale": "^5.0.0",
     "rimraf": "^3.0.2",
     "semver": "^7.3.4",
