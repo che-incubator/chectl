@@ -118,10 +118,8 @@ export class E2eHelper {
   //Return a route from Openshift adding protocol
   async OCHostname(ingressName: string, namespace: string): Promise<string> {
     if (await this.oc.routeExist(ingressName, namespace)) {
-      const protocol = await this.oc.getRouteProtocol(ingressName, namespace)
       const hostname = await this.oc.getRouteHost(ingressName, namespace)
-
-      return `${protocol}://${hostname}`
+      return `https://${hostname}`
     }
     throw new Error('Route "che" does not exist')
   }
