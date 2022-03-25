@@ -12,6 +12,7 @@
 
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
+import { ChectlContext } from '../../api/context'
 
 import { KubeHelper } from '../../api/kube'
 import { newError } from '../../util'
@@ -33,13 +34,11 @@ export class ApiTasks {
             await kube.checkKubeApi()
           }
           task.title = `${task.title}...OK`
-          ctx.isOpenShift = await kube.isOpenShift()
-          ctx.isOpenShift4 = await kube.isOpenShift4()
 
-          if (ctx.isOpenShift) {
+          if (ctx[ChectlContext.IS_OPENSHIFT]) {
             task.title = `${task.title} (it's OpenShift)`
           }
-        } catch (error) {
+        } catch (error: any) {
           return newError('Failed to connect to Kubernetes API. If you\'re sure that your Kubernetes cluster is healthy - you can skip this check with \'--skip-kubernetes-health-check\' flag.', error)
         }
       },

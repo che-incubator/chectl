@@ -15,13 +15,11 @@ import * as cp from 'child_process'
 import * as commandExists from 'command-exists'
 import * as fs from 'fs-extra'
 import * as nodeforge from 'node-forge'
-import * as os from 'os'
 import * as path from 'path'
-import * as rimraf from 'rimraf'
-import * as unzipper from 'unzipper'
 import { OpenShiftHelper } from '../api/openshift'
-import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, OPERATOR_TEMPLATE_DIR } from '../constants'
-import { base64Decode, downloadFile } from '../util'
+import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME } from '../constants'
+import { base64Decode } from '../util'
+import { ChectlContext } from './context'
 import { KubeHelper } from './kube'
 import { OperatorGroup, Subscription } from './types/olm'
 
@@ -35,21 +33,17 @@ export class CheHelper {
     this.kube = new KubeHelper(flags)
   }
 
-  async cheURL(namespace = ''): Promise<string> {
+  async cheURL(namespace: string): Promise<string> {
     if (!await this.kube.getNamespace(namespace)) {
       throw new Error(`ERR_NAMESPACE_NO_EXIST - No namespace ${namespace} is found`)
     }
 
-    if (await this.kube.isOpenShift()) {
+    const ctx = ChectlContext.get()
+    if (ctx[ChectlContext.IS_OPENSHIFT]) {
       return this.cheOpenShiftURL(namespace)
     } else {
       return this.cheK8sURL(namespace)
     }
-  }
-
-  async isSelfSignedCertificateSecretExist(namespace: string): Promise<boolean> {
-    const selfSignedCertSecret = await this.kube.getSecret(CHE_ROOT_CA_SECRET_NAME, namespace)
-    return Boolean(selfSignedCertSecret)
   }
 
   /**
@@ -98,31 +92,12 @@ export class CheHelper {
     throw new Error(`Secret "${CHE_ROOT_CA_SECRET_NAME}" has invalid format: "ca.crt" key not found in data.`)
   }
 
-  async chePluginRegistryK8sURL(namespace = ''): Promise<string> {
-    if (await this.kube.isIngressExist('plugin-registry', namespace)) {
-      const protocol = await this.kube.getIngressProtocol('plugin-registry', namespace)
-      const hostname = await this.kube.getIngressHost('plugin-registry', namespace)
-      return `${protocol}://${hostname}`
-    }
-    throw new Error(`ERR_INGRESS_NO_EXIST - No ingress 'plugin-registry' in namespace ${namespace}`)
-  }
-
-  async chePluginRegistryOpenShiftURL(namespace = ''): Promise<string> {
-    if (await this.oc.routeExist('plugin-registry', namespace)) {
-      const protocol = await this.oc.getRouteProtocol('plugin-registry', namespace)
-      const hostname = await this.oc.getRouteHost('plugin-registry', namespace)
-      return `${protocol}://${hostname}`
-    }
-    throw new Error(`ERR_ROUTE_NO_EXIST - No route 'plugin-registry' in namespace ${namespace}`)
-  }
-
   async cheK8sURL(namespace = ''): Promise<string> {
     const ingress_names = ['che', 'che-ingress']
     for (const ingress_name of ingress_names) {
       if (await this.kube.isIngressExist(ingress_name, namespace)) {
-        const protocol = await this.kube.getIngressProtocol(ingress_name, namespace)
         const hostname = await this.kube.getIngressHost(ingress_name, namespace)
-        return `${protocol}://${hostname}`
+        return `https://${hostname}`
       }
     }
     throw new Error(`ERR_INGRESS_NO_EXIST - No ingress ${ingress_names} in namespace ${namespace}`)
@@ -132,9 +107,8 @@ export class CheHelper {
     const route_names = ['che', 'che-host']
     for (const route_name of route_names) {
       if (await this.oc.routeExist(route_name, namespace)) {
-        const protocol = await this.oc.getRouteProtocol(route_name, namespace)
         const hostname = await this.oc.getRouteHost(route_name, namespace)
-        return `${protocol}://${hostname}`
+        return `https://${hostname}`
       }
     }
     throw new Error(`ERR_ROUTE_NO_EXIST - No route ${route_names} in namespace ${namespace}`)
@@ -273,83 +247,6 @@ export class CheHelper {
     fs.ensureFileSync(fileName)
 
     return fileName
-  }
-
-  /**
-   * Gets install templates for given installer.
-   * @param installer Che installer
-   * @param url link to zip archive with sources of Che operator
-   * @param destDir destination directory into which the templates should be unpacked
-   */
-  async downloadAndUnpackTemplates(installer: string, url: string, destDir: string): Promise<void> {
-    // Add che-operator folder for operator templates
-    if (installer === 'operator') {
-      destDir = path.join(destDir, OPERATOR_TEMPLATE_DIR)
-    }
-
-    const tempDir = path.join(os.tmpdir(), Date.now().toString())
-    await fs.mkdirp(tempDir)
-    const zipFile = path.join(tempDir, `che-templates-${installer}.zip`)
-    await downloadFile(url, zipFile)
-    await this.unzipTemplates(zipFile, destDir)
-    // Clean up zip. Do not wait when finishes.
-    rimraf(tempDir, () => { })
-  }
-
-  /**
-   * Unpacks repository deploy templates into specified folder
-   * @param zipFile path to zip archive with source code
-   * @param destDir target directory into which templates should be unpacked
-   */
-  private async unzipTemplates(zipFile: string, destDir: string) {
-    // Gets path from: repo-name/deploy/path
-    const deployDirRegex = new RegExp('(?:^[\\\w-]*\\\/deploy\\\/)(.*)')
-    const configDirRegex = new RegExp('(?:^[\\\w-]*\\\/config\\\/)(.*)')
-
-    const zip = fs.createReadStream(zipFile).pipe(unzipper.Parse({ forceStream: true }))
-    for await (const entry of zip) {
-      const entryPathInZip: string = entry.path
-      const templatesPathMatch = entryPathInZip.match(deployDirRegex) || entryPathInZip.match(configDirRegex)
-      if (templatesPathMatch && templatesPathMatch.length > 1 && templatesPathMatch[1]) {
-        // Remove prefix from in-zip path
-        const entryPathWhenExtracted = templatesPathMatch[1]
-        // Path to the item in target location
-        const dest = path.join(destDir, entryPathWhenExtracted)
-
-        // Extract item
-        if (entry.type === 'File') {
-          const parentDirName = path.dirname(dest)
-          if (!fs.existsSync(parentDirName)) {
-            await fs.mkdirp(parentDirName)
-          }
-          entry.pipe(fs.createWriteStream(dest))
-        } else if (entry.type === 'Directory') {
-          if (!fs.existsSync(dest)) {
-            await fs.mkdirp(dest)
-          }
-          // The folder is created above
-          entry.autodrain()
-        } else {
-          // Ignore the item as we do not need to handle links and etc.
-          entry.autodrain()
-        }
-      } else {
-        // No need to extract this item
-        entry.autodrain()
-      }
-    }
-
-    // Is a new project structure?
-    if (fs.existsSync(path.join(destDir, 'manager', 'manager.yaml'))) {
-      fs.moveSync(path.join(destDir, 'manager', 'manager.yaml'), path.join(destDir, 'operator.yaml'))
-      fs.moveSync(path.join(destDir, 'rbac', 'service_account.yaml'), path.join(destDir, 'service_account.yaml'))
-      fs.moveSync(path.join(destDir, 'rbac', 'role.yaml'), path.join(destDir, 'role.yaml'))
-      fs.moveSync(path.join(destDir, 'rbac', 'role_binding.yaml'), path.join(destDir, 'role_binding.yaml'))
-      fs.moveSync(path.join(destDir, 'rbac', 'cluster_role.yaml'), path.join(destDir, 'cluster_role.yaml'))
-      fs.moveSync(path.join(destDir, 'rbac', 'cluster_rolebinding.yaml'), path.join(destDir, 'cluster_rolebinding.yaml'))
-      fs.moveSync(path.join(destDir, 'crd', 'bases'), path.join(destDir, 'crds'))
-      fs.moveSync(path.join(destDir, 'samples', 'org.eclipse.che_v1_checluster.yaml'), path.join(destDir, 'crds', 'org_v1_che_cr.yaml'))
-    }
   }
 
   async findCheOperatorSubscription(namespace: string): Promise<Subscription | undefined> {

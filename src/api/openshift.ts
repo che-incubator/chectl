@@ -28,18 +28,6 @@ export class OpenShiftHelper {
     return stdout.trim()
   }
 
-  async getRouteProtocol(name: string, namespace = ''): Promise<string> {
-    const command = 'oc'
-    const args = ['get', 'route', '--namespace', namespace, '-o', `jsonpath={range.items[?(.metadata.name=='${name}')]}{.spec.tls.termination}{end}`]
-    const { stdout } = await execa(command, args, { timeout: 60000 })
-    const termination = stdout.trim()
-    if (termination && termination.includes('edge') || termination.includes('passthrough') || termination.includes('reencrypt')) {
-      return 'https'
-    } else {
-      return 'http'
-    }
-  }
-
   async routeExist(name: string, namespace = ''): Promise<boolean> {
     const command = 'oc'
     const args = ['get', 'route', '--namespace', namespace, '-o', `jsonpath={range.items[?(.metadata.name=='${name}')]}{.metadata.name}{end}`]

@@ -14,18 +14,18 @@ import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
+import { CertManagerTasks } from '../../tasks/component-installers/cert-manager'
 import { ChectlContext, OIDCContextKeys, OLM } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, DOC_LINK_CONFIGURE_API_SERVER } from '../../constants'
+import { batch, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOC_LINK_CONFIGURE_API_SERVER } from '../../constants'
 import { CheTasks } from '../../tasks/che'
-import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { DexTasks } from '../../tasks/component-installers/dex'
 import { createNamespaceTask, getPrintHighlightedMessagesTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getTlsSupport, getWarnVersionFlagMsg, isDevWorkspaceEnabled, isKubernetesPlatformFamily, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getWarnVersionFlagMsg, isCheClusterAPIV2, isKubernetesPlatformFamily, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Deploy extends Command {
   static description = 'Deploy Eclipse Che server'
@@ -35,7 +35,6 @@ export default class Deploy extends Command {
     chenamespace: cheNamespace,
     batch,
     'listr-renderer': listrRenderer,
-    'deployment-name': cheDeployment,
     cheimage: string({
       char: 'i',
       description: 'Eclipse Che server container image',
@@ -73,16 +72,6 @@ export default class Deploy extends Command {
       default: false,
       hidden: true,
     }),
-    tls: flags.boolean({
-      char: 's',
-      description: `Deprecated. Enable TLS encryption.
-                    Note, this option is turned on by default.
-                    To provide own certificate for Kubernetes infrastructure, 'che-tls' secret with TLS certificate must be pre-created in the configured namespace.
-                    In case of providing own self-signed certificate 'self-signed-certificate' secret should be also created.
-                    For OpenShift, router will use default cluster certificates.
-                    Please see the docs how to deploy Eclipse Che on different infrastructures: ${DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY}`,
-      hidden: true,
-    }),
     'self-signed-cert': flags.boolean({
       description: 'Deprecated. The flag is ignored. Self signed certificates usage is autodetected now.',
       default: false,
@@ -90,8 +79,8 @@ export default class Deploy extends Command {
     }),
     platform: string({
       char: 'p',
-      description: 'Type of Kubernetes platform. Valid values are \"minikube\", \"minishift\", \"k8s (for kubernetes)\", \"openshift\", \"crc (for CodeReady Containers)\", \"microk8s\".',
-      options: ['minikube', 'minishift', 'k8s', 'openshift', 'microk8s', 'docker-desktop', 'crc'],
+      description: 'Type of Kubernetes platform.',
+      options: ['minikube', 'k8s', 'openshift', 'microk8s', 'docker-desktop', 'crc'],
     }),
     installer: string({
       char: 'a',
@@ -191,18 +180,11 @@ export default class Deploy extends Command {
                     This parameter is used only when the installer is 'olm'.`,
     }),
     'skip-kubernetes-health-check': skipK8sHealthCheck,
-    'workspace-engine': string({
-      description: 'Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.',
-      options: ['che-server', 'dev-workspace'],
-      default: 'che-server',
-      hidden: true,
-    }),
     telemetry: CHE_TELEMETRY,
     [DEPLOY_VERSION_KEY]: cheDeployVersion,
   }
 
-  async setPlaformDefaults(flags: any, ctx: any): Promise<void> {
-    flags.tls = getTlsSupport(ctx)
+  async setPlaformDefaults(flags: any, _ctx: any): Promise<void> {
     if (flags['self-signed-cert']) {
       this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
     }
@@ -216,12 +198,6 @@ export default class Deploy extends Command {
       flags.chenamespace = DEFAULT_OLM_SUGGESTED_NAMESPACE
       cli.info(` ❕olm-suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
     }
-
-    if (!flags.templates) {
-      // Use build-in templates if no custom templates nor version to deploy specified.
-      // All flavors should use embedded templates if not custom templates is given.
-      flags.templates = getEmbeddedTemplatesDirectory()
-    }
   }
 
   private checkCompatibility(flags: any) {
@@ -231,7 +207,6 @@ export default class Deploy extends Command {
       flags['devfile-registry-url'] && ignoredFlags.push('--devfile-registry-url')
       flags['postgres-pvc-storage-class-name'] && ignoredFlags.push('--postgres-pvc-storage-class-name')
       flags['workspace-pvc-storage-class-name'] && ignoredFlags.push('--workspace-pvc-storage-class-name')
-      flags.tls && ignoredFlags.push('--tls')
       flags.cheimage && ignoredFlags.push('--cheimage')
       flags.debug && ignoredFlags.push('--debug')
       flags.domain && ignoredFlags.push('--domain')
@@ -247,10 +222,6 @@ export default class Deploy extends Command {
 
     if (flags.installer === 'olm') {
       // OLM installer only checks
-      if (flags.platform === 'minishift') {
-        this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
-      }
-
       if (isKubernetesPlatformFamily(flags.platform)) {
         this.error(`🛑 The specified installer ${flags.installer} does not support Kubernentes`)
       }
@@ -313,7 +284,7 @@ export default class Deploy extends Command {
     const platformTasks = new PlatformTasks(flags)
     const installerTasks = new InstallerTasks()
     const apiTasks = new ApiTasks()
-    const devWorkspaceTasks = new DevWorkspaceTasks(flags)
+    const certManagerTask = new CertManagerTasks(flags)
 
     // Platform Checks
     const platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), ctx.listrOptions)
@@ -326,15 +297,13 @@ export default class Deploy extends Command {
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags)),
     })
     preInstallTasks.add(ensureOIDCProviderInstalled(flags))
-    preInstallTasks.add({
-      title: '🧪  DevWorkspace engine',
-      enabled: () => isDevWorkspaceEnabled(ctx) && !ctx.isOpenShift,
-      task: () => new Listr(devWorkspaceTasks.getInstallTasks()),
-    })
 
     const installTasks = new Listr(undefined, ctx.listrOptions)
+    if (!ctx[ChectlContext.IS_OPENSHIFT] || (flags.installer === 'operator' && isCheClusterAPIV2(ctx[ChectlContext.DEFAULT_CR]))) {
+      installTasks.add(certManagerTask.getDeployCertManagerTasks())
+    }
     installTasks.add([createNamespaceTask(flags.chenamespace, this.getNamespaceLabels(flags))])
-    if (flags.platform === 'minikube' && isDevWorkspaceEnabled(ctx)) {
+    if (flags.platform === 'minikube') {
       installTasks.add(dexTasks.getInstallTasks())
     }
     installTasks.add(await installerTasks.installTasks(flags, this))
@@ -372,7 +341,7 @@ export default class Deploy extends Command {
         await postInstallTasks.run(ctx)
         this.log(getCommandSuccessMessage())
       }
-    } catch (err) {
+    } catch (err: any) {
       this.error(wrapCommandError(err))
     }
 
@@ -442,7 +411,8 @@ export async function setDefaultInstaller(flags: any): Promise<void> {
     return
   }
 
-  if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isOlmPreinstalled) {
+  const ctx = ChectlContext.get()
+  if (flags.platform === 'openshift' && ctx[ChectlContext.IS_OPENSHIFT] && isOlmPreinstalled) {
     flags.installer = 'olm'
   } else {
     flags.installer = 'operator'

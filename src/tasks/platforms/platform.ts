@@ -18,7 +18,6 @@ import { DockerDesktopTasks } from './docker-desktop'
 import { K8sTasks } from './k8s'
 import { MicroK8sTasks } from './microk8s'
 import { MinikubeTasks } from './minikube'
-import { MinishiftTasks } from './minishift'
 import { OpenshiftTasks } from './openshift'
 
 /**
@@ -27,7 +26,6 @@ import { OpenshiftTasks } from './openshift'
 export class PlatformTasks {
   protected minikubeTasks: MinikubeTasks
   protected microk8sTasks: MicroK8sTasks
-  protected minishiftTasks: MinishiftTasks
   protected openshiftTasks: OpenshiftTasks
   protected k8sTasks: K8sTasks
   protected crc: CRCHelper
@@ -36,7 +34,6 @@ export class PlatformTasks {
   constructor(flags: any) {
     this.minikubeTasks = new MinikubeTasks()
     this.microk8sTasks = new MicroK8sTasks()
-    this.minishiftTasks = new MinishiftTasks()
     this.openshiftTasks = new OpenshiftTasks()
     this.k8sTasks = new K8sTasks()
     this.crc = new CRCHelper()
@@ -67,11 +64,6 @@ export class PlatformTasks {
       task = {
         title: '✈️  Minikube preflight checklist',
         task: () => this.minikubeTasks.preflightCheckTasks(flags, command),
-      }
-    } else if (flags.platform === 'minishift') {
-      task = {
-        title: '✈️  Minishift preflight checklist',
-        task: () => this.minishiftTasks.preflightCheckTasks(flags, command),
       }
     } else if (flags.platform === 'microk8s') {
       task = {

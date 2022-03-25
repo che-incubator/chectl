@@ -66,7 +66,7 @@ export default class Export extends Command {
       } else {
         this.log('Self signed certificate secret not found. Is commonly trusted certificate used?')
       }
-    } catch (err) {
+    } catch (err: any) {
       this.error(wrapCommandError(err))
     }
   }

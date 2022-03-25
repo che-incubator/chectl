@@ -42,7 +42,7 @@ export class K8sTasks {
           try {
             await kh.checkKubeApi()
             task.title = `${task.title}...done.`
-          } catch (error) {
+          } catch (error: any) {
             return newError('Platform not ready.', error)
           }
         },

@@ -40,46 +40,26 @@ export class CertManagerTasks {
   getDeployCertManagerTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Check Cert Manager deployment',
-        task: async (ctx: any, task: any) => {
-          // Check only one CRD of cert-manager assuming that it is installed or not.
-          ctx.certManagerInstalled = await this.kubeHelper.getNamespace(CERT_MANAGER_NAMESPACE_NAME) && await this.kubeHelper.getCrd('certificates.cert-manager.io')
-          if (ctx.certManagerInstalled) {
-            task.title = `${task.title}...already deployed`
-          } else {
-            task.title = `${task.title}...not deployed`
-          }
-        },
-      },
-      {
         title: 'Deploy Cert Manager',
-        enabled: ctx => !ctx.certManagerInstalled,
-        task: async (ctx: any, task: any) => {
-          const yamlPath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'cert-manager', 'cert-manager.yml')
-
-          // Apply additional --validate=false flag to be able to deploy Cert Manager on Kubernetes v1.15.4 or below
-          await this.kubeHelper.applyResource(yamlPath, '--validate=false')
-          ctx.certManagerInstalled = true
-
-          task.title = `${task.title}...done`
+        task: async (_ctx: any, task: any) => {
+          const certManagerCrd = await this.kubeHelper.getCrd('certificates.cert-manager.io')
+          if (certManagerCrd) {
+            task.title = `${task.title}...[Exists]`
+          } else {
+            const yamlPath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'cert-manager', 'cert-manager.yml')
+            await this.kubeHelper.applyResource(yamlPath)
+            task.title = `${task.title}...[OK]`
+          }
         },
       },
       {
         title: 'Wait for Cert Manager',
-        enabled: ctx => ctx.certManagerInstalled,
         task: async (ctx: any, task: any) => {
-          if (!ctx.certManagerInstalled) {
-            throw new Error('Cert Manager should be deployed before.')
-          }
+          await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cert-manager', CERT_MANAGER_NAMESPACE_NAME)
+          await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=webhook', CERT_MANAGER_NAMESPACE_NAME)
+          await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cainjector', CERT_MANAGER_NAMESPACE_NAME)
 
-          ctx.certManagerK8sApiVersion = await this.kubeHelper.getCertManagerK8sApiVersion()
-
-          const timeout = 5 * 60 * 1000
-          await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cert-manager', CERT_MANAGER_NAMESPACE_NAME, 1000, timeout)
-          await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=webhook', CERT_MANAGER_NAMESPACE_NAME, 1000, timeout)
-          await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cainjector', CERT_MANAGER_NAMESPACE_NAME, 1000, timeout)
-
-          task.title = `${task.title}...ready`
+          task.title = `${task.title}...[OK]`
         },
       },
     ]
@@ -89,10 +69,7 @@ export class CertManagerTasks {
     return [
       {
         title: 'Check Cert Manager CA certificate',
-        task: async (ctx: any, task: any) => {
-          if (!ctx.certManagerInstalled) {
-            throw new Error('Cert manager must be installed before.')
-          }
+        task: async (_ctx: any, task: any) => {
           // To be able to use self-signed sertificate it is required to provide CA private key & certificate to cert-manager
           const caSelfSignedCertSecret = await this.kubeHelper.getSecret(CERT_MANAGER_CA_SECRET_NAME, CERT_MANAGER_NAMESPACE_NAME)
           if (!caSelfSignedCertSecret) {
@@ -137,7 +114,7 @@ export class CertManagerTasks {
             // Wait until the secret is available
             await this.kubeHelper.waitSecret('ca', CERT_MANAGER_NAMESPACE_NAME)
           } else {
-            task.title = `${task.title}...already exists`
+            task.title = `${task.title}...[Skipped: Exists]`
           }
         },
       },
@@ -149,7 +126,7 @@ export class CertManagerTasks {
       {
         title: 'Set up Eclipse Che certificates issuer',
         task: async (ctx: any, task: any) => {
-          let clusterIssuers = await this.kubeHelper.listClusterIssuers(ctx.certManagerK8sApiVersion, CHE_RELATED_COMPONENT_LABEL)
+          let clusterIssuers = await this.kubeHelper.listClusterIssuers(CHE_RELATED_COMPONENT_LABEL)
           if (clusterIssuers.length > 1) {
             throw new Error(`Found more than one cluster issuer with "${CHE_RELATED_COMPONENT_LABEL}" label`)
           } else if (clusterIssuers.length === 1) {
@@ -160,7 +137,7 @@ export class CertManagerTasks {
           }
 
           // There is no labeled cluster issuers, check if there is only one configured
-          clusterIssuers = await this.kubeHelper.listClusterIssuers(ctx.certManagerK8sApiVersion)
+          clusterIssuers = await this.kubeHelper.listClusterIssuers()
           if (clusterIssuers.length === 1) {
             // Using the cluster issuer
             ctx.clusterIssuersName = clusterIssuers[0].metadata.name
@@ -169,14 +146,14 @@ export class CertManagerTasks {
           }
 
           ctx.clusterIssuersName = DEFAULT_CHE_CLUSTER_ISSUER_NAME
-          const cheClusterIssuerExists = await this.kubeHelper.clusterIssuerExists(DEFAULT_CHE_CLUSTER_ISSUER_NAME, ctx.certManagerK8sApiVersion)
+          const cheClusterIssuerExists = await this.kubeHelper.isClusterIssuerExists(DEFAULT_CHE_CLUSTER_ISSUER_NAME)
           if (!cheClusterIssuerExists) {
             const cheCertificateClusterIssuerTemplatePath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'cert-manager', 'che-cluster-issuer.yml')
-            await this.kubeHelper.createCheClusterIssuer(cheCertificateClusterIssuerTemplatePath, ctx.certManagerK8sApiVersion)
+            await this.kubeHelper.createClusterIssuerFromFile(cheCertificateClusterIssuerTemplatePath)
 
             task.title = `${task.title}...done`
           } else {
-            task.title = `${task.title}...already exists`
+            task.title = `${task.title}...[Skipped: Exists]`
           }
         },
       },
@@ -208,7 +185,7 @@ export class CertManagerTasks {
           certificate.spec.dnsNames = dnsNames
           certificate.spec.issuerRef.name = ctx.clusterIssuersName
 
-          await this.kubeHelper.createCheClusterCertificate(certificate, ctx.certManagerK8sApiVersion)
+          await this.kubeHelper.createCertificate(certificate, namespace)
           ctx.cheCertificateExists = true
 
           task.title = `${task.title}...done`
@@ -243,7 +220,7 @@ export class CertManagerTasks {
             fs.writeFileSync(caCertFilePath, cheCaCrt)
 
             // We need to put self-signed CA certificate separately into CHE_ROOT_CA_SECRET_NAME secret
-            await this.kubeHelper.createSecret(flags.chenamespace, CHE_ROOT_CA_SECRET_NAME, { 'ca.crt': cheCaCrt })
+            await this.kubeHelper.createSecret(CHE_ROOT_CA_SECRET_NAME, flags.chenamespace, { 'ca.crt': cheCaCrt })
 
             const serverStrategy = await this.kubeHelper.getConfigMapValue('che', flags.chenamespace, 'CHE_INFRA_KUBERNETES_SERVER__STRATEGY')
             if (serverStrategy !== 'single-host') {

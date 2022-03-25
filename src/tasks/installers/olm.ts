@@ -21,16 +21,13 @@ import { CatalogSource, Subscription } from '../../api/types/olm'
 import { VersionHelper } from '../../api/version'
 import { CHECTL_PROJECT_NAME, CSV_PREFIX, CUSTOM_CATALOG_SOURCE_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, INDEX_IMG, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME } from '../../constants'
 import { getEmbeddedTemplatesDirectory, getProjectName, isKubernetesPlatformFamily } from '../../util'
-import { createEclipseCheCluster, patchingEclipseCheCluster } from './common-tasks'
+import { createEclipseCheClusterTask, patchingEclipseCheCluster } from './common-tasks'
 import { OLMDevWorkspaceTasks } from './olm-dev-workspace-operator'
 import Listr = require('listr')
 
 export const TASK_TITLE_SET_CUSTOM_OPERATOR_IMAGE = 'Set custom operator image'
 export const TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE = 'Create custom catalog source from file'
 export const TASK_TITLE_PREPARE_CHE_CLUSTER_CR = 'Prepare Eclipse Che cluster CR'
-
-export const TASK_TITLE_DELETE_CUSTOM_CATALOG_SOURCE = `Delete(OLM) custom catalog source ${CUSTOM_CATALOG_SOURCE_NAME}`
-export const TASK_TITLE_DELETE_NEXT_CATALOG_SOURCE = `Delete(OLM) nigthly catalog source ${NEXT_CATALOG_SOURCE_NAME}`
 
 export class OLMTasks {
   private readonly prometheusRoleName = 'prometheus-k8s'
@@ -118,7 +115,7 @@ export class OLMTasks {
           if (!await this.kube.IsCatalogSourceExists(NEXT_CATALOG_SOURCE_NAME, ctx.operatorNamespace)) {
             const nextCatalogSource = this.constructNextCatalogSource(ctx.operatorNamespace)
             await this.kube.createCatalogSource(nextCatalogSource)
-            await this.kube.waitCatalogSource(ctx.operatorNamespace, NEXT_CATALOG_SOURCE_NAME)
+            await this.kube.waitCatalogSource(NEXT_CATALOG_SOURCE_NAME, ctx.operatorNamespace)
             task.title = `${task.title}...[OK]`
           } else {
             task.title = `${task.title}...[Exists]`
@@ -143,7 +140,7 @@ export class OLMTasks {
             customCatalogSource.metadata.name = ctx.sourceName
             customCatalogSource.metadata.namespace = flags.chenamespace
             await this.kube.createCatalogSource(customCatalogSource)
-            await this.kube.waitCatalogSource(flags.chenamespace, CUSTOM_CATALOG_SOURCE_NAME)
+            await this.kube.waitCatalogSource(CUSTOM_CATALOG_SOURCE_NAME, flags.chenamespace)
             task.title = `${task.title}...[OK: ${CUSTOM_CATALOG_SOURCE_NAME}]`
           } else {
             task.title = `${task.title}...[Exists]`
@@ -182,7 +179,7 @@ export class OLMTasks {
       {
         title: 'Wait while subscription is ready',
         task: async (ctx: any, task: any) => {
-          const installPlan = await this.kube.waitOperatorSubscriptionReadyForApproval(ctx.operatorNamespace, ctx.subscriptionName, 600)
+          const installPlan = await this.kube.waitOperatorSubscriptionReadyForApproval(ctx.subscriptionName, ctx.operatorNamespace, 600)
           ctx.installPlanName = installPlan.name
           task.title = `${task.title}...[OK]`
         },
@@ -205,8 +202,8 @@ export class OLMTasks {
       {
         title: 'Check cluster service version resource',
         task: async (ctx: any, task: any) => {
-          const installedCSVName = await this.kube.waitInstalledCSVInSubscription(ctx.operatorNamespace, ctx.subscriptionName)
-          const phase = await this.kube.waitCSVStatusPhase(ctx.operatorNamespace, installedCSVName)
+          const installedCSVName = await this.kube.waitInstalledCSVInSubscription(ctx.subscriptionName, ctx.operatorNamespace,)
+          const phase = await this.kube.waitCSVStatusPhase(installedCSVName, ctx.operatorNamespace)
           if (phase === 'Failed') {
             const csv = await this.kube.getCSV(installedCSVName, ctx.operatorNamespace)
             if (!csv) {
@@ -226,14 +223,14 @@ export class OLMTasks {
             throw new Error('Eclipse Che operator CSV not found.')
           }
           const jsonPatch = [{ op: 'replace', path: '/spec/install/spec/deployments/0/spec/template/spec/containers/0/image', value: flags['che-operator-image'] }]
-          await this.kube.patchClusterServiceVersion(csvs[0].metadata.namespace!, csvs[0].metadata.name!, jsonPatch)
+          await this.kube.patchClusterServiceVersion(csvs[0].metadata.name!, csvs[0].metadata.namespace!, jsonPatch)
           task.title = `${task.title}...[OK]`
         },
       },
       {
         title: TASK_TITLE_PREPARE_CHE_CLUSTER_CR,
         task: async (ctx: any, task: any) => {
-          const cheCluster = await this.kube.getCheCluster(flags.chenamespace)
+          const cheCluster = await this.kube.getCheClusterV1(flags.chenamespace)
           if (cheCluster) {
             task.title = `${task.title}...[Exists]`
             return
@@ -246,7 +243,7 @@ export class OLMTasks {
           task.title = `${task.title}...[OK]`
         },
       },
-      createEclipseCheCluster(flags, this.kube),
+      createEclipseCheClusterTask(flags, this.kube),
     ]
   }
 
@@ -295,7 +292,7 @@ export class OLMTasks {
             }
             ctx.checlusterNamespace = cheClusters[0].metadata.namespace
           } else {
-            const cheCluster = await this.kube.getCheCluster(ctx.operatorNamespace)
+            const cheCluster = await this.kube.getCheClusterV1(ctx.operatorNamespace)
             if (!cheCluster) {
               command.error(`Eclipse Che cluster CR was not found in the namespace '${flags.chenamespace}'`)
             }
@@ -363,7 +360,7 @@ export class OLMTasks {
           task.title = `${task.title}...[OK]`
         },
       },
-      patchingEclipseCheCluster(flags, kube, command),
+      patchingEclipseCheCluster(flags, kube),
     ], { renderer: flags['listr-renderer'] as any })
   }
 
@@ -398,19 +395,27 @@ export class OLMTasks {
         title: 'Delete operator subscription',
         enabled: ctx => ctx.isPreInstalledOLM && ctx.subscriptionName,
         task: async (ctx: any, task: any) => {
-          await kube.deleteOperatorSubscription(ctx.subscriptionName, ctx.operatorNamespace)
-          task.title = `${task.title}...[OK]`
+          try {
+            await kube.deleteOperatorSubscription(ctx.subscriptionName, ctx.operatorNamespace)
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: 'Delete Eclipse Che cluster service versions',
         enabled: ctx => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
-          const csvs = await kube.getCSVWithPrefix(CSV_PREFIX, ctx.operatorNamespace)
-          for (const csv of csvs) {
-            await kube.deleteClusterServiceVersion(ctx.operatorNamespace, csv.metadata.name!)
+          try {
+            const csvs = await kube.getCSVWithPrefix(CSV_PREFIX, ctx.operatorNamespace)
+            for (const csv of csvs) {
+              await kube.deleteClusterServiceVersion(csv.metadata.name!, ctx.operatorNamespace)
+            }
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
           }
-          task.title = `${task.title}...[OK]`
         },
       },
       {
@@ -418,39 +423,59 @@ export class OLMTasks {
         // Do not delete global operator group if operator is in all namespaces mode
         enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
         task: async (ctx: any, task: any) => {
-          const opgr = ctx.operatorGroup
-          if (opgr && opgr.metadata && opgr.metadata.name && opgr.metadata.namespace) {
-            await kube.deleteOperatorGroup(opgr.metadata.name, opgr.metadata.namespace)
+          try {
+            const opgr = ctx.operatorGroup
+            if (opgr && opgr.metadata && opgr.metadata.name && opgr.metadata.namespace) {
+              await kube.deleteOperatorGroup(opgr.metadata.name, opgr.metadata.namespace)
+            }
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
           }
-          task.title = `${task.title}...[OK]`
         },
       },
       {
-        title: TASK_TITLE_DELETE_CUSTOM_CATALOG_SOURCE,
+        title: `Delete(OLM) custom catalog source ${CUSTOM_CATALOG_SOURCE_NAME}`,
         task: async (ctx: any, task: any) => {
-          await kube.deleteCatalogSource(ctx.operatorNamespace, CUSTOM_CATALOG_SOURCE_NAME)
-          task.title = `${task.title}...[OK]`
+          try {
+            await kube.deleteCatalogSource(CUSTOM_CATALOG_SOURCE_NAME, ctx.operatorNamespace)
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
-        title: TASK_TITLE_DELETE_NEXT_CATALOG_SOURCE,
+        title: `Delete(OLM) nigthly catalog source ${NEXT_CATALOG_SOURCE_NAME}`,
         task: async (ctx: any, task: any) => {
-          await kube.deleteCatalogSource(ctx.operatorNamespace, NEXT_CATALOG_SOURCE_NAME)
-          task.title = `${task.title}...[OK]`
+          try {
+            await kube.deleteCatalogSource(NEXT_CATALOG_SOURCE_NAME, ctx.operatorNamespace)
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: `Delete role ${this.prometheusRoleName}`,
         task: async (_ctx: any, task: any) => {
-          await kube.deleteRole(this.prometheusRoleName, flags.chenamespace)
-          task.title = `${task.title}...[OK]`
+          try {
+            await kube.deleteRole(this.prometheusRoleName, flags.chenamespace)
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: `Delete role binding ${this.prometheusRoleName}`,
         task: async (_ctx: any, task: any) => {
-          await kube.deleteRoleBinding(this.prometheusRoleName, flags.chenamespace)
-          task.title = `${task.title}...[OK]`
+          try {
+            await kube.deleteRoleBinding(this.prometheusRoleName, flags.chenamespace)
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
     ]

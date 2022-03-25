@@ -42,7 +42,7 @@ export default class Open extends Command {
 
       cli.info(`Opening ... ${dashboardUrl}`)
       await cli.open(dashboardUrl)
-    } catch (error) {
+    } catch (error: any) {
       this.error(error)
     }
 

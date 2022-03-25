@@ -23,7 +23,7 @@ import { OperatorTasks } from './operator'
  */
 export class InstallerTasks {
   updateTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
-    const operatorTasks = new OperatorTasks()
+    const operatorTasks = new OperatorTasks(flags)
     const olmTasks = new OLMTasks(flags)
 
     let title: string
@@ -32,7 +32,7 @@ export class InstallerTasks {
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the Eclipse Che operator Update'
       task = (ctx: any) => {
-        return new Listr(operatorTasks.updateTasks(flags, command), ctx.listrOptions)
+        return new Listr(operatorTasks.updateTasks(), ctx.listrOptions)
       }
     } else if (flags.installer === 'olm') {
       title = '🏃‍  Running the Eclipse Che operator Update using OLM'
@@ -53,7 +53,7 @@ export class InstallerTasks {
   }
 
   preUpdateTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
-    const operatorTasks = new OperatorTasks()
+    const operatorTasks = new OperatorTasks(flags)
     const olmTasks = new OLMTasks(flags)
 
     let title: string
@@ -62,7 +62,7 @@ export class InstallerTasks {
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the Eclipse Che operator Update'
       task = () => {
-        return operatorTasks.preUpdateTasks(flags, command)
+        return operatorTasks.preUpdateTasks()
       }
     } else if (flags.installer === 'olm') {
       title = '🏃‍  Running the Eclipse Che operator Update using OLM'
@@ -85,7 +85,7 @@ export class InstallerTasks {
   async installTasks(flags: any, command: Command): Promise<ReadonlyArray<Listr.ListrTask>> {
     const ctx = ChectlContext.get()
 
-    const operatorTasks = new OperatorTasks()
+    const operatorTasks = new OperatorTasks(flags)
     const olmTasks = new OLMTasks(flags)
 
     let title: string
@@ -94,7 +94,7 @@ export class InstallerTasks {
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the Eclipse Che operator'
       task = async () => {
-        return new Listr(await operatorTasks.deployTasks(flags, command), ctx.listrOptions)
+        return new Listr(await operatorTasks.deployTasks(), ctx.listrOptions)
       }
     } else if (flags.installer === 'olm') {
       title = '🏃‍  Running Olm installation Eclipse Che'

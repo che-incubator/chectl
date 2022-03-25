@@ -118,10 +118,8 @@ export class E2eHelper {
   //Return a route from Openshift adding protocol
   async OCHostname(ingressName: string, namespace: string): Promise<string> {
     if (await this.oc.routeExist(ingressName, namespace)) {
-      const protocol = await this.oc.getRouteProtocol(ingressName, namespace)
       const hostname = await this.oc.getRouteHost(ingressName, namespace)
-
-      return `${protocol}://${hostname}`
+      return `https://${hostname}`
     }
     throw new Error('Route "che" does not exist')
   }
@@ -129,10 +127,8 @@ export class E2eHelper {
   // Return ingress and protocol from minikube platform
   async K8SHostname(ingressName: string, namespace: string): Promise<string> {
     if (await this.kubeHelper.isIngressExist(ingressName, namespace)) {
-      const protocol = await this.kubeHelper.getIngressProtocol(ingressName, namespace)
       const hostname = await this.kubeHelper.getIngressHost(ingressName, namespace)
-
-      return `${protocol}://${hostname}`
+      return `https://${hostname}`
     }
     throw new Error(`Ingress "${ingressName}" in namespace ${namespace} does not exist`)
   }
@@ -148,7 +144,7 @@ export class E2eHelper {
 
     let totalTimeMs = 0
     while (totalTimeMs < timeoutMs) {
-      const cheCR = await this.kubeHelper.getCheCluster(NAMESPACE)
+      const cheCR = await this.kubeHelper.getCheClusterV1(NAMESPACE)
       if (cheCR && cheCR.status && cheCR.status.cheVersion === version) {
         return
       }

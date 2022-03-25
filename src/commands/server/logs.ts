@@ -15,7 +15,7 @@ import { string } from '@oclif/parser/lib/flags'
 import * as Listr from 'listr'
 
 import { ChectlContext } from '../../api/context'
-import { cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
@@ -28,7 +28,6 @@ export default class Logs extends Command {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'listr-renderer': listrRenderer,
-    'deployment-name': cheDeployment,
     directory: string({
       char: 'd',
       description: 'Directory to store logs into',
@@ -56,7 +55,7 @@ export default class Logs extends Command {
       this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
       await tasks.run(ctx)
       this.log(getCommandSuccessMessage())
-    } catch (err) {
+    } catch (err: any) {
       this.error(wrapCommandError(err))
     }
 
