@@ -72,7 +72,7 @@ export namespace ChectlContext {
       ctx[RESOURCES] = path.join(getEmbeddedTemplatesDirectory(), OPERATOR_TEMPLATE_DIR)
     }
     ctx[DEFAULT_CR] = safeLoadFromYamlFile(path.join(ctx.resourcesPath, 'crds', 'org_checluster_cr.yaml'))
-    ctx[IS_OPENSHIFT] = isOpenShift()
+    ctx[IS_OPENSHIFT] = await isOpenShift()
   }
 
   export async function initAndGet(flags: any, command: Command): Promise<any> {
