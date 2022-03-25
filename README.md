@@ -103,6 +103,7 @@ USAGE
 * [`chectl server:logs`](#chectl-serverlogs)
 * [`chectl server:start`](#chectl-serverstart)
 * [`chectl server:status`](#chectl-serverstatus)
+* [`chectl server:stop`](#chectl-serverstop)
 * [`chectl server:update`](#chectl-serverupdate)
 * [`chectl update [CHANNEL]`](#chectl-update-channel)
 
@@ -445,6 +446,24 @@ OPTIONS
 ```
 
 _See code: [src/commands/server/status.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/status.ts)_
+
+## `chectl server:stop`
+
+stop Eclipse Che server
+
+```
+USAGE
+  $ chectl server:stop
+
+OPTIONS
+  -h, --help                       show CLI help
+  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
+  --che-selector=che-selector      [default: app=che,component=che] Selector for Eclipse Che server resources
+  --skip-kubernetes-health-check   Skip Kubernetes health check
+  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+```
+
+_See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
 
 ## `chectl server:update`
 
