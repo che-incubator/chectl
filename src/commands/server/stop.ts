@@ -15,7 +15,7 @@ import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 
 import { ChectlContext } from '../../api/context'
-import { accessToken, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
@@ -32,7 +32,6 @@ export default class Stop extends Command {
       default: 'app=che,component=che',
       env: 'CHE_SELECTOR',
     }),
-    'access-token': accessToken,
     'listr-renderer': listrRenderer,
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
     telemetry: CHE_TELEMETRY,

@@ -94,7 +94,7 @@ export class InstallerTasks {
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the Eclipse Che operator'
       task = async () => {
-        return new Listr(await operatorTasks.deployTasks(flags, command), ctx.listrOptions)
+        return new Listr(await operatorTasks.deployTasks(flags), ctx.listrOptions)
       }
     } else if (flags.installer === 'olm') {
       title = '🏃‍  Running Olm installation Eclipse Che'

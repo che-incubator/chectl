@@ -34,7 +34,6 @@ export class ApiTasks {
           }
           task.title = `${task.title}...OK`
           ctx.isOpenShift = await kube.isOpenShift()
-          ctx.isOpenShift4 = await kube.isOpenShift4()
 
           if (ctx.isOpenShift) {
             task.title = `${task.title} (it's OpenShift)`

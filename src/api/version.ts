@@ -48,10 +48,8 @@ export namespace VersionHelper {
         const kube = new KubeHelper(flags)
         if (actualVersion) {
           task.title = `${task.title}: ${actualVersion}.`
-        } else if (await kube.isOpenShift4()) {
+        } else if (await kube.isOpenShift()) {
           task.title = `${task.title}: 4.x`
-        } else {
-          task.title = `${task.title}: Unknown`
         }
 
         if (!flags['skip-version-check'] && actualVersion) {
