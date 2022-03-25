@@ -11,7 +11,6 @@
  */
 
 import { V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1Deployment, V1Role, V1RoleBinding, V1Service } from '@kubernetes/client-node'
-import { Command } from '@oclif/command'
 import { cli } from 'cli-ux'
 import * as fs from 'fs'
 import * as Listr from 'listr'
@@ -22,7 +21,7 @@ import { KubeHelper } from '../../api/kube'
 import { CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME, OPERATOR_TEMPLATE_DIR } from '../../constants'
 import { getImageNameAndTag, safeLoadFromYamlFile } from '../../util'
 import { KubeTasks } from '../kube'
-import { createEclipseCheCluster, patchingEclipseCheCluster } from './common-tasks'
+import { createEclipseCheClusterTask, patchingEclipseCheCluster } from './common-tasks'
 import { V1Certificate } from '../../api/types/cert-manager'
 
 export class OperatorTasks {
@@ -30,122 +29,118 @@ export class OperatorTasks {
   private static readonly WEBHOOK_SERVICE = 'webhook-service'
   private static readonly CERTIFICATE = 'serving-cert'
   private static readonly ISSUER = 'selfsigned-issuer'
+  private static readonly SERVICE_ACCOUNT = 'che-operator'
+  private static readonly DEVWORKSPACE_PREFIX = 'devworkspace-che'
 
-  operatorServiceAccount = 'che-operator'
+  protected kh: KubeHelper
 
-  legacyClusterResourcesName = 'che-operator'
-
-  devworkspaceCheNamePrefix = 'devworkspace-che'
-
-  private getReadRolesAndBindingsTask(kube: KubeHelper): Listr.ListrTask {
-    return {
-      title: 'Read Roles and Bindings',
-      task: async (ctx: any, task: any) => {
-        ctx.roles = []
-        ctx.roleBindings = []
-        ctx.clusterRoles = []
-        ctx.clusterRoleBindings = []
-        const filesList = fs.readdirSync(ctx[ChectlContext.RESOURCES])
-        for (const fileName of filesList) {
-          if (!fileName.endsWith('.yaml')) {
-            continue
-          }
-          const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], fileName)
-          const yamlContent = kube.safeLoadFromYamlFile(yamlFilePath)
-          if (!(yamlContent && yamlContent.kind)) {
-            continue
-          }
-          switch (yamlContent.kind) {
-          case 'Role':
-            ctx.roles.push(yamlContent)
-            break
-          case 'RoleBinding':
-            ctx.roleBindings.push(yamlContent)
-            break
-          case 'ClusterRole':
-            ctx.clusterRoles.push(yamlContent)
-            break
-          case 'ClusterRoleBinding':
-            ctx.clusterRoleBindings.push(yamlContent)
-            break
-          default:
-            // Ignore this object kind
-          }
-        }
-
-        // Check consistancy
-        if (ctx.roles.length !== ctx.roleBindings.length) {
-          cli.warn('Number of Roles and Role Bindings is different')
-        }
-        if (ctx.clusterRoles.length !== ctx.clusterRoleBindings.length) {
-          cli.warn('Number of Cluster Roles and Cluster Role Bindings is different')
-        }
-
-        task.title = `${task.title}...[OK]`
-      },
-    }
+  constructor(protected readonly flags: any) {
+    this.kh = new KubeHelper(flags)
   }
 
-  private getCreateOrUpdateRolesAndBindingsTask(flags: any, taskTitle: string, shouldUpdate = false): Listr.ListrTask {
-    const kube = new KubeHelper(flags)
+  private getCreateOrUpdateRolesAndBindingsTasks(updateTask = false): Listr.ListrTask {
     return {
-      title: taskTitle,
+      title: 'Role and RoleBindings',
       task: async (ctx: any, task: any) => {
-        if (!ctx.roles) {
-          // Should never happen. 'Read Roles and Bindings' task should be called first.
-          throw new Error('Should read Roles and Bindings first')
+        const resources = this.collectReadRolesAndBindings(ctx)
+        const rolesTasks = new Listr(undefined, ctx.listrOptions)
+
+        for (const role of resources.roles as V1Role[]) {
+          rolesTasks.add(
+            {
+              title: `${updateTask ? 'Update' : 'Create'} Role ${role.metadata!.name}`,
+              task: async (_ctx: any, task: any) => {
+                if (await this.kh.isRoleExist(role.metadata!.name!, this.flags.chenamespace)) {
+                  if (updateTask) {
+                    await this.kh.replaceRole(role, this.flags.chenamespace)
+                    task.title = `${task.title}...[Updated]`
+                  } else {
+                    task.title = `${task.title}...[Skipped: Exists]`
+                  }
+                } else {
+                  await this.kh.createRole(role, this.flags.chenamespace)
+                  task.title = `${task.title}...[Created]`
+                }
+              },
+            }
+          )
         }
 
-        for (const role of ctx.roles as V1Role[]) {
-          if (await kube.isRoleExist(role.metadata!.name!, flags.chenamespace)) {
-            if (shouldUpdate) {
-              await kube.replaceRole(role, flags.chenamespace)
+        for (const roleBinding of resources.roleBindings as V1RoleBinding[]) {
+          rolesTasks.add(
+            {
+              title: `${updateTask ? 'Update' : 'Create'} RoleBinding ${roleBinding.metadata!.name}`,
+              task: async (_ctx: any, task: any) => {
+                if (await this.kh.isRoleBindingExist(roleBinding.metadata!.name!, this.flags.chenamespace)) {
+                  if (updateTask) {
+                    await this.kh.replaceRoleBinding(roleBinding, this.flags.chenamespace)
+                    task.title = `${task.title}...[Updated]`
+                  } else {
+                    task.title = `${task.title}...[Skipped: Exists]`
+                  }
+                } else {
+                  await this.kh.createRoleBinding(roleBinding, this.flags.chenamespace)
+                  task.title = `${task.title}...[Created]`
+                }
+              },
             }
-          } else {
-            await kube.createRole(role, flags.chenamespace)
-          }
-        }
-
-        for (const roleBinding of ctx.roleBindings as V1RoleBinding[]) {
-          if (await kube.isRoleBindingExist(roleBinding.metadata!.name!, flags.chenamespace)) {
-            if (shouldUpdate) {
-              await kube.replaceRoleBinding(roleBinding, flags.chenamespace)
-            }
-          } else {
-            await kube.createRoleBinding(roleBinding, flags.chenamespace)
-          }
+          )
         }
 
         // For Cluster Roles and Cluster Role Bindings use prefix to allow several Che installations
-        const clusterObjectNamePrefix = `${flags.chenamespace}-`
+        const clusterObjectNamePrefix = `${this.flags.chenamespace}-`
 
-        for (const clusterRole of ctx.clusterRoles as V1ClusterRole[]) {
-          const clusterRoleName = clusterObjectNamePrefix + clusterRole.metadata!.name
-          if (await kube.isClusterRoleExist(clusterRoleName)) {
-            if (shouldUpdate) {
-              await kube.replaceClusterRoleFromObj(clusterRole, clusterRoleName)
+        for (const clusterRole of resources.clusterRoles as V1ClusterRole[]) {
+          rolesTasks.add(
+            {
+              title: `${updateTask ? 'Update' : 'Create'} ClusterRole ${clusterRole.metadata!.name}`,
+              task: async (_ctx: any, task: any) => {
+                const clusterRoleName = clusterObjectNamePrefix + clusterRole.metadata!.name
+                if (await this.kh.isClusterRoleExist(clusterRoleName)) {
+                  if (updateTask) {
+                    await this.kh.replaceClusterRoleFromObj(clusterRole, clusterRoleName)
+                    task.title = `${task.title}...[Updated]`
+                  } else {
+                    task.title = `${task.title}...[Skipped: Exists]`
+                  }
+                } else {
+                  await this.kh.createClusterRole(clusterRole, clusterRoleName)
+                  task.title = `${task.title}...[Created]`
+                }
+              },
             }
-          } else {
-            await kube.createClusterRole(clusterRole, clusterRoleName)
-          }
+          )
         }
 
-        for (const clusterRoleBinding of ctx.clusterRoleBindings as V1ClusterRoleBinding[]) {
-          clusterRoleBinding.metadata!.name = clusterObjectNamePrefix + clusterRoleBinding.metadata!.name
-          clusterRoleBinding.roleRef.name = clusterObjectNamePrefix + clusterRoleBinding.roleRef.name
-          for (const subj of clusterRoleBinding.subjects || []) {
-            subj.namespace = flags.chenamespace
-          }
-          if (await kube.isClusterRoleBindingExist(clusterRoleBinding.metadata!.name)) {
-            if (shouldUpdate) {
-              await kube.replaceClusterRoleBinding(clusterRoleBinding)
+        for (const clusterRoleBinding of resources.clusterRoleBindings as V1ClusterRoleBinding[]) {
+          rolesTasks.add(
+            {
+              title: `${updateTask ? 'Update' : 'Create'} ClusterRoleBinding ${clusterRoleBinding.metadata!.name}`,
+              task: async (_ctx: any, task: any) => {
+                clusterRoleBinding.metadata!.name = clusterObjectNamePrefix + clusterRoleBinding.metadata!.name
+                clusterRoleBinding.roleRef.name = clusterObjectNamePrefix + clusterRoleBinding.roleRef.name
+                for (const subj of clusterRoleBinding.subjects || []) {
+                  subj.namespace = this.flags.chenamespace
+                }
+
+                if (await this.kh.isClusterRoleBindingExist(clusterRoleBinding.metadata!.name)) {
+                  if (updateTask) {
+                    await this.kh.replaceClusterRoleBinding(clusterRoleBinding)
+                    task.title = `${task.title}...[Updated]`
+                  } else {
+                    task.title = `${task.title}...[Skipped: Exists]`
+                  }
+                } else {
+                  await this.kh.createClusterRoleBinding(clusterRoleBinding)
+                  task.title = `${task.title}...[Created]`
+                }
+              },
             }
-          } else {
-            await kube.createClusterRoleBinding(clusterRoleBinding)
-          }
+          )
         }
 
         task.title = `${task.title}...[OK]`
+        return rolesTasks
       },
     }
   }
@@ -153,36 +148,35 @@ export class OperatorTasks {
   /**
    * Returns tasks list which perform preflight platform checks.
    */
-  async deployTasks(flags: any): Promise<Listr.ListrTask[]> {
-    const kube = new KubeHelper(flags)
-    const kubeTasks = new KubeTasks(flags)
+  async deployTasks(): Promise<Listr.ListrTask[]> {
+    const kube = new KubeHelper(this.flags)
+    const kubeTasks = new KubeTasks(this.flags)
 
     return [
       {
-        title: `Create ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
+        title: `Create ServiceAccount ${OperatorTasks.SERVICE_ACCOUNT} in namespace ${this.flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
-          const exist = await kube.isServiceAccountExist(this.operatorServiceAccount, flags.chenamespace)
+          const exist = await this.kh.isServiceAccountExist(OperatorTasks.SERVICE_ACCOUNT, this.flags.chenamespace)
           if (exist) {
-            task.title = `${task.title}...[Exists]`
+            task.title = `${task.title}...[Skipped: Exists]`
           } else {
             const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'service_account.yaml')
-            await kube.createServiceAccountFromFile(yamlFilePath, flags.chenamespace)
-            task.title = `${task.title}...[OK]`
+            await this.kh.createServiceAccountFromFile(yamlFilePath, this.flags.chenamespace)
+            task.title = `${task.title}...[Created]`
           }
         },
       },
-      this.getReadRolesAndBindingsTask(kube),
-      this.getCreateOrUpdateRolesAndBindingsTask(flags, 'Creating Roles and Bindings', false),
+      this.getCreateOrUpdateRolesAndBindingsTasks(false),
       {
         title: `Create CRD ${CHE_CLUSTER_CRD}`,
         task: async (ctx: any, task: any) => {
-          const existedCRD = await kube.getCrd(CHE_CLUSTER_CRD)
+          const existedCRD = await this.kh.getCrd(CHE_CLUSTER_CRD)
           if (existedCRD) {
-            task.title = `${task.title}...[Exists]`
+            task.title = `${task.title}...[Skipped: Exists]`
           } else {
-            const newCRDPath = await this.getCRDPath(ctx, flags)
-            await kube.createCrdFromFile(newCRDPath)
-            task.title = `${task.title}...[OK]`
+            const newCRDPath = await this.getCRDPath(ctx, this.flags)
+            await this.kh.createCrdFromFile(newCRDPath)
+            task.title = `${task.title}...[Created]`
           }
         },
       },
@@ -196,17 +190,17 @@ export class OperatorTasks {
       {
         title: `Create ConfigMap ${OperatorTasks.MANAGER_CONFIG_MAP}`,
         task: async (ctx: any, task: any) => {
-          const exist = await kube.isConfigMapExists(OperatorTasks.MANAGER_CONFIG_MAP, flags.chenamespace)
+          const exist = await this.kh.isConfigMapExists(OperatorTasks.MANAGER_CONFIG_MAP, this.flags.chenamespace)
           if (exist) {
-            task.title = `${task.title}...[Exists]`
+            task.title = `${task.title}...[Skipped: Exists]`
           } else {
             const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'manager-config.yaml')
             if (fs.existsSync(yamlFilePath)) {
               const configMap = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1ConfigMap
-              await kube.createConfigMap(configMap, flags.chenamespace)
-              task.title = `${task.title}...[OK]`
+              await this.kh.createConfigMap(configMap, this.flags.chenamespace)
+              task.title = `${task.title}...[Created]`
             } else {
-              task.title = `${task.title}...[Skipped]`
+              task.title = `${task.title}...[Skipped: Not found]`
             }
           }
         },
@@ -214,48 +208,48 @@ export class OperatorTasks {
       {
         title: `Create Webhook Service ${OperatorTasks.MANAGER_CONFIG_MAP}`,
         task: async (ctx: any, task: any) => {
-          const exists = await kube.isServiceExists(OperatorTasks.WEBHOOK_SERVICE, flags.chenamespace)
+          const exists = await this.kh.isServiceExists(OperatorTasks.WEBHOOK_SERVICE, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Exists]`
+            task.title = `${task.title}...[Skipped: Exists]`
           } else {
             const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'webhook-service.yaml')
             if (fs.existsSync(yamlFilePath)) {
-              await kube.createServiceFromFile(yamlFilePath, flags.chenamespace)
-              task.title = `${task.title}...[OK]`
+              await this.kh.createServiceFromFile(yamlFilePath, this.flags.chenamespace)
+              task.title = `${task.title}...[Created]`
             } else {
-              task.title = `${task.title}...[Skipped]`
+              task.title = `${task.title}...[Skipped: Not found]`
             }
           }
         },
       },
       {
-        title: `Create deployment ${OPERATOR_DEPLOYMENT_NAME} in namespace ${flags.chenamespace}`,
+        title: `Create deployment ${OPERATOR_DEPLOYMENT_NAME} in namespace ${this.flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
-          const exists = await kube.isDeploymentExist(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
+          const exists = await this.kh.isDeploymentExist(OPERATOR_DEPLOYMENT_NAME, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Exists]`
+            task.title = `${task.title}...[Skipped: Exists]`
           } else {
             const deploymentPath = path.join(ctx[ChectlContext.RESOURCES], 'operator.yaml')
-            const operatorDeployment = await this.readOperatorDeployment(deploymentPath, flags)
-            await kube.createDeployment(operatorDeployment, flags.chenamespace)
-            task.title = `${task.title}...[OK]`
+            const operatorDeployment = await this.readOperatorDeployment(deploymentPath)
+            await this.kh.createDeployment(operatorDeployment, this.flags.chenamespace)
+            task.title = `${task.title}...[Created]`
           }
         },
       },
       {
         title: `Create Certificate ${OperatorTasks.CERTIFICATE}`,
         task: async (ctx: any, task: any) => {
-          const exists = await kube.isCertificateExists(OperatorTasks.CERTIFICATE, flags.chenamespace)
+          const exists = await this.kh.isCertificateExists(OperatorTasks.CERTIFICATE, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Exists]`
+            task.title = `${task.title}...[Skipped: Exists]`
           } else {
             const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'serving-cert.yaml')
             if (fs.existsSync(yamlFilePath)) {
               const certificate = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Certificate
-              await kube.createCertificate(certificate, flags.chenamespace)
-              task.title = `${task.title}...[OK]`
+              await this.kh.createCertificate(certificate, this.flags.chenamespace)
+              task.title = `${task.title}...[Created]`
             } else {
-              task.title = `${task.title}...[Skipped]`
+              task.title = `${task.title}...[Skipped: Not found]`
             }
           }
         },
@@ -263,60 +257,40 @@ export class OperatorTasks {
       {
         title: `Create Issuer ${OperatorTasks.ISSUER}`,
         task: async (ctx: any, task: any) => {
-          const exists = await kube.isIssuerExists(OperatorTasks.ISSUER, flags.chenamespace)
+          const exists = await this.kh.isIssuerExists(OperatorTasks.ISSUER, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Exists]`
+            task.title = `${task.title}...[Skipped: Exists]`
           } else {
             const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'selfsigned-issuer.yaml')
             if (fs.existsSync(yamlFilePath)) {
               const issuer = yaml.load(fs.readFileSync(yamlFilePath).toString())
-              await kube.createIssuer(issuer, flags.chenamespace)
-              task.title = `${task.title}...[OK]`
+              await this.kh.createIssuer(issuer, this.flags.chenamespace)
+              task.title = `${task.title}...[Created]`
             } else {
-              task.title = `${task.title}...[Skipped]`
+              task.title = `${task.title}...[Skipped: Not found]`
             }
           }
         },
       },
       {
         title: 'Operator pod bootstrap',
-        task: () => kubeTasks.podStartTasks(CHE_OPERATOR_SELECTOR, flags.chenamespace),
+        task: () => kubeTasks.podStartTasks(CHE_OPERATOR_SELECTOR, this.flags.chenamespace),
       },
-      {
-        title: 'Prepare Eclipse Che cluster CR',
-        task: async (ctx: any, task: any) => {
-          const cheCluster = await kube.getCheClusterV1(flags.chenamespace)
-          if (cheCluster) {
-            task.title = `${task.title}...[Exists]`
-            return
-          }
-
-          if (!ctx.customCR) {
-            const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'crds', 'org_checluster_cr.yaml')
-            ctx.defaultCR = safeLoadFromYamlFile(yamlFilePath)
-          }
-
-          task.title = `${task.title}...[OK]`
-        },
-      },
-      createEclipseCheCluster(flags, kube),
+      createEclipseCheClusterTask(this.flags, kube),
     ]
   }
 
-  preUpdateTasks(flags: any, command: Command): Listr {
-    const kube = new KubeHelper(flags)
-    const ctx = ChectlContext.get()
-    ctx[ChectlContext.RESOURCES] = path.join(flags.templates, OPERATOR_TEMPLATE_DIR)
+  preUpdateTasks(): Listr {
     return new Listr([
       {
-        title: 'Checking existing operator deployment before update',
+        title: 'Checking if operator deployment exists',
         task: async (ctx: any, task: any) => {
-          const operatorDeployment = await kube.getDeployment(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
+          const operatorDeployment = await this.kh.getDeployment(OPERATOR_DEPLOYMENT_NAME, this.flags.chenamespace)
           if (!operatorDeployment) {
-            command.error(`${OPERATOR_DEPLOYMENT_NAME} deployment is not found in namespace ${flags.chenamespace}.\nProbably Eclipse Che was initially deployed with another installer`)
+            cli.error(`${OPERATOR_DEPLOYMENT_NAME} deployment is not found in namespace ${this.flags.chenamespace}.\nProbably Eclipse Che was initially deployed with another installer`)
           }
           ctx.deployedCheOperatorYaml = operatorDeployment
-          task.title = `${task.title}...[OK]`
+          task.title = `${task.title}...[Found]`
         },
       },
       {
@@ -327,11 +301,11 @@ export class OperatorTasks {
           ctx.deployedCheOperatorImageName = deployedImage
           ctx.deployedCheOperatorImageTag = deployedTag
 
-          if (flags['che-operator-image']) {
-            ctx.newCheOperatorImage = flags['che-operator-image']
+          if (this.flags['che-operator-image']) {
+            ctx.newCheOperatorImage = this.flags['che-operator-image']
           } else {
             // Load new operator image from templates
-            const newCheOperatorYaml = safeLoadFromYamlFile(path.join(flags.templates, OPERATOR_TEMPLATE_DIR, 'operator.yaml')) as V1Deployment
+            const newCheOperatorYaml = safeLoadFromYamlFile(path.join(this.flags.templates, OPERATOR_TEMPLATE_DIR, 'operator.yaml')) as V1Deployment
             ctx.newCheOperatorImage = this.retrieveContainerImage(newCheOperatorYaml)
           }
           const [newImage, newTag] = getImageNameAndTag(ctx.newCheOperatorImage)
@@ -344,53 +318,49 @@ export class OperatorTasks {
       {
         title: 'Check workspace engine compatibility...',
         task: async (_ctx: any, _task: any) => {
-          const cheCluster = await kube.getCheClusterV1(flags.chenamespace)
+          const cheCluster = await this.kh.getCheClusterV1(this.flags.chenamespace)
           const isDevWorkspaceEngineDisabledBeforeUpdate = !cheCluster?.spec?.devWorkspace?.enable
           if (isDevWorkspaceEngineDisabledBeforeUpdate) {
-            command.error('Unsupported operation: it is not possible to update current Che installation to new version with enabled \'devWorkspace\' engine.')
+            cli.error('Unsupported operation: it is not possible to update current Che installation to new version with enabled \'devWorkspace\' engine.')
           }
         },
       },
     ])
   }
 
-  updateTasks(flags: any, command: Command): Array<Listr.ListrTask> {
-    const kube = new KubeHelper(flags)
-    const ctx = ChectlContext.get()
-    ctx[ChectlContext.RESOURCES] = path.join(flags.templates, OPERATOR_TEMPLATE_DIR)
+  updateTasks(): Array<Listr.ListrTask> {
     return [
       {
-        title: `Updating ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
+        title: `Updating ServiceAccount ${OperatorTasks.SERVICE_ACCOUNT}`,
         task: async (ctx: any, task: any) => {
-          const exist = await kube.isServiceAccountExist(this.operatorServiceAccount, flags.chenamespace)
+          const exist = await this.kh.isServiceAccountExist(OperatorTasks.SERVICE_ACCOUNT, this.flags.chenamespace)
           const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'service_account.yaml')
           if (exist) {
-            await kube.replaceServiceAccountFromFile(yamlFilePath, flags.chenamespace)
-            task.title = `${task.title}...updated.`
+            await this.kh.replaceServiceAccountFromFile(yamlFilePath, this.flags.chenamespace)
+            task.title = `${task.title}...[Updated]`
           } else {
-            await kube.createServiceAccountFromFile(yamlFilePath, flags.chenamespace)
-            task.title = `${task.title}...created new one.`
+            await this.kh.createServiceAccountFromFile(yamlFilePath, this.flags.chenamespace)
+            task.title = `${task.title}...[Created]`
           }
         },
       },
-      this.getReadRolesAndBindingsTask(kube),
-      this.getCreateOrUpdateRolesAndBindingsTask(flags, 'Updating Roles and Bindings', true),
+      this.getCreateOrUpdateRolesAndBindingsTasks(true),
       {
         title: `Updating Eclipse Che cluster CRD ${CHE_CLUSTER_CRD}`,
         task: async (ctx: any, task: any) => {
-          const existedCRD = await kube.getCrd(CHE_CLUSTER_CRD)
-          const newCRDPath = await this.getCRDPath(ctx, flags)
+          const existedCRD = await this.kh.getCrd(CHE_CLUSTER_CRD)
+          const newCRDPath = await this.getCRDPath(ctx, this.flags)
 
           if (existedCRD) {
             if (!existedCRD.metadata || !existedCRD.metadata.resourceVersion) {
               throw new Error(`Fetched CRD ${CHE_CLUSTER_CRD} without resource version`)
             }
 
-            await kube.replaceCrdFromFile(newCRDPath)
-            task.title = `${task.title}...updated.`
+            await this.kh.replaceCrdFromFile(newCRDPath)
+            task.title = `${task.title}...[Updated]`
           } else {
-            await kube.createCrdFromFile(newCRDPath)
-            task.title = `${task.title}...created new one.`
+            await this.kh.createCrdFromFile(newCRDPath)
+            task.title = `${task.title}...[Created]`
           }
         },
       },
@@ -406,18 +376,18 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'manager-config.yaml')
           if (!fs.existsSync(yamlFilePath)) {
-            task.title = `${task.title}...[Skipped]`
+            task.title = `${task.title}...[Skipped: Not found]`
             return
           }
 
           const configMap = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1ConfigMap
-          const exist = await kube.isConfigMapExists(OperatorTasks.MANAGER_CONFIG_MAP, flags.chenamespace)
+          const exist = await this.kh.isConfigMapExists(OperatorTasks.MANAGER_CONFIG_MAP, this.flags.chenamespace)
           if (exist) {
-            await kube.replaceConfigMap(OperatorTasks.MANAGER_CONFIG_MAP, configMap, flags.chenamespace)
-            task.title = `${task.title}...[OK]`
+            await this.kh.replaceConfigMap(OperatorTasks.MANAGER_CONFIG_MAP, configMap, this.flags.chenamespace)
+            task.title = `${task.title}...[Updated]`
           } else {
-            await kube.createConfigMap(configMap, flags.chenamespace)
-            task.title = `${task.title}...[OK]`
+            await this.kh.createConfigMap(configMap, this.flags.chenamespace)
+            task.title = `${task.title}...[Created]`
           }
         },
       },
@@ -426,33 +396,33 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'webhook-service.yaml')
           if (!fs.existsSync(yamlFilePath)) {
-            task.title = `${task.title}...[Skipped]`
+            task.title = `${task.title}...[Skipped: Not found]`
             return
           }
 
           const service = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Service
-          const exist = await kube.isServiceExists(OperatorTasks.WEBHOOK_SERVICE, flags.chenamespace)
+          const exist = await this.kh.isServiceExists(OperatorTasks.WEBHOOK_SERVICE, this.flags.chenamespace)
           if (exist) {
-            await kube.replaceService(OperatorTasks.WEBHOOK_SERVICE, service, flags.chenamespace)
-            task.title = `${task.title}...[OK]`
+            await this.kh.replaceService(OperatorTasks.WEBHOOK_SERVICE, service, this.flags.chenamespace)
+            task.title = `${task.title}...[Updated]`
           } else {
-            await kube.createService(service, flags.chenamespace)
-            task.title = `${task.title}...[OK]`
+            await this.kh.createService(service, this.flags.chenamespace)
+            task.title = `${task.title}...[Created]`
           }
         },
       },
       {
-        title: `Updating deployment ${OPERATOR_DEPLOYMENT_NAME} in namespace ${flags.chenamespace}`,
+        title: `Updating deployment ${OPERATOR_DEPLOYMENT_NAME}`,
         task: async (ctx: any, task: any) => {
-          const exist = await kube.isDeploymentExist(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
+          const exist = await this.kh.isDeploymentExist(OPERATOR_DEPLOYMENT_NAME, this.flags.chenamespace)
           const deploymentPath = path.join(ctx[ChectlContext.RESOURCES], 'operator.yaml')
-          const operatorDeployment = await this.readOperatorDeployment(deploymentPath, flags)
+          const operatorDeployment = await this.readOperatorDeployment(deploymentPath)
           if (exist) {
-            await kube.replaceDeployment(operatorDeployment)
-            task.title = `${task.title}...updated.`
+            await this.kh.replaceDeployment(operatorDeployment)
+            task.title = `${task.title}...[Updated]`
           } else {
-            await kube.createDeployment(operatorDeployment, flags.chenamespace)
-            task.title = `${task.title}...created new one.`
+            await this.kh.createDeployment(operatorDeployment, this.flags.chenamespace)
+            task.title = `${task.title}...[Created]`
           }
         },
       },
@@ -461,18 +431,18 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'serving-cert.yaml')
           if (!fs.existsSync(yamlFilePath)) {
-            task.title = `${task.title}...[Skipped]`
+            task.title = `${task.title}...[Skipped: Not found]`
             return
           }
 
           const certificate = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Certificate
-          const exist = await kube.isCertificateExists(OperatorTasks.CERTIFICATE, flags.chenamespace)
+          const exist = await this.kh.isCertificateExists(OperatorTasks.CERTIFICATE, this.flags.chenamespace)
           if (exist) {
-            await kube.replaceCertificate(OperatorTasks.WEBHOOK_SERVICE, certificate, flags.chenamespace)
-            task.title = `${task.title}...[OK]`
+            await this.kh.replaceCertificate(OperatorTasks.WEBHOOK_SERVICE, certificate, this.flags.chenamespace)
+            task.title = `${task.title}...[Updated]`
           } else {
-            await kube.createCertificate(certificate, flags.chenamespace)
-            task.title = `${task.title}...[OK]`
+            await this.kh.createCertificate(certificate, this.flags.chenamespace)
+            task.title = `${task.title}...[Created]`
           }
         },
       },
@@ -481,18 +451,18 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'selfsigned-issuer.yaml')
           if (!fs.existsSync(yamlFilePath)) {
-            task.title = `${task.title}...[Skipped]`
+            task.title = `${task.title}...[Skipped: Not found]`
             return
           }
 
           const issuer = yaml.load(fs.readFileSync(yamlFilePath).toString())
-          const exist = await kube.isIssuerExists(OperatorTasks.ISSUER, flags.chenamespace)
+          const exist = await this.kh.isIssuerExists(OperatorTasks.ISSUER, this.flags.chenamespace)
           if (exist) {
-            await kube.replaceIssuer(OperatorTasks.WEBHOOK_SERVICE, issuer, flags.chenamespace)
-            task.title = `${task.title}...[OK]`
+            await this.kh.replaceIssuer(OperatorTasks.WEBHOOK_SERVICE, issuer, this.flags.chenamespace)
+            task.title = `${task.title}...[Updated]`
           } else {
-            await kube.createIssuer(issuer, flags.chenamespace)
-            task.title = `${task.title}...[OK]`
+            await this.kh.createIssuer(issuer, this.flags.chenamespace)
+            task.title = `${task.title}...[Created]`
           }
         },
       },
@@ -500,10 +470,10 @@ export class OperatorTasks {
         title: 'Waiting newer operator to be run',
         task: async (_ctx: any, _task: any) => {
           await cli.wait(1000)
-          await kube.waitLatestReplica(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
+          await this.kh.waitLatestReplica(OPERATOR_DEPLOYMENT_NAME, this.flags.chenamespace)
         },
       },
-      patchingEclipseCheCluster(flags, kube, command),
+      patchingEclipseCheCluster(this.flags, this.kh),
     ]
   }
 
@@ -513,114 +483,138 @@ export class OperatorTasks {
   deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     const kh = new KubeHelper(flags)
     return [{
-      title: 'Delete oauthClientAuthorizations',
+      title: 'Delete OAuthClient',
       task: async (_ctx: any, task: any) => {
-        const checluster = await kh.getCheClusterV1(flags.chenamespace)
-        if (checluster?.spec?.auth?.oAuthClientName) {
-          await kh.deleteOAuthClient(checluster?.spec?.auth?.oAuthClientName)
+        try {
+          const checluster = await kh.getCheClusterV1(flags.chenamespace)
+          if (checluster?.spec?.auth?.oAuthClientName) {
+            await kh.deleteOAuthClient(checluster?.spec?.auth?.oAuthClientName)
+          }
+          task.title = `${task.title}...[Deleted]`
+        } catch (e: any) {
+          task.title = `${task.title}...[Failed: ${e.message}]`
         }
-        task.title = `${task.title}...OK`
       },
     },
     {
       title: `Delete Webhook Service ${OperatorTasks.WEBHOOK_SERVICE}`,
       task: async (_ctx: any, task: any) => {
-        await kh.deleteService(OperatorTasks.WEBHOOK_SERVICE, flags.chenamespace)
-        task.title = `${task.title}...OK`
+        try {
+          await kh.deleteService(OperatorTasks.WEBHOOK_SERVICE, this.flags.chenamespace)
+          task.title = `${task.title}...[Deleted]`
+        } catch (e: any) {
+          task.title = `${task.title}...[Failed: ${e.message}]`
+        }
       },
     },
     {
       title: `Delete ConfigMap ${OperatorTasks.MANAGER_CONFIG_MAP}`,
       task: async (_ctx: any, task: any) => {
-        await kh.deleteConfigMap(OperatorTasks.MANAGER_CONFIG_MAP, flags.chenamespace)
-        task.title = `${task.title}...OK`
+        try {
+          await kh.deleteConfigMap(OperatorTasks.MANAGER_CONFIG_MAP, this.flags.chenamespace)
+          task.title = `${task.title}...[Deleted]`
+        } catch (e: any) {
+          task.title = `${task.title}...[Failed: ${e.message}]`
+        }
       },
     },
     {
       title: `Delete Issuer ${OperatorTasks.ISSUER}`,
       task: async (_ctx: any, task: any) => {
-        await kh.deleteIssuer(OperatorTasks.ISSUER, flags.chenamespace)
-        task.title = `${task.title}...OK`
+        try {
+          await kh.deleteIssuer(OperatorTasks.ISSUER, this.flags.chenamespace)
+          task.title = `${task.title}...[Deleted]`
+        } catch (e: any) {
+          task.title = `${task.title}...[Failed: ${e.message}]`
+        }
       },
     },
     {
       title: `Delete Certificate ${OperatorTasks.CERTIFICATE}`,
       task: async (_ctx: any, task: any) => {
-        await kh.deleteCertificate(OperatorTasks.CERTIFICATE, flags.chenamespace)
-        task.title = `${task.title}...OK`
+        try {
+          await kh.deleteCertificate(OperatorTasks.CERTIFICATE, this.flags.chenamespace)
+          task.title = `${task.title}...[Deleted]`
+        } catch (e: any) {
+          task.title = `${task.title}...[Failed: ${e.message}]`
+        }
       },
     },
     {
       title: `Delete the Custom Resource of type ${CHE_CLUSTER_CRD}`,
       task: async (_ctx: any, task: any) => {
-        await kh.deleteAllCheClusters(flags.chenamespace)
+        try {
+          await kh.deleteAllCheClusters(flags.chenamespace)
 
-        // wait 20 seconds, default timeout in che operator
-        for (let index = 0; index < 20; index++) {
-          await cli.wait(1000)
-          if (!await kh.getCheClusterV1(flags.chenamespace)) {
-            task.title = `${task.title}...OK`
-            return
-          }
-        }
-
-        // if checluster still exists then remove finalizers and delete again
-        const checluster = await kh.getCheClusterV1(flags.chenamespace)
-        if (checluster) {
-          try {
-            await kh.patchCheCluster(checluster.metadata.name, flags.chenamespace, {metadata: { finalizers: null } })
-          } catch (error) {
+          // wait 20 seconds, default timeout in che operator
+          for (let index = 0; index < 20; index++) {
+            await cli.wait(1000)
             if (!await kh.getCheClusterV1(flags.chenamespace)) {
-              task.title = `${task.title}...OK`
-              return // successfully removed
+              task.title = `${task.title}...[Deleted]`
+              return
             }
-            throw error
           }
 
-          // wait 2 seconds
-          await cli.wait(2000)
-        }
+          // if checluster still exists then remove finalizers and delete again
+          const checluster = await kh.getCheClusterV1(flags.chenamespace)
+          if (checluster) {
+            try {
+              await kh.patchCheCluster(checluster.metadata.name, this.flags.chenamespace, {metadata: { finalizers: null } })
+            } catch (error) {
+              if (!await kh.getCheClusterV1(flags.chenamespace)) {
+                task.title = `${task.title}...[Deleted]`
+                return // successfully removed
+              }
+              throw error
+            }
 
-        if (!await kh.getCheClusterV1(flags.chenamespace)) {
-          task.title = `${task.title}...OK`
-        } else {
-          task.title = `${task.title}...Failed`
+            // wait 2 seconds
+            await cli.wait(2000)
+          }
+
+          if (!await kh.getCheClusterV1(flags.chenamespace)) {
+            task.title = `${task.title}...[Deleted]`
+          } else {
+            task.title = `${task.title}...[Failed]`
+          }
+        } catch (e: any) {
+          task.title = `${task.title}...[Failed: ${e.message}]`
         }
       },
     },
     {
       title: 'Delete CRDs',
       task: async (_ctx: any, task: any) => {
-        const checlusters = await kh.getAllCheClusters()
-        if (checlusters.length > 0) {
-          task.title = `${task.title}...Skipped: another Eclipse Che deployment found.`
-        } else {
-          await kh.deleteCrd(CHE_CLUSTER_CRD)
-          task.title = `${task.title}...OK`
+        try {
+          const checlusters = await kh.getAllCheClusters()
+          if (checlusters.length > 0) {
+            task.title = `${task.title}...[Skipped: another Eclipse Che instance found]`
+          } else {
+            await kh.deleteCrd(CHE_CLUSTER_CRD)
+            task.title = `${task.title}...[Deleted]`
+          }
+        } catch (e: any) {
+          task.title = `${task.title}...[Failed: ${e.message}]`
         }
       },
     },
     {
       title: 'Delete Roles and Bindings',
-      task: async (_ctx: any, task: any) => {
+      task: async (ctx: any, task: any) => {
         const roleBindings = await kh.listRoleBindings(flags.chenamespace)
         for (const roleBinding of roleBindings.items) {
-          await kh.deleteRoleBinding(roleBinding.metadata!.name!, flags.chenamespace)
+          await kh.deleteRoleBinding(roleBinding.metadata!.name!, this.flags.chenamespace)
         }
 
         const roles = await kh.listRoles(flags.chenamespace)
         for (const role of roles.items) {
-          await kh.deleteRole(role.metadata!.name!, flags.chenamespace)
+          await kh.deleteRole(role.metadata!.name!, this.flags.chenamespace)
         }
-
-        // Count existing pairs of cluster roles and thier bindings
-        let pairs = 0
 
         const clusterRoleBindings = await kh.listClusterRoleBindings()
         for (const clusterRoleBinding of clusterRoleBindings.items) {
           const name = clusterRoleBinding.metadata && clusterRoleBinding.metadata.name || ''
-          if (name.startsWith(flags.chenamespace) || name.startsWith(this.devworkspaceCheNamePrefix)) {
-            pairs++
+          if (name.startsWith(flags.chenamespace) || name.startsWith(OperatorTasks.DEVWORKSPACE_PREFIX)) {
             await kh.deleteClusterRoleBinding(name)
           }
         }
@@ -628,32 +622,23 @@ export class OperatorTasks {
         const clusterRoles = await kh.listClusterRoles()
         for (const clusterRole of clusterRoles.items) {
           const name = clusterRole.metadata && clusterRole.metadata.name || ''
-          if (name.startsWith(flags.chenamespace) || name.startsWith(this.devworkspaceCheNamePrefix)) {
+          if (name.startsWith(flags.chenamespace) || name.startsWith(OperatorTasks.DEVWORKSPACE_PREFIX)) {
             await kh.deleteClusterRole(name)
           }
         }
 
-        // If no pairs were deleted, then legacy names is used
-        if (pairs === 0) {
-          await kh.deleteClusterRoleBinding(this.legacyClusterResourcesName)
-          await kh.deleteClusterRole(this.legacyClusterResourcesName)
+        task.title = `${task.title}...[Deleted]`
+      },
+    },
+    {
+      title: `Delete ServiceAccount ${OperatorTasks.SERVICE_ACCOUNT}`,
+      task: async (_ctx: any, task: any) => {
+        try {
+          await kh.deleteServiceAccount(OperatorTasks.SERVICE_ACCOUNT, this.flags.chenamespace)
+          task.title = `${task.title}...[Deleted]`
+        } catch (e: any) {
+          task.title = `${task.title}...[Failed: ${e.message}]`
         }
-
-        task.title = `${task.title}...OK`
-      },
-    },
-    {
-      title: `Delete service accounts ${this.operatorServiceAccount}`,
-      task: async (_ctx: any, task: any) => {
-        await kh.deleteServiceAccount(this.operatorServiceAccount, flags.chenamespace)
-        task.title = `${task.title}...OK`
-      },
-    },
-    {
-      title: 'Delete PVC che-operator',
-      task: async (_ctx: any, task: any) => {
-        await kh.deletePersistentVolumeClaim('che-operator', flags.chenamespace)
-        task.title = `${task.title}...OK`
       },
     }]
   }
@@ -694,32 +679,77 @@ export class OperatorTasks {
    * - sets deployment namespace
    * - removes other containers for ocp 3.11
    */
-  private async readOperatorDeployment(path: string, flags: any): Promise<V1Deployment> {
+  private async readOperatorDeployment(path: string): Promise<V1Deployment> {
     const operatorDeployment = safeLoadFromYamlFile(path) as V1Deployment
 
     if (!operatorDeployment.metadata || !operatorDeployment.metadata!.name) {
       throw new Error(`Deployment read from ${path} must have name specified`)
     }
 
-    if (flags['che-operator-image']) {
+    if (this.flags['che-operator-image']) {
       const container = operatorDeployment.spec!.template.spec!.containers.find(c => c.name === 'che-operator')
       if (container) {
-        container.image = flags['che-operator-image']
+        container.image = this.flags['che-operator-image']
       } else {
         throw new Error(`Container 'che-operator' not found in deployment '${operatorDeployment.metadata!.name}'`)
       }
     }
 
-    if (flags.chenamespace) {
-      operatorDeployment.metadata!.namespace = flags.chenamespace
+    if (this.flags.chenamespace) {
+      operatorDeployment.metadata!.namespace = this.flags.chenamespace
     }
 
-    const kube = new KubeHelper(flags)
-    if (!await kube.IsAPIExtensionSupported('v1')) {
+    if (!await this.kh.IsAPIExtensionSupported('v1')) {
       const containers = operatorDeployment.spec!.template.spec!.containers || []
       operatorDeployment.spec!.template.spec!.containers = containers.filter(c => c.name === 'che-operator')
     }
 
     return operatorDeployment
+  }
+
+  private collectReadRolesAndBindings(ctx: any): any {
+    const resources: any = {}
+    resources.roles = []
+    resources.roleBindings = []
+    resources.clusterRoles = []
+    resources.clusterRoleBindings = []
+
+    const filesList = fs.readdirSync(ctx[ChectlContext.RESOURCES])
+    for (const fileName of filesList) {
+      if (!fileName.endsWith('.yaml')) {
+        continue
+      }
+      const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], fileName)
+      const yamlContent = this.kh.safeLoadFromYamlFile(yamlFilePath)
+      if (!(yamlContent && yamlContent.kind)) {
+        continue
+      }
+      switch (yamlContent.kind) {
+      case 'Role':
+        resources.roles.push(yamlContent)
+        break
+      case 'RoleBinding':
+        resources.roleBindings.push(yamlContent)
+        break
+      case 'ClusterRole':
+        resources.clusterRoles.push(yamlContent)
+        break
+      case 'ClusterRoleBinding':
+        resources.clusterRoleBindings.push(yamlContent)
+        break
+      default:
+        // Ignore this object kind
+      }
+    }
+
+    // Check consistancy
+    if (resources.roles.length !== resources.roleBindings.length) {
+      cli.warn('Number of Roles and Role Bindings is different')
+    }
+    if (resources.clusterRoles.length !== resources.clusterRoleBindings.length) {
+      cli.warn('Number of Cluster Roles and Cluster Role Bindings is different')
+    }
+
+    return resources
   }
 }

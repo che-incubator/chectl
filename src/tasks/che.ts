@@ -314,76 +314,112 @@ export class CheTasks {
       {
         title: 'Delete all deployments',
         task: async (_ctx: any, task: any) => {
-          await this.kube.deleteAllDeployments(flags.chenamespace)
-          task.title = `${task.title}...OK`
+          try {
+            await this.kube.deleteAllDeployments(flags.chenamespace)
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: 'Delete all services',
         task: async (_ctx: any, task: any) => {
-          await this.kube.deleteAllServices(flags.chenamespace)
-          task.title = `${task.title}...OK`
+          try {
+            await this.kube.deleteAllServices(flags.chenamespace)
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: 'Delete all ingresses',
         enabled: (ctx: any) => !ctx.isOpenShift,
         task: async (_ctx: any, task: any) => {
-          await this.kube.deleteAllIngresses(flags.chenamespace)
-          task.title = `${task.title}...OK`
+          try {
+            await this.kube.deleteAllIngresses(flags.chenamespace)
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: 'Delete all routes',
         enabled: (ctx: any) => ctx.isOpenShift,
         task: async (_ctx: any, task: any) => {
-          await this.oc.deleteAllRoutes(flags.chenamespace)
-          task.title = `${task.title}...OK`
+          try {
+            await this.oc.deleteAllRoutes(flags.chenamespace)
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: 'Delete configmaps for Eclipse Che server and operator',
         task: async (_ctx: any, task: any) => {
-          await this.kube.deleteConfigMap('che', flags.chenamespace)
-          await this.kube.deleteConfigMap('che-operator', flags.chenamespace)
-          task.title = `${task.title}...OK`
+          try {
+            await this.kube.deleteConfigMap('che', flags.chenamespace)
+            await this.kube.deleteConfigMap('che-operator', flags.chenamespace)
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: 'Delete rolebindings che, che-workspace-exec and che-workspace-view',
         task: async (_ctx: any, task: any) => {
-          await this.kube.deleteRoleBinding('che', flags.chenamespace)
-          await this.kube.deleteRoleBinding('che-operator', flags.chenamespace)
-          await this.kube.deleteRoleBinding('che-workspace-exec', flags.chenamespace)
-          await this.kube.deleteRoleBinding('che-workspace-view', flags.chenamespace)
-          task.title = `${task.title}...OK`
+          try {
+            await this.kube.deleteRoleBinding('che', flags.chenamespace)
+            await this.kube.deleteRoleBinding('che-operator', flags.chenamespace)
+            await this.kube.deleteRoleBinding('che-workspace-exec', flags.chenamespace)
+            await this.kube.deleteRoleBinding('che-workspace-view', flags.chenamespace)
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: 'Delete service accounts che, che-workspace',
         task: async (_ctx: any, task: any) => {
-          await this.kube.deleteServiceAccount('che', flags.chenamespace)
-          await this.kube.deleteServiceAccount('che-workspace', flags.chenamespace)
-          task.title = `${task.title}...OK`
+          try {
+            await this.kube.deleteServiceAccount('che', flags.chenamespace)
+            await this.kube.deleteServiceAccount('che-workspace', flags.chenamespace)
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: 'Delete PVCs',
         task: async (_ctx: any, task: any) => {
-          await this.kube.deletePersistentVolumeClaim('postgres-data', flags.chenamespace)
-          await this.kube.deletePersistentVolumeClaim('che-data-volume', flags.chenamespace)
-          task.title = `${task.title}...OK`
+          try {
+            await this.kube.deletePersistentVolumeClaim('postgres-data', flags.chenamespace)
+            await this.kube.deletePersistentVolumeClaim('che-data-volume', flags.chenamespace)
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: `Delete consoleLink ${this.cheConsoleLinkName}`,
         task: async (_ctx: any, task: any) => {
-          const checlusters = await this.kube.getAllCheClusters()
-          // Delete the consoleLink only in case if there no more checluster installed
-          if (checlusters.length === 0) {
-            await this.kube.deleteConsoleLink(this.cheConsoleLinkName)
+          try {
+            const checlusters = await this.kube.getAllCheClusters()
+            // Delete the consoleLink only in case if there no more checluster installed
+            if (checlusters.length === 0) {
+              await this.kube.deleteConsoleLink(this.cheConsoleLinkName)
+            }
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
           }
-          task.title = `${task.title}...OK`
         },
       },
     ]
@@ -398,35 +434,35 @@ export class CheTasks {
         title: 'Wait until Eclipse Che Server pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.cheSelector, this.cheNamespace)
-          task.title = `${task.title}...done.`
+          task.title = `${task.title}...[Deleted]`
         },
       },
       {
         title: 'Wait until Eclipse Che Dashboard pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.dashboardSelector, this.cheNamespace)
-          task.title = `${task.title}...done.`
+          task.title = `${task.title}...[Deleted]`
         },
       },
       {
         title: 'Wait until PostgreSQL pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.postgresSelector, this.cheNamespace)
-          task.title = `${task.title}...done.`
+          task.title = `${task.title}...[Deleted]`
         },
       },
       {
         title: 'Wait until Devfile Registry pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.devfileRegistrySelector, this.cheNamespace)
-          task.title = `${task.title}...done.`
+          task.title = `${task.title}...[Deleted]`
         },
       },
       {
         title: 'Wait until Plug-in Registry pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.pluginRegistrySelector, this.cheNamespace)
-          task.title = `${task.title}...done.`
+          task.title = `${task.title}...[Deleted]`
         },
       },
     ]
@@ -440,7 +476,7 @@ export class CheTasks {
         if (namespaceExist) {
           await this.kube.deleteNamespace(flags.chenamespace)
         }
-        task.title = `${task.title}...OK`
+        task.title = `${task.title}...[Deleted]`
       },
     }]
   }

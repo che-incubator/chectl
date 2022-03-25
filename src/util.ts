@@ -420,3 +420,8 @@ export function isCheClusterAPIV1(checluster: any): boolean {
 export function isCheClusterAPIV2(checluster: any): boolean {
   return checluster.apiVersion === `${CHE_CLUSTER_API_GROUP}/${CHE_CLUSTER_API_VERSION_V2}`
 }
+
+export function isWebhookAvailabilityError(error: any): boolean {
+  const msg = error.message as string
+  return msg.indexOf('service "webhook-service" not found') !== -1
+}

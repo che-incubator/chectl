@@ -20,7 +20,6 @@ import { V1Certificate } from '../../api/types/cert-manager'
 import { CA_CERT_GENERATION_JOB_IMAGE, CERT_MANAGER_NAMESPACE_NAME, CHE_RELATED_COMPONENT_LABEL, CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
 import { base64Decode, getEmbeddedTemplatesDirectory } from '../../util'
 import { getMessageImportCaCertIntoBrowser } from '../installers/common-tasks'
-import { ChectlContext } from '../../api/context'
 
 export const CERT_MANAGER_CA_SECRET_NAME = 'ca'
 export const DEFAULT_CHE_CLUSTER_ISSUER_NAME = 'che-cluster-issuer'
@@ -59,8 +58,6 @@ export class CertManagerTasks {
           await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cert-manager', CERT_MANAGER_NAMESPACE_NAME)
           await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=webhook', CERT_MANAGER_NAMESPACE_NAME)
           await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cainjector', CERT_MANAGER_NAMESPACE_NAME)
-
-          ctx[ChectlContext.CERT_MANAGER_API_VERSION] = await this.kubeHelper.getCertManagerK8sApiVersion()
 
           task.title = `${task.title}...[OK]`
         },
@@ -117,7 +114,7 @@ export class CertManagerTasks {
             // Wait until the secret is available
             await this.kubeHelper.waitSecret('ca', CERT_MANAGER_NAMESPACE_NAME)
           } else {
-            task.title = `${task.title}...already exists`
+            task.title = `${task.title}...[Skipped: Exists]`
           }
         },
       },
@@ -156,7 +153,7 @@ export class CertManagerTasks {
 
             task.title = `${task.title}...done`
           } else {
-            task.title = `${task.title}...already exists`
+            task.title = `${task.title}...[Skipped: Exists]`
           }
         },
       },

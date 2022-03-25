@@ -113,32 +113,48 @@ export class OLMDevWorkspaceTasks {
       {
         title: 'Delete Dev Workspace operator subscription',
         task: async (_ctx: any, task: any) => {
-          await this.kube.deleteOperatorSubscription(this.DEV_WORKSPACE_OPERATOR_SUBSCRIPTION, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
-          task.title = `${task.title}...[OK]`
+          try {
+            await this.kube.deleteOperatorSubscription(this.DEV_WORKSPACE_OPERATOR_SUBSCRIPTION, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: 'Delete Dev Workspace operator CSV',
         task: async (_ctx: any, task: any) => {
-          const csvs = await this.kube.getCSVWithPrefix(DEVWORKSPACE_CSV_PREFIX, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
-          for (const csv of csvs) {
-            await this.kube.deleteClusterServiceVersion(csv.metadata.name!, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+          try {
+            const csvs = await this.kube.getCSVWithPrefix(DEVWORKSPACE_CSV_PREFIX, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+            for (const csv of csvs) {
+              await this.kube.deleteClusterServiceVersion(csv.metadata.name!, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+            }
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
           }
-          task.title = `${task.title}...[OK]`
         },
       },
       {
         title: 'Delete Dev Workspace operator catalog source for \'next\' channel',
         task: async (_ctx: any, task: any) => {
-          await this.kube.deleteCatalogSource(NEXT_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
-          task.title = `${task.title}...[OK]`
+          try {
+            await this.kube.deleteCatalogSource(NEXT_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: 'Delete Dev Workspace operator catalog source for \'stable\' channel',
         task: async (_ctx: any, task: any) => {
-          await this.kube.deleteCatalogSource(STABLE_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
-          task.title = `${task.title}...[OK]`
+          try {
+            await this.kube.deleteCatalogSource(STABLE_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+            task.title = `${task.title}...[Deleted]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
     ]

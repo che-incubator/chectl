@@ -42,7 +42,6 @@ export namespace ChectlContext {
   export const LOGS_DIR = 'directory'
 
   export const RESOURCES = 'resourcesPath'
-  export const CERT_MANAGER_API_VERSION = 'cert-manager-api-version'
 
   const ctx: any = {}
 

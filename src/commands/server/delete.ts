@@ -64,7 +64,7 @@ export default class Delete extends Command {
 
     const apiTasks = new ApiTasks()
     const kube = new KubeHelper(flags)
-    const operatorTasks = new OperatorTasks()
+    const operatorTasks = new OperatorTasks(flags)
     const olmTasks = new OLMTasks(flags)
     const cheTasks = new CheTasks(flags)
     const olmDevWorkspaceTasks = new OLMDevWorkspaceTasks(flags)
@@ -81,25 +81,30 @@ export default class Delete extends Command {
     tasks.add({
       title: 'Uninstall Dev Workspace Operator',
       task: async (_ctx: any, task: any) => {
-        const checlusters = await kube.getAllCheClusters()
-        if (checlusters.length === 0) {
-          const tasks = new Listr()
+        try {
+          const checlusters = await kube.getAllCheClusters()
+          if (checlusters.length === 0) {
+            const tasks = new Listr()
 
-          if (await olmDevWorkspaceTasks.isCustomDevWorkspaceCatalogExists()) {
-            tasks.add(devWorkspaceTasks.deleteDevOperatorCRsAndCRDsTasks())
-            tasks.add(olmDevWorkspaceTasks.deleteResourcesTasks())
-            tasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME))
+            if (await olmDevWorkspaceTasks.isCustomDevWorkspaceCatalogExists()) {
+              tasks.add(devWorkspaceTasks.deleteDevOperatorCRsAndCRDsTasks())
+              tasks.add(olmDevWorkspaceTasks.deleteResourcesTasks())
+              tasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME))
+            }
+
+            if (!await olmDevWorkspaceTasks.isDevWorkspaceOperatorInstalledViaOLM()) {
+              tasks.add(devWorkspaceTasks.deleteDevOperatorCRsAndCRDsTasks())
+              tasks.add(devWorkspaceTasks.deleteResourcesTasks())
+              tasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE))
+            }
+
+            return tasks
           }
 
-          if (!await olmDevWorkspaceTasks.isDevWorkspaceOperatorInstalledViaOLM()) {
-            tasks.add(devWorkspaceTasks.deleteDevOperatorCRsAndCRDsTasks())
-            tasks.add(devWorkspaceTasks.deleteResourcesTasks())
-            tasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE))
-          }
-
-          return tasks
+          task.title = `${task.title}...[Skipped: another Eclipse Che instance found]`
+        } catch (e: any) {
+          task.title = `${task.title}...[Failed: ${e.message}]`
         }
-        task.title = `${task.title}...Skipped: another Eclipse Che deployment found.`
       },
     })
 

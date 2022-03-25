@@ -10,7 +10,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import Command from '@oclif/command'
 import ansi = require('ansi-colors')
 import * as fs from 'fs-extra'
 import * as os from 'os'
@@ -23,8 +22,8 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { CHE_CLUSTER_CRD, DEFAULT_CA_CERT_FILE_NAME, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
 import { isCheClusterAPIV1 } from '../../util'
+import { cli } from 'cli-ux'
 
-export const TASK_TITLE_CREATE_CHE_CLUSTER_CRD = `Create the Custom Resource of type ${CHE_CLUSTER_CRD}`
 export const TASK_TITLE_PATCH_CHECLUSTER_CR = `Patching the Custom Resource of type ${CHE_CLUSTER_CRD}`
 
 export function createNamespaceTask(namespaceName: string, labels: {}): Listr.ListrTask {
@@ -55,11 +54,17 @@ export function createNamespaceTask(namespaceName: string, labels: {}): Listr.Li
   }
 }
 
-export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.ListrTask {
+export function createEclipseCheClusterTask(flags: any, kube: KubeHelper): Listr.ListrTask {
   return {
-    title: TASK_TITLE_CREATE_CHE_CLUSTER_CRD,
+    title: `Create the Custom Resource of type ${CHE_CLUSTER_CRD}`,
     task: async (ctx: any, task: any) => {
       task.title = `${task.title} in the namespace ${flags.chenamespace}`
+
+      const cheCluster = await kube.getCheClusterV1(flags.chenamespace)
+      if (cheCluster) {
+        task.title = `${task.title}...[Skipped: Exists]`
+        return
+      }
 
       ctx.isCheDeployed = true
       ctx.isPostgresDeployed = true
@@ -69,8 +74,8 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
       ctx.isPluginRegistryDeployed = !(flags['plugin-registry-url'] as boolean)
       ctx.isDevfileRegistryDeployed = !(flags['devfile-registry-url'] as boolean)
 
-      const cheClusterCR = ctx.customCR || ctx.defaultCR
-      const checluster = await kube.createCheCluster(cheClusterCR, flags, ctx, !ctx.customCR)
+      const cheClusterCR = ctx[ChectlContext.CUSTOM_CR] || ctx[ChectlContext.DEFAULT_CR]
+      const checluster = await kube.createCheCluster(cheClusterCR, flags, ctx, !ctx[ChectlContext.CUSTOM_CR])
 
       ctx.isPostgresReady = ctx.isPostgresReady || checluster.spec.database.externalDb
       const isCheClusterApiV1 = isCheClusterAPIV1(cheClusterCR)
@@ -78,11 +83,11 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
         ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || checluster.spec.server.externalDevfileRegistry
         ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || checluster.spec.server.externalPluginRegistry
       } else {
-        ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || checluster.spec.pluginregistry.disableInternalRegistry
-        ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || checluster.spec.devfileRegistry.disableInternalRegistry
+        ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || checluster.spec.pluginregistry?.disableInternalRegistry
+        ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || checluster.spec.devfileRegistry?.disableInternalRegistry
       }
 
-      task.title = `${task.title}...done.`
+      task.title = `${task.title}...[Created].`
     },
   }
 }
@@ -94,7 +99,7 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
  * @param kube - kubeHelper util
  * @param command - parent command
  */
-export function patchingEclipseCheCluster(flags: any, kube: KubeHelper, command: Command): Listr.ListrTask {
+export function patchingEclipseCheCluster(flags: any, kube: KubeHelper): Listr.ListrTask {
   return {
     title: TASK_TITLE_PATCH_CHECLUSTER_CR,
     skip: (ctx: any) => isEmpty(ctx[ChectlContext.CR_PATCH]),
@@ -102,7 +107,7 @@ export function patchingEclipseCheCluster(flags: any, kube: KubeHelper, command:
       task.title = `${task.title} in the namespace ${flags.chenamespace}`
       const cheCluster = await kube.getCheClusterV1(flags.chenamespace)
       if (!cheCluster) {
-        command.error(`Eclipse Che cluster CR is not found in the namespace '${flags.chenamespace}'`)
+        cli.error(`Eclipse Che cluster CR is not found in the namespace '${flags.chenamespace}'`)
       }
       await kube.patchCheCluster(cheCluster.metadata.name, flags.chenamespace, ctx[ChectlContext.CR_PATCH])
       task.title = `${task.title}...done.`

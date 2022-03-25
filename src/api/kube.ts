@@ -21,7 +21,7 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_API_VERSION_V2, CHE_CLUSTER_KIND_PLURAL, DEFAULT_CHE_TLS_SECRET_NAME, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT } from '../constants'
-import { getClusterClientCommand, getImageNameAndTag, isCheClusterAPIV1, newError, safeLoadFromYamlFile } from '../util'
+import { getClusterClientCommand, getImageNameAndTag, isCheClusterAPIV1, isWebhookAvailabilityError, newError, safeLoadFromYamlFile, sleep } from '../util'
 import { ChectlContext } from './context'
 import { V1Certificate } from './types/cert-manager'
 import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, OperatorGroup, Subscription } from './types/olm'
@@ -1202,28 +1202,6 @@ export class KubeHelper {
     }
   }
 
-  async getCrdStorageVersion(name: string): Promise<string> {
-    const crd = await this.getCrd(name)
-    if (!crd.spec.versions) {
-      // Should never happen
-      return 'v1'
-    }
-
-    const version = crd.spec.versions.find((v: any) => v.storage)
-    return version ? version.name : 'v1'
-  }
-
-  async deleteCrd(name: string): Promise<void> {
-    const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
-    try {
-      await k8sApi.deleteCustomResourceDefinition(name)
-    } catch (e: any) {
-      if (e.response.statusCode !== 404) {
-        throw this.wrapK8sClientError(e)
-      }
-    }
-  }
-
   async createCheCluster(cheClusterCR: any, flags: any, ctx: any, useDefaultCR: boolean): Promise<any> {
     const isCheClusterApiV1 = isCheClusterAPIV1(cheClusterCR)
     const cheClusterApiVersion = isCheClusterApiV1 ? CHE_CLUSTER_API_VERSION_V1 : CHE_CLUSTER_API_VERSION_V2
@@ -1280,14 +1258,12 @@ export class KubeHelper {
 
         const pluginRegistryUrl = flags['plugin-registry-url']
         if (pluginRegistryUrl) {
-          cheClusterCR.spec.pluginRegistry.externalPluginRegistries = [{ url: pluginRegistryUrl }]
-          cheClusterCR.spec.pluginRegistry.disableInternalRegistry = true
+          merge(cheClusterCR, { spec: { pluginRegistry: { disableInternalRegistry: true, externalPluginRegistries: [{ url: pluginRegistryUrl }]} } })
         }
 
         const devfileRegistryUrl = flags['devfile-registry-url']
         if (devfileRegistryUrl) {
-          cheClusterCR.spec.devfileRegistry.externalDevfileRegistries = [{ url: devfileRegistryUrl }]
-          cheClusterCR.spec.devfileRegistry.disableInternalRegistry = true
+          merge(cheClusterCR, { spec: { devfileRegistry: { disableInternalRegistry: true, externalDevfileRegistries: [{ url: devfileRegistryUrl }]} } })
         }
 
         if (flags['postgres-pvc-storage-class-name']) {
@@ -1343,14 +1319,36 @@ export class KubeHelper {
    * Returns `checlusters.org.eclipse.che' in the given namespace.
    */
   async getCheClusterV1(cheNamespace: string): Promise<any | undefined> {
-    return this.findCustomResource(cheNamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_KIND_PLURAL)
+    for (let i = 0; i < 20; i++) {
+      try {
+        return this.findCustomResource(cheNamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_KIND_PLURAL)
+      } catch (e: any) {
+        if (isWebhookAvailabilityError(e)) {
+          await sleep(5 * 1000)
+        } else {
+          throw e
+        }
+      }
+    }
   }
 
   /**
    * Deletes `checlusters.org.eclipse.che' resources in the given namespace.
    */
   async getAllCheClusters(): Promise<any[]> {
-    return this.listCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_KIND_PLURAL)
+    for (let i = 0; i < 20; i++) {
+      try {
+        return this.listCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_KIND_PLURAL)
+      } catch (e: any) {
+        if (isWebhookAvailabilityError(e)) {
+          await sleep(5 * 1000)
+        } else {
+          throw e
+        }
+      }
+    }
+
+    return []
   }
 
   async deleteAllCustomResources(apiGroup: string, version: string, plural: string): Promise<void> {
@@ -1873,6 +1871,17 @@ export class KubeHelper {
     }
   }
 
+  async deleteCrd(name: string): Promise<void> {
+    const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
+    try {
+      await k8sApi.deleteCustomResourceDefinition(name)
+    } catch (e: any) {
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
+    }
+  }
+
   async deleteNamespace(namespace: string): Promise<void> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
@@ -1882,20 +1891,12 @@ export class KubeHelper {
     }
   }
 
-  /**
-   * Returns CRD version of Cert Manager
-   */
-  async getCertManagerK8sApiVersion(): Promise<string> {
-    return this.getCrdStorageVersion('certificates.cert-manager.io')
-  }
-
   async isClusterIssuerExists(name: string): Promise<boolean> {
-    const ctx = ChectlContext.get()
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     try {
       // If cluster issuers doesn't exist an exception will be thrown
-      await customObjectsApi.getClusterCustomObject('cert-manager.io', ctx[ChectlContext.CERT_MANAGER_API_VERSION], 'clusterissuers', name)
+      await customObjectsApi.getClusterCustomObject('cert-manager.io', 'v1', 'clusterissuers', name)
       return true
     } catch (e: any) {
       if (e.response && e.response.statusCode === 404) {
@@ -1907,12 +1908,11 @@ export class KubeHelper {
   }
 
   async deleteCertificate(name: string, namespace: string): Promise<void> {
-    const ctx = ChectlContext.get()
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     try {
       // If cluster certificates doesn't exist an exception will be thrown
-      await customObjectsApi.deleteNamespacedCustomObject('cert-manager.io', ctx[ChectlContext.CERT_MANAGER_API_VERSION], namespace, 'certificates', name)
+      await customObjectsApi.deleteNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'certificates', name)
     } catch (e: any) {
       if (e.response.statusCode !== 404) {
         throw this.wrapK8sClientError(e)
@@ -1921,11 +1921,10 @@ export class KubeHelper {
   }
 
   async deleteIssuer(name: string, namespace: string): Promise<void> {
-    const ctx = ChectlContext.get()
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     try {
-      await customObjectsApi.deleteNamespacedCustomObject('cert-manager.io', ctx[ChectlContext.CERT_MANAGER_API_VERSION], namespace, 'issuers', name)
+      await customObjectsApi.deleteNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'issuers', name)
     } catch (e: any) {
       if (e.response.statusCode !== 404) {
         throw this.wrapK8sClientError(e)
@@ -1934,12 +1933,11 @@ export class KubeHelper {
   }
 
   async listClusterIssuers(labelSelector?: string): Promise<any[]> {
-    const ctx = ChectlContext.get()
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     let res
     try {
-      res = await customObjectsApi.listClusterCustomObject('cert-manager.io', ctx[ChectlContext.CERT_MANAGER_API_VERSION], 'clusterissuers', undefined, undefined, undefined, labelSelector)
+      res = await customObjectsApi.listClusterCustomObject('cert-manager.io', 'v1', 'clusterissuers', undefined, undefined, undefined, labelSelector)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
@@ -1953,44 +1951,40 @@ export class KubeHelper {
   }
 
   async createClusterIssuerFromFile(cheClusterIssuerYamlPath: string): Promise<void> {
-    const ctx = ChectlContext.get()
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     const cheClusterIssuer = this.safeLoadFromYamlFile(cheClusterIssuerYamlPath)
     try {
-      await customObjectsApi.createClusterCustomObject('cert-manager.io', ctx[ChectlContext.CERT_MANAGER_API_VERSION], 'clusterissuers', cheClusterIssuer)
+      await customObjectsApi.createClusterCustomObject('cert-manager.io', 'v1', 'clusterissuers', cheClusterIssuer)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
   }
 
   async createCertificate(certificate: V1Certificate, namespace: string): Promise<void> {
-    const ctx = ChectlContext.get()
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     try {
-      await customObjectsApi.createNamespacedCustomObject('cert-manager.io', ctx[ChectlContext.CERT_MANAGER_API_VERSION], namespace, 'certificates', certificate)
+      await customObjectsApi.createNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'certificates', certificate)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
   }
 
   async replaceCertificate(name: string, certificate: V1Certificate, namespace: string): Promise<void> {
-    const ctx = ChectlContext.get()
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     try {
-      await customObjectsApi.replaceNamespacedCustomObject('cert-manager.io', ctx[ChectlContext.CERT_MANAGER_API_VERSION], namespace, 'certificates', name, certificate)
+      await customObjectsApi.replaceNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'certificates', name, certificate)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
   }
 
   async isCertificateExists(name: string, namespace: string): Promise<boolean> {
-    const ctx = ChectlContext.get()
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      await customObjectsApi.getNamespacedCustomObject('cert-manager.io', ctx[ChectlContext.CERT_MANAGER_API_VERSION], namespace, 'certificates', name)
+      await customObjectsApi.getNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'certificates', name)
       return true
     } catch (e: any) {
       if (e.response && e.response.statusCode === 404) {
@@ -2002,32 +1996,29 @@ export class KubeHelper {
   }
 
   async createIssuer(issuer: any, namespace: string): Promise<void> {
-    const ctx = ChectlContext.get()
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     try {
-      await customObjectsApi.createNamespacedCustomObject('cert-manager.io', ctx[ChectlContext.CERT_MANAGER_API_VERSION], namespace, 'issuers', issuer)
+      await customObjectsApi.createNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'issuers', issuer)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
   }
 
   async replaceIssuer(name: string, issuer: any, namespace: string): Promise<void> {
-    const ctx = ChectlContext.get()
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     try {
-      await customObjectsApi.replaceNamespacedCustomObject('cert-manager.io', ctx[ChectlContext.CERT_MANAGER_API_VERSION], namespace, 'issuers', name, issuer)
+      await customObjectsApi.replaceNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'issuers', name, issuer)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
   }
 
   async isIssuerExists(name: string, namespace: string): Promise<boolean> {
-    const ctx = ChectlContext.get()
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      await customObjectsApi.getNamespacedCustomObject('cert-manager.io', ctx[ChectlContext.CERT_MANAGER_API_VERSION], namespace, 'issuers', name)
+      await customObjectsApi.getNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'issuers', name)
       return true
     } catch (e: any) {
       if (e.response && e.response.statusCode === 404) {
