@@ -12,6 +12,7 @@
 
 import { Command } from '@oclif/command'
 import * as Listr from 'listr'
+import { ChectlContext } from '../api/context'
 import { CheHelper } from '../api/che'
 import { CheApiClient } from '../api/che-api-client'
 import { KubeHelper } from '../api/kube'
@@ -177,7 +178,7 @@ export class CheTasks {
             const cheApi = CheApiClient.getInstance(cheURL + '/api')
             const status = await cheApi.getCheServerStatus()
             task.title = `${task.title}...${status}`
-          } catch (error) {
+          } catch (error: any) {
             return newError(`Failed to check Eclipse Che status (URL: ${cheURL}).`, error)
           }
         },
@@ -251,7 +252,7 @@ export class CheTasks {
         try {
           await this.kube.scaleDeployment(this.cheDeploymentName, this.cheNamespace, 0)
           task.title = `${task.title}...done`
-        } catch (error) {
+        } catch (error: any) {
           return newError(`Failed to scale ${this.cheDeploymentName} deployment.`, error)
         }
       },
@@ -263,7 +264,7 @@ export class CheTasks {
         try {
           await this.kube.scaleDeployment(this.dashboardDeploymentName, this.cheNamespace, 0)
           task.title = `${task.title}...done`
-        } catch (error) {
+        } catch (error: any) {
           return newError('Failed to scale dashboard deployment.', error)
         }
       },
@@ -275,7 +276,7 @@ export class CheTasks {
         try {
           await this.kube.scaleDeployment(this.postgresDeploymentName, this.cheNamespace, 0)
           task.title = `${task.title}...done`
-        } catch (error) {
+        } catch (error: any) {
           return newError('Failed to scale postgres deployment.', error)
         }
       },
@@ -287,7 +288,7 @@ export class CheTasks {
         try {
           await this.kube.scaleDeployment(this.devfileRegistryDeploymentName, this.cheNamespace, 0)
           task.title = `${task.title}...done`
-        } catch (error) {
+        } catch (error: any) {
           return newError('Failed to scale devfile registry deployment.', error)
         }
       },
@@ -299,7 +300,7 @@ export class CheTasks {
         try {
           await this.kube.scaleDeployment(this.pluginRegistryDeploymentName, this.cheNamespace, 0)
           task.title = `${task.title}...done`
-        } catch (error) {
+        } catch (error: any) {
           return newError('Failed to scale plugin registry deployment.', error)
         }
       },
@@ -335,7 +336,7 @@ export class CheTasks {
       },
       {
         title: 'Delete all ingresses',
-        enabled: (ctx: any) => !ctx.isOpenShift,
+        enabled: (ctx: any) => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (_ctx: any, task: any) => {
           try {
             await this.kube.deleteAllIngresses(flags.chenamespace)
@@ -347,7 +348,7 @@ export class CheTasks {
       },
       {
         title: 'Delete all routes',
-        enabled: (ctx: any) => ctx.isOpenShift,
+        enabled: (ctx: any) => ctx[ChectlContext.IS_OPENSHIFT],
         task: async (_ctx: any, task: any) => {
           try {
             await this.oc.deleteAllRoutes(flags.chenamespace)
@@ -358,7 +359,7 @@ export class CheTasks {
         },
       },
       {
-        title: 'Delete configmaps for Eclipse Che server and operator',
+        title: 'Delete ConfigMaps for Eclipse Che server and operator',
         task: async (_ctx: any, task: any) => {
           try {
             await this.kube.deleteConfigMap('che', flags.chenamespace)
@@ -566,7 +567,7 @@ export class CheTasks {
           messages.push(`Users Dashboard           : ${cheUrl}`)
 
           const checluster = await this.kube.getCheClusterV1(flags.chenamespace)
-          if (ctx.isOpenShift && checluster?.spec?.auth?.openShiftoAuth) {
+          if (ctx[ChectlContext.IS_OPENSHIFT] && checluster?.spec?.auth?.openShiftoAuth) {
             if (checluster?.status?.openShiftOAuthUserCredentialsSecret) {
               let user = ''
               let password = ''

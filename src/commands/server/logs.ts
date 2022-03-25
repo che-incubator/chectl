@@ -55,7 +55,7 @@ export default class Logs extends Command {
       this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
       await tasks.run(ctx)
       this.log(getCommandSuccessMessage())
-    } catch (err) {
+    } catch (err: any) {
       this.error(wrapCommandError(err))
     }
 

@@ -14,6 +14,7 @@ import { CoreV1Api } from '@kubernetes/client-node'
 import { expect, fancy } from 'fancy-test'
 
 import { CheHelper } from '../../src/api/che'
+import { ChectlContext } from '../../src/api/context'
 
 const namespace = 'che'
 let ch = new CheHelper({})
@@ -49,9 +50,8 @@ describe('Eclipse Che helper', () => {
   describe('cheURL', () => {
     fancy
       .stub(kube, 'getNamespace', () => ({}))
-      .stub(kube, 'isOpenShift', () => true)
       .stub(oc, 'routeExist', () => true)
-      .stub(oc, 'getRouteProtocol', () => 'https')
+      .stub(ChectlContext, 'get', () => ({isOpenShift: true}))
       .stub(oc, 'getRouteHost', () => 'ocp-che-example.org')
       .it('computes Eclipse URL on Openshift', async () => {
         const chePluginRegistryURL = await ch.cheURL('che-namespace')
@@ -60,8 +60,7 @@ describe('Eclipse Che helper', () => {
     fancy
       .stub(kube, 'getNamespace', () => ({}))
       .stub(kube, 'isIngressExist', () => true)
-      .stub(kube, 'isOpenShift', () => false)
-      .stub(kube, 'getIngressProtocol', () => 'https')
+      .stub(ChectlContext, 'get', () => ({isOpenShift: false}))
       .stub(kube, 'getIngressHost', () => 'example.org')
       .it('computes Eclipse Che URL on K8s', async () => {
         const cheURL = await ch.cheURL('che-namespace')
@@ -70,7 +69,7 @@ describe('Eclipse Che helper', () => {
     fancy
       .stub(kube, 'getNamespace', () => ({}))
       .stub(kube, 'isIngressExist', () => false)
-      .stub(kube, 'isOpenShift', () => true)
+      .stub(ChectlContext, 'get', () => ({isOpenShift: true}))
       .stub(oc, 'routeExist', () => false)
       .do(() => ch.cheURL('che-namespace')) //ERR_ROUTE_NO_EXIST
       .catch(err => expect(err.message).to.match(/ERR_ROUTE_NO_EXIST/))
@@ -78,13 +77,13 @@ describe('Eclipse Che helper', () => {
     fancy
       .stub(kube, 'getNamespace', () => ({}))
       .stub(kube, 'isIngressExist', () => false)
-      .stub(kube, 'isOpenShift', () => false)
+      .stub(ChectlContext, 'get', () => ({isOpenShift: false}))
       .do(() => ch.cheURL('che-namespace'))
       .catch(err => expect(err.message).to.match(/ERR_INGRESS_NO_EXIST/))
       .it('fails fetching Eclipse Che URL when ingress does not exist')
     fancy
       .stub(kube, 'getNamespace', () => ({}))
-      .stub(kube, 'isOpenShift', () => true)
+      .stub(ChectlContext, 'get', () => ({isOpenShift: true}))
       .stub(oc, 'routeExist', () => false)
       .do(() => ch.cheURL('che-namespace'))
       .catch(/ERR_ROUTE_NO_EXIST/)

@@ -423,5 +423,5 @@ export function isCheClusterAPIV2(checluster: any): boolean {
 
 export function isWebhookAvailabilityError(error: any): boolean {
   const msg = error.message as string
-  return msg.indexOf('service "webhook-service" not found') !== -1
+  return msg.indexOf('service "webhook-service" not found') !== -1 || msg.indexOf('no endpoints available for service "webhook-service"') !== -1
 }

@@ -54,7 +54,7 @@ export default class Debug extends Command {
       await tasks.run(ctx)
       this.log(`Eclipse Che server debug is available on localhost:${flags['debug-port']}.`)
       this.log('The program keeps running to enable port forwarding.')
-    } catch (err) {
+    } catch (err: any) {
       this.error(wrapCommandError(err))
     }
   }

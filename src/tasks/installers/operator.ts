@@ -18,7 +18,7 @@ import * as path from 'path'
 import * as yaml from 'js-yaml'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME, OPERATOR_TEMPLATE_DIR } from '../../constants'
+import { CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME } from '../../constants'
 import { getImageNameAndTag, safeLoadFromYamlFile } from '../../util'
 import { KubeTasks } from '../kube'
 import { createEclipseCheClusterTask, patchingEclipseCheCluster } from './common-tasks'
@@ -305,7 +305,7 @@ export class OperatorTasks {
             ctx.newCheOperatorImage = this.flags['che-operator-image']
           } else {
             // Load new operator image from templates
-            const newCheOperatorYaml = safeLoadFromYamlFile(path.join(this.flags.templates, OPERATOR_TEMPLATE_DIR, 'operator.yaml')) as V1Deployment
+            const newCheOperatorYaml = safeLoadFromYamlFile(path.join(ctx[ChectlContext.RESOURCES], 'operator.yaml')) as V1Deployment
             ctx.newCheOperatorImage = this.retrieveContainerImage(newCheOperatorYaml)
           }
           const [newImage, newTag] = getImageNameAndTag(ctx.newCheOperatorImage)
@@ -356,7 +356,7 @@ export class OperatorTasks {
               throw new Error(`Fetched CRD ${CHE_CLUSTER_CRD} without resource version`)
             }
 
-            await this.kh.replaceCrdFromFile(newCRDPath)
+            await this.kh.replaceCrdFromFile(newCRDPath, existedCRD.metadata.resourceVersion)
             task.title = `${task.title}...[Updated]`
           } else {
             await this.kh.createCrdFromFile(newCRDPath)
@@ -697,11 +697,6 @@ export class OperatorTasks {
 
     if (this.flags.chenamespace) {
       operatorDeployment.metadata!.namespace = this.flags.chenamespace
-    }
-
-    if (!await this.kh.IsAPIExtensionSupported('v1')) {
-      const containers = operatorDeployment.spec!.template.spec!.containers || []
-      operatorDeployment.spec!.template.spec!.containers = containers.filter(c => c.name === 'che-operator')
     }
 
     return operatorDeployment

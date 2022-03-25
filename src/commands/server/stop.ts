@@ -73,7 +73,7 @@ export default class Stop extends Command {
     try {
       await tasks.run()
       cli.log(getCommandSuccessMessage())
-    } catch (err) {
+    } catch (err: any) {
       this.error(wrapCommandError(err))
     }
 

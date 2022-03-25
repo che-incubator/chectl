@@ -10,6 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
+import { ApisApi, KubeConfig } from '@kubernetes/client-node'
 import Command from '@oclif/command'
 import Listr = require('listr')
 import * as os from 'os'
@@ -27,7 +28,6 @@ import { CHECTL_DEVELOPMENT_VERSION } from './version'
  */
 export namespace ChectlContext {
   export const IS_OPENSHIFT = 'isOpenShift'
-  export const IS_OPENSHIFT4 = 'isOpenShift4'
   export const START_TIME = 'startTime'
   export const END_TIME = 'endTime'
   export const CONFIG_DIR = 'configDir'
@@ -72,6 +72,7 @@ export namespace ChectlContext {
       ctx[RESOURCES] = path.join(getEmbeddedTemplatesDirectory(), OPERATOR_TEMPLATE_DIR)
     }
     ctx[DEFAULT_CR] = safeLoadFromYamlFile(path.join(ctx.resourcesPath, 'crds', 'org_checluster_cr.yaml'))
+    ctx[IS_OPENSHIFT] = isOpenShift()
   }
 
   export async function initAndGet(flags: any, command: Command): Promise<any> {
@@ -81,6 +82,32 @@ export namespace ChectlContext {
 
   export function get(): any {
     return ctx
+  }
+
+  function isOpenShift(): Promise<boolean> {
+    return IsAPIGroupSupported('apps.openshift.io')
+  }
+
+  async function IsAPIGroupSupported(name: string, version?: string): Promise<boolean> {
+    const kubeConfig = new KubeConfig()
+    kubeConfig.loadFromDefault()
+
+    const k8sCoreApi = kubeConfig.makeApiClient(ApisApi)
+    const res = await k8sCoreApi.getAPIVersions()
+    if (!res || !res.body || !res.body.groups) {
+      return false
+    }
+
+    const group = res.body.groups.find(g => g.name === name)
+    if (!group) {
+      return false
+    }
+
+    if (version) {
+      return Boolean(group.versions.find(v => v.version === version))
+    } else {
+      return Boolean(group)
+    }
   }
 }
 

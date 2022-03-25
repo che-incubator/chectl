@@ -11,6 +11,7 @@
  */
 
 import * as Listr from 'listr'
+import { ChectlContext } from '../../api/context'
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { OpenShiftHelper } from '../../api/openshift'
@@ -124,7 +125,7 @@ export class DevWorkspaceTasks {
       },
       {
         title: 'Delete all Dev Workspace Controller routes',
-        enabled: (ctx: any) => !ctx.isOpenShift,
+        enabled: (ctx: any) => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteAllIngresses(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
@@ -136,7 +137,7 @@ export class DevWorkspaceTasks {
       },
       {
         title: 'Delete all Dev Workspace Controller routes',
-        enabled: (ctx: any) => ctx.isOpenShift,
+        enabled: (ctx: any) => ctx[ChectlContext.IS_OPENSHIFT],
         task: async (_ctx: any, task: any) => {
           try {
             await this.openShiftHelper.deleteAllRoutes(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
@@ -219,7 +220,7 @@ export class DevWorkspaceTasks {
       },
       {
         title: 'Delete Dev Workspace Controller self-signed certificates',
-        enabled: async (ctx: any) => !ctx.IsOpenshift,
+        enabled: async (ctx: any) => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteCertificate(this.devWorkspaceCertificate, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)

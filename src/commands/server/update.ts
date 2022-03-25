@@ -125,7 +125,7 @@ export default class Update extends Command {
       await postUpdateTasks.run(ctx)
 
       this.log(getCommandSuccessMessage())
-    } catch (err) {
+    } catch (err: any) {
       this.error(wrapCommandError(err))
     }
 

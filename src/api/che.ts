@@ -19,6 +19,7 @@ import * as path from 'path'
 import { OpenShiftHelper } from '../api/openshift'
 import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME } from '../constants'
 import { base64Decode } from '../util'
+import { ChectlContext } from './context'
 import { KubeHelper } from './kube'
 import { OperatorGroup, Subscription } from './types/olm'
 
@@ -32,12 +33,13 @@ export class CheHelper {
     this.kube = new KubeHelper(flags)
   }
 
-  async cheURL(namespace = ''): Promise<string> {
+  async cheURL(namespace: string): Promise<string> {
     if (!await this.kube.getNamespace(namespace)) {
       throw new Error(`ERR_NAMESPACE_NO_EXIST - No namespace ${namespace} is found`)
     }
 
-    if (await this.kube.isOpenShift()) {
+    const ctx = ChectlContext.get()
+    if (ctx[ChectlContext.IS_OPENSHIFT]) {
       return this.cheOpenShiftURL(namespace)
     } else {
       return this.cheK8sURL(namespace)
@@ -105,9 +107,8 @@ export class CheHelper {
     const route_names = ['che', 'che-host']
     for (const route_name of route_names) {
       if (await this.oc.routeExist(route_name, namespace)) {
-        const protocol = await this.oc.getRouteProtocol(route_name, namespace)
         const hostname = await this.oc.getRouteHost(route_name, namespace)
-        return `${protocol}://${hostname}`
+        return `https://${hostname}`
       }
     }
     throw new Error(`ERR_ROUTE_NO_EXIST - No route ${route_names} in namespace ${namespace}`)

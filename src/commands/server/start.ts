@@ -75,7 +75,7 @@ export default class Start extends Command {
         await startCheTasks.run(ctx)
         this.log(getCommandSuccessMessage())
       }
-    } catch (err) {
+    } catch (err: any) {
       this.error(wrapCommandError(err))
     }
 

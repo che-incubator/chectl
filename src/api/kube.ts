@@ -1177,8 +1177,9 @@ export class KubeHelper {
     }
   }
 
-  async replaceCrdFromFile(filePath: string): Promise<void> {
+  async replaceCrdFromFile(filePath: string, resourceVersion: string): Promise<void> {
     const yaml = this.safeLoadFromYamlFile(filePath)
+    yaml.metadata.resourceVersion = resourceVersion
 
     const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
     try {
@@ -1321,7 +1322,7 @@ export class KubeHelper {
   async getCheClusterV1(cheNamespace: string): Promise<any | undefined> {
     for (let i = 0; i < 20; i++) {
       try {
-        return this.findCustomResource(cheNamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_KIND_PLURAL)
+        return await this.findCustomResource(cheNamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_KIND_PLURAL)
       } catch (e: any) {
         if (isWebhookAvailabilityError(e)) {
           await sleep(5 * 1000)
@@ -1332,13 +1333,10 @@ export class KubeHelper {
     }
   }
 
-  /**
-   * Deletes `checlusters.org.eclipse.che' resources in the given namespace.
-   */
   async getAllCheClusters(): Promise<any[]> {
     for (let i = 0; i < 20; i++) {
       try {
-        return this.listCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_KIND_PLURAL)
+        return await this.listCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_KIND_PLURAL)
       } catch (e: any) {
         if (isWebhookAvailabilityError(e)) {
           await sleep(5 * 1000)
@@ -2121,37 +2119,6 @@ export class KubeHelper {
         // Something happened in setting up the request that triggered an Error
         throw new Error(`E_CHECTL_UNKNOWN_ERROR - Message: ${error.message}`)
       }
-    }
-  }
-
-  async isOpenShift(): Promise<boolean> {
-    return this.IsAPIGroupSupported('apps.openshift.io')
-  }
-
-  async IsAPIExtensionSupported(version: string): Promise<boolean> {
-    return this.IsAPIGroupSupported('apiextensions.k8s.io', version)
-  }
-
-  async IsAPIGroupSupported(name: string, version?: string): Promise<boolean> {
-    const k8sCoreApi = this.kubeConfig.makeApiClient(ApisApi)
-    try {
-      const res = await k8sCoreApi.getAPIVersions()
-      if (!res || !res.body || !res.body.groups) {
-        return false
-      }
-
-      const group = res.body.groups.find(g => g.name === name)
-      if (!group) {
-        return false
-      }
-
-      if (version) {
-        return Boolean(group.versions.find(v => v.version === version))
-      } else {
-        return Boolean(group)
-      }
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
     }
   }
 

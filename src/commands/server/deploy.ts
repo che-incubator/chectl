@@ -299,7 +299,7 @@ export default class Deploy extends Command {
     preInstallTasks.add(ensureOIDCProviderInstalled(flags))
 
     const installTasks = new Listr(undefined, ctx.listrOptions)
-    if (!ctx.isOpenShift || (flags.installer === 'operator' && isCheClusterAPIV2(ctx[ChectlContext.DEFAULT_CR]))) {
+    if (!ctx[ChectlContext.IS_OPENSHIFT] || (flags.installer === 'operator' && isCheClusterAPIV2(ctx[ChectlContext.DEFAULT_CR]))) {
       installTasks.add(certManagerTask.getDeployCertManagerTasks())
     }
     installTasks.add([createNamespaceTask(flags.chenamespace, this.getNamespaceLabels(flags))])
@@ -341,7 +341,7 @@ export default class Deploy extends Command {
         await postInstallTasks.run(ctx)
         this.log(getCommandSuccessMessage())
       }
-    } catch (err) {
+    } catch (err: any) {
       this.error(wrapCommandError(err))
     }
 
@@ -411,7 +411,8 @@ export async function setDefaultInstaller(flags: any): Promise<void> {
     return
   }
 
-  if (flags.platform === 'openshift' && await kubeHelper.isOpenShift() && isOlmPreinstalled) {
+  const ctx = ChectlContext.get()
+  if (flags.platform === 'openshift' && ctx[ChectlContext.IS_OPENSHIFT] && isOlmPreinstalled) {
     flags.installer = 'olm'
   } else {
     flags.installer = 'operator'
