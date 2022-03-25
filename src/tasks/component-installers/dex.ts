@@ -152,7 +152,7 @@ export class DexTasks {
                       dexCa.metadata.labels = DexCaConfigMap.LABELS
                       dexCa.data = { 'ca.crt': ctx[DexContextKeys.DEX_CA_CRT] }
 
-                      await this.kube.createNamespacedConfigMap(this.flags.chenamespace, dexCa)
+                      await this.kube.createConfigMap(dexCa, this.flags.chenamespace)
                       task.title = `${task.title}...[OK]`
                     }
                   },
@@ -224,7 +224,7 @@ export class DexTasks {
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DOMAIN, 'g'), this.flags.domain)
 
                   const ingress = yaml.load(yamlContent) as V1Ingress
-                  await this.kube.createIngressFromObj(ingress, DexTasks.NAMESPACE_NAME)
+                  await this.kube.createIngress(ingress, DexTasks.NAMESPACE_NAME)
 
                   task.title = `${task.title}...[OK]`
                 }
@@ -243,7 +243,7 @@ export class DexTasks {
 
                   // create a secret to store credentials
                   const credentials: any = { user: DexTasks.DEX_USERNAME, password: DexTasks.DEX_PASSWORD}
-                  await this.kube.createSecret(DexTasks.NAMESPACE_NAME, DexTasks.CREDENTIALS_SECRET_NAME, credentials)
+                  await this.kube.createSecret(DexTasks.CREDENTIALS_SECRET_NAME, DexTasks.NAMESPACE_NAME, credentials)
 
                   task.title = `${task.title}...[OK: ${ctx[DexContextKeys.DEX_USERNAME]}:${ctx[DexContextKeys.DEX_PASSWORD]}]`
                 }
@@ -283,7 +283,7 @@ export class DexTasks {
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DEX_PASSWORD_HASH, 'g'), ctx[DexContextKeys.DEX_PASSWORD_HASH])
 
                   const configMap = yaml.load(yamlContent) as V1ConfigMap
-                  await this.kube.createNamespacedConfigMap(DexTasks.NAMESPACE_NAME, configMap)
+                  await this.kube.createConfigMap(configMap, DexTasks.NAMESPACE_NAME)
 
                   // set in a CR
                   merge(ctx[ChectlContext.CR_PATCH], { spec: { auth: { oAuthClientName: DexTasks.CLIENT_ID, oAuthSecret: clientSecret } } })

@@ -69,7 +69,6 @@ export namespace VersionHelper {
       task: async (_ctx: any, task: any) => {
         let actualVersion
         switch (flags.platform) {
-        case 'minishift':
         case 'openshift':
         case 'crc':
           actualVersion = await getK8sVersionWithOC()
@@ -156,7 +155,7 @@ export namespace VersionHelper {
   export async function getCheVersion(flags: any): Promise<string> {
     const kube = new KubeHelper(flags)
     for (let i = 0; i < 10; i++) {
-      const cheCluster = await kube.getCheCluster(flags.chenamespace)
+      const cheCluster = await kube.getCheClusterV1(flags.chenamespace)
       if (cheCluster) {
         if (cheCluster.status.cheVersion) {
           return cheCluster.status.cheVersion

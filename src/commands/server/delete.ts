@@ -17,7 +17,7 @@ import * as Listrq from 'listr'
 import { OLMDevWorkspaceTasks } from '../../tasks/installers/olm-dev-workspace-operator'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { assumeYes, batch, cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { assumeYes, batch, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
@@ -38,7 +38,6 @@ export default class Delete extends Command {
       description: 'Indicates that a Eclipse Che namespace will be deleted as well',
       default: false,
     }),
-    'deployment-name': cheDeployment,
     'listr-renderer': listrRenderer,
     'skip-deletion-check': boolean({
       description: 'Skip user confirmation on deletion check',

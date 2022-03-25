@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { expect, fancy } from 'fancy-test'
+import { fancy } from 'fancy-test'
 
 import { KubeHelper } from '../../src/api/kube'
 
@@ -68,35 +68,5 @@ describe('Kube API helper', () => {
       .reply(200, 'ok'))
     .it('verifies that kuber API is ok via secure healthz endpoint', async () => {
       await kube.checkKubeApi()
-    })
-  fancy
-    .nock(kubeClusterURL, api => api
-      .get(`/apis/apps/v1/namespaces/${namespace}/deployments?pretty=true&labelSelector=app%3Dguestbook`)
-      .replyWithFile(200, __dirname + '/replies/get-deployment-by-selector.json', { 'Content-Type': 'application/json' }))
-    .it('retrieves deployments by a selector', async () => {
-      const selector = 'app=guestbook'
-      const res = await kube.getDeploymentsBySelector(selector, namespace)
-      expect(res.items.length).to.equal(1)
-    })
-  fancy
-    .it('should compare secrets data', () => {
-      const equalSecretsData: Array<Array<{ [key: string]: string }>> = [
-        [{a: 'a', b: 'b', c: '5'}, {a: 'a', b: 'b', c: '5'}],
-        [{a: 'a', b: 'b', c: '5'}, {a: 'a', c: '5', b: 'b'}],
-      ]
-
-      const differentSecretsData: Array<Array<{ [key: string]: string }>> = [
-        [{a: 'a', b: 'b', c: '5'}, {a: 'a', b: 'b'}],
-        [{a: 'a', b: 'b', c: '5'}, {a: 'a', b: 'b', c: 'c'}],
-        [{a: 'a', b: 'b'}, {a: 'a', c: 'b'}],
-      ]
-
-      for (const pair of equalSecretsData) {
-        expect(kube.isSecretsDataEqual(pair[0], pair[1])).to.be.true
-      }
-
-      for (const pair of differentSecretsData) {
-        expect(kube.isSecretsDataEqual(pair[0], pair[1])).to.be.false
-      }
     })
 })

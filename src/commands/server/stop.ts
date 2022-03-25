@@ -15,7 +15,7 @@ import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 
 import { ChectlContext } from '../../api/context'
-import { accessToken, cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { accessToken, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
@@ -27,7 +27,6 @@ export default class Stop extends Command {
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
-    'deployment-name': cheDeployment,
     'che-selector': string({
       description: 'Selector for Eclipse Che server resources',
       default: 'app=che,component=che',
@@ -64,7 +63,7 @@ export default class Stop extends Command {
         title: 'Deployment doesn\'t exist',
         enabled: (ctx: any) => !ctx.isCheDeployed,
         task: async () => {
-          await this.error(`E_BAD_DEPLOY - Deployment do not exist.\nA Deployment named "${flags['deployment-name']}" exist in namespace \"${flags.chenamespace}\", Eclipse Che server cannot be stopped.\nFix with: verify the namespace where Eclipse Che is running (oc get projects)\nhttps://github.com/eclipse/che`, { code: 'E_BAD_DEPLOY' })
+          await this.error('Eclipse Che deployment not found')
         },
       },
     ],

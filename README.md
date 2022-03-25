@@ -103,7 +103,6 @@ USAGE
 * [`chectl server:logs`](#chectl-serverlogs)
 * [`chectl server:start`](#chectl-serverstart)
 * [`chectl server:status`](#chectl-serverstatus)
-* [`chectl server:stop`](#chectl-serverstop)
 * [`chectl server:update`](#chectl-serverupdate)
 * [`chectl update [CHANNEL]`](#chectl-update-channel)
 
@@ -178,20 +177,20 @@ _See code: [src/commands/dashboard/open.ts](https://github.com/che-incubator/che
 
 ## `chectl help [COMMAND]`
 
-display help for chectl
+Display help for chectl.
 
 ```
 USAGE
   $ chectl help [COMMAND]
 
 ARGUMENTS
-  COMMAND  command to show help for
+  COMMAND  Command to show help for.
 
 OPTIONS
-  --all  see all commands in CLI
+  -n, --nested-commands  Include all nested commands in the output.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.18/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.12/src/commands/help.ts)_
 
 ## `chectl server:debug`
 
@@ -220,21 +219,19 @@ USAGE
   $ chectl server:delete
 
 OPTIONS
-  -h, --help                         show CLI help
-  -n, --chenamespace=chenamespace    Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
+  -h, --help                       show CLI help
+  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
 
-  -y, --yes                          Automatic yes to prompts; assume "yes" as answer to all prompts and run
-                                     non-interactively
+  -y, --yes                        Automatic yes to prompts; assume "yes" as answer to all prompts and run
+                                   non-interactively
 
-  --batch                            Batch mode. Running a command without end user interaction.
+  --batch                          Batch mode. Running a command without end user interaction.
 
-  --delete-namespace                 Indicates that a Eclipse Che namespace will be deleted as well
+  --delete-namespace               Indicates that a Eclipse Che namespace will be deleted as well
 
-  --deployment-name=deployment-name  [default: che] Eclipse Che deployment name
+  --skip-kubernetes-health-check   Skip Kubernetes health check
 
-  --skip-kubernetes-health-check     Skip Kubernetes health check
-
-  --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
 _See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/delete.ts)_
@@ -275,9 +272,8 @@ OPTIONS
   -o, --cheboottimeout=cheboottimeout
       (required) [default: 40000] Eclipse Che server bootstrap timeout (in milliseconds)
 
-  -p, --platform=minikube|minishift|k8s|openshift|microk8s|docker-desktop|crc
-      Type of Kubernetes platform. Valid values are "minikube", "minishift", "k8s (for kubernetes)", "openshift", "crc
-      (for CodeReady Containers)", "microk8s".
+  -p, --platform=minikube|k8s|openshift|microk8s|docker-desktop|crc
+      Type of Kubernetes platform.
 
   -t, --templates=templates
       Path to the templates folder
@@ -319,9 +315,6 @@ OPTIONS
   --debug
       Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug'
       command.
-
-  --deployment-name=deployment-name
-      [default: che] Eclipse Che deployment name
 
   --devfile-registry-url=devfile-registry-url
       The URL of the external Devfile registry.
@@ -397,12 +390,11 @@ USAGE
   $ chectl server:logs
 
 OPTIONS
-  -d, --directory=directory          Directory to store logs into
-  -h, --help                         show CLI help
-  -n, --chenamespace=chenamespace    Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
-  --deployment-name=deployment-name  [default: che] Eclipse Che deployment name
-  --skip-kubernetes-health-check     Skip Kubernetes health check
-  --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+  -d, --directory=directory        Directory to store logs into
+  -h, --help                       show CLI help
+  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
+  --skip-kubernetes-health-check   Skip Kubernetes health check
+  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
 _See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/logs.ts)_
@@ -420,7 +412,6 @@ OPTIONS
   -h, --help                                               show CLI help
   -n, --chenamespace=chenamespace                          Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
   --batch                                                  Batch mode. Running a command without end user interaction.
-  --deployment-name=deployment-name                        [default: che] Eclipse Che deployment name
 
   --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 600000] Waiting time for Pod downloading image (in
                                                            milliseconds)
@@ -455,35 +446,6 @@ OPTIONS
 
 _See code: [src/commands/server/status.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/status.ts)_
 
-## `chectl server:stop`
-
-stop Eclipse Che server
-
-```
-USAGE
-  $ chectl server:stop
-
-OPTIONS
-  -h, --help                         show CLI help
-  -n, --chenamespace=chenamespace    Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
-
-  --access-token=access-token        Eclipse Che OIDC Access Token. See the documentation how to obtain token:
-                                     https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#o
-                                     btaining-the-token-from-keycloak_authenticating-to-the-che-server and https://www.e
-                                     clipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-
-                                     token-from-openshift-token-through-keycloak_authenticating-to-the-che-server.
-
-  --che-selector=che-selector        [default: app=che,component=che] Selector for Eclipse Che server resources
-
-  --deployment-name=deployment-name  [default: che] Eclipse Che deployment name
-
-  --skip-kubernetes-health-check     Skip Kubernetes health check
-
-  --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
-
 ## `chectl server:update`
 
 Update Eclipse Che server.
@@ -505,8 +467,6 @@ OPTIONS
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml  Path to a yaml file that overrides the default values in
                                                            CheCluster CR used by the operator. This parameter is used
                                                            only when the installer is the 'operator' or the 'olm'.
-
-  --deployment-name=deployment-name                        [default: che] Eclipse Che deployment name
 
   --skip-kubernetes-health-check                           Skip Kubernetes health check
 

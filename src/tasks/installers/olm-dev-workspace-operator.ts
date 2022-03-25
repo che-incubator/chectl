@@ -50,7 +50,7 @@ export class OLMDevWorkspaceTasks {
           if (!await this.kube.IsCatalogSourceExists(ctx[DevWorkspaceContextKeys.CATALOG_SOURCE_NAME], DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)) {
             const catalogSource = this.constructCatalogSource(ctx[DevWorkspaceContextKeys.CATALOG_SOURCE_NAME], catalogSourceImage)
             await this.kube.createCatalogSource(catalogSource)
-            await this.kube.waitCatalogSource(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, ctx[DevWorkspaceContextKeys.CATALOG_SOURCE_NAME])
+            await this.kube.waitCatalogSource(ctx[DevWorkspaceContextKeys.CATALOG_SOURCE_NAME], DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
             task.title = `${task.title}...[OK]`
           } else {
             task.title = `${task.title}...[Exists]`
@@ -76,7 +76,7 @@ export class OLMDevWorkspaceTasks {
         title: 'Wait Dev Workspace operator Subscription is ready',
         enabled: ctx => !ctx[DevWorkspaceContextKeys.IS_DEV_WORKSPACE_INSTALLED_VIA_OPERATOR_HUB],
         task: async (ctx: any, task: any) => {
-          const installPlan = await this.kube.waitOperatorSubscriptionReadyForApproval(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, this.DEV_WORKSPACE_OPERATOR_SUBSCRIPTION, 600)
+          const installPlan = await this.kube.waitOperatorSubscriptionReadyForApproval(this.DEV_WORKSPACE_OPERATOR_SUBSCRIPTION, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,  600)
           ctx[DevWorkspaceContextKeys.INSTALL_PLAN] = installPlan.name
           task.title = `${task.title}...[OK]`
         },
@@ -93,8 +93,8 @@ export class OLMDevWorkspaceTasks {
         title: 'Wait Dev Workspace CSV',
         enabled: ctx => !ctx[DevWorkspaceContextKeys.IS_DEV_WORKSPACE_INSTALLED_VIA_OPERATOR_HUB],
         task: async (_ctx: any, task: any) => {
-          const installedCSVName = await this.kube.waitInstalledCSVInSubscription(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, this.DEV_WORKSPACE_OPERATOR_SUBSCRIPTION)
-          const phase = await this.kube.waitCSVStatusPhase(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, installedCSVName)
+          const installedCSVName = await this.kube.waitInstalledCSVInSubscription(this.DEV_WORKSPACE_OPERATOR_SUBSCRIPTION, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+          const phase = await this.kube.waitCSVStatusPhase(installedCSVName, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
           if (phase === 'Failed') {
             const csv = await this.kube.getCSV(installedCSVName, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
             if (!csv) {
@@ -122,7 +122,7 @@ export class OLMDevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           const csvs = await this.kube.getCSVWithPrefix(DEVWORKSPACE_CSV_PREFIX, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
           for (const csv of csvs) {
-            await this.kube.deleteClusterServiceVersion(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, csv.metadata.name!)
+            await this.kube.deleteClusterServiceVersion(csv.metadata.name!, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
           }
           task.title = `${task.title}...[OK]`
         },
@@ -130,14 +130,14 @@ export class OLMDevWorkspaceTasks {
       {
         title: 'Delete Dev Workspace operator catalog source for \'next\' channel',
         task: async (_ctx: any, task: any) => {
-          await this.kube.deleteCatalogSource(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, NEXT_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR)
+          await this.kube.deleteCatalogSource(NEXT_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
           task.title = `${task.title}...[OK]`
         },
       },
       {
         title: 'Delete Dev Workspace operator catalog source for \'stable\' channel',
         task: async (_ctx: any, task: any) => {
-          await this.kube.deleteCatalogSource(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, STABLE_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR)
+          await this.kube.deleteCatalogSource(STABLE_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
           task.title = `${task.title}...[OK]`
         },
       },

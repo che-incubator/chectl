@@ -96,21 +96,6 @@ export class DevWorkspaceTasks {
   }
 
   /**
-   * Returns list of tasks which setup dev-workspace.
-   */
-  getInstallTasks(): ReadonlyArray<Listr.ListrTask> {
-    return [
-      {
-        title: 'Verify cert-manager installation',
-        enabled: (ctx: any) => !ctx.isOpenShift,
-        task: async (ctx: any, _task: any) => {
-          return new Listr(this.certManagerTask.getDeployCertManagerTasks(), ctx.listrOptions)
-        },
-      },
-    ]
-  }
-
-  /**
    * Returns list of tasks which uninstall dev-workspace operator.
    */
   deleteResourcesTasks(): ReadonlyArray<Listr.ListrTask> {
@@ -202,8 +187,8 @@ export class DevWorkspaceTasks {
         title: 'Delete Dev Workspace Controller self-signed certificates',
         enabled: async (ctx: any) => !ctx.IsOpenshift,
         task: async (_ctx: any, task: any) => {
-          await this.kubeHelper.deleteNamespacedCertificate(this.devWorkspaceCertificate, 'v1', DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
-          await this.kubeHelper.deleteNamespacedIssuer(this.devWorkspaceCertIssuer, 'v1', DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+          await this.kubeHelper.deleteCertificate(this.devWorkspaceCertificate, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+          await this.kubeHelper.deleteIssuer(this.devWorkspaceCertIssuer, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
 
           task.title = `${task.title}...[OK]`
         },
@@ -255,7 +240,7 @@ export class DevWorkspaceTasks {
       {
         title: 'Delete Dev Workspace webhook deployment',
         task: async (_ctx: any, task: any) => {
-          await this.kubeHelper.deleteDeployment(namespace, this.deploymentWebhookName)
+          await this.kubeHelper.deleteDeployment(this.deploymentWebhookName, namespace)
           task.title = `${task.title}...[OK]`
         },
       },

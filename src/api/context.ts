@@ -16,8 +16,8 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, LOG_DIRECTORY_KEY } from '../common-flags'
-import { CHECTL_PROJECT_NAME } from '../constants'
-import { getProjectName, getProjectVersion, readCRFile } from '../util'
+import { CHECTL_PROJECT_NAME, OPERATOR_TEMPLATE_DIR } from '../constants'
+import { getEmbeddedTemplatesDirectory, getProjectName, getProjectVersion, readCRFile, safeLoadFromYamlFile } from '../util'
 
 import { CHECTL_DEVELOPMENT_VERSION } from './version'
 
@@ -38,7 +38,11 @@ export namespace ChectlContext {
   // command specific attributes
   export const CUSTOM_CR = 'customCR'
   export const CR_PATCH = 'crPatch'
+  export const DEFAULT_CR = 'defaultCR'
   export const LOGS_DIR = 'directory'
+
+  export const RESOURCES = 'resourcesPath'
+  export const CERT_MANAGER_API_VERSION = 'cert-manager-api-version'
 
   const ctx: any = {}
 
@@ -60,6 +64,15 @@ export namespace ChectlContext {
 
     ctx[CUSTOM_CR] = readCRFile(flags, CHE_OPERATOR_CR_YAML_KEY)
     ctx[CR_PATCH] = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY)
+
+    if (flags.templates) {
+      ctx[RESOURCES] = path.join(flags.templates, OPERATOR_TEMPLATE_DIR)
+    } else {
+      // Use build-in templates if no custom templates nor version to deploy specified.
+      // All flavors should use embedded templates if not custom templates is given.
+      ctx[RESOURCES] = path.join(getEmbeddedTemplatesDirectory(), OPERATOR_TEMPLATE_DIR)
+    }
+    ctx[DEFAULT_CR] = safeLoadFromYamlFile(path.join(ctx.resourcesPath, 'crds', 'org_checluster_cr.yaml'))
   }
 
   export async function initAndGet(flags: any, command: Command): Promise<any> {

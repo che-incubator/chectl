@@ -227,7 +227,7 @@ export class KubeTasks {
   }
 
   private async getCheClusterFailState(namespace: string): Promise<FailState | undefined> {
-    const cheCluster = await this.kubeHelper.getCheCluster(namespace)
+    const cheCluster = await this.kubeHelper.getCheClusterV1(namespace)
     if (cheCluster && cheCluster.status && cheCluster.status.reason && cheCluster.status.message) {
       return cheCluster.status
     }

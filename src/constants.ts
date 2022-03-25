@@ -73,8 +73,6 @@ export const DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY = 'https://www.eclipse.org/ch
 export const DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER = 'https://www.eclipse.org/che/docs/che-7/end-user-guide/importing-certificates-to-browsers/'
 export const DOCS_LINK_HOW_TO_ADD_IDENTITY_PROVIDER_OS4 = 'https://docs.openshift.com/container-platform/latest/authentication/understanding-identity-provider.html#identity-provider-overview_understanding-identity-provider'
 export const DOCS_LINK_HOW_TO_CREATE_USER_OS3 = 'https://docs.openshift.com/container-platform/3.11/install_config/configuring_authentication.html'
-export const DOC_LINK_OBTAIN_ACCESS_TOKEN = 'https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_authenticating-to-the-che-server'
-export const DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH = 'https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift-token-through-keycloak_authenticating-to-the-che-server'
 export const DOC_LINK_CONFIGURE_API_SERVER = 'https://kubernetes.io/docs/reference/access-authn-authz/authentication/#configuring-the-api-server'
 
 export const OUTPUT_SEPARATOR = '-------------------------------------------------------------------------------'
@@ -92,7 +90,8 @@ export const DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT = 60000
 // Custom Resources names
 export const CHE_CLUSTER_CRD = 'checlusters.org.eclipse.che'
 export const CHE_CLUSTER_API_GROUP = 'org.eclipse.che'
-export const CHE_CLUSTER_API_VERSION = 'v1'
+export const CHE_CLUSTER_API_VERSION_V1 = 'v1'
+export const CHE_CLUSTER_API_VERSION_V2 = 'v2'
 export const CHE_CLUSTER_KIND_PLURAL = 'checlusters'
 
 export const DEVFILE_WORKSPACE_API_GROUP = 'workspace.devfile.io'

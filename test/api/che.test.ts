@@ -120,15 +120,6 @@ describe('Eclipse Che helper', () => {
         expect(res).to.equal(dashboardURL)
       })
   })
-  describe('isSelfSignedCertificateSecretExist', () => {
-    fancy
-      .stub(kube, 'getSecret', () => true)
-      .stub(kube, 'isOpenShift', () => false)
-      .it('should return if self signed certificate secret exist in cluster', async () => {
-        const isSelfSignedCertificateSecretExist = await ch.isSelfSignedCertificateSecretExist(namespace)
-        expect(isSelfSignedCertificateSecretExist).to.equals(true)
-      })
-  })
   describe('retrieveCheCaCert', () => {
     fancy
       .stub(kube, 'getSecret', () => ({ data : { 'ca.crt' : certBase64Encode } }))

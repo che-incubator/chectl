@@ -12,7 +12,7 @@
 
 import { boolean, string } from '@oclif/parser/lib/flags'
 
-import { DEFAULT_CHE_NAMESPACE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH } from './constants'
+import { DEFAULT_CHE_NAMESPACE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT} from './constants'
 
 export const cheNamespace = string({
   char: 'n',
@@ -26,12 +26,6 @@ export const batch = boolean({
   required: false,
 })
 
-export const cheDeployment = string({
-  description: 'Eclipse Che deployment name',
-  default: 'che',
-  env: 'CHE_DEPLOYMENT',
-})
-
 export const listrRenderer = string({
   description: 'Listr renderer',
   options: ['default', 'silent', 'verbose'],
@@ -39,22 +33,9 @@ export const listrRenderer = string({
   hidden: true,
 })
 
-export const ACCESS_TOKEN_KEY = 'access-token'
-export const accessToken = string({
-  description: `Eclipse Che OIDC Access Token. See the documentation how to obtain token: ${DOC_LINK_OBTAIN_ACCESS_TOKEN} and ${DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH}.`,
-  env: 'CHE_ACCESS_TOKEN',
-})
-
 export const skipKubeHealthzCheck = boolean({
   description: 'Skip Kubernetes health check',
   default: false,
-})
-
-export const CHE_API_ENDPOINT_KEY = 'che-api-endpoint'
-export const cheApiEndpoint = string({
-  description: 'Eclipse Che server API endpoint',
-  env: 'CHE_API_ENDPOINT',
-  required: false,
 })
 
 export const CHE_OPERATOR_CR_PATCH_YAML_KEY = 'che-operator-cr-patch-yaml'
@@ -75,14 +56,6 @@ export const CHE_OPERATOR_CR_YAML_KEY = 'che-operator-cr-yaml'
 export const cheOperatorCRYaml = string({
   description: 'Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer is the \'operator\' or the \'olm\'.',
   default: '',
-})
-
-export const USERNAME_KEY = 'username'
-export const username = string({
-  char: 'u',
-  description: 'Eclipse Che username',
-  env: 'CHE_USER_NAME',
-  required: false,
 })
 
 export const K8SPODWAITTIMEOUT_KEY = 'k8spodwaittimeout'
@@ -127,10 +100,4 @@ export const cheDeployVersion = string({
   description: 'Version to deploy (e.g. 7.15.2). Defaults to the same as chectl.',
   env: 'CHE_DEPLOY_VERSION',
   hidden: true,
-})
-
-export const FOLLOW_LOGS = boolean({
-  description: 'Indicate if logs should be streamed',
-  default: false,
-  required: false,
 })

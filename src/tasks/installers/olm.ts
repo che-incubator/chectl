@@ -118,7 +118,7 @@ export class OLMTasks {
           if (!await this.kube.IsCatalogSourceExists(NEXT_CATALOG_SOURCE_NAME, ctx.operatorNamespace)) {
             const nextCatalogSource = this.constructNextCatalogSource(ctx.operatorNamespace)
             await this.kube.createCatalogSource(nextCatalogSource)
-            await this.kube.waitCatalogSource(ctx.operatorNamespace, NEXT_CATALOG_SOURCE_NAME)
+            await this.kube.waitCatalogSource(NEXT_CATALOG_SOURCE_NAME, ctx.operatorNamespace)
             task.title = `${task.title}...[OK]`
           } else {
             task.title = `${task.title}...[Exists]`
@@ -143,7 +143,7 @@ export class OLMTasks {
             customCatalogSource.metadata.name = ctx.sourceName
             customCatalogSource.metadata.namespace = flags.chenamespace
             await this.kube.createCatalogSource(customCatalogSource)
-            await this.kube.waitCatalogSource(flags.chenamespace, CUSTOM_CATALOG_SOURCE_NAME)
+            await this.kube.waitCatalogSource(CUSTOM_CATALOG_SOURCE_NAME, flags.chenamespace)
             task.title = `${task.title}...[OK: ${CUSTOM_CATALOG_SOURCE_NAME}]`
           } else {
             task.title = `${task.title}...[Exists]`
@@ -182,7 +182,7 @@ export class OLMTasks {
       {
         title: 'Wait while subscription is ready',
         task: async (ctx: any, task: any) => {
-          const installPlan = await this.kube.waitOperatorSubscriptionReadyForApproval(ctx.operatorNamespace, ctx.subscriptionName, 600)
+          const installPlan = await this.kube.waitOperatorSubscriptionReadyForApproval(ctx.subscriptionName, ctx.operatorNamespace, 600)
           ctx.installPlanName = installPlan.name
           task.title = `${task.title}...[OK]`
         },
@@ -205,8 +205,8 @@ export class OLMTasks {
       {
         title: 'Check cluster service version resource',
         task: async (ctx: any, task: any) => {
-          const installedCSVName = await this.kube.waitInstalledCSVInSubscription(ctx.operatorNamespace, ctx.subscriptionName)
-          const phase = await this.kube.waitCSVStatusPhase(ctx.operatorNamespace, installedCSVName)
+          const installedCSVName = await this.kube.waitInstalledCSVInSubscription(ctx.subscriptionName, ctx.operatorNamespace,)
+          const phase = await this.kube.waitCSVStatusPhase(installedCSVName, ctx.operatorNamespace)
           if (phase === 'Failed') {
             const csv = await this.kube.getCSV(installedCSVName, ctx.operatorNamespace)
             if (!csv) {
@@ -226,14 +226,14 @@ export class OLMTasks {
             throw new Error('Eclipse Che operator CSV not found.')
           }
           const jsonPatch = [{ op: 'replace', path: '/spec/install/spec/deployments/0/spec/template/spec/containers/0/image', value: flags['che-operator-image'] }]
-          await this.kube.patchClusterServiceVersion(csvs[0].metadata.namespace!, csvs[0].metadata.name!, jsonPatch)
+          await this.kube.patchClusterServiceVersion(csvs[0].metadata.name!, csvs[0].metadata.namespace!, jsonPatch)
           task.title = `${task.title}...[OK]`
         },
       },
       {
         title: TASK_TITLE_PREPARE_CHE_CLUSTER_CR,
         task: async (ctx: any, task: any) => {
-          const cheCluster = await this.kube.getCheCluster(flags.chenamespace)
+          const cheCluster = await this.kube.getCheClusterV1(flags.chenamespace)
           if (cheCluster) {
             task.title = `${task.title}...[Exists]`
             return
@@ -295,7 +295,7 @@ export class OLMTasks {
             }
             ctx.checlusterNamespace = cheClusters[0].metadata.namespace
           } else {
-            const cheCluster = await this.kube.getCheCluster(ctx.operatorNamespace)
+            const cheCluster = await this.kube.getCheClusterV1(ctx.operatorNamespace)
             if (!cheCluster) {
               command.error(`Eclipse Che cluster CR was not found in the namespace '${flags.chenamespace}'`)
             }
@@ -408,7 +408,7 @@ export class OLMTasks {
         task: async (ctx: any, task: any) => {
           const csvs = await kube.getCSVWithPrefix(CSV_PREFIX, ctx.operatorNamespace)
           for (const csv of csvs) {
-            await kube.deleteClusterServiceVersion(ctx.operatorNamespace, csv.metadata.name!)
+            await kube.deleteClusterServiceVersion(csv.metadata.name!, ctx.operatorNamespace)
           }
           task.title = `${task.title}...[OK]`
         },
@@ -428,14 +428,14 @@ export class OLMTasks {
       {
         title: TASK_TITLE_DELETE_CUSTOM_CATALOG_SOURCE,
         task: async (ctx: any, task: any) => {
-          await kube.deleteCatalogSource(ctx.operatorNamespace, CUSTOM_CATALOG_SOURCE_NAME)
+          await kube.deleteCatalogSource(CUSTOM_CATALOG_SOURCE_NAME, ctx.operatorNamespace)
           task.title = `${task.title}...[OK]`
         },
       },
       {
         title: TASK_TITLE_DELETE_NEXT_CATALOG_SOURCE,
         task: async (ctx: any, task: any) => {
-          await kube.deleteCatalogSource(ctx.operatorNamespace, NEXT_CATALOG_SOURCE_NAME)
+          await kube.deleteCatalogSource(NEXT_CATALOG_SOURCE_NAME, ctx.operatorNamespace)
           task.title = `${task.title}...[OK]`
         },
       },
