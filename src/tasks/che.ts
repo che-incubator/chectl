@@ -462,52 +462,16 @@ export class CheTasks {
   serverLogsTasks(flags: any, follow: boolean): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: `${follow ? 'Start following' : 'Read'} Operator logs`,
+        title: `${follow ? 'Start following' : 'Read'} logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, CHE_OPERATOR_SELECTOR, ctx.directory, follow)
-          task.title = `${task.title}...done`
-        },
-      },
-      {
-        title: `${follow ? 'Start following' : 'Read'} Eclipse Che Server logs`,
-        task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.cheSelector, ctx.directory, follow)
-          task.title = `${task.title}...done`
-        },
-      },
-      {
-        title: `${follow ? 'Start following' : 'Read'} PostgreSQL logs`,
-        task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.postgresSelector, ctx.directory, follow)
-          task.title = `${task.title}...done`
-        },
-      },
-      {
-        title: `${follow ? 'Start following' : 'Read'} Plug-in Registry logs`,
-        task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.pluginRegistrySelector, ctx.directory, follow)
-          task.title = `${task.title}...done`
-        },
-      },
-      {
-        title: `${follow ? 'Start following' : 'Read'} Devfile Registry logs`,
-        task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.devfileRegistrySelector, ctx.directory, follow)
-          task.title = `${task.title}...done`
-        },
-      },
-      {
-        title: `${follow ? 'Start following' : 'Read'} Eclipse Che Dashboard logs`,
-        task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.dashboardSelector, ctx.directory, follow)
-          task.title = `${task.title}...done`
-        },
-      },
-      {
-        title: `${follow ? 'Start following' : 'Read'} namespace events`,
-        task: async (ctx: any, task: any) => {
           await this.che.readNamespaceEvents(flags.chenamespace, ctx.directory, follow)
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         },
       },
     ]

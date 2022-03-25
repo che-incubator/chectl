@@ -297,11 +297,11 @@ export default class Deploy extends Command {
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags)),
     })
     preInstallTasks.add(ensureOIDCProviderInstalled(flags))
-    if (!ctx.isOpenShift || (flags.installer === 'operator' && isCheClusterAPIV2(ctx[ChectlContext.DEFAULT_CR]))) {
-      preInstallTasks.add(certManagerTask.getDeployCertManagerTasks())
-    }
 
     const installTasks = new Listr(undefined, ctx.listrOptions)
+    if (!ctx.isOpenShift || (flags.installer === 'operator' && isCheClusterAPIV2(ctx[ChectlContext.DEFAULT_CR]))) {
+      installTasks.add(certManagerTask.getDeployCertManagerTasks())
+    }
     installTasks.add([createNamespaceTask(flags.chenamespace, this.getNamespaceLabels(flags))])
     if (flags.platform === 'minikube') {
       installTasks.add(dexTasks.getInstallTasks())

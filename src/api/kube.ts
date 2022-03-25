@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { AdmissionregistrationV1Api, ApiextensionsV1Api, ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, KubeConfig, Log, NetworkingV1Api, PortForward, RbacAuthorizationV1Api, V1ClusterRole, V1ClusterRoleBinding, V1ClusterRoleBindingList, V1ConfigMap, V1Container, V1ContainerStateTerminated, V1ContainerStateWaiting, V1Deployment, V1Ingress, V1Job, V1JobSpec, V1Namespace, V1ObjectMeta, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleBindingList, V1RoleList, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, Watch } from '@kubernetes/client-node'
+import { AdmissionregistrationV1Api, ApiextensionsV1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, KubeConfig, Log, NetworkingV1Api, PortForward, RbacAuthorizationV1Api, V1ClusterRole, V1ClusterRoleBinding, V1ClusterRoleBindingList, V1ConfigMap, V1Container, V1ContainerStateTerminated, V1ContainerStateWaiting, V1Deployment, V1Ingress, V1Job, V1JobSpec, V1Namespace, V1ObjectMeta, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleBindingList, V1RoleList, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, Watch } from '@kubernetes/client-node'
 import { Cluster } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
@@ -1189,7 +1189,7 @@ export class KubeHelper {
   }
 
   async getCrd(name: string): Promise<any | undefined> {
-    const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1beta1Api)
+    const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
     try {
       const { body } = await k8sApi.readCustomResourceDefinition(name)
       return body
@@ -1225,7 +1225,7 @@ export class KubeHelper {
   }
 
   async createCheCluster(cheClusterCR: any, flags: any, ctx: any, useDefaultCR: boolean): Promise<any> {
-    const isCheClusterApiV1 = isCheClusterAPIV1(cheClusterCR.apiVersion)
+    const isCheClusterApiV1 = isCheClusterAPIV1(cheClusterCR)
     const cheClusterApiVersion = isCheClusterApiV1 ? CHE_CLUSTER_API_VERSION_V1 : CHE_CLUSTER_API_VERSION_V2
 
     const cheNamespace = flags.chenamespace

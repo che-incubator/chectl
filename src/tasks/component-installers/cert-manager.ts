@@ -42,7 +42,6 @@ export class CertManagerTasks {
     return [
       {
         title: 'Deploy Cert Manager',
-        enabled: ctx => !ctx.certManagerInstalled,
         task: async (_ctx: any, task: any) => {
           const certManagerCrd = await this.kubeHelper.getCrd('certificates.cert-manager.io')
           if (certManagerCrd) {
@@ -56,7 +55,6 @@ export class CertManagerTasks {
       },
       {
         title: 'Wait for Cert Manager',
-        enabled: ctx => ctx.certManagerInstalled,
         task: async (ctx: any, task: any) => {
           await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cert-manager', CERT_MANAGER_NAMESPACE_NAME)
           await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=webhook', CERT_MANAGER_NAMESPACE_NAME)
@@ -74,10 +72,7 @@ export class CertManagerTasks {
     return [
       {
         title: 'Check Cert Manager CA certificate',
-        task: async (ctx: any, task: any) => {
-          if (!ctx.certManagerInstalled) {
-            throw new Error('Cert manager must be installed before.')
-          }
+        task: async (_ctx: any, task: any) => {
           // To be able to use self-signed sertificate it is required to provide CA private key & certificate to cert-manager
           const caSelfSignedCertSecret = await this.kubeHelper.getSecret(CERT_MANAGER_CA_SECRET_NAME, CERT_MANAGER_NAMESPACE_NAME)
           if (!caSelfSignedCertSecret) {

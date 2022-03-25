@@ -73,7 +73,7 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
       const checluster = await kube.createCheCluster(cheClusterCR, flags, ctx, !ctx.customCR)
 
       ctx.isPostgresReady = ctx.isPostgresReady || checluster.spec.database.externalDb
-      const isCheClusterApiV1 = isCheClusterAPIV1(cheClusterCR.apiVersion)
+      const isCheClusterApiV1 = isCheClusterAPIV1(cheClusterCR)
       if (isCheClusterApiV1) {
         ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || checluster.spec.server.externalDevfileRegistry
         ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || checluster.spec.server.externalPluginRegistry
