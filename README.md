@@ -158,7 +158,7 @@ OPTIONS
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/cacert/export.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/che-incubator/chectl/blob/main/src/commands/cacert/export.ts)_
 
 ## `chectl dashboard:open`
 
@@ -174,7 +174,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/dashboard/open.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/che-incubator/chectl/blob/main/src/commands/dashboard/open.ts)_
 
 ## `chectl help [COMMAND]`
 
@@ -209,7 +209,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/che-incubator/chectl/blob/main/src/commands/server/debug.ts)_
 
 ## `chectl server:delete`
 
@@ -235,7 +235,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/main/src/commands/server/delete.ts)_
 
 ## `chectl server:deploy`
 
@@ -380,7 +380,7 @@ OPTIONS
       persistent volume(s) storage class name to use to store Eclipse Che workspaces data
 ```
 
-_See code: [src/commands/server/deploy.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/deploy.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/che-incubator/chectl/blob/main/src/commands/server/deploy.ts)_
 
 ## `chectl server:logs`
 
@@ -398,7 +398,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl/blob/main/src/commands/server/logs.ts)_
 
 ## `chectl server:start`
 
@@ -429,7 +429,7 @@ OPTIONS
   --skip-kubernetes-health-check                           Skip Kubernetes health check
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/main/src/commands/server/start.ts)_
 
 ## `chectl server:status`
 
@@ -445,7 +445,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/status.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/status.ts)_
+_See code: [src/commands/server/status.ts](https://github.com/che-incubator/chectl/blob/main/src/commands/server/status.ts)_
 
 ## `chectl server:stop`
 
@@ -463,7 +463,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/main/src/commands/server/stop.ts)_
 
 ## `chectl server:update`
 
@@ -503,7 +503,7 @@ EXAMPLES
   chectl server:update --che-operator-cr-patch-yaml patch.yaml
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/main/src/commands/server/update.ts)_
 
 ## `chectl update [CHANNEL]`
 
