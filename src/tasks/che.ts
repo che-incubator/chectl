@@ -41,6 +41,8 @@ export class CheTasks {
   devfileRegistrySelector = 'app=che,component=devfile-registry'
   pluginRegistryDeploymentName = 'plugin-registry'
   pluginRegistrySelector = 'app=che,component=plugin-registry'
+  cheGatewayDeploymentName = 'che-gateway'
+  cheGatewaySelector = 'app=che,component=che-gateway'
   cheConsoleLinkName = 'che'
 
   constructor(flags: any) {
@@ -507,6 +509,7 @@ export class CheTasks {
           await this.che.readPodLog(flags.chenamespace, this.pluginRegistrySelector, ctx.directory, follow)
           await this.che.readPodLog(flags.chenamespace, this.devfileRegistrySelector, ctx.directory, follow)
           await this.che.readPodLog(flags.chenamespace, this.dashboardSelector, ctx.directory, follow)
+          await this.che.readPodLog(flags.chenamespace, this.cheGatewaySelector, ctx.directory, follow)
           await this.che.readNamespaceEvents(flags.chenamespace, ctx.directory, follow)
           task.title = `${task.title}...[OK]`
         },
