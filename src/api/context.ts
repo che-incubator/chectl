@@ -77,8 +77,8 @@ export namespace ChectlContext {
     if (!fs.existsSync(cheClusterPath)) {
       cheClusterPath = path.join(ctx.resourcesPath, 'crds', 'org_v1_che_cr.yaml')
     }
+    ctx[DEFAULT_CR] = safeLoadFromYamlFile(cheClusterPath)
 
-    ctx[DEFAULT_CR] = cheClusterPath
     ctx[IS_OPENSHIFT] = await isOpenShift()
   }
 
