@@ -14,6 +14,7 @@ import { ApisApi, KubeConfig } from '@kubernetes/client-node'
 import Command from '@oclif/command'
 import Listr = require('listr')
 import * as os from 'os'
+import * as fs from 'fs-extra'
 import * as path from 'path'
 
 import { CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, LOG_DIRECTORY_KEY } from '../common-flags'
@@ -76,7 +77,13 @@ export namespace ChectlContext {
       // All flavors should use embedded templates if not custom templates is given.
       ctx[RESOURCES] = path.join(getEmbeddedTemplatesDirectory(), OPERATOR_TEMPLATE_DIR)
     }
-    ctx[DEFAULT_CR] = safeLoadFromYamlFile(path.join(ctx.resourcesPath, 'crds', 'org_checluster_cr.yaml'))
+
+    let cheClusterPath = path.join(ctx.resourcesPath, 'crds', 'org_checluster_cr.yaml')
+    if (!fs.existsSync(cheClusterPath)) {
+      cheClusterPath = path.join(ctx.resourcesPath, 'crds', 'org_v1_che_cr.yaml')
+    }
+    ctx[DEFAULT_CR] = safeLoadFromYamlFile(cheClusterPath)
+
     ctx[IS_OPENSHIFT] = await isOpenShift()
   }
 
