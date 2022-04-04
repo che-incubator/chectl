@@ -115,7 +115,7 @@ export class OLMDevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kube.deleteOperatorSubscription(this.DEV_WORKSPACE_OPERATOR_SUBSCRIPTION, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -129,7 +129,7 @@ export class OLMDevWorkspaceTasks {
             for (const csv of csvs) {
               await this.kube.deleteClusterServiceVersion(csv.metadata.name!, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
             }
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -140,7 +140,7 @@ export class OLMDevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kube.deleteCatalogSource(NEXT_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -151,7 +151,7 @@ export class OLMDevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kube.deleteCatalogSource(STABLE_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }

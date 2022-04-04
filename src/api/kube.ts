@@ -1246,33 +1246,32 @@ export class KubeHelper {
           cheClusterCR.spec.storage.workspacePVCStorageClassName = flags['workspace-pvc-storage-class-name']
         }
       } else {
-        merge(cheClusterCR, { spec: { server: { deployment: { container: { image: flags.cheimage } } } } })
-        cheClusterCR.spec.server.debug = flags.debug ? flags.debug.toString() : 'false'
-
-        if (!cheClusterCR.spec.auth?.gateway?.ingress?.tlsSecretRef) {
-          merge(cheClusterCR, { spec: { auth: { gateway: { ingress: { tlsSecretRef: DEFAULT_CHE_TLS_SECRET_NAME } } } } })
+        if (flags.cheimage) {
+          merge(cheClusterCR, { spec: { serverComponents: { cheServer: { deployment: { containers: [{ image: flags.cheimage }] } } } } })
         }
 
+        merge(cheClusterCR, { spec: { serverComponents: { cheServer: { debug: flags.debug } } } })
+
         if (flags.domain) {
-          merge(cheClusterCR, { spec: { auth: { gateway: { ingress: { domain: flags.domain } } } } })
+          merge(cheClusterCR, { spec: { ingress: { domain: flags.domain } }  })
         }
 
         const pluginRegistryUrl = flags['plugin-registry-url']
         if (pluginRegistryUrl) {
-          merge(cheClusterCR, { spec: { pluginRegistry: { disableInternalRegistry: true, externalPluginRegistries: [{ url: pluginRegistryUrl }]} } })
+          merge(cheClusterCR, { spec: { serverComponents: { pluginRegistry: { disableInternalRegistry: true, externalPluginRegistries: [{ url: pluginRegistryUrl }]} } } })
         }
 
         const devfileRegistryUrl = flags['devfile-registry-url']
         if (devfileRegistryUrl) {
-          merge(cheClusterCR, { spec: { devfileRegistry: { disableInternalRegistry: true, externalDevfileRegistries: [{ url: devfileRegistryUrl }]} } })
+          merge(cheClusterCR, { spec: { serverComponents: { devfileRegistry: { disableInternalRegistry: true, externalDevfileRegistries: [{ url: devfileRegistryUrl }]} } } })
         }
 
         if (flags['postgres-pvc-storage-class-name']) {
-          merge(cheClusterCR, { spec: { database: { pvc: { storageClass: flags['postgres-pvc-storage-class-name'] } } } })
+          merge(cheClusterCR, { spec: { serverComponents: { database: { pvc: { storageClass: flags['postgres-pvc-storage-class-name'] } } } } })
         }
 
         if (flags['workspace-pvc-storage-class-name']) {
-          merge(cheClusterCR, { spec: { storage: { pvc: { storageClass: flags['workspace-pvc-storage-class-name'] } } } })
+          merge(cheClusterCR, { spec: {workspaces: { storage: { pvc: { storageClass: flags['workspace-pvc-storage-class-name'] } } } } })
         }
       }
     }
@@ -1281,7 +1280,7 @@ export class KubeHelper {
       if (isCheClusterApiV1) {
         cheClusterCR.spec.server.cheClusterRoles = ctx.namespaceEditorClusterRoleName
       } else {
-        cheClusterCR.spec.server.clusterRoles = (ctx.namespaceEditorClusterRoleName as string).split(',')
+        merge(cheClusterCR, { spec: {serverComponents: { cheServer: { clusterRoles: (ctx.namespaceEditorClusterRoleName as string).split(',')} } } })
       }
     }
 

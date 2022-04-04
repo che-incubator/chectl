@@ -114,7 +114,7 @@ export class CertManagerTasks {
             // Wait until the secret is available
             await this.kubeHelper.waitSecret('ca', CERT_MANAGER_NAMESPACE_NAME)
           } else {
-            task.title = `${task.title}...[Skipped: Exists]`
+            task.title = `${task.title}...[Exists]`
           }
         },
       },
@@ -153,7 +153,7 @@ export class CertManagerTasks {
 
             task.title = `${task.title}...done`
           } else {
-            task.title = `${task.title}...[Skipped: Exists]`
+            task.title = `${task.title}...[Exists]`
           }
         },
       },

@@ -397,7 +397,7 @@ export class OLMTasks {
         task: async (ctx: any, task: any) => {
           try {
             await kube.deleteOperatorSubscription(ctx.subscriptionName, ctx.operatorNamespace)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -412,7 +412,7 @@ export class OLMTasks {
             for (const csv of csvs) {
               await kube.deleteClusterServiceVersion(csv.metadata.name!, ctx.operatorNamespace)
             }
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -428,7 +428,7 @@ export class OLMTasks {
             if (opgr && opgr.metadata && opgr.metadata.name && opgr.metadata.namespace) {
               await kube.deleteOperatorGroup(opgr.metadata.name, opgr.metadata.namespace)
             }
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -439,7 +439,7 @@ export class OLMTasks {
         task: async (ctx: any, task: any) => {
           try {
             await kube.deleteCatalogSource(CUSTOM_CATALOG_SOURCE_NAME, ctx.operatorNamespace)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -450,7 +450,7 @@ export class OLMTasks {
         task: async (ctx: any, task: any) => {
           try {
             await kube.deleteCatalogSource(NEXT_CATALOG_SOURCE_NAME, ctx.operatorNamespace)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -461,7 +461,7 @@ export class OLMTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await kube.deleteRole(this.prometheusRoleName, flags.chenamespace)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -472,7 +472,7 @@ export class OLMTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await kube.deleteRoleBinding(this.prometheusRoleName, flags.chenamespace)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }

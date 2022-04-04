@@ -65,7 +65,12 @@ export namespace ChectlContext {
     ctx[CR_PATCH] = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY)
 
     if (flags.templates) {
-      ctx[RESOURCES] = path.join(flags.templates, OPERATOR_TEMPLATE_DIR)
+      const d = path.basename(flags.templates)
+      if (d !== OPERATOR_TEMPLATE_DIR) {
+        ctx[RESOURCES] = path.join(flags.templates, OPERATOR_TEMPLATE_DIR)
+      } else {
+        ctx[RESOURCES] = flags.templates
+      }
     } else {
       // Use build-in templates if no custom templates nor version to deploy specified.
       // All flavors should use embedded templates if not custom templates is given.
