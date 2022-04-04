@@ -106,7 +106,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteAllDeployments(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -117,7 +117,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteAllServices(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -129,7 +129,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteAllIngresses(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -141,7 +141,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.openShiftHelper.deleteAllRoutes(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -152,7 +152,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteConfigMap(this.devWorkspaceConfigMap, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -164,7 +164,7 @@ export class DevWorkspaceTasks {
           try {
             await this.kubeHelper.deleteClusterRoleBinding(this.devWorkspaceRoleBinding)
             await this.kubeHelper.deleteClusterRoleBinding(this.devworkspaceProxyClusterRoleBinding)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -175,7 +175,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteRole(this.devWorkspaceLeaderElectionRole, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -186,7 +186,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteRoleBinding(this.devWorkspaceLeaderElectionRoleBinding, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -201,7 +201,7 @@ export class DevWorkspaceTasks {
             await this.kubeHelper.deleteClusterRole(this.devWorkspaceProxyClusterRole)
             await this.kubeHelper.deleteClusterRole(this.devWorkspaceMetricsClusterRole)
             await this.kubeHelper.deleteClusterRole(this.devworkspaceClusterRole)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -212,7 +212,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteServiceAccount(this.devWorkspaceServiceAccount, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -225,7 +225,7 @@ export class DevWorkspaceTasks {
           try {
             await this.kubeHelper.deleteCertificate(this.devWorkspaceCertificate, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
             await this.kubeHelper.deleteIssuer(this.devWorkspaceCertIssuer, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -239,7 +239,7 @@ export class DevWorkspaceTasks {
             if (namespaceExist) {
               await this.kubeHelper.deleteNamespace(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
             }
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -255,7 +255,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteAllCustomResources(DEVFILE_WORKSPACE_API_GROUP, DEVFILE_WORKSPACE_API_VERSION, DEVFILE_WORKSPACE_KIND_PLURAL)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -266,7 +266,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteAllCustomResources(DEVFILE_WORKSPACE_ROUTINGS_API_GROUP, DEVFILE_WORKSPACE_ROUTINGS_VERSION, DEVFILE_WORKSPACE_ROUTINGS_KIND_PLURAL)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -280,7 +280,7 @@ export class DevWorkspaceTasks {
             await this.kubeHelper.deleteCrd(this.devWorkspaceTemplatesCrdName)
             await this.kubeHelper.deleteCrd(this.workspaceRoutingsCrdName)
             await this.kubeHelper.deleteCrd(this.devWorkspaceConfigCrdName)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -296,7 +296,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteDeployment(this.deploymentWebhookName, namespace)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -307,7 +307,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteService(this.serviceWebhookName, namespace)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -318,7 +318,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteClusterRoleBinding(this.devWorkspaceWebhookServerClusterRole)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -329,7 +329,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteClusterRole(this.devWorkspaceWebhookServerClusterRole)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -340,7 +340,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteServiceAccount(this.devWorkspaceWebhookServiceAccount, namespace)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -353,7 +353,7 @@ export class DevWorkspaceTasks {
           try {
             await this.kubeHelper.deleteMutatingWebhookConfiguration(this.webhooksName)
             await this.kubeHelper.deleteValidatingWebhookConfiguration(this.webhooksName)
-            task.title = `${task.title} ...[Deleted]`
+            task.title = `${task.title} ...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }

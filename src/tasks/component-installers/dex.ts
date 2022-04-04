@@ -22,7 +22,7 @@ import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { ChectlContext, DexContextKeys, OIDCContextKeys } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { base64Decode, getEmbeddedTemplatesDirectory, getTlsSecretName } from '../../util'
+import { base64Decode, getEmbeddedTemplatesDirectory, getTlsSecretName, isCheClusterAPIV1 } from '../../util'
 import { PlatformTasks } from '../platforms/platform'
 import { CertManagerTasks } from './cert-manager'
 
@@ -210,7 +210,11 @@ export class DexTasks {
 
                 // set service in a CR
                 ctx[ChectlContext.CR_PATCH] = ctx[ChectlContext.CR_PATCH] || {}
-                merge(ctx[ChectlContext.CR_PATCH], { spec: { auth: { identityProviderURL: 'http://dex.dex:5556' } } })
+                if (isCheClusterAPIV1(ctx[ChectlContext.DEFAULT_CR])) {
+                  merge(ctx[ChectlContext.CR_PATCH], { spec: { auth: { identityProviderURL: 'http://dex.dex:5556' } } })
+                } else {
+                  merge(ctx[ChectlContext.CR_PATCH], { spec: { ingress: { auth: { identityProviderURL: 'http://dex.dex:5556' } } } })
+                }
               },
             },
             {
@@ -268,7 +272,11 @@ export class DexTasks {
 
                   // set in a CR
                   ctx[ChectlContext.CR_PATCH] = ctx[ChectlContext.CR_PATCH] || {}
-                  merge(ctx[ChectlContext.CR_PATCH], { spec: { auth: { oAuthClientName: DexTasks.CLIENT_ID, oAuthSecret: eclipseCheClient.secret } } })
+                  if (isCheClusterAPIV1(ctx[ChectlContext.DEFAULT_CR])) {
+                    merge(ctx[ChectlContext.CR_PATCH], { spec: { auth: { oAuthClientName: DexTasks.CLIENT_ID, oAuthSecret: eclipseCheClient.secret } } })
+                  } else {
+                    merge(ctx[ChectlContext.CR_PATCH], { spec: { ingress: { auth: { oAuthClientName: DexTasks.CLIENT_ID, oAuthSecret: eclipseCheClient.secret } } } })
+                  }
 
                   task.title = `${task.title}...[Exists]`
                 } else {
@@ -286,7 +294,11 @@ export class DexTasks {
                   await this.kube.createConfigMap(configMap, DexTasks.NAMESPACE_NAME)
 
                   // set in a CR
-                  merge(ctx[ChectlContext.CR_PATCH], { spec: { auth: { oAuthClientName: DexTasks.CLIENT_ID, oAuthSecret: clientSecret } } })
+                  if (isCheClusterAPIV1(ctx[ChectlContext.DEFAULT_CR])) {
+                    merge(ctx[ChectlContext.CR_PATCH], { spec: { auth: { oAuthClientName: DexTasks.CLIENT_ID, oAuthSecret: clientSecret } } })
+                  } else {
+                    merge(ctx[ChectlContext.CR_PATCH], { spec: { ingress: { auth: { oAuthClientName: DexTasks.CLIENT_ID, oAuthSecret: clientSecret } } } })
+                  }
 
                   task.title = `${task.title}...[OK]`
                 }

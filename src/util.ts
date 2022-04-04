@@ -398,10 +398,10 @@ export function getTlsSecretName(ctx: any): string {
   }
 
   // v2
-  if (crPatch?.spec?.auth?.gateway?.ingress?.tlsSecretRef) {
-    return crPatch.spec.auth.gateway.ingress.tlsSecretRef
-  } else if (ctx.customCR?.auth?.gateway?.ingress?.tlsSecretRef) {
-    return ctx.customCR.auth.gateway.ingress.tlsSecretRef
+  if (crPatch?.spec?.ingress?.tlsSecretName) {
+    return crPatch.spec.ingress.tlsSecretName
+  } else if (ctx.customCR?.ingress?.tlsSecretName) {
+    return ctx.customCR.ingress.tlsSecretName
   }
 
   return DEFAULT_CHE_TLS_SECRET_NAME
@@ -423,5 +423,7 @@ export function isCheClusterAPIV2(checluster: any): boolean {
 
 export function isWebhookAvailabilityError(error: any): boolean {
   const msg = error.message as string
-  return msg.indexOf('service "webhook-service" not found') !== -1 || msg.indexOf('no endpoints available for service "webhook-service"') !== -1
+  return msg.indexOf('service "webhook-service" not found') !== -1 ||
+    msg.indexOf('no endpoints available for service "webhook-service"') !== -1 ||
+    (msg.indexOf('conversion webhook') !== -1 && msg.indexOf('connect: connection refused') !== -1)
 }

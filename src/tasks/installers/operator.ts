@@ -19,7 +19,7 @@ import * as yaml from 'js-yaml'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME } from '../../constants'
-import { getImageNameAndTag, safeLoadFromYamlFile } from '../../util'
+import { getImageNameAndTag, isCheClusterAPIV1, safeLoadFromYamlFile } from '../../util'
 import { KubeTasks } from '../kube'
 import { createEclipseCheClusterTask, patchingEclipseCheCluster } from './common-tasks'
 import { V1Certificate } from '../../api/types/cert-manager'
@@ -55,7 +55,7 @@ export class OperatorTasks {
                     await this.kh.replaceRole(role, this.flags.chenamespace)
                     task.title = `${task.title}...[Updated]`
                   } else {
-                    task.title = `${task.title}...[Skipped: Exists]`
+                    task.title = `${task.title}...[Exists]`
                   }
                 } else {
                   await this.kh.createRole(role, this.flags.chenamespace)
@@ -76,7 +76,7 @@ export class OperatorTasks {
                     await this.kh.replaceRoleBinding(roleBinding, this.flags.chenamespace)
                     task.title = `${task.title}...[Updated]`
                   } else {
-                    task.title = `${task.title}...[Skipped: Exists]`
+                    task.title = `${task.title}...[Exists]`
                   }
                 } else {
                   await this.kh.createRoleBinding(roleBinding, this.flags.chenamespace)
@@ -101,7 +101,7 @@ export class OperatorTasks {
                     await this.kh.replaceClusterRoleFromObj(clusterRole, clusterRoleName)
                     task.title = `${task.title}...[Updated]`
                   } else {
-                    task.title = `${task.title}...[Skipped: Exists]`
+                    task.title = `${task.title}...[Exists]`
                   }
                 } else {
                   await this.kh.createClusterRole(clusterRole, clusterRoleName)
@@ -128,7 +128,7 @@ export class OperatorTasks {
                     await this.kh.replaceClusterRoleBinding(clusterRoleBinding)
                     task.title = `${task.title}...[Updated]`
                   } else {
-                    task.title = `${task.title}...[Skipped: Exists]`
+                    task.title = `${task.title}...[Exists]`
                   }
                 } else {
                   await this.kh.createClusterRoleBinding(clusterRoleBinding)
@@ -158,7 +158,7 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exist = await this.kh.isServiceAccountExist(OperatorTasks.SERVICE_ACCOUNT, this.flags.chenamespace)
           if (exist) {
-            task.title = `${task.title}...[Skipped: Exists]`
+            task.title = `${task.title}...[Exists]`
           } else {
             const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'service_account.yaml')
             await this.kh.createServiceAccountFromFile(yamlFilePath, this.flags.chenamespace)
@@ -172,7 +172,7 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const existedCRD = await this.kh.getCrd(CHE_CLUSTER_CRD)
           if (existedCRD) {
-            task.title = `${task.title}...[Skipped: Exists]`
+            task.title = `${task.title}...[Exists]`
           } else {
             const newCRDPath = await this.getCRDPath(ctx, this.flags)
             await this.kh.createCrdFromFile(newCRDPath)
@@ -192,7 +192,7 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exist = await this.kh.isConfigMapExists(OperatorTasks.MANAGER_CONFIG_MAP, this.flags.chenamespace)
           if (exist) {
-            task.title = `${task.title}...[Skipped: Exists]`
+            task.title = `${task.title}...[Exists]`
           } else {
             const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'manager-config.yaml')
             if (fs.existsSync(yamlFilePath)) {
@@ -210,7 +210,7 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isServiceExists(OperatorTasks.WEBHOOK_SERVICE, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Skipped: Exists]`
+            task.title = `${task.title}...[Exists]`
           } else {
             const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'webhook-service.yaml')
             if (fs.existsSync(yamlFilePath)) {
@@ -227,7 +227,7 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isDeploymentExist(OPERATOR_DEPLOYMENT_NAME, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Skipped: Exists]`
+            task.title = `${task.title}...[Exists]`
           } else {
             const deploymentPath = path.join(ctx[ChectlContext.RESOURCES], 'operator.yaml')
             const operatorDeployment = await this.readOperatorDeployment(deploymentPath)
@@ -241,7 +241,7 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isCertificateExists(OperatorTasks.CERTIFICATE, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Skipped: Exists]`
+            task.title = `${task.title}...[Exists]`
           } else {
             const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'serving-cert.yaml')
             if (fs.existsSync(yamlFilePath)) {
@@ -259,7 +259,7 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isIssuerExists(OperatorTasks.ISSUER, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Skipped: Exists]`
+            task.title = `${task.title}...[Exists]`
           } else {
             const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'selfsigned-issuer.yaml')
             if (fs.existsSync(yamlFilePath)) {
@@ -487,10 +487,17 @@ export class OperatorTasks {
       task: async (_ctx: any, task: any) => {
         try {
           const checluster = await kh.getCheClusterV1(flags.chenamespace)
-          if (checluster?.spec?.auth?.oAuthClientName) {
-            await kh.deleteOAuthClient(checluster?.spec?.auth?.oAuthClientName)
+          if (isCheClusterAPIV1(checluster)) {
+            if (checluster?.spec?.auth?.oAuthClientName) {
+              await kh.deleteOAuthClient(checluster.spec.auth.oAuthClientName)
+            }
+          } else {
+            if (checluster?.spec?.ingress?.auth?.oAuthClientName) {
+              await kh.deleteOAuthClient(checluster.spec.ingress.auth.oAuthClientName)
+            }
           }
-          task.title = `${task.title}...[Deleted]`
+
+          task.title = `${task.title}...[Ok]`
         } catch (e: any) {
           task.title = `${task.title}...[Failed: ${e.message}]`
         }
@@ -501,7 +508,7 @@ export class OperatorTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await kh.deleteService(OperatorTasks.WEBHOOK_SERVICE, this.flags.chenamespace)
-          task.title = `${task.title}...[Deleted]`
+          task.title = `${task.title}...[Ok]`
         } catch (e: any) {
           task.title = `${task.title}...[Failed: ${e.message}]`
         }
@@ -512,7 +519,7 @@ export class OperatorTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await kh.deleteConfigMap(OperatorTasks.MANAGER_CONFIG_MAP, this.flags.chenamespace)
-          task.title = `${task.title}...[Deleted]`
+          task.title = `${task.title}...[Ok]`
         } catch (e: any) {
           task.title = `${task.title}...[Failed: ${e.message}]`
         }
@@ -523,7 +530,7 @@ export class OperatorTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await kh.deleteIssuer(OperatorTasks.ISSUER, this.flags.chenamespace)
-          task.title = `${task.title}...[Deleted]`
+          task.title = `${task.title}...[Ok]`
         } catch (e: any) {
           task.title = `${task.title}...[Failed: ${e.message}]`
         }
@@ -534,7 +541,7 @@ export class OperatorTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await kh.deleteCertificate(OperatorTasks.CERTIFICATE, this.flags.chenamespace)
-          task.title = `${task.title}...[Deleted]`
+          task.title = `${task.title}...[Ok]`
         } catch (e: any) {
           task.title = `${task.title}...[Failed: ${e.message}]`
         }
@@ -550,7 +557,7 @@ export class OperatorTasks {
           for (let index = 0; index < 20; index++) {
             await cli.wait(1000)
             if (!await kh.getCheClusterV1(flags.chenamespace)) {
-              task.title = `${task.title}...[Deleted]`
+              task.title = `${task.title}...[Ok]`
               return
             }
           }
@@ -562,7 +569,7 @@ export class OperatorTasks {
               await kh.patchCheCluster(checluster.metadata.name, this.flags.chenamespace, {metadata: { finalizers: null } })
             } catch (error) {
               if (!await kh.getCheClusterV1(flags.chenamespace)) {
-                task.title = `${task.title}...[Deleted]`
+                task.title = `${task.title}...[Ok]`
                 return // successfully removed
               }
               throw error
@@ -573,7 +580,7 @@ export class OperatorTasks {
           }
 
           if (!await kh.getCheClusterV1(flags.chenamespace)) {
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } else {
             task.title = `${task.title}...[Failed]`
           }
@@ -591,7 +598,7 @@ export class OperatorTasks {
             task.title = `${task.title}...[Skipped: another Eclipse Che instance found]`
           } else {
             await kh.deleteCrd(CHE_CLUSTER_CRD)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           }
         } catch (e: any) {
           task.title = `${task.title}...[Failed: ${e.message}]`
@@ -627,7 +634,7 @@ export class OperatorTasks {
           }
         }
 
-        task.title = `${task.title}...[Deleted]`
+        task.title = `${task.title}...[Ok]`
       },
     },
     {
@@ -635,7 +642,7 @@ export class OperatorTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await kh.deleteServiceAccount(OperatorTasks.SERVICE_ACCOUNT, this.flags.chenamespace)
-          task.title = `${task.title}...[Deleted]`
+          task.title = `${task.title}...[Ok]`
         } catch (e: any) {
           task.title = `${task.title}...[Failed: ${e.message}]`
         }

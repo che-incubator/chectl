@@ -253,7 +253,7 @@ export default class Update extends Command {
   }
 
   /**
-   * Copies spec.k8s.ingressDomain. It is needed later for updates.
+   * Copies Ingress domain. It is needed later for updates.
    */
   private async setDomainFlag(flags: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)

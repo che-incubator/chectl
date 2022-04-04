@@ -62,7 +62,7 @@ export function createEclipseCheClusterTask(flags: any, kube: KubeHelper): Listr
 
       const cheCluster = await kube.getCheClusterV1(flags.chenamespace)
       if (cheCluster) {
-        task.title = `${task.title}...[Skipped: Exists]`
+        task.title = `${task.title}...[Exists]`
         return
       }
 
@@ -77,14 +77,15 @@ export function createEclipseCheClusterTask(flags: any, kube: KubeHelper): Listr
       const cheClusterCR = ctx[ChectlContext.CUSTOM_CR] || ctx[ChectlContext.DEFAULT_CR]
       const checluster = await kube.createCheCluster(cheClusterCR, flags, ctx, !ctx[ChectlContext.CUSTOM_CR])
 
-      ctx.isPostgresReady = ctx.isPostgresReady || checluster.spec.database.externalDb
       const isCheClusterApiV1 = isCheClusterAPIV1(cheClusterCR)
       if (isCheClusterApiV1) {
         ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || checluster.spec.server.externalDevfileRegistry
         ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || checluster.spec.server.externalPluginRegistry
+        ctx.isPostgresReady = ctx.isPostgresReady || checluster.spec.database.externalDb
       } else {
-        ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || checluster.spec.pluginregistry?.disableInternalRegistry
-        ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || checluster.spec.devfileRegistry?.disableInternalRegistry
+        ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || checluster.spec.serverComponents?.pluginRegistry?.disableInternalRegistry
+        ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || checluster.spec.serverComponents?.devfileRegistry?.disableInternalRegistry
+        ctx.isPostgresReady = ctx.isPostgresReady || checluster.spec.serverComponents?.database?.externalDb
       }
 
       task.title = `${task.title}...[Created].`
