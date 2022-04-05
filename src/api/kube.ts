@@ -1252,6 +1252,10 @@ export class KubeHelper {
 
         merge(cheClusterCR, { spec: { serverComponents: { cheServer: { debug: flags.debug } } } })
 
+        if (!cheClusterCR.spec.ingress?.tlsSecretName) {
+          merge(cheClusterCR, { spec: { ingress: { tlsSecretName: DEFAULT_CHE_TLS_SECRET_NAME } }  })
+        }
+
         if (flags.domain) {
           merge(cheClusterCR, { spec: { ingress: { domain: flags.domain } }  })
         }
