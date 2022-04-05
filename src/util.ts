@@ -425,5 +425,5 @@ export function isWebhookAvailabilityError(error: any): boolean {
   const msg = error.message as string
   return msg.indexOf('service "webhook-service" not found') !== -1 ||
     msg.indexOf('no endpoints available for service "webhook-service"') !== -1 ||
-    (msg.indexOf('conversion webhook') !== -1 && msg.indexOf('connect: connection refused') !== -1)
+    msg.indexOf('conversion webhook') !== -1
 }
