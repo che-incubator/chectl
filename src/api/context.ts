@@ -66,8 +66,7 @@ export namespace ChectlContext {
     ctx[CR_PATCH] = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY)
 
     if (flags.templates) {
-      const d = path.basename(flags.templates)
-      if (d !== OPERATOR_TEMPLATE_DIR) {
+      if (path.basename(flags.templates) !== OPERATOR_TEMPLATE_DIR) {
         ctx[RESOURCES] = path.join(flags.templates, OPERATOR_TEMPLATE_DIR)
       } else {
         ctx[RESOURCES] = flags.templates
