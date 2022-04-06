@@ -35,10 +35,8 @@ interface NewVersionInfoData {
 const A_DAY_IN_MS = 24 * 60 * 60 * 1000
 
 export namespace VersionHelper {
-  export const MINIMAL_OPENSHIFT_VERSION = '3.11'
+  export const MINIMAL_OPENSHIFT_VERSION = '4.8'
   export const MINIMAL_K8S_VERSION = '1.19'
-  export const CHE_POD_MANIFEST_FILE = '/home/user/eclipse-che/tomcat/webapps/ROOT/META-INF/MANIFEST.MF'
-  export const CHE_PREFFIX_VERSION = 'Implementation-Version: '
 
   export function getOpenShiftCheckVersionTask(flags: any): Listr.ListrTask {
     return {
@@ -46,9 +44,9 @@ export namespace VersionHelper {
       task: async (ctx: any, task: any) => {
         const actualVersion = await getOpenShiftVersion()
         if (actualVersion) {
-          task.title = `${task.title}: ${actualVersion}.`
+          task.title = `${task.title}: [${actualVersion}]`
         } else if (ctx[ChectlContext.IS_OPENSHIFT]) {
-          task.title = `${task.title}: 4.x`
+          task.title = `${task.title}: [4.x]`
         }
 
         if (!flags['skip-version-check'] && actualVersion) {
@@ -75,9 +73,9 @@ export namespace VersionHelper {
         }
 
         if (actualVersion) {
-          task.title = `${task.title}: Found ${actualVersion}.`
+          task.title = `${task.title}: [Found ${actualVersion}]`
         } else {
-          task.title = `${task.title}: Unknown.`
+          task.title = `${task.title}: [Unknown]`
         }
 
         if (isKubernetesPlatformFamily(flags.platform) && !flags['skip-version-check'] && actualVersion) {

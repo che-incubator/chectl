@@ -223,20 +223,6 @@ export class OperatorTasks {
         },
       },
       {
-        title: `Create deployment ${OPERATOR_DEPLOYMENT_NAME} in namespace ${this.flags.chenamespace}`,
-        task: async (ctx: any, task: any) => {
-          const exists = await this.kh.isDeploymentExist(OPERATOR_DEPLOYMENT_NAME, this.flags.chenamespace)
-          if (exists) {
-            task.title = `${task.title}...[Exists]`
-          } else {
-            const deploymentPath = path.join(ctx[ChectlContext.RESOURCES], 'operator.yaml')
-            const operatorDeployment = await this.readOperatorDeployment(deploymentPath)
-            await this.kh.createDeployment(operatorDeployment, this.flags.chenamespace)
-            task.title = `${task.title}...[Created]`
-          }
-        },
-      },
-      {
         title: `Create Certificate ${OperatorTasks.CERTIFICATE}`,
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isCertificateExists(OperatorTasks.CERTIFICATE, this.flags.chenamespace)
@@ -269,6 +255,20 @@ export class OperatorTasks {
             } else {
               task.title = `${task.title}...[Skipped: Not found]`
             }
+          }
+        },
+      },
+      {
+        title: `Create deployment ${OPERATOR_DEPLOYMENT_NAME} in namespace ${this.flags.chenamespace}`,
+        task: async (ctx: any, task: any) => {
+          const exists = await this.kh.isDeploymentExist(OPERATOR_DEPLOYMENT_NAME, this.flags.chenamespace)
+          if (exists) {
+            task.title = `${task.title}...[Exists]`
+          } else {
+            const deploymentPath = path.join(ctx[ChectlContext.RESOURCES], 'operator.yaml')
+            const operatorDeployment = await this.readOperatorDeployment(deploymentPath)
+            await this.kh.createDeployment(operatorDeployment, this.flags.chenamespace)
+            task.title = `${task.title}...[Created]`
           }
         },
       },
@@ -412,21 +412,6 @@ export class OperatorTasks {
         },
       },
       {
-        title: `Updating deployment ${OPERATOR_DEPLOYMENT_NAME}`,
-        task: async (ctx: any, task: any) => {
-          const exist = await this.kh.isDeploymentExist(OPERATOR_DEPLOYMENT_NAME, this.flags.chenamespace)
-          const deploymentPath = path.join(ctx[ChectlContext.RESOURCES], 'operator.yaml')
-          const operatorDeployment = await this.readOperatorDeployment(deploymentPath)
-          if (exist) {
-            await this.kh.replaceDeployment(operatorDeployment)
-            task.title = `${task.title}...[Updated]`
-          } else {
-            await this.kh.createDeployment(operatorDeployment, this.flags.chenamespace)
-            task.title = `${task.title}...[Created]`
-          }
-        },
-      },
-      {
         title: `Update Certificate ${OperatorTasks.CERTIFICATE}`,
         task: async (ctx: any, task: any) => {
           const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'serving-cert.yaml')
@@ -462,6 +447,21 @@ export class OperatorTasks {
             task.title = `${task.title}...[Updated]`
           } else {
             await this.kh.createIssuer(issuer, this.flags.chenamespace)
+            task.title = `${task.title}...[Created]`
+          }
+        },
+      },
+      {
+        title: `Updating deployment ${OPERATOR_DEPLOYMENT_NAME}`,
+        task: async (ctx: any, task: any) => {
+          const exist = await this.kh.isDeploymentExist(OPERATOR_DEPLOYMENT_NAME, this.flags.chenamespace)
+          const deploymentPath = path.join(ctx[ChectlContext.RESOURCES], 'operator.yaml')
+          const operatorDeployment = await this.readOperatorDeployment(deploymentPath)
+          if (exist) {
+            await this.kh.replaceDeployment(operatorDeployment)
+            task.title = `${task.title}...[Updated]`
+          } else {
+            await this.kh.createDeployment(operatorDeployment, this.flags.chenamespace)
             task.title = `${task.title}...[Created]`
           }
         },

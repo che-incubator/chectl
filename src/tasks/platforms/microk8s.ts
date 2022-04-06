@@ -95,7 +95,7 @@ export class MicroK8sTasks {
         task: async (_ctx: any, task: any) => {
           const ip = await this.getMicroK8sIP()
           flags.domain = ip + '.nip.io'
-          task.title = `${task.title}...${flags.domain}.`
+          task.title = `${task.title}...[${flags.domain}]`
         },
       },
       CommonPlatformTasks.getPingClusterTask(flags),

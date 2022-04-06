@@ -57,19 +57,17 @@ export class KubeTasks {
               }
 
               if (cheClusterFailState) {
-                task.title = `${task.title}...failed`
                 throw new Error(`Eclipse Che operator failed, reason: ${cheClusterFailState.reason}, message: ${cheClusterFailState.message}. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
               }
 
               if (podFailState) {
-                task.title = `${task.title}...failed`
                 throw new Error(`Failed to schedule a pod, reason: ${podFailState.reason}, message: ${podFailState.message}. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
               }
             }
 
             const allScheduled = await this.isPodConditionStatusPassed(namespace, selector, 'PodScheduled')
             if (allScheduled) {
-              task.title = `${task.title}...done`
+              task.title = `${task.title}...[OK]`
               return
             }
 
@@ -100,7 +98,6 @@ export class KubeTasks {
               }
 
               if (failedState) {
-                task.title = `${task.title}...failed`
                 throw new Error(`Failed to download image, reason: ${failedState.reason}, message: ${failedState.message}.`)
               }
             }
@@ -108,7 +105,7 @@ export class KubeTasks {
             const pods = await this.kubeHelper.getPodListByLabel(namespace, selector)
             const allRunning = !pods.some(value => !value.status || value.status.phase !== 'Running')
             if (pods.length && allRunning) {
-              task.title = `${task.title}...done`
+              task.title = `${task.title}...[OK]`
               return
             }
 
@@ -143,19 +140,16 @@ export class KubeTasks {
               }
 
               if (cheClusterFailState) {
-                task.title = `${task.title}...failed`
                 throw new Error(`Eclipse Che operator failed, reason: ${cheClusterFailState.reason}, message: ${cheClusterFailState.message}. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
               }
 
               if (failedState) {
-                task.title = `${task.title}...failed`
                 throw new Error(`Failed to start a pod, reason: ${failedState.reason}, message: ${failedState.message}`)
               }
             }
 
             const terminatedState = await this.kubeHelper.getPodLastTerminatedState(namespace, selector)
             if (terminatedState) {
-              task.title = `${task.title}...failed`
               let errorMsg = `Failed to start a pod, reason: ${terminatedState.reason}`
               terminatedState.message && (errorMsg += `, message: ${terminatedState.message}`)
               terminatedState.exitCode && (errorMsg += `, exitCode: ${terminatedState.exitCode}`)
@@ -165,7 +159,7 @@ export class KubeTasks {
 
             const allStarted = await this.isPodConditionStatusPassed(namespace, selector, 'Ready')
             if (allStarted) {
-              task.title = `${task.title}...done`
+              task.title = `${task.title}...[OK]`
               return
             }
 
