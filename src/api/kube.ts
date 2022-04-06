@@ -20,7 +20,7 @@ import * as https from 'https'
 import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_API_VERSION_V2, CHE_CLUSTER_KIND_PLURAL, DEFAULT_CHE_TLS_SECRET_NAME, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT } from '../constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_API_VERSION_V2, CHE_CLUSTER_KIND_PLURAL, CHE_TLS_SECRET_NAME, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT } from '../constants'
 import { getClusterClientCommand, getImageNameAndTag, isCheClusterAPIV1, isWebhookAvailabilityError, newError, safeLoadFromYamlFile, sleep } from '../util'
 import { ChectlContext } from './context'
 import { V1Certificate } from './types/cert-manager'
@@ -1219,7 +1219,7 @@ export class KubeHelper {
         cheClusterCR.spec.server.cheDebug = flags.debug ? flags.debug.toString() : 'false'
 
         if (!cheClusterCR.spec.k8s?.tlsSecretName) {
-          merge(cheClusterCR, { spec: { k8s: { tlsSecretName: DEFAULT_CHE_TLS_SECRET_NAME } } })
+          merge(cheClusterCR, { spec: { k8s: { tlsSecretName: CHE_TLS_SECRET_NAME } } })
         }
 
         if (flags.domain) {
@@ -1252,8 +1252,10 @@ export class KubeHelper {
 
         merge(cheClusterCR, { spec: { serverComponents: { cheServer: { debug: flags.debug } } } })
 
-        if (!cheClusterCR.spec.ingress?.tlsSecretName) {
-          merge(cheClusterCR, { spec: { ingress: { tlsSecretName: DEFAULT_CHE_TLS_SECRET_NAME } }  })
+        if (!ctx[ChectlContext.IS_OPENSHIFT]) {
+          if (!cheClusterCR.spec.ingress?.tlsSecretName) {
+            merge(cheClusterCR, { spec: { ingress: { tlsSecretName: CHE_TLS_SECRET_NAME } }  })
+          }
         }
 
         if (flags.domain) {
