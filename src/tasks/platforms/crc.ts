@@ -29,7 +29,7 @@ export class CRCHelper {
           if (!commandExists.sync('oc')) {
             command.error('E_REQUISITE_NOT_FOUND')
           } else {
-            task.title = `${task.title}...done.`
+            task.title = `${task.title}...[OK].`
           }
         },
       },
@@ -39,7 +39,7 @@ export class CRCHelper {
           if (!commandExists.sync('crc')) {
             command.error('E_REQUISITE_NOT_FOUND', { code: 'E_REQUISITE_NOT_FOUND' })
           } else {
-            task.title = `${task.title}...done.`
+            task.title = `${task.title}...[OK].`
           }
         },
       },
@@ -50,7 +50,7 @@ export class CRCHelper {
           if (!crcIsRunning) {
             command.error('E_PLATFORM_NOT_READY')
           } else {
-            task.title = `${task.title}...done.`
+            task.title = `${task.title}...[OK].`
           }
         },
       },
@@ -62,7 +62,7 @@ export class CRCHelper {
         task: async (_ctx: any, task: any) => {
           const ip = await this.getCRCIP()
           flags.domain = ip + '.nip.io'
-          task.title = `${task.title}...${flags.domain}.`
+          task.title = `${task.title}...[${flags.domain}]`
         },
       },
     ], { renderer: flags['listr-renderer'] as any })

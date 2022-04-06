@@ -379,20 +379,20 @@ function ensureOIDCProviderInstalled(flags: any): Listr.ListrTask {
         for (const container of pod.spec.containers) {
           if (container.command) {
             if (container.command.some(value => value.includes(OIDCContextKeys.ISSUER_URL)) && container.command.some(value => value.includes(OIDCContextKeys.CLIENT_ID))) {
-              task.title = `${task.title}...OK`
+              task.title = `${task.title}...[OK]`
               return
             }
           }
 
           if (container.args) {
             if (container.args.some(value => value.includes(OIDCContextKeys.ISSUER_URL)) && container.args.some(value => value.includes(OIDCContextKeys.CLIENT_ID))) {
-              task.title = `${task.title}...OK`
+              task.title = `${task.title}...[OK]`
               return
             }
           }
         }
       }
-      task.title = `${task.title}...NOT INSTALLED`
+      task.title = `${task.title}...[Not Found]`
       throw new Error(`API server is not configured with OIDC Identity Provider, see details ${DOC_LINK_CONFIGURE_API_SERVER}. To bypass OIDC Provider check, use \'--skip-oidc-provider-check\' flag`)
     },
   }

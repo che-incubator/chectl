@@ -143,7 +143,7 @@ export class CheTasks {
           }
 
           if (!ctx.isCheDeployed) {
-            task.title = `${task.title}...it is not`
+            task.title = `${task.title}...[Not Found]`
           } else {
             return new Listr([
               {
@@ -179,7 +179,7 @@ export class CheTasks {
             cheURL = await this.che.cheURL(this.cheNamespace)
             const cheApi = CheApiClient.getInstance(cheURL + '/api')
             const status = await cheApi.getCheServerStatus()
-            task.title = `${task.title}...${status}`
+            task.title = `${task.title}...[${status}]`
           } catch (error: any) {
             return newError(`Failed to check Eclipse Che status (URL: ${cheURL}).`, error)
           }
@@ -253,7 +253,7 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.cheDeploymentName, this.cheNamespace, 0)
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         } catch (error: any) {
           return newError(`Failed to scale ${this.cheDeploymentName} deployment.`, error)
         }
@@ -265,7 +265,7 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.dashboardDeploymentName, this.cheNamespace, 0)
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         } catch (error: any) {
           return newError('Failed to scale dashboard deployment.', error)
         }
@@ -277,7 +277,7 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.postgresDeploymentName, this.cheNamespace, 0)
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         } catch (error: any) {
           return newError('Failed to scale postgres deployment.', error)
         }
@@ -289,7 +289,7 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.devfileRegistryDeploymentName, this.cheNamespace, 0)
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         } catch (error: any) {
           return newError('Failed to scale devfile registry deployment.', error)
         }
@@ -301,7 +301,7 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.pluginRegistryDeploymentName, this.cheNamespace, 0)
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         } catch (error: any) {
           return newError('Failed to scale plugin registry deployment.', error)
         }
@@ -527,7 +527,7 @@ export class CheTasks {
             throw new Error(`Eclipse Che server pod not found in the namespace '${flags.chenamespace}'`)
           }
           ctx.podName = chePods.items[0].metadata!.name!
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         },
       },
       {
@@ -538,14 +538,14 @@ export class CheTasks {
             throw new Error('Eclipse Che server should be redeployed with \'--debug\' flag')
           }
 
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         },
       },
       {
         title: `Forward port '${flags['debug-port']}'`,
         task: async (ctx: any, task: any) => {
           await this.kube.portForward(ctx.podName, flags.chenamespace, flags['debug-port'])
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         },
       },
     ]
@@ -618,7 +618,7 @@ export class CheTasks {
           }
 
           ctx.highlightedMessages = messages.concat(ctx.highlightedMessages)
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         },
       },
     ]
@@ -630,7 +630,7 @@ export class CheTasks {
         title: 'Eclipse Che status check',
         task: async (ctx, task) => {
           const cheApi = CheApiClient.getInstance(ctx.cheURL + '/api')
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
           return cheApi.isCheServerReady()
         },
       },

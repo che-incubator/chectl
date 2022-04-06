@@ -41,7 +41,7 @@ export class K8sTasks {
           const kh = new KubeHelper(flags)
           try {
             await kh.checkKubeApi()
-            task.title = `${task.title}...done.`
+            task.title = `${task.title}...[OK]`
           } catch (error: any) {
             return newError('Platform not ready.', error)
           }
@@ -55,7 +55,7 @@ export class K8sTasks {
           if (flags.domain === undefined || flags.domain === '') {
             command.error('E_MISSING_ARGUMENT: the domain parameter needs to be defined.')
           }
-          task.title = `${task.title}...set to ${flags.domain}.`
+          task.title = `${task.title}...[OK]`
         },
       },
       CommonPlatformTasks.getPingClusterTask(flags),

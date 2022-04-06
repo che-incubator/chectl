@@ -29,7 +29,7 @@ export class OpenshiftTasks {
           if (!commandExists.sync('oc')) {
             command.error('E_REQUISITE_NOT_FOUND')
           } else {
-            task.title = `${task.title}...done.`
+            task.title = `${task.title}...[OK]`
           }
         },
       },
@@ -40,7 +40,7 @@ export class OpenshiftTasks {
           if (!await openShiftHelper.isOpenShiftRunning()) {
             command.error('PLATFORM_NOT_READY: \'oc status\' command failed. Please login with \'oc login\' command and try again.')
           } else {
-            task.title = `${task.title}...done.`
+            task.title = `${task.title}...[OK]`
           }
         },
       },

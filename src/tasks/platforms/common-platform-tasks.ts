@@ -34,7 +34,7 @@ export namespace CommonPlatformTasks {
           throw new Error(`Cannot reach cluster at "${domain}". To skip this check add "--skip-cluster-availability-check" flag.`)
         }
 
-        task.title = `${task.title}... ok`
+        task.title = `${task.title}...[OK]`
       },
     }
   }

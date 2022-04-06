@@ -46,7 +46,7 @@ export class DockerDesktopTasks {
           if (context !== 'docker-for-desktop' && context !== 'docker-desktop') {
             command.error(`E_PLATFORM_NOT_READY: current kube context is not Docker Desktop context. Found ${context}`)
           } else {
-            task.title = `${task.title}: Found ${context}.`
+            task.title = `${task.title}: [Found ${context}]`
           }
         },
       },
@@ -56,7 +56,7 @@ export class DockerDesktopTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kh.checkKubeApi()
-            task.title = `${task.title}...done.`
+            task.title = `${task.title}...[OK].`
           } catch (error) {
             return newError('Platform not ready.', error)
           }
@@ -90,9 +90,9 @@ export class DockerDesktopTasks {
             } else if (ips.length >= 1) {
               flags.domain = `${ips[0]}.nip.io`
             }
-            task.title = `${task.title}... auto-assigning domain to ${flags.domain}.`
+            task.title = `${task.title}...[Auto-assigning domain to ${flags.domain}]`
           }
-          task.title = `${task.title}...set to ${flags.domain}.`
+          task.title = `${task.title}...[OK]`
         },
       },
     ], { renderer: flags['listr-renderer'] as any })
