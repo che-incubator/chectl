@@ -20,7 +20,7 @@ import * as https from 'https'
 import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_API_VERSION_V2, CHE_CLUSTER_KIND_PLURAL, DEFAULT_CHE_TLS_SECRET_NAME, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT } from '../constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_API_VERSION_V2, CHE_CLUSTER_KIND_PLURAL, CHE_TLS_SECRET_NAME, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT } from '../constants'
 import { getClusterClientCommand, getImageNameAndTag, isCheClusterAPIV1, isWebhookAvailabilityError, newError, safeLoadFromYamlFile, sleep } from '../util'
 import { ChectlContext } from './context'
 import { V1Certificate } from './types/cert-manager'
@@ -110,7 +110,7 @@ export class KubeHelper {
 
   async applyResource(yamlPath: string, opts = ''): Promise<void> {
     const command = `kubectl apply -f ${yamlPath} ${opts}`
-    await execa(command, { timeout: 30000, shell: true })
+    await execa(command, { timeout: 60000, shell: true })
   }
 
   async getServicesBySelector(labelSelector: string, namespace: string): Promise<V1ServiceList> {
@@ -941,10 +941,13 @@ export class KubeHelper {
     return this.createService(service, namespace)
   }
 
-  async replaceService(name: string, service: V1Service, namespace: string) {
+  async replaceService(name: string, service: V1Service, namespace: string): Promise<void> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
-      return await k8sCoreApi.replaceNamespacedService(name, namespace, service)
+      const response = await k8sCoreApi.readNamespacedService(name, namespace)
+      service.metadata!.resourceVersion = (response.body as any).metadata.resourceVersion
+
+      await k8sCoreApi.replaceNamespacedService(name, namespace, service)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
@@ -1177,13 +1180,15 @@ export class KubeHelper {
     }
   }
 
-  async replaceCrdFromFile(filePath: string, resourceVersion: string): Promise<void> {
-    const yaml = this.safeLoadFromYamlFile(filePath)
-    yaml.metadata.resourceVersion = resourceVersion
+  async replaceCrdFromFile(filePath: string): Promise<void> {
+    const crd = this.safeLoadFromYamlFile(filePath)
 
     const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
     try {
-      await k8sApi.replaceCustomResourceDefinition(yaml.metadata.name, yaml)
+      const response = await k8sApi.readCustomResourceDefinition(crd.metadata.name)
+      crd.metadata.resourceVersion = (response.body as any).metadata.resourceVersion
+
+      await k8sApi.replaceCustomResourceDefinition(crd.metadata.name, crd)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
@@ -1219,7 +1224,7 @@ export class KubeHelper {
         cheClusterCR.spec.server.cheDebug = flags.debug ? flags.debug.toString() : 'false'
 
         if (!cheClusterCR.spec.k8s?.tlsSecretName) {
-          merge(cheClusterCR, { spec: { k8s: { tlsSecretName: DEFAULT_CHE_TLS_SECRET_NAME } } })
+          merge(cheClusterCR, { spec: { k8s: { tlsSecretName: CHE_TLS_SECRET_NAME } } })
         }
 
         if (flags.domain) {
@@ -1252,8 +1257,10 @@ export class KubeHelper {
 
         merge(cheClusterCR, { spec: { serverComponents: { cheServer: { debug: flags.debug } } } })
 
-        if (!cheClusterCR.spec.ingress?.tlsSecretName) {
-          merge(cheClusterCR, { spec: { ingress: { tlsSecretName: DEFAULT_CHE_TLS_SECRET_NAME } }  })
+        if (!ctx[ChectlContext.IS_OPENSHIFT]) {
+          if (!cheClusterCR.spec.ingress?.tlsSecretName) {
+            merge(cheClusterCR, { spec: { ingress: { tlsSecretName: CHE_TLS_SECRET_NAME } }  })
+          }
         }
 
         if (flags.domain) {
@@ -1976,6 +1983,9 @@ export class KubeHelper {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     try {
+      const response = await customObjectsApi.getNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'certificates', name)
+      certificate.metadata.resourceVersion = (response.body as any).metadata.resourceVersion
+
       await customObjectsApi.replaceNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'certificates', name, certificate)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -2010,6 +2020,9 @@ export class KubeHelper {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     try {
+      const response = await customObjectsApi.getNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'issuers', name)
+      issuer.metadata.resourceVersion = (response.body as any).metadata.resourceVersion
+
       await customObjectsApi.replaceNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'issuers', name, issuer)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)

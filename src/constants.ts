@@ -101,5 +101,3 @@ export const DEVFILE_WORKSPACE_KIND_PLURAL = 'devworkspaces'
 export const DEVFILE_WORKSPACE_ROUTINGS_API_GROUP = 'controller.devfile.io'
 export const DEVFILE_WORKSPACE_ROUTINGS_VERSION = 'v1alpha1'
 export const DEVFILE_WORKSPACE_ROUTINGS_KIND_PLURAL = 'devworkspaceroutings'
-
-export const DEFAULT_CHE_TLS_SECRET_NAME = 'che-tls'

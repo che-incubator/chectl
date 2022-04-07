@@ -26,7 +26,7 @@ import { promisify } from 'util'
 import { ChectlContext } from './api/context'
 import { KubeHelper } from './api/kube'
 import { VersionHelper } from './api/version'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_API_VERSION_V2, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_TLS_SECRET_NAME, LEGACY_CHE_NAMESPACE } from './constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_API_VERSION_V2, CHE_TLS_SECRET_NAME, DEFAULT_CHE_NAMESPACE, LEGACY_CHE_NAMESPACE } from './constants'
 
 const pkjson = require('../package.json')
 
@@ -404,7 +404,7 @@ export function getTlsSecretName(ctx: any): string {
     return ctx.customCR.ingress.tlsSecretName
   }
 
-  return DEFAULT_CHE_TLS_SECRET_NAME
+  return CHE_TLS_SECRET_NAME
 }
 
 export function getWarnVersionFlagMsg(_flags: any): string {
