@@ -10,21 +10,43 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { Command, flags } from '@oclif/command'
-import { string } from '@oclif/parser/lib/flags'
-import { cli } from 'cli-ux'
+import {Command, flags} from '@oclif/command'
+import {string} from '@oclif/parser/lib/flags'
+import {cli} from 'cli-ux'
 import * as Listr from 'listr'
 import * as semver from 'semver'
 
-import { CheHelper } from '../../api/che'
-import { ChectlContext } from '../../api/context'
-import { KubeHelper } from '../../api/kube'
-import { assumeYes, batch, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, NEXT_TAG } from '../../constants'
-import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
-import { InstallerTasks } from '../../tasks/installers/installer'
-import { ApiTasks } from '../../tasks/platforms/api'
-import { askForChectlUpdateIfNeeded, findWorkingNamespace, getCommandSuccessMessage, getProjectName, getProjectVersion, getWarnVersionFlagMsg, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import {CheHelper} from '../../api/che'
+import {ChectlContext} from '../../api/context'
+import {KubeHelper} from '../../api/kube'
+import {
+  assumeYes,
+  batch,
+  CHE_OPERATOR_CR_PATCH_YAML_KEY,
+  CHE_TELEMETRY,
+  cheDeployVersion,
+  cheNamespace,
+  cheOperatorCRPatchYaml,
+  DEPLOY_VERSION_KEY,
+  listrRenderer,
+  skipKubeHealthzCheck,
+} from '../../common-flags'
+import {DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, NEXT_TAG} from '../../constants'
+import {getPrintHighlightedMessagesTask} from '../../tasks/installers/common-tasks'
+import {InstallerTasks} from '../../tasks/installers/installer'
+import {ApiTasks} from '../../tasks/platforms/api'
+import {
+  askForChectlUpdateIfNeeded,
+  findWorkingNamespace,
+  getCommandSuccessMessage,
+  getProjectName,
+  getProjectVersion,
+  getWarnVersionFlagMsg,
+  isCheClusterAPIV2,
+  notifyCommandCompletedSuccessfully,
+  wrapCommandError,
+} from '../../util'
+import {CertManagerTasks} from '../../tasks/component-installers/cert-manager'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -103,8 +125,16 @@ export default class Update extends Command {
 
     // update tasks
     const updateTasks = new Listr([], ctx.listrOptions)
+
+    const certManagerTasks = new CertManagerTasks(flags)
+    if (flags.installer === 'operator' && isCheClusterAPIV2(ctx[ChectlContext.DEFAULT_CR])) {
+      updateTasks.add({
+        title: 'Cert Manager',
+        task: () => new Listr(certManagerTasks.getDeployCertManagerTasks()),
+      })
+    }
     updateTasks.add({
-      title: '↺  Updating...',
+      title: 'Updating...',
       task: () => new Listr(installerTasks.updateTasks(flags, this)),
     })
 

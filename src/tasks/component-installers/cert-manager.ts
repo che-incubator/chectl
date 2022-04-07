@@ -40,7 +40,7 @@ export class CertManagerTasks {
   getDeployCertManagerTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Deploy Cert Manager',
+        title: 'Install Cert Manager',
         task: async (_ctx: any, task: any) => {
           const certManagerCrd = await this.kubeHelper.getCrd('certificates.cert-manager.io')
           if (certManagerCrd) {

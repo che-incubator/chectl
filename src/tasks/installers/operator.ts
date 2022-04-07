@@ -53,13 +53,13 @@ export class OperatorTasks {
                 if (await this.kh.isRoleExist(role.metadata!.name!, this.flags.chenamespace)) {
                   if (updateTask) {
                     await this.kh.replaceRole(role, this.flags.chenamespace)
-                    task.title = `${task.title}...[Updated]`
+                    task.title = `${task.title}...[OK: updated]`
                   } else {
-                    task.title = `${task.title}...[Exists]`
+                    task.title = `${task.title}...[Skipped: already exists]`
                   }
                 } else {
                   await this.kh.createRole(role, this.flags.chenamespace)
-                  task.title = `${task.title}...[Created]`
+                  task.title = `${task.title}...[OK: created]`
                 }
               },
             }
@@ -74,13 +74,13 @@ export class OperatorTasks {
                 if (await this.kh.isRoleBindingExist(roleBinding.metadata!.name!, this.flags.chenamespace)) {
                   if (updateTask) {
                     await this.kh.replaceRoleBinding(roleBinding, this.flags.chenamespace)
-                    task.title = `${task.title}...[Updated]`
+                    task.title = `${task.title}...[OK: updated]`
                   } else {
-                    task.title = `${task.title}...[Exists]`
+                    task.title = `${task.title}...[Skipped: already exists]`
                   }
                 } else {
                   await this.kh.createRoleBinding(roleBinding, this.flags.chenamespace)
-                  task.title = `${task.title}...[Created]`
+                  task.title = `${task.title}...[OK: created]`
                 }
               },
             }
@@ -99,13 +99,13 @@ export class OperatorTasks {
                 if (await this.kh.isClusterRoleExist(clusterRoleName)) {
                   if (updateTask) {
                     await this.kh.replaceClusterRoleFromObj(clusterRole, clusterRoleName)
-                    task.title = `${task.title}...[Updated]`
+                    task.title = `${task.title}...[OK: updated]`
                   } else {
-                    task.title = `${task.title}...[Exists]`
+                    task.title = `${task.title}...[Skipped: already exists]`
                   }
                 } else {
                   await this.kh.createClusterRole(clusterRole, clusterRoleName)
-                  task.title = `${task.title}...[Created]`
+                  task.title = `${task.title}...[OK: created]`
                 }
               },
             }
@@ -126,13 +126,13 @@ export class OperatorTasks {
                 if (await this.kh.isClusterRoleBindingExist(clusterRoleBinding.metadata!.name)) {
                   if (updateTask) {
                     await this.kh.replaceClusterRoleBinding(clusterRoleBinding)
-                    task.title = `${task.title}...[Updated]`
+                    task.title = `${task.title}...[OK: updated]`
                   } else {
-                    task.title = `${task.title}...[Exists]`
+                    task.title = `${task.title}...[Skipped: already exists]`
                   }
                 } else {
                   await this.kh.createClusterRoleBinding(clusterRoleBinding)
-                  task.title = `${task.title}...[Created]`
+                  task.title = `${task.title}...[OK: created]`
                 }
               },
             }
@@ -158,11 +158,11 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exist = await this.kh.isServiceAccountExist(OperatorTasks.SERVICE_ACCOUNT, this.flags.chenamespace)
           if (exist) {
-            task.title = `${task.title}...[Exists]`
+            task.title = `${task.title}...[Skipped: already exists]`
           } else {
             const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'service_account.yaml')
             await this.kh.createServiceAccountFromFile(yamlFilePath, this.flags.chenamespace)
-            task.title = `${task.title}...[Created]`
+            task.title = `${task.title}...[OK: created]`
           }
         },
       },
@@ -172,11 +172,11 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const existedCRD = await this.kh.getCrd(CHE_CLUSTER_CRD)
           if (existedCRD) {
-            task.title = `${task.title}...[Exists]`
+            task.title = `${task.title}...[Skipped: already exists]`
           } else {
             const newCRDPath = await this.getCRDPath(ctx, this.flags)
             await this.kh.createCrdFromFile(newCRDPath)
-            task.title = `${task.title}...[Created]`
+            task.title = `${task.title}...[OK: created]`
           }
         },
       },
@@ -192,13 +192,13 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exist = await this.kh.isConfigMapExists(OperatorTasks.MANAGER_CONFIG_MAP, this.flags.chenamespace)
           if (exist) {
-            task.title = `${task.title}...[Exists]`
+            task.title = `${task.title}...[Skipped: already exists]`
           } else {
             const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'manager-config.yaml')
             if (fs.existsSync(yamlFilePath)) {
               const configMap = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1ConfigMap
               await this.kh.createConfigMap(configMap, this.flags.chenamespace)
-              task.title = `${task.title}...[Created]`
+              task.title = `${task.title}...[OK: created]`
             } else {
               task.title = `${task.title}...[Skipped: Not found]`
             }
@@ -210,12 +210,12 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isServiceExists(OperatorTasks.WEBHOOK_SERVICE, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Exists]`
+            task.title = `${task.title}...[Skipped: already exists]`
           } else {
             const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'webhook-service.yaml')
             if (fs.existsSync(yamlFilePath)) {
               await this.kh.createServiceFromFile(yamlFilePath, this.flags.chenamespace)
-              task.title = `${task.title}...[Created]`
+              task.title = `${task.title}...[OK: created]`
             } else {
               task.title = `${task.title}...[Skipped: Not found]`
             }
@@ -227,13 +227,13 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isCertificateExists(OperatorTasks.CERTIFICATE, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Exists]`
+            task.title = `${task.title}...[Skipped: already exists]`
           } else {
             const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'serving-cert.yaml')
             if (fs.existsSync(yamlFilePath)) {
               const certificate = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Certificate
               await this.kh.createCertificate(certificate, this.flags.chenamespace)
-              task.title = `${task.title}...[Created]`
+              task.title = `${task.title}...[OK: created]`
             } else {
               task.title = `${task.title}...[Skipped: Not found]`
             }
@@ -245,13 +245,13 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isIssuerExists(OperatorTasks.ISSUER, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Exists]`
+            task.title = `${task.title}...[Skipped: already exists]`
           } else {
             const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'selfsigned-issuer.yaml')
             if (fs.existsSync(yamlFilePath)) {
               const issuer = yaml.load(fs.readFileSync(yamlFilePath).toString())
               await this.kh.createIssuer(issuer, this.flags.chenamespace)
-              task.title = `${task.title}...[Created]`
+              task.title = `${task.title}...[OK: created]`
             } else {
               task.title = `${task.title}...[Skipped: Not found]`
             }
@@ -263,12 +263,12 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isDeploymentExist(OPERATOR_DEPLOYMENT_NAME, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Exists]`
+            task.title = `${task.title}...[Skipped: already exists]`
           } else {
             const deploymentPath = path.join(ctx[ChectlContext.RESOURCES], 'operator.yaml')
             const operatorDeployment = await this.readOperatorDeployment(deploymentPath)
             await this.kh.createDeployment(operatorDeployment, this.flags.chenamespace)
-            task.title = `${task.title}...[Created]`
+            task.title = `${task.title}...[OK: created]`
           }
         },
       },
@@ -337,10 +337,10 @@ export class OperatorTasks {
           const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'service_account.yaml')
           if (exist) {
             await this.kh.replaceServiceAccountFromFile(yamlFilePath, this.flags.chenamespace)
-            task.title = `${task.title}...[Updated]`
+            task.title = `${task.title}...[OK: updated]`
           } else {
             await this.kh.createServiceAccountFromFile(yamlFilePath, this.flags.chenamespace)
-            task.title = `${task.title}...[Created]`
+            task.title = `${task.title}...[OK: created]`
           }
         },
       },
@@ -356,11 +356,11 @@ export class OperatorTasks {
               throw new Error(`Fetched CRD ${CHE_CLUSTER_CRD} without resource version`)
             }
 
-            await this.kh.replaceCrdFromFile(newCRDPath, existedCRD.metadata.resourceVersion)
-            task.title = `${task.title}...[Updated]`
+            await this.kh.replaceCrdFromFile(newCRDPath)
+            task.title = `${task.title}...[OK: updated]`
           } else {
             await this.kh.createCrdFromFile(newCRDPath)
-            task.title = `${task.title}...[Created]`
+            task.title = `${task.title}...[OK: created]`
           }
         },
       },
@@ -384,15 +384,15 @@ export class OperatorTasks {
           const exist = await this.kh.isConfigMapExists(OperatorTasks.MANAGER_CONFIG_MAP, this.flags.chenamespace)
           if (exist) {
             await this.kh.replaceConfigMap(OperatorTasks.MANAGER_CONFIG_MAP, configMap, this.flags.chenamespace)
-            task.title = `${task.title}...[Updated]`
+            task.title = `${task.title}...[OK: updated]`
           } else {
             await this.kh.createConfigMap(configMap, this.flags.chenamespace)
-            task.title = `${task.title}...[Created]`
+            task.title = `${task.title}...[OK: created]`
           }
         },
       },
       {
-        title: `Update Webhook Service ${OperatorTasks.WEBHOOK_SERVICE}`,
+        title: `Update Service ${OperatorTasks.WEBHOOK_SERVICE}`,
         task: async (ctx: any, task: any) => {
           const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'webhook-service.yaml')
           if (!fs.existsSync(yamlFilePath)) {
@@ -404,10 +404,10 @@ export class OperatorTasks {
           const exist = await this.kh.isServiceExists(OperatorTasks.WEBHOOK_SERVICE, this.flags.chenamespace)
           if (exist) {
             await this.kh.replaceService(OperatorTasks.WEBHOOK_SERVICE, service, this.flags.chenamespace)
-            task.title = `${task.title}...[Updated]`
+            task.title = `${task.title}...[OK: updated]`
           } else {
             await this.kh.createService(service, this.flags.chenamespace)
-            task.title = `${task.title}...[Created]`
+            task.title = `${task.title}...[OK: created]`
           }
         },
       },
@@ -423,11 +423,11 @@ export class OperatorTasks {
           const certificate = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Certificate
           const exist = await this.kh.isCertificateExists(OperatorTasks.CERTIFICATE, this.flags.chenamespace)
           if (exist) {
-            await this.kh.replaceCertificate(OperatorTasks.WEBHOOK_SERVICE, certificate, this.flags.chenamespace)
-            task.title = `${task.title}...[Updated]`
+            await this.kh.replaceCertificate(OperatorTasks.CERTIFICATE, certificate, this.flags.chenamespace)
+            task.title = `${task.title}...[OK: updated]`
           } else {
             await this.kh.createCertificate(certificate, this.flags.chenamespace)
-            task.title = `${task.title}...[Created]`
+            task.title = `${task.title}...[OK: created]`
           }
         },
       },
@@ -443,11 +443,11 @@ export class OperatorTasks {
           const issuer = yaml.load(fs.readFileSync(yamlFilePath).toString())
           const exist = await this.kh.isIssuerExists(OperatorTasks.ISSUER, this.flags.chenamespace)
           if (exist) {
-            await this.kh.replaceIssuer(OperatorTasks.WEBHOOK_SERVICE, issuer, this.flags.chenamespace)
-            task.title = `${task.title}...[Updated]`
+            await this.kh.replaceIssuer(OperatorTasks.ISSUER, issuer, this.flags.chenamespace)
+            task.title = `${task.title}...[OK: updated]`
           } else {
             await this.kh.createIssuer(issuer, this.flags.chenamespace)
-            task.title = `${task.title}...[Created]`
+            task.title = `${task.title}...[OK: created]`
           }
         },
       },
@@ -459,10 +459,10 @@ export class OperatorTasks {
           const operatorDeployment = await this.readOperatorDeployment(deploymentPath)
           if (exist) {
             await this.kh.replaceDeployment(operatorDeployment)
-            task.title = `${task.title}...[Updated]`
+            task.title = `${task.title}...[OK: updated]`
           } else {
             await this.kh.createDeployment(operatorDeployment, this.flags.chenamespace)
-            task.title = `${task.title}...[Created]`
+            task.title = `${task.title}...[OK: created]`
           }
         },
       },
