@@ -25,7 +25,7 @@ import { createNamespaceTask, getPrintHighlightedMessagesTask, retrieveCheCaCert
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getWarnVersionFlagMsg, isCheClusterAPIV2, isKubernetesPlatformFamily, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getWarnVersionFlagMsg, isKubernetesPlatformFamily, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Deploy extends Command {
   static description = 'Deploy Eclipse Che server'
@@ -299,7 +299,7 @@ export default class Deploy extends Command {
     preInstallTasks.add(ensureOIDCProviderInstalled(flags))
 
     const installTasks = new Listr(undefined, ctx.listrOptions)
-    if (!ctx[ChectlContext.IS_OPENSHIFT] || (flags.installer === 'operator' && isCheClusterAPIV2(ctx[ChectlContext.DEFAULT_CR]))) {
+    if (!ctx[ChectlContext.IS_OPENSHIFT]) {
       installTasks.add(certManagerTask.getDeployCertManagerTasks())
     }
     installTasks.add([createNamespaceTask(flags.chenamespace, this.getNamespaceLabels(flags))])

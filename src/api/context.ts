@@ -77,13 +77,17 @@ export namespace ChectlContext {
       ctx[RESOURCES] = path.join(getEmbeddedTemplatesDirectory(), OPERATOR_TEMPLATE_DIR)
     }
 
-    let cheClusterPath = path.join(ctx.resourcesPath, 'crds', 'org_checluster_cr.yaml')
+    ctx[IS_OPENSHIFT] = await isOpenShift()
+    const platform = ctx[ChectlContext.IS_OPENSHIFT] ? 'openshift' : 'kubernetes'
+
+    let cheClusterPath = path.join(ctx.resourcesPath, platform, 'crds', 'org_checluster_cr.yaml')
     if (!fs.existsSync(cheClusterPath)) {
-      cheClusterPath = path.join(ctx.resourcesPath, 'crds', 'org_v1_che_cr.yaml')
+      cheClusterPath = path.join(ctx.resourcesPath, 'crds', 'org_checluster_cr.yaml')
+      if (!fs.existsSync(cheClusterPath)) {
+        cheClusterPath = path.join(ctx.resourcesPath, 'crds', 'org_v1_che_cr.yaml')
+      }
     }
     ctx[DEFAULT_CR] = safeLoadFromYamlFile(cheClusterPath)
-
-    ctx[IS_OPENSHIFT] = await isOpenShift()
   }
 
   export async function initAndGet(flags: any, command: Command): Promise<any> {

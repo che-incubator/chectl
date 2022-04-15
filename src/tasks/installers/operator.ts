@@ -10,24 +10,30 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1Deployment, V1Role, V1RoleBinding, V1Service } from '@kubernetes/client-node'
-import { cli } from 'cli-ux'
+import {
+  V1ClusterRole,
+  V1ClusterRoleBinding,
+  V1Deployment,
+  V1Role,
+  V1RoleBinding,
+  V1Service,
+} from '@kubernetes/client-node'
+import {cli} from 'cli-ux'
 import * as fs from 'fs'
 import * as Listr from 'listr'
 import * as path from 'path'
 import * as yaml from 'js-yaml'
-import { ChectlContext } from '../../api/context'
-import { KubeHelper } from '../../api/kube'
-import { CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME } from '../../constants'
-import { getImageNameAndTag, isCheClusterAPIV1, safeLoadFromYamlFile } from '../../util'
-import { KubeTasks } from '../kube'
-import { createEclipseCheClusterTask, patchingEclipseCheCluster } from './common-tasks'
-import { V1Certificate } from '../../api/types/cert-manager'
+import {ChectlContext} from '../../api/context'
+import {KubeHelper} from '../../api/kube'
+import {CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME} from '../../constants'
+import {getImageNameAndTag, isCheClusterAPIV1, safeLoadFromYamlFile} from '../../util'
+import {KubeTasks} from '../kube'
+import {createEclipseCheClusterTask, patchingEclipseCheCluster} from './common-tasks'
+import {V1Certificate} from '../../api/types/cert-manager'
 
 export class OperatorTasks {
-  private static readonly MANAGER_CONFIG_MAP = 'manager-config'
   private static readonly WEBHOOK_SERVICE = 'webhook-service'
-  private static readonly CERTIFICATE = 'serving-cert'
+  private static readonly CERTIFICATE = 'che-operator-serving-cert'
   private static readonly ISSUER = 'selfsigned-issuer'
   private static readonly SERVICE_ACCOUNT = 'che-operator'
   private static readonly DEVWORKSPACE_PREFIX = 'devworkspace-che'
@@ -55,7 +61,7 @@ export class OperatorTasks {
                     await this.kh.replaceRole(role, this.flags.chenamespace)
                     task.title = `${task.title}...[OK: updated]`
                   } else {
-                    task.title = `${task.title}...[Skipped: already exists]`
+                    task.title = `${task.title}...[Exists]]`
                   }
                 } else {
                   await this.kh.createRole(role, this.flags.chenamespace)
@@ -76,7 +82,7 @@ export class OperatorTasks {
                     await this.kh.replaceRoleBinding(roleBinding, this.flags.chenamespace)
                     task.title = `${task.title}...[OK: updated]`
                   } else {
-                    task.title = `${task.title}...[Skipped: already exists]`
+                    task.title = `${task.title}...[Exists]]`
                   }
                 } else {
                   await this.kh.createRoleBinding(roleBinding, this.flags.chenamespace)
@@ -101,7 +107,7 @@ export class OperatorTasks {
                     await this.kh.replaceClusterRoleFromObj(clusterRole, clusterRoleName)
                     task.title = `${task.title}...[OK: updated]`
                   } else {
-                    task.title = `${task.title}...[Skipped: already exists]`
+                    task.title = `${task.title}...[Exists]]`
                   }
                 } else {
                   await this.kh.createClusterRole(clusterRole, clusterRoleName)
@@ -128,7 +134,7 @@ export class OperatorTasks {
                     await this.kh.replaceClusterRoleBinding(clusterRoleBinding)
                     task.title = `${task.title}...[OK: updated]`
                   } else {
-                    task.title = `${task.title}...[Skipped: already exists]`
+                    task.title = `${task.title}...[Exists]]`
                   }
                 } else {
                   await this.kh.createClusterRoleBinding(clusterRoleBinding)
@@ -158,9 +164,9 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exist = await this.kh.isServiceAccountExist(OperatorTasks.SERVICE_ACCOUNT, this.flags.chenamespace)
           if (exist) {
-            task.title = `${task.title}...[Skipped: already exists]`
+            task.title = `${task.title}...[Exists]]`
           } else {
-            const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'service_account.yaml')
+            const yamlFilePath = this.getResourcePath('service_account.yaml')
             await this.kh.createServiceAccountFromFile(yamlFilePath, this.flags.chenamespace)
             task.title = `${task.title}...[OK: created]`
           }
@@ -172,9 +178,9 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const existedCRD = await this.kh.getCrd(CHE_CLUSTER_CRD)
           if (existedCRD) {
-            task.title = `${task.title}...[Skipped: already exists]`
+            task.title = `${task.title}...[Exists]]`
           } else {
-            const newCRDPath = await this.getCRDPath(ctx, this.flags)
+            const newCRDPath = await this.getCRDPath()
             await this.kh.createCrdFromFile(newCRDPath)
             task.title = `${task.title}...[OK: created]`
           }
@@ -188,31 +194,13 @@ export class OperatorTasks {
         },
       },
       {
-        title: `Create ConfigMap ${OperatorTasks.MANAGER_CONFIG_MAP}`,
-        task: async (ctx: any, task: any) => {
-          const exist = await this.kh.isConfigMapExists(OperatorTasks.MANAGER_CONFIG_MAP, this.flags.chenamespace)
-          if (exist) {
-            task.title = `${task.title}...[Skipped: already exists]`
-          } else {
-            const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'manager-config.yaml')
-            if (fs.existsSync(yamlFilePath)) {
-              const configMap = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1ConfigMap
-              await this.kh.createConfigMap(configMap, this.flags.chenamespace)
-              task.title = `${task.title}...[OK: created]`
-            } else {
-              task.title = `${task.title}...[Skipped: Not found]`
-            }
-          }
-        },
-      },
-      {
-        title: `Create Webhook Service ${OperatorTasks.MANAGER_CONFIG_MAP}`,
+        title: `Create Webhook Service ${OperatorTasks.WEBHOOK_SERVICE}`,
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isServiceExists(OperatorTasks.WEBHOOK_SERVICE, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Skipped: already exists]`
+            task.title = `${task.title}...[Exists]]`
           } else {
-            const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'webhook-service.yaml')
+            const yamlFilePath = this.getResourcePath('webhook-service.yaml')
             if (fs.existsSync(yamlFilePath)) {
               await this.kh.createServiceFromFile(yamlFilePath, this.flags.chenamespace)
               task.title = `${task.title}...[OK: created]`
@@ -224,12 +212,13 @@ export class OperatorTasks {
       },
       {
         title: `Create Certificate ${OperatorTasks.CERTIFICATE}`,
+        enabled: ctx => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isCertificateExists(OperatorTasks.CERTIFICATE, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Skipped: already exists]`
+            task.title = `${task.title}...[Exists]]`
           } else {
-            const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'serving-cert.yaml')
+            const yamlFilePath = this.getResourcePath('serving-cert.yaml')
             if (fs.existsSync(yamlFilePath)) {
               const certificate = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Certificate
               await this.kh.createCertificate(certificate, this.flags.chenamespace)
@@ -242,12 +231,13 @@ export class OperatorTasks {
       },
       {
         title: `Create Issuer ${OperatorTasks.ISSUER}`,
+        enabled: ctx => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isIssuerExists(OperatorTasks.ISSUER, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Skipped: already exists]`
+            task.title = `${task.title}...[Exists]]`
           } else {
-            const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'selfsigned-issuer.yaml')
+            const yamlFilePath = this.getResourcePath('selfsigned-issuer.yaml')
             if (fs.existsSync(yamlFilePath)) {
               const issuer = yaml.load(fs.readFileSync(yamlFilePath).toString())
               await this.kh.createIssuer(issuer, this.flags.chenamespace)
@@ -263,9 +253,9 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isDeploymentExist(OPERATOR_DEPLOYMENT_NAME, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Skipped: already exists]`
+            task.title = `${task.title}...[Exists]]`
           } else {
-            const deploymentPath = path.join(ctx[ChectlContext.RESOURCES], 'operator.yaml')
+            const deploymentPath = this.getResourcePath('operator.yaml')
             const operatorDeployment = await this.readOperatorDeployment(deploymentPath)
             await this.kh.createDeployment(operatorDeployment, this.flags.chenamespace)
             task.title = `${task.title}...[OK: created]`
@@ -305,7 +295,7 @@ export class OperatorTasks {
             ctx.newCheOperatorImage = this.flags['che-operator-image']
           } else {
             // Load new operator image from templates
-            const newCheOperatorYaml = safeLoadFromYamlFile(path.join(ctx[ChectlContext.RESOURCES], 'operator.yaml')) as V1Deployment
+            const newCheOperatorYaml = safeLoadFromYamlFile(this.getResourcePath('operator.yaml')) as V1Deployment
             ctx.newCheOperatorImage = this.retrieveContainerImage(newCheOperatorYaml)
           }
           const [newImage, newTag] = getImageNameAndTag(ctx.newCheOperatorImage)
@@ -334,7 +324,7 @@ export class OperatorTasks {
         title: `Updating ServiceAccount ${OperatorTasks.SERVICE_ACCOUNT}`,
         task: async (ctx: any, task: any) => {
           const exist = await this.kh.isServiceAccountExist(OperatorTasks.SERVICE_ACCOUNT, this.flags.chenamespace)
-          const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'service_account.yaml')
+          const yamlFilePath = this.getResourcePath('service_account.yaml')
           if (exist) {
             await this.kh.replaceServiceAccountFromFile(yamlFilePath, this.flags.chenamespace)
             task.title = `${task.title}...[OK: updated]`
@@ -349,7 +339,7 @@ export class OperatorTasks {
         title: `Updating Eclipse Che cluster CRD ${CHE_CLUSTER_CRD}`,
         task: async (ctx: any, task: any) => {
           const existedCRD = await this.kh.getCrd(CHE_CLUSTER_CRD)
-          const newCRDPath = await this.getCRDPath(ctx, this.flags)
+          const newCRDPath = await this.getCRDPath()
 
           if (existedCRD) {
             if (!existedCRD.metadata || !existedCRD.metadata.resourceVersion) {
@@ -372,29 +362,9 @@ export class OperatorTasks {
         },
       },
       {
-        title: `Update ConfigMap ${OperatorTasks.MANAGER_CONFIG_MAP}`,
-        task: async (ctx: any, task: any) => {
-          const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'manager-config.yaml')
-          if (!fs.existsSync(yamlFilePath)) {
-            task.title = `${task.title}...[Skipped: Not found]`
-            return
-          }
-
-          const configMap = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1ConfigMap
-          const exist = await this.kh.isConfigMapExists(OperatorTasks.MANAGER_CONFIG_MAP, this.flags.chenamespace)
-          if (exist) {
-            await this.kh.replaceConfigMap(OperatorTasks.MANAGER_CONFIG_MAP, configMap, this.flags.chenamespace)
-            task.title = `${task.title}...[OK: updated]`
-          } else {
-            await this.kh.createConfigMap(configMap, this.flags.chenamespace)
-            task.title = `${task.title}...[OK: created]`
-          }
-        },
-      },
-      {
         title: `Update Service ${OperatorTasks.WEBHOOK_SERVICE}`,
         task: async (ctx: any, task: any) => {
-          const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'webhook-service.yaml')
+          const yamlFilePath = this.getResourcePath('webhook-service.yaml')
           if (!fs.existsSync(yamlFilePath)) {
             task.title = `${task.title}...[Skipped: Not found]`
             return
@@ -413,8 +383,9 @@ export class OperatorTasks {
       },
       {
         title: `Update Certificate ${OperatorTasks.CERTIFICATE}`,
+        enabled: ctx => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (ctx: any, task: any) => {
-          const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'serving-cert.yaml')
+          const yamlFilePath = this.getResourcePath('serving-cert.yaml')
           if (!fs.existsSync(yamlFilePath)) {
             task.title = `${task.title}...[Skipped: Not found]`
             return
@@ -433,8 +404,9 @@ export class OperatorTasks {
       },
       {
         title: `Update Issuer ${OperatorTasks.ISSUER}`,
+        enabled: ctx => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (ctx: any, task: any) => {
-          const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], 'selfsigned-issuer.yaml')
+          const yamlFilePath = this.getResourcePath('selfsigned-issuer.yaml')
           if (!fs.existsSync(yamlFilePath)) {
             task.title = `${task.title}...[Skipped: Not found]`
             return
@@ -455,7 +427,7 @@ export class OperatorTasks {
         title: `Updating deployment ${OPERATOR_DEPLOYMENT_NAME}`,
         task: async (ctx: any, task: any) => {
           const exist = await this.kh.isDeploymentExist(OPERATOR_DEPLOYMENT_NAME, this.flags.chenamespace)
-          const deploymentPath = path.join(ctx[ChectlContext.RESOURCES], 'operator.yaml')
+          const deploymentPath = this.getResourcePath('operator.yaml')
           const operatorDeployment = await this.readOperatorDeployment(deploymentPath)
           if (exist) {
             await this.kh.replaceDeployment(operatorDeployment)
@@ -515,17 +487,6 @@ export class OperatorTasks {
       },
     },
     {
-      title: `Delete ConfigMap ${OperatorTasks.MANAGER_CONFIG_MAP}`,
-      task: async (_ctx: any, task: any) => {
-        try {
-          await kh.deleteConfigMap(OperatorTasks.MANAGER_CONFIG_MAP, this.flags.chenamespace)
-          task.title = `${task.title}...[Ok]`
-        } catch (e: any) {
-          task.title = `${task.title}...[Failed: ${e.message}]`
-        }
-      },
-    },
-    {
       title: `Delete Issuer ${OperatorTasks.ISSUER}`,
       task: async (_ctx: any, task: any) => {
         try {
@@ -566,7 +527,7 @@ export class OperatorTasks {
           const checluster = await kh.getCheClusterV1(flags.chenamespace)
           if (checluster) {
             try {
-              await kh.patchCheCluster(checluster.metadata.name, this.flags.chenamespace, {metadata: { finalizers: null } })
+              await kh.patchCheCluster(checluster.metadata.name, this.flags.chenamespace, {metadata: {finalizers: null}})
             } catch (error) {
               if (!await kh.getCheClusterV1(flags.chenamespace)) {
                 task.title = `${task.title}...[Ok]`
@@ -667,20 +628,6 @@ export class OperatorTasks {
   }
 
   /**
-   * Returns CheCluster CRD file path depending on its version.
-   */
-  async getCRDPath(ctx: any, _flags: any): Promise<string> {
-    // Legacy CRD CheCluster API v1
-    const crdPath = path.join(ctx[ChectlContext.RESOURCES], 'crds', 'org_v1_che_crd.yaml')
-    if (fs.existsSync(crdPath)) {
-      return crdPath
-    }
-
-    // CheCluster API v2
-    return path.join(ctx[ChectlContext.RESOURCES], 'crds', 'org.eclipse.che_checlusters.yaml')
-  }
-
-  /**
    * Reads and patch 'che-operator' deployment:
    * - sets operator image
    * - sets deployment namespace
@@ -716,35 +663,41 @@ export class OperatorTasks {
     resources.clusterRoles = []
     resources.clusterRoleBindings = []
 
-    const filesList = fs.readdirSync(ctx[ChectlContext.RESOURCES])
-    for (const fileName of filesList) {
-      if (!fileName.endsWith('.yaml')) {
+    const platform = ctx[ChectlContext.IS_OPENSHIFT] ? 'openshift' : 'kubernetes'
+    for (const basePath of [ctx[ChectlContext.RESOURCES], path.join(ctx[ChectlContext.RESOURCES], platform)]) {
+      if (!fs.existsSync(basePath)) {
         continue
       }
-      const yamlFilePath = path.join(ctx[ChectlContext.RESOURCES], fileName)
-      const yamlContent = this.kh.safeLoadFromYamlFile(yamlFilePath)
-      if (!(yamlContent && yamlContent.kind)) {
-        continue
-      }
-      switch (yamlContent.kind) {
-      case 'Role':
-        resources.roles.push(yamlContent)
-        break
-      case 'RoleBinding':
-        resources.roleBindings.push(yamlContent)
-        break
-      case 'ClusterRole':
-        resources.clusterRoles.push(yamlContent)
-        break
-      case 'ClusterRoleBinding':
-        resources.clusterRoleBindings.push(yamlContent)
-        break
-      default:
-        // Ignore this object kind
+
+      const filesList = fs.readdirSync(basePath)
+      for (const fileName of filesList) {
+        if (!fileName.endsWith('.yaml')) {
+          continue
+        }
+        const yamlContent = this.kh.safeLoadFromYamlFile(path.join(basePath, fileName))
+        if (!(yamlContent && yamlContent.kind)) {
+          continue
+        }
+        switch (yamlContent.kind) {
+        case 'Role':
+          resources.roles.push(yamlContent)
+          break
+        case 'RoleBinding':
+          resources.roleBindings.push(yamlContent)
+          break
+        case 'ClusterRole':
+          resources.clusterRoles.push(yamlContent)
+          break
+        case 'ClusterRoleBinding':
+          resources.clusterRoleBindings.push(yamlContent)
+          break
+        default:
+          // Ignore this object kind
+        }
       }
     }
 
-    // Check consistancy
+    // Check consistency
     if (resources.roles.length !== resources.roleBindings.length) {
       cli.warn('Number of Roles and Role Bindings is different')
     }
@@ -753,5 +706,39 @@ export class OperatorTasks {
     }
 
     return resources
+  }
+
+  /**
+   * Returns CheCluster CRD file path depending on its version.
+   */
+  async getCRDPath(): Promise<string> {
+    const ctx = ChectlContext.get()
+
+    // Legacy CRD CheCluster API v1
+    const crdPath = path.join(ctx[ChectlContext.RESOURCES], 'crds', 'org_v1_che_crd.yaml')
+    if (fs.existsSync(crdPath)) {
+      return crdPath
+    }
+
+    // Platform specific resource
+    const platform = ctx[ChectlContext.IS_OPENSHIFT] ? 'openshift' : 'kubernetes'
+    return path.join(ctx[ChectlContext.RESOURCES], platform, 'crds', 'org.eclipse.che_checlusters.yaml')
+  }
+
+  /**
+   * Finds resource and returns its path.
+   */
+  private getResourcePath(resourceName: string): string {
+    const ctx = ChectlContext.get()
+
+    // legacy path
+    const resourcePath = path.join(ctx[ChectlContext.RESOURCES], resourceName)
+    if (fs.existsSync(resourcePath)) {
+      return resourcePath
+    }
+
+    // Platform specific resource
+    const platform = ctx[ChectlContext.IS_OPENSHIFT] ? 'openshift' : 'kubernetes'
+    return path.join(ctx[ChectlContext.RESOURCES], platform, resourceName)
   }
 }
