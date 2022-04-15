@@ -42,11 +42,9 @@ import {
   getProjectName,
   getProjectVersion,
   getWarnVersionFlagMsg,
-  isCheClusterAPIV2,
   notifyCommandCompletedSuccessfully,
   wrapCommandError,
 } from '../../util'
-import {CertManagerTasks} from '../../tasks/component-installers/cert-manager'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -125,14 +123,6 @@ export default class Update extends Command {
 
     // update tasks
     const updateTasks = new Listr([], ctx.listrOptions)
-
-    const certManagerTasks = new CertManagerTasks(flags)
-    if (flags.installer === 'operator' && isCheClusterAPIV2(ctx[ChectlContext.DEFAULT_CR])) {
-      updateTasks.add({
-        title: 'Cert Manager',
-        task: () => new Listr(certManagerTasks.getDeployCertManagerTasks()),
-      })
-    }
     updateTasks.add({
       title: 'Updating...',
       task: () => new Listr(installerTasks.updateTasks(flags, this)),
