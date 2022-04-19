@@ -174,43 +174,6 @@ export class OperatorTasks {
       },
       this.getCreateOrUpdateRolesAndBindingsTasks(false),
       {
-        title: `Create CRD ${CHE_CLUSTER_CRD}`,
-        task: async (ctx: any, task: any) => {
-          const existedCRD = await this.kh.getCrd(CHE_CLUSTER_CRD)
-          if (existedCRD) {
-            task.title = `${task.title}...[Exists]]`
-          } else {
-            const newCRDPath = await this.getCRDPath()
-            await this.kh.createCrdFromFile(newCRDPath)
-            task.title = `${task.title}...[OK: created]`
-          }
-        },
-      },
-      {
-        title: 'Waiting 5 seconds for the new Kubernetes resources to get flushed',
-        task: async (_ctx: any, task: any) => {
-          await cli.wait(5000)
-          task.title = `${task.title}...[OK]`
-        },
-      },
-      {
-        title: `Create Webhook Service ${OperatorTasks.WEBHOOK_SERVICE}`,
-        task: async (ctx: any, task: any) => {
-          const exists = await this.kh.isServiceExists(OperatorTasks.WEBHOOK_SERVICE, this.flags.chenamespace)
-          if (exists) {
-            task.title = `${task.title}...[Exists]]`
-          } else {
-            const yamlFilePath = this.getResourcePath('webhook-service.yaml')
-            if (fs.existsSync(yamlFilePath)) {
-              await this.kh.createServiceFromFile(yamlFilePath, this.flags.chenamespace)
-              task.title = `${task.title}...[OK: created]`
-            } else {
-              task.title = `${task.title}...[Skipped: Not found]`
-            }
-          }
-        },
-      },
-      {
         title: `Create Certificate ${OperatorTasks.CERTIFICATE}`,
         enabled: ctx => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (ctx: any, task: any) => {
@@ -246,6 +209,43 @@ export class OperatorTasks {
               task.title = `${task.title}...[Skipped: Not found]`
             }
           }
+        },
+      },
+      {
+        title: `Create Webhook Service ${OperatorTasks.WEBHOOK_SERVICE}`,
+        task: async (ctx: any, task: any) => {
+          const exists = await this.kh.isServiceExists(OperatorTasks.WEBHOOK_SERVICE, this.flags.chenamespace)
+          if (exists) {
+            task.title = `${task.title}...[Exists]]`
+          } else {
+            const yamlFilePath = this.getResourcePath('webhook-service.yaml')
+            if (fs.existsSync(yamlFilePath)) {
+              await this.kh.createServiceFromFile(yamlFilePath, this.flags.chenamespace)
+              task.title = `${task.title}...[OK: created]`
+            } else {
+              task.title = `${task.title}...[Skipped: Not found]`
+            }
+          }
+        },
+      },
+      {
+        title: `Create CRD ${CHE_CLUSTER_CRD}`,
+        task: async (ctx: any, task: any) => {
+          const existedCRD = await this.kh.getCrd(CHE_CLUSTER_CRD)
+          if (existedCRD) {
+            task.title = `${task.title}...[Exists]]`
+          } else {
+            const newCRDPath = await this.getCRDPath()
+            await this.kh.createCrdFromFile(newCRDPath)
+            task.title = `${task.title}...[OK: created]`
+          }
+        },
+      },
+      {
+        title: 'Waiting 5 seconds for the new Kubernetes resources to get flushed',
+        task: async (_ctx: any, task: any) => {
+          await cli.wait(5000)
+          task.title = `${task.title}...[OK]`
         },
       },
       {
@@ -321,7 +321,7 @@ export class OperatorTasks {
   updateTasks(): Array<Listr.ListrTask> {
     return [
       {
-        title: `Updating ServiceAccount ${OperatorTasks.SERVICE_ACCOUNT}`,
+        title: `Update ServiceAccount ${OperatorTasks.SERVICE_ACCOUNT}`,
         task: async (ctx: any, task: any) => {
           const exist = await this.kh.isServiceAccountExist(OperatorTasks.SERVICE_ACCOUNT, this.flags.chenamespace)
           const yamlFilePath = this.getResourcePath('service_account.yaml')
@@ -335,52 +335,6 @@ export class OperatorTasks {
         },
       },
       this.getCreateOrUpdateRolesAndBindingsTasks(true),
-      {
-        title: `Updating Eclipse Che cluster CRD ${CHE_CLUSTER_CRD}`,
-        task: async (ctx: any, task: any) => {
-          const existedCRD = await this.kh.getCrd(CHE_CLUSTER_CRD)
-          const newCRDPath = await this.getCRDPath()
-
-          if (existedCRD) {
-            if (!existedCRD.metadata || !existedCRD.metadata.resourceVersion) {
-              throw new Error(`Fetched CRD ${CHE_CLUSTER_CRD} without resource version`)
-            }
-
-            await this.kh.replaceCrdFromFile(newCRDPath)
-            task.title = `${task.title}...[OK: updated]`
-          } else {
-            await this.kh.createCrdFromFile(newCRDPath)
-            task.title = `${task.title}...[OK: created]`
-          }
-        },
-      },
-      {
-        title: 'Waiting 5 seconds for the new Kubernetes resources to get flushed',
-        task: async (_ctx: any, task: any) => {
-          await cli.wait(5000)
-          task.title = `${task.title}...[OK]`
-        },
-      },
-      {
-        title: `Update Service ${OperatorTasks.WEBHOOK_SERVICE}`,
-        task: async (ctx: any, task: any) => {
-          const yamlFilePath = this.getResourcePath('webhook-service.yaml')
-          if (!fs.existsSync(yamlFilePath)) {
-            task.title = `${task.title}...[Skipped: Not found]`
-            return
-          }
-
-          const service = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Service
-          const exist = await this.kh.isServiceExists(OperatorTasks.WEBHOOK_SERVICE, this.flags.chenamespace)
-          if (exist) {
-            await this.kh.replaceService(OperatorTasks.WEBHOOK_SERVICE, service, this.flags.chenamespace)
-            task.title = `${task.title}...[OK: updated]`
-          } else {
-            await this.kh.createService(service, this.flags.chenamespace)
-            task.title = `${task.title}...[OK: created]`
-          }
-        },
-      },
       {
         title: `Update Certificate ${OperatorTasks.CERTIFICATE}`,
         enabled: ctx => !ctx[ChectlContext.IS_OPENSHIFT],
@@ -424,7 +378,53 @@ export class OperatorTasks {
         },
       },
       {
-        title: `Updating deployment ${OPERATOR_DEPLOYMENT_NAME}`,
+        title: `Update Service ${OperatorTasks.WEBHOOK_SERVICE}`,
+        task: async (ctx: any, task: any) => {
+          const yamlFilePath = this.getResourcePath('webhook-service.yaml')
+          if (!fs.existsSync(yamlFilePath)) {
+            task.title = `${task.title}...[Skipped: Not found]`
+            return
+          }
+
+          const service = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Service
+          const exist = await this.kh.isServiceExists(OperatorTasks.WEBHOOK_SERVICE, this.flags.chenamespace)
+          if (exist) {
+            await this.kh.replaceService(OperatorTasks.WEBHOOK_SERVICE, service, this.flags.chenamespace)
+            task.title = `${task.title}...[OK: updated]`
+          } else {
+            await this.kh.createService(service, this.flags.chenamespace)
+            task.title = `${task.title}...[OK: created]`
+          }
+        },
+      },
+      {
+        title: `Update Eclipse Che cluster CRD ${CHE_CLUSTER_CRD}`,
+        task: async (ctx: any, task: any) => {
+          const existedCRD = await this.kh.getCrd(CHE_CLUSTER_CRD)
+          const newCRDPath = await this.getCRDPath()
+
+          if (existedCRD) {
+            if (!existedCRD.metadata || !existedCRD.metadata.resourceVersion) {
+              throw new Error(`Fetched CRD ${CHE_CLUSTER_CRD} without resource version`)
+            }
+
+            await this.kh.replaceCrdFromFile(newCRDPath)
+            task.title = `${task.title}...[OK: updated]`
+          } else {
+            await this.kh.createCrdFromFile(newCRDPath)
+            task.title = `${task.title}...[OK: created]`
+          }
+        },
+      },
+      {
+        title: 'Waiting 5 seconds for the new Kubernetes resources to get flushed',
+        task: async (_ctx: any, task: any) => {
+          await cli.wait(5000)
+          task.title = `${task.title}...[OK]`
+        },
+      },
+      {
+        title: `Update deployment ${OPERATOR_DEPLOYMENT_NAME}`,
         task: async (ctx: any, task: any) => {
           const exist = await this.kh.isDeploymentExist(OPERATOR_DEPLOYMENT_NAME, this.flags.chenamespace)
           const deploymentPath = this.getResourcePath('operator.yaml')
@@ -476,17 +476,6 @@ export class OperatorTasks {
       },
     },
     {
-      title: `Delete Webhook Service ${OperatorTasks.WEBHOOK_SERVICE}`,
-      task: async (_ctx: any, task: any) => {
-        try {
-          await kh.deleteService(OperatorTasks.WEBHOOK_SERVICE, this.flags.chenamespace)
-          task.title = `${task.title}...[Ok]`
-        } catch (e: any) {
-          task.title = `${task.title}...[Failed: ${e.message}]`
-        }
-      },
-    },
-    {
       title: `Delete Issuer ${OperatorTasks.ISSUER}`,
       task: async (_ctx: any, task: any) => {
         try {
@@ -502,6 +491,17 @@ export class OperatorTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await kh.deleteCertificate(OperatorTasks.CERTIFICATE, this.flags.chenamespace)
+          task.title = `${task.title}...[Ok]`
+        } catch (e: any) {
+          task.title = `${task.title}...[Failed: ${e.message}]`
+        }
+      },
+    },
+    {
+      title: `Delete Webhook Service ${OperatorTasks.WEBHOOK_SERVICE}`,
+      task: async (_ctx: any, task: any) => {
+        try {
+          await kh.deleteService(OperatorTasks.WEBHOOK_SERVICE, this.flags.chenamespace)
           task.title = `${task.title}...[Ok]`
         } catch (e: any) {
           task.title = `${task.title}...[Failed: ${e.message}]`
