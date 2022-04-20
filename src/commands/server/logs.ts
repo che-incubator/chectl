@@ -48,8 +48,8 @@ export default class Logs extends Command {
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logs.id, flags })
     tasks.add(apiTasks.testApiTasks(flags))
-    tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
-    tasks.add(cheTasks.serverLogsTasks(flags, false))
+    tasks.add(cheTasks.getCheckCheNamespaceExistsTasks(flags, this))
+    tasks.add(cheTasks.getServerLogsTasks(flags, false))
 
     try {
       this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)

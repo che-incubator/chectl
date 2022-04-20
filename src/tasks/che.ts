@@ -41,9 +41,7 @@ export class CheTasks {
   devfileRegistrySelector = 'app=che,component=devfile-registry'
   pluginRegistryDeploymentName = 'plugin-registry'
   pluginRegistrySelector = 'app=che,component=plugin-registry'
-  cheGatewayDeploymentName = 'che-gateway'
   cheGatewaySelector = 'app=che,component=che-gateway'
-  cheConsoleLinkName = 'che'
 
   constructor(flags: any) {
     this.kube = new KubeHelper(flags)
@@ -59,7 +57,7 @@ export class CheTasks {
    *
    * @see che.checkIfCheIsInstalledTasks
    */
-  waitDeployedChe(): ReadonlyArray<Listr.ListrTask> {
+  getWaitCheDeployedTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'PostgreSQL pod bootstrap',
@@ -86,7 +84,7 @@ export class CheTasks {
         enabled: ctx => !ctx.isCheReady,
         task: () => this.kubeTasks.podStartTasks(this.cheSelector, this.cheNamespace),
       },
-      ...this.checkEclipseCheStatus(),
+      ...this.getCheckEclipseCheStatusTasks(),
     ]
   }
 
@@ -97,7 +95,7 @@ export class CheTasks {
    * is[Component]Deployed, is[Component]Stopped, is[Component]Ready
    * where component is one the: Che, Postgres, PluginRegistry, DevfileRegistry
    */
-  checkIfCheIsInstalledTasks(_flags: any): ReadonlyArray<Listr.ListrTask> {
+  getCheckIfCheIsInstalledTasks(_flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: `Verify if Eclipse Che is deployed into namespace \"${this.cheNamespace}\"`,
@@ -194,7 +192,7 @@ export class CheTasks {
    *
    * @see [CheTasks](#checkIfCheIsInstalledTasks)
    */
-  scaleCheUpTasks(): ReadonlyArray<Listr.ListrTask> {
+  getSaleCheUpTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'PostgreSQL pod bootstrap',
@@ -236,7 +234,7 @@ export class CheTasks {
           return this.kubeTasks.podStartTasks(this.cheSelector, this.cheNamespace)
         },
       },
-      ...this.checkEclipseCheStatus(),
+      ...this.getCheckEclipseCheStatusTasks(),
     ]
   }
 
@@ -246,7 +244,7 @@ export class CheTasks {
    *
    * @see [CheTasks](#checkIfCheIsInstalledTasks)
    */
-  scaleCheDownTasks(): ReadonlyArray<Listr.ListrTask> {
+  getSaleCheDownTasks(): ReadonlyArray<Listr.ListrTask> {
     return [{
       title: `Scale \"${this.cheDeploymentName}\" deployment to zero`,
       enabled: (ctx: any) => !ctx.isCheStopped,
@@ -310,159 +308,40 @@ export class CheTasks {
   }
 
   /**
-   * Returns tasks which remove all Eclipse Che related resources.
-   */
-  deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
-    return [
-      {
-        title: 'Delete all deployments',
-        task: async (_ctx: any, task: any) => {
-          try {
-            await this.kube.deleteAllDeployments(flags.chenamespace)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: 'Delete all services',
-        task: async (_ctx: any, task: any) => {
-          try {
-            await this.kube.deleteAllServices(flags.chenamespace)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: 'Delete all ingresses',
-        enabled: (ctx: any) => !ctx[ChectlContext.IS_OPENSHIFT],
-        task: async (_ctx: any, task: any) => {
-          try {
-            await this.kube.deleteAllIngresses(flags.chenamespace)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: 'Delete all routes',
-        enabled: (ctx: any) => ctx[ChectlContext.IS_OPENSHIFT],
-        task: async (_ctx: any, task: any) => {
-          try {
-            await this.oc.deleteAllRoutes(flags.chenamespace)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: 'Delete ConfigMaps for Eclipse Che server and operator',
-        task: async (_ctx: any, task: any) => {
-          try {
-            await this.kube.deleteConfigMap('che', flags.chenamespace)
-            await this.kube.deleteConfigMap('che-operator', flags.chenamespace)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: 'Delete rolebindings che, che-workspace-exec and che-workspace-view',
-        task: async (_ctx: any, task: any) => {
-          try {
-            await this.kube.deleteRoleBinding('che', flags.chenamespace)
-            await this.kube.deleteRoleBinding('che-operator', flags.chenamespace)
-            await this.kube.deleteRoleBinding('che-workspace-exec', flags.chenamespace)
-            await this.kube.deleteRoleBinding('che-workspace-view', flags.chenamespace)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: 'Delete service accounts che, che-workspace',
-        task: async (_ctx: any, task: any) => {
-          try {
-            await this.kube.deleteServiceAccount('che', flags.chenamespace)
-            await this.kube.deleteServiceAccount('che-workspace', flags.chenamespace)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: 'Delete PVCs',
-        task: async (_ctx: any, task: any) => {
-          try {
-            await this.kube.deletePersistentVolumeClaim('postgres-data', flags.chenamespace)
-            await this.kube.deletePersistentVolumeClaim('che-data-volume', flags.chenamespace)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: `Delete consoleLink ${this.cheConsoleLinkName}`,
-        task: async (_ctx: any, task: any) => {
-          try {
-            const checlusters = await this.kube.getAllCheClusters()
-            // Delete the consoleLink only in case if there no more checluster installed
-            if (checlusters.length === 0) {
-              await this.kube.deleteConsoleLink(this.cheConsoleLinkName)
-            }
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-    ]
-  }
-
-  /**
    * Returns tasks which wait until pods are deleted.
    */
-  waitPodsDeletedTasks(): ReadonlyArray<Listr.ListrTask> {
+  getWaitPodsDeletedTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Wait until Eclipse Che Server pod is deleted',
+        title: 'Che Server pod',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.cheSelector, this.cheNamespace)
           task.title = `${task.title}...[Ok]`
         },
       },
       {
-        title: 'Wait until Eclipse Che Dashboard pod is deleted',
+        title: 'Dashboard pod',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.dashboardSelector, this.cheNamespace)
           task.title = `${task.title}...[Ok]`
         },
       },
       {
-        title: 'Wait until PostgreSQL pod is deleted',
+        title: 'PostgreSQL pod',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.postgresSelector, this.cheNamespace)
           task.title = `${task.title}...[Ok]`
         },
       },
       {
-        title: 'Wait until Devfile Registry pod is deleted',
+        title: 'Devfile Registry pod',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.devfileRegistrySelector, this.cheNamespace)
           task.title = `${task.title}...[Ok]`
         },
       },
       {
-        title: 'Wait until Plug-in Registry pod is deleted',
+        title: 'Plug-in Registry',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.pluginRegistrySelector, this.cheNamespace)
           task.title = `${task.title}...[Ok]`
@@ -471,7 +350,7 @@ export class CheTasks {
     ]
   }
 
-  deleteNamespace(flags: any): ReadonlyArray<Listr.ListrTask> {
+  getDeleteNamespaceTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [{
       title: `Delete namespace ${flags.chenamespace}`,
       task: async (task: any) => {
@@ -484,7 +363,7 @@ export class CheTasks {
     }]
   }
 
-  verifyCheNamespaceExistsTask(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
+  getCheckCheNamespaceExistsTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     return [{
       title: `Verify if namespace '${flags.chenamespace}' exists`,
       task: async () => {
@@ -498,7 +377,7 @@ export class CheTasks {
   /**
    * Return tasks to collect Eclipse Che logs.
    */
-  serverLogsTasks(flags: any, follow: boolean): ReadonlyArray<Listr.ListrTask> {
+  getServerLogsTasks(flags: any, follow: boolean): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: `${follow ? 'Start following' : 'Read'} logs`,
@@ -517,7 +396,7 @@ export class CheTasks {
     ]
   }
 
-  debugTask(flags: any): ReadonlyArray<Listr.ListrTask> {
+  getDebugTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Find Eclipse Che Server pod',
@@ -551,7 +430,7 @@ export class CheTasks {
     ]
   }
 
-  preparePostInstallationOutput(flags: any): ReadonlyArray<Listr.ListrTask> {
+  getPreparePostInstallationOutputTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Prepare post installation output',
@@ -624,7 +503,7 @@ export class CheTasks {
     ]
   }
 
-  checkEclipseCheStatus(): ReadonlyArray<Listr.ListrTask> {
+  getCheckEclipseCheStatusTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Eclipse Che status check',
