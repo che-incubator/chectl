@@ -583,6 +583,18 @@ export class KubeHelper {
     }
   }
 
+  async listConfigMaps(namespace: string): Promise<V1ConfigMap[]> {
+    const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
+    try {
+      const { body } = await k8sCoreApi.listNamespacedConfigMap(namespace)
+      return body.items
+    } catch (e: any) {
+      throw this.wrapK8sClientError(e)
+    }
+
+    return []
+  }
+
   async getConfigMapValue(name: string, namespace: string, key: string): Promise<string | undefined> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
@@ -619,6 +631,17 @@ export class KubeHelper {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
       await k8sCoreApi.deleteNamespacedConfigMap(name, namespace)
+    } catch (e: any) {
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
+    }
+  }
+
+  async deleteSecret(name: string, namespace: string): Promise<void> {
+    const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
+    try {
+      await k8sCoreApi.deleteNamespacedSecret(name, namespace)
     } catch (e: any) {
       if (e.response.statusCode !== 404) {
         throw this.wrapK8sClientError(e)

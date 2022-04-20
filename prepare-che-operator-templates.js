@@ -44,12 +44,6 @@ function prepareTemplates() {
         path.join(deployFolder, platform, 'objects', 'che-operator.Role.yaml'),
         path.join(cheOperatorTemplates, platform, 'role.yaml'))
       fs.copySync(
-        path.join(deployFolder, platform, 'objects', 'leader-election-role.Role.yaml'),
-        path.join(cheOperatorTemplates, platform, 'leader-election-role.yaml'))
-      fs.copySync(
-        path.join(deployFolder, platform, 'objects', 'leader-election-rolebinding.RoleBinding.yaml'),
-        path.join(cheOperatorTemplates, platform, 'leader-election-rolebinding.yaml'))
-      fs.copySync(
         path.join(deployFolder, platform, 'objects', 'che-operator-serving-cert.Certificate.yaml'),
         path.join(cheOperatorTemplates, platform, 'serving-cert.yaml'))
       fs.copySync(

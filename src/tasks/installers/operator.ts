@@ -30,18 +30,22 @@ import {getImageNameAndTag, isCheClusterAPIV1, safeLoadFromYamlFile} from '../..
 import {KubeTasks} from '../kube'
 import {createEclipseCheClusterTask, patchingEclipseCheCluster} from './common-tasks'
 import {V1Certificate} from '../../api/types/cert-manager'
+import {OpenShiftHelper} from '../../api/openshift'
 
 export class OperatorTasks {
-  private static readonly WEBHOOK_SERVICE = 'webhook-service'
+  private static readonly WEBHOOK_SERVICE = 'che-operator-webhook-service'
   private static readonly CERTIFICATE = 'che-operator-serving-cert'
-  private static readonly ISSUER = 'selfsigned-issuer'
+  private static readonly ISSUER = 'che-operator-selfsigned-issuer'
   private static readonly SERVICE_ACCOUNT = 'che-operator'
   private static readonly DEVWORKSPACE_PREFIX = 'devworkspace-che'
+  private static readonly CONSOLELINK = 'che'
 
   protected kh: KubeHelper
+  protected oc: OpenShiftHelper
 
   constructor(protected readonly flags: any) {
     this.kh = new KubeHelper(flags)
+    this.oc = new OpenShiftHelper()
   }
 
   private getCreateOrUpdateRolesAndBindingsTasks(updateTask = false): Listr.ListrTask {
@@ -212,7 +216,7 @@ export class OperatorTasks {
         },
       },
       {
-        title: `Create Webhook Service ${OperatorTasks.WEBHOOK_SERVICE}`,
+        title: `Create Service ${OperatorTasks.WEBHOOK_SERVICE}`,
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isServiceExists(OperatorTasks.WEBHOOK_SERVICE, this.flags.chenamespace)
           if (exists) {
@@ -452,163 +456,303 @@ export class OperatorTasks {
   /**
    * Returns list of tasks which remove Eclipse Che operator related resources
    */
-  deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+  getDeleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     const kh = new KubeHelper(flags)
-    return [{
-      title: 'Delete OAuthClient',
-      task: async (_ctx: any, task: any) => {
-        try {
-          const checluster = await kh.getCheClusterV1(flags.chenamespace)
-          if (isCheClusterAPIV1(checluster)) {
-            if (checluster?.spec?.auth?.oAuthClientName) {
-              await kh.deleteOAuthClient(checluster.spec.auth.oAuthClientName)
-            }
-          } else {
-            if (checluster?.spec?.ingress?.auth?.oAuthClientName) {
-              await kh.deleteOAuthClient(checluster.spec.ingress.auth.oAuthClientName)
-            }
+    return [
+      {
+        title: `Delete Issuer ${OperatorTasks.ISSUER}`,
+        task: async (_ctx: any, task: any) => {
+          try {
+            await kh.deleteIssuer(OperatorTasks.ISSUER, this.flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
           }
-
-          task.title = `${task.title}...[Ok]`
-        } catch (e: any) {
-          task.title = `${task.title}...[Failed: ${e.message}]`
-        }
+        },
       },
-    },
-    {
-      title: `Delete Issuer ${OperatorTasks.ISSUER}`,
-      task: async (_ctx: any, task: any) => {
-        try {
-          await kh.deleteIssuer(OperatorTasks.ISSUER, this.flags.chenamespace)
-          task.title = `${task.title}...[Ok]`
-        } catch (e: any) {
-          task.title = `${task.title}...[Failed: ${e.message}]`
-        }
-      },
-    },
-    {
-      title: `Delete Certificate ${OperatorTasks.CERTIFICATE}`,
-      task: async (_ctx: any, task: any) => {
-        try {
-          await kh.deleteCertificate(OperatorTasks.CERTIFICATE, this.flags.chenamespace)
-          task.title = `${task.title}...[Ok]`
-        } catch (e: any) {
-          task.title = `${task.title}...[Failed: ${e.message}]`
-        }
-      },
-    },
-    {
-      title: `Delete Webhook Service ${OperatorTasks.WEBHOOK_SERVICE}`,
-      task: async (_ctx: any, task: any) => {
-        try {
-          await kh.deleteService(OperatorTasks.WEBHOOK_SERVICE, this.flags.chenamespace)
-          task.title = `${task.title}...[Ok]`
-        } catch (e: any) {
-          task.title = `${task.title}...[Failed: ${e.message}]`
-        }
-      },
-    },
-    {
-      title: `Delete the Custom Resource of type ${CHE_CLUSTER_CRD}`,
-      task: async (_ctx: any, task: any) => {
-        try {
-          await kh.deleteAllCheClusters(flags.chenamespace)
-
-          // wait 20 seconds, default timeout in che operator
-          for (let index = 0; index < 20; index++) {
-            await cli.wait(1000)
-            if (!await kh.getCheClusterV1(flags.chenamespace)) {
-              task.title = `${task.title}...[Ok]`
-              return
-            }
+      {
+        title: `Delete Certificate ${OperatorTasks.CERTIFICATE}`,
+        task: async (_ctx: any, task: any) => {
+          try {
+            await kh.deleteCertificate(OperatorTasks.CERTIFICATE, this.flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
           }
+        },
+      },
+      {
+        title: 'Delete OAuthClient',
+        task: async (_ctx: any, task: any) => {
+          try {
+            const checluster = await kh.getCheClusterV1(flags.chenamespace)
+            if (isCheClusterAPIV1(checluster)) {
+              if (checluster?.spec?.auth?.oAuthClientName) {
+                await kh.deleteOAuthClient(checluster.spec.auth.oAuthClientName)
+              }
+            } else {
+              if (checluster?.spec?.ingress?.auth?.oAuthClientName) {
+                await kh.deleteOAuthClient(checluster.spec.ingress.auth.oAuthClientName)
+              }
+            }
 
-          // if checluster still exists then remove finalizers and delete again
-          const checluster = await kh.getCheClusterV1(flags.chenamespace)
-          if (checluster) {
-            try {
-              await kh.patchCheCluster(checluster.metadata.name, this.flags.chenamespace, {metadata: {finalizers: null}})
-            } catch (error) {
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+      {
+        title: `Delete the Custom Resource of type ${CHE_CLUSTER_CRD}`,
+        task: async (_ctx: any, task: any) => {
+          try {
+            await kh.deleteAllCheClusters(flags.chenamespace)
+
+            // wait 20 seconds, default timeout in che operator
+            for (let index = 0; index < 20; index++) {
+              await cli.wait(1000)
               if (!await kh.getCheClusterV1(flags.chenamespace)) {
                 task.title = `${task.title}...[Ok]`
-                return // successfully removed
+                return
               }
-              throw error
             }
 
-            // wait 2 seconds
-            await cli.wait(2000)
-          }
+            // if checluster still exists then remove finalizers and delete again
+            const checluster = await kh.getCheClusterV1(flags.chenamespace)
+            if (checluster) {
+              try {
+                await kh.patchCheCluster(checluster.metadata.name, this.flags.chenamespace, {metadata: {finalizers: null}})
+              } catch (error) {
+                if (!await kh.getCheClusterV1(flags.chenamespace)) {
+                  task.title = `${task.title}...[Ok]`
+                  return // successfully removed
+                }
+                throw error
+              }
 
-          if (!await kh.getCheClusterV1(flags.chenamespace)) {
-            task.title = `${task.title}...[Ok]`
-          } else {
-            task.title = `${task.title}...[Failed]`
+              // wait 2 seconds
+              await cli.wait(2000)
+            }
+
+            if (!await kh.getCheClusterV1(flags.chenamespace)) {
+              task.title = `${task.title}...[Ok]`
+            } else {
+              task.title = `${task.title}...[Failed]`
+            }
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
           }
-        } catch (e: any) {
-          task.title = `${task.title}...[Failed: ${e.message}]`
-        }
+        },
       },
-    },
-    {
-      title: 'Delete CRDs',
-      task: async (_ctx: any, task: any) => {
-        try {
-          const checlusters = await kh.getAllCheClusters()
-          if (checlusters.length > 0) {
-            task.title = `${task.title}...[Skipped: another Eclipse Che instance found]`
-          } else {
+      {
+        title: 'Delete CRDs',
+        task: async (_ctx: any, task: any) => {
+          try {
             await kh.deleteCrd(CHE_CLUSTER_CRD)
             task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
           }
-        } catch (e: any) {
-          task.title = `${task.title}...[Failed: ${e.message}]`
-        }
+        },
       },
-    },
-    {
-      title: 'Delete Roles and Bindings',
-      task: async (ctx: any, task: any) => {
-        const roleBindings = await kh.listRoleBindings(flags.chenamespace)
-        for (const roleBinding of roleBindings.items) {
-          await kh.deleteRoleBinding(roleBinding.metadata!.name!, this.flags.chenamespace)
-        }
-
-        const roles = await kh.listRoles(flags.chenamespace)
-        for (const role of roles.items) {
-          await kh.deleteRole(role.metadata!.name!, this.flags.chenamespace)
-        }
-
-        const clusterRoleBindings = await kh.listClusterRoleBindings()
-        for (const clusterRoleBinding of clusterRoleBindings.items) {
-          const name = clusterRoleBinding.metadata && clusterRoleBinding.metadata.name || ''
-          if (name.startsWith(flags.chenamespace) || name.startsWith(OperatorTasks.DEVWORKSPACE_PREFIX)) {
-            await kh.deleteClusterRoleBinding(name)
+      {
+        title: 'Delete Deployments',
+        task: async (_ctx: any, task: any) => {
+          try {
+            await this.kh.deleteAllDeployments(flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
           }
-        }
-
-        const clusterRoles = await kh.listClusterRoles()
-        for (const clusterRole of clusterRoles.items) {
-          const name = clusterRole.metadata && clusterRole.metadata.name || ''
-          if (name.startsWith(flags.chenamespace) || name.startsWith(OperatorTasks.DEVWORKSPACE_PREFIX)) {
-            await kh.deleteClusterRole(name)
+        },
+      },
+      {
+        title: 'Delete Services',
+        task: async (_ctx: any, task: any) => {
+          try {
+            await this.kh.deleteAllServices(flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
           }
-        }
+        },
+      },
+      {
+        title: 'Delete Ingresses',
+        enabled: (ctx: any) => !ctx[ChectlContext.IS_OPENSHIFT],
+        task: async (_ctx: any, task: any) => {
+          try {
+            await this.kh.deleteAllIngresses(flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+      {
+        title: 'Delete Routes',
+        enabled: (ctx: any) => ctx[ChectlContext.IS_OPENSHIFT],
+        task: async (_ctx: any, task: any) => {
+          try {
+            await this.oc.deleteAllRoutes(flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+      {
+        title: 'Delete Secrets',
+        task: async (_ctx: any, task: any) => {
+          try {
+            await this.kh.deleteSecret('che-operator-webhook-server-cert', flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+      {
+        title: 'Delete ConfigMaps',
+        task: async (_ctx: any, task: any) => {
+          try {
+            await this.kh.deleteConfigMap('che', flags.chenamespace)
+            await this.kh.deleteConfigMap('ca-certs-merged', flags.chenamespace)
+            await this.kh.deleteConfigMap('plugin-registry', flags.chenamespace)
+            await this.kh.deleteConfigMap('devfile-registry', flags.chenamespace)
 
-        task.title = `${task.title}...[Ok]`
+            const configMaps = await this.kh.listConfigMaps(flags.chenamespace)
+            for (const configMap of configMaps) {
+              const configMapName = configMap.metadata!.name!
+              if (configMapName.startsWith('che-gateway')) {
+                await this.kh.deleteConfigMap(configMapName, flags.chenamespace)
+              }
+            }
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
       },
-    },
-    {
-      title: `Delete ServiceAccount ${OperatorTasks.SERVICE_ACCOUNT}`,
-      task: async (_ctx: any, task: any) => {
-        try {
-          await kh.deleteServiceAccount(OperatorTasks.SERVICE_ACCOUNT, this.flags.chenamespace)
-          task.title = `${task.title}...[Ok]`
-        } catch (e: any) {
-          task.title = `${task.title}...[Failed: ${e.message}]`
-        }
+      {
+        title: 'Delete RoleBindings',
+        task: async (_ctx: any, task: any) => {
+          try {
+            await this.kh.deleteRoleBinding('che-gateway', flags.chenamespace)
+            await this.kh.deleteRoleBinding('che-tls-job-role-binding', flags.chenamespace)
+
+            const roleBindings = await kh.listRoleBindings(flags.chenamespace)
+            for (const roleBinding of roleBindings.items) {
+              await kh.deleteRoleBinding(roleBinding.metadata!.name!, this.flags.chenamespace)
+            }
+
+            const roles = await kh.listRoles(flags.chenamespace)
+            for (const role of roles.items) {
+              await kh.deleteRole(role.metadata!.name!, this.flags.chenamespace)
+            }
+
+            const clusterRoleBindings = await kh.listClusterRoleBindings()
+            for (const clusterRoleBinding of clusterRoleBindings.items) {
+              const name = clusterRoleBinding.metadata && clusterRoleBinding.metadata.name || ''
+              if (name.startsWith(flags.chenamespace) || name.startsWith(OperatorTasks.DEVWORKSPACE_PREFIX)) {
+                await kh.deleteClusterRoleBinding(name)
+              }
+            }
+
+            const clusterRoles = await kh.listClusterRoles()
+            for (const clusterRole of clusterRoles.items) {
+              const name = clusterRole.metadata && clusterRole.metadata.name || ''
+              if (name.startsWith(flags.chenamespace) || name.startsWith(OperatorTasks.DEVWORKSPACE_PREFIX)) {
+                await kh.deleteClusterRole(name)
+              }
+            }
+
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
       },
-    }]
+      {
+        title: 'Delete Roles',
+        task: async (_ctx: any, task: any) => {
+          try {
+            await this.kh.deleteRole('che-gateway', flags.chenamespace)
+            await this.kh.deleteRole('che-tls-job-role', flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+      {
+        title: 'Delete ClusterRoles',
+        task: async (_ctx: any, task: any) => {
+          try {
+            await this.kh.deleteClusterRole(`${flags.chenamespace}-che-dashboard`)
+            await this.kh.deleteClusterRole(`${flags.chenamespace}-che-gateway`)
+            await this.kh.deleteClusterRole(`${flags.chenamespace}-cheworkspaces-clusterrole`)
+            await this.kh.deleteClusterRole(`${flags.chenamespace}-cheworkspaces-devworkspace-clusterrole`)
+            await this.kh.deleteClusterRole(`${flags.chenamespace}-cheworkspaces-namespaces-clusterrole`)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+      {
+        title: 'Delete ClusterRoleBindings',
+        task: async (_ctx: any, task: any) => {
+          try {
+            await this.kh.deleteClusterRoleBinding(`${flags.chenamespace}-che-dashboard`)
+            await this.kh.deleteClusterRoleBinding(`${flags.chenamespace}-che-gateway`)
+            await this.kh.deleteClusterRoleBinding(`${flags.chenamespace}-cheworkspaces-clusterrole`)
+            await this.kh.deleteClusterRoleBinding(`${flags.chenamespace}-cheworkspaces-devworkspace-clusterrole`)
+            await this.kh.deleteClusterRoleBinding(`${flags.chenamespace}-cheworkspaces-namespaces-clusterrole`)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+      {
+        title: 'Delete ServiceAccounts',
+        task: async (_ctx: any, task: any) => {
+          try {
+            await this.kh.deleteServiceAccount('che', flags.chenamespace)
+            await this.kh.deleteServiceAccount('che-dashboard', flags.chenamespace)
+            await this.kh.deleteServiceAccount('che-gateway', flags.chenamespace)
+            await this.kh.deleteServiceAccount('che-tls-job-service-account', flags.chenamespace)
+            await this.kh.deleteServiceAccount(OperatorTasks.SERVICE_ACCOUNT, flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+      {
+        title: 'Delete PVCs',
+        task: async (_ctx: any, task: any) => {
+          try {
+            await this.kh.deletePersistentVolumeClaim('postgres-data', flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+      {
+        title: `Delete ConsoleLink ${OperatorTasks.CONSOLELINK}`,
+        task: async (_ctx: any, task: any) => {
+          try {
+            await this.kh.deleteConsoleLink(OperatorTasks.CONSOLELINK)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+    ]
   }
 
   retrieveContainerImage(deployment: V1Deployment) {

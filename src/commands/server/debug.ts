@@ -47,8 +47,8 @@ export default class Debug extends Command {
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
 
     tasks.add(apiTasks.testApiTasks(flags))
-    tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
-    tasks.add(cheTasks.debugTask(flags))
+    tasks.add(cheTasks.getCheckCheNamespaceExistsTasks(flags, this))
+    tasks.add(cheTasks.getDebugTasks(flags))
 
     try {
       await tasks.run(ctx)

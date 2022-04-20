@@ -72,10 +72,18 @@ export default class Delete extends Command {
 
     const tasks = new Listrq([], ctx.listrOptions)
     tasks.add(apiTasks.testApiTasks(flags))
-    tasks.add(operatorTasks.deleteTasks(flags))
-    tasks.add(olmTasks.deleteTasks(flags))
-    tasks.add(cheTasks.deleteTasks(flags))
-    tasks.add(cheTasks.waitPodsDeletedTasks())
+    tasks.add({
+      title: 'Delete operator resources',
+      task: () => new Listr(operatorTasks.getDeleteTasks(flags)),
+    })
+    tasks.add({
+      title: 'Delete OLM resources',
+      task: () => new Listr(olmTasks.getDeleteTasks(flags)),
+    })
+    tasks.add({
+      title: 'Wait until all pods are deleted',
+      task: () => new Listr(cheTasks.getWaitPodsDeletedTasks()),
+    })
 
     // Remove devworkspace controller only if there are no more cheClusters after olm/operator tasks
     tasks.add({
@@ -109,7 +117,7 @@ export default class Delete extends Command {
     })
 
     if (flags['delete-namespace']) {
-      tasks.add(cheTasks.deleteNamespace(flags))
+      tasks.add(cheTasks.getDeleteNamespaceTasks(flags))
     }
 
     if (flags.batch || await this.isDeletionConfirmed(flags)) {

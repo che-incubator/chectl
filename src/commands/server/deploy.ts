@@ -294,7 +294,7 @@ export default class Deploy extends Command {
     preInstallTasks.add(apiTasks.testApiTasks(flags))
     preInstallTasks.add({
       title: '👀  Looking for an already existing Eclipse Che instance',
-      task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags)),
+      task: () => new Listr(cheTasks.getCheckIfCheIsInstalledTasks(flags)),
     })
     preInstallTasks.add(ensureOIDCProviderInstalled(flags))
 
@@ -312,16 +312,16 @@ export default class Deploy extends Command {
     const postInstallTasks = new Listr([
       {
         title: '✅  Post installation checklist',
-        task: () => new Listr(cheTasks.waitDeployedChe()),
+        task: () => new Listr(cheTasks.getWaitCheDeployedTasks()),
       },
       retrieveCheCaCertificateTask(flags),
-      ...cheTasks.preparePostInstallationOutput(flags),
+      ...cheTasks.getPreparePostInstallationOutputTasks(flags),
       getPrintHighlightedMessagesTask(),
     ], ctx.listrOptions)
 
     const logsTasks = new Listr([{
       title: 'Following Eclipse Che logs',
-      task: () => new Listr(cheTasks.serverLogsTasks(flags, true)),
+      task: () => new Listr(cheTasks.getServerLogsTasks(flags, true)),
     }], ctx.listrOptions)
 
     try {

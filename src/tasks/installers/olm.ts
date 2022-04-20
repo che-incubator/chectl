@@ -48,7 +48,6 @@ export class OLMTasks {
       {
         title: 'Configure context information',
         task: async (ctx: any, task: any) => {
-          ctx.operatorNamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
           ctx.operatorNamespace = DEFAULT_OPENSHIFT_OPERATORS_NS_NAME
           ctx.defaultCatalogSourceNamespace = isKubernetesPlatformFamily(flags.platform) ? DEFAULT_OLM_KUBERNETES_NAMESPACE : DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE
           // catalog source name for stable Che version
@@ -364,19 +363,20 @@ export class OLMTasks {
     ], { renderer: flags['listr-renderer'] as any })
   }
 
-  deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+  getDeleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     const kube = new KubeHelper(flags)
     const che = new CheHelper(flags)
     return [
       {
-        title: 'Check if OLM is pre-installed on the platform',
+        title: 'Check for OLM',
         task: async (ctx: any, task: any) => {
           ctx.isPreInstalledOLM = Boolean(await kube.isPreInstalledOLM())
-          task.title = `${task.title}: ${ctx.isPreInstalledOLM}...[OK]`
+          task.title = `${task.title}...[OK: ${ctx.isPreInstalledOLM}]`
         },
       },
       {
-        title: 'Check if operator is installed',
+        title: 'Find Eclipse Che subscription',
+        enabled: ctx => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
           const subscription = await che.findCheOperatorSubscription(flags.chenamespace)
           if (subscription) {
@@ -392,8 +392,8 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Delete operator subscription',
-        enabled: ctx => ctx.isPreInstalledOLM && ctx.subscriptionName,
+        title: 'Delete Subscription',
+        enabled: ctx => ctx.subscriptionName,
         task: async (ctx: any, task: any) => {
           try {
             await kube.deleteOperatorSubscription(ctx.subscriptionName, ctx.operatorNamespace)
@@ -404,7 +404,7 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Delete Eclipse Che cluster service versions',
+        title: 'Delete ClusterServiceVersion',
         enabled: ctx => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
           try {
@@ -419,7 +419,7 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Delete operator group',
+        title: 'Delete OperatorGroup',
         // Do not delete global operator group if operator is in all namespaces mode
         enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
         task: async (ctx: any, task: any) => {
@@ -435,20 +435,11 @@ export class OLMTasks {
         },
       },
       {
-        title: `Delete(OLM) custom catalog source ${CUSTOM_CATALOG_SOURCE_NAME}`,
+        title: `Delete CatalogSources ${CUSTOM_CATALOG_SOURCE_NAME}`,
+        enabled: ctx => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
           try {
             await kube.deleteCatalogSource(CUSTOM_CATALOG_SOURCE_NAME, ctx.operatorNamespace)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: `Delete(OLM) nigthly catalog source ${NEXT_CATALOG_SOURCE_NAME}`,
-        task: async (ctx: any, task: any) => {
-          try {
             await kube.deleteCatalogSource(NEXT_CATALOG_SOURCE_NAME, ctx.operatorNamespace)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
@@ -457,7 +448,7 @@ export class OLMTasks {
         },
       },
       {
-        title: `Delete role ${this.prometheusRoleName}`,
+        title: `Delete Role ${this.prometheusRoleName}`,
         task: async (_ctx: any, task: any) => {
           try {
             await kube.deleteRole(this.prometheusRoleName, flags.chenamespace)
@@ -468,7 +459,7 @@ export class OLMTasks {
         },
       },
       {
-        title: `Delete role binding ${this.prometheusRoleName}`,
+        title: `Delete RoleBinding ${this.prometheusRoleName}`,
         task: async (_ctx: any, task: any) => {
           try {
             await kube.deleteRoleBinding(this.prometheusRoleName, flags.chenamespace)

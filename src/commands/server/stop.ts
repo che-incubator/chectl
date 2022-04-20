@@ -56,7 +56,7 @@ export default class Stop extends Command {
     )
 
     tasks.add(apiTasks.testApiTasks(flags))
-    tasks.add(cheTasks.checkIfCheIsInstalledTasks(flags))
+    tasks.add(cheTasks.getCheckIfCheIsInstalledTasks(flags))
     tasks.add([
       {
         title: 'Deployment doesn\'t exist',
@@ -68,8 +68,8 @@ export default class Stop extends Command {
     ],
     { renderer: flags['listr-renderer'] as any }
     )
-    tasks.add(cheTasks.scaleCheDownTasks())
-    tasks.add(cheTasks.waitPodsDeletedTasks())
+    tasks.add(cheTasks.getSaleCheDownTasks())
+    tasks.add(cheTasks.getWaitPodsDeletedTasks())
     try {
       await tasks.run()
       cli.log(getCommandSuccessMessage())
