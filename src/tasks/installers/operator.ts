@@ -33,7 +33,7 @@ import {V1Certificate} from '../../api/types/cert-manager'
 import {OpenShiftHelper} from '../../api/openshift'
 
 export class OperatorTasks {
-  private static readonly WEBHOOK_SERVICE = 'che-operator-webhook-service'
+  private static readonly WEBHOOK_SERVICE = 'che-operator-service'
   private static readonly CERTIFICATE = 'che-operator-serving-cert'
   private static readonly ISSUER = 'che-operator-selfsigned-issuer'
   private static readonly SERVICE_ACCOUNT = 'che-operator'
