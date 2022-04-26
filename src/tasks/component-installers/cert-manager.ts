@@ -37,13 +37,21 @@ export class CertManagerTasks {
   /**
    * Verify if cert-manager is installed in cluster
    */
-  getDeployCertManagerTasks(): ReadonlyArray<Listr.ListrTask> {
+   getDeployCertManagerTasks(): ReadonlyArray<Listr.ListrTask> {
+    const checkIfCertManagerAlreadyDeployed = async () => {
+      const certManagerCrd = await this.kubeHelper.getCrd('certificates.cert-manager.io')
+      if (certManagerCrd) {
+        return true
+      }
+      return false
+    }
+
     return [
       {
         title: 'Install Cert Manager',
         task: async (_ctx: any, task: any) => {
-          const certManagerCrd = await this.kubeHelper.getCrd('certificates.cert-manager.io')
-          if (certManagerCrd) {
+          const isCertManagerCrd = await checkIfCertManagerAlreadyDeployed()
+          if (isCertManagerCrd) {
             task.title = `${task.title}...[Exists]`
           } else {
             const yamlPath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'cert-manager', 'cert-manager.yml')
@@ -55,11 +63,16 @@ export class CertManagerTasks {
       {
         title: 'Wait for Cert Manager',
         task: async (ctx: any, task: any) => {
-          await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cert-manager', CERT_MANAGER_NAMESPACE_NAME)
-          await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=webhook', CERT_MANAGER_NAMESPACE_NAME)
-          await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cainjector', CERT_MANAGER_NAMESPACE_NAME)
+          const isCertManagerAlreadyDeployed = await checkIfCertManagerAlreadyDeployed()
+          if (!isCertManagerAlreadyDeployed) {
+            await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cert-manager', CERT_MANAGER_NAMESPACE_NAME)
+            await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=webhook', CERT_MANAGER_NAMESPACE_NAME)
+            await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=cainjector', CERT_MANAGER_NAMESPACE_NAME)
 
-          task.title = `${task.title}...[OK]`
+            task.title = `${task.title}...[OK]`
+          } else {
+            task.title = `${task.title}...[Skipped: Cert Manager already deployed]`
+          }
         },
       },
     ]
