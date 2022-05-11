@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { AdmissionregistrationV1Api, ApiextensionsV1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, KubeConfig, Log, NetworkingV1Api, PortForward, RbacAuthorizationV1Api, V1ClusterRole, V1ClusterRoleBinding, V1ClusterRoleBindingList, V1ConfigMap, V1Container, V1ContainerStateTerminated, V1ContainerStateWaiting, V1Deployment, V1Ingress, V1Job, V1JobSpec, V1Namespace, V1ObjectMeta, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleBindingList, V1RoleList, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, Watch } from '@kubernetes/client-node'
+import { AdmissionregistrationV1Api, ApiextensionsV1Api, ApisApi, AppsV1Api, AuthorizationV1Api, CoreV1Api, CustomObjectsApi, KubeConfig, Log, NetworkingV1Api, PortForward, RbacAuthorizationV1Api, V1ClusterRole, V1ClusterRoleBinding, V1ClusterRoleBindingList, V1ConfigMap, V1ContainerStateTerminated, V1ContainerStateWaiting, V1Deployment, V1Ingress, V1Namespace, V1ObjectMeta, V1Pod, V1PodCondition, V1PodList, V1Role, V1RoleBinding, V1RoleBindingList, V1RoleList, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, Watch } from '@kubernetes/client-node'
 import { Cluster } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
@@ -140,63 +140,6 @@ export class KubeHelper {
     }
   }
 
-  async createServiceAccount(name: string, namespace: string) {
-    const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
-    const sa = new V1ServiceAccount()
-    sa.metadata = new V1ObjectMeta()
-    sa.metadata.name = name
-    sa.metadata.namespace = namespace
-    try {
-      return await k8sCoreApi.createNamespacedServiceAccount(namespace, sa)
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async waitServiceAccount(name: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      // Set up watcher
-      const watcher = new Watch(this.kubeConfig)
-      const request = await watcher
-      .watch(`/api/v1/namespaces/${namespace}/serviceaccounts`, {},
-        (_phase: string, obj: any) => {
-          const serviceAccount = obj as V1ServiceAccount
-
-          // Filter other service accounts in the given namespace
-          if (serviceAccount && serviceAccount.metadata && serviceAccount.metadata.name === name) {
-            // The service account is present, stop watching
-            if (request) {
-              request.abort()
-            }
-            // Release awaiter
-            resolve()
-          }
-        },
-        error => {
-          if (error) {
-            reject(error)
-          }
-        })
-
-      // Automatically stop watching after timeout
-      const timeoutHandler = setTimeout(() => {
-        request.abort()
-        reject(`Timeout reached while waiting for "${name}" service account.`)
-      }, timeout * 1000)
-
-      // Request service account, for case if it is already exist
-      const serviceAccount = await this.getSecret(name, namespace)
-      if (serviceAccount) {
-        // Stop watching
-        request.abort()
-        clearTimeout(timeoutHandler)
-
-        // Relese awaiter
-        resolve()
-      }
-    })
-  }
-
   async deleteServiceAccount(name: string, namespace: string): Promise<void> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
@@ -255,16 +198,6 @@ export class KubeHelper {
       }
 
       throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async getClusterRole(name: string): Promise<V1ClusterRole | undefined> {
-    const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
-    try {
-      const { body } = await k8sRbacAuthApi.readClusterRole(name)
-      return body
-    } catch {
-      return
     }
   }
 
@@ -357,32 +290,6 @@ export class KubeHelper {
       return res.response.statusCode
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async addClusterRoleRule(name: string, apiGroups: string[], resources: string[], verbs: string[]): Promise<V1ClusterRole | undefined> {
-    const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
-    const clusterRole = await this.getClusterRole(name)
-    if (clusterRole) {
-      // Clean up metadata, otherwise replace role call will fail
-      clusterRole.metadata = {}
-      clusterRole.metadata.name = name
-
-      // Add new policy
-      const additionaRule = new V1PolicyRule()
-      additionaRule.apiGroups = apiGroups
-      additionaRule.resources = resources
-      additionaRule.verbs = verbs
-      if (clusterRole.rules) {
-        clusterRole.rules.push(additionaRule)
-      }
-
-      try {
-        const { body } = await k8sRbacAuthApi.replaceClusterRole(name, clusterRole)
-        return body
-      } catch {
-        return
-      }
     }
   }
 
@@ -617,16 +524,6 @@ export class KubeHelper {
     }
   }
 
-  public async replaceConfigMap(name: string, configMap: V1ConfigMap, namespace: string): Promise<void> {
-    const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
-
-    try {
-      await k8sCoreApi.replaceNamespacedConfigMap(name, namespace, configMap)
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
   async deleteConfigMap(name: string, namespace: string): Promise<void> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
@@ -700,26 +597,6 @@ export class KubeHelper {
       }
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async patchNamespacedPod(name: string, namespace: string, patch: any): Promise<V1Pod | undefined> {
-    const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
-
-    // It is required to patch content-type, otherwise request will be rejected with 415 (Unsupported media type) error.
-    const requestOptions = {
-      headers: {
-        'content-type': 'application/strategic-merge-patch+json',
-      },
-    }
-
-    try {
-      const res = await k8sCoreApi.patchNamespacedPod(name, namespace, patch, undefined, undefined, undefined, undefined, requestOptions)
-      if (res && res.body) {
-        return res.body
-      }
-    } catch {
-      return
     }
   }
 
@@ -1059,107 +936,6 @@ export class KubeHelper {
       throw this.wrapK8sClientError(error)
     }
     throw new Error('ERR_GET_DEPLOYMENT')
-  }
-
-  async createJob(name: string,
-    image: string,
-    serviceAccount: string,
-    namespace: string,
-    backoffLimit = 0,
-    restartPolicy = 'Never') {
-    const k8sBatchApi = this.kubeConfig.makeApiClient(BatchV1Api)
-
-    const job = new V1Job()
-    job.metadata = new V1ObjectMeta()
-    job.metadata.name = name
-    job.metadata.labels = { app: name }
-    job.metadata.namespace = namespace
-    job.spec = new V1JobSpec()
-    job.spec.ttlSecondsAfterFinished = 10
-    job.spec.backoffLimit = backoffLimit
-    job.spec.template = new V1PodTemplateSpec()
-    job.spec.template.spec = new V1PodSpec()
-    job.spec.template.spec.serviceAccountName = serviceAccount
-    const jobContainer = new V1Container()
-    jobContainer.name = name
-    jobContainer.image = image
-    job.spec.template.spec.restartPolicy = restartPolicy
-    job.spec.template.spec.containers = [jobContainer]
-
-    try {
-      return await k8sBatchApi.createNamespacedJob(namespace, job)
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async getJob(name: string, namespace: string): Promise<V1Job> {
-    const k8sBatchApi = this.kubeConfig.makeApiClient(BatchV1Api)
-
-    try {
-      const result = await k8sBatchApi.readNamespacedJob(name, namespace)
-      return result.body
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async waitJob(name: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      // Set up watcher
-      const watcher = new Watch(this.kubeConfig)
-      const request = await watcher
-      .watch(`/apis/batch/v1/namespaces/${namespace}/jobs/`, {},
-        (_phase: string, obj: any) => {
-          const job = obj as V1Job
-
-          // Filter other jobs in the given namespace
-          if (job && job.metadata && job.metadata.name === name) {
-            // Check job status
-            if (job.status && job.status.succeeded && job.status.succeeded >= 1) {
-              // Job is finished, stop watching
-              if (request) {
-                request.abort()
-              }
-              // Release awaiter
-              resolve()
-            }
-          }
-        },
-        error => {
-          if (error) {
-            reject(error)
-          }
-        })
-
-      // Automatically stop watching after timeout
-      const timeoutHandler = setTimeout(() => {
-        request.abort()
-        reject(`Timeout reached while waiting for "${name}" job.`)
-      }, timeout * 1000)
-
-      // Request job, for case if it is already ready
-      const job = await this.getJob(name, namespace)
-      if (job.status && job.status.succeeded && job.status.succeeded >= 1) {
-        // Stop watching
-        request.abort()
-        clearTimeout(timeoutHandler)
-
-        // Relese awaiter
-        resolve()
-      }
-    })
-  }
-
-  async deleteJob(name: string, namespace: string): Promise<boolean> {
-    const k8sBatchApi = this.kubeConfig.makeApiClient(BatchV1Api)
-
-    try {
-      const result = await k8sBatchApi.deleteNamespacedJob(name, namespace)
-      return result.body.status === 'Success'
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
-    }
   }
 
   async createIngress(ingress: V1Ingress, namespace: string) {
@@ -1922,22 +1698,6 @@ export class KubeHelper {
     }
   }
 
-  async isClusterIssuerExists(name: string): Promise<boolean> {
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-
-    try {
-      // If cluster issuers doesn't exist an exception will be thrown
-      await customObjectsApi.getClusterCustomObject('cert-manager.io', 'v1', 'clusterissuers', name)
-      return true
-    } catch (e: any) {
-      if (e.response && e.response.statusCode === 404) {
-        return false
-      }
-
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
   async deleteCertificate(name: string, namespace: string): Promise<void> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
@@ -1960,35 +1720,6 @@ export class KubeHelper {
       if (e.response.statusCode !== 404) {
         throw this.wrapK8sClientError(e)
       }
-    }
-  }
-
-  async listClusterIssuers(labelSelector?: string): Promise<any[]> {
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-
-    let res
-    try {
-      res = await customObjectsApi.listClusterCustomObject('cert-manager.io', 'v1', 'clusterissuers', undefined, undefined, undefined, labelSelector)
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
-    }
-
-    if (!res || !res.body) {
-      throw new Error('Unable to get cluster issuers list')
-    }
-    const clusterIssuersList: { items?: any[] } = res.body
-
-    return clusterIssuersList.items || []
-  }
-
-  async createClusterIssuerFromFile(cheClusterIssuerYamlPath: string): Promise<void> {
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-
-    const cheClusterIssuer = this.safeLoadFromYamlFile(cheClusterIssuerYamlPath)
-    try {
-      await customObjectsApi.createClusterCustomObject('cert-manager.io', 'v1', 'clusterissuers', cheClusterIssuer)
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -2190,6 +1921,19 @@ export class KubeHelper {
       }
     } catch {
       return
+    }
+  }
+
+  async isSecretExists(name: string, namespace: string): Promise<boolean> {
+    const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
+    try {
+      await k8sCoreApi.readNamespacedSecret(name, namespace)
+      return true
+    } catch (e: any) {
+      if (e.response && e.response.statusCode === 404) {
+        return false
+      }
+      throw this.wrapK8sClientError(e)
     }
   }
 

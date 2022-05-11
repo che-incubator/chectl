@@ -21,11 +21,15 @@ import { batch, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOpera
 import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOC_LINK_CONFIGURE_API_SERVER } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DexTasks } from '../../tasks/component-installers/dex'
-import { createNamespaceTask, getPrintHighlightedMessagesTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
-import { InstallerTasks } from '../../tasks/installers/installer'
+import {
+  createNamespaceTask,
+  getPrintHighlightedMessagesTask,
+  retrieveCheCaCertificateTask,
+} from '../../tasks/installers/common-tasks'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getWarnVersionFlagMsg, isKubernetesPlatformFamily, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import { InstallerTasks } from '../../tasks/installers/installer'
 
 export default class Deploy extends Command {
   static description = 'Deploy Eclipse Che server'
@@ -180,6 +184,10 @@ export default class Deploy extends Command {
                     This parameter is used only when the installer is 'olm'.`,
     }),
     'skip-kubernetes-health-check': skipK8sHealthCheck,
+    'skip-cert-manager': boolean({
+      default: false,
+      description: 'Skip installing Cert Manager on the Kubernetes cluster.',
+    }),
     telemetry: CHE_TELEMETRY,
     [DEPLOY_VERSION_KEY]: cheDeployVersion,
   }

@@ -111,13 +111,12 @@ export class DexTasks {
                 if (!await this.kube.getSecret(DexTasks.TLS_SECRET_NAME, DexTasks.NAMESPACE_NAME)) {
                   const certManager = new CertManagerTasks(this.flags)
                   certs.add(certManager.getDeployCertManagerTasks())
-                  certs.add(certManager.getGenerateCertManagerCACertificateTasks())
-                  certs.add(certManager.getCreateCertificateIssuerTasks())
 
                   const domain = 'dex.' + this.flags.domain
                   const commonName = '*.' + domain
                   const dnsNames = [domain, commonName]
-                  certs.add(certManager.getGenerateCertificatesTasks(this.flags, commonName, dnsNames, DexTasks.TLS_SECRET_NAME, DexTasks.NAMESPACE_NAME))
+                  certs.add(certManager.getCreateIssuerTasks(DexTasks.NAMESPACE_NAME))
+                  certs.add(certManager.getCreateCertificateTasks(this.flags, commonName, dnsNames, DexTasks.TLS_SECRET_NAME, DexTasks.NAMESPACE_NAME))
                 }
 
                 certs.add([{
@@ -285,7 +284,8 @@ export class DexTasks {
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DOMAIN, 'g'), this.flags.domain)
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.CLIENT_ID, 'g'), DexTasks.CLIENT_ID)
                   // generate client secret
-                  const clientSecret = crypto.randomBytes(32).toString('base64')
+                  let clientSecret = crypto.randomBytes(32).toString('base64')
+                  clientSecret = 'EclipseChe'
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.CLIENT_SECRET, 'g'), clientSecret)
 
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DEX_PASSWORD_HASH, 'g'), ctx[DexContextKeys.DEX_PASSWORD_HASH])
