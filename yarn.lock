@@ -2504,7 +2504,7 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-operator@https://github.com/eclipse-che/che-operator#main":
   version "0.0.0"
-  resolved "https://github.com/eclipse-che/che-operator#1f18c5609277a231fccd501ae8f03c141608ff5d"
+  resolved "https://github.com/eclipse-che/che-operator#00d30e4547d62ee8971e79b85839fba08301b12e"
 
 editorconfig@^0.15.0:
   version "0.15.3"

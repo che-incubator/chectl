@@ -38,7 +38,7 @@ export default class Debug extends Command {
 
   async run() {
     const { flags } = this.parse(Debug)
-    flags.chenamespace = await findWorkingNamespace(flags)
+    flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags)
     const ctx = await ChectlContext.initAndGet(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Debug.id, flags })
