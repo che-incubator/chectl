@@ -26,7 +26,7 @@ import { promisify } from 'util'
 import { ChectlContext } from './api/context'
 import { KubeHelper } from './api/kube'
 import { VersionHelper } from './api/version'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_API_VERSION_V2, CHE_TLS_SECRET_NAME, DEFAULT_CHE_NAMESPACE, LEGACY_CHE_NAMESPACE } from './constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_API_VERSION_V2, CHE_TLS_SECRET_NAME} from './constants'
 
 const pkjson = require('../package.json')
 
@@ -304,28 +304,12 @@ export function getEmbeddedTemplatesDirectory(): string {
   return path.join(__dirname, '..', 'templates')
 }
 
-/**
- * The default Eclipse Che namespace has been changed from 'che' to 'eclipse-che'.
- * It checks if legacy namespace 'che' exists. If so all chectl commands
- * will launched against that namespace otherwise default 'eclipse-che' namespace will be used.
- */
-export async function findWorkingNamespace(flags: any): Promise<string> {
-  if (flags.chenamespace) {
-    // use user specified namespace
-    return flags.chenamespace
-  }
-
+export async function findWorkingNamespace(flags: any): Promise<string | undefined> {
   const kubeHelper = new KubeHelper(flags)
-
-  if (await kubeHelper.getNamespace(DEFAULT_CHE_NAMESPACE)) {
-    return DEFAULT_CHE_NAMESPACE
+  const checlusters = await kubeHelper.getAllCheClusters()
+  if (checlusters.length === 1) {
+    return checlusters[0].metadata.namespace
   }
-
-  if (await kubeHelper.getNamespace(LEGACY_CHE_NAMESPACE)) {
-    return LEGACY_CHE_NAMESPACE
-  }
-
-  return DEFAULT_CHE_NAMESPACE
 }
 
 /**
