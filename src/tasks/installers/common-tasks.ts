@@ -79,9 +79,9 @@ export function createEclipseCheClusterTask(flags: any, kube: KubeHelper): Listr
         ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || checluster.spec.server.externalPluginRegistry
         ctx.isPostgresReady = ctx.isPostgresReady || checluster.spec.database.externalDb
       } else {
-        ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || checluster.spec.operands?.pluginRegistry?.disableInternalRegistry
-        ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || checluster.spec.operands?.devfileRegistry?.disableInternalRegistry
-        ctx.isPostgresReady = ctx.isPostgresReady || checluster.spec.operands?.database?.externalDb
+        ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || checluster.spec.components?.pluginRegistry?.disableInternalRegistry
+        ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || checluster.spec.components?.devfileRegistry?.disableInternalRegistry
+        ctx.isPostgresReady = ctx.isPostgresReady || checluster.spec.components?.database?.externalDb
       }
 
       task.title = `${task.title}...[Created].`

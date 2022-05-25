@@ -1051,10 +1051,10 @@ export class KubeHelper {
         }
       } else {
         if (flags.cheimage) {
-          merge(cheClusterCR, { spec: { operands: { cheServer: { deployment: { containers: [{ image: flags.cheimage }] } } } } })
+          merge(cheClusterCR, { spec: { components: { cheServer: { deployment: { containers: [{ image: flags.cheimage }] } } } } })
         }
 
-        merge(cheClusterCR, { spec: { operands: { cheServer: { debug: flags.debug } } } })
+        merge(cheClusterCR, { spec: { components: { cheServer: { debug: flags.debug } } } })
 
         if (!ctx[ChectlContext.IS_OPENSHIFT]) {
           if (!cheClusterCR.spec.ingress?.tlsSecretName) {
@@ -1068,16 +1068,16 @@ export class KubeHelper {
 
         const pluginRegistryUrl = flags['plugin-registry-url']
         if (pluginRegistryUrl) {
-          merge(cheClusterCR, { spec: { operands: { pluginRegistry: { disableInternalRegistry: true, externalPluginRegistries: [{ url: pluginRegistryUrl }]} } } })
+          merge(cheClusterCR, { spec: { components: { pluginRegistry: { disableInternalRegistry: true, externalPluginRegistries: [{ url: pluginRegistryUrl }]} } } })
         }
 
         const devfileRegistryUrl = flags['devfile-registry-url']
         if (devfileRegistryUrl) {
-          merge(cheClusterCR, { spec: { operands: { devfileRegistry: { disableInternalRegistry: true, externalDevfileRegistries: [{ url: devfileRegistryUrl }]} } } })
+          merge(cheClusterCR, { spec: { components: { devfileRegistry: { disableInternalRegistry: true, externalDevfileRegistries: [{ url: devfileRegistryUrl }]} } } })
         }
 
         if (flags['postgres-pvc-storage-class-name']) {
-          merge(cheClusterCR, { spec: { operands: { database: { pvc: { storageClass: flags['postgres-pvc-storage-class-name'] } } } } })
+          merge(cheClusterCR, { spec: { components: { database: { pvc: { storageClass: flags['postgres-pvc-storage-class-name'] } } } } })
         }
 
         if (flags['workspace-pvc-storage-class-name']) {
@@ -1090,7 +1090,7 @@ export class KubeHelper {
       if (isCheClusterApiV1) {
         cheClusterCR.spec.server.cheClusterRoles = ctx.namespaceEditorClusterRoleName
       } else {
-        merge(cheClusterCR, { spec: {operands: { cheServer: { clusterRoles: (ctx.namespaceEditorClusterRoleName as string).split(',')} } } })
+        merge(cheClusterCR, { spec: {components: { cheServer: { clusterRoles: (ctx.namespaceEditorClusterRoleName as string).split(',')} } } })
       }
     }
 
