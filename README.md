@@ -337,11 +337,6 @@ OPTIONS
       If options was not set, will be used default version for package manifest.
       This parameter is used only when the installer is the 'olm'.
 
-  --[no-]olm-suggested-namespace
-      Indicate to deploy Eclipse Che in OLM suggested namespace: 'eclipse-che'.
-      Flag 'chenamespace' is ignored in this case
-      This parameter is used only when the installer is 'olm'.
-
   --package-manifest-name=package-manifest-name
       Package manifest name to subscribe to Eclipse Che OLM package manifest.
       This parameter is used only when the installer is the 'olm'.
