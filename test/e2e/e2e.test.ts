@@ -15,7 +15,7 @@
 import { expect } from '@oclif/test'
 import * as execa from 'execa'
 import { E2eHelper } from './util'
-import {DEFAULT_CHE_NAMESPACE} from "../../lib/constants";
+import { DEFAULT_CHE_NAMESPACE } from '../../src/constants';
 
 jest.setTimeout(1000000)
 
