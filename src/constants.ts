@@ -41,7 +41,6 @@ export const CHE_CLUSTER_CR_NAME = 'eclipse-che'
 export const OPERATOR_DEPLOYMENT_NAME = 'che-operator'
 export const CHE_OPERATOR_SELECTOR = 'app=che-operator'
 export const DEFAULT_CHE_NAMESPACE = 'eclipse-che'
-export const LEGACY_CHE_NAMESPACE = 'che'
 
 // OLM common
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'eclipse-che'
@@ -62,7 +61,6 @@ export const CUSTOM_CATALOG_SOURCE_NAME = 'eclipse-che-custom-catalog-source'
 export const NEXT_CATALOG_SOURCE_NAME = 'eclipse-che-preview'
 export const NEXT_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR = 'custom-devworkspace-operator-catalog'
 export const STABLE_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR = 'stable-custom-devworkspace-operator-catalog'
-export const DEFAULT_OLM_SUGGESTED_NAMESPACE = 'eclipse-che'
 export const KUBERNETES_OLM_CATALOG = 'operatorhubio-catalog'
 export const OPENSHIFT_OLM_CATALOG = 'community-operators'
 

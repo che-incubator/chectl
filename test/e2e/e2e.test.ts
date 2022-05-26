@@ -14,14 +14,14 @@
 
 import { expect } from '@oclif/test'
 import * as execa from 'execa'
-import { DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
 import { E2eHelper } from './util'
+import { DEFAULT_CHE_NAMESPACE } from '../../src/constants';
 
 jest.setTimeout(1000000)
 
 const binChectl = E2eHelper.getChectlBinaries()
 
-const NAMESPACE = DEFAULT_OLM_SUGGESTED_NAMESPACE
+const NAMESPACE = DEFAULT_CHE_NAMESPACE
 
 const PLATFORM = process.env.PLATFORM || ''
 const INSTALLER = process.env.INSTALLER || ''
