@@ -62,7 +62,6 @@ export const CUSTOM_CATALOG_SOURCE_NAME = 'eclipse-che-custom-catalog-source'
 export const NEXT_CATALOG_SOURCE_NAME = 'eclipse-che-preview'
 export const NEXT_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR = 'custom-devworkspace-operator-catalog'
 export const STABLE_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR = 'stable-custom-devworkspace-operator-catalog'
-export const DEFAULT_OLM_SUGGESTED_NAMESPACE = 'eclipse-che'
 export const KUBERNETES_OLM_CATALOG = 'operatorhubio-catalog'
 export const OPENSHIFT_OLM_CATALOG = 'community-operators'
 

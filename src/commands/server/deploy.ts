@@ -18,7 +18,7 @@ import { CertManagerTasks } from '../../tasks/component-installers/cert-manager'
 import { ChectlContext, OIDCContextKeys, OLM } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { batch, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOC_LINK_CONFIGURE_API_SERVER } from '../../constants'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DOC_LINK_CONFIGURE_API_SERVER } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DexTasks } from '../../tasks/component-installers/dex'
 import { createNamespaceTask, getPrintHighlightedMessagesTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
@@ -172,13 +172,6 @@ export default class Deploy extends Command {
       description: `Enable cluster monitoring to scrape Eclipse Che metrics in Prometheus.
                     This parameter is used only when the platform is 'openshift'.`,
     }),
-    'olm-suggested-namespace': boolean({
-      default: true,
-      allowNo: true,
-      description: `Indicate to deploy Eclipse Che in OLM suggested namespace: '${DEFAULT_OLM_SUGGESTED_NAMESPACE}'.
-                    Flag 'chenamespace' is ignored in this case
-                    This parameter is used only when the installer is 'olm'.`,
-    }),
     'skip-kubernetes-health-check': skipK8sHealthCheck,
     telemetry: CHE_TELEMETRY,
     [DEPLOY_VERSION_KEY]: cheDeployVersion,
@@ -192,11 +185,6 @@ export default class Deploy extends Command {
     if (!flags.installer) {
       await setDefaultInstaller(flags)
       cli.info(`› Installer type is set to: '${flags.installer}'`)
-    }
-
-    if (flags.installer === 'olm' && flags['olm-suggested-namespace']) {
-      flags.chenamespace = DEFAULT_OLM_SUGGESTED_NAMESPACE
-      cli.info(` ❕olm-suggested-namespace flag is turned on. Eclipse Che will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
     }
   }
 
