@@ -10,7 +10,44 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { AdmissionregistrationV1Api, ApiextensionsV1Api, ApisApi, AppsV1Api, AuthorizationV1Api, CoreV1Api, CustomObjectsApi, KubeConfig, Log, NetworkingV1Api, PortForward, RbacAuthorizationV1Api, V1ClusterRole, V1ClusterRoleBinding, V1ClusterRoleBindingList, V1ConfigMap, V1ContainerStateTerminated, V1ContainerStateWaiting, V1Deployment, V1Ingress, V1Namespace, V1ObjectMeta, V1Pod, V1PodCondition, V1PodList, V1Role, V1RoleBinding, V1RoleBindingList, V1RoleList, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, Watch } from '@kubernetes/client-node'
+import {
+  AdmissionregistrationV1Api,
+  ApiextensionsV1Api,
+  ApisApi,
+  AppsV1Api,
+  AuthorizationV1Api,
+  CoreV1Api,
+  CustomObjectsApi,
+  KubeConfig,
+  Log,
+  NetworkingV1Api,
+  PortForward,
+  RbacAuthorizationV1Api,
+  V1ClusterRole,
+  V1ClusterRoleBinding,
+  V1ClusterRoleBindingList,
+  V1ConfigMap,
+  V1ContainerStateTerminated,
+  V1ContainerStateWaiting,
+  V1Deployment,
+  V1Ingress,
+  V1Namespace,
+  V1ObjectMeta,
+  V1Pod,
+  V1PodCondition,
+  V1PodList,
+  V1Role,
+  V1RoleBinding,
+  V1RoleBindingList,
+  V1RoleList,
+  V1Secret,
+  V1SelfSubjectAccessReview,
+  V1SelfSubjectAccessReviewSpec,
+  V1Service,
+  V1ServiceAccount,
+  V1ServiceList,
+  Watch
+} from '@kubernetes/client-node'
 import { Cluster } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
@@ -1311,6 +1348,16 @@ export class KubeHelper {
         return false
       }
 
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async listOAuthClientBySelector(selector: string): Promise<any[]> {
+    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      const {body} = await customObjectsApi.listClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclients', undefined, undefined, undefined, selector)
+      return (body as any).items
+    } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
   }

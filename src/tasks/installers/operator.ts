@@ -486,14 +486,21 @@ export class OperatorTasks {
         task: async (_ctx: any, task: any) => {
           try {
             const checluster = await kh.getCheClusterV1(flags.chenamespace)
-            if (isCheClusterAPIV1(checluster)) {
-              if (checluster?.spec?.auth?.oAuthClientName) {
-                await kh.deleteOAuthClient(checluster.spec.auth.oAuthClientName)
+            if (checluster) {
+              if (isCheClusterAPIV1(checluster)) {
+                if (checluster?.spec?.auth?.oAuthClientName) {
+                  await kh.deleteOAuthClient(checluster.spec.auth.oAuthClientName)
+                }
+              } else {
+                if (checluster?.spec?.ingress?.auth?.oAuthClientName) {
+                  await kh.deleteOAuthClient(checluster.spec.ingress.auth.oAuthClientName)
+                }
               }
-            } else {
-              if (checluster?.spec?.ingress?.auth?.oAuthClientName) {
-                await kh.deleteOAuthClient(checluster.spec.ingress.auth.oAuthClientName)
-              }
+            }
+
+            const oauthClients = await kh.listOAuthClientBySelector('app.kubernetes.io/part-of=che.eclipse.org')
+            for (const oauthClient of oauthClients) {
+              await kh.deleteOAuthClient(oauthClient.metadata.name)
             }
 
             task.title = `${task.title}...[Ok]`
