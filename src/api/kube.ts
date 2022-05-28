@@ -46,7 +46,7 @@ import {
   V1Service,
   V1ServiceAccount,
   V1ServiceList,
-  Watch
+  Watch,
 } from '@kubernetes/client-node'
 import { Cluster } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
