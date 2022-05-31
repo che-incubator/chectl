@@ -26,7 +26,12 @@ import { promisify } from 'util'
 import { ChectlContext } from './api/context'
 import { KubeHelper } from './api/kube'
 import { VersionHelper } from './api/version'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_API_VERSION_V2, CHE_TLS_SECRET_NAME} from './constants'
+import {
+  CHE_CLUSTER_API_GROUP,
+  CHE_CLUSTER_API_VERSION_V1,
+  CHE_CLUSTER_API_VERSION_V2,
+  CHE_TLS_SECRET_NAME,
+} from './constants'
 
 const pkjson = require('../package.json')
 
@@ -371,21 +376,23 @@ export function confirmYN(): Promise<boolean> {
   })
 }
 
-export function getTlsSecretName(ctx: any): string {
+export function getTlsSecretName(ctx: any): string  {
   const crPatch = ctx[ChectlContext.CR_PATCH]
 
-  // v1
-  if (crPatch?.spec?.k8s?.tlsSecretName) {
-    return crPatch.spec.k8s.tlsSecretName
-  } else if (ctx.customCR?.spec?.k8s?.tlsSecretName) {
-    return ctx.customCR.spec.k8s.tlsSecretName
+  if (crPatch?.spec?.k8s?.tlsSecretName !== undefined) {
+    return crPatch?.spec?.k8s?.tlsSecretName
   }
 
-  // v2
-  if (crPatch?.spec?.ingress?.tlsSecretName) {
-    return crPatch.spec.ingress.tlsSecretName
-  } else if (ctx.customCR?.ingress?.tlsSecretName) {
-    return ctx.customCR.ingress.tlsSecretName
+  if (crPatch?.spec?.networking?.tlsSecretName !== undefined) {
+    return crPatch?.spec?.networking?.tlsSecretName
+  }
+
+  if (ctx.customCR?.spec?.k8s?.tlsSecretName !== undefined) {
+    return ctx.customCR?.spec?.k8s?.tlsSecretName
+  }
+
+  if (ctx.customCR?.networking?.tlsSecretName !== undefined) {
+    return ctx.customCR?.networking?.tlsSecretName
   }
 
   return CHE_TLS_SECRET_NAME
