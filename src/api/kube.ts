@@ -1094,13 +1094,13 @@ export class KubeHelper {
         merge(cheClusterCR, { spec: { components: { cheServer: { debug: flags.debug } } } })
 
         if (!ctx[ChectlContext.IS_OPENSHIFT]) {
-          if (!cheClusterCR.spec.ingress?.tlsSecretName) {
-            merge(cheClusterCR, { spec: { ingress: { tlsSecretName: CHE_TLS_SECRET_NAME } }  })
+          if (!cheClusterCR.spec.networking?.tlsSecretName) {
+            merge(cheClusterCR, { spec: { networking: { tlsSecretName: CHE_TLS_SECRET_NAME } }  })
           }
         }
 
         if (flags.domain) {
-          merge(cheClusterCR, { spec: { ingress: { domain: flags.domain } }  })
+          merge(cheClusterCR, { spec: { networking: { domain: flags.domain } }  })
         }
 
         const pluginRegistryUrl = flags['plugin-registry-url']

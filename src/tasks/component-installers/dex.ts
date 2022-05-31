@@ -212,7 +212,7 @@ export class DexTasks {
                 if (isCheClusterAPIV1(ctx[ChectlContext.DEFAULT_CR])) {
                   merge(ctx[ChectlContext.CR_PATCH], { spec: { auth: { identityProviderURL: 'http://dex.dex:5556' } } })
                 } else {
-                  merge(ctx[ChectlContext.CR_PATCH], { spec: { ingress: { auth: { identityProviderURL: 'http://dex.dex:5556' } } } })
+                  merge(ctx[ChectlContext.CR_PATCH], { spec: { networking: { auth: { identityProviderURL: 'http://dex.dex:5556' } } } })
                 }
               },
             },
@@ -274,7 +274,7 @@ export class DexTasks {
                   if (isCheClusterAPIV1(ctx[ChectlContext.DEFAULT_CR])) {
                     merge(ctx[ChectlContext.CR_PATCH], { spec: { auth: { oAuthClientName: DexTasks.CLIENT_ID, oAuthSecret: eclipseCheClient.secret } } })
                   } else {
-                    merge(ctx[ChectlContext.CR_PATCH], { spec: { ingress: { auth: { oAuthClientName: DexTasks.CLIENT_ID, oAuthSecret: eclipseCheClient.secret } } } })
+                    merge(ctx[ChectlContext.CR_PATCH], { spec: { networking: { auth: { oAuthClientName: DexTasks.CLIENT_ID, oAuthSecret: eclipseCheClient.secret } } } })
                   }
 
                   task.title = `${task.title}...[Exists]`
@@ -297,7 +297,7 @@ export class DexTasks {
                   if (isCheClusterAPIV1(ctx[ChectlContext.DEFAULT_CR])) {
                     merge(ctx[ChectlContext.CR_PATCH], { spec: { auth: { oAuthClientName: DexTasks.CLIENT_ID, oAuthSecret: clientSecret } } })
                   } else {
-                    merge(ctx[ChectlContext.CR_PATCH], { spec: { ingress: { auth: { oAuthClientName: DexTasks.CLIENT_ID, oAuthSecret: clientSecret } } } })
+                    merge(ctx[ChectlContext.CR_PATCH], { spec: { networking: { auth: { oAuthClientName: DexTasks.CLIENT_ID, oAuthSecret: clientSecret } } } })
                   }
 
                   task.title = `${task.title}...[OK]`

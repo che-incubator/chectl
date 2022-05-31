@@ -492,8 +492,8 @@ export class OperatorTasks {
                   await kh.deleteOAuthClient(checluster.spec.auth.oAuthClientName)
                 }
               } else {
-                if (checluster?.spec?.ingress?.auth?.oAuthClientName) {
-                  await kh.deleteOAuthClient(checluster.spec.ingress.auth.oAuthClientName)
+                if (checluster?.spec?.networking?.auth?.oAuthClientName) {
+                  await kh.deleteOAuthClient(checluster.spec.networking.auth.oAuthClientName)
                 }
               }
             }
