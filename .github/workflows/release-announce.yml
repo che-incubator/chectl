@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019-2021 Red Hat, Inc.
+# Copyright (c) 2019-2022 Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -16,6 +16,11 @@ on:
   push:
     tags:
       - '7.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The version that is going to be released. Should be in format 7.y.z'
+        required: true
 jobs:
   announce:
     runs-on: ubuntu-20.04
@@ -24,17 +29,25 @@ jobs:
         id: TAG_UTIL
         run: |
           if [[ ${GITHUB_REF#refs/tags/} =~ 7.*.* ]]; then
-            echo "::set-output name=version::$(cat VERSION)"
+            echo "::set-output name=chectl_version::$(cat VERSION)"
             echo "::set-output name=gh_tag::/tag/$(cat VERSION)"
+            echo "MM_ANNOUNCE=true" >> "$GITHUB_ENV"
+          elif [[ ${{ github.event.inputs.version }} =~ 7.*.* ]]; then
+            echo "::set-output name=chectl_version::${{ github.event.inputs.version }}"
+            echo "::set-output name=gh_tag::/tag/${{ github.event.inputs.version }}"
+            echo "MM_ANNOUNCE=true" >> "$GITHUB_ENV"
           else
-            echo "Not a tag creation event - nothing to do!"
-            exit 1
+            echo "MM_ANNOUNCE=false" >> "$GITHUB_ENV"
           fi
       - name: Create success MM message
         run: |
-          echo "{\"text\":\":white_check_mark: Chectl ${{ steps.TAG_UTIL.outputs.version }} released: https://github.com/che-incubator/chectl/releases${{ steps.TAG_UTIL.outputs.gh_tag }}\"}" > mattermost.json
+          echo "{\"text\":\":white_check_mark: Chectl ${{ steps.TAG_UTIL.outputs.chectl_version }} released! https://github.com/che-incubator/chectl/releases${{ steps.TAG_UTIL.outputs.gh_tag }}\"}" > mattermost.json
+      - name: Create failure message
+        if: ${{ failure() }}
+        run: |
+          echo "{\"text\":\":che-logo: Problem with chectl ${{ steps.TAG_UTIL.outputs.chectl_version }} release!\n\n \"}" > mattermost.json
       - name: Send MM message
-        if: ${{ success() }} || ${{ failure() }}
+        if: ${{ env.MM_ANNOUNCE == 'true' }}
         uses: mattermost/action-mattermost-notify@1.0.2
         env:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
