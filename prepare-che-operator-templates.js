@@ -25,7 +25,7 @@ function prepareTemplates() {
       path.join(cheOperatorTemplates, platform, 'crds', 'org.eclipse.che_checlusters.yaml'))
     fs.copySync(
       path.join(deployFolder, platform, 'objects', 'che-operator.Deployment.yaml'),
-      path.join(cheOperatorTemplates, 'platform,operator.yaml'))
+      path.join(cheOperatorTemplates, platform, 'operator.yaml'))
     fs.copySync(
       path.join(deployFolder, platform, 'objects', 'che-operator.ServiceAccount.yaml'),
       path.join(cheOperatorTemplates, platform, 'service_account.yaml'))
