@@ -68,7 +68,7 @@ jobs:
           echo "{\"text\":\":no_entry_sign: Chectl ${{ github.event.inputs.version }} release PR creation failed: https://github.com/che-incubator/chectl/actions/workflows/release.yml\"}" > mattermost.json
       - name: Create success MM message
         run: |
-          echo "{\"text\":\":white_check_mark: Chectl ${{ github.event.inputs.version }} release PR has been created: https://github.com/che-incubator/chectl/pulls?q=is%3Apr+${{ github.event.inputs.version }}\"}" > mattermost.json
+          echo "{\"text\":\":white_check_mark: Chectl ${{ github.event.inputs.version }} release PR has been created: https://github.com/che-incubator/chectl/pulls?q=is%3Aopen+is%3Apr+${{ github.event.inputs.version }}\"}" > mattermost.json
       - name: Send MM message
         if: ${{ success() }} || ${{ failure() }}
         uses: mattermost/action-mattermost-notify@1.1.0
