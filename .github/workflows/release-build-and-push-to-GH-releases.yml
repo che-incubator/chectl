@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019-2021 Red Hat, Inc.
+# Copyright (c) 2019-2022 Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -37,12 +37,14 @@ jobs:
             echo "::set-output name=chectl_version::$(cat VERSION)"
             echo "::set-output name=gh_release_name::$(cat VERSION)"
             echo "::set-output name=gh_tag::$(cat VERSION)"
+            echo "MM_ANNOUNCE=true" >> "$GITHUB_ENV"
           elif [[ ${GITHUB_REF#refs/heads/} =~ main ]]; then
             CURRENT_DAY=$(date +'%Y%m%d')
             SHORT_SHA1=$(git rev-parse --short HEAD)
             echo "::set-output name=gh_tag::$(date +'%Y%m%d%H%M%S')"
             echo "::set-output name=chectl_version::0.0.$CURRENT_DAY-next"
             echo "::set-output name=gh_release_name::0.0.$CURRENT_DAY-next.$SHORT_SHA1"
+            echo "MM_ANNOUNCE=false" >> "$GITHUB_ENV"
           fi
       - name: Build chectl
         run: yarn
@@ -79,3 +81,17 @@ jobs:
           BRANCH: gh-pages
           FOLDER: gh-pages
           CLEAN: true # Automatically remove deleted files from the deploy branch
+      - name: Create success MM message
+        run: |
+          echo "{\"text\":\":white_check_mark: Chectl ${{ steps.TAG_UTIL.outputs.chectl_version }} released: https://github.com/che-incubator/chectl/releases${{ steps.TAG_UTIL.outputs.gh_tag }}\"}" > mattermost.json
+      - name: Create failure message
+        if: ${{ failure() }}
+        run: |
+          echo "{\"text\":\":che-logo: Problem with chectl ${{ steps.TAG_UTIL.outputs.chectl_version }} release.\n\n \"}" > mattermost.json
+      - name: Send MM message
+        if: ${{ env.MM_ANNOUNCE == 'true' }}
+        uses: mattermost/action-mattermost-notify@1.0.2
+        env:
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
+          MATTERMOST_CHANNEL: eclipse-che-releases
+          MATTERMOST_USERNAME: che-bot
