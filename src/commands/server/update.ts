@@ -35,7 +35,7 @@ import {
   DEFAULT_ANALYTIC_HOOK_NAME,
   DEFAULT_CHE_NAMESPACE,
   DEFAULT_CHE_OPERATOR_IMAGE_NAME,
-  NEXT_TAG
+  NEXT_TAG,
 } from '../../constants'
 import {getPrintHighlightedMessagesTask} from '../../tasks/installers/common-tasks'
 import {InstallerTasks} from '../../tasks/installers/installer'

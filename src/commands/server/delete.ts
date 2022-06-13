@@ -22,7 +22,7 @@ import {
   DEFAULT_ANALYTIC_HOOK_NAME,
   DEFAULT_CHE_NAMESPACE,
   DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE,
-  DEFAULT_OPENSHIFT_OPERATORS_NS_NAME
+  DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
 } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
