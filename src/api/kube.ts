@@ -1136,12 +1136,19 @@ export class KubeHelper {
       merge(cheClusterCR, ctx[ChectlContext.CR_PATCH])
     }
 
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-    try {
-      const { body } = await customObjectsApi.createNamespacedCustomObject(CHE_CLUSTER_API_GROUP, cheClusterApiVersion, cheNamespace, CHE_CLUSTER_KIND_PLURAL, cheClusterCR)
-      return body
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
+    for (let i = 0; i < 30; i++) {
+      const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+      try {
+        const { body } = await customObjectsApi.createNamespacedCustomObject(CHE_CLUSTER_API_GROUP, cheClusterApiVersion, cheNamespace, CHE_CLUSTER_KIND_PLURAL, cheClusterCR)
+        return body
+      } catch (e: any) {
+        const wrappedError = this.wrapK8sClientError(e)
+        if (isWebhookAvailabilityError(wrappedError)) {
+          await sleep(5 * 1000)
+        } else {
+          throw wrappedError
+        }
+      }
     }
   }
 
