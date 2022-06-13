@@ -31,7 +31,12 @@ import {
   listrRenderer,
   skipKubeHealthzCheck,
 } from '../../common-flags'
-import {DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, NEXT_TAG} from '../../constants'
+import {
+  DEFAULT_ANALYTIC_HOOK_NAME,
+  DEFAULT_CHE_NAMESPACE,
+  DEFAULT_CHE_OPERATOR_IMAGE_NAME,
+  NEXT_TAG
+} from '../../constants'
 import {getPrintHighlightedMessagesTask} from '../../tasks/installers/common-tasks'
 import {InstallerTasks} from '../../tasks/installers/installer'
 import {ApiTasks} from '../../tasks/platforms/api'
@@ -93,7 +98,7 @@ export default class Update extends Command {
 
   async run() {
     const { flags } = this.parse(Update)
-    flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags)
+    flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags) || DEFAULT_CHE_NAMESPACE
     const ctx = await ChectlContext.initAndGet(flags, this)
 
     if (!flags.batch && ctx.isChectl) {

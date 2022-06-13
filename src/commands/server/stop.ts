@@ -16,7 +16,7 @@ import { cli } from 'cli-ux'
 
 import { ChectlContext } from '../../api/context'
 import { cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import {DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE} from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
@@ -39,7 +39,7 @@ export default class Stop extends Command {
 
   async run() {
     const { flags } = this.parse(Stop)
-    flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags)
+    flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags) || DEFAULT_CHE_NAMESPACE
     await ChectlContext.init(flags, this)
 
     const Listr = require('listr')
