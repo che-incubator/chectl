@@ -483,6 +483,7 @@ export class OperatorTasks {
       },
       {
         title: 'Delete OAuthClient',
+        enabled: (ctx: any) => ctx[ChectlContext.IS_OPENSHIFT],
         task: async (_ctx: any, task: any) => {
           try {
             const checluster = await kh.getCheClusterV1(flags.chenamespace)
@@ -528,7 +529,7 @@ export class OperatorTasks {
             const checluster = await kh.getCheClusterV1(flags.chenamespace)
             if (checluster) {
               try {
-                await kh.patchCheCluster(checluster.metadata.name, this.flags.chenamespace, {metadata: {finalizers: null}})
+                await kh.patchCheCluster(checluster.metadata.name, this.flags.chenamespace, {apiVersion: 'org.eclipse.che/v2', metadata: {finalizers: null}})
               } catch (error) {
                 if (!await kh.getCheClusterV1(flags.chenamespace)) {
                   task.title = `${task.title}...[Ok]`
