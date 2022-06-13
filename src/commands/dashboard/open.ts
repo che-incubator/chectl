@@ -16,7 +16,7 @@ import { cli } from 'cli-ux'
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { cheNamespace, CHE_TELEMETRY } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import {DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE} from '../../constants'
 import { findWorkingNamespace } from '../../util'
 
 export default class Open extends Command {
@@ -30,7 +30,7 @@ export default class Open extends Command {
 
   async run() {
     const { flags } = this.parse(Open)
-    flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags)
+    flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags) || DEFAULT_CHE_NAMESPACE
     await ChectlContext.init(flags, this)
 
     try {

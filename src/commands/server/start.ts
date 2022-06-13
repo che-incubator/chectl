@@ -19,6 +19,7 @@ import { batch, cheNamespace, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIM
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import {DEFAULT_CHE_NAMESPACE} from '../../constants'
 
 export default class Start extends Command {
   static description = 'Start Eclipse Che server'
@@ -38,7 +39,7 @@ export default class Start extends Command {
 
   async run() {
     const { flags } = this.parse(Start)
-    flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags)
+    flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags) || DEFAULT_CHE_NAMESPACE
     const ctx = await ChectlContext.initAndGet(flags, this)
 
     const cheTasks = new CheTasks(flags)

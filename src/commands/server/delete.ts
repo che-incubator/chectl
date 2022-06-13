@@ -18,7 +18,12 @@ import { OLMDevWorkspaceTasks } from '../../tasks/installers/olm-dev-workspace-o
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { assumeYes, batch, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME } from '../../constants'
+import {
+  DEFAULT_ANALYTIC_HOOK_NAME,
+  DEFAULT_CHE_NAMESPACE,
+  DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE,
+  DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
+} from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { OLMTasks } from '../../tasks/installers/olm'
@@ -53,7 +58,7 @@ export default class Delete extends Command {
     const { flags } = this.parse(Delete)
     const ctx = await ChectlContext.initAndGet(flags, this)
 
-    flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags)
+    flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags) || DEFAULT_CHE_NAMESPACE
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Delete.id, flags })
 
