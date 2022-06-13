@@ -1136,6 +1136,7 @@ export class KubeHelper {
       merge(cheClusterCR, ctx[ChectlContext.CR_PATCH])
     }
 
+    // TODO remove in the future version
     for (let i = 0; i < 30; i++) {
       const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
       try {
@@ -1173,6 +1174,7 @@ export class KubeHelper {
    * Returns `checlusters.org.eclipse.che' in the given namespace.
    */
   async getCheClusterV1(cheNamespace: string): Promise<any | undefined> {
+    // TODO remove in the future version
     for (let i = 0; i < 30; i++) {
       try {
         return await this.findCustomResource(cheNamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_KIND_PLURAL)
@@ -1187,6 +1189,7 @@ export class KubeHelper {
   }
 
   async getAllCheClusters(): Promise<any[]> {
+    // TODO remove in the future version
     for (let i = 0; i < 30; i++) {
       try {
         return await this.listCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_KIND_PLURAL)
