@@ -17,6 +17,7 @@ import {
   V1Role,
   V1RoleBinding,
   V1Service,
+  V1CustomResourceDefinition,
 } from '@kubernetes/client-node'
 import {cli} from 'cli-ux'
 import * as fs from 'fs'
@@ -65,7 +66,7 @@ export class OperatorTasks {
                     await this.kh.replaceRole(role, this.flags.chenamespace)
                     task.title = `${task.title}...[OK: updated]`
                   } else {
-                    task.title = `${task.title}...[Exists]]`
+                    task.title = `${task.title}...[Exists]`
                   }
                 } else {
                   await this.kh.createRole(role, this.flags.chenamespace)
@@ -86,7 +87,7 @@ export class OperatorTasks {
                     await this.kh.replaceRoleBinding(roleBinding, this.flags.chenamespace)
                     task.title = `${task.title}...[OK: updated]`
                   } else {
-                    task.title = `${task.title}...[Exists]]`
+                    task.title = `${task.title}...[Exists]`
                   }
                 } else {
                   await this.kh.createRoleBinding(roleBinding, this.flags.chenamespace)
@@ -108,13 +109,15 @@ export class OperatorTasks {
                 const clusterRoleName = clusterObjectNamePrefix + clusterRole.metadata!.name
                 if (await this.kh.isClusterRoleExist(clusterRoleName)) {
                   if (updateTask) {
-                    await this.kh.replaceClusterRoleFromObj(clusterRole, clusterRoleName)
+                    clusterRole.metadata!.name = clusterRoleName
+                    await this.kh.replaceClusterRoleFromObj(clusterRole)
                     task.title = `${task.title}...[OK: updated]`
                   } else {
-                    task.title = `${task.title}...[Exists]]`
+                    task.title = `${task.title}...[Exists]`
                   }
                 } else {
-                  await this.kh.createClusterRole(clusterRole, clusterRoleName)
+                  clusterRole.metadata!.name = clusterRoleName
+                  await this.kh.createClusterRole(clusterRole)
                   task.title = `${task.title}...[OK: created]`
                 }
               },
@@ -138,7 +141,7 @@ export class OperatorTasks {
                     await this.kh.replaceClusterRoleBinding(clusterRoleBinding)
                     task.title = `${task.title}...[OK: updated]`
                   } else {
-                    task.title = `${task.title}...[Exists]]`
+                    task.title = `${task.title}...[Exists]`
                   }
                 } else {
                   await this.kh.createClusterRoleBinding(clusterRoleBinding)
@@ -168,7 +171,7 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exist = await this.kh.isServiceAccountExist(OperatorTasks.SERVICE_ACCOUNT, this.flags.chenamespace)
           if (exist) {
-            task.title = `${task.title}...[Exists]]`
+            task.title = `${task.title}...[Exists]`
           } else {
             const yamlFilePath = this.getResourcePath('service_account.yaml')
             await this.kh.createServiceAccountFromFile(yamlFilePath, this.flags.chenamespace)
@@ -183,11 +186,13 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isCertificateExists(OperatorTasks.CERTIFICATE, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Exists]]`
+            task.title = `${task.title}...[Exists]`
           } else {
             const yamlFilePath = this.getResourcePath('serving-cert.yaml')
             if (fs.existsSync(yamlFilePath)) {
               const certificate = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Certificate
+              certificate.spec.dnsNames = [`${OperatorTasks.WEBHOOK_SERVICE}.${this.flags.chenamespace}.svc`, `${OperatorTasks.WEBHOOK_SERVICE}.${this.flags.chenamespace}.svc.cluster.local`]
+
               await this.kh.createCertificate(certificate, this.flags.chenamespace)
               task.title = `${task.title}...[OK: created]`
             } else {
@@ -202,7 +207,7 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isIssuerExists(OperatorTasks.ISSUER, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Exists]]`
+            task.title = `${task.title}...[Exists]`
           } else {
             const yamlFilePath = this.getResourcePath('selfsigned-issuer.yaml')
             if (fs.existsSync(yamlFilePath)) {
@@ -220,7 +225,7 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isServiceExists(OperatorTasks.WEBHOOK_SERVICE, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Exists]]`
+            task.title = `${task.title}...[Exists]`
           } else {
             const yamlFilePath = this.getResourcePath('webhook-service.yaml')
             if (fs.existsSync(yamlFilePath)) {
@@ -237,10 +242,16 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const existedCRD = await this.kh.getCrd(CHE_CLUSTER_CRD)
           if (existedCRD) {
-            task.title = `${task.title}...[Exists]]`
+            task.title = `${task.title}...[Exists]`
           } else {
-            const newCRDPath = await this.getCRDPath()
-            await this.kh.createCrdFromFile(newCRDPath)
+            const crdPath = await this.getCRDPath()
+            const crd = this.kh.safeLoadFromYamlFile(crdPath) as V1CustomResourceDefinition
+            crd.spec.conversion!.webhook!.clientConfig!.service!.namespace = this.flags.chenamespace
+            if (!ctx[ChectlContext.IS_OPENSHIFT]) {
+              crd.metadata!.annotations!['cert-manager.io/inject-ca-from'] = `${this.flags.chenamespace}/che-operator-serving-cert`
+            }
+
+            await this.kh.createCrdFromFile(crd)
             task.title = `${task.title}...[OK: created]`
           }
         },
@@ -257,7 +268,7 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isDeploymentExist(OPERATOR_DEPLOYMENT_NAME, this.flags.chenamespace)
           if (exists) {
-            task.title = `${task.title}...[Exists]]`
+            task.title = `${task.title}...[Exists]`
           } else {
             const deploymentPath = this.getResourcePath('operator.yaml')
             const operatorDeployment = await this.readOperatorDeployment(deploymentPath)
@@ -350,6 +361,8 @@ export class OperatorTasks {
           }
 
           const certificate = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Certificate
+          certificate.spec.dnsNames = [`${OperatorTasks.WEBHOOK_SERVICE}.${this.flags.chenamespace}.svc`, `${OperatorTasks.WEBHOOK_SERVICE}.${this.flags.chenamespace}.svc.cluster.local`]
+
           const exist = await this.kh.isCertificateExists(OperatorTasks.CERTIFICATE, this.flags.chenamespace)
           if (exist) {
             await this.kh.replaceCertificate(OperatorTasks.CERTIFICATE, certificate, this.flags.chenamespace)
@@ -405,17 +418,19 @@ export class OperatorTasks {
         title: `Update Eclipse Che cluster CRD ${CHE_CLUSTER_CRD}`,
         task: async (ctx: any, task: any) => {
           const existedCRD = await this.kh.getCrd(CHE_CLUSTER_CRD)
-          const newCRDPath = await this.getCRDPath()
+
+          const crdPath = await this.getCRDPath()
+          const crd = this.kh.safeLoadFromYamlFile(crdPath) as V1CustomResourceDefinition
+          crd.spec.conversion!.webhook!.clientConfig!.service!.namespace = this.flags.chenamespace
+          if (!ctx[ChectlContext.IS_OPENSHIFT]) {
+            crd.metadata!.annotations!['cert-manager.io/inject-ca-from'] = `${this.flags.chenamespace}/che-operator-serving-cert`
+          }
 
           if (existedCRD) {
-            if (!existedCRD.metadata || !existedCRD.metadata.resourceVersion) {
-              throw new Error(`Fetched CRD ${CHE_CLUSTER_CRD} without resource version`)
-            }
-
-            await this.kh.replaceCrdFromFile(newCRDPath)
+            await this.kh.replaceCrdFromFile(crd)
             task.title = `${task.title}...[OK: updated]`
           } else {
-            await this.kh.createCrdFromFile(newCRDPath)
+            await this.kh.createCrdFromFile(crd)
             task.title = `${task.title}...[OK: created]`
           }
         },
