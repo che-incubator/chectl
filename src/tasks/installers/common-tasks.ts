@@ -84,7 +84,7 @@ export function createEclipseCheClusterTask(flags: any, kube: KubeHelper): Listr
         ctx.isPostgresReady = ctx.isPostgresReady || checluster.spec.components?.database?.externalDb
       }
 
-      task.title = `${task.title}...[Created].`
+      task.title = `${task.title}...[Created]`
     },
   }
 }

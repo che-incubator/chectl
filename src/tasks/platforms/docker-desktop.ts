@@ -56,7 +56,7 @@ export class DockerDesktopTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kh.checkKubeApi()
-            task.title = `${task.title}...[OK].`
+            task.title = `${task.title}...[OK]`
           } catch (error) {
             return newError('Platform not ready.', error)
           }

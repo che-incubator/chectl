@@ -78,7 +78,7 @@ export class OLMTasks {
           } else {
             const yamlFilePath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'prometheus-role.yaml')
             await this.kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
-            task.title = `${task.title}...[OK].`
+            task.title = `${task.title}...[OK]`
           }
         },
       },

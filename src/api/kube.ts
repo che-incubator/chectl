@@ -47,6 +47,7 @@ import {
   V1ServiceAccount,
   V1ServiceList,
   Watch,
+  V1CustomResourceDefinition,
 } from '@kubernetes/client-node'
 import { Cluster } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
@@ -188,24 +189,25 @@ export class KubeHelper {
     }
   }
 
-  async createServiceAccountFromFile(filePath: string, namespace: string) {
+  async createServiceAccountFromFile(filePath: string, namespace: string): Promise<void> {
     const yamlServiceAccount = this.safeLoadFromYamlFile(filePath) as V1ServiceAccount
+
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
-      return await k8sCoreApi.createNamespacedServiceAccount(namespace, yamlServiceAccount)
+      delete yamlServiceAccount.metadata?.namespace
+      await k8sCoreApi.createNamespacedServiceAccount(namespace, yamlServiceAccount)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async replaceServiceAccountFromFile(filePath: string, namespace: string) {
+  async replaceServiceAccountFromFile(filePath: string, namespace: string): Promise<void> {
     const yamlServiceAccount = this.safeLoadFromYamlFile(filePath) as V1ServiceAccount
-    if (!yamlServiceAccount || !yamlServiceAccount.metadata || !yamlServiceAccount.metadata.name) {
-      throw new Error(`Service account read from ${filePath} must have name specified.`)
-    }
+
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
-      return await k8sCoreApi.replaceNamespacedServiceAccount(yamlServiceAccount.metadata.name, namespace, yamlServiceAccount)
+      delete yamlServiceAccount.metadata?.namespace
+      await k8sCoreApi.replaceNamespacedServiceAccount(yamlServiceAccount.metadata!.name!, namespace, yamlServiceAccount)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
@@ -248,30 +250,26 @@ export class KubeHelper {
     }
   }
 
-  async createRole(yamlRole: V1Role, namespace: string) {
+  async createRole(yamlRole: V1Role, namespace: string): Promise<void> {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
-      const res = await k8sRbacAuthApi.createNamespacedRole(namespace, yamlRole)
-      return res.response.statusCode
+      delete yamlRole.metadata?.namespace
+      await k8sRbacAuthApi.createNamespacedRole(namespace, yamlRole)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async createRoleFromFile(filePath: string, namespace: string) {
+  async createRoleFromFile(filePath: string, namespace: string): Promise<void> {
     const yamlRole = this.safeLoadFromYamlFile(filePath) as V1Role
     return this.createRole(yamlRole, namespace)
   }
 
-  async replaceRole(yamlRole: V1Role, namespace: string) {
+  async replaceRole(yamlRole: V1Role, namespace: string): Promise<void> {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
-
-    if (!yamlRole.metadata || !yamlRole.metadata.name) {
-      throw new Error('Role object requires name')
-    }
     try {
-      const res = await k8sRbacAuthApi.replaceNamespacedRole(yamlRole.metadata.name, namespace, yamlRole)
-      return res.response.statusCode
+      delete yamlRole.metadata?.namespace
+      await k8sRbacAuthApi.replaceNamespacedRole(yamlRole.metadata!.name!, namespace, yamlRole)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
@@ -287,44 +285,24 @@ export class KubeHelper {
     }
   }
 
-  async createClusterRole(yamlClusterRole: V1ClusterRole, clusterRoleName?: string) {
+  async createClusterRole(yamlClusterRole: V1ClusterRole): Promise<void> {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
-    if (!yamlClusterRole.metadata) {
-      yamlClusterRole.metadata = {}
-    }
-
-    if (clusterRoleName) {
-      yamlClusterRole.metadata.name = clusterRoleName
-    } else if (!yamlClusterRole.metadata.name) {
-      throw new Error('Role name is not specified')
-    }
     try {
-      const res = await k8sRbacAuthApi.createClusterRole(yamlClusterRole)
-      return res.response.statusCode
+      await k8sRbacAuthApi.createClusterRole(yamlClusterRole)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async createClusterRoleFromFile(filePath: string, clusterRoleName?: string) {
+  async createClusterRoleFromFile(filePath: string): Promise<void> {
     const yamlClusterRole = this.safeLoadFromYamlFile(filePath) as V1ClusterRole
-    return this.createClusterRole(yamlClusterRole, clusterRoleName)
+    return this.createClusterRole(yamlClusterRole)
   }
 
-  async replaceClusterRoleFromObj(yamlClusterRole: V1ClusterRole, clusterRoleName?: string) {
+  async replaceClusterRoleFromObj(yamlClusterRole: V1ClusterRole): Promise<void> {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
-    if (!yamlClusterRole.metadata) {
-      yamlClusterRole.metadata = {}
-    }
-
-    if (clusterRoleName) {
-      yamlClusterRole.metadata.name = clusterRoleName
-    } else if (!yamlClusterRole.metadata.name) {
-      throw new Error('Role name is not specified')
-    }
     try {
-      const res = await k8sRbacAuthApi.replaceClusterRole(yamlClusterRole.metadata.name, yamlClusterRole)
-      return res.response.statusCode
+      await k8sRbacAuthApi.replaceClusterRole(yamlClusterRole.metadata!.name!, yamlClusterRole)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
@@ -344,7 +322,7 @@ export class KubeHelper {
   async getPodListByLabel(namespace: string, labelSelector: string): Promise<V1Pod[]> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
-      const { body: podList } = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, labelSelector)
+      const {body: podList} = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, labelSelector)
 
       return podList.items
     } catch (e: any) {
@@ -433,30 +411,26 @@ export class KubeHelper {
     }
   }
 
-  async createRoleBinding(yamlRoleBinding: V1RoleBinding, namespace: string): Promise<V1RoleBinding> {
+  async createRoleBinding(yamlRoleBinding: V1RoleBinding, namespace: string): Promise<void> {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
-      const response = await k8sRbacAuthApi.createNamespacedRoleBinding(namespace, yamlRoleBinding)
-      return response.body
+      delete yamlRoleBinding.metadata?.namespace
+      await k8sRbacAuthApi.createNamespacedRoleBinding(namespace, yamlRoleBinding)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async createRoleBindingFromFile(filePath: string, namespace: string): Promise<V1RoleBinding> {
+  async createRoleBindingFromFile(filePath: string, namespace: string): Promise<void> {
     const yamlRoleBinding = this.safeLoadFromYamlFile(filePath) as V1RoleBinding
     return this.createRoleBinding(yamlRoleBinding, namespace)
   }
 
-  async replaceRoleBinding(yamlRoleBinding: V1RoleBinding, namespace: string): Promise<V1RoleBinding> {
-    if (!yamlRoleBinding.metadata || !yamlRoleBinding.metadata.name) {
-      throw new Error('RoleBinding object requires name')
-    }
-
+  async replaceRoleBinding(yamlRoleBinding: V1RoleBinding, namespace: string): Promise<void> {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
-      const response = await k8sRbacAuthApi.replaceNamespacedRoleBinding(yamlRoleBinding.metadata.name, namespace, yamlRoleBinding)
-      return response.body
+      delete yamlRoleBinding.metadata?.namespace
+      await k8sRbacAuthApi.replaceNamespacedRoleBinding(yamlRoleBinding.metadata!.name!, namespace, yamlRoleBinding)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
@@ -468,10 +442,6 @@ export class KubeHelper {
   }
 
   async createClusterRoleBinding(yamlClusterRoleBinding: V1ClusterRoleBinding): Promise<void> {
-    if (!yamlClusterRoleBinding.metadata || !yamlClusterRoleBinding.metadata.name) {
-      throw new Error('ClusterRoleBinding object requires name')
-    }
-
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
       await k8sRbacAuthApi.createClusterRoleBinding(yamlClusterRoleBinding)
@@ -481,13 +451,9 @@ export class KubeHelper {
   }
 
   async replaceClusterRoleBinding(clusterRoleBinding: V1ClusterRoleBinding) {
-    if (!clusterRoleBinding.metadata || !clusterRoleBinding.metadata.name) {
-      throw new Error('Cluster Role Binding must have name specified')
-    }
-
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
-      return await k8sRbacAuthApi.replaceClusterRoleBinding(clusterRoleBinding.metadata.name, clusterRoleBinding)
+      return await k8sRbacAuthApi.replaceClusterRoleBinding(clusterRoleBinding.metadata!.name!, clusterRoleBinding)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
@@ -555,6 +521,7 @@ export class KubeHelper {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
 
     try {
+      delete configMap.metadata?.namespace
       await k8sCoreApi.createNamespacedConfigMap(namespace, configMap)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -867,6 +834,7 @@ export class KubeHelper {
   async createDeployment(yamlDeployment: V1Deployment, namespace: string): Promise<void> {
     const k8sAppsApi = this.kubeConfig.makeApiClient(AppsV1Api)
     try {
+      delete yamlDeployment.metadata?.namespace
       await k8sAppsApi.createNamespacedDeployment(namespace, yamlDeployment)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -884,6 +852,7 @@ export class KubeHelper {
       const response = await k8sCoreApi.readNamespacedService(name, namespace)
       service.metadata!.resourceVersion = (response.body as any).metadata.resourceVersion
 
+      delete service.metadata?.namespace
       await k8sCoreApi.replaceNamespacedService(name, namespace, service)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -907,6 +876,7 @@ export class KubeHelper {
   async createService(yamlService: V1Service, namespace: string): Promise<void> {
     const k8sApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
+      delete yamlService.metadata?.namespace
       await k8sApi.createNamespacedService(namespace, yamlService)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -978,6 +948,7 @@ export class KubeHelper {
   async createIngress(ingress: V1Ingress, namespace: string) {
     const networkingV1Api = this.kubeConfig.makeApiClient(NetworkingV1Api)
     try {
+      delete ingress.metadata?.namespace
       return await networkingV1Api.createNamespacedIngress(namespace, ingress)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -1006,25 +977,22 @@ export class KubeHelper {
     }
   }
 
-  async createCrdFromFile(filePath: string): Promise<void> {
-    const yaml = this.safeLoadFromYamlFile(filePath)
+  async createCrdFromFile(crd: V1CustomResourceDefinition): Promise<void> {
     const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
     try {
-      await k8sApi.createCustomResourceDefinition(yaml)
+      await k8sApi.createCustomResourceDefinition(crd)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async replaceCrdFromFile(filePath: string): Promise<void> {
-    const crd = this.safeLoadFromYamlFile(filePath)
-
+  async replaceCrdFromFile(crd: V1CustomResourceDefinition): Promise<void> {
     const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
     try {
-      const response = await k8sApi.readCustomResourceDefinition(crd.metadata.name)
-      crd.metadata.resourceVersion = (response.body as any).metadata.resourceVersion
+      const response = await k8sApi.readCustomResourceDefinition(crd.metadata!.name!)
+      crd.metadata!.resourceVersion = (response.body as any).metadata.resourceVersion
 
-      await k8sApi.replaceCustomResourceDefinition(crd.metadata.name, crd)
+      await k8sApi.replaceCustomResourceDefinition(crd.metadata!.name!, crd)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
@@ -1140,7 +1108,8 @@ export class KubeHelper {
     for (let i = 0; i < 30; i++) {
       const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
       try {
-        const { body } = await customObjectsApi.createNamespacedCustomObject(CHE_CLUSTER_API_GROUP, cheClusterApiVersion, cheNamespace, CHE_CLUSTER_KIND_PLURAL, cheClusterCR)
+        delete cheClusterCR.metadata?.namespace
+        const {body} = await customObjectsApi.createNamespacedCustomObject(CHE_CLUSTER_API_GROUP, cheClusterApiVersion, cheNamespace, CHE_CLUSTER_KIND_PLURAL, cheClusterCR)
         return body
       } catch (e: any) {
         const wrappedError = this.wrapK8sClientError(e)
@@ -1784,6 +1753,7 @@ export class KubeHelper {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     try {
+      delete certificate.metadata?.namespace
       await customObjectsApi.createNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'certificates', certificate)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -1797,6 +1767,7 @@ export class KubeHelper {
       const response = await customObjectsApi.getNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'certificates', name)
       certificate.metadata.resourceVersion = (response.body as any).metadata.resourceVersion
 
+      delete certificate.metadata?.namespace
       await customObjectsApi.replaceNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'certificates', name, certificate)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -1821,6 +1792,7 @@ export class KubeHelper {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     try {
+      delete issuer.metadata?.namespace
       await customObjectsApi.createNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'issuers', issuer)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -1834,6 +1806,7 @@ export class KubeHelper {
       const response = await customObjectsApi.getNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'issuers', name)
       issuer.metadata.resourceVersion = (response.body as any).metadata.resourceVersion
 
+      delete issuer.metadata?.namespace
       await customObjectsApi.replaceNamespacedCustomObject('cert-manager.io', 'v1', namespace, 'issuers', name, issuer)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
