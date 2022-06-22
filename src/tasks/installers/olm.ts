@@ -20,7 +20,7 @@ import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/types/olm'
 import { VersionHelper } from '../../api/version'
 import { CHECTL_PROJECT_NAME, CSV_PREFIX, CUSTOM_CATALOG_SOURCE_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, INDEX_IMG, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME } from '../../constants'
-import { getEmbeddedTemplatesDirectory, getProjectName, isKubernetesPlatformFamily } from '../../util'
+import {getEmbeddedTemplatesDirectory, getProjectName, isCheClusterAPIV2, isKubernetesPlatformFamily} from '../../util'
 import { createEclipseCheClusterTask, patchingEclipseCheCluster } from './common-tasks'
 import { OLMDevWorkspaceTasks } from './olm-dev-workspace-operator'
 import Listr = require('listr')
@@ -535,7 +535,7 @@ export class OLMTasks {
 
     if (csv && csv.metadata.annotations) {
       const CRRaw = csv.metadata.annotations!['alm-examples']
-      return (yaml.load(CRRaw) as Array<any>).find(cr => cr.kind === 'CheCluster')
+      return (yaml.load(CRRaw) as Array<any>).find(cr => isCheClusterAPIV2(cr))
     } else {
       throw new Error(`Unable to retrieve CheCluster CR ${!csv ? '' : 'from CSV: ' + csv.spec.displayName}`)
     }
