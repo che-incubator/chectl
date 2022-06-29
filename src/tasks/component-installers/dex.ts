@@ -22,9 +22,9 @@ import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { ChectlContext, DexContextKeys, OIDCContextKeys } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { base64Decode, getEmbeddedTemplatesDirectory, getTlsSecretName, isCheClusterAPIV1 } from '../../util'
+import {base64Decode, getEmbeddedTemplatesDirectory, getTlsSecretName, isCheClusterAPIV1, sleep} from '../../util'
 import { PlatformTasks } from '../platforms/platform'
-import { CertManagerTasks } from './cert-manager'
+import {V1Certificate} from '../../api/types/cert-manager'
 
 namespace TemplatePlaceholders {
   export const DOMAIN = '{{DOMAIN}}'
@@ -51,6 +51,10 @@ export class DexTasks {
   private static readonly DEX_NAME = 'dex'
 
   private static readonly NAMESPACE_NAME = 'dex'
+
+  private static readonly SELF_SIGNED_ISSUER = 'dex-selfsigned-issuer'
+
+  private static readonly CERTIFICATE = 'dex-certificate'
 
   private static readonly TLS_SECRET_NAME = 'dex.tls'
 
@@ -92,72 +96,72 @@ export class DexTasks {
               },
             },
             {
-              title: 'Provide Dex certificate',
-              task: async (ctx: any) => {
-                const certs = new Listr(undefined, ctx.listrOptions)
-
-                if (getTlsSecretName(ctx) === '') {
-                  // Eclipse Che will use a default k8s certificate.
-                  // No need to generate something for dex
-                  certs.add([{
-                    title: 'Use default k8s certificate',
-                    task: async (_ctx: any, task: any) => {
-                      task.title = `${task.title}...[OK]`
-                    },
-                  }])
-                  return certs
+              title: `Create issuer ${DexTasks.SELF_SIGNED_ISSUER}`,
+              skip: (ctx: any) => getTlsSecretName(ctx) === '',
+              task: async (_ctx: any, task: any) => {
+                const exists = await this.kube.isIssuerExists(DexTasks.SELF_SIGNED_ISSUER, DexTasks.NAMESPACE_NAME)
+                if (exists) {
+                  task.title = `${task.title}...[Exists]`
+                } else {
+                  const yamlFilePath = this.getDexResourceFilePath('selfsigned-issuer.yaml')
+                  const issuer = yaml.load(fs.readFileSync(yamlFilePath).toString())
+                  await this.kube.createIssuer(issuer, DexTasks.NAMESPACE_NAME)
+                  task.title = `${task.title}...[OK]`
                 }
-
-                if (!await this.kube.getSecret(DexTasks.TLS_SECRET_NAME, DexTasks.NAMESPACE_NAME)) {
-                  const certManager = new CertManagerTasks(this.flags)
-                  certs.add(certManager.getDeployCertManagerTasks())
+              },
+            },
+            {
+              title: `Create certificate: ${DexTasks.CERTIFICATE}`,
+              skip: (ctx: any) => getTlsSecretName(ctx) === '',
+              task: async (_ctx: any, task: any) => {
+                const exists = await this.kube.isCertificateExists(DexTasks.CERTIFICATE, DexTasks.NAMESPACE_NAME)
+                if (exists) {
+                  task.title = `${task.title}...[Exists]`
+                } else {
+                  const yamlFilePath = this.getDexResourceFilePath('serving-cert.yaml')
+                  const certificate = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Certificate
 
                   const domain = 'dex.' + this.flags.domain
                   const commonName = '*.' + domain
-                  const dnsNames = [domain, commonName]
-                  certs.add(certManager.getCreateIssuerTasks(DexTasks.NAMESPACE_NAME))
-                  certs.add(certManager.getCreateCertificateTasks(this.flags, commonName, dnsNames, DexTasks.TLS_SECRET_NAME, DexTasks.NAMESPACE_NAME))
+                  certificate.spec.dnsNames = [domain, commonName]
+                  certificate.spec.commonName = commonName
+                  await this.kube.createCertificate(certificate, DexTasks.NAMESPACE_NAME)
+                  await sleep(1000)
+                  task.title = `${task.title}...[OK]`
                 }
+              },
+            },
+            {
+              title: 'Save Dex certificate',
+              skip: (ctx: any) => getTlsSecretName(ctx) === '',
+              task: async (ctx: any, task: any) => {
+                const secret = await this.kube.getSecret(DexTasks.TLS_SECRET_NAME, DexTasks.NAMESPACE_NAME)
+                if (secret && secret.data) {
+                  const dexCaCertificateFilePath = this.getDexCaCertificateFilePath()
+                  ctx[DexContextKeys.DEX_CA_CRT] = base64Decode(secret.data['ca.crt'])
+                  fs.writeFileSync(dexCaCertificateFilePath, ctx[DexContextKeys.DEX_CA_CRT])
+                  task.title = `${task.title}...[OK: ${dexCaCertificateFilePath}]`
+                } else {
+                  throw new Error(`Dex certificate not found in the secret '${DexTasks.TLS_SECRET_NAME}' in the namespace '${DexTasks.NAMESPACE_NAME}'.`)
+                }
+              },
+            },
+            {
+              title: 'Add Dex certificate to Eclipse Che certificates bundle',
+              skip: (ctx: any) => getTlsSecretName(ctx) === '',
+              task: async (ctx: any, task: any) => {
+                if (await this.kube.isConfigMapExists(DexCaConfigMap.NAME, this.flags.chenamespace)) {
+                  task.title = `${task.title}...[Exists]`
+                } else {
+                  const dexCa = new V1ConfigMap()
+                  dexCa.metadata = new V1ObjectMeta()
+                  dexCa.metadata.name = DexCaConfigMap.NAME
+                  dexCa.metadata.labels = DexCaConfigMap.LABELS
+                  dexCa.data = { 'ca.crt': ctx[DexContextKeys.DEX_CA_CRT] }
 
-                certs.add([{
-                  title: 'Read Dex certificate',
-                  task: async (ctx: any, task: any) => {
-                    const secret = await this.kube.getSecret(DexTasks.TLS_SECRET_NAME, DexTasks.NAMESPACE_NAME)
-                    if (secret && secret.data) {
-                      ctx[DexContextKeys.DEX_CA_CRT] = base64Decode(secret.data['ca.crt'])
-                      task.title = `${task.title}...[OK]`
-                    } else {
-                      throw new Error(`Dex certificate not found in the secret '${DexTasks.TLS_SECRET_NAME}' in the namespace '${DexTasks.NAMESPACE_NAME}'.`)
-                    }
-                  },
-                },
-                {
-                  title: 'Save Dex certificate',
-                  task: async (ctx: any, task: any) => {
-                    const dexCaCertificateFilePath = this.getDexCaCertificateFilePath()
-                    fs.writeFileSync(dexCaCertificateFilePath, ctx[DexContextKeys.DEX_CA_CRT])
-                    task.title = `${task.title}...[OK: ${dexCaCertificateFilePath}]`
-                  },
-                },
-                {
-                  title: 'Add Dex certificate to Eclipse Che certificates bundle',
-                  task: async (ctx: any, task: any) => {
-                    if (await this.kube.isConfigMapExists(DexCaConfigMap.NAME, this.flags.chenamespace)) {
-                      task.title = `${task.title}...[Exists]`
-                    } else {
-                      const dexCa = new V1ConfigMap()
-                      dexCa.metadata = new V1ObjectMeta()
-                      dexCa.metadata.name = DexCaConfigMap.NAME
-                      dexCa.metadata.labels = DexCaConfigMap.LABELS
-                      dexCa.data = { 'ca.crt': ctx[DexContextKeys.DEX_CA_CRT] }
-
-                      await this.kube.createConfigMap(dexCa, this.flags.chenamespace)
-                      task.title = `${task.title}...[OK]`
-                    }
-                  },
-                }])
-
-                return certs
+                  await this.kube.createConfigMap(dexCa, this.flags.chenamespace)
+                  task.title = `${task.title}...[OK]`
+                }
               },
             },
             {
