@@ -13,9 +13,10 @@
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: dex-selfsigned-issuer
+  name: dex-issuer
   namespace: dex
   labels:
     app: dex
 spec:
-  selfSigned: {}
+  ca:
+    secretName: ca.crt

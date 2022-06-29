@@ -22,7 +22,7 @@ import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { ChectlContext, DexContextKeys, OIDCContextKeys } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import {base64Decode, getEmbeddedTemplatesDirectory, getTlsSecretName, isCheClusterAPIV1, sleep} from '../../util'
+import {base64Decode, getEmbeddedTemplatesDirectory, getTlsSecretName, isCheClusterAPIV1} from '../../util'
 import { PlatformTasks } from '../platforms/platform'
 import {V1Certificate} from '../../api/types/cert-manager'
 
@@ -53,6 +53,10 @@ export class DexTasks {
   private static readonly NAMESPACE_NAME = 'dex'
 
   private static readonly SELF_SIGNED_ISSUER = 'dex-selfsigned-issuer'
+
+  private static readonly SELF_SIGNED_CERTIFICATE = 'dex-selfsigned-certificate'
+
+  private static readonly ISSUER = 'dex-issuer'
 
   private static readonly CERTIFICATE = 'dex-certificate'
 
@@ -97,7 +101,11 @@ export class DexTasks {
             },
             {
               title: `Create issuer ${DexTasks.SELF_SIGNED_ISSUER}`,
-              skip: (ctx: any) => getTlsSecretName(ctx) === '',
+              skip: (ctx: any) => {
+                if (getTlsSecretName(ctx) === '') {
+                  return 'Default Kubernetes certificate is used'
+                }
+              },
               task: async (_ctx: any, task: any) => {
                 const exists = await this.kube.isIssuerExists(DexTasks.SELF_SIGNED_ISSUER, DexTasks.NAMESPACE_NAME)
                 if (exists) {
@@ -111,22 +119,64 @@ export class DexTasks {
               },
             },
             {
+              title: `Create certificate: ${DexTasks.SELF_SIGNED_CERTIFICATE}`,
+              skip: (ctx: any) => {
+                if (getTlsSecretName(ctx) === '') {
+                  return 'Default Kubernetes certificate is used'
+                }
+              },
+              task: async (_ctx: any, task: any) => {
+                const exists = await this.kube.isCertificateExists(DexTasks.SELF_SIGNED_ISSUER, DexTasks.NAMESPACE_NAME)
+                if (exists) {
+                  task.title = `${task.title}...[Exists]`
+                } else {
+                  const yamlFilePath = this.getDexResourceFilePath('selfsigned-certificate.yaml')
+                  const certificate = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Certificate
+                  await this.kube.createCertificate(certificate, DexTasks.NAMESPACE_NAME)
+                  await this.kube.waitSecret('ca.crt', DexTasks.NAMESPACE_NAME)
+                  task.title = `${task.title}...[OK]`
+                }
+              },
+            },
+            {
+              title: `Create issuer ${DexTasks.ISSUER}`,
+              skip: (ctx: any) => {
+                if (getTlsSecretName(ctx) === '') {
+                  return 'Default Kubernetes certificate is used'
+                }
+              },
+              task: async (_ctx: any, task: any) => {
+                const exists = await this.kube.isIssuerExists(DexTasks.ISSUER, DexTasks.NAMESPACE_NAME)
+                if (exists) {
+                  task.title = `${task.title}...[Exists]`
+                } else {
+                  const yamlFilePath = this.getDexResourceFilePath('issuer.yaml')
+                  const issuer = yaml.load(fs.readFileSync(yamlFilePath).toString())
+                  await this.kube.createIssuer(issuer, DexTasks.NAMESPACE_NAME)
+                  task.title = `${task.title}...[OK]`
+                }
+              },
+            },
+            {
               title: `Create certificate: ${DexTasks.CERTIFICATE}`,
-              skip: (ctx: any) => getTlsSecretName(ctx) === '',
+              skip: (ctx: any) => {
+                if (getTlsSecretName(ctx) === '') {
+                  return 'Default Kubernetes certificate is used'
+                }
+              },
               task: async (_ctx: any, task: any) => {
                 const exists = await this.kube.isCertificateExists(DexTasks.CERTIFICATE, DexTasks.NAMESPACE_NAME)
                 if (exists) {
                   task.title = `${task.title}...[Exists]`
                 } else {
-                  const yamlFilePath = this.getDexResourceFilePath('serving-cert.yaml')
+                  const yamlFilePath = this.getDexResourceFilePath('certificate.yaml')
                   const certificate = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Certificate
 
-                  const domain = 'dex.' + this.flags.domain
-                  const commonName = '*.' + domain
-                  certificate.spec.dnsNames = [domain, commonName]
-                  certificate.spec.commonName = commonName
+                  const dexDomain = 'dex.' + this.flags.domain
+                  const wildCardDexDomain = '*.' + dexDomain
+                  certificate.spec.dnsNames = [dexDomain, wildCardDexDomain]
                   await this.kube.createCertificate(certificate, DexTasks.NAMESPACE_NAME)
-                  await sleep(1000)
+                  await this.kube.waitSecret(DexTasks.TLS_SECRET_NAME, DexTasks.NAMESPACE_NAME)
                   task.title = `${task.title}...[OK]`
                 }
               },
