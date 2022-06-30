@@ -11,13 +11,13 @@
  */
 
 import * as Listr from 'listr'
-import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { CERT_MANAGER_NAMESPACE_NAME } from '../../constants'
-import { getEmbeddedTemplatesDirectory } from '../../util'
 
 export class CertManagerTasks {
+  private static readonly CERT_MANAGER_VERSION = 'v1.8.2'
+
   protected kubeHelper: KubeHelper
   protected cheHelper: CheHelper
   protected skipCertManager: boolean
@@ -31,7 +31,7 @@ export class CertManagerTasks {
   getDeployCertManagerTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Cert Manager v1.5.3',
+        title: `Cert Manager ${CertManagerTasks.CERT_MANAGER_VERSION}`,
         skip: () => this.skipCertManager,
         task: async (ctx: any, _task: any) => {
           const tasks = new Listr(undefined, ctx.listrOptions)
@@ -43,8 +43,7 @@ export class CertManagerTasks {
                 if (certManagerCrd) {
                   task.title = `${task.title}...[Exists]`
                 } else {
-                  const yamlPath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'cert-manager', 'cert-manager.yml')
-                  await this.kubeHelper.applyResource(yamlPath)
+                  await this.kubeHelper.applyResource(`https://github.com/cert-manager/cert-manager/releases/download/${CertManagerTasks.CERT_MANAGER_VERSION}/cert-manager.yaml`)
                   task.title = `${task.title}...[OK]`
                 }
               },

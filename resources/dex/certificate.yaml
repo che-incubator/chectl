@@ -13,7 +13,7 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: dex-certificate
+  name: dex
   namespace: dex
   labels:
     app: dex
@@ -21,10 +21,20 @@ spec:
   isCA: false
   commonName: dex
   privateKey:
-    algorithm: ECDSA
-    size: 256
+    algorithm: RSA
+    encoding: PKCS1
+    size: 4096
   issuerRef:
     kind: Issuer
-    name: dex-issuer
+    name: dex
     group: cert-manager.io
   secretName: dex.tls
+  subject:
+    organizations:
+      - Local Eclipse Che
+  usages:
+    - server auth
+    - digital signature
+    - key encipherment
+    - key agreement
+    - data encipherment

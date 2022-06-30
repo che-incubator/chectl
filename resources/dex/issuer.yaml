@@ -13,7 +13,7 @@
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: dex-issuer
+  name: dex
   namespace: dex
   labels:
     app: dex

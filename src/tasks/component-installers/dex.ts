@@ -52,13 +52,13 @@ export class DexTasks {
 
   private static readonly NAMESPACE_NAME = 'dex'
 
-  private static readonly SELF_SIGNED_ISSUER = 'dex-selfsigned-issuer'
+  private static readonly SELF_SIGNED_ISSUER = 'dex-selfsigned'
 
-  private static readonly SELF_SIGNED_CERTIFICATE = 'dex-selfsigned-certificate'
+  private static readonly SELF_SIGNED_CERTIFICATE = 'dex-selfsigned'
 
-  private static readonly ISSUER = 'dex-issuer'
+  private static readonly ISSUER = 'dex'
 
-  private static readonly CERTIFICATE = 'dex-certificate'
+  private static readonly CERTIFICATE = 'dex'
 
   private static readonly TLS_SECRET_NAME = 'dex.tls'
 

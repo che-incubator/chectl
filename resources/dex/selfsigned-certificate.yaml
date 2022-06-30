@@ -13,7 +13,7 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: dex-selfsigned-certificate
+  name: dex-selfsigned
   namespace: dex
   labels:
     app: dex
@@ -24,7 +24,7 @@ spec:
     algorithm: ECDSA
     size: 256
   issuerRef:
-    name: dex-selfsigned-issuer
+    name: dex-selfsigned
     kind: Issuer
     group: cert-manager.io
   secretName: ca.crt
