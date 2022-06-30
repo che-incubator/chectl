@@ -13,6 +13,10 @@
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: che-issuer
+  name: dex
+  namespace: dex
+  labels:
+    app: dex
 spec:
-  selfSigned: {}
+  ca:
+    secretName: ca.crt
