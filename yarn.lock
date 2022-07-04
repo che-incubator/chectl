@@ -2530,9 +2530,9 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
-"eclipse-che-operator@https://github.com/eclipse-che/che-operator#main":
+"eclipse-che-operator@https://github.com/eclipse-che/che-operator#7.50.0":
   version "0.0.0"
-  resolved "https://github.com/eclipse-che/che-operator#28857296f32248a9f63db496a76de74cdc6ec3ef"
+  resolved "https://github.com/eclipse-che/che-operator#9dae64ac2e050351b8d170b98c6393615788b817"
 
 editorconfig@^0.15.0:
   version "0.15.3"
