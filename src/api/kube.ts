@@ -62,7 +62,7 @@ import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_API_VERS
 import { getClusterClientCommand, getImageNameAndTag, isCheClusterAPIV1, isWebhookAvailabilityError, newError, safeLoadFromYamlFile, sleep } from '../util'
 import { ChectlContext } from './context'
 import { V1Certificate } from './types/cert-manager'
-import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, OperatorGroup, Subscription } from './types/olm'
+import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, Subscription } from './types/olm'
 
 const AWAIT_TIMEOUT_S = 30
 
@@ -260,11 +260,6 @@ export class KubeHelper {
     }
   }
 
-  async createRoleFromFile(filePath: string, namespace: string): Promise<void> {
-    const yamlRole = this.safeLoadFromYamlFile(filePath) as V1Role
-    return this.createRole(yamlRole, namespace)
-  }
-
   async replaceRole(yamlRole: V1Role, namespace: string): Promise<void> {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
@@ -419,11 +414,6 @@ export class KubeHelper {
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
-  }
-
-  async createRoleBindingFromFile(filePath: string, namespace: string): Promise<void> {
-    const yamlRoleBinding = this.safeLoadFromYamlFile(filePath) as V1RoleBinding
-    return this.createRoleBinding(yamlRoleBinding, namespace)
   }
 
   async replaceRoleBinding(yamlRoleBinding: V1RoleBinding, namespace: string): Promise<void> {
@@ -1317,7 +1307,7 @@ export class KubeHelper {
     }
   }
 
-  async IsCatalogSourceExists(name: string, namespace: string): Promise<boolean> {
+  async isCatalogSourceExists(name: string, namespace: string): Promise<boolean> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
       await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', name)
@@ -1327,6 +1317,16 @@ export class KubeHelper {
         return false
       }
 
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async listCatalogSources(namespace: string, labelSelector: string): Promise<any[]> {
+    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      const {body} = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', undefined, undefined, undefined, labelSelector)
+      return (body as any).items
+    } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
   }
@@ -1372,10 +1372,10 @@ export class KubeHelper {
     return catalogSource
   }
 
-  async createCatalogSource(catalogSource: CatalogSource) {
+  async createCatalogSource(catalogSource: CatalogSource, namespace: string) {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      const namespace = catalogSource.metadata.namespace!
+      delete catalogSource.metadata?.namespace
       const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', catalogSource)
       return body
     } catch (e: any) {
@@ -1413,54 +1413,6 @@ export class KubeHelper {
         return
       }
       throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async getOperatorGroup(name: string, namespace: string): Promise<OperatorGroup | undefined> {
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-    try {
-      const response = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorgroups', name)
-      if (response && response.body) {
-        return response.body as OperatorGroup
-      }
-    } catch (error: any) {
-      if (error.response && error.response.statusCode === 404) {
-        return
-      }
-      throw this.wrapK8sClientError(error)
-    }
-  }
-
-  async createOperatorGroup(name: string, namespace: string) {
-    const operatorGroup: OperatorGroup = {
-      apiVersion: 'operators.coreos.com/v1',
-      kind: 'OperatorGroup',
-      metadata: {
-        name: name,
-        namespace,
-      },
-      spec: {
-        targetNamespaces: [],
-      },
-    }
-
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-    try {
-      const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorgroups', operatorGroup)
-      return body
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async deleteOperatorGroup(name: string, namespace: string): Promise<void> {
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-    try {
-      await customObjectsApi.deleteNamespacedCustomObject('operators.coreos.com', 'v1', namespace, 'operatorgroups', name)
-    } catch (e: any) {
-      if (e.response.statusCode !== 404) {
-        throw this.wrapK8sClientError(e)
-      }
     }
   }
 

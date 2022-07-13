@@ -149,6 +149,10 @@ export namespace OLM {
   export const CATALOG_SOURCE_NAMESPACE = 'catalog-source-namespace'
   export const CATALOG_SOURCE_YAML = 'catalog-source-yaml'
   export const PACKAGE_MANIFEST_NAME = 'package-manifest-name'
+  export const ECLIPSE_CHE_SUBSCRIPTION = 'eclipse-che-subscription'
+  export const APPROVAL_STRATEGY = 'approval-strategy'
+  export const INSTALL_PLAN = 'install-plan'
+  export const PRE_INSTALLED_OLM = 'pre-installed-olm'
 }
 
 export namespace DevWorkspaceContextKeys {

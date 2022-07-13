@@ -137,6 +137,7 @@ export default class Deploy extends Command {
                     By default this flag is enabled.
                     This parameter is used only when the installer is 'olm'.`,
       allowNo: true,
+      default: true,
       exclusive: ['starting-csv'],
     }),
     'starting-csv': flags.string({
@@ -161,14 +162,20 @@ export default class Deploy extends Command {
                     Catalog source will be applied to the namespace with Che operator.
                     Also you need define 'olm-channel' name and 'package-manifest-name'.
                     This parameter is used only when the installer is the 'olm'.`,
+      exclusive: ['catalog-source-name', 'catalog-source-namespace'],
+      dependsOn: ['olm-channel', 'package-manifest-name'],
     }),
     'catalog-source-name': string({
       description: `OLM catalog source to install Eclipse Che operator.
                     This parameter is used only when the installer is the 'olm'.`,
+      dependsOn: ['catalog-source-namespace'],
+      exclusive: ['catalog-source-yaml'],
     }),
     'catalog-source-namespace': string({
       description: `Namespace for OLM catalog source to install Eclipse Che operator.
                     This parameter is used only when the installer is the 'olm'.`,
+      dependsOn: ['catalog-source-name'],
+      exclusive: ['catalog-source-yaml'],
     }),
     'cluster-monitoring': boolean({
       default: false,
@@ -219,18 +226,7 @@ export default class Deploy extends Command {
     if (flags.installer === 'olm') {
       // OLM installer only checks
       if (isKubernetesPlatformFamily(flags.platform)) {
-        this.error(`🛑 The specified installer ${flags.installer} does not support Kubernentes`)
-      }
-
-      if (flags[OLM.CATALOG_SOURCE_NAME] && flags[OLM.CATALOG_SOURCE_YAML]) {
-        this.error(`should be provided only one argument: "${OLM.CATALOG_SOURCE_NAME}" or "${OLM.CATALOG_SOURCE_YAML}"`)
-      }
-
-      if (!flags[OLM.PACKAGE_MANIFEST_NAME] && flags[OLM.CATALOG_SOURCE_YAML]) {
-        this.error(`you need to define "${OLM.PACKAGE_MANIFEST_NAME}" flag to use "${OLM.CATALOG_SOURCE_YAML}".`)
-      }
-      if (!flags[OLM.CHANNEL] && flags[OLM.CATALOG_SOURCE_YAML]) {
-        this.error(`you need to define "${OLM.CHANNEL}" flag to use "${OLM.CATALOG_SOURCE_YAML}".`)
+        this.error(`The specified installer ${flags.installer} does not support Kubernentes`)
       }
     } else {
       // Not OLM installer
