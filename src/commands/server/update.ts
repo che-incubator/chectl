@@ -34,8 +34,8 @@ import {
 import {
   DEFAULT_ANALYTIC_HOOK_NAME,
   DEFAULT_CHE_NAMESPACE,
-  DEFAULT_CHE_OPERATOR_IMAGE_NAME,
-  NEXT_TAG,
+  OPERATOR_IMAGE_NAME,
+  OPERATOR_IMAGE_NEXT_TAG,
 } from '../../constants'
 import {getPrintHighlightedMessagesTask} from '../../tasks/installers/common-tasks'
 import {InstallerTasks} from '../../tasks/installers/installer'
@@ -170,12 +170,12 @@ export default class Update extends Command {
     cli.info(`Existing Eclipse Che operator: ${ctx.deployedCheOperatorImage}`)
     cli.info(`New Eclipse Che operator     : ${ctx.newCheOperatorImage}`)
 
-    if (ctx.deployedCheOperatorImageName === DEFAULT_CHE_OPERATOR_IMAGE_NAME && ctx.newCheOperatorImageName === DEFAULT_CHE_OPERATOR_IMAGE_NAME) {
+    if (ctx.deployedCheOperatorImageName === OPERATOR_IMAGE_NAME && ctx.newCheOperatorImageName === OPERATOR_IMAGE_NAME) {
       // Official images
 
       if (ctx.deployedCheOperatorImage === ctx.newCheOperatorImage) {
-        if (ctx.newCheOperatorImageTag === NEXT_TAG) {
-          cli.info(`Updating current Eclipse Che ${NEXT_TAG} version to a new one.`)
+        if (ctx.newCheOperatorImageTag === OPERATOR_IMAGE_NEXT_TAG) {
+          cli.info(`Updating current Eclipse Che ${OPERATOR_IMAGE_NEXT_TAG} version to a new one.`)
           return true
         }
 
@@ -193,10 +193,10 @@ export default class Update extends Command {
         // Upgrade
 
         const currentChectlVersion = getProjectVersion()
-        if (!ctx.isDevVersion && (ctx.newCheOperatorImageTag === NEXT_TAG || semver.lt(currentChectlVersion, ctx.newCheOperatorImageTag))) {
+        if (!ctx.isDevVersion && (ctx.newCheOperatorImageTag === OPERATOR_IMAGE_NEXT_TAG || semver.lt(currentChectlVersion, ctx.newCheOperatorImageTag))) {
           // Upgrade is not allowed
-          if (ctx.newCheOperatorImageTag === NEXT_TAG) {
-            cli.warn(`Stable ${getProjectName()} cannot update stable Eclipse Che to ${NEXT_TAG} version`)
+          if (ctx.newCheOperatorImageTag === OPERATOR_IMAGE_NEXT_TAG) {
+            cli.warn(`Stable ${getProjectName()} cannot update stable Eclipse Che to ${OPERATOR_IMAGE_NEXT_TAG} version`)
           } else {
             cli.warn(`It is not possible to update Eclipse Che to a newer version using the current '${currentChectlVersion}' version of chectl. Please, update '${getProjectName()}' to a newer version using command '${getProjectName()} update' and then try again.`)
           }
@@ -204,8 +204,8 @@ export default class Update extends Command {
         }
 
         // Upgrade allowed
-        if (ctx.newCheOperatorImageTag === NEXT_TAG) {
-          cli.info(`You are going to update Eclipse Che ${ctx.deployedCheOperatorImageTag} to ${NEXT_TAG} version.`)
+        if (ctx.newCheOperatorImageTag === OPERATOR_IMAGE_NEXT_TAG) {
+          cli.info(`You are going to update Eclipse Che ${ctx.deployedCheOperatorImageTag} to ${OPERATOR_IMAGE_NEXT_TAG} version.`)
         } else {
           cli.info(`You are going to update Eclipse Che ${ctx.deployedCheOperatorImageTag} to ${ctx.newCheOperatorImageTag}`)
         }
@@ -220,12 +220,12 @@ export default class Update extends Command {
       if (ctx.deployedCheOperatorImage === ctx.newCheOperatorImage) {
         // Despite the image is the same it could be updated image, replace anyway.
         cli.info(`You are going to replace Eclipse Che operator image ${ctx.newCheOperatorImage}.`)
-      } else if (ctx.deployedCheOperatorImageName !== DEFAULT_CHE_OPERATOR_IMAGE_NAME && ctx.newCheOperatorImageName !== DEFAULT_CHE_OPERATOR_IMAGE_NAME) {
+      } else if (ctx.deployedCheOperatorImageName !== OPERATOR_IMAGE_NAME && ctx.newCheOperatorImageName !== OPERATOR_IMAGE_NAME) {
         // Both images are custom
         cli.info(`You are going to update ${ctx.deployedCheOperatorImage} to ${ctx.newCheOperatorImage}`)
       } else {
         // One of the images is offical
-        if (ctx.deployedCheOperatorImageName === DEFAULT_CHE_OPERATOR_IMAGE_NAME) {
+        if (ctx.deployedCheOperatorImageName === OPERATOR_IMAGE_NAME) {
           // Update from offical to custom image
           cli.info(`You are going to update official ${ctx.deployedCheOperatorImage} image with user provided one: ${ctx.newCheOperatorImage}`)
         } else { // ctx.newCheOperatorImageName === DEFAULT_CHE_OPERATOR_IMAGE_NAME
@@ -274,7 +274,7 @@ export default class Update extends Command {
     // if oldTag is NEXT_TAG it is downgrade
     // otherwise just compare new and old tags
     // Note, that semver lib doesn't handle text tags and throws an error in case NEXT_TAG is provided for comparation.
-    return newTag === NEXT_TAG || (oldTag !== NEXT_TAG && isUpdate)
+    return newTag === OPERATOR_IMAGE_NEXT_TAG || (oldTag !== OPERATOR_IMAGE_NEXT_TAG && isUpdate)
   }
 
   /**

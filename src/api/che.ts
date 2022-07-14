@@ -17,15 +17,13 @@ import * as fs from 'fs-extra'
 import * as nodeforge from 'node-forge'
 import * as path from 'path'
 import { OpenShiftHelper } from '../api/openshift'
-import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME } from '../constants'
+import { CHE_ROOT_CA_SECRET_NAME, ECLIPSE_CHE_STABLE_CHANNEL_PACKAGE_NAME, OPENSHIFT_OPERATORS_NAMESPACE } from '../constants'
 import { base64Decode } from '../util'
 import { ChectlContext } from './context'
 import { KubeHelper } from './kube'
-import { OperatorGroup, Subscription } from './types/olm'
+import { Subscription } from './types/olm'
 
 export class CheHelper {
-  defaultCheResponseTimeoutMs = 3000
-
   kube: KubeHelper
   oc = new OpenShiftHelper()
 
@@ -252,7 +250,7 @@ export class CheHelper {
   async findCheOperatorSubscription(namespace: string): Promise<Subscription | undefined> {
     try {
       const subscriptions = await this.kube.listOperatorSubscriptions(namespace)
-      const cheSubscriptions = subscriptions.filter(subscription => subscription.spec.name && subscription.spec.name.includes(DEFAULT_CHE_OLM_PACKAGE_NAME))
+      const cheSubscriptions = subscriptions.filter(subscription => subscription.spec.name && subscription.spec.name.includes(ECLIPSE_CHE_STABLE_CHANNEL_PACKAGE_NAME))
       if (cheSubscriptions.length > 1) {
         throw new Error('Found more than one Che subscription')
       }
@@ -260,35 +258,11 @@ export class CheHelper {
         return cheSubscriptions[0]
       }
       // No subscriptions found, check if Che is installed in all namespaces mode
-      if (namespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME) {
-        return this.findCheOperatorSubscription(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+      if (namespace !== OPENSHIFT_OPERATORS_NAMESPACE) {
+        return this.findCheOperatorSubscription(OPENSHIFT_OPERATORS_NAMESPACE)
       }
     } catch {
       // Do nothing, just return undefined
     }
-  }
-
-  async findCheOperatorOperatorGroup(namespace: string): Promise<OperatorGroup | undefined> {
-    const subscription = await this.findCheOperatorSubscription(namespace)
-    if (!subscription || !subscription.status || !subscription.status.installedCSV) {
-      return
-    }
-
-    const csvName = subscription.status.installedCSV
-    if (subscription.metadata.namespace) {
-      namespace = subscription.metadata.namespace
-    }
-    const csv = await this.kube.getCSV(csvName, namespace)
-    if (!csv || !csv.metadata || !csv.metadata.annotations) {
-      return
-    }
-
-    const operatorGroupName = csv.metadata.annotations['olm.operatorGroup']
-    const operatorGroupNamespace = csv.metadata.annotations['olm.operatorNamespace']
-    if (!operatorGroupName || !operatorGroupNamespace) {
-      return
-    }
-
-    return this.kube.getOperatorGroup(operatorGroupName, operatorGroupNamespace)
   }
 }

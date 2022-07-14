@@ -15,19 +15,31 @@ import { cli } from 'cli-ux'
 import * as yaml from 'js-yaml'
 import * as path from 'path'
 import { CheHelper } from '../../api/che'
-import { OLM, OLMInstallationUpdate } from '../../api/context'
+import {ChectlContext, OLM, OLMInstallationUpdate} from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/types/olm'
 import { VersionHelper } from '../../api/version'
-import { CHECTL_PROJECT_NAME, CSV_PREFIX, CUSTOM_CATALOG_SOURCE_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, INDEX_IMG, KUBERNETES_OLM_CATALOG, NEXT_CATALOG_SOURCE_NAME, OLM_NEXT_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME } from '../../constants'
-import {getEmbeddedTemplatesDirectory, getProjectName, isCheClusterAPIV2, isKubernetesPlatformFamily} from '../../util'
+import {
+  CHECTL_PROJECT_NAME,
+  CSV_PREFIX,
+  DEFAULT_CUSTOM_CATALOG_SOURCE_NAME,
+  ECLIPSE_CHE_STABLE_CHANNEL_PACKAGE_NAME,
+  DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME,
+  OPENSHIFT_MARKET_PLACE_NAMESPACE,
+  OPENSHIFT_OPERATORS_NAMESPACE,
+  ECLIPSE_CHE_NEXT_CATALOG_SOURCE_IMAGE,
+  ECLIPSE_CHE_NEXT_CHANNEL_CATALOG_SOURCE_NAME,
+  OLM_NEXT_CHANNEL_NAME,
+  OLM_STABLE_CHANNEL_NAME,
+  ECLIPSE_CHE_STABLE_CHANNEL_CATALOG_SOURCE_NAME,
+  ECLIPSE_CHE_NEXT_CHANNEL_PACKAGE_NAME,
+} from '../../constants'
+import {getEmbeddedTemplatesDirectory, getProjectName, isCheClusterAPIV2} from '../../util'
 import { createEclipseCheClusterTask, patchingEclipseCheCluster } from './common-tasks'
 import { OLMDevWorkspaceTasks } from './olm-dev-workspace-operator'
 import Listr = require('listr')
-
-export const TASK_TITLE_SET_CUSTOM_OPERATOR_IMAGE = 'Set custom operator image'
-export const TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE = 'Create custom catalog source from file'
-export const TASK_TITLE_PREPARE_CHE_CLUSTER_CR = 'Prepare Eclipse Che cluster CR'
+import { V1Role, V1RoleBinding } from '@kubernetes/client-node'
+import {merge} from 'lodash'
 
 export class OLMTasks {
   private readonly prometheusRoleName = 'prometheus-k8s'
@@ -46,165 +58,173 @@ export class OLMTasks {
     return [
       this.isOlmPreInstalledTask(command),
       {
-        title: 'Configure context information',
+        title: 'Set context',
         task: async (ctx: any, task: any) => {
-          ctx.operatorNamespace = DEFAULT_OPENSHIFT_OPERATORS_NS_NAME
-          ctx.defaultCatalogSourceNamespace = isKubernetesPlatformFamily(flags.platform) ? DEFAULT_OLM_KUBERNETES_NAMESPACE : DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE
-          // catalog source name for stable Che version
-          ctx.catalogSourceNameStable = isKubernetesPlatformFamily(flags.platform) ? KUBERNETES_OLM_CATALOG : OPENSHIFT_OLM_CATALOG
+          ctx[OLM.STARTING_CSV] = flags[OLM.STARTING_CSV]
+          ctx[OLM.CATALOG_SOURCE_NAMESPACE] = flags[OLM.CATALOG_SOURCE_NAMESPACE] || OPENSHIFT_MARKET_PLACE_NAMESPACE
 
-          ctx.sourceName = flags[OLM.CATALOG_SOURCE_NAME] || CUSTOM_CATALOG_SOURCE_NAME
-          ctx.generalPlatformName = isKubernetesPlatformFamily(flags.platform) ? 'kubernetes' : 'openshift'
-
-          ctx.startingCSV = flags[OLM.STARTING_CSV]
-          if (ctx.startingCSV) {
+          if (flags[OLM.STARTING_CSV]) {
             // Ignore auto-update flag, otherwise it will automatically update to the latest version and 'starting-csv' will not have any effect.
-            ctx.approvalStrategy = OLMInstallationUpdate.MANUAL
-          } else if (flags[OLM.AUTO_UPDATE] === undefined) {
-            ctx.approvalStrategy = OLMInstallationUpdate.AUTO
+            ctx[OLM.APPROVAL_STRATEGY] = OLMInstallationUpdate.MANUAL
           } else {
-            ctx.approvalStrategy = flags[OLM.AUTO_UPDATE] ? OLMInstallationUpdate.AUTO : OLMInstallationUpdate.MANUAL
+            ctx[OLM.APPROVAL_STRATEGY] = flags[OLM.AUTO_UPDATE] ? OLMInstallationUpdate.AUTO : OLMInstallationUpdate.MANUAL
+          }
+
+          ctx[OLM.CHANNEL] = flags[OLM.CHANNEL]
+          if (!ctx[OLM.CHANNEL]) {
+            if (VersionHelper.isDeployingStableVersion(flags)) {
+              ctx[OLM.CHANNEL] = OLM_STABLE_CHANNEL_NAME
+            } else {
+              ctx[OLM.CHANNEL] = OLM_NEXT_CHANNEL_NAME
+            }
+          }
+
+          ctx[OLM.PACKAGE_MANIFEST_NAME] = flags[OLM.PACKAGE_MANIFEST_NAME]
+          if (!ctx[OLM.PACKAGE_MANIFEST_NAME]) {
+            if (ctx[OLM.CHANNEL] === OLM_STABLE_CHANNEL_NAME) {
+              ctx[OLM.PACKAGE_MANIFEST_NAME] = ECLIPSE_CHE_STABLE_CHANNEL_PACKAGE_NAME
+            } else {
+              ctx[OLM.PACKAGE_MANIFEST_NAME] = ECLIPSE_CHE_NEXT_CHANNEL_PACKAGE_NAME
+            }
+          }
+
+          ctx[OLM.CATALOG_SOURCE_NAME] = flags[OLM.CATALOG_SOURCE_NAME]
+          if (!ctx[OLM.CATALOG_SOURCE_NAME]) {
+            if (ctx[OLM.CHANNEL] === OLM_STABLE_CHANNEL_NAME) {
+              ctx[OLM.CATALOG_SOURCE_NAME] = ECLIPSE_CHE_STABLE_CHANNEL_CATALOG_SOURCE_NAME
+            } else {
+              ctx[OLM.CATALOG_SOURCE_NAME] = ECLIPSE_CHE_NEXT_CHANNEL_CATALOG_SOURCE_NAME
+            }
           }
 
           task.title = `${task.title}...[OK]`
         },
       },
       {
+        // Deploy Dev Workspace operator community version
+        enabled: () => getProjectName() === CHECTL_PROJECT_NAME,
+        title: 'Deploy Dev Workspace operator',
+        task: (ctx: any, _task: any) => {
+          const devWorkspaceTasks = new Listr(undefined, ctx.listrOptions)
+          devWorkspaceTasks.add(this.olmDevWorkspaceTasks.startTasks())
+          return devWorkspaceTasks
+        },
+      },
+      {
         enabled: () => flags['cluster-monitoring'] && flags.platform === 'openshift',
-        title: `Create Role ${this.prometheusRoleName} in namespace ${flags.chenamespace}`,
+        title: `Create Role ${this.prometheusRoleName}`,
         task: async (_ctx: any, task: any) => {
           if (await this.kube.isRoleExist(this.prometheusRoleName, flags.chenamespace)) {
             task.title = `${task.title}...[Exists]`
           } else {
             const yamlFilePath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'prometheus-role.yaml')
-            await this.kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
+            const role = this.kube.safeLoadFromYamlFile(yamlFilePath) as V1Role
+            await this.kube.createRole(role, flags.chenamespace)
             task.title = `${task.title}...[OK]`
           }
         },
       },
       {
         enabled: () => flags['cluster-monitoring'] && flags.platform === 'openshift',
-        title: `Create RoleBinding ${this.prometheusRoleBindingName} in namespace ${flags.chenamespace}`,
+        title: `Create RoleBinding ${this.prometheusRoleBindingName}`,
         task: async (_ctx: any, task: any) => {
           if (await this.kube.isRoleBindingExist(this.prometheusRoleBindingName, flags.chenamespace)) {
             task.title = `${task.title}...[Exists]`
           } else {
             const yamlFilePath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'prometheus-role-binding.yaml')
-            await this.kube.createRoleBindingFromFile(yamlFilePath, flags.chenamespace)
+            const roleBinding = this.kube.safeLoadFromYamlFile(yamlFilePath) as V1RoleBinding
+            await this.kube.createRoleBinding(roleBinding, flags.chenamespace)
             task.title = `${task.title}...[OK]`
           }
         },
       },
       {
-        title: 'Create operator group',
-        enabled: (ctx: any) => ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
-        task: async (_ctx: any, task: any) => {
-          if (await this.che.findCheOperatorOperatorGroup(flags.chenamespace)) {
-            task.title = `${task.title}...[Exists]`
-          } else {
-            await this.kube.createOperatorGroup(OPERATOR_GROUP_NAME, flags.chenamespace)
-            task.title = `${task.title}...[OK]`
-          }
-        },
-      },
-      {
-        enabled: () => !flags[OLM.CATALOG_SOURCE_NAME] && !flags[OLM.CATALOG_SOURCE_YAML] && flags[OLM.CHANNEL] !== OLM_STABLE_CHANNEL_NAME,
-        title: 'Create CatalogSource for \'next\' channel',
-        task: async (ctx: any, task: any) => {
-          if (!await this.kube.IsCatalogSourceExists(NEXT_CATALOG_SOURCE_NAME, ctx.operatorNamespace)) {
-            const nextCatalogSource = this.constructNextCatalogSource(ctx.operatorNamespace)
-            await this.kube.createCatalogSource(nextCatalogSource)
-            await this.kube.waitCatalogSource(NEXT_CATALOG_SOURCE_NAME, ctx.operatorNamespace)
-            task.title = `${task.title}...[OK]`
-          } else {
-            task.title = `${task.title}...[Exists]`
-          }
-        },
-      },
-      {
-        enabled: () => getProjectName() === CHECTL_PROJECT_NAME,
-        title: 'Deploy Dev Workspace operator',
-        task: (ctx: any, _task: any) => {
-          const devWorkspaceTasks = new Listr(undefined, ctx.listrOptions)
-          devWorkspaceTasks.add(this.olmDevWorkspaceTasks.startTasks(flags, command))
-          return devWorkspaceTasks
-        },
-      },
-      {
-        title: TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE,
+        title: `Create custom CatalogSource from ${flags[OLM.CATALOG_SOURCE_YAML]}`,
         enabled: () => flags[OLM.CATALOG_SOURCE_YAML],
         task: async (ctx: any, task: any) => {
           const customCatalogSource: CatalogSource = this.kube.readCatalogSourceFromFile(flags[OLM.CATALOG_SOURCE_YAML])
-          if (!await this.kube.IsCatalogSourceExists(customCatalogSource.metadata!.name!, flags.chenamespace)) {
-            customCatalogSource.metadata.name = ctx.sourceName
-            customCatalogSource.metadata.namespace = flags.chenamespace
-            await this.kube.createCatalogSource(customCatalogSource)
-            await this.kube.waitCatalogSource(CUSTOM_CATALOG_SOURCE_NAME, flags.chenamespace)
-            task.title = `${task.title}...[OK: ${CUSTOM_CATALOG_SOURCE_NAME}]`
+
+          // custom label
+          merge(customCatalogSource.metadata, {labels: { 'app.kubernetes.io/part-of': 'che.eclipse.org'}})
+
+          // Move CatalogSource to `openshift-marketplace` namespace
+          ctx[OLM.CATALOG_SOURCE_NAMESPACE] = OPENSHIFT_MARKET_PLACE_NAMESPACE
+          ctx[OLM.CATALOG_SOURCE_NAME] = customCatalogSource.metadata.name
+
+          if (!await this.kube.isCatalogSourceExists(ctx[OLM.CATALOG_SOURCE_NAME], ctx[OLM.CATALOG_SOURCE_NAMESPACE])) {
+            await this.kube.createCatalogSource(customCatalogSource, ctx[OLM.CATALOG_SOURCE_NAMESPACE])
+            await this.kube.waitCatalogSource(ctx[OLM.CATALOG_SOURCE_NAME], ctx[OLM.CATALOG_SOURCE_NAMESPACE])
+            task.title = `${task.title}...[OK: ${ctx[OLM.CATALOG_SOURCE_NAME]}]`
           } else {
             task.title = `${task.title}...[Exists]`
           }
         },
       },
       {
-        title: 'Create operator subscription',
+        enabled: (ctx: any) => ctx[OLM.CHANNEL] === OLM_NEXT_CHANNEL_NAME && !flags[OLM.CATALOG_SOURCE_NAME] && !flags[OLM.CATALOG_SOURCE_YAML],
+        title: 'Create CatalogSource for \'next\' channel',
         task: async (ctx: any, task: any) => {
-          let subscription = await this.che.findCheOperatorSubscription(ctx.operatorNamespace)
-          if (subscription) {
-            ctx.subscriptionName = subscription.metadata.name
+          ctx[OLM.CATALOG_SOURCE_NAMESPACE] = OPENSHIFT_MARKET_PLACE_NAMESPACE
+          ctx[OLM.CATALOG_SOURCE_NAME] = ECLIPSE_CHE_NEXT_CHANNEL_CATALOG_SOURCE_NAME
+
+          if (!await this.kube.isCatalogSourceExists(ctx[OLM.CATALOG_SOURCE_NAME], ctx[OLM.CATALOG_SOURCE_NAMESPACE])) {
+            const catalogSource = this.constructNextCatalogSource()
+            await this.kube.createCatalogSource(catalogSource, ctx[OLM.CATALOG_SOURCE_NAMESPACE])
+            await this.kube.waitCatalogSource(ctx[OLM.CATALOG_SOURCE_NAME], ctx[OLM.CATALOG_SOURCE_NAMESPACE])
+            task.title = `${task.title}...[OK: ${ctx[OLM.CATALOG_SOURCE_NAME]}]`
+          } else {
             task.title = `${task.title}...[Exists]`
+          }
+        },
+      },
+      {
+        title: `Create Subscription ${DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME}`,
+        task: async (ctx: any, task: any) => {
+          let subscription = await this.che.findCheOperatorSubscription(OPENSHIFT_OPERATORS_NAMESPACE)
+          if (subscription) {
+            ctx[OLM.ECLIPSE_CHE_SUBSCRIPTION] = subscription.metadata.name
+            task.title = `${task.title}...[Exists: ${subscription.metadata.name}]`
             return
           }
-          ctx.subscriptionName = DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME
-          const channel = flags[OLM.CHANNEL]
 
-          if (flags[OLM.CATALOG_SOURCE_YAML] || flags[OLM.CATALOG_SOURCE_NAME]) {
-            // custom Che CatalogSource
-            const catalogSourceNamespace = flags[OLM.CATALOG_SOURCE_NAMESPACE] || ctx.operatorNamespace
-            subscription = this.constructSubscription(ctx.subscriptionName, flags[OLM.PACKAGE_MANIFEST_NAME], ctx.operatorNamespace, catalogSourceNamespace, channel || OLM_STABLE_CHANNEL_NAME, ctx.sourceName, ctx.approvalStrategy, ctx.startingCSV)
-          } else if (channel === OLM_STABLE_CHANNEL_NAME || (VersionHelper.isDeployingStableVersion(flags) && !channel)) {
-            // stable Che CatalogSource
-            subscription = this.constructSubscription(ctx.subscriptionName, DEFAULT_CHE_OLM_PACKAGE_NAME, ctx.operatorNamespace, ctx.defaultCatalogSourceNamespace, channel || OLM_STABLE_CHANNEL_NAME, ctx.catalogSourceNameStable, ctx.approvalStrategy, ctx.startingCSV)
-          } else if (channel === OLM_NEXT_CHANNEL_NAME || !channel) {
-            // next Che CatalogSource
-            subscription = this.constructSubscription(ctx.subscriptionName, `eclipse-che-preview-${ctx.generalPlatformName}`, ctx.operatorNamespace, ctx.operatorNamespace, channel || OLM_NEXT_CHANNEL_NAME, NEXT_CATALOG_SOURCE_NAME, ctx.approvalStrategy, ctx.startingCSV)
-          } else {
-            throw new Error(`Unknown OLM channel ${flags[OLM.CHANNEL]}`)
-          }
+          ctx[OLM.ECLIPSE_CHE_SUBSCRIPTION] = DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME
+          subscription = this.constructSubscription(
+            ctx[OLM.ECLIPSE_CHE_SUBSCRIPTION],
+            ctx[OLM.PACKAGE_MANIFEST_NAME],
+            OPENSHIFT_OPERATORS_NAMESPACE,
+            ctx[OLM.CATALOG_SOURCE_NAMESPACE],
+            ctx[OLM.CHANNEL],
+            ctx[OLM.CATALOG_SOURCE_NAME],
+            ctx[OLM.APPROVAL_STRATEGY],
+            ctx[OLM.STARTING_CSV])
           await this.kube.createOperatorSubscription(subscription)
           task.title = `${task.title}...[OK]`
         },
       },
       {
-        title: 'Wait while subscription is ready',
+        title: 'Wait for Subscription',
         task: async (ctx: any, task: any) => {
-          const installPlan = await this.kube.waitOperatorSubscriptionReadyForApproval(ctx.subscriptionName, ctx.operatorNamespace, 600)
-          ctx.installPlanName = installPlan.name
+          const installPlan = await this.kube.waitOperatorSubscriptionReadyForApproval(ctx[OLM.ECLIPSE_CHE_SUBSCRIPTION], OPENSHIFT_OPERATORS_NAMESPACE, 600)
+          ctx[OLM.INSTALL_PLAN] = installPlan.name
           task.title = `${task.title}...[OK]`
         },
       },
       {
-        title: 'Approve installation',
-        enabled: ctx => ctx.approvalStrategy === OLMInstallationUpdate.MANUAL,
+        title: 'Approve InstallPlan',
+        enabled: ctx => ctx[OLM.APPROVAL_STRATEGY] === OLMInstallationUpdate.MANUAL,
         task: async (ctx: any, task: any) => {
-          await this.kube.approveOperatorInstallationPlan(ctx.installPlanName, ctx.operatorNamespace)
+          await this.kube.approveOperatorInstallationPlan(ctx[OLM.INSTALL_PLAN], OPENSHIFT_OPERATORS_NAMESPACE)
+          await this.kube.waitOperatorInstallPlan(ctx[OLM.INSTALL_PLAN], OPENSHIFT_OPERATORS_NAMESPACE)
           task.title = `${task.title}...[OK]`
         },
       },
       {
-        title: 'Wait operator install plan',
+        title: 'Wait for ClusterServiceVersion',
         task: async (ctx: any, task: any) => {
-          await this.kube.waitOperatorInstallPlan(ctx.installPlanName, ctx.operatorNamespace)
-          task.title = `${task.title}...[OK]`
-        },
-      },
-      {
-        title: 'Check cluster service version resource',
-        task: async (ctx: any, task: any) => {
-          const installedCSVName = await this.kube.waitInstalledCSVInSubscription(ctx.subscriptionName, ctx.operatorNamespace,)
-          const phase = await this.kube.waitCSVStatusPhase(installedCSVName, ctx.operatorNamespace)
+          const installedCSVName = await this.kube.waitInstalledCSVInSubscription(ctx[OLM.ECLIPSE_CHE_SUBSCRIPTION], OPENSHIFT_OPERATORS_NAMESPACE)
+          const phase = await this.kube.waitCSVStatusPhase(installedCSVName, OPENSHIFT_OPERATORS_NAMESPACE)
           if (phase === 'Failed') {
-            const csv = await this.kube.getCSV(installedCSVName, ctx.operatorNamespace)
+            const csv = await this.kube.getCSV(installedCSVName, OPENSHIFT_OPERATORS_NAMESPACE)
             if (!csv) {
               throw new Error(`Cluster service version '${installedCSVName}' not found.`)
             }
@@ -214,10 +234,10 @@ export class OLMTasks {
         },
       },
       {
-        title: TASK_TITLE_SET_CUSTOM_OPERATOR_IMAGE,
+        title: 'Set custom operator image',
         enabled: () => flags['che-operator-image'],
         task: async (ctx: any, task: any) => {
-          const csvs = await this.kube.getCSVWithPrefix(CSV_PREFIX, ctx.operatorNamespace)
+          const csvs = await this.kube.getCSVWithPrefix(CSV_PREFIX, OPENSHIFT_OPERATORS_NAMESPACE)
           if (csvs.length !== 1) {
             throw new Error('Eclipse Che operator CSV not found.')
           }
@@ -227,16 +247,13 @@ export class OLMTasks {
         },
       },
       {
-        title: TASK_TITLE_PREPARE_CHE_CLUSTER_CR,
+        title: 'Prepare CheCluster CR',
         task: async (ctx: any, task: any) => {
-          const cheCluster = await this.kube.getCheClusterV1(flags.chenamespace)
-          if (cheCluster) {
-            task.title = `${task.title}...[Exists]`
-            return
-          }
-
-          if (!ctx.customCR) {
-            ctx.defaultCR = await this.getCRFromCSV(ctx.operatorNamespace, ctx.subscriptionName)
+          if (!ctx[ChectlContext.CUSTOM_CR]) {
+            const cheCluster = await this.kube.getCheClusterV1(flags.chenamespace)
+            if (!cheCluster) {
+              ctx[ChectlContext.DEFAULT_CR] = await this.getCRFromCSV(OPENSHIFT_OPERATORS_NAMESPACE, ctx[OLM.ECLIPSE_CHE_SUBSCRIPTION])
+            }
           }
 
           task.title = `${task.title}...[OK]`
@@ -250,14 +267,12 @@ export class OLMTasks {
     return new Listr([
       this.isOlmPreInstalledTask(command),
       {
-        title: 'Check operator subscription',
+        title: 'Check InstallPlan approval strategy',
         task: async (ctx: any, task: Listr.ListrTaskWrapper<any>) => {
-          const subscription = await this.che.findCheOperatorSubscription(flags.chenamespace)
+          const subscription = await this.che.findCheOperatorSubscription(OPENSHIFT_OPERATORS_NAMESPACE)
           if (!subscription) {
-            command.error('Unable to find operator subscription')
+            command.error('Unable to find Eclipse Che subscription')
           }
-          ctx.operatorNamespace = subscription.metadata.namespace
-          ctx.installPlanApproval = subscription.spec.installPlanApproval
 
           if (subscription.spec.installPlanApproval === OLMInstallationUpdate.AUTO) {
             task.title = `${task.title}...[Interrupted]`
@@ -279,23 +294,11 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Check if CheCluster CR exists',
-        task: async (ctx: any, _task: any) => {
-          if (ctx.operatorNamespace === DEFAULT_OPENSHIFT_OPERATORS_NS_NAME) {
-            const cheClusters = await this.kube.getAllCheClusters()
-            if (cheClusters.length === 0) {
-              command.error(`Eclipse Che cluster CR was not found in the namespace '${flags.chenamespace}'`)
-            }
-            if (cheClusters.length > 0) {
-              command.error('Eclipse Che does not support more than one installation in all namespaces mode.')
-            }
-            ctx.checlusterNamespace = cheClusters[0].metadata.namespace
-          } else {
-            const cheCluster = await this.kube.getCheClusterV1(ctx.operatorNamespace)
-            if (!cheCluster) {
-              command.error(`Eclipse Che cluster CR was not found in the namespace '${flags.chenamespace}'`)
-            }
-            ctx.checlusterNamespace = cheCluster.metadata.namespace
+        title: 'Check CheCluster CR',
+        task: async (_ctx: any, _task: any) => {
+          const cheCluster = await this.kube.getCheClusterV1(flags.chenamespace)
+          if (!cheCluster) {
+            command.error(`Eclipse Che cluster CR was not found in the namespace '${flags.chenamespace}'`)
           }
         },
       },
@@ -303,14 +306,14 @@ export class OLMTasks {
   }
 
   updateTasks(flags: any, command: Command): Listr {
-    const kube = new KubeHelper(flags)
-    const che = new CheHelper(flags)
     return new Listr([
       {
-        title: 'Get operator installation plan',
+        title: 'Find InstallPlan',
         task: async (ctx: any, task: any) => {
-          // We can be sure that the subscription exist, because it was checked in preupdate tasks
-          const subscription: Subscription = (await che.findCheOperatorSubscription(ctx.operatorNamespace))!
+          const subscription = await this.che.findCheOperatorSubscription(OPENSHIFT_OPERATORS_NAMESPACE)
+          if (!subscription) {
+            command.error('Unable to find Eclipse Che subscription')
+          }
 
           if (subscription.status) {
             if (subscription.status.state === 'AtLatestKnown') {
@@ -329,7 +332,7 @@ export class OLMTasks {
             if (subscription.status.state === 'UpgradePending' && subscription.status!.conditions) {
               const installCondition = subscription.status.conditions.find(condition => condition.type === 'InstallPlanPending' && condition.status === 'True')
               if (installCondition) {
-                ctx.installPlanName = subscription.status.installplan.name
+                ctx[OLM.INSTALL_PLAN] = subscription.status.installplan.name
                 task.title = `${task.title}...[OK]`
                 return
               }
@@ -343,60 +346,41 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Approve installation',
-        enabled: (ctx: any) => ctx.installPlanName,
+        title: 'Approve InstallPlan',
+        enabled: (ctx: any) => ctx[OLM.INSTALL_PLAN],
         task: async (ctx: any, task: any) => {
-          await kube.approveOperatorInstallationPlan(ctx.installPlanName, ctx.operatorNamespace)
-          task.title = `${task.title}...[OK]`
-        },
-      },
-      {
-        title: 'Wait while newer operator installed',
-        enabled: (ctx: any) => ctx.installPlanName,
-        task: async (ctx: any, task: any) => {
-          await kube.waitOperatorInstallPlan(ctx.installPlanName, ctx.operatorNamespace, 60)
+          await this.kube.approveOperatorInstallationPlan(ctx[OLM.INSTALL_PLAN], OPENSHIFT_OPERATORS_NAMESPACE)
+          await this.kube.waitOperatorInstallPlan(ctx[OLM.INSTALL_PLAN], OPENSHIFT_OPERATORS_NAMESPACE, 60)
           ctx.highlightedMessages.push(`Operator is updated from ${ctx.currentVersion} to ${ctx.nextVersion} version`)
           task.title = `${task.title}...[OK]`
         },
       },
-      patchingEclipseCheCluster(flags, kube),
+      patchingEclipseCheCluster(flags, this.kube),
     ], { renderer: flags['listr-renderer'] as any })
   }
 
   getDeleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
-    const kube = new KubeHelper(flags)
-    const che = new CheHelper(flags)
     return [
       {
-        title: 'Check for OLM',
+        title: 'Check if OLM is pre-installed on the platform',
         task: async (ctx: any, task: any) => {
-          ctx.isPreInstalledOLM = Boolean(await kube.isPreInstalledOLM())
-          task.title = `${task.title}...[OK: ${ctx.isPreInstalledOLM}]`
-        },
-      },
-      {
-        title: 'Find Eclipse Che subscription',
-        enabled: ctx => ctx.isPreInstalledOLM,
-        task: async (ctx: any, task: any) => {
-          const subscription = await che.findCheOperatorSubscription(flags.chenamespace)
-          if (subscription) {
-            ctx.subscriptionName = subscription.metadata.name
-            ctx.operatorNamespace = subscription.metadata.namespace
-            task.title = `${task.title}...[Found ${ctx.subscriptionName}]`
+          ctx[OLM.PRE_INSTALLED_OLM] = Boolean(await this.kube.isPreInstalledOLM())
+          if (ctx[OLM.PRE_INSTALLED_OLM]) {
+            task.title = `${task.title}...[Found]`
           } else {
-            ctx.operatorNamespace = flags.chenamespace || DEFAULT_CHE_NAMESPACE
             task.title = `${task.title}...[Not Found]`
           }
-          // Also get operator group here, because if delete subscription and csv we'll lose the link to it
-          ctx.operatorGroup = await che.findCheOperatorOperatorGroup(ctx.operatorNamespace)
         },
       },
       {
         title: 'Delete Subscription',
-        enabled: ctx => ctx.subscriptionName,
+        enabled: ctx => ctx[OLM.PRE_INSTALLED_OLM],
         task: async (ctx: any, task: any) => {
           try {
-            await kube.deleteOperatorSubscription(ctx.subscriptionName, ctx.operatorNamespace)
+            const subscription = await this.che.findCheOperatorSubscription(OPENSHIFT_OPERATORS_NAMESPACE)
+            if (subscription) {
+              await this.kube.deleteOperatorSubscription(subscription.metadata.name!, OPENSHIFT_OPERATORS_NAMESPACE)
+            }
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -405,12 +389,12 @@ export class OLMTasks {
       },
       {
         title: 'Delete ClusterServiceVersion',
-        enabled: ctx => ctx.isPreInstalledOLM,
+        enabled: ctx => ctx[OLM.PRE_INSTALLED_OLM],
         task: async (ctx: any, task: any) => {
           try {
-            const csvs = await kube.getCSVWithPrefix(CSV_PREFIX, ctx.operatorNamespace)
+            const csvs = await this.kube.getCSVWithPrefix(CSV_PREFIX, OPENSHIFT_OPERATORS_NAMESPACE)
             for (const csv of csvs) {
-              await kube.deleteClusterServiceVersion(csv.metadata.name!, ctx.operatorNamespace)
+              await this.kube.deleteClusterServiceVersion(csv.metadata.name!, OPENSHIFT_OPERATORS_NAMESPACE)
             }
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
@@ -419,28 +403,16 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Delete OperatorGroup',
-        // Do not delete global operator group if operator is in all namespaces mode
-        enabled: ctx => ctx.isPreInstalledOLM && ctx.operatorNamespace !== DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
+        title: 'Delete CatalogSources',
+        enabled: ctx => ctx[OLM.PRE_INSTALLED_OLM],
         task: async (ctx: any, task: any) => {
           try {
-            const opgr = ctx.operatorGroup
-            if (opgr && opgr.metadata && opgr.metadata.name && opgr.metadata.namespace) {
-              await kube.deleteOperatorGroup(opgr.metadata.name, opgr.metadata.namespace)
+            await this.kube.deleteCatalogSource(ECLIPSE_CHE_NEXT_CHANNEL_CATALOG_SOURCE_NAME, OPENSHIFT_MARKET_PLACE_NAMESPACE)
+            await this.kube.deleteCatalogSource(DEFAULT_CUSTOM_CATALOG_SOURCE_NAME, OPENSHIFT_MARKET_PLACE_NAMESPACE)
+            const catalogSources = await this.kube.listCatalogSources(OPENSHIFT_MARKET_PLACE_NAMESPACE, 'app.kubernetes.io/part-of=che.eclipse.org')
+            for (const catalogSource of catalogSources) {
+              await this.kube.deleteCatalogSource(catalogSource.metadata.name!, OPENSHIFT_MARKET_PLACE_NAMESPACE)
             }
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: `Delete CatalogSources ${CUSTOM_CATALOG_SOURCE_NAME}`,
-        enabled: ctx => ctx.isPreInstalledOLM,
-        task: async (ctx: any, task: any) => {
-          try {
-            await kube.deleteCatalogSource(CUSTOM_CATALOG_SOURCE_NAME, ctx.operatorNamespace)
-            await kube.deleteCatalogSource(NEXT_CATALOG_SOURCE_NAME, ctx.operatorNamespace)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -451,7 +423,7 @@ export class OLMTasks {
         title: `Delete Role ${this.prometheusRoleName}`,
         task: async (_ctx: any, task: any) => {
           try {
-            await kube.deleteRole(this.prometheusRoleName, flags.chenamespace)
+            await this.kube.deleteRole(this.prometheusRoleName, flags.chenamespace)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -462,7 +434,7 @@ export class OLMTasks {
         title: `Delete RoleBinding ${this.prometheusRoleName}`,
         task: async (_ctx: any, task: any) => {
           try {
-            await kube.deleteRoleBinding(this.prometheusRoleName, flags.chenamespace)
+            await this.kube.deleteRoleBinding(this.prometheusRoleName, flags.chenamespace)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -486,13 +458,24 @@ export class OLMTasks {
     }
   }
 
-  private constructSubscription(name: string, packageName: string, namespace: string, sourceNamespace: string, channel: string, sourceName: string, installPlanApproval: string, startingCSV?: string): Subscription {
+  private constructSubscription(
+    name: string,
+    packageName: string,
+    namespace: string,
+    sourceNamespace: string,
+    channel: string,
+    sourceName: string,
+    installPlanApproval: string,
+    startingCSV?: string): Subscription {
     return {
       apiVersion: 'operators.coreos.com/v1alpha1',
       kind: 'Subscription',
       metadata: {
         name,
         namespace,
+        labels: {
+          'app.kubernetes.io/part-of': 'che.eclipse.org',
+        },
       },
       spec: {
         channel,
@@ -505,16 +488,15 @@ export class OLMTasks {
     }
   }
 
-  private constructNextCatalogSource(namespace: string): CatalogSource {
+  private constructNextCatalogSource(): CatalogSource {
     return {
       apiVersion: 'operators.coreos.com/v1alpha1',
       kind: 'CatalogSource',
       metadata: {
-        name: NEXT_CATALOG_SOURCE_NAME,
-        namespace,
+        name: ECLIPSE_CHE_NEXT_CHANNEL_CATALOG_SOURCE_NAME,
       },
       spec: {
-        image: INDEX_IMG,
+        image: ECLIPSE_CHE_NEXT_CATALOG_SOURCE_IMAGE,
         sourceType: 'grpc',
         updateStrategy: {
           registryPoll: {

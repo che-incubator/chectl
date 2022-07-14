@@ -15,7 +15,7 @@ import { ChectlContext } from '../../api/context'
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { OpenShiftHelper } from '../../api/openshift'
-import { DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE, DEVFILE_WORKSPACE_API_GROUP, DEVFILE_WORKSPACE_API_VERSION, DEVFILE_WORKSPACE_KIND_PLURAL, DEVFILE_WORKSPACE_ROUTINGS_API_GROUP, DEVFILE_WORKSPACE_ROUTINGS_KIND_PLURAL, DEVFILE_WORKSPACE_ROUTINGS_VERSION } from '../../constants'
+import { WORKSPACE_CONTROLLER_NAMESPACE, DEVFILE_WORKSPACE_API_GROUP, DEVFILE_WORKSPACE_API_VERSION, DEVFILE_WORKSPACE_KIND_PLURAL, DEVFILE_WORKSPACE_ROUTINGS_API_GROUP, DEVFILE_WORKSPACE_ROUTINGS_KIND_PLURAL, DEVFILE_WORKSPACE_ROUTINGS_VERSION } from '../../constants'
 import { CertManagerTasks } from '../component-installers/cert-manager'
 
 /**
@@ -105,7 +105,7 @@ export class DevWorkspaceTasks {
         title: 'Delete all Dev Workspace Controller deployments',
         task: async (_ctx: any, task: any) => {
           try {
-            await this.kubeHelper.deleteAllDeployments(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+            await this.kubeHelper.deleteAllDeployments(WORKSPACE_CONTROLLER_NAMESPACE)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -116,7 +116,7 @@ export class DevWorkspaceTasks {
         title: 'Delete all Dev Workspace Controller services',
         task: async (_ctx: any, task: any) => {
           try {
-            await this.kubeHelper.deleteAllServices(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+            await this.kubeHelper.deleteAllServices(WORKSPACE_CONTROLLER_NAMESPACE)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -128,7 +128,7 @@ export class DevWorkspaceTasks {
         enabled: (ctx: any) => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (_ctx: any, task: any) => {
           try {
-            await this.kubeHelper.deleteAllIngresses(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+            await this.kubeHelper.deleteAllIngresses(WORKSPACE_CONTROLLER_NAMESPACE)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -140,7 +140,7 @@ export class DevWorkspaceTasks {
         enabled: (ctx: any) => ctx[ChectlContext.IS_OPENSHIFT],
         task: async (_ctx: any, task: any) => {
           try {
-            await this.openShiftHelper.deleteAllRoutes(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+            await this.openShiftHelper.deleteAllRoutes(WORKSPACE_CONTROLLER_NAMESPACE)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -151,7 +151,7 @@ export class DevWorkspaceTasks {
         title: 'Delete Dev Workspace Controller configmaps',
         task: async (_ctx: any, task: any) => {
           try {
-            await this.kubeHelper.deleteConfigMap(this.devWorkspaceConfigMap, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+            await this.kubeHelper.deleteConfigMap(this.devWorkspaceConfigMap, WORKSPACE_CONTROLLER_NAMESPACE)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -174,7 +174,7 @@ export class DevWorkspaceTasks {
         title: 'Delete Dev Workspace Controller role',
         task: async (_ctx: any, task: any) => {
           try {
-            await this.kubeHelper.deleteRole(this.devWorkspaceLeaderElectionRole, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+            await this.kubeHelper.deleteRole(this.devWorkspaceLeaderElectionRole, WORKSPACE_CONTROLLER_NAMESPACE)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -185,7 +185,7 @@ export class DevWorkspaceTasks {
         title: 'Delete Dev Workspace Controller roleBinding',
         task: async (_ctx: any, task: any) => {
           try {
-            await this.kubeHelper.deleteRoleBinding(this.devWorkspaceLeaderElectionRoleBinding, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+            await this.kubeHelper.deleteRoleBinding(this.devWorkspaceLeaderElectionRoleBinding, WORKSPACE_CONTROLLER_NAMESPACE)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -211,7 +211,7 @@ export class DevWorkspaceTasks {
         title: 'Delete Dev Workspace Controller service account',
         task: async (_ctx: any, task: any) => {
           try {
-            await this.kubeHelper.deleteServiceAccount(this.devWorkspaceServiceAccount, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+            await this.kubeHelper.deleteServiceAccount(this.devWorkspaceServiceAccount, WORKSPACE_CONTROLLER_NAMESPACE)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -223,8 +223,8 @@ export class DevWorkspaceTasks {
         enabled: async (ctx: any) => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (_ctx: any, task: any) => {
           try {
-            await this.kubeHelper.deleteCertificate(this.devWorkspaceCertificate, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
-            await this.kubeHelper.deleteIssuer(this.devWorkspaceCertIssuer, DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+            await this.kubeHelper.deleteCertificate(this.devWorkspaceCertificate, WORKSPACE_CONTROLLER_NAMESPACE)
+            await this.kubeHelper.deleteIssuer(this.devWorkspaceCertIssuer, WORKSPACE_CONTROLLER_NAMESPACE)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -235,9 +235,9 @@ export class DevWorkspaceTasks {
         title: 'Delete Dev Workspace Operator Namespace',
         task: async (_ctx: any, task: any) => {
           try {
-            const namespaceExist = await this.kubeHelper.getNamespace(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+            const namespaceExist = await this.kubeHelper.getNamespace(WORKSPACE_CONTROLLER_NAMESPACE)
             if (namespaceExist) {
-              await this.kubeHelper.deleteNamespace(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
+              await this.kubeHelper.deleteNamespace(WORKSPACE_CONTROLLER_NAMESPACE)
             }
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {

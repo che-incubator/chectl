@@ -21,8 +21,8 @@ import { assumeYes, batch, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeH
 import {
   DEFAULT_ANALYTIC_HOOK_NAME,
   DEFAULT_CHE_NAMESPACE,
-  DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE,
-  DEFAULT_OPENSHIFT_OPERATORS_NS_NAME,
+  WORKSPACE_CONTROLLER_NAMESPACE,
+  OPENSHIFT_OPERATORS_NAMESPACE,
 } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
@@ -102,13 +102,13 @@ export default class Delete extends Command {
             if (await olmDevWorkspaceTasks.isCustomDevWorkspaceCatalogExists()) {
               tasks.add(devWorkspaceTasks.deleteDevOperatorCRsAndCRDsTasks())
               tasks.add(olmDevWorkspaceTasks.deleteResourcesTasks())
-              tasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME))
+              tasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(OPENSHIFT_OPERATORS_NAMESPACE))
             }
 
             if (!await olmDevWorkspaceTasks.isDevWorkspaceOperatorInstalledViaOLM()) {
               tasks.add(devWorkspaceTasks.deleteDevOperatorCRsAndCRDsTasks())
               tasks.add(devWorkspaceTasks.deleteResourcesTasks())
-              tasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE))
+              tasks.add(devWorkspaceTasks.deleteDevWorkspaceWebhooksTasks(WORKSPACE_CONTROLLER_NAMESPACE))
             }
 
             return tasks
