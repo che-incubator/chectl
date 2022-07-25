@@ -44,6 +44,13 @@ function prepareTemplates() {
     fs.copySync(
       path.join(deployFolder, platform, 'objects', 'che-operator-service.Service.yaml'),
       path.join(cheOperatorTemplates, platform, 'webhook-service.yaml'))
+
+    const validatingWebhookConfigurationPath = path.join(deployFolder, platform, 'objects', 'org.eclipse.che.ValidatingWebhookConfiguration.yaml')
+    if (fs.existsSync(validatingWebhookConfigurationPath)) {
+      fs.copySync(
+        validatingWebhookConfigurationPath,
+        path.join(cheOperatorTemplates, platform, 'org.eclipse.che.ValidatingWebhookConfiguration.yaml'))
+    }
   }
 
   fs.copySync(
