@@ -290,9 +290,13 @@ export class OperatorTasks {
             task.title = `${task.title}...[Exists]`
           } else {
             const webhookPath = this.getResourcePath('org.eclipse.che.ValidatingWebhookConfiguration.yaml')
-            const webhook = this.kh.safeLoadFromYamlFile(webhookPath)
-            await this.kh.createValidatingWebhookConfiguration(webhook)
-            task.title = `${task.title}...[OK: created]`
+            if (fs.existsSync(webhookPath)) {
+              const webhook = this.kh.safeLoadFromYamlFile(webhookPath)
+              await this.kh.createValidatingWebhookConfiguration(webhook)
+              task.title = `${task.title}...[OK: created]`
+            } else {
+              task.title = `${task.title}...[Not found]`
+            }
           }
         },
       },
@@ -483,13 +487,17 @@ export class OperatorTasks {
         title: `Update ValidatingWebhookConfiguration ${OperatorTasks.VALIDATING_WEBHOOK}`,
         task: async (ctx: any, task: any) => {
           const webhookPath = this.getResourcePath('org.eclipse.che.ValidatingWebhookConfiguration.yaml')
-          const webhook = this.kh.safeLoadFromYamlFile(webhookPath)
-          const exists = await this.kh.isValidatingWebhookConfigurationExists(OperatorTasks.VALIDATING_WEBHOOK)
-          if (exists) {
-            task.title = `${task.title}...[Ok: updated]`
+          if (fs.existsSync(webhookPath)) {
+            const webhook = this.kh.safeLoadFromYamlFile(webhookPath)
+            const exists = await this.kh.isValidatingWebhookConfigurationExists(OperatorTasks.VALIDATING_WEBHOOK)
+            if (exists) {
+              task.title = `${task.title}...[Ok: updated]`
+            } else {
+              await this.kh.replaceValidatingWebhookConfiguration(OperatorTasks.VALIDATING_WEBHOOK, webhook)
+              task.title = `${task.title}...[OK: created]`
+            }
           } else {
-            await this.kh.replaceValidatingWebhookConfiguration(OperatorTasks.VALIDATING_WEBHOOK, webhook)
-            task.title = `${task.title}...[OK: created]`
+            task.title = `${task.title}...[Not found]`
           }
         },
       },
