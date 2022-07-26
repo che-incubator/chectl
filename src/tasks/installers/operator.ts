@@ -18,6 +18,7 @@ import {
   V1RoleBinding,
   V1Service,
   V1CustomResourceDefinition,
+  V1ValidatingWebhookConfiguration,
 } from '@kubernetes/client-node'
 import {cli} from 'cli-ux'
 import * as fs from 'fs'
@@ -291,7 +292,8 @@ export class OperatorTasks {
           } else {
             const webhookPath = this.getResourcePath('org.eclipse.che.ValidatingWebhookConfiguration.yaml')
             if (fs.existsSync(webhookPath)) {
-              const webhook = this.kh.safeLoadFromYamlFile(webhookPath)
+              const webhook = this.kh.safeLoadFromYamlFile(webhookPath) as V1ValidatingWebhookConfiguration
+              webhook!.webhooks![0].clientConfig.service!.namespace = this.flags.chenamespace
               await this.kh.createValidatingWebhookConfiguration(webhook)
               task.title = `${task.title}...[OK: created]`
             } else {
@@ -488,12 +490,15 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const webhookPath = this.getResourcePath('org.eclipse.che.ValidatingWebhookConfiguration.yaml')
           if (fs.existsSync(webhookPath)) {
-            const webhook = this.kh.safeLoadFromYamlFile(webhookPath)
+            const webhook = this.kh.safeLoadFromYamlFile(webhookPath) as V1ValidatingWebhookConfiguration
+            webhook!.webhooks![0].clientConfig.service!.namespace = this.flags.chenamespace
+
             const exists = await this.kh.isValidatingWebhookConfigurationExists(OperatorTasks.VALIDATING_WEBHOOK)
             if (exists) {
+              await this.kh.replaceValidatingWebhookConfiguration(OperatorTasks.VALIDATING_WEBHOOK, webhook)
               task.title = `${task.title}...[Ok: updated]`
             } else {
-              await this.kh.replaceValidatingWebhookConfiguration(OperatorTasks.VALIDATING_WEBHOOK, webhook)
+              await this.kh.createValidatingWebhookConfiguration(webhook)
               task.title = `${task.title}...[OK: created]`
             }
           } else {

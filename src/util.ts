@@ -416,5 +416,6 @@ export function isWebhookAvailabilityError(error: any): boolean {
   const msg = error.message as string
   return msg.indexOf('service "che-operator-service" not found') !== -1 ||
     msg.indexOf('no endpoints available for service "che-operator-service"') !== -1 ||
+    msg.indexOf('failed calling webhook') !== -1 ||
     msg.indexOf('conversion webhook') !== -1
 }
