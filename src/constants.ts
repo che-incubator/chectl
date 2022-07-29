@@ -78,7 +78,7 @@ export const CHE_CLUSTER_API_VERSION_V2 = 'v2'
 export const CHE_CLUSTER_KIND_PLURAL = 'checlusters'
 
 export const DEVFILE_WORKSPACE_API_GROUP = 'workspace.devfile.io'
-export const DEVFILE_WORKSPACE_API_VERSION = 'v1alpha2'
+export const DEVFILE_WORKSPACE_API_VERSION = 'v1alpha1'
 export const DEVFILE_WORKSPACE_KIND_PLURAL = 'devworkspaces'
 
 export const DEVFILE_WORKSPACE_ROUTINGS_API_GROUP = 'controller.devfile.io'
