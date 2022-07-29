@@ -32,7 +32,7 @@ import {
   CHE_CLUSTER_API_VERSION_V2,
   CHE_CLUSTER_CRD,
   CHE_OPERATOR_SELECTOR,
-  OPERATOR_DEPLOYMENT_NAME
+  OPERATOR_DEPLOYMENT_NAME,
 } from '../../constants'
 import {getImageNameAndTag, isCheClusterAPIV1, safeLoadFromYamlFile} from '../../util'
 import {KubeTasks} from '../kube'
