@@ -213,7 +213,7 @@ _See code: [src/commands/server/debug.ts](https://github.com/che-incubator/chect
 
 ## `chectl server:delete`
 
-delete any Eclipse Che related resource: Kubernetes/OpenShift
+delete any Eclipse Che related resource
 
 ```
 USAGE
@@ -227,6 +227,8 @@ OPTIONS
                                    non-interactively
 
   --batch                          Batch mode. Running a command without end user interaction.
+
+  --delete-all                     Indicates to delete Eclipse Che and Dev Workspace related resources
 
   --delete-namespace               Indicates that a Eclipse Che namespace will be deleted as well
 
