@@ -13,7 +13,7 @@
 import * as Listr from 'listr'
 import { CheHelper } from '../../../api/che'
 import { KubeHelper } from '../../../api/kube'
-import { WORKSPACE_CONTROLLER_NAMESPACE, DEVFILE_WORKSPACE_API_GROUP, DEVFILE_WORKSPACE_API_VERSION, DEVFILE_WORKSPACE_KIND_PLURAL, DEVFILE_WORKSPACE_ROUTINGS_API_GROUP, DEVFILE_WORKSPACE_ROUTINGS_KIND_PLURAL, DEVFILE_WORKSPACE_ROUTINGS_VERSION } from '../../../constants'
+import { DEVFILE_WORKSPACE_API_GROUP, DEVFILE_WORKSPACE_API_VERSION, DEVFILE_WORKSPACE_KIND_PLURAL, DEVFILE_WORKSPACE_ROUTINGS_API_GROUP, DEVFILE_WORKSPACE_ROUTINGS_KIND_PLURAL, DEVFILE_WORKSPACE_ROUTINGS_VERSION } from '../../../constants'
 
 /**
  * Handle setup of the dev workspace operator controller.
@@ -145,8 +145,8 @@ export class DevWorkspaceTasks {
         title: 'Delete RoleBindings',
         task: async (_ctx: any, task: any) => {
           try {
-            await this.kubeHelper.deleteRoleBinding(this.devWorkspaceLeaderElectionRoleBindingName, WORKSPACE_CONTROLLER_NAMESPACE)
-            await this.kubeHelper.deleteRoleBinding(this.devWorkspaceServiceCertRoleName, WORKSPACE_CONTROLLER_NAMESPACE)
+            await this.kubeHelper.deleteRoleBinding(this.devWorkspaceLeaderElectionRoleBindingName, devWorkspaceNamespace)
+            await this.kubeHelper.deleteRoleBinding(this.devWorkspaceServiceCertRoleName, devWorkspaceNamespace)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -157,8 +157,8 @@ export class DevWorkspaceTasks {
         title: 'Delete Roles',
         task: async (_ctx: any, task: any) => {
           try {
-            await this.kubeHelper.deleteRole(this.devWorkspaceLeaderElectionRoleName, WORKSPACE_CONTROLLER_NAMESPACE)
-            await this.kubeHelper.deleteRoleBinding(this.devWorkspaceServiceCertRoleBindingName, WORKSPACE_CONTROLLER_NAMESPACE)
+            await this.kubeHelper.deleteRole(this.devWorkspaceLeaderElectionRoleName, devWorkspaceNamespace)
+            await this.kubeHelper.deleteRoleBinding(this.devWorkspaceServiceCertRoleBindingName, devWorkspaceNamespace)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -198,8 +198,8 @@ export class DevWorkspaceTasks {
         title: 'Delete ServiceAccounts',
         task: async (_ctx: any, task: any) => {
           try {
-            await this.kubeHelper.deleteServiceAccount(this.devWorkspaceSAName, WORKSPACE_CONTROLLER_NAMESPACE)
-            await this.kubeHelper.deleteServiceAccount(this.webhookServerSAName, WORKSPACE_CONTROLLER_NAMESPACE)
+            await this.kubeHelper.deleteServiceAccount(this.devWorkspaceSAName, devWorkspaceNamespace)
+            await this.kubeHelper.deleteServiceAccount(this.webhookServerSAName, devWorkspaceNamespace)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -210,7 +210,7 @@ export class DevWorkspaceTasks {
         title: `Delete Issuer ${this.devWorkspaceIssuerName}`,
         task: async (_ctx: any, task: any) => {
           try {
-            await this.kubeHelper.deleteIssuer(this.devWorkspaceIssuerName, WORKSPACE_CONTROLLER_NAMESPACE)
+            await this.kubeHelper.deleteIssuer(this.devWorkspaceIssuerName, devWorkspaceNamespace)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -221,7 +221,7 @@ export class DevWorkspaceTasks {
         title: `Delete Certificate ${this.devWorkspaceCertificateName}`,
         task: async (_ctx: any, task: any) => {
           try {
-            await this.kubeHelper.deleteCertificate(this.devWorkspaceCertificateName, WORKSPACE_CONTROLLER_NAMESPACE)
+            await this.kubeHelper.deleteCertificate(this.devWorkspaceCertificateName, devWorkspaceNamespace)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
