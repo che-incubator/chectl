@@ -27,7 +27,13 @@ import * as path from 'path'
 import * as yaml from 'js-yaml'
 import {ChectlContext} from '../../api/context'
 import {KubeHelper} from '../../api/kube'
-import {CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME} from '../../constants'
+import {
+  CHE_CLUSTER_API_GROUP,
+  CHE_CLUSTER_API_VERSION_V2,
+  CHE_CLUSTER_CRD,
+  CHE_OPERATOR_SELECTOR,
+  OPERATOR_DEPLOYMENT_NAME,
+} from '../../constants'
 import {getImageNameAndTag, isCheClusterAPIV1, safeLoadFromYamlFile} from '../../util'
 import {KubeTasks} from '../kube'
 import {createEclipseCheClusterTask, patchingEclipseCheCluster} from './common-tasks'
@@ -40,7 +46,6 @@ export class OperatorTasks {
   private static readonly CERTIFICATE = 'che-operator-serving-cert'
   private static readonly ISSUER = 'che-operator-selfsigned-issuer'
   private static readonly SERVICE_ACCOUNT = 'che-operator'
-  private static readonly DEVWORKSPACE_PREFIX = 'devworkspace-che'
   private static readonly CONSOLELINK = 'che'
 
   protected kh: KubeHelper
@@ -513,73 +518,11 @@ export class OperatorTasks {
   /**
    * Returns list of tasks which remove Eclipse Che operator related resources
    */
-  getDeleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+  getDeleteCRsTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     const kh = new KubeHelper(flags)
     return [
       {
-        title: `Delete ValidatingWebhookConfiguration ${OperatorTasks.VALIDATING_WEBHOOK}`,
-        task: async (_ctx: any, task: any) => {
-          try {
-            await kh.deleteValidatingWebhookConfiguration(OperatorTasks.VALIDATING_WEBHOOK)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: `Delete Issuer ${OperatorTasks.ISSUER}`,
-        task: async (_ctx: any, task: any) => {
-          try {
-            await kh.deleteIssuer(OperatorTasks.ISSUER, this.flags.chenamespace)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: `Delete Certificate ${OperatorTasks.CERTIFICATE}`,
-        task: async (_ctx: any, task: any) => {
-          try {
-            await kh.deleteCertificate(OperatorTasks.CERTIFICATE, this.flags.chenamespace)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: 'Delete OAuthClient',
-        enabled: (ctx: any) => ctx[ChectlContext.IS_OPENSHIFT],
-        task: async (_ctx: any, task: any) => {
-          try {
-            const checluster = await kh.getCheClusterV1(flags.chenamespace)
-            if (checluster) {
-              if (isCheClusterAPIV1(checluster)) {
-                if (checluster?.spec?.auth?.oAuthClientName) {
-                  await kh.deleteOAuthClient(checluster.spec.auth.oAuthClientName)
-                }
-              } else {
-                if (checluster?.spec?.networking?.auth?.oAuthClientName) {
-                  await kh.deleteOAuthClient(checluster.spec.networking.auth.oAuthClientName)
-                }
-              }
-            }
-
-            const oauthClients = await kh.listOAuthClientBySelector('app.kubernetes.io/part-of=che.eclipse.org')
-            for (const oauthClient of oauthClients) {
-              await kh.deleteOAuthClient(oauthClient.metadata.name)
-            }
-
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: `Delete the Custom Resource of type ${CHE_CLUSTER_CRD}`,
+        title: `Delete ${CHE_CLUSTER_API_GROUP}/${CHE_CLUSTER_API_VERSION_V2} resources`,
         task: async (_ctx: any, task: any) => {
           try {
             await kh.deleteAllCheClusters(flags.chenamespace)
@@ -615,6 +558,26 @@ export class OperatorTasks {
             } else {
               task.title = `${task.title}...[Failed]`
             }
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+    ]
+  }
+
+  /**
+   * Returns list of tasks which remove Eclipse Che operator related resources
+   */
+  getDeleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+    const kh = new KubeHelper(flags)
+    return [
+      {
+        title: `Delete ValidatingWebhookConfiguration ${OperatorTasks.VALIDATING_WEBHOOK}`,
+        task: async (_ctx: any, task: any) => {
+          try {
+            await kh.deleteValidatingWebhookConfiguration(OperatorTasks.VALIDATING_WEBHOOK)
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -729,16 +692,16 @@ export class OperatorTasks {
 
             const clusterRoleBindings = await kh.listClusterRoleBindings()
             for (const clusterRoleBinding of clusterRoleBindings.items) {
-              const name = clusterRoleBinding.metadata && clusterRoleBinding.metadata.name || ''
-              if (name.startsWith(flags.chenamespace) || name.startsWith(OperatorTasks.DEVWORKSPACE_PREFIX)) {
+              const name = clusterRoleBinding.metadata?.name
+              if (name && name.startsWith(flags.chenamespace)) {
                 await kh.deleteClusterRoleBinding(name)
               }
             }
 
             const clusterRoles = await kh.listClusterRoles()
             for (const clusterRole of clusterRoles.items) {
-              const name = clusterRole.metadata && clusterRole.metadata.name || ''
-              if (name.startsWith(flags.chenamespace) || name.startsWith(OperatorTasks.DEVWORKSPACE_PREFIX)) {
+              const name = clusterRole.metadata?.name
+              if (name && name.startsWith(flags.chenamespace)) {
                 await kh.deleteClusterRole(name)
               }
             }
@@ -800,6 +763,57 @@ export class OperatorTasks {
             await this.kh.deleteServiceAccount('che-gateway', flags.chenamespace)
             await this.kh.deleteServiceAccount('che-tls-job-service-account', flags.chenamespace)
             await this.kh.deleteServiceAccount(OperatorTasks.SERVICE_ACCOUNT, flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+      {
+        title: `Delete Issuer ${OperatorTasks.ISSUER}`,
+        task: async (_ctx: any, task: any) => {
+          try {
+            await kh.deleteIssuer(OperatorTasks.ISSUER, this.flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+      {
+        title: `Delete Certificate ${OperatorTasks.CERTIFICATE}`,
+        task: async (_ctx: any, task: any) => {
+          try {
+            await kh.deleteCertificate(OperatorTasks.CERTIFICATE, this.flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+      {
+        title: 'Delete OAuthClient',
+        enabled: (ctx: any) => ctx[ChectlContext.IS_OPENSHIFT],
+        task: async (_ctx: any, task: any) => {
+          try {
+            const checluster = await kh.getCheClusterV1(flags.chenamespace)
+            if (checluster) {
+              if (isCheClusterAPIV1(checluster)) {
+                if (checluster?.spec?.auth?.oAuthClientName) {
+                  await kh.deleteOAuthClient(checluster.spec.auth.oAuthClientName)
+                }
+              } else {
+                if (checluster?.spec?.networking?.auth?.oAuthClientName) {
+                  await kh.deleteOAuthClient(checluster.spec.networking.auth.oAuthClientName)
+                }
+              }
+            }
+
+            const oauthClients = await kh.listOAuthClientBySelector('app.kubernetes.io/part-of=che.eclipse.org')
+            for (const oauthClient of oauthClients) {
+              await kh.deleteOAuthClient(oauthClient.metadata.name)
+            }
+
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
