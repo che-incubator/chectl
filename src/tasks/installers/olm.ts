@@ -286,7 +286,7 @@ export class OLMTasks {
             if (cheClusters.length === 0) {
               command.error(`Eclipse Che cluster CR was not found in the namespace '${flags.chenamespace}'`)
             }
-            if (cheClusters.length > 0) {
+            if (cheClusters.length > 1) {
               command.error('Eclipse Che does not support more than one installation in all namespaces mode.')
             }
             ctx.checlusterNamespace = cheClusters[0].metadata.namespace
