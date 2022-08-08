@@ -248,9 +248,6 @@ USAGE
   $ chectl server:deploy
 
 OPTIONS
-  -a, --installer=operator|olm
-      Installer type. If not set, default is "olm" for OpenShift 4.x platform otherwise "operator".
-
   -b, --domain=domain
       Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
       This flag makes sense only for Kubernetes family infrastructures and will be autodetected for Minikube and MicroK8s
@@ -276,7 +273,7 @@ OPTIONS
       (required) [default: 40000] Eclipse Che server bootstrap timeout (in milliseconds)
 
   -p, --platform=minikube|k8s|openshift|microk8s|docker-desktop|crc
-      Type of Kubernetes platform.
+      (required) Type of Kubernetes platform.
 
   -t, --templates=templates
       Path to the templates folder
