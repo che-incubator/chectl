@@ -168,7 +168,7 @@ export class OperatorTasks {
   /**
    * Returns tasks list which perform preflight platform checks.
    */
-  async deployTasks(): Promise<Listr.ListrTask[]> {
+  deployTasks(): Listr.ListrTask<any>[] {
     const kube = new KubeHelper(this.flags)
     const kubeTasks = new KubeTasks(this.flags)
 
@@ -189,7 +189,6 @@ export class OperatorTasks {
       this.getCreateOrUpdateRolesAndBindingsTasks(false),
       {
         title: `Create Certificate ${OperatorTasks.CERTIFICATE}`,
-        enabled: ctx => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isCertificateExists(OperatorTasks.CERTIFICATE, this.flags.chenamespace)
           if (exists) {
@@ -210,7 +209,6 @@ export class OperatorTasks {
       },
       {
         title: `Create Issuer ${OperatorTasks.ISSUER}`,
-        enabled: ctx => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (ctx: any, task: any) => {
           const exists = await this.kh.isIssuerExists(OperatorTasks.ISSUER, this.flags.chenamespace)
           if (exists) {
@@ -254,9 +252,7 @@ export class OperatorTasks {
             const crdPath = await this.getCRDPath()
             const crd = this.kh.safeLoadFromYamlFile(crdPath) as V1CustomResourceDefinition
             crd.spec.conversion!.webhook!.clientConfig!.service!.namespace = this.flags.chenamespace
-            if (!ctx[ChectlContext.IS_OPENSHIFT]) {
-              crd.metadata!.annotations!['cert-manager.io/inject-ca-from'] = `${this.flags.chenamespace}/che-operator-serving-cert`
-            }
+            crd.metadata!.annotations!['cert-manager.io/inject-ca-from'] = `${this.flags.chenamespace}/che-operator-serving-cert`
 
             await this.kh.createCrdFromFile(crd)
             task.title = `${task.title}...[OK: created]`
@@ -311,8 +307,8 @@ export class OperatorTasks {
     ]
   }
 
-  preUpdateTasks(): Listr {
-    return new Listr([
+  preUpdateTasks(): Listr.ListrTask<any>[] {
+    return [
       {
         title: 'Checking if operator deployment exists',
         task: async (ctx: any, task: any) => {
@@ -356,10 +352,10 @@ export class OperatorTasks {
           }
         },
       },
-    ])
+    ]
   }
 
-  updateTasks(): Array<Listr.ListrTask> {
+  updateTasks(): Listr.ListrTask<any>[] {
     return [
       {
         title: `Update ServiceAccount ${OperatorTasks.SERVICE_ACCOUNT}`,
@@ -378,7 +374,6 @@ export class OperatorTasks {
       this.getCreateOrUpdateRolesAndBindingsTasks(true),
       {
         title: `Update Certificate ${OperatorTasks.CERTIFICATE}`,
-        enabled: ctx => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (ctx: any, task: any) => {
           const yamlFilePath = this.getResourcePath('serving-cert.yaml')
           if (!fs.existsSync(yamlFilePath)) {
@@ -401,7 +396,6 @@ export class OperatorTasks {
       },
       {
         title: `Update Issuer ${OperatorTasks.ISSUER}`,
-        enabled: ctx => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (ctx: any, task: any) => {
           const yamlFilePath = this.getResourcePath('selfsigned-issuer.yaml')
           if (!fs.existsSync(yamlFilePath)) {
@@ -448,9 +442,7 @@ export class OperatorTasks {
           const crdPath = await this.getCRDPath()
           const crd = this.kh.safeLoadFromYamlFile(crdPath) as V1CustomResourceDefinition
           crd.spec.conversion!.webhook!.clientConfig!.service!.namespace = this.flags.chenamespace
-          if (!ctx[ChectlContext.IS_OPENSHIFT]) {
-            crd.metadata!.annotations!['cert-manager.io/inject-ca-from'] = `${this.flags.chenamespace}/che-operator-serving-cert`
-          }
+          crd.metadata!.annotations!['cert-manager.io/inject-ca-from'] = `${this.flags.chenamespace}/che-operator-serving-cert`
 
           if (existedCRD) {
             await this.kh.replaceCrdFromFile(crd)
@@ -897,8 +889,7 @@ export class OperatorTasks {
     resources.clusterRoles = []
     resources.clusterRoleBindings = []
 
-    const platform = ctx[ChectlContext.IS_OPENSHIFT] ? 'openshift' : 'kubernetes'
-    for (const basePath of [ctx[ChectlContext.RESOURCES], path.join(ctx[ChectlContext.RESOURCES], platform)]) {
+    for (const basePath of [ctx[ChectlContext.RESOURCES], path.join(ctx[ChectlContext.RESOURCES], 'kubernetes')]) {
       if (!fs.existsSync(basePath)) {
         continue
       }
@@ -955,8 +946,7 @@ export class OperatorTasks {
     }
 
     // Platform specific resource
-    const platform = ctx[ChectlContext.IS_OPENSHIFT] ? 'openshift' : 'kubernetes'
-    return path.join(ctx[ChectlContext.RESOURCES], platform, 'crds', 'org.eclipse.che_checlusters.yaml')
+    return path.join(ctx[ChectlContext.RESOURCES], 'kubernetes', 'crds', 'org.eclipse.che_checlusters.yaml')
   }
 
   /**
@@ -964,15 +954,6 @@ export class OperatorTasks {
    */
   private getResourcePath(resourceName: string): string {
     const ctx = ChectlContext.get()
-
-    // legacy path
-    const resourcePath = path.join(ctx[ChectlContext.RESOURCES], resourceName)
-    if (fs.existsSync(resourcePath)) {
-      return resourcePath
-    }
-
-    // Platform specific resource
-    const platform = ctx[ChectlContext.IS_OPENSHIFT] ? 'openshift' : 'kubernetes'
-    return path.join(ctx[ChectlContext.RESOURCES], platform, resourceName)
+    return path.join(ctx[ChectlContext.RESOURCES], 'kubernetes', resourceName)
   }
 }

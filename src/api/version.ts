@@ -18,7 +18,7 @@ import * as path from 'path'
 import * as semver from 'semver'
 import { CHECTL_REPO, CheGithubClient, ECLIPSE_CHE_INCUBATOR_ORG } from '../api/github-client'
 import { CHECTL_PROJECT_NAME } from '../constants'
-import { getProjectName, getProjectVersion, isKubernetesPlatformFamily, sleep } from '../util'
+import { getProjectName, getProjectVersion, sleep } from '../util'
 import { ChectlContext } from './context'
 import { KubeHelper } from './kube'
 import execa = require('execa')
@@ -61,14 +61,11 @@ export namespace VersionHelper {
   export function getK8sCheckVersionTask(flags: any): Listr.ListrTask {
     return {
       title: 'Check Kubernetes version',
-      task: async (_ctx: any, task: any) => {
+      task: async (ctx: any, task: any) => {
         let actualVersion
-        switch (flags.platform) {
-        case 'openshift':
-        case 'crc':
-          actualVersion = await getK8sVersionWithOC()
-          break
-        default:
+        if (ctx[ChectlContext.IS_OPENSHIFT]) {
+          actualVersion =  await getK8sVersionWithOC()
+        } else {
           actualVersion = await getK8sVersionWithKubectl()
         }
 
@@ -78,7 +75,7 @@ export namespace VersionHelper {
           task.title = `${task.title}: [Unknown]`
         }
 
-        if (isKubernetesPlatformFamily(flags.platform) && !flags['skip-version-check'] && actualVersion) {
+        if (!ctx[ChectlContext.IS_OPENSHIFT] && !flags['skip-version-check'] && actualVersion) {
           const checkPassed = checkMinimalK8sVersion(actualVersion)
           if (!checkPassed) {
             throw getMinimalVersionError(actualVersion, MINIMAL_K8S_VERSION, 'Kubernetes')
