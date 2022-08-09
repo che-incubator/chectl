@@ -12,14 +12,13 @@
 
 import { Command } from '@oclif/command'
 import * as Listr from 'listr'
-import { ChectlContext } from '../api/context'
 import { CheHelper } from '../api/che'
 import { CheApiClient } from '../api/che-api-client'
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
 import { VersionHelper } from '../api/version'
 import { CHE_OPERATOR_SELECTOR, DOC_LINK, DOC_LINK_RELEASE_NOTES, OUTPUT_SEPARATOR } from '../constants'
-import { addTrailingSlash, base64Decode, newError } from '../util'
+import { addTrailingSlash, newError } from '../util'
 import { KubeTasks } from './kube'
 
 /**
@@ -447,32 +446,6 @@ export class CheTasks {
 
           const cheUrl = this.che.buildDashboardURL(await this.che.cheURL(flags.chenamespace))
           messages.push(`Users Dashboard           : ${cheUrl}`)
-
-          const checluster = await this.kube.getCheClusterV1(flags.chenamespace)
-          if (ctx[ChectlContext.IS_OPENSHIFT] && checluster?.spec?.auth?.openShiftoAuth) {
-            if (checluster?.status?.openShiftOAuthUserCredentialsSecret) {
-              let user = ''
-              let password = ''
-
-              // read secret from the `openshift-config` namespace
-              let credentialsSecret = await this.kube.getSecret(checluster.status.openShiftOAuthUserCredentialsSecret, 'openshift-config')
-              if (credentialsSecret) {
-                user = base64Decode(credentialsSecret.data!.user)
-                password = base64Decode(credentialsSecret.data!.password)
-              } else {
-                // read legacy secret from the `flags.chenamespace` namespace
-                credentialsSecret = await this.kube.getSecret(checluster.status.openShiftOAuthUserCredentialsSecret, flags.chenamespace)
-                if (credentialsSecret) {
-                  user = base64Decode(credentialsSecret.data!.user)
-                  password = base64Decode(credentialsSecret.data!.password)
-                }
-              }
-
-              if (user && password) {
-                messages.push(`HTPasswd user credentials : "${user}:${password}".`)
-              }
-            }
-          }
           messages.push(OUTPUT_SEPARATOR)
 
           const cheConfigMap = await this.kube.getConfigMap('che', flags.chenamespace)

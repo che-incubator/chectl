@@ -200,8 +200,8 @@ export function wrapCommandError(error: Error): Error {
   const ctx = ChectlContext.get()
   const logDirectory = ctx[ChectlContext.LOGS_DIR]
 
-  let commandErrorMessage = `Command ${ctx[ChectlContext.COMMAND_ID]} failed. Error log: ${ctx[ChectlContext.ERROR_LOG]}.`
-  if (logDirectory && isDirEmpty(logDirectory)) {
+  let commandErrorMessage = `Command ${ctx[ChectlContext.COMMAND_ID]} failed with the error: ${error.message} See details: ${ctx[ChectlContext.ERROR_LOG]}.`
+  if (logDirectory && !isDirEmpty(logDirectory)) {
     commandErrorMessage += ` Eclipse Che logs: ${logDirectory}.`
   }
 

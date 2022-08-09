@@ -18,11 +18,6 @@ import { KubeHelper } from '../../api/kube'
 import { newError } from '../../util'
 
 export class ApiTasks {
-  /**
-   * Returns tasks which tests if K8s or OpenShift API is configured in the current context.
-   *
-   * `isOpenShift` property is provisioned into context.
-   */
   testApiTasks(flags: any): Listr.ListrTask {
     const kube = new KubeHelper(flags)
     return {

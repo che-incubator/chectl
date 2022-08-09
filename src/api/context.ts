@@ -14,7 +14,6 @@ import { ApisApi, KubeConfig } from '@kubernetes/client-node'
 import Command from '@oclif/command'
 import Listr = require('listr')
 import * as os from 'os'
-import * as fs from 'fs-extra'
 import * as path from 'path'
 
 import { CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, LOG_DIRECTORY_KEY } from '../common-flags'
@@ -78,16 +77,7 @@ export namespace ChectlContext {
     }
 
     ctx[IS_OPENSHIFT] = await isOpenShift()
-    const platform = ctx[ChectlContext.IS_OPENSHIFT] ? 'openshift' : 'kubernetes'
-
-    let cheClusterPath = path.join(ctx.resourcesPath, platform, 'crds', 'org_checluster_cr.yaml')
-    if (!fs.existsSync(cheClusterPath)) {
-      cheClusterPath = path.join(ctx.resourcesPath, 'crds', 'org_checluster_cr.yaml')
-      if (!fs.existsSync(cheClusterPath)) {
-        cheClusterPath = path.join(ctx.resourcesPath, 'crds', 'org_v1_che_cr.yaml')
-      }
-    }
-    ctx[DEFAULT_CR] = safeLoadFromYamlFile(cheClusterPath)
+    ctx[DEFAULT_CR] = safeLoadFromYamlFile(path.join(ctx.resourcesPath, 'kubernetes', 'crds', 'org_checluster_cr.yaml'))
   }
 
   export async function initAndGet(flags: any, command: Command): Promise<any> {

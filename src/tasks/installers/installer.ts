@@ -10,7 +10,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import Command from '@oclif/command'
 import * as Listr from 'listr'
 
 import { ChectlContext } from '../../api/context'
@@ -22,93 +21,36 @@ import { OperatorTasks } from './operator'
  * Tasks related to installation way.
  */
 export class InstallerTasks {
-  updateTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
-    const operatorTasks = new OperatorTasks(flags)
-    const olmTasks = new OLMTasks(flags)
-
-    let title: string
-    let task: any
-
-    if (flags.installer === 'operator') {
-      title = '🏃‍  Running the Eclipse Che operator Update'
-      task = (ctx: any) => {
-        return new Listr(operatorTasks.updateTasks(), ctx.listrOptions)
-      }
-    } else if (flags.installer === 'olm') {
-      title = '🏃‍  Running the Eclipse Che operator Update using OLM'
-      task = () => {
-        return olmTasks.updateTasks(flags, command)
-      }
-    } else {
-      title = '🏃‍  Installer preflight check'
-      task = () => {
-        command.error(`Installer ${flags.installer} does not support update ¯\\_(ツ)_/¯`)
-      }
-    }
-
-    return [{
-      title,
-      task,
-    }]
-  }
-
-  preUpdateTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
-    const operatorTasks = new OperatorTasks(flags)
-    const olmTasks = new OLMTasks(flags)
-
-    let title: string
-    let task: any
-
-    if (flags.installer === 'operator') {
-      title = '🏃‍  Running the Eclipse Che operator Update'
-      task = () => {
-        return operatorTasks.preUpdateTasks()
-      }
-    } else if (flags.installer === 'olm') {
-      title = '🏃‍  Running the Eclipse Che operator Update using OLM'
-      task = () => {
-        return olmTasks.preUpdateTasks(flags, command)
-      }
-    } else {
-      title = '🏃‍  Installer preflight check'
-      task = () => {
-        command.error(`Installer ${flags.installer} does not support update ¯\\_(ツ)_/¯`)
-      }
-    }
-
-    return [{
-      title,
-      task,
-    }]
-  }
-
-  async installTasks(flags: any, command: Command): Promise<ReadonlyArray<Listr.ListrTask>> {
+  updateTasks(flags: any): Listr.ListrTask<any>[] {
     const ctx = ChectlContext.get()
-
-    const operatorTasks = new OperatorTasks(flags)
-    const olmTasks = new OLMTasks(flags)
-
-    let title: string
-    let task: any
-
-    if (flags.installer === 'operator') {
-      title = '🏃‍  Running the Eclipse Che operator'
-      task = async () => {
-        return new Listr(await operatorTasks.deployTasks(), ctx.listrOptions)
-      }
-    } else if (flags.installer === 'olm') {
-      title = '🏃‍  Running Olm installation Eclipse Che'
-      task = () => new Listr(olmTasks.startTasks(flags, command), ctx.listrOptions)
-    } else {
-      title = '🏃‍  Installer preflight check'
-      task = () => {
-        command.error(`Installer ${flags.installer} is not supported ¯\\_(ツ)_/¯`)
-      }
+    if (ctx[ChectlContext.IS_OPENSHIFT]) {
+      const olmTasks = new OLMTasks(flags)
+      return olmTasks.updateTasks()
     }
 
-    return [{
-      title,
-      task,
-    }]
+    const operatorTasks = new OperatorTasks(flags)
+    return operatorTasks.updateTasks()
+  }
+
+  preUpdateTasks(flags: any): Listr.ListrTask<any>[] {
+    const ctx = ChectlContext.get()
+    if (ctx[ChectlContext.IS_OPENSHIFT]) {
+      const olmTasks = new OLMTasks(flags)
+      return olmTasks.preUpdateTasks()
+    }
+
+    const operatorTasks = new OperatorTasks(flags)
+    return operatorTasks.preUpdateTasks()
+  }
+
+  deployTasks(flags: any): Listr.ListrTask<any>[] {
+    const ctx = ChectlContext.get()
+    if (ctx[ChectlContext.IS_OPENSHIFT]) {
+      const olmTasks = new OLMTasks(flags)
+      return olmTasks.deployTasks()
+    }
+
+    const operatorTasks = new OperatorTasks(flags)
+    return operatorTasks.deployTasks()
   }
 }

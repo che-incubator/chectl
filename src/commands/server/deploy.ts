@@ -28,7 +28,7 @@ import {
 } from '../../tasks/installers/common-tasks'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getWarnVersionFlagMsg, isKubernetesPlatformFamily, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getWarnVersionFlagMsg, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 import { InstallerTasks } from '../../tasks/installers/installer'
 
 export default class Deploy extends Command {
@@ -85,11 +85,13 @@ export default class Deploy extends Command {
       char: 'p',
       description: 'Type of Kubernetes platform.',
       options: ['minikube', 'k8s', 'openshift', 'microk8s', 'docker-desktop', 'crc'],
+      required: true,
     }),
     installer: string({
       char: 'a',
       description: 'Installer type. If not set, default is "olm" for OpenShift 4.x platform otherwise "operator".',
       options: ['operator', 'olm'],
+      hidden: true,
     }),
     domain: string({
       char: 'b',
@@ -192,19 +194,18 @@ export default class Deploy extends Command {
     [DEPLOY_VERSION_KEY]: cheDeployVersion,
   }
 
-  async setPlaformDefaults(flags: any, _ctx: any): Promise<void> {
-    if (flags['self-signed-cert']) {
-      this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
-    }
-
-    if (!flags.installer) {
-      await setDefaultInstaller(flags)
-      cli.info(`› Installer type is set to: '${flags.installer}'`)
-    }
-  }
-
   private checkCompatibility(flags: any) {
-    if (flags.installer === 'operator' && flags[CHE_OPERATOR_CR_YAML_KEY]) {
+    const ctx = ChectlContext.get()
+
+    if (flags.installer === 'operator' && ctx[ChectlContext.IS_OPENSHIFT]) {
+      cli.error('--installer=operator is not supported for OpenShift platform.')
+    }
+
+    if (flags.installer === 'olm' && !ctx[ChectlContext.IS_OPENSHIFT]) {
+      cli.error('--installer=operator is not supported for Kubernetes platform.')
+    }
+
+    if (flags[CHE_OPERATOR_CR_YAML_KEY]) {
       const ignoredFlags = []
       flags['plugin-registry-url'] && ignoredFlags.push('--plugin-registry-url')
       flags['devfile-registry-url'] && ignoredFlags.push('--devfile-registry-url')
@@ -219,37 +220,32 @@ export default class Deploy extends Command {
       }
     }
 
-    if (flags.domain && !flags[CHE_OPERATOR_CR_YAML_KEY] && isOpenshiftPlatformFamily(flags.platform)) {
-      this.warn('"--domain" flag is ignored for Openshift family infrastructures. It should be done on the cluster level.')
+    if (flags.domain && ctx[ChectlContext.IS_OPENSHIFT]) {
+      this.warn('--domain flag is ignored for OpenShift platform.')
     }
 
-    if (flags.installer === 'olm') {
-      // OLM installer only checks
-      if (isKubernetesPlatformFamily(flags.platform)) {
-        this.error(`The specified installer ${flags.installer} does not support Kubernentes`)
-      }
-    } else {
+    if (!ctx[ChectlContext.IS_OPENSHIFT]) {
       // Not OLM installer
       if (flags[OLM.STARTING_CSV]) {
-        this.error(`"${OLM.STARTING_CSV}" flag should be used only with "olm" installer.`)
+        this.error(`"${OLM.STARTING_CSV}" flag should be used only for OpenShift platform.`)
       }
       if (flags[OLM.CATALOG_SOURCE_YAML]) {
-        this.error(`"${OLM.CATALOG_SOURCE_YAML}" flag should be used only with "olm" installer.`)
+        this.error(`"${OLM.CATALOG_SOURCE_YAML}" flag should be used only for OpenShift platform.`)
       }
       if (flags[OLM.CHANNEL]) {
-        this.error(`"${OLM.CHANNEL}" flag should be used only with "olm" installer.`)
+        this.error(`"${OLM.CHANNEL}" flag should be used only for OpenShift platform.`)
       }
       if (flags[OLM.PACKAGE_MANIFEST_NAME]) {
-        this.error(`"${OLM.PACKAGE_MANIFEST_NAME}" flag should be used only with "olm" installer.`)
+        this.error(`"${OLM.PACKAGE_MANIFEST_NAME}" flag should be used only for OpenShift platform.`)
       }
       if (flags[OLM.CATALOG_SOURCE_NAME]) {
-        this.error(`"${OLM.CATALOG_SOURCE_NAME}" flag should be used only with "olm" installer.`)
+        this.error(`"${OLM.CATALOG_SOURCE_NAME}" flag should be used only for OpenShift platform.`)
       }
       if (flags[OLM.CATALOG_SOURCE_NAMESPACE]) {
-        this.error(`"${OLM.CATALOG_SOURCE_NAMESPACE}" flag should be used only with "olm" installer.`)
+        this.error(`"${OLM.CATALOG_SOURCE_NAMESPACE}" flag should be used only for OpenShift platform.`)
       }
-      if (flags['cluster-monitoring'] && flags.platform !== 'openshift') {
-        this.error('"cluster-monitoring" flag should be used only with "olm" installer and "openshift" platform.')
+      if (flags['cluster-monitoring']) {
+        this.error('"cluster-monitoring" flag should be used only for OpenShift platform.')
       }
     }
   }
@@ -268,7 +264,6 @@ export default class Deploy extends Command {
       this.exit(1)
     }
 
-    await this.setPlaformDefaults(flags, ctx)
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Deploy.id, flags })
 
     const dexTasks = new DexTasks(flags)
@@ -298,7 +293,10 @@ export default class Deploy extends Command {
     if (flags.platform === 'minikube') {
       installTasks.add(dexTasks.getInstallTasks())
     }
-    installTasks.add(await installerTasks.installTasks(flags, this))
+    installTasks.add({
+      title: 'Deploy Eclipse Che',
+      task: () => new Listr(installerTasks.deployTasks(flags), ctx.listrOptions),
+    })
 
     // Post Install Checks
     const postInstallTasks = new Listr([
@@ -355,7 +353,7 @@ export default class Deploy extends Command {
 function ensureOIDCProviderInstalled(flags: any): Listr.ListrTask {
   return {
     title: 'Check if OIDC Provider installed',
-    enabled: ctx => !flags['skip-oidc-provider-check'] && isKubernetesPlatformFamily(flags.platform) && !ctx.isCheDeployed,
+    enabled: ctx => !flags['skip-oidc-provider-check'] && !ctx[ChectlContext.IS_OPENSHIFT] && !ctx.isCheDeployed,
     skip: () => {
       if (flags.platform === 'minikube') {
         return 'Dex will be automatically installed as OIDC Identity Provider'
@@ -387,26 +385,5 @@ function ensureOIDCProviderInstalled(flags: any): Listr.ListrTask {
       task.title = `${task.title}...[Not Found]`
       throw new Error(`API server is not configured with OIDC Identity Provider, see details ${DOC_LINK_CONFIGURE_API_SERVER}. To bypass OIDC Provider check, use \'--skip-oidc-provider-check\' flag`)
     },
-  }
-}
-
-/**
- * Sets default installer which is `olm` for OpenShift 4 with stable version of chectl
- * and `operator` for other cases.
- */
-export async function setDefaultInstaller(flags: any): Promise<void> {
-  const kubeHelper = new KubeHelper(flags)
-
-  const isOlmPreinstalled = await kubeHelper.isPreInstalledOLM()
-  if ((flags[OLM.CATALOG_SOURCE_NAME] || flags[OLM.CATALOG_SOURCE_YAML]) && isOlmPreinstalled) {
-    flags.installer = 'olm'
-    return
-  }
-
-  const ctx = ChectlContext.get()
-  if (flags.platform === 'openshift' && ctx[ChectlContext.IS_OPENSHIFT] && isOlmPreinstalled) {
-    flags.installer = 'olm'
-  } else {
-    flags.installer = 'operator'
   }
 }

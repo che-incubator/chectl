@@ -10,7 +10,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import Command from '@oclif/command'
 import { cli } from 'cli-ux'
 import * as yaml from 'js-yaml'
 import * as path from 'path'
@@ -42,6 +41,7 @@ import { V1Role, V1RoleBinding } from '@kubernetes/client-node'
 import {merge} from 'lodash'
 
 export class OLMTasks {
+  private readonly flags: any
   private readonly prometheusRoleName = 'prometheus-k8s'
   private readonly prometheusRoleBindingName = 'prometheus-k8s'
   private readonly kube: KubeHelper
@@ -52,34 +52,35 @@ export class OLMTasks {
     this.kube = new KubeHelper(flags)
     this.che = new CheHelper(flags)
     this.olmDevWorkspaceTasks = new OLMDevWorkspaceTasks(flags)
+    this.flags = flags
   }
 
-  startTasks(flags: any, command: Command): Listr.ListrTask<any>[] {
+  deployTasks(): Listr.ListrTask<any>[] {
     return [
-      this.isOlmPreInstalledTask(command),
+      this.isOlmPreInstalledTask(),
       {
         title: 'Set context',
         task: async (ctx: any, task: any) => {
-          ctx[OLM.STARTING_CSV] = flags[OLM.STARTING_CSV]
-          ctx[OLM.CATALOG_SOURCE_NAMESPACE] = flags[OLM.CATALOG_SOURCE_NAMESPACE] || OPENSHIFT_MARKET_PLACE_NAMESPACE
+          ctx[OLM.STARTING_CSV] = this.flags[OLM.STARTING_CSV]
+          ctx[OLM.CATALOG_SOURCE_NAMESPACE] = this.flags[OLM.CATALOG_SOURCE_NAMESPACE] || OPENSHIFT_MARKET_PLACE_NAMESPACE
 
-          if (flags[OLM.STARTING_CSV]) {
+          if (this.flags[OLM.STARTING_CSV]) {
             // Ignore auto-update flag, otherwise it will automatically update to the latest version and 'starting-csv' will not have any effect.
             ctx[OLM.APPROVAL_STRATEGY] = OLMInstallationUpdate.MANUAL
           } else {
-            ctx[OLM.APPROVAL_STRATEGY] = flags[OLM.AUTO_UPDATE] ? OLMInstallationUpdate.AUTO : OLMInstallationUpdate.MANUAL
+            ctx[OLM.APPROVAL_STRATEGY] = this.flags[OLM.AUTO_UPDATE] ? OLMInstallationUpdate.AUTO : OLMInstallationUpdate.MANUAL
           }
 
-          ctx[OLM.CHANNEL] = flags[OLM.CHANNEL]
+          ctx[OLM.CHANNEL] = this.flags[OLM.CHANNEL]
           if (!ctx[OLM.CHANNEL]) {
-            if (VersionHelper.isDeployingStableVersion(flags)) {
+            if (VersionHelper.isDeployingStableVersion(this.flags)) {
               ctx[OLM.CHANNEL] = OLM_STABLE_CHANNEL_NAME
             } else {
               ctx[OLM.CHANNEL] = OLM_NEXT_CHANNEL_NAME
             }
           }
 
-          ctx[OLM.PACKAGE_MANIFEST_NAME] = flags[OLM.PACKAGE_MANIFEST_NAME]
+          ctx[OLM.PACKAGE_MANIFEST_NAME] = this.flags[OLM.PACKAGE_MANIFEST_NAME]
           if (!ctx[OLM.PACKAGE_MANIFEST_NAME]) {
             if (ctx[OLM.CHANNEL] === OLM_STABLE_CHANNEL_NAME) {
               ctx[OLM.PACKAGE_MANIFEST_NAME] = ECLIPSE_CHE_STABLE_CHANNEL_PACKAGE_NAME
@@ -88,7 +89,7 @@ export class OLMTasks {
             }
           }
 
-          ctx[OLM.CATALOG_SOURCE_NAME] = flags[OLM.CATALOG_SOURCE_NAME]
+          ctx[OLM.CATALOG_SOURCE_NAME] = this.flags[OLM.CATALOG_SOURCE_NAME]
           if (!ctx[OLM.CATALOG_SOURCE_NAME]) {
             if (ctx[OLM.CHANNEL] === OLM_STABLE_CHANNEL_NAME) {
               ctx[OLM.CATALOG_SOURCE_NAME] = ECLIPSE_CHE_STABLE_CHANNEL_CATALOG_SOURCE_NAME
@@ -111,38 +112,38 @@ export class OLMTasks {
         },
       },
       {
-        enabled: () => flags['cluster-monitoring'] && flags.platform === 'openshift',
+        enabled: () => this.flags['cluster-monitoring'] && this.flags.platform === 'openshift',
         title: `Create Role ${this.prometheusRoleName}`,
         task: async (_ctx: any, task: any) => {
-          if (await this.kube.isRoleExist(this.prometheusRoleName, flags.chenamespace)) {
+          if (await this.kube.isRoleExist(this.prometheusRoleName, this.flags.chenamespace)) {
             task.title = `${task.title}...[Exists]`
           } else {
             const yamlFilePath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'prometheus-role.yaml')
             const role = this.kube.safeLoadFromYamlFile(yamlFilePath) as V1Role
-            await this.kube.createRole(role, flags.chenamespace)
+            await this.kube.createRole(role, this.flags.chenamespace)
             task.title = `${task.title}...[OK]`
           }
         },
       },
       {
-        enabled: () => flags['cluster-monitoring'] && flags.platform === 'openshift',
+        enabled: () => this.flags['cluster-monitoring'] && this.flags.platform === 'openshift',
         title: `Create RoleBinding ${this.prometheusRoleBindingName}`,
         task: async (_ctx: any, task: any) => {
-          if (await this.kube.isRoleBindingExist(this.prometheusRoleBindingName, flags.chenamespace)) {
+          if (await this.kube.isRoleBindingExist(this.prometheusRoleBindingName, this.flags.chenamespace)) {
             task.title = `${task.title}...[Exists]`
           } else {
             const yamlFilePath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'prometheus-role-binding.yaml')
             const roleBinding = this.kube.safeLoadFromYamlFile(yamlFilePath) as V1RoleBinding
-            await this.kube.createRoleBinding(roleBinding, flags.chenamespace)
+            await this.kube.createRoleBinding(roleBinding, this.flags.chenamespace)
             task.title = `${task.title}...[OK]`
           }
         },
       },
       {
-        title: `Create custom CatalogSource from ${flags[OLM.CATALOG_SOURCE_YAML]}`,
-        enabled: () => flags[OLM.CATALOG_SOURCE_YAML],
+        title: `Create custom CatalogSource from ${this.flags[OLM.CATALOG_SOURCE_YAML]}`,
+        enabled: () => this.flags[OLM.CATALOG_SOURCE_YAML],
         task: async (ctx: any, task: any) => {
-          const customCatalogSource: CatalogSource = this.kube.readCatalogSourceFromFile(flags[OLM.CATALOG_SOURCE_YAML])
+          const customCatalogSource: CatalogSource = this.kube.readCatalogSourceFromFile(this.flags[OLM.CATALOG_SOURCE_YAML])
 
           // custom label
           merge(customCatalogSource.metadata, {labels: { 'app.kubernetes.io/part-of': 'che.eclipse.org'}})
@@ -161,7 +162,7 @@ export class OLMTasks {
         },
       },
       {
-        enabled: (ctx: any) => ctx[OLM.CHANNEL] === OLM_NEXT_CHANNEL_NAME && !flags[OLM.CATALOG_SOURCE_NAME] && !flags[OLM.CATALOG_SOURCE_YAML],
+        enabled: (ctx: any) => ctx[OLM.CHANNEL] === OLM_NEXT_CHANNEL_NAME && !this.flags[OLM.CATALOG_SOURCE_NAME] && !this.flags[OLM.CATALOG_SOURCE_YAML],
         title: 'Create CatalogSource for \'next\' channel',
         task: async (ctx: any, task: any) => {
           ctx[OLM.CATALOG_SOURCE_NAMESPACE] = OPENSHIFT_MARKET_PLACE_NAMESPACE
@@ -235,13 +236,13 @@ export class OLMTasks {
       },
       {
         title: 'Set custom operator image',
-        enabled: () => flags['che-operator-image'],
+        enabled: () => this.flags['che-operator-image'],
         task: async (ctx: any, task: any) => {
           const csvs = await this.kube.getCSVWithPrefix(CSV_PREFIX, OPENSHIFT_OPERATORS_NAMESPACE)
           if (csvs.length !== 1) {
             throw new Error('Eclipse Che operator CSV not found.')
           }
-          const jsonPatch = [{ op: 'replace', path: '/spec/install/spec/deployments/0/spec/template/spec/containers/0/image', value: flags['che-operator-image'] }]
+          const jsonPatch = [{ op: 'replace', path: '/spec/install/spec/deployments/0/spec/template/spec/containers/0/image', value: this.flags['che-operator-image'] }]
           await this.kube.patchClusterServiceVersion(csvs[0].metadata.name!, csvs[0].metadata.namespace!, jsonPatch)
           task.title = `${task.title}...[OK]`
         },
@@ -250,7 +251,7 @@ export class OLMTasks {
         title: 'Prepare CheCluster CR',
         task: async (ctx: any, task: any) => {
           if (!ctx[ChectlContext.CUSTOM_CR]) {
-            const cheCluster = await this.kube.getCheClusterV1(flags.chenamespace)
+            const cheCluster = await this.kube.getCheClusterV1(this.flags.chenamespace)
             if (!cheCluster) {
               ctx[ChectlContext.DEFAULT_CR] = await this.getCRFromCSV(OPENSHIFT_OPERATORS_NAMESPACE, ctx[OLM.ECLIPSE_CHE_SUBSCRIPTION])
             }
@@ -259,19 +260,19 @@ export class OLMTasks {
           task.title = `${task.title}...[OK]`
         },
       },
-      createEclipseCheClusterTask(flags, this.kube),
+      createEclipseCheClusterTask(this.flags, this.kube),
     ]
   }
 
-  preUpdateTasks(flags: any, command: Command): Listr {
-    return new Listr([
-      this.isOlmPreInstalledTask(command),
+  preUpdateTasks(): Listr.ListrTask<any>[] {
+    return [
+      this.isOlmPreInstalledTask(),
       {
         title: 'Check InstallPlan approval strategy',
         task: async (ctx: any, task: Listr.ListrTaskWrapper<any>) => {
           const subscription = await this.che.findCheOperatorSubscription(OPENSHIFT_OPERATORS_NAMESPACE)
           if (!subscription) {
-            command.error('Unable to find Eclipse Che subscription')
+            cli.error('Unable to find Eclipse Che subscription')
           }
 
           if (subscription.spec.installPlanApproval === OLMInstallationUpdate.AUTO) {
@@ -284,7 +285,7 @@ export class OLMTasks {
               {
                 title: '[Warning] Use \'chectl server:update\' command only with \'Manual\' installation plan approval.',
                 task: () => {
-                  command.exit(0)
+                  cli.exit(0)
                 },
               },
             ], ctx.listrOptions)
@@ -296,23 +297,23 @@ export class OLMTasks {
       {
         title: 'Check CheCluster CR',
         task: async (_ctx: any, _task: any) => {
-          const cheCluster = await this.kube.getCheClusterV1(flags.chenamespace)
+          const cheCluster = await this.kube.getCheClusterV1(this.flags.chenamespace)
           if (!cheCluster) {
-            command.error(`Eclipse Che cluster CR was not found in the namespace '${flags.chenamespace}'`)
+            cli.error(`Eclipse Che cluster CR was not found in the namespace '${this.flags.chenamespace}'`)
           }
         },
       },
-    ], { renderer: flags['listr-renderer'] as any })
+    ]
   }
 
-  updateTasks(flags: any, command: Command): Listr {
-    return new Listr([
+  updateTasks(): Listr.ListrTask<any>[] {
+    return [
       {
         title: 'Find InstallPlan',
         task: async (ctx: any, task: any) => {
           const subscription = await this.che.findCheOperatorSubscription(OPENSHIFT_OPERATORS_NAMESPACE)
           if (!subscription) {
-            command.error('Unable to find Eclipse Che subscription')
+            cli.error('Unable to find Eclipse Che subscription')
           }
 
           if (subscription.status) {
@@ -339,10 +340,10 @@ export class OLMTasks {
             }
 
             if (subscription.status.state === 'UpgradeAvailable' && installedCSV === currentCSV) {
-              command.error('Another update is in progress')
+              cli.error('Another update is in progress')
             }
           }
-          command.error('Unable to find installation plan to update.')
+          cli.error('Unable to find installation plan to update.')
         },
       },
       {
@@ -355,8 +356,8 @@ export class OLMTasks {
           task.title = `${task.title}...[OK]`
         },
       },
-      patchingEclipseCheCluster(flags, this.kube),
-    ], { renderer: flags['listr-renderer'] as any })
+      patchingEclipseCheCluster(this.flags, this.kube),
+    ]
   }
 
   getDeleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
@@ -444,14 +445,14 @@ export class OLMTasks {
     ]
   }
 
-  private isOlmPreInstalledTask(command: Command): Listr.ListrTask<Listr.ListrContext> {
+  private isOlmPreInstalledTask(): Listr.ListrTask<Listr.ListrContext> {
     return {
       title: 'Check if OLM is pre-installed on the platform',
       task: async (_ctx: any, task: any) => {
         if (!await this.kube.isPreInstalledOLM()) {
           cli.warn('Looks like your platform hasn\'t got embedded OLM, so you should install it manually. For quick start you can use:')
           cli.url('install.sh', 'https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/install.sh')
-          command.error('OLM is required for installation of Eclipse Che with installer flag \'olm\'')
+          cli.error('OLM is required for installation of Eclipse Che with installer flag \'olm\'')
         }
         task.title = `${task.title}...[OK]`
       },
