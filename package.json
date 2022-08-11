@@ -55,7 +55,7 @@
     "@types/node-forge": "^1.0.4",
     "@types/node-notifier": "^8.0.2",
     "@types/rimraf": "^3.0.2",
-    "@types/semver": "^7.3.10",
+    "@types/semver": "^7.3.12",
     "@types/unzipper": "^0.10.5",
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
