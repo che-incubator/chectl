@@ -60,7 +60,6 @@ import * as net from 'net'
 import { Writable } from 'stream'
 import {
   CHE_CLUSTER_API_GROUP,
-  CHE_CLUSTER_API_VERSION_V1,
   CHE_CLUSTER_API_VERSION_V2,
   CHE_CLUSTER_KIND_PLURAL,
   CHE_TLS_SECRET_NAME,
@@ -1135,10 +1134,6 @@ export class KubeHelper {
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
-  }
-
-  async getCheClusterV1(cheNamespace: string): Promise<any | undefined> {
-    return this.getCheCluster(CHE_CLUSTER_API_VERSION_V1, cheNamespace)
   }
 
   async getCheClusterV2(cheNamespace: string): Promise<any | undefined> {

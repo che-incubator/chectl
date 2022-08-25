@@ -324,10 +324,10 @@ export class OperatorTasks {
       {
         title: 'Check workspace engine compatibility...',
         task: async (_ctx: any, _task: any) => {
-          const cheCluster = await this.kh.getCheClusterV1(this.flags.chenamespace)
-          const isDevWorkspaceEngineDisabledBeforeUpdate = !cheCluster?.spec?.devWorkspace?.enable
+          const isDevWorkspaceEnabled = await this.kh.getConfigMapValue('che', this.flags.chenamespace, 'CHE_DEVWORKSPACES_ENABLED')
+          const isDevWorkspaceEngineDisabledBeforeUpdate = isDevWorkspaceEnabled !== 'true'
           if (isDevWorkspaceEngineDisabledBeforeUpdate) {
-            cli.error('Unsupported operation: it is not possible to update current Che installation to new version with enabled \'devWorkspace\' engine.')
+            cli.error('Unsupported operation: it is not possible to update current Che installation to new a version with \'devWorkspace\' engine enabled.')
           }
         },
       },
