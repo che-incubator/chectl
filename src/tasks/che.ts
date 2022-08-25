@@ -34,6 +34,7 @@ export class CheTasks {
   cheDeploymentName = 'che'
   dashboardDeploymentName = 'che-dashboard'
   dashboardSelector = 'app=che,component=che-dashboard'
+  gatewaySelector = 'app.kubernetes.io/component=che-gateway'
   postgresDeploymentName = 'postgres'
   postgresSelector = 'app=che,component=postgres'
   devfileRegistryDeploymentName = 'devfile-registry'
@@ -77,6 +78,11 @@ export class CheTasks {
         title: 'Eclipse Che Dashboard pod bootstrap',
         enabled: ctx => ctx.isDashboardDeployed && !ctx.isDashboardReady,
         task: () => this.kubeTasks.podStartTasks(this.dashboardSelector, this.cheNamespace),
+      },
+      {
+        title: 'Eclipse Che Gateway pod bootstrap',
+        enabled: ctx => !ctx.isCheReady,
+        task: () => this.kubeTasks.podStartTasks(this.gatewaySelector, this.cheNamespace),
       },
       {
         title: 'Eclipse Che Server pod bootstrap',

@@ -13,7 +13,15 @@
 import * as Listr from 'listr'
 import { CheHelper } from '../../../api/che'
 import { KubeHelper } from '../../../api/kube'
-import { DEVFILE_WORKSPACE_API_GROUP, DEVFILE_WORKSPACE_API_VERSION, DEVFILE_WORKSPACE_KIND_PLURAL, DEVFILE_WORKSPACE_ROUTINGS_API_GROUP, DEVFILE_WORKSPACE_ROUTINGS_KIND_PLURAL, DEVFILE_WORKSPACE_ROUTINGS_VERSION } from '../../../constants'
+import {
+  DEVFILE_WORKSPACE_API_GROUP,
+  DEVFILE_WORKSPACE_API_VERSION,
+  DEVFILE_WORKSPACE_KIND_PLURAL,
+  DEVFILE_WORKSPACE_ROUTINGS_API_GROUP,
+  DEVFILE_WORKSPACE_ROUTINGS_KIND_PLURAL,
+  DEVFILE_WORKSPACE_ROUTINGS_VERSION,
+  WORKSPACE_CONTROLLER_NAMESPACE,
+} from '../../../constants'
 
 /**
  * Handle setup of the dev workspace operator controller.
@@ -70,9 +78,41 @@ export class DevWorkspaceTasks {
   // DevWorkspace webhook
   protected webhookConfigurationName = 'controller.devfile.io'
 
+  // DevWorkspace configuration
+  protected devWorkspaceOperatorConfig = 'devworkspace-operator-config'
+
   constructor(flags: any) {
     this.kubeHelper = new KubeHelper(flags)
     this.cheHelper = new CheHelper(flags)
+  }
+
+  createDevWorkspaceOperatorConfigTasks(): ReadonlyArray<Listr.ListrTask> {
+    return [
+      {
+        title: 'Create DevWorkspaceOperatorConfig',
+        task: async (_ctx: any, task: any) => {
+          const operatorConfig = await this.kubeHelper.getCustomResource(this.devWorkspaceOperatorConfig, WORKSPACE_CONTROLLER_NAMESPACE, 'controller.devfile.io', 'v1alpha1', 'devworkspaceoperatorconfigs')
+          if (!operatorConfig) {
+            const devWorkspaceOperatorConfig = {
+              apiVersion: 'controller.devfile.io/v1alpha1',
+              kind: 'DevWorkspaceOperatorConfig',
+              metadata: {
+                name: this.devWorkspaceOperatorConfig,
+              },
+              config: {
+                workspace: {
+                  progressTimeout: '30m',
+                },
+              },
+            }
+            await this.kubeHelper.createDevWorkspaceOperatorConfig(devWorkspaceOperatorConfig, WORKSPACE_CONTROLLER_NAMESPACE)
+            task.title = `${task.title} ...[Ok: created]`
+          } else {
+            task.title = `${task.title} ...[Exists]`
+          }
+        },
+      },
+    ]
   }
 
   getDeleteTasks(devWorkspaceNamespace: string): ReadonlyArray<Listr.ListrTask> {

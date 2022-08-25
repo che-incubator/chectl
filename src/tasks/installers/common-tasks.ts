@@ -21,7 +21,6 @@ import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { DEFAULT_CA_CERT_FILE_NAME, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
-import { isCheClusterAPIV1 } from '../../util'
 import { cli } from 'cli-ux'
 
 export function createNamespaceTask(namespaceName: string, labels: {}): Listr.ListrTask {
@@ -56,7 +55,7 @@ export function createEclipseCheClusterTask(flags: any, kube: KubeHelper): Listr
   return {
     title: 'Create CheCluster Custom Resource',
     task: async (ctx: any, task: any) => {
-      const cheCluster = await kube.getCheClusterV1(flags.chenamespace)
+      let cheCluster = await kube.getCheClusterV2(flags.chenamespace)
       if (cheCluster) {
         task.title = `${task.title}...[Exists]`
         return
@@ -71,18 +70,11 @@ export function createEclipseCheClusterTask(flags: any, kube: KubeHelper): Listr
       ctx.isDevfileRegistryDeployed = !(flags['devfile-registry-url'] as boolean)
 
       const cheClusterCR = ctx[ChectlContext.CUSTOM_CR] || ctx[ChectlContext.DEFAULT_CR]
-      const checluster = await kube.createCheCluster(cheClusterCR, flags, ctx, !ctx[ChectlContext.CUSTOM_CR])
 
-      const isCheClusterApiV1 = isCheClusterAPIV1(cheClusterCR)
-      if (isCheClusterApiV1) {
-        ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || checluster.spec.server.externalDevfileRegistry
-        ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || checluster.spec.server.externalPluginRegistry
-        ctx.isPostgresReady = ctx.isPostgresReady || checluster.spec.database.externalDb
-      } else {
-        ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || checluster.spec.components?.pluginRegistry?.disableInternalRegistry
-        ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || checluster.spec.components?.devfileRegistry?.disableInternalRegistry
-        ctx.isPostgresReady = ctx.isPostgresReady || checluster.spec.components?.database?.externalDb
-      }
+      cheCluster = await kube.createCheCluster(cheClusterCR, flags, ctx, !ctx[ChectlContext.CUSTOM_CR])
+      ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || cheCluster.spec.components?.pluginRegistry?.disableInternalRegistry
+      ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || cheCluster.spec.components?.devfileRegistry?.disableInternalRegistry
+      ctx.isPostgresReady = ctx.isPostgresReady || cheCluster.spec.components?.database?.externalDb
 
       task.title = `${task.title}...[Created]`
     },
@@ -101,7 +93,7 @@ export function patchingEclipseCheCluster(flags: any, kube: KubeHelper): Listr.L
     title: 'Patch CheCluster Custom Resource',
     skip: (ctx: any) => isEmpty(ctx[ChectlContext.CR_PATCH]),
     task: async (ctx: any, task: any) => {
-      const cheCluster = await kube.getCheClusterV1(flags.chenamespace)
+      const cheCluster = await kube.getCheClusterV2(flags.chenamespace)
       if (!cheCluster) {
         cli.error(`Eclipse Che cluster CR is not found in the namespace '${flags.chenamespace}'`)
       }

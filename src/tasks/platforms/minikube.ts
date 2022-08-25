@@ -18,7 +18,6 @@ import { OIDCContextKeys } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
 import { sleep } from '../../util'
-import { CommonPlatformTasks } from './common-platform-tasks'
 
 export class MinikubeTasks {
   /**
@@ -98,7 +97,6 @@ export class MinikubeTasks {
           task.title = `${task.title}...[${version}]`
         },
       },
-      CommonPlatformTasks.getPingClusterTask(flags),
     ], { renderer: flags['listr-renderer'] as any })
   }
 

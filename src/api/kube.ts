@@ -47,7 +47,7 @@ import {
   V1ServiceAccount,
   V1ServiceList,
   Watch,
-  V1CustomResourceDefinition, V1ValidatingWebhookConfiguration,
+  V1CustomResourceDefinition,
 } from '@kubernetes/client-node'
 import { Cluster } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
@@ -58,8 +58,23 @@ import * as https from 'https'
 import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_API_VERSION_V2, CHE_CLUSTER_KIND_PLURAL, CHE_TLS_SECRET_NAME, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT } from '../constants'
-import { getClusterClientCommand, getImageNameAndTag, isCheClusterAPIV1, isWebhookAvailabilityError, newError, safeLoadFromYamlFile, sleep } from '../util'
+import {
+  CHE_CLUSTER_API_GROUP,
+  CHE_CLUSTER_API_VERSION_V1,
+  CHE_CLUSTER_API_VERSION_V2,
+  CHE_CLUSTER_KIND_PLURAL,
+  CHE_TLS_SECRET_NAME,
+  DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT,
+  DEFAULT_K8S_POD_WAIT_TIMEOUT,
+} from '../constants'
+import {
+  getClusterClientCommand,
+  isCheClusterAPIV2,
+  isWebhookAvailabilityError,
+  newError,
+  safeLoadFromYamlFile,
+  sleep,
+} from '../util'
 import { ChectlContext } from './context'
 import { V1Certificate } from './types/cert-manager'
 import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, Subscription } from './types/olm'
@@ -360,38 +375,6 @@ export class KubeHelper {
     }
   }
 
-  async isValidatingWebhookConfigurationExists(name: string): Promise<boolean> {
-    const k8sAdmissionApi = this.kubeConfig.makeApiClient(AdmissionregistrationV1Api)
-    try {
-      await k8sAdmissionApi.readValidatingWebhookConfiguration(name)
-      return true
-    } catch (e: any) {
-      if (e.response && e.response.statusCode === 404) {
-        return false
-      }
-
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async replaceValidatingWebhookConfiguration(name: string, webhook: V1ValidatingWebhookConfiguration): Promise<void> {
-    const k8sAdmissionApi = this.kubeConfig.makeApiClient(AdmissionregistrationV1Api)
-    try {
-      await k8sAdmissionApi.replaceValidatingWebhookConfiguration(name, webhook)
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async createValidatingWebhookConfiguration(webhook: V1ValidatingWebhookConfiguration): Promise<void> {
-    const k8sAdmissionApi = this.kubeConfig.makeApiClient(AdmissionregistrationV1Api)
-    try {
-      await k8sAdmissionApi.createValidatingWebhookConfiguration(webhook)
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
   async deleteValidatingWebhookConfiguration(name: string): Promise<void> {
     const k8sAdmissionApi = this.kubeConfig.makeApiClient(AdmissionregistrationV1Api)
     try {
@@ -606,7 +589,7 @@ export class KubeHelper {
     }
   }
 
-  async patchCustomResource(name: string, namespace: string, patch: any, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any | undefined> {
+  async patchNamespacedCustomResource(name: string, namespace: string, patch: any, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any | undefined> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     // It is required to patch content-type, otherwise request will be rejected with 415 (Unsupported media type) error.
@@ -621,6 +604,44 @@ export class KubeHelper {
       if (res && res.body) {
         return res.body
       }
+    } catch (e: any) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async patchCustomResource(name: string, patch: any, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any | undefined> {
+    const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+
+    // It is required to patch content-type, otherwise request will be rejected with 415 (Unsupported media type) error.
+    const requestOptions = {
+      headers: {
+        'content-type': 'application/merge-patch+json',
+      },
+    }
+
+    try {
+      const res = await k8sCoreApi.patchClusterCustomObject(resourceAPIGroup, resourceAPIVersion, resourcePlural, name, patch, undefined, undefined, undefined, requestOptions)
+      if (res && res.body) {
+        return res.body
+      }
+    } catch (e: any) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async createJob(job: any, namespace: string): Promise<void> {
+    const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      await k8sCoreApi.createNamespacedCustomObject('batch', 'v1', namespace, 'jobs', job)
+    } catch (e: any) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async createDevWorkspaceOperatorConfig(devWorkspaceOperatorConfig: any, namespace: string): Promise<void> {
+    const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      await k8sCoreApi.createNamespacedCustomObject('controller.devfile.io', 'v1alpha1', namespace, 'devworkspaceoperatorconfigs', devWorkspaceOperatorConfig)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
@@ -1035,90 +1056,49 @@ export class KubeHelper {
   }
 
   async createCheCluster(cheClusterCR: any, flags: any, ctx: any, useDefaultCR: boolean): Promise<any> {
-    const isCheClusterApiV1 = isCheClusterAPIV1(cheClusterCR)
-    const cheClusterApiVersion = isCheClusterApiV1 ? CHE_CLUSTER_API_VERSION_V1 : CHE_CLUSTER_API_VERSION_V2
+    if (!isCheClusterAPIV2(cheClusterCR)) {
+      throw new Error(`CheCluster apiVersion must be '${CHE_CLUSTER_API_GROUP}/${CHE_CLUSTER_API_VERSION_V2}'`)
+    }
 
     const cheNamespace = flags.chenamespace
     if (useDefaultCR) {
-      if (isCheClusterApiV1) {
-        if (flags.cheimage) {
-          const [image, tag] = getImageNameAndTag(flags.cheimage)
-          cheClusterCR.spec.server.cheImage = image
-          cheClusterCR.spec.server.cheImageTag = tag
-        }
+      if (flags.cheimage) {
+        merge(cheClusterCR, { spec: { components: { cheServer: { deployment: { containers: [{ image: flags.cheimage }] } } } } })
+      }
 
-        cheClusterCR.spec.server.cheDebug = flags.debug ? flags.debug.toString() : 'false'
+      merge(cheClusterCR, { spec: { components: { cheServer: { debug: flags.debug } } } })
 
-        if (!cheClusterCR.spec.k8s?.tlsSecretName) {
-          merge(cheClusterCR, { spec: { k8s: { tlsSecretName: CHE_TLS_SECRET_NAME } } })
+      if (!ctx[ChectlContext.IS_OPENSHIFT]) {
+        if (!cheClusterCR.spec.networking?.tlsSecretName) {
+          merge(cheClusterCR, { spec: { networking: { tlsSecretName: CHE_TLS_SECRET_NAME } }  })
         }
 
         if (flags.domain) {
-          merge(cheClusterCR, { spec: { k8s: { ingressDomain: flags.domain } } })
+          merge(cheClusterCR, { spec: { networking: { domain: flags.domain } }  })
         }
+      }
 
-        const pluginRegistryUrl = flags['plugin-registry-url']
-        if (pluginRegistryUrl) {
-          cheClusterCR.spec.server.pluginRegistryUrl = pluginRegistryUrl
-          cheClusterCR.spec.server.externalPluginRegistry = true
-        }
+      const pluginRegistryUrl = flags['plugin-registry-url']
+      if (pluginRegistryUrl) {
+        merge(cheClusterCR, { spec: { components: { pluginRegistry: { disableInternalRegistry: true, externalPluginRegistries: [{ url: pluginRegistryUrl }]} } } })
+      }
 
-        const devfileRegistryUrl = flags['devfile-registry-url']
-        if (devfileRegistryUrl) {
-          cheClusterCR.spec.server.devfileRegistryUrl = devfileRegistryUrl
-          cheClusterCR.spec.server.externalDevfileRegistry = true
-        }
+      const devfileRegistryUrl = flags['devfile-registry-url']
+      if (devfileRegistryUrl) {
+        merge(cheClusterCR, { spec: { components: { devfileRegistry: { disableInternalRegistry: true, externalDevfileRegistries: [{ url: devfileRegistryUrl }]} } } })
+      }
 
-        if (flags['postgres-pvc-storage-class-name']) {
-          cheClusterCR.spec.storage.postgresPVCStorageClassName = flags['postgres-pvc-storage-class-name']
-        }
+      if (flags['postgres-pvc-storage-class-name']) {
+        merge(cheClusterCR, { spec: { components: { database: { pvc: { storageClass: flags['postgres-pvc-storage-class-name'] } } } } })
+      }
 
-        if (flags['workspace-pvc-storage-class-name']) {
-          cheClusterCR.spec.storage.workspacePVCStorageClassName = flags['workspace-pvc-storage-class-name']
-        }
-      } else {
-        if (flags.cheimage) {
-          merge(cheClusterCR, { spec: { components: { cheServer: { deployment: { containers: [{ image: flags.cheimage }] } } } } })
-        }
-
-        merge(cheClusterCR, { spec: { components: { cheServer: { debug: flags.debug } } } })
-
-        if (!ctx[ChectlContext.IS_OPENSHIFT]) {
-          if (!cheClusterCR.spec.networking?.tlsSecretName) {
-            merge(cheClusterCR, { spec: { networking: { tlsSecretName: CHE_TLS_SECRET_NAME } }  })
-          }
-
-          if (flags.domain) {
-            merge(cheClusterCR, { spec: { networking: { domain: flags.domain } }  })
-          }
-        }
-
-        const pluginRegistryUrl = flags['plugin-registry-url']
-        if (pluginRegistryUrl) {
-          merge(cheClusterCR, { spec: { components: { pluginRegistry: { disableInternalRegistry: true, externalPluginRegistries: [{ url: pluginRegistryUrl }]} } } })
-        }
-
-        const devfileRegistryUrl = flags['devfile-registry-url']
-        if (devfileRegistryUrl) {
-          merge(cheClusterCR, { spec: { components: { devfileRegistry: { disableInternalRegistry: true, externalDevfileRegistries: [{ url: devfileRegistryUrl }]} } } })
-        }
-
-        if (flags['postgres-pvc-storage-class-name']) {
-          merge(cheClusterCR, { spec: { components: { database: { pvc: { storageClass: flags['postgres-pvc-storage-class-name'] } } } } })
-        }
-
-        if (flags['workspace-pvc-storage-class-name']) {
-          merge(cheClusterCR, { spec: {workspaces: { storage: { pvc: { storageClass: flags['workspace-pvc-storage-class-name'] } } } } })
-        }
+      if (flags['workspace-pvc-storage-class-name']) {
+        merge(cheClusterCR, { spec: {workspaces: { storage: { pvc: { storageClass: flags['workspace-pvc-storage-class-name'] } } } } })
       }
     }
 
     if (ctx.namespaceEditorClusterRoleName) {
-      if (isCheClusterApiV1) {
-        cheClusterCR.spec.server.cheClusterRoles = ctx.namespaceEditorClusterRoleName
-      } else {
-        merge(cheClusterCR, { spec: {components: { cheServer: { clusterRoles: (ctx.namespaceEditorClusterRoleName as string).split(',')} } } })
-      }
+      merge(cheClusterCR, { spec: {components: { cheServer: { clusterRoles: (ctx.namespaceEditorClusterRoleName as string).split(',')} } } })
     }
 
     // override default values with patch
@@ -1126,12 +1106,11 @@ export class KubeHelper {
       merge(cheClusterCR, ctx[ChectlContext.CR_PATCH])
     }
 
-    // TODO remove in the future version
     for (let i = 0; i < 30; i++) {
       const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
       try {
         delete cheClusterCR.metadata?.namespace
-        const {body} = await customObjectsApi.createNamespacedCustomObject(CHE_CLUSTER_API_GROUP, cheClusterApiVersion, cheNamespace, CHE_CLUSTER_KIND_PLURAL, cheClusterCR)
+        const {body} = await customObjectsApi.createNamespacedCustomObject(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V2, cheNamespace, CHE_CLUSTER_KIND_PLURAL, cheClusterCR)
         return body
       } catch (e: any) {
         const wrappedError = this.wrapK8sClientError(e)
@@ -1145,30 +1124,31 @@ export class KubeHelper {
   }
 
   async patchCheCluster(name: string, namespace: string, patch: any): Promise<any> {
-    if (!patch.apiVersion) {
-      throw new Error('Patch must contain CheCluster api version.')
+    if (!isCheClusterAPIV2(patch)) {
+      throw new Error(`CheCluster apiVersion must be '${CHE_CLUSTER_API_GROUP}/${CHE_CLUSTER_API_VERSION_V2}'`)
     }
-
-    const isCheClusterApiV1 = isCheClusterAPIV1(patch)
-    const cheClusterApiVersion = isCheClusterApiV1 ? CHE_CLUSTER_API_VERSION_V1 : CHE_CLUSTER_API_VERSION_V2
 
     try {
       const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-      const { body } = await customObjectsApi.patchNamespacedCustomObject(CHE_CLUSTER_API_GROUP, cheClusterApiVersion, namespace, CHE_CLUSTER_KIND_PLURAL, name, patch, undefined, undefined, undefined, { headers: { 'Content-Type': 'application/merge-patch+json' } })
+      const { body } = await customObjectsApi.patchNamespacedCustomObject(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V2, namespace, CHE_CLUSTER_KIND_PLURAL, name, patch, undefined, undefined, undefined, { headers: { 'Content-Type': 'application/merge-patch+json' } })
       return body
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  /**
-   * Returns `checlusters.org.eclipse.che' in the given namespace.
-   */
   async getCheClusterV1(cheNamespace: string): Promise<any | undefined> {
-    // TODO remove in the future version
+    return this.getCheCluster(CHE_CLUSTER_API_VERSION_V1, cheNamespace)
+  }
+
+  async getCheClusterV2(cheNamespace: string): Promise<any | undefined> {
+    return this.getCheCluster(CHE_CLUSTER_API_VERSION_V2, cheNamespace)
+  }
+
+  private async getCheCluster(cheClusterVersion: string, cheNamespace: string): Promise<any | undefined> {
     for (let i = 0; i < 30; i++) {
       try {
-        return await this.findCustomResource(cheNamespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_KIND_PLURAL)
+        return await this.findCustomResource(cheNamespace, CHE_CLUSTER_API_GROUP, cheClusterVersion, CHE_CLUSTER_KIND_PLURAL)
       } catch (e: any) {
         if (isWebhookAvailabilityError(e)) {
           await sleep(5 * 1000)
@@ -1180,10 +1160,9 @@ export class KubeHelper {
   }
 
   async getAllCheClusters(): Promise<any[]> {
-    // TODO remove in the future version
     for (let i = 0; i < 30; i++) {
       try {
-        return await this.listCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_KIND_PLURAL)
+        return await this.listCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V2, CHE_CLUSTER_KIND_PLURAL)
       } catch (e: any) {
         if (isWebhookAvailabilityError(e)) {
           await sleep(5 * 1000)
@@ -1223,7 +1202,7 @@ export class KubeHelper {
       const name = resource.metadata.name
       const namespace = resource.metadata.namespace
       try {
-        await this.patchCustomResource(name, namespace, { metadata: { finalizers: null } }, apiGroup, version, plural)
+        await this.patchNamespacedCustomResource(name, namespace, { metadata: { finalizers: null } }, apiGroup, version, plural)
       } catch (error) {
         if (!await this.getCustomResource(name, namespace, apiGroup, version, plural)) {
           continue // successfully removed
@@ -1301,7 +1280,7 @@ export class KubeHelper {
   }
 
   async deleteAllCheClusters(namespace: string): Promise<void> {
-    return this.deleteCustomResource(namespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_KIND_PLURAL)
+    return this.deleteCustomResource(namespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V2, CHE_CLUSTER_KIND_PLURAL)
   }
 
   /**
