@@ -27,7 +27,12 @@ const PLATFORM = process.env.PLATFORM || ''
 const INSTALLER = process.env.INSTALLER || ''
 
 function getDeployCommand(): string {
-  return `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off`
+  let command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off`
+  if (PLATFORM === 'minikube') {
+    command += ' --che-operator-cr-patch-yaml=test/e2e/resources/minikube-checluster-patch.yaml'
+  }
+
+  return command
 }
 
 describe(`server:deploy using ${INSTALLER} installer`, () => {
