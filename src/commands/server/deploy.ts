@@ -30,6 +30,7 @@ import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getWarnVersionFlagMsg, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 import { InstallerTasks } from '../../tasks/installers/installer'
+import { DevWorkspaceTasks } from '../../tasks/component-installers/devworkspace/operator-installer'
 
 export default class Deploy extends Command {
   static description = 'Deploy Eclipse Che server'
@@ -272,6 +273,7 @@ export default class Deploy extends Command {
     const installerTasks = new InstallerTasks()
     const apiTasks = new ApiTasks()
     const certManagerTask = new CertManagerTasks(flags)
+    const devWorkspaceTask = new DevWorkspaceTasks(flags)
 
     // Platform Checks
     const platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), ctx.listrOptions)
@@ -299,15 +301,19 @@ export default class Deploy extends Command {
     })
 
     // Post Install Checks
-    const postInstallTasks = new Listr([
+    const postInstallTasks = new Listr(undefined, ctx.listrOptions)
+    postInstallTasks.add(
       {
-        title: '✅  Post installation checklist',
+        title: 'Post installation checklist',
         task: () => new Listr(cheTasks.getWaitCheDeployedTasks()),
       },
-      retrieveCheCaCertificateTask(flags),
-      ...cheTasks.getPreparePostInstallationOutputTasks(flags),
-      getPrintHighlightedMessagesTask(),
-    ], ctx.listrOptions)
+    )
+    if (flags.platform === 'minikube') {
+      postInstallTasks.add(devWorkspaceTask.createDevWorkspaceOperatorConfigTasks())
+    }
+    postInstallTasks.add(retrieveCheCaCertificateTask(flags))
+    postInstallTasks.add(cheTasks.getPreparePostInstallationOutputTasks(flags))
+    postInstallTasks.add(getPrintHighlightedMessagesTask())
 
     const logsTasks = new Listr([{
       title: 'Following Eclipse Che logs',

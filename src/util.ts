@@ -28,7 +28,6 @@ import { KubeHelper } from './api/kube'
 import { VersionHelper } from './api/version'
 import {
   CHE_CLUSTER_API_GROUP,
-  CHE_CLUSTER_API_VERSION_V1,
   CHE_CLUSTER_API_VERSION_V2,
   CHE_TLS_SECRET_NAME,
 } from './constants'
@@ -402,10 +401,6 @@ export function getWarnVersionFlagMsg(_flags: any): string {
   return `'--version' flag is not supported anymore.
 1. Update chectl to a specific version following the doc https://github.com/che-incubator/chectl#updating
 2. Use chectl of the specific version to deploy or to upgrade Eclipse Che`
-}
-
-export function isCheClusterAPIV1(checluster: any): boolean {
-  return checluster.apiVersion === `${CHE_CLUSTER_API_GROUP}/${CHE_CLUSTER_API_VERSION_V1}`
 }
 
 export function isCheClusterAPIV2(checluster: any): boolean {

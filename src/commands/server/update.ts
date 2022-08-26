@@ -288,9 +288,9 @@ export default class Update extends Command {
    */
   private async setDomainFlag(flags: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
-    const cheCluster = await kubeHelper.getCheClusterV1(flags.chenamespace)
-    if (cheCluster?.spec?.k8s?.ingressDomain) {
-      flags.domain = cheCluster.spec.k8s.ingressDomain
+    const cheCluster = await kubeHelper.getCheClusterV2(flags.chenamespace)
+    if (cheCluster?.spec?.networking?.domain) {
+      flags.domain = cheCluster.spec.networking.domain
     }
   }
 

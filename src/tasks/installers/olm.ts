@@ -251,7 +251,7 @@ export class OLMTasks {
         title: 'Prepare CheCluster CR',
         task: async (ctx: any, task: any) => {
           if (!ctx[ChectlContext.CUSTOM_CR]) {
-            const cheCluster = await this.kube.getCheClusterV1(this.flags.chenamespace)
+            const cheCluster = await this.kube.getCheClusterV2(this.flags.chenamespace)
             if (!cheCluster) {
               ctx[ChectlContext.DEFAULT_CR] = await this.getCRFromCSV(OPENSHIFT_OPERATORS_NAMESPACE, ctx[OLM.ECLIPSE_CHE_SUBSCRIPTION])
             }
@@ -297,7 +297,7 @@ export class OLMTasks {
       {
         title: 'Check CheCluster CR',
         task: async (_ctx: any, _task: any) => {
-          const cheCluster = await this.kube.getCheClusterV1(this.flags.chenamespace)
+          const cheCluster = await this.kube.getCheClusterV2(this.flags.chenamespace)
           if (!cheCluster) {
             cli.error(`Eclipse Che cluster CR was not found in the namespace '${this.flags.chenamespace}'`)
           }

@@ -12,7 +12,6 @@
 
 import { Octokit } from '@octokit/rest'
 import * as execa from 'execa'
-import { spawn } from 'child_process'
 import * as fs from 'fs-extra'
 
 import { CheHelper } from '../../src/api/che'
@@ -23,12 +22,7 @@ import { OpenShiftHelper } from '../../src/api/openshift'
 export const NAMESPACE = 'eclipse-che'
 export const CHECTL_REPONAME = 'chectl'
 
-// Workspace created in admin-che
-export const WORKSPACE_NAMESPACE = 'admin-che'
-
-export const LOGS_DIR = '/tmp/logs'
 export const OWNER = 'che-incubator'
-export const CHE_REPO = 'chectl'
 
 //Utilities to help e2e tests
 export class E2eHelper {
@@ -84,55 +78,6 @@ export class E2eHelper {
     return stdout
   }
 
-  /**
-   * Runs given cli command.
-   * Unlike runCliCommand, it listens to the command output and prints it immediatly.
-   * This function is useful for debigging, especially if the command hungs at some point.
-   */
-  async runCliCommandVerbose(command: string, args?: string[]): Promise<void> {
-    const argsString = args ? args.join(' ') : ''
-    // tslint:disable-next-line: no-console
-    console.log(`Running command ${command} ${argsString}`)
-
-    return new Promise(resolve => {
-      const process = spawn(command, args)
-
-      process.stdout.on('data', data => {
-        // tslint:disable-next-line: no-console
-        console.log(`[output] ${data}`)
-      })
-      process.stderr.on('data', data => {
-        // tslint:disable-next-line: no-console
-        console.log(`[error] ${data}`)
-      })
-
-      process.on('exit', code => {
-        // tslint:disable-next-line: no-console
-        console.log(`Command ${command} ${argsString} exited with code ${code}`)
-
-        resolve()
-      })
-    })
-  }
-
-  //Return a route from Openshift adding protocol
-  async OCHostname(ingressName: string, namespace: string): Promise<string> {
-    if (await this.oc.routeExist(ingressName, namespace)) {
-      const hostname = await this.oc.getRouteHost(ingressName, namespace)
-      return `https://${hostname}`
-    }
-    throw new Error('Route "che" does not exist')
-  }
-
-  // Return ingress and protocol from minikube platform
-  async K8SHostname(ingressName: string, namespace: string): Promise<string> {
-    if (await this.kubeHelper.isIngressExist(ingressName, namespace)) {
-      const hostname = await this.kubeHelper.getIngressHost(ingressName, namespace)
-      return `https://${hostname}`
-    }
-    throw new Error(`Ingress "${ingressName}" in namespace ${namespace} does not exist`)
-  }
-
   // Utility to wait a time
   sleep(ms: number): Promise<any> {
     // tslint:disable-next-line no-string-based-set-timeout
@@ -144,7 +89,7 @@ export class E2eHelper {
 
     let totalTimeMs = 0
     while (totalTimeMs < timeoutMs) {
-      const cheCR = await this.kubeHelper.getCheClusterV1(NAMESPACE)
+      const cheCR = await this.kubeHelper.getCheClusterV2(NAMESPACE)
       if (cheCR && cheCR.status && cheCR.status.cheVersion === version) {
         return
       }

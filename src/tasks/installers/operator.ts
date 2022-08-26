@@ -18,7 +18,6 @@ import {
   V1RoleBinding,
   V1Service,
   V1CustomResourceDefinition,
-  V1ValidatingWebhookConfiguration,
 } from '@kubernetes/client-node'
 import {cli} from 'cli-ux'
 import * as fs from 'fs'
@@ -34,14 +33,13 @@ import {
   CHE_OPERATOR_SELECTOR,
   OPERATOR_DEPLOYMENT_NAME,
 } from '../../constants'
-import {getImageNameAndTag, isCheClusterAPIV1, safeLoadFromYamlFile} from '../../util'
+import {getImageNameAndTag, safeLoadFromYamlFile} from '../../util'
 import {KubeTasks} from '../kube'
 import {createEclipseCheClusterTask, patchingEclipseCheCluster} from './common-tasks'
 import {V1Certificate} from '../../api/types/cert-manager'
 import {OpenShiftHelper} from '../../api/openshift'
 
 export class OperatorTasks {
-  private static readonly VALIDATING_WEBHOOK = 'org.eclipse.che'
   private static readonly WEBHOOK_SERVICE = 'che-operator-service'
   private static readonly CERTIFICATE = 'che-operator-serving-cert'
   private static readonly ISSUER = 'che-operator-selfsigned-issuer'
@@ -284,25 +282,6 @@ export class OperatorTasks {
         title: 'Operator pod bootstrap',
         task: () => kubeTasks.podStartTasks(CHE_OPERATOR_SELECTOR, this.flags.chenamespace),
       },
-      {
-        title: `Create ValidatingWebhookConfiguration ${OperatorTasks.VALIDATING_WEBHOOK}`,
-        task: async (ctx: any, task: any) => {
-          const exists = await this.kh.isValidatingWebhookConfigurationExists(OperatorTasks.VALIDATING_WEBHOOK)
-          if (exists) {
-            task.title = `${task.title}...[Exists]`
-          } else {
-            const webhookPath = this.getResourcePath('org.eclipse.che.ValidatingWebhookConfiguration.yaml')
-            if (fs.existsSync(webhookPath)) {
-              const webhook = this.kh.safeLoadFromYamlFile(webhookPath) as V1ValidatingWebhookConfiguration
-              webhook!.webhooks![0].clientConfig.service!.namespace = this.flags.chenamespace
-              await this.kh.createValidatingWebhookConfiguration(webhook)
-              task.title = `${task.title}...[OK: created]`
-            } else {
-              task.title = `${task.title}...[Not found]`
-            }
-          }
-        },
-      },
       createEclipseCheClusterTask(this.flags, kube),
     ]
   }
@@ -345,10 +324,10 @@ export class OperatorTasks {
       {
         title: 'Check workspace engine compatibility...',
         task: async (_ctx: any, _task: any) => {
-          const cheCluster = await this.kh.getCheClusterV1(this.flags.chenamespace)
-          const isDevWorkspaceEngineDisabledBeforeUpdate = !cheCluster?.spec?.devWorkspace?.enable
+          const isDevWorkspaceEnabled = await this.kh.getConfigMapValue('che', this.flags.chenamespace, 'CHE_DEVWORKSPACES_ENABLED')
+          const isDevWorkspaceEngineDisabledBeforeUpdate = isDevWorkspaceEnabled !== 'true'
           if (isDevWorkspaceEngineDisabledBeforeUpdate) {
-            cli.error('Unsupported operation: it is not possible to update current Che installation to new version with enabled \'devWorkspace\' engine.')
+            cli.error('Unsupported operation: it is not possible to update current Che installation to new a version with \'devWorkspace\' engine enabled.')
           }
         },
       },
@@ -482,27 +461,6 @@ export class OperatorTasks {
           await this.kh.waitLatestReplica(OPERATOR_DEPLOYMENT_NAME, this.flags.chenamespace)
         },
       },
-      {
-        title: `Update ValidatingWebhookConfiguration ${OperatorTasks.VALIDATING_WEBHOOK}`,
-        task: async (ctx: any, task: any) => {
-          const webhookPath = this.getResourcePath('org.eclipse.che.ValidatingWebhookConfiguration.yaml')
-          if (fs.existsSync(webhookPath)) {
-            const webhook = this.kh.safeLoadFromYamlFile(webhookPath) as V1ValidatingWebhookConfiguration
-            webhook!.webhooks![0].clientConfig.service!.namespace = this.flags.chenamespace
-
-            const exists = await this.kh.isValidatingWebhookConfigurationExists(OperatorTasks.VALIDATING_WEBHOOK)
-            if (exists) {
-              await this.kh.replaceValidatingWebhookConfiguration(OperatorTasks.VALIDATING_WEBHOOK, webhook)
-              task.title = `${task.title}...[Ok: updated]`
-            } else {
-              await this.kh.createValidatingWebhookConfiguration(webhook)
-              task.title = `${task.title}...[OK: created]`
-            }
-          } else {
-            task.title = `${task.title}...[Not found]`
-          }
-        },
-      },
       patchingEclipseCheCluster(this.flags, this.kh),
     ]
   }
@@ -514,6 +472,16 @@ export class OperatorTasks {
     const kh = new KubeHelper(flags)
     return [
       {
+        title: `Disable ${CHE_CLUSTER_CRD} conversion webhook`,
+        task: async (_ctx: any, task: any) => {
+          try {
+            await kh.patchCustomResource(CHE_CLUSTER_CRD, { spec: { conversion: null } }, 'apiextensions.k8s.io', 'v1', 'customresourcedefinitions')
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+      {
         title: `Delete ${CHE_CLUSTER_API_GROUP}/${CHE_CLUSTER_API_VERSION_V2} resources`,
         task: async (_ctx: any, task: any) => {
           try {
@@ -522,19 +490,19 @@ export class OperatorTasks {
             // wait 20 seconds, default timeout in che operator
             for (let index = 0; index < 20; index++) {
               await cli.wait(1000)
-              if (!await kh.getCheClusterV1(flags.chenamespace)) {
+              if (!await kh.getCheClusterV2(flags.chenamespace)) {
                 task.title = `${task.title}...[Ok]`
                 return
               }
             }
 
             // if checluster still exists then remove finalizers and delete again
-            const checluster = await kh.getCheClusterV1(flags.chenamespace)
+            const checluster = await kh.getCheClusterV2(flags.chenamespace)
             if (checluster) {
               try {
                 await kh.patchCheCluster(checluster.metadata.name, this.flags.chenamespace, {apiVersion: 'org.eclipse.che/v2', metadata: {finalizers: null}})
               } catch (error) {
-                if (!await kh.getCheClusterV1(flags.chenamespace)) {
+                if (!await kh.getCheClusterV2(flags.chenamespace)) {
                   task.title = `${task.title}...[Ok]`
                   return // successfully removed
                 }
@@ -545,7 +513,7 @@ export class OperatorTasks {
               await cli.wait(2000)
             }
 
-            if (!await kh.getCheClusterV1(flags.chenamespace)) {
+            if (!await kh.getCheClusterV2(flags.chenamespace)) {
               task.title = `${task.title}...[Ok]`
             } else {
               task.title = `${task.title}...[Failed]`
@@ -564,17 +532,6 @@ export class OperatorTasks {
   getDeleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     const kh = new KubeHelper(flags)
     return [
-      {
-        title: `Delete ValidatingWebhookConfiguration ${OperatorTasks.VALIDATING_WEBHOOK}`,
-        task: async (_ctx: any, task: any) => {
-          try {
-            await kh.deleteValidatingWebhookConfiguration(OperatorTasks.VALIDATING_WEBHOOK)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
       {
         title: 'Delete CRDs',
         task: async (_ctx: any, task: any) => {
@@ -788,16 +745,10 @@ export class OperatorTasks {
         enabled: (ctx: any) => ctx[ChectlContext.IS_OPENSHIFT],
         task: async (_ctx: any, task: any) => {
           try {
-            const checluster = await kh.getCheClusterV1(flags.chenamespace)
+            const checluster = await kh.getCheClusterV2(flags.chenamespace)
             if (checluster) {
-              if (isCheClusterAPIV1(checluster)) {
-                if (checluster?.spec?.auth?.oAuthClientName) {
-                  await kh.deleteOAuthClient(checluster.spec.auth.oAuthClientName)
-                }
-              } else {
-                if (checluster?.spec?.networking?.auth?.oAuthClientName) {
-                  await kh.deleteOAuthClient(checluster.spec.networking.auth.oAuthClientName)
-                }
+              if (checluster?.spec?.networking?.auth?.oAuthClientName) {
+                await kh.deleteOAuthClient(checluster.spec.networking.auth.oAuthClientName)
               }
             }
 

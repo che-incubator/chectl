@@ -147,7 +147,7 @@ export namespace VersionHelper {
   export async function getCheVersion(flags: any): Promise<string> {
     const kube = new KubeHelper(flags)
     for (let i = 0; i < 10; i++) {
-      const cheCluster = await kube.getCheClusterV1(flags.chenamespace)
+      const cheCluster = await kube.getCheClusterV2(flags.chenamespace)
       if (cheCluster) {
         if (cheCluster.status.cheVersion) {
           return cheCluster.status.cheVersion

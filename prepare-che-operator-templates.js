@@ -12,54 +12,45 @@
 
 const fs = require('fs-extra')
 const path = require('path')
-const deployFolder = path.join(__dirname, 'node_modules', 'eclipse-che-operator', 'deploy/deployment');
-const cheOperatorTemplates = path.join(__dirname, 'templates', 'che-operator');
 
 function prepareTemplates() {
-  for (const platform of ['kubernetes', 'openshift']) {
-    fs.copySync(
-      path.join(deployFolder, platform, 'org_v2_checluster.yaml'),
-      path.join(cheOperatorTemplates, platform, 'crds', 'org_checluster_cr.yaml'))
-    fs.copySync(
-      path.join(deployFolder, platform, 'objects', 'checlusters.org.eclipse.che.CustomResourceDefinition.yaml'),
-      path.join(cheOperatorTemplates, platform, 'crds', 'org.eclipse.che_checlusters.yaml'))
-    fs.copySync(
-      path.join(deployFolder, platform, 'objects', 'che-operator.Deployment.yaml'),
-      path.join(cheOperatorTemplates, platform, 'operator.yaml'))
-    fs.copySync(
-      path.join(deployFolder, platform, 'objects', 'che-operator.ServiceAccount.yaml'),
-      path.join(cheOperatorTemplates, platform, 'service_account.yaml'))
-    fs.copySync(
-      path.join(deployFolder, platform, 'objects', 'che-operator.ClusterRoleBinding.yaml'),
-      path.join(cheOperatorTemplates, platform, 'cluster_rolebinding.yaml'))
-    fs.copySync(
-      path.join(deployFolder, platform, 'objects', 'che-operator.ClusterRole.yaml'),
-      path.join(cheOperatorTemplates, platform, 'cluster_role.yaml'))
-    fs.copySync(
-      path.join(deployFolder, platform, 'objects', 'che-operator.RoleBinding.yaml'),
-      path.join(cheOperatorTemplates, platform, 'role_binding.yaml'))
-    fs.copySync(
-      path.join(deployFolder, platform, 'objects', 'che-operator.Role.yaml'),
-      path.join(cheOperatorTemplates, platform, 'role.yaml'))
-    fs.copySync(
-      path.join(deployFolder, platform, 'objects', 'che-operator-service.Service.yaml'),
-      path.join(cheOperatorTemplates, platform, 'webhook-service.yaml'))
-
-    const validatingWebhookConfigurationPath = path.join(deployFolder, platform, 'objects', 'org.eclipse.che.ValidatingWebhookConfiguration.yaml')
-    if (fs.existsSync(validatingWebhookConfigurationPath)) {
-      fs.copySync(
-        validatingWebhookConfigurationPath,
-        path.join(cheOperatorTemplates, platform, 'org.eclipse.che.ValidatingWebhookConfiguration.yaml'))
-    }
-  }
+  const src = path.join(__dirname, 'node_modules', 'eclipse-che-operator', 'deploy', 'deployment', 'kubernetes', 'objects')
+  const templates = path.join(__dirname, 'templates', 'che-operator', 'kubernetes')
 
   fs.copySync(
-    path.join(deployFolder, 'kubernetes', 'objects', 'che-operator-serving-cert.Certificate.yaml'),
-    path.join(cheOperatorTemplates, 'kubernetes', 'serving-cert.yaml'))
+    path.join(src, '..', 'org_v2_checluster.yaml'),
+    path.join(templates, 'crds', 'org_checluster_cr.yaml'))
   fs.copySync(
-    path.join(deployFolder, 'kubernetes', 'objects', 'che-operator-selfsigned-issuer.Issuer.yaml'),
-    path.join(cheOperatorTemplates, 'kubernetes', 'selfsigned-issuer.yaml'))
+    path.join(src, 'checlusters.org.eclipse.che.CustomResourceDefinition.yaml'),
+    path.join(templates, 'crds', 'org.eclipse.che_checlusters.yaml'))
+  fs.copySync(
+    path.join(src, 'che-operator.Deployment.yaml'),
+    path.join(templates, 'operator.yaml'))
+  fs.copySync(
+    path.join(src, 'che-operator.ServiceAccount.yaml'),
+    path.join(templates, 'service_account.yaml'))
+  fs.copySync(
+    path.join(src, 'che-operator.ClusterRoleBinding.yaml'),
+    path.join(templates, 'cluster_rolebinding.yaml'))
+  fs.copySync(
+    path.join(src, 'che-operator.ClusterRole.yaml'),
+    path.join(templates, 'cluster_role.yaml'))
+  fs.copySync(
+    path.join(src, 'che-operator.RoleBinding.yaml'),
+    path.join(templates, 'role_binding.yaml'))
+  fs.copySync(
+    path.join(src, 'che-operator.Role.yaml'),
+    path.join(templates, 'role.yaml'))
+  fs.copySync(
+    path.join(src, 'che-operator-service.Service.yaml'),
+    path.join(templates, 'webhook-service.yaml'))
+  fs.copySync(
+    path.join(src, 'che-operator-serving-cert.Certificate.yaml'),
+    path.join(templates, 'serving-cert.yaml'))
+  fs.copySync(
+    path.join(src, 'che-operator-selfsigned-issuer.Issuer.yaml'),
+    path.join(templates, 'selfsigned-issuer.yaml'))
 }
 
-fs.removeSync(cheOperatorTemplates)
+fs.removeSync(path.join(__dirname, 'templates'))
 prepareTemplates()
