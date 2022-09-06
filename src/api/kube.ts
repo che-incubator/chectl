@@ -47,7 +47,7 @@ import {
   V1ServiceAccount,
   V1ServiceList,
   Watch,
-  V1CustomResourceDefinition,
+  V1CustomResourceDefinition, V1ValidatingWebhookConfiguration,
 } from '@kubernetes/client-node'
 import { Cluster } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
@@ -370,6 +370,38 @@ export class KubeHelper {
         return false
       }
 
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async isValidatingWebhookConfigurationExists(name: string): Promise<boolean> {
+    const k8sAdmissionApi = this.kubeConfig.makeApiClient(AdmissionregistrationV1Api)
+    try {
+      await k8sAdmissionApi.readValidatingWebhookConfiguration(name)
+      return true
+    } catch (e: any) {
+      if (e.response && e.response.statusCode === 404) {
+        return false
+      }
+
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async replaceValidatingWebhookConfiguration(name: string, webhook: V1ValidatingWebhookConfiguration): Promise<void> {
+    const k8sAdmissionApi = this.kubeConfig.makeApiClient(AdmissionregistrationV1Api)
+    try {
+      await k8sAdmissionApi.replaceValidatingWebhookConfiguration(name, webhook)
+    } catch (e: any) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async createValidatingWebhookConfiguration(webhook: V1ValidatingWebhookConfiguration): Promise<void> {
+    const k8sAdmissionApi = this.kubeConfig.makeApiClient(AdmissionregistrationV1Api)
+    try {
+      await k8sAdmissionApi.createValidatingWebhookConfiguration(webhook)
+    } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
   }
