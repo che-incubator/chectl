@@ -17,7 +17,7 @@ import {
   V1Role,
   V1RoleBinding,
   V1Service,
-  V1CustomResourceDefinition,
+  V1CustomResourceDefinition, V1ValidatingWebhookConfiguration,
 } from '@kubernetes/client-node'
 import {cli} from 'cli-ux'
 import * as fs from 'fs'
@@ -40,6 +40,7 @@ import {V1Certificate} from '../../api/types/cert-manager'
 import {OpenShiftHelper} from '../../api/openshift'
 
 export class OperatorTasks {
+  private static readonly VALIDATING_WEBHOOK = 'org.eclipse.che'
   private static readonly WEBHOOK_SERVICE = 'che-operator-service'
   private static readonly CERTIFICATE = 'che-operator-serving-cert'
   private static readonly ISSUER = 'che-operator-selfsigned-issuer'
@@ -282,6 +283,25 @@ export class OperatorTasks {
         title: 'Operator pod bootstrap',
         task: () => kubeTasks.podStartTasks(CHE_OPERATOR_SELECTOR, this.flags.chenamespace),
       },
+      {
+        title: `Create ValidatingWebhookConfiguration ${OperatorTasks.VALIDATING_WEBHOOK}`,
+        task: async (ctx: any, task: any) => {
+          const exists = await this.kh.isValidatingWebhookConfigurationExists(OperatorTasks.VALIDATING_WEBHOOK)
+          if (exists) {
+            task.title = `${task.title}...[Exists]`
+          } else {
+            const webhookPath = this.getResourcePath('org.eclipse.che.ValidatingWebhookConfiguration.yaml')
+            if (fs.existsSync(webhookPath)) {
+              const webhook = this.kh.safeLoadFromYamlFile(webhookPath) as V1ValidatingWebhookConfiguration
+              webhook!.webhooks![0].clientConfig.service!.namespace = this.flags.chenamespace
+              await this.kh.createValidatingWebhookConfiguration(webhook)
+              task.title = `${task.title}...[OK: created]`
+            } else {
+              task.title = `${task.title}...[Not found]`
+            }
+          }
+        },
+      },
       createEclipseCheClusterTask(this.flags, kube),
     ]
   }
@@ -461,6 +481,27 @@ export class OperatorTasks {
           await this.kh.waitLatestReplica(OPERATOR_DEPLOYMENT_NAME, this.flags.chenamespace)
         },
       },
+      {
+        title: `Update ValidatingWebhookConfiguration ${OperatorTasks.VALIDATING_WEBHOOK}`,
+        task: async (ctx: any, task: any) => {
+          const webhookPath = this.getResourcePath('org.eclipse.che.ValidatingWebhookConfiguration.yaml')
+          if (fs.existsSync(webhookPath)) {
+            const webhook = this.kh.safeLoadFromYamlFile(webhookPath) as V1ValidatingWebhookConfiguration
+            webhook!.webhooks![0].clientConfig.service!.namespace = this.flags.chenamespace
+
+            const exists = await this.kh.isValidatingWebhookConfigurationExists(OperatorTasks.VALIDATING_WEBHOOK)
+            if (exists) {
+              await this.kh.replaceValidatingWebhookConfiguration(OperatorTasks.VALIDATING_WEBHOOK, webhook)
+              task.title = `${task.title}...[Ok: updated]`
+            } else {
+              await this.kh.createValidatingWebhookConfiguration(webhook)
+              task.title = `${task.title}...[OK: created]`
+            }
+          } else {
+            task.title = `${task.title}...[Not found]`
+          }
+        },
+      },
       patchingEclipseCheCluster(this.flags, this.kh),
     ]
   }
@@ -532,6 +573,17 @@ export class OperatorTasks {
   getDeleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     const kh = new KubeHelper(flags)
     return [
+      {
+        title: `Delete ValidatingWebhookConfiguration ${OperatorTasks.VALIDATING_WEBHOOK}`,
+        task: async (_ctx: any, task: any) => {
+          try {
+            await kh.deleteValidatingWebhookConfiguration(OperatorTasks.VALIDATING_WEBHOOK)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
       {
         title: 'Delete CRDs',
         task: async (_ctx: any, task: any) => {
