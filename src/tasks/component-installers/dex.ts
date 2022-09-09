@@ -330,7 +330,7 @@ export class DexTasks {
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DOMAIN, 'g'), this.flags.domain)
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.CLIENT_ID, 'g'), DexTasks.CLIENT_ID)
                   // generate client secret
-                  let clientSecret = crypto.randomBytes(32).toString('base64')
+                  const clientSecret = crypto.randomBytes(32).toString('base64')
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.CLIENT_SECRET, 'g'), clientSecret)
 
                   yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DEX_PASSWORD_HASH, 'g'), ctx[DexContextKeys.DEX_PASSWORD_HASH])
