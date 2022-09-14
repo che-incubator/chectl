@@ -50,6 +50,11 @@ function prepareTemplates() {
   fs.copySync(
     path.join(src, 'che-operator-selfsigned-issuer.Issuer.yaml'),
     path.join(templates, 'selfsigned-issuer.yaml'))
+
+  const vwc = path.join(src, 'org.eclipse.che.ValidatingWebhookConfiguration.yaml')
+  if (fs.existsSync(vwc)) {
+    fs.copySync(vwc, path.join(templates, 'org.eclipse.che.ValidatingWebhookConfiguration.yaml'))
+  }
 }
 
 fs.removeSync(path.join(__dirname, 'templates'))
