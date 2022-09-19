@@ -13,7 +13,7 @@
 const fs = require('fs-extra')
 const path = require('path')
 
-function prepareTemplates() {
+function prepareCheOperatorTemplates() {
   const src = path.join(__dirname, 'node_modules', 'eclipse-che-operator', 'deploy', 'deployment', 'kubernetes', 'objects')
   const templates = path.join(__dirname, 'templates', 'che-operator', 'kubernetes')
 
@@ -57,5 +57,15 @@ function prepareTemplates() {
   }
 }
 
+function prepareDevWorkspaceOperatorTemplates() {
+  const src = path.join(__dirname, 'node_modules', 'devworkspace-operator', 'deploy', 'deployment', 'kubernetes')
+  const templates = path.join(__dirname, 'templates', 'devworkspace-operator', 'kubernetes')
+
+  fs.copySync(
+    path.join(src, 'combined.yaml'),
+    path.join(templates, 'combined.yaml'))
+}
+
 fs.removeSync(path.join(__dirname, 'templates'))
-prepareTemplates()
+prepareCheOperatorTemplates()
+prepareDevWorkspaceOperatorTemplates()

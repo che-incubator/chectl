@@ -27,6 +27,7 @@ import * as yaml from 'js-yaml'
 import {ChectlContext} from '../../api/context'
 import {KubeHelper} from '../../api/kube'
 import {
+  CERT_MANAGER_NAMESPACE_NAME,
   CHE_CLUSTER_API_GROUP,
   CHE_CLUSTER_API_VERSION_V2,
   CHE_CLUSTER_CRD,
@@ -57,7 +58,7 @@ export class OperatorTasks {
 
   private getCreateOrUpdateRolesAndBindingsTasks(updateTask = false): Listr.ListrTask {
     return {
-      title: 'Role and RoleBindings',
+      title: `${updateTask ? 'Update' : 'Create'} Role and RoleBindings`,
       task: async (ctx: any, task: any) => {
         const resources = this.collectReadRolesAndBindings(ctx)
         const rolesTasks = new Listr(undefined, ctx.listrOptions)
@@ -186,6 +187,15 @@ export class OperatorTasks {
         },
       },
       this.getCreateOrUpdateRolesAndBindingsTasks(false),
+      {
+        title: 'Wait for Cert Manager',
+        task: async (ctx: any, task: any) => {
+          await this.kh.waitForPodReady('app.kubernetes.io/name=cert-manager', CERT_MANAGER_NAMESPACE_NAME)
+          await this.kh.waitForPodReady('app.kubernetes.io/name=webhook', CERT_MANAGER_NAMESPACE_NAME)
+          await this.kh.waitForPodReady('app.kubernetes.io/name=cainjector', CERT_MANAGER_NAMESPACE_NAME)
+          task.title = `${task.title}...[OK]`
+        },
+      },
       {
         title: `Create Certificate ${OperatorTasks.CERTIFICATE}`,
         task: async (ctx: any, task: any) => {
@@ -892,7 +902,7 @@ export class OperatorTasks {
     resources.clusterRoles = []
     resources.clusterRoleBindings = []
 
-    for (const basePath of [ctx[ChectlContext.RESOURCES], path.join(ctx[ChectlContext.RESOURCES], 'kubernetes')]) {
+    for (const basePath of [ctx[ChectlContext.CHE_OPERATOR_RESOURCES], path.join(ctx[ChectlContext.CHE_OPERATOR_RESOURCES], 'kubernetes')]) {
       if (!fs.existsSync(basePath)) {
         continue
       }
@@ -943,13 +953,13 @@ export class OperatorTasks {
     const ctx = ChectlContext.get()
 
     // Legacy CRD CheCluster API v1
-    const crdPath = path.join(ctx[ChectlContext.RESOURCES], 'crds', 'org_v1_che_crd.yaml')
+    const crdPath = path.join(ctx[ChectlContext.CHE_OPERATOR_RESOURCES], 'crds', 'org_v1_che_crd.yaml')
     if (fs.existsSync(crdPath)) {
       return crdPath
     }
 
     // Platform specific resource
-    return path.join(ctx[ChectlContext.RESOURCES], 'kubernetes', 'crds', 'org.eclipse.che_checlusters.yaml')
+    return path.join(ctx[ChectlContext.CHE_OPERATOR_RESOURCES], 'kubernetes', 'crds', 'org.eclipse.che_checlusters.yaml')
   }
 
   /**
@@ -957,6 +967,6 @@ export class OperatorTasks {
    */
   private getResourcePath(resourceName: string): string {
     const ctx = ChectlContext.get()
-    return path.join(ctx[ChectlContext.RESOURCES], 'kubernetes', resourceName)
+    return path.join(ctx[ChectlContext.CHE_OPERATOR_RESOURCES], 'kubernetes', resourceName)
   }
 }

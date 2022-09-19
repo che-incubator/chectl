@@ -14,13 +14,13 @@ import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
-import { CertManagerTasks } from '../../tasks/component-installers/cert-manager'
+import { CertManagerTasks } from '../../tasks/components/cert-manager'
 import { ChectlContext, OIDCContextKeys, OLM } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { batch, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DOC_LINK_CONFIGURE_API_SERVER } from '../../constants'
 import { CheTasks } from '../../tasks/che'
-import { DexTasks } from '../../tasks/component-installers/dex'
+import { DexTasks } from '../../tasks/components/dex'
 import {
   createNamespaceTask,
   getPrintHighlightedMessagesTask,
@@ -30,7 +30,7 @@ import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getWarnVersionFlagMsg, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 import { InstallerTasks } from '../../tasks/installers/installer'
-import { DevWorkspaceTasks } from '../../tasks/component-installers/devworkspace/operator-installer'
+import { DevWorkspaceTasks } from '../../tasks/components/devworkspace-operator-installer'
 
 export default class Deploy extends Command {
   static description = 'Deploy Eclipse Che server'
@@ -282,7 +282,7 @@ export default class Deploy extends Command {
     const preInstallTasks = new Listr(undefined, ctx.listrOptions)
     preInstallTasks.add(apiTasks.testApiTasks(flags))
     preInstallTasks.add({
-      title: '👀  Looking for an already existing Eclipse Che instance',
+      title: 'Looking for an already existing Eclipse Che instance',
       task: () => new Listr(cheTasks.getCheckIfCheIsInstalledTasks(flags)),
     })
     preInstallTasks.add(ensureOIDCProviderInstalled(flags))
@@ -290,6 +290,7 @@ export default class Deploy extends Command {
     const installTasks = new Listr(undefined, ctx.listrOptions)
     if (!ctx[ChectlContext.IS_OPENSHIFT]) {
       installTasks.add(certManagerTask.getDeployCertManagerTasks())
+      installTasks.add(devWorkspaceTask.getInstallTasks())
     }
     installTasks.add([createNamespaceTask(flags.chenamespace, this.getNamespaceLabels(flags))])
     if (flags.platform === 'minikube') {
@@ -309,7 +310,7 @@ export default class Deploy extends Command {
       },
     )
     if (flags.platform === 'minikube') {
-      postInstallTasks.add(devWorkspaceTask.createDevWorkspaceOperatorConfigTasks())
+      postInstallTasks.add(devWorkspaceTask.createOrUpdateDevWorkspaceOperatorConfigTasks())
     }
     postInstallTasks.add(retrieveCheCaCertificateTask(flags))
     postInstallTasks.add(cheTasks.getPreparePostInstallationOutputTasks(flags))

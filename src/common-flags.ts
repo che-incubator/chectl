@@ -12,7 +12,12 @@
 
 import { boolean, string } from '@oclif/parser/lib/flags'
 
-import { DEFAULT_CHE_NAMESPACE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT} from './constants'
+import {
+  DEFAULT_CHE_NAMESPACE,
+  DEFAULT_K8S_POD_DOWNLOAD_IMAGE_TIMEOUT,
+  DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT,
+  DEFAULT_K8S_POD_WAIT_TIMEOUT,
+} from './constants'
 
 export const cheNamespace = string({
   char: 'n',
@@ -67,7 +72,7 @@ export const k8sPodWaitTimeout = string({
 export const K8SPODDOWNLOADIMAGETIMEOUT_KEY = 'k8spoddownloadimagetimeout'
 export const k8sPodDownloadImageTimeout = string({
   description: 'Waiting time for Pod downloading image (in milliseconds)',
-  default: `${DEFAULT_K8S_POD_WAIT_TIMEOUT}`,
+  default: `${DEFAULT_K8S_POD_DOWNLOAD_IMAGE_TIMEOUT}`,
 })
 
 export const K8SPODREADYTIMEOUT_KEY = 'k8spodreadytimeout'

@@ -10,9 +10,9 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {DevWorkspaceContextKeys, OLM, OLMInstallationUpdate} from '../../../api/context'
-import { KubeHelper } from '../../../api/kube'
-import { CatalogSource, Subscription } from '../../../api/types/olm'
+import {DevWorkspaceContextKeys, OLM, OLMInstallationUpdate} from '../../api/context'
+import { KubeHelper } from '../../api/kube'
+import { CatalogSource, Subscription } from '../../api/types/olm'
 import {
   DEVWORKSPACE_CSV_PREFIX,
   DEV_WORKSPACE_NEXT_CATALOG_SOURCE_IMAGE,
@@ -20,7 +20,7 @@ import {
   NEXT_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR,
   STABLE_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR,
   OPENSHIFT_OPERATORS_NAMESPACE, OPENSHIFT_MARKET_PLACE_NAMESPACE, OLM_STABLE_CHANNEL_NAME,
-} from '../../../constants'
+} from '../../constants'
 import Listr = require('listr')
 
 export class OLMDevWorkspaceTasks {

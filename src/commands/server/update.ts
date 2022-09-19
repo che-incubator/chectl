@@ -50,6 +50,7 @@ import {
   notifyCommandCompletedSuccessfully,
   wrapCommandError,
 } from '../../util'
+import {DevWorkspaceTasks} from '../../tasks/components/devworkspace-operator-installer'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -134,6 +135,10 @@ export default class Update extends Command {
 
     // update tasks
     const updateTasks = new Listr([], ctx.listrOptions)
+    if (!ctx[ChectlContext.IS_OPENSHIFT]) {
+      const devWorkspaceTask = new DevWorkspaceTasks(flags)
+      updateTasks.add(devWorkspaceTask.getUpdateTasks())
+    }
     updateTasks.add({
       title: 'Update Eclipse Che',
       task: () => new Listr(installerTasks.updateTasks(flags), ctx.listrOptions),

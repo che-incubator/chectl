@@ -22,6 +22,7 @@
     "cli-ux": "^6.0.9",
     "command-exists": "^1.2.9",
     "countries-and-timezones": "^3.3.0",
+    "devworkspace-operator": "https://github.com/devfile/devworkspace-operator#main",
     "eclipse-che-operator": "https://github.com/eclipse-che/che-operator#main",
     "execa": "^5.1.1",
     "fancy-test": "^2.0.0",
@@ -81,7 +82,7 @@
     "/resources",
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json",
-    "/prepare-che-operator-templates.js"
+    "/prepare-templates.js"
   ],
   "homepage": "https://github.com/che-incubator/chectl",
   "keywords": [
@@ -130,9 +131,9 @@
   "repository": "che-incubator/chectl",
   "scripts": {
     "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-operator && npm run -s postinstall-cleanup",
-    "postinstall-operator": "node prepare-che-operator-templates.js",
-    "postinstall-repositories": "yarn upgrade eclipse-che-operator",
-    "postinstall-cleanup": "rimraf node_modules/eclipse-che-operator",
+    "postinstall-operator": "node prepare-templates.js",
+    "postinstall-repositories": "yarn upgrade eclipse-che-operator devworkspace-operator",
+    "postinstall-cleanup": "rimraf node_modules/eclipse-che-operator && rimraf node_modules/devworkspace-operator",
     "test": "jest --collect-coverage",
     "test-watch": "jest --watchAll",
     "e2e-minikube-operator": "export PLATFORM=minikube && export INSTALLER=operator && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",

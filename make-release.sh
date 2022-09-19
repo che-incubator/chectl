@@ -15,7 +15,7 @@ set -e
 set -u
 
 usage ()
-{   echo "Usage: ./make-release.sh -v <version>"
+{   echo "Usage: ./make-release.sh -v <version> -d <devworkspace-operator-version>"
     exit
 }
 
@@ -24,17 +24,20 @@ if [[ $# -lt 1 ]]; then usage; fi
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     '-v'|'--version') VERSION="$2"; shift 1;;
+    '-d'|'--devworkspace-operator-version') DWO_VERSION="$2"; shift 1;;
     '--help'|'-h') usage;;
   esac
   shift 1
 done
 
 init() {
+  [[ -z ${VERSION} ]] && { echo "[ERROR] Release version is not defined"; usage; }
+  [[ -z ${DWO_VERSION} ]] && { echo "[ERROR] Dev Workspace Operator version is not defined"; usage; }
   BRANCH=$(echo $VERSION | sed 's/.$/x/')
 }
 
 apply_sed() {
-    SHORT_UNAME=$(uname -s)
+  SHORT_UNAME=$(uname -s)
   if [ "$(uname)" == "Darwin" ]; then
     sed -i '' "$1" "$2"
   elif [ "${SHORT_UNAME:0:5}" == "Linux" ]; then
@@ -66,16 +69,21 @@ checkoutToReleaseBranch() {
 
 release() {
   echo "[INFO] Releasing a new $VERSION version"
+  echo "[INFO] Dev Workspace Operator version $DWO_VERSION"
 
   # Create VERSION file
   echo "$VERSION" > VERSION
 
   # now replace package.json dependencies
   apply_sed "s;github.com/eclipse-che/che-operator#\(.*\)\",;github.com/eclipse-che/che-operator#${VERSION}\",;g" package.json
-  apply_sed "s;\"@eclipse-che/api\": \"\(.*\)\",;\"@eclipse-che/api\": \"${VERSION}\",;g" package.json
+  apply_sed "s;https://github.com/devfile/devworkspace-operator#\(.*\)\",;https://github.com/devfile/devworkspace-operator#${DWO_VERSION}\",;g" package.json
 
   if ! grep -q "github.com/eclipse-che/che-operator#${VERSION}" package.json; then
     echo "[ERROR] Unable to find Che Operator version ${VERSION} in the package.json"; exit 1
+  fi
+
+  if ! grep -q "https://github.com/devfile/devworkspace-operator#${DWO_VERSION}" package.json; then
+    echo "[ERROR] Unable to find Dev Workspace Operator version ${DWO_VERSION} in the package.json"; exit 1
   fi
 
   # build

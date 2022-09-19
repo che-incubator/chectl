@@ -17,7 +17,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, LOG_DIRECTORY_KEY } from '../common-flags'
-import { CHECTL_PROJECT_NAME, OPERATOR_TEMPLATE_DIR } from '../constants'
+import {CHECTL_PROJECT_NAME, CHE_OPERATOR_TEMPLATE_DIR, DEVWORKSPACE_OPERATOR_TEMPLATE_DIR} from '../constants'
 import { getEmbeddedTemplatesDirectory, getProjectName, getProjectVersion, readCRFile, safeLoadFromYamlFile } from '../util'
 
 import { CHECTL_DEVELOPMENT_VERSION } from './version'
@@ -41,7 +41,8 @@ export namespace ChectlContext {
   export const DEFAULT_CR = 'defaultCR'
   export const LOGS_DIR = 'directory'
 
-  export const RESOURCES = 'resourcesPath'
+  export const CHE_OPERATOR_RESOURCES = 'che-operator-resources'
+  export const DEVWORKAPCE_OPERATOR_RESOURCES = 'devworkspace-operator-resources'
 
   const ctx: any = {}
 
@@ -65,19 +66,22 @@ export namespace ChectlContext {
     ctx[CR_PATCH] = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY)
 
     if (flags.templates) {
-      if (path.basename(flags.templates) !== OPERATOR_TEMPLATE_DIR) {
-        ctx[RESOURCES] = path.join(flags.templates, OPERATOR_TEMPLATE_DIR)
+      if (path.basename(flags.templates) !== CHE_OPERATOR_TEMPLATE_DIR) {
+        ctx[CHE_OPERATOR_RESOURCES] = path.join(flags.templates, CHE_OPERATOR_TEMPLATE_DIR)
+        ctx[DEVWORKAPCE_OPERATOR_RESOURCES] = path.join(flags.templates, DEVWORKSPACE_OPERATOR_TEMPLATE_DIR)
       } else {
-        ctx[RESOURCES] = flags.templates
+        ctx[CHE_OPERATOR_RESOURCES] = flags.templates
+        ctx[DEVWORKAPCE_OPERATOR_RESOURCES] = path.normalize(path.join(flags.templates, '..', DEVWORKSPACE_OPERATOR_TEMPLATE_DIR))
       }
     } else {
-      // Use build-in templates if no custom templates nor version to deploy specified.
+      // Use build-in templates if neither custom templates no version to deploy specified.
       // All flavors should use embedded templates if not custom templates is given.
-      ctx[RESOURCES] = path.join(getEmbeddedTemplatesDirectory(), OPERATOR_TEMPLATE_DIR)
+      ctx[CHE_OPERATOR_RESOURCES] = path.join(getEmbeddedTemplatesDirectory(), CHE_OPERATOR_TEMPLATE_DIR)
+      ctx[DEVWORKAPCE_OPERATOR_RESOURCES] = path.join(getEmbeddedTemplatesDirectory(), DEVWORKSPACE_OPERATOR_TEMPLATE_DIR)
     }
 
     ctx[IS_OPENSHIFT] = await isOpenShift()
-    ctx[DEFAULT_CR] = safeLoadFromYamlFile(path.join(ctx.resourcesPath, 'kubernetes', 'crds', 'org_checluster_cr.yaml'))
+    ctx[DEFAULT_CR] = safeLoadFromYamlFile(path.join(ctx[CHE_OPERATOR_RESOURCES], 'kubernetes', 'crds', 'org_checluster_cr.yaml'))
   }
 
   export async function initAndGet(flags: any, command: Command): Promise<any> {
