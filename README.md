@@ -320,7 +320,7 @@ OPTIONS
       The URL of the external Devfile registry.
 
   --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout
-      [default: 600000] Waiting time for Pod downloading image (in milliseconds)
+      [default: 1200000] Waiting time for Pod downloading image (in milliseconds)
 
   --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout
       [default: 60000] Waiting time for Pod rechecking error (in milliseconds)
@@ -411,7 +411,7 @@ OPTIONS
   -n, --chenamespace=chenamespace                          Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
   --batch                                                  Batch mode. Running a command without end user interaction.
 
-  --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 600000] Waiting time for Pod downloading image (in
+  --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 1200000] Waiting time for Pod downloading image (in
                                                            milliseconds)
 
   --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout    [default: 60000] Waiting time for Pod rechecking error (in
