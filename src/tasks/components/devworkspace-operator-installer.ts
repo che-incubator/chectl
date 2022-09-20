@@ -84,15 +84,19 @@ export class DevWorkspaceTasks {
   // DevWorkspace configuration
   protected devWorkspaceOperatorConfig = 'devworkspace-operator-config'
 
+  protected skip: boolean
+
   constructor(flags: any) {
     this.kubeHelper = new KubeHelper(flags)
     this.cheHelper = new CheHelper(flags)
+    this.skip = flags['skip-devworkspace-operator']
   }
 
   getInstallTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Install Dev Workspace operator',
+        skip: () => this.skip,
         task: async (ctx: any, _task: any) => {
           const tasks = new Listr(undefined, ctx.listrOptions)
           tasks.add(createNamespaceTask(WORKSPACE_CONTROLLER_NAMESPACE, {}))
@@ -121,6 +125,7 @@ export class DevWorkspaceTasks {
     return [
       {
         title: 'Update Dev Workspace operator',
+        skip: () => this.skip,
         task: async (ctx: any, _task: any) => {
           const tasks = new Listr(undefined, ctx.listrOptions)
           tasks.add({

@@ -11,7 +11,7 @@
  */
 
 import {Command, flags} from '@oclif/command'
-import {string} from '@oclif/parser/lib/flags'
+import {boolean, string} from '@oclif/parser/lib/flags'
 import {cli} from 'cli-ux'
 import * as Listr from 'listr'
 import * as semver from 'semver'
@@ -95,6 +95,10 @@ export default class Update extends Command {
     [CHE_OPERATOR_CR_PATCH_YAML_KEY]: cheOperatorCRPatchYaml,
     telemetry: CHE_TELEMETRY,
     [DEPLOY_VERSION_KEY]: cheDeployVersion,
+    'skip-devworkspace-operator': boolean({
+      default: false,
+      description: 'Skip updating Dev Workspace Operator (Kubernetes cluster only).',
+    }),
   }
 
   async run() {

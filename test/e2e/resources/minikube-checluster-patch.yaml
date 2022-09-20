@@ -34,7 +34,7 @@ spec:
         containers:
           - resources:
               limits:
-                cpu: '500m'
+                cpu: '250m'
     dashboard:
       deployment:
         containers:

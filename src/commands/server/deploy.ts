@@ -189,8 +189,13 @@ export default class Deploy extends Command {
     'skip-kubernetes-health-check': skipK8sHealthCheck,
     'skip-cert-manager': boolean({
       default: false,
-      description: 'Skip installing Cert Manager on the Kubernetes cluster.',
+      description: 'Skip installing Cert Manager (Kubernetes cluster only).',
     }),
+    'skip-devworkspace-operator': boolean({
+      default: false,
+      description: 'Skip installing Dev Workspace Operator (Kubernetes cluster only).',
+    }),
+
     telemetry: CHE_TELEMETRY,
     [DEPLOY_VERSION_KEY]: cheDeployVersion,
   }
