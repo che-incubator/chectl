@@ -32,8 +32,14 @@ done
 
 init() {
   [[ -z ${VERSION} ]] && { echo "[ERROR] Release version is not defined"; usage; }
-  [[ -z ${DWO_VERSION} ]] && { echo "[ERROR] Dev Workspace Operator version is not defined"; usage; }
+  [[ -z ${DWO_VERSION} ]] && discoverLatestDevWorkspaceOperatorVersion
   BRANCH=$(echo $VERSION | sed 's/.$/x/')
+}
+
+discoverLatestDevWorkspaceOperatorVersion() {
+ git clone https://github.com/devfile/devworkspace-operator /tmp/dwo
+ cd /tmp/dwo
+ DWO_VERSION=$(git describe --tags $(git rev-list --tags) | sort --version-sort | tail -1)
 }
 
 apply_sed() {
