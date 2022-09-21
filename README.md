@@ -320,7 +320,7 @@ OPTIONS
       The URL of the external Devfile registry.
 
   --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout
-      [default: 600000] Waiting time for Pod downloading image (in milliseconds)
+      [default: 1200000] Waiting time for Pod downloading image (in milliseconds)
 
   --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout
       [default: 60000] Waiting time for Pod rechecking error (in milliseconds)
@@ -347,10 +347,13 @@ OPTIONS
       persistent volume storage class name to use to store Eclipse Che postgres database
 
   --skip-cert-manager
-      Skip installing Cert Manager on the Kubernetes cluster.
+      Skip installing Cert Manager (Kubernetes cluster only).
 
   --skip-cluster-availability-check
       Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.
+
+  --skip-devworkspace-operator
+      Skip installing Dev Workspace Operator (Kubernetes cluster only).
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
@@ -411,7 +414,7 @@ OPTIONS
   -n, --chenamespace=chenamespace                          Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
   --batch                                                  Batch mode. Running a command without end user interaction.
 
-  --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 600000] Waiting time for Pod downloading image (in
+  --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 1200000] Waiting time for Pod downloading image (in
                                                            milliseconds)
 
   --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout    [default: 60000] Waiting time for Pod rechecking error (in
@@ -483,6 +486,9 @@ OPTIONS
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml  Path to a yaml file that overrides the default values in
                                                            CheCluster CR used by the operator. This parameter is used
                                                            only when the installer is the 'operator' or the 'olm'.
+
+  --skip-devworkspace-operator                             Skip updating Dev Workspace Operator (Kubernetes cluster
+                                                           only).
 
   --skip-kubernetes-health-check                           Skip Kubernetes health check
 

@@ -35,7 +35,7 @@ import {
 } from '../../constants'
 import {getEmbeddedTemplatesDirectory, getProjectName, isCheClusterAPIV2} from '../../util'
 import { createEclipseCheClusterTask, patchingEclipseCheCluster } from './common-tasks'
-import { OLMDevWorkspaceTasks } from '../component-installers/devworkspace/olm-installer'
+import { OLMDevWorkspaceTasks } from '../components/devworkspace-olm-installer'
 import Listr = require('listr')
 import { V1Role, V1RoleBinding } from '@kubernetes/client-node'
 import {merge} from 'lodash'

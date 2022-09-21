@@ -63,6 +63,7 @@ import {
   CHE_CLUSTER_API_VERSION_V2,
   CHE_CLUSTER_KIND_PLURAL,
   CHE_TLS_SECRET_NAME,
+  DEFAULT_K8S_POD_DOWNLOAD_IMAGE_TIMEOUT,
   DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT,
   DEFAULT_K8S_POD_WAIT_TIMEOUT,
 } from '../constants'
@@ -91,7 +92,7 @@ export class KubeHelper {
   constructor(flags?: any) {
     this.podWaitTimeout = (flags && flags.k8spodwaittimeout) ? parseInt(flags.k8spodwaittimeout, 10) : DEFAULT_K8S_POD_WAIT_TIMEOUT
     this.podReadyTimeout = (flags && flags.k8spodreadytimeout) ? parseInt(flags.k8spodreadytimeout, 10) : DEFAULT_K8S_POD_WAIT_TIMEOUT
-    this.podDownloadImageTimeout = (flags && flags.k8spoddownloadimagetimeout) ? parseInt(flags.k8spoddownloadimagetimeout, 10) : DEFAULT_K8S_POD_WAIT_TIMEOUT
+    this.podDownloadImageTimeout = (flags && flags.k8spoddownloadimagetimeout) ? parseInt(flags.k8spoddownloadimagetimeout, 10) : DEFAULT_K8S_POD_DOWNLOAD_IMAGE_TIMEOUT
     this.podErrorRecheckTimeout = (flags && flags.spoderrorrechecktimeout) ? parseInt(flags.spoderrorrechecktimeout, 10) : DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT
     this.kubeConfig = new KubeConfig()
     this.kubeConfig.loadFromDefault()
@@ -391,6 +392,9 @@ export class KubeHelper {
   async replaceValidatingWebhookConfiguration(name: string, webhook: V1ValidatingWebhookConfiguration): Promise<void> {
     const k8sAdmissionApi = this.kubeConfig.makeApiClient(AdmissionregistrationV1Api)
     try {
+      const response = await k8sAdmissionApi.readValidatingWebhookConfiguration(name)
+      webhook.metadata!.resourceVersion = (response.body as any).metadata.resourceVersion
+
       await k8sAdmissionApi.replaceValidatingWebhookConfiguration(name, webhook)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -664,6 +668,16 @@ export class KubeHelper {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
       await k8sCoreApi.createNamespacedCustomObject('batch', 'v1', namespace, 'jobs', job)
+    } catch (e: any) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async patchDevWorkspaceOperatorConfig(name: string, namespace: string, patch: any): Promise<any> {
+    try {
+      const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+      const { body } = await customObjectsApi.patchNamespacedCustomObject('controller.devfile.io', 'v1alpha1', namespace, 'devworkspaceoperatorconfigs', name, patch, undefined, undefined, undefined, { headers: { 'Content-Type': 'application/merge-patch+json' } })
+      return body
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }

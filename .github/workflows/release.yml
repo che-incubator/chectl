@@ -18,6 +18,9 @@ on:
       version:
         description: 'The version that is going to be released. Should be in format 7.y.z'
         required: true
+      devworkspaceOperatorVersion:
+        description: 'The version that is going to be released. Should be in format 7.y.z'
+        required: false
       forceRecreateTags:
         description: If true, tags will be recreated. Use with caution
         required: false
@@ -61,7 +64,7 @@ jobs:
           git config --global user.name "Flavius Lacatusu"
           git config --global user.email "flacatus@redhat.com"
           export GITHUB_TOKEN=${{ secrets.CHE_INCUBATOR_BOT_GITHUB_TOKEN }}
-          ./make-release.sh --version ${{ github.event.inputs.version }}
+          ./make-release.sh --version ${{ github.event.inputs.version }} --devworkspace-operator-version ${{ github.event.inputs.devworkspaceOperatorVersion }}
       - name: Create failure MM message
         if: ${{ failure() }}
         run: |

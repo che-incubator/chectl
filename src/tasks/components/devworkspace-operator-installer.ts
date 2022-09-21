@@ -11,8 +11,9 @@
  */
 
 import * as Listr from 'listr'
-import { CheHelper } from '../../../api/che'
-import { KubeHelper } from '../../../api/kube'
+import * as path from 'path'
+import { CheHelper } from '../../api/che'
+import { KubeHelper } from '../../api/kube'
 import {
   DEVFILE_WORKSPACE_API_GROUP,
   DEVFILE_WORKSPACE_API_VERSION,
@@ -21,7 +22,9 @@ import {
   DEVFILE_WORKSPACE_ROUTINGS_KIND_PLURAL,
   DEVFILE_WORKSPACE_ROUTINGS_VERSION,
   WORKSPACE_CONTROLLER_NAMESPACE,
-} from '../../../constants'
+} from '../../constants'
+import {ChectlContext} from '../../api/context'
+import {createNamespaceTask} from '../installers/common-tasks'
 
 /**
  * Handle setup of the dev workspace operator controller.
@@ -81,34 +84,96 @@ export class DevWorkspaceTasks {
   // DevWorkspace configuration
   protected devWorkspaceOperatorConfig = 'devworkspace-operator-config'
 
+  protected skip: boolean
+
   constructor(flags: any) {
     this.kubeHelper = new KubeHelper(flags)
     this.cheHelper = new CheHelper(flags)
+    this.skip = flags['skip-devworkspace-operator']
   }
 
-  createDevWorkspaceOperatorConfigTasks(): ReadonlyArray<Listr.ListrTask> {
+  getInstallTasks(): ReadonlyArray<Listr.ListrTask> {
+    return [
+      {
+        title: 'Install Dev Workspace operator',
+        skip: () => this.skip,
+        task: async (ctx: any, _task: any) => {
+          const tasks = new Listr(undefined, ctx.listrOptions)
+          tasks.add(createNamespaceTask(WORKSPACE_CONTROLLER_NAMESPACE, {}))
+          tasks.add({
+            title: 'Create Dev Workspace operator resources',
+            task: async (ctx: any, task: any) => {
+              await this.kubeHelper.applyResource(`${path.normalize(ctx[ChectlContext.DEVWORKAPCE_OPERATOR_RESOURCES])}/kubernetes/combined.yaml`)
+              task.title = `${task.title}...[OK]`
+            },
+          })
+          tasks.add({
+            title: 'Wait for Dev Workspace operator',
+            task: async (ctx: any, task: any) => {
+              await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=devworkspace-controller', WORKSPACE_CONTROLLER_NAMESPACE)
+              await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=devworkspace-webhook-server', WORKSPACE_CONTROLLER_NAMESPACE)
+              task.title = `${task.title}...[OK]`
+            },
+          })
+          return tasks
+        },
+      },
+    ]
+  }
+
+  getUpdateTasks(): ReadonlyArray<Listr.ListrTask> {
+    return [
+      {
+        title: 'Update Dev Workspace operator',
+        skip: () => this.skip,
+        task: async (ctx: any, _task: any) => {
+          const tasks = new Listr(undefined, ctx.listrOptions)
+          tasks.add({
+            title: 'Update Dev Workspace operator resources',
+            task: async (ctx: any, task: any) => {
+              await this.kubeHelper.applyResource(`${path.normalize(ctx[ChectlContext.DEVWORKAPCE_OPERATOR_RESOURCES])}/kubernetes/combined.yaml`)
+              task.title = `${task.title}...[OK]`
+            },
+          })
+          tasks.add({
+            title: 'Wait for Dev Workspace operator',
+            task: async (ctx: any, task: any) => {
+              await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=devworkspace-controller', WORKSPACE_CONTROLLER_NAMESPACE)
+              await this.kubeHelper.waitForPodReady('app.kubernetes.io/name=devworkspace-webhook-server', WORKSPACE_CONTROLLER_NAMESPACE)
+              task.title = `${task.title}...[OK]`
+            },
+          })
+          return tasks
+        },
+      },
+    ]
+  }
+
+  createOrUpdateDevWorkspaceOperatorConfigTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Create DevWorkspaceOperatorConfig',
         task: async (_ctx: any, task: any) => {
+          const devWorkspaceOperatorConfig = {
+            apiVersion: 'controller.devfile.io/v1alpha1',
+            kind: 'DevWorkspaceOperatorConfig',
+            metadata: {
+              name: this.devWorkspaceOperatorConfig,
+            },
+            config: {
+              workspace: {
+                progressTimeout: '30m',
+              },
+            },
+          }
+
           const operatorConfig = await this.kubeHelper.getCustomResource(this.devWorkspaceOperatorConfig, WORKSPACE_CONTROLLER_NAMESPACE, 'controller.devfile.io', 'v1alpha1', 'devworkspaceoperatorconfigs')
           if (!operatorConfig) {
-            const devWorkspaceOperatorConfig = {
-              apiVersion: 'controller.devfile.io/v1alpha1',
-              kind: 'DevWorkspaceOperatorConfig',
-              metadata: {
-                name: this.devWorkspaceOperatorConfig,
-              },
-              config: {
-                workspace: {
-                  progressTimeout: '30m',
-                },
-              },
-            }
             await this.kubeHelper.createDevWorkspaceOperatorConfig(devWorkspaceOperatorConfig, WORKSPACE_CONTROLLER_NAMESPACE)
             task.title = `${task.title} ...[Ok: created]`
           } else {
-            task.title = `${task.title} ...[Exists]`
+            await this.kubeHelper.patchDevWorkspaceOperatorConfig(this.devWorkspaceOperatorConfig, WORKSPACE_CONTROLLER_NAMESPACE, devWorkspaceOperatorConfig)
+            task.title = `${task.title} ...[Ok: updated]`
           }
         },
       },
@@ -187,6 +252,7 @@ export class DevWorkspaceTasks {
           try {
             await this.kubeHelper.deleteRoleBinding(this.devWorkspaceLeaderElectionRoleBindingName, devWorkspaceNamespace)
             await this.kubeHelper.deleteRoleBinding(this.devWorkspaceServiceCertRoleName, devWorkspaceNamespace)
+            await this.kubeHelper.deleteRoleBinding(this.devWorkspaceServiceCertRoleBindingName, devWorkspaceNamespace)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -198,7 +264,6 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteRole(this.devWorkspaceLeaderElectionRoleName, devWorkspaceNamespace)
-            await this.kubeHelper.deleteRoleBinding(this.devWorkspaceServiceCertRoleBindingName, devWorkspaceNamespace)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`

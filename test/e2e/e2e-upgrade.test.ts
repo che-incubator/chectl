@@ -38,6 +38,9 @@ describe('Test Che upgrade', () => {
   describe('Test Che update', () => {
     it('Update Eclipse Che Version', async () => {
       const binChectl = E2eHelper.getChectlBinaries()
+      // scale deployments down to free up some resources
+      await helper.runCliCommand('kubectl', ['scale', 'deployment', 'che', '--replicas=0', `-n ${NAMESPACE}`])
+
       await helper.runCliCommand(binChectl, ['server:update', '-y', `-n ${NAMESPACE}`, '--telemetry=off'])
       await helper.waitForCheServerImageTag(helper.getNewVersion(), UPDATE_CHE_TIMEOUT_MS)
     })
