@@ -38,8 +38,9 @@ init() {
 
 discoverLatestDevWorkspaceOperatorVersion() {
  git clone https://github.com/devfile/devworkspace-operator /tmp/dwo
- cd /tmp/dwo
- DWO_VERSION=$(git describe --tags $(git rev-list --tags) | sort --version-sort | tail -1)
+ pushd cd /tmp/dwo
+ DWO_VERSION=$(git describe --tags $(git rev-list --tags --max-count=1))
+ popd
 }
 
 apply_sed() {
