@@ -50,11 +50,15 @@ function prepareCheOperatorTemplates() {
   fs.copySync(
     path.join(src, 'che-operator-selfsigned-issuer.Issuer.yaml'),
     path.join(templates, 'selfsigned-issuer.yaml'))
-
-  const vwc = path.join(src, 'org.eclipse.che.ValidatingWebhookConfiguration.yaml')
-  if (fs.existsSync(vwc)) {
-    fs.copySync(vwc, path.join(templates, 'org.eclipse.che.ValidatingWebhookConfiguration.yaml'))
-  }
+  fs.copySync(
+    path.join(src, 'org.eclipse.che.ValidatingWebhookConfiguration.yaml'),
+    path.join(templates, 'org.eclipse.che.ValidatingWebhookConfiguration.yaml'))
+  fs.copySync(
+    path.join(src, 'che-operator-leader-election.Role.yaml'),
+    path.join(templates, 'leader-election-role.yaml'))
+  fs.copySync(
+    path.join(src, 'che-operator-leader-election.RoleBinding.yaml'),
+    path.join(templates, 'leader-election-role_binding.yaml'))
 }
 
 function prepareDevWorkspaceOperatorTemplates() {
