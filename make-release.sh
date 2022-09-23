@@ -12,6 +12,7 @@
 #
 
 set -e
+set -u
 
 usage ()
 {   echo "Usage: ./make-release.sh -v <version> -d <devworkspace-operator-version>"
