@@ -19,7 +19,7 @@ on:
         description: 'The version that is going to be released. Should be in format 7.y.z'
         required: true
       devworkspaceOperatorVersion:
-        description: 'The version that is going to be released. Should be in format 7.y.z'
+        description: 'The Dev Workspace Operator version. Should be in format 7.y.z'
         required: false
       forceRecreateTags:
         description: If true, tags will be recreated. Use with caution
