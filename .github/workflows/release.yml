@@ -64,7 +64,12 @@ jobs:
           git config --global user.name "Flavius Lacatusu"
           git config --global user.email "flacatus@redhat.com"
           export GITHUB_TOKEN=${{ secrets.CHE_INCUBATOR_BOT_GITHUB_TOKEN }}
-          ./make-release.sh --version ${{ github.event.inputs.version }} --devworkspace-operator-version ${{ github.event.inputs.devworkspaceOperatorVersion }}
+          DWO_VERSION=${{ github.event.inputs.devworkspaceOperatorVersion }}
+          if [[ -z ${DWO_VERSION} ]]; then
+            ./make-release.sh --version ${{ github.event.inputs.version }}
+          else
+            ./make-release.sh --version ${{ github.event.inputs.version }} --devworkspace-operator-version ${DWO_VERSION}
+          fi
       - name: Create failure MM message
         if: ${{ failure() }}
         run: |
