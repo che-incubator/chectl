@@ -13,11 +13,11 @@
 import { cli } from 'cli-ux'
 import * as yaml from 'js-yaml'
 import * as path from 'path'
-import { CheHelper } from '../../api/che'
-import {ChectlContext, OLM, OLMInstallationUpdate} from '../../api/context'
-import { KubeHelper } from '../../api/kube'
-import { CatalogSource, Subscription } from '../../api/types/olm'
-import { VersionHelper } from '../../api/version'
+import { CheHelper } from '../../../api/che'
+import { ChectlContext, OLM, OLMInstallationUpdate } from '../../../api/context'
+import { KubeHelper } from '../../../api/kube'
+import { CatalogSource, Subscription } from '../../../api/types/olm'
+import { VersionHelper } from '../../../api/version'
 import {
   CHECTL_PROJECT_NAME,
   CSV_PREFIX,
@@ -32,15 +32,16 @@ import {
   OLM_STABLE_CHANNEL_NAME,
   ECLIPSE_CHE_STABLE_CHANNEL_CATALOG_SOURCE_NAME,
   ECLIPSE_CHE_NEXT_CHANNEL_PACKAGE_NAME,
-} from '../../constants'
-import {getEmbeddedTemplatesDirectory, getProjectName, isCheClusterAPIV2} from '../../util'
-import { createEclipseCheClusterTask, patchingEclipseCheCluster } from './common-tasks'
-import { OLMDevWorkspaceTasks } from '../components/devworkspace-olm-installer'
+} from '../../../constants'
+import { getEmbeddedTemplatesDirectory, getProjectName, isCheClusterAPIV2 } from '../../../util'
+import { createEclipseCheClusterTask, patchingEclipseCheCluster } from '../common-tasks'
+import { OLMDevWorkspaceTasks } from '../../components/devworkspace-olm-installer'
 import Listr = require('listr')
 import { V1Role, V1RoleBinding } from '@kubernetes/client-node'
-import {merge} from 'lodash'
+import { merge } from 'lodash'
+import { Installer } from '../../../api/types/installer'
 
-export class OLMTasks {
+export class DevSpacesOLMInstaller implements Installer {
   private readonly flags: any
   private readonly prometheusRoleName = 'prometheus-k8s'
   private readonly prometheusRoleBindingName = 'prometheus-k8s'
@@ -55,7 +56,7 @@ export class OLMTasks {
     this.flags = flags
   }
 
-  deployTasks(): Listr.ListrTask<any>[] {
+  getDeployTasks(): Listr.ListrTask<any>[] {
     return [
       this.isOlmPreInstalledTask(),
       {
@@ -146,7 +147,7 @@ export class OLMTasks {
           const customCatalogSource: CatalogSource = this.kube.readCatalogSourceFromFile(this.flags[OLM.CATALOG_SOURCE_YAML])
 
           // custom label
-          merge(customCatalogSource.metadata, {labels: { 'app.kubernetes.io/part-of': 'che.eclipse.org'}})
+          merge(customCatalogSource.metadata, { labels: { 'app.kubernetes.io/part-of': 'che.eclipse.org' } })
 
           // Move CatalogSource to `openshift-marketplace` namespace
           ctx[OLM.CATALOG_SOURCE_NAMESPACE] = OPENSHIFT_MARKET_PLACE_NAMESPACE
@@ -264,7 +265,7 @@ export class OLMTasks {
     ]
   }
 
-  preUpdateTasks(): Listr.ListrTask<any>[] {
+  getPreUpdateTasks(): Listr.ListrTask<any>[] {
     return [
       this.isOlmPreInstalledTask(),
       {
@@ -306,7 +307,7 @@ export class OLMTasks {
     ]
   }
 
-  updateTasks(): Listr.ListrTask<any>[] {
+  getUpdateTasks(): Listr.ListrTask<any>[] {
     return [
       {
         title: 'Find InstallPlan',
@@ -360,7 +361,7 @@ export class OLMTasks {
     ]
   }
 
-  getDeleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+  getDeleteTasks(): Listr.ListrTask<any>[] {
     return [
       {
         title: 'Check if OLM is pre-installed on the platform',
@@ -424,7 +425,7 @@ export class OLMTasks {
         title: `Delete Role ${this.prometheusRoleName}`,
         task: async (_ctx: any, task: any) => {
           try {
-            await this.kube.deleteRole(this.prometheusRoleName, flags.chenamespace)
+            await this.kube.deleteRole(this.prometheusRoleName, this.flags.chenamespace)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -435,7 +436,7 @@ export class OLMTasks {
         title: `Delete RoleBinding ${this.prometheusRoleName}`,
         task: async (_ctx: any, task: any) => {
           try {
-            await this.kube.deleteRoleBinding(this.prometheusRoleName, flags.chenamespace)
+            await this.kube.deleteRoleBinding(this.prometheusRoleName, this.flags.chenamespace)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`

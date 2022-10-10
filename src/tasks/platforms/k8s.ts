@@ -57,7 +57,7 @@ export class K8sTasks {
         },
       },
     ],
-    { renderer: flags['listr-renderer'] as any }
+      { renderer: flags['listr-renderer'] as any }
     )
   }
 }

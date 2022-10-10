@@ -332,7 +332,7 @@ export class KubeHelper {
   async getPodListByLabel(namespace: string, labelSelector: string): Promise<V1Pod[]> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
-      const {body: podList} = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, labelSelector)
+      const { body: podList } = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, labelSelector)
 
       return podList.items
     } catch (e: any) {
@@ -1115,22 +1115,22 @@ export class KubeHelper {
 
       if (!ctx[ChectlContext.IS_OPENSHIFT]) {
         if (!cheClusterCR.spec.networking?.tlsSecretName) {
-          merge(cheClusterCR, { spec: { networking: { tlsSecretName: CHE_TLS_SECRET_NAME } }  })
+          merge(cheClusterCR, { spec: { networking: { tlsSecretName: CHE_TLS_SECRET_NAME } } })
         }
 
         if (flags.domain) {
-          merge(cheClusterCR, { spec: { networking: { domain: flags.domain } }  })
+          merge(cheClusterCR, { spec: { networking: { domain: flags.domain } } })
         }
       }
 
       const pluginRegistryUrl = flags['plugin-registry-url']
       if (pluginRegistryUrl) {
-        merge(cheClusterCR, { spec: { components: { pluginRegistry: { disableInternalRegistry: true, externalPluginRegistries: [{ url: pluginRegistryUrl }]} } } })
+        merge(cheClusterCR, { spec: { components: { pluginRegistry: { disableInternalRegistry: true, externalPluginRegistries: [{ url: pluginRegistryUrl }] } } } })
       }
 
       const devfileRegistryUrl = flags['devfile-registry-url']
       if (devfileRegistryUrl) {
-        merge(cheClusterCR, { spec: { components: { devfileRegistry: { disableInternalRegistry: true, externalDevfileRegistries: [{ url: devfileRegistryUrl }]} } } })
+        merge(cheClusterCR, { spec: { components: { devfileRegistry: { disableInternalRegistry: true, externalDevfileRegistries: [{ url: devfileRegistryUrl }] } } } })
       }
 
       if (flags['postgres-pvc-storage-class-name']) {
@@ -1138,12 +1138,12 @@ export class KubeHelper {
       }
 
       if (flags['workspace-pvc-storage-class-name']) {
-        merge(cheClusterCR, { spec: {workspaces: { storage: { pvc: { storageClass: flags['workspace-pvc-storage-class-name'] } } } } })
+        merge(cheClusterCR, { spec: { workspaces: { storage: { pvc: { storageClass: flags['workspace-pvc-storage-class-name'] } } } } })
       }
     }
 
     if (ctx.namespaceEditorClusterRoleName) {
-      merge(cheClusterCR, { spec: {components: { cheServer: { clusterRoles: (ctx.namespaceEditorClusterRoleName as string).split(',')} } } })
+      merge(cheClusterCR, { spec: { components: { cheServer: { clusterRoles: (ctx.namespaceEditorClusterRoleName as string).split(',') } } } })
     }
 
     // override default values with patch
@@ -1155,7 +1155,7 @@ export class KubeHelper {
       const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
       try {
         delete cheClusterCR.metadata?.namespace
-        const {body} = await customObjectsApi.createNamespacedCustomObject(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V2, cheNamespace, CHE_CLUSTER_KIND_PLURAL, cheClusterCR)
+        const { body } = await customObjectsApi.createNamespacedCustomObject(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V2, cheNamespace, CHE_CLUSTER_KIND_PLURAL, cheClusterCR)
         return body
       } catch (e: any) {
         const wrappedError = this.wrapK8sClientError(e)
@@ -1376,7 +1376,7 @@ export class KubeHelper {
   async listCatalogSources(namespace: string, labelSelector: string): Promise<any[]> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      const {body} = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', undefined, undefined, undefined, labelSelector)
+      const { body } = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', undefined, undefined, undefined, labelSelector)
       return (body as any).items
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -1386,7 +1386,7 @@ export class KubeHelper {
   async listOAuthClientBySelector(selector: string): Promise<any[]> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      const {body} = await customObjectsApi.listClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclients', undefined, undefined, undefined, selector)
+      const { body } = await customObjectsApi.listClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclients', undefined, undefined, undefined, selector)
       return (body as any).items
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -1999,32 +1999,32 @@ export class KubeHelper {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher
-      .watch(`/api/v1/namespaces/${namespace}/secrets/`, { fieldSelector: `metadata.name=${name}` },
-        (_phase: string, obj: any) => {
-          const secret = obj as V1Secret
+        .watch(`/api/v1/namespaces/${namespace}/secrets/`, { fieldSelector: `metadata.name=${name}` },
+          (_phase: string, obj: any) => {
+            const secret = obj as V1Secret
 
-          // Check all required data fields to be present
-          if (dataKeys.length > 0 && secret.data) {
-            for (const key of dataKeys) {
-              if (!secret.data[key]) {
-                // Key is missing or empty
-                return
+            // Check all required data fields to be present
+            if (dataKeys.length > 0 && secret.data) {
+              for (const key of dataKeys) {
+                if (!secret.data[key]) {
+                  // Key is missing or empty
+                  return
+                }
               }
             }
-          }
 
-          // The secret with all specified fields is present, stop watching
-          if (request) {
-            request.abort()
-          }
-          // Release awaiter
-          resolve()
-        },
-        error => {
-          if (error) {
-            reject(error)
-          }
-        })
+            // The secret with all specified fields is present, stop watching
+            if (request) {
+              request.abort()
+            }
+            // Release awaiter
+            resolve()
+          },
+          error => {
+            if (error) {
+              reject(error)
+            }
+          })
 
       // Automatically stop watching after timeout
       const timeoutHandler = setTimeout(() => {

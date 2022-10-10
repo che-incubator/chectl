@@ -16,7 +16,7 @@ import { cli } from 'cli-ux'
 
 import { ChectlContext } from '../../api/context'
 import { cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import {DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE} from '../../constants'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
@@ -66,7 +66,7 @@ export default class Stop extends Command {
         },
       },
     ],
-    { renderer: flags['listr-renderer'] as any }
+      { renderer: flags['listr-renderer'] as any }
     )
     tasks.add(cheTasks.getSaleCheDownTasks())
     tasks.add(cheTasks.getWaitPodsDeletedTasks())

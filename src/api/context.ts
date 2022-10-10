@@ -17,7 +17,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, LOG_DIRECTORY_KEY } from '../common-flags'
-import {CHECTL_PROJECT_NAME, CHE_OPERATOR_TEMPLATE_DIR, DEVWORKSPACE_OPERATOR_TEMPLATE_DIR} from '../constants'
+import { CHECTL_PROJECT_NAME, CHE_OPERATOR_TEMPLATE_DIR, DEVWORKSPACE_OPERATOR_TEMPLATE_DIR } from '../constants'
 import { getEmbeddedTemplatesDirectory, getProjectName, getProjectVersion, readCRFile, safeLoadFromYamlFile } from '../util'
 
 import { CHECTL_DEVELOPMENT_VERSION } from './version'

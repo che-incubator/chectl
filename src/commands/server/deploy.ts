@@ -29,7 +29,7 @@ import {
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getWarnVersionFlagMsg, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
-import { InstallerTasks } from '../../tasks/installers/installer'
+import { InstallerFactoryTasks } from '../../tasks/installers/installer-factory-tasks'
 import { DevWorkspaceTasks } from '../../tasks/components/devworkspace-operator-installer'
 
 export default class Deploy extends Command {
@@ -275,7 +275,7 @@ export default class Deploy extends Command {
     const dexTasks = new DexTasks(flags)
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks(flags)
-    const installerTasks = new InstallerTasks()
+    const installerTasks = new InstallerFactoryTasks()
     const apiTasks = new ApiTasks()
     const certManagerTask = new CertManagerTasks(flags)
     const devWorkspaceTask = new DevWorkspaceTasks(flags)
@@ -303,7 +303,7 @@ export default class Deploy extends Command {
     }
     installTasks.add({
       title: 'Deploy Eclipse Che',
-      task: () => new Listr(installerTasks.deployTasks(flags), ctx.listrOptions),
+      task: () => new Listr(installerTasks.getDeployTasks(flags), ctx.listrOptions),
     })
 
     // Post Install Checks

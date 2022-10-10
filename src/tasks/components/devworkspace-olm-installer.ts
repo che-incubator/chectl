@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {DevWorkspaceContextKeys, OLM, OLMInstallationUpdate} from '../../api/context'
+import { DevWorkspaceContextKeys, OLM, OLMInstallationUpdate } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/types/olm'
 import {
@@ -86,7 +86,7 @@ export class OLMDevWorkspaceTasks {
         title: 'Wait Dev Workspace operator Subscription is ready',
         enabled: ctx => !ctx[DevWorkspaceContextKeys.IS_DEV_WORKSPACE_INSTALLED_VIA_OPERATOR_HUB],
         task: async (ctx: any, task: any) => {
-          const installPlan = await this.kube.waitOperatorSubscriptionReadyForApproval(this.DEV_WORKSPACE_OPERATOR_SUBSCRIPTION, OPENSHIFT_OPERATORS_NAMESPACE,  600)
+          const installPlan = await this.kube.waitOperatorSubscriptionReadyForApproval(this.DEV_WORKSPACE_OPERATOR_SUBSCRIPTION, OPENSHIFT_OPERATORS_NAMESPACE, 600)
           ctx[DevWorkspaceContextKeys.INSTALL_PLAN] = installPlan.name
           task.title = `${task.title}...[OK]`
         },

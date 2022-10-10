@@ -24,8 +24,8 @@ import {
 } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/components/devworkspace-operator-installer'
-import { OLMTasks } from '../../tasks/installers/olm'
-import { OperatorTasks } from '../../tasks/installers/operator'
+import { CheOLMInstaller } from '../../tasks/installers/olm/che-olm'
+import { OperatorInstaller } from '../../tasks/installers/operator'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 import Listr = require('listr')
@@ -109,22 +109,22 @@ export default class Delete extends Command {
     tasks.add({
       title: 'Uninstall Eclipse Che Operator',
       task: async (_ctx: any, _task: any) => {
-        const operatorTasks = new OperatorTasks(flags)
-        const olmTasks = new OLMTasks(flags)
+        const operatorTasks = new OperatorInstaller(flags)
+        const olmTasks = new CheOLMInstaller(flags)
         const cheTasks = new CheTasks(flags)
 
         const tasks = new Listrq([], ctx.listrOptions)
         tasks.add({
           title: 'Delete Custom Resources',
-          task: () => new Listr(operatorTasks.getDeleteCRsTasks(flags)),
+          task: () => new Listr(operatorTasks.getDeleteCRsTasks()),
         })
         tasks.add({
           title: 'Delete OLM resources',
-          task: () => new Listr(olmTasks.getDeleteTasks(flags)),
+          task: () => new Listr(olmTasks.getDeleteTasks()),
         })
         tasks.add({
           title: 'Delete operator resources',
-          task: () => new Listr(operatorTasks.getDeleteTasks(flags)),
+          task: () => new Listr(operatorTasks.getDeleteTasks()),
         })
         tasks.add({
           title: 'Wait until all pods are deleted',

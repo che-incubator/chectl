@@ -16,7 +16,7 @@ import * as Listr from 'listr'
 
 import { ChectlContext } from '../../api/context'
 import { cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import {DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE} from '../../constants'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { findWorkingNamespace, getCommandSuccessMessage, wrapCommandError } from '../../util'

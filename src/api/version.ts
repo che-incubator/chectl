@@ -64,7 +64,7 @@ export namespace VersionHelper {
       task: async (ctx: any, task: any) => {
         let actualVersion
         if (ctx[ChectlContext.IS_OPENSHIFT]) {
-          actualVersion =  await getK8sVersionWithOC()
+          actualVersion = await getK8sVersionWithOC()
         } else {
           actualVersion = await getK8sVersionWithKubectl()
         }

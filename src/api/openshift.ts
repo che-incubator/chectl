@@ -40,10 +40,4 @@ export class OpenShiftHelper {
     const args = ['delete', 'route', '--all', '--namespace', namespace]
     await execa(command, args, { timeout: 60000 })
   }
-
-  async deleteAllDeploymentConfigs(namespace = '') {
-    const command = 'oc'
-    const args = ['delete', 'deploymentconfig', '--all', '--namespace', namespace]
-    await execa(command, args, { timeout: 60000 })
-  }
 }

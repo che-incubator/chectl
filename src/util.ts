@@ -375,7 +375,7 @@ export function confirmYN(): Promise<boolean> {
   })
 }
 
-export function getTlsSecretName(ctx: any): string  {
+export function getTlsSecretName(ctx: any): string {
   const crPatch = ctx[ChectlContext.CR_PATCH]
 
   if (crPatch?.spec?.k8s?.tlsSecretName !== undefined) {

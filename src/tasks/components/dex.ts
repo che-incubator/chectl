@@ -22,9 +22,9 @@ import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { ChectlContext, DexContextKeys, OIDCContextKeys } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import {base64Decode, getEmbeddedTemplatesDirectory, getTlsSecretName} from '../../util'
+import { base64Decode, getEmbeddedTemplatesDirectory, getTlsSecretName } from '../../util'
 import { PlatformTasks } from '../platforms/platform'
-import {V1Certificate} from '../../api/types/cert-manager'
+import { V1Certificate } from '../../api/types/cert-manager'
 
 namespace TemplatePlaceholders {
   export const DOMAIN = '{{DOMAIN}}'
@@ -295,7 +295,7 @@ export class DexTasks {
                   ctx[DexContextKeys.DEX_PASSWORD_HASH] = DexTasks.DEX_PASSWORD_HASH
 
                   // create a secret to store credentials
-                  const credentials: any = { user: DexTasks.DEX_USERNAME, password: DexTasks.DEX_PASSWORD}
+                  const credentials: any = { user: DexTasks.DEX_USERNAME, password: DexTasks.DEX_PASSWORD }
                   await this.kube.createSecret(DexTasks.CREDENTIALS_SECRET_NAME, DexTasks.NAMESPACE_NAME, credentials)
 
                   task.title = `${task.title}...[OK: ${ctx[DexContextKeys.DEX_USERNAME]}:${ctx[DexContextKeys.DEX_PASSWORD]}]`

@@ -12,18 +12,6 @@
 
 import { V1Deployment, V1ObjectMeta } from '@kubernetes/client-node'
 
-export interface OperatorGroup {
-  apiVersion: string;
-  kind: string;
-  metadata: V1ObjectMeta;
-
-  spec: OperatorGroupSpec;
-}
-
-export interface OperatorGroupSpec {
-  targetNamespaces: string[];
-}
-
 export interface Subscription {
   apiVersion: string;
   kind: string;
