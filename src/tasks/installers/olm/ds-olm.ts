@@ -10,7 +10,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { cli } from 'cli-ux'
 import * as yaml from 'js-yaml'
 import * as path from 'path'
 import { CheHelper } from '../../../api/che'
@@ -40,6 +39,7 @@ import Listr = require('listr')
 import { V1Role, V1RoleBinding } from '@kubernetes/client-node'
 import { merge } from 'lodash'
 import { Installer } from '../../../api/types/installer'
+import { getApproveInstallPlanTask, getCheckInstallPlanApprovalStrategyTask } from './common'
 
 export class DevSpacesOLMInstaller implements Installer {
   private readonly flags: any
@@ -58,7 +58,6 @@ export class DevSpacesOLMInstaller implements Installer {
 
   getDeployTasks(): Listr.ListrTask<any>[] {
     return [
-      this.isOlmPreInstalledTask(),
       {
         title: 'Set context',
         task: async (ctx: any, task: any) => {
@@ -267,96 +266,13 @@ export class DevSpacesOLMInstaller implements Installer {
 
   getPreUpdateTasks(): Listr.ListrTask<any>[] {
     return [
-      this.isOlmPreInstalledTask(),
-      {
-        title: 'Check InstallPlan approval strategy',
-        task: async (ctx: any, task: Listr.ListrTaskWrapper<any>) => {
-          const subscription = await this.che.findCheOperatorSubscription(OPENSHIFT_OPERATORS_NAMESPACE)
-          if (!subscription) {
-            cli.error('Unable to find Eclipse Che subscription')
-          }
-
-          if (subscription.spec.installPlanApproval === OLMInstallationUpdate.AUTO) {
-            task.title = `${task.title}...[Interrupted]`
-            return new Listr([
-              {
-                title: '[Warning] OLM itself manage operator update with installation mode \'Automatic\'.',
-                task: () => { },
-              },
-              {
-                title: '[Warning] Use \'chectl server:update\' command only with \'Manual\' installation plan approval.',
-                task: () => {
-                  cli.exit(0)
-                },
-              },
-            ], ctx.listrOptions)
-          }
-
-          task.title = `${task.title}...[OK]`
-        },
-      },
-      {
-        title: 'Check CheCluster CR',
-        task: async (_ctx: any, _task: any) => {
-          const cheCluster = await this.kube.getCheClusterV2(this.flags.chenamespace)
-          if (!cheCluster) {
-            cli.error(`Eclipse Che cluster CR was not found in the namespace '${this.flags.chenamespace}'`)
-          }
-        },
-      },
+      getCheckInstallPlanApprovalStrategyTask(this.flags),
     ]
   }
 
   getUpdateTasks(): Listr.ListrTask<any>[] {
     return [
-      {
-        title: 'Find InstallPlan',
-        task: async (ctx: any, task: any) => {
-          const subscription = await this.che.findCheOperatorSubscription(OPENSHIFT_OPERATORS_NAMESPACE)
-          if (!subscription) {
-            cli.error('Unable to find Eclipse Che subscription')
-          }
-
-          if (subscription.status) {
-            if (subscription.status.state === 'AtLatestKnown') {
-              task.title = `Everything is up to date. Installed the latest known version '${subscription.status.currentCSV}'.`
-              return
-            }
-
-            // Retrieve current and next version from the subscription status
-            const installedCSV = subscription.status.installedCSV
-            if (installedCSV) {
-              ctx.currentVersion = installedCSV.substr(installedCSV.lastIndexOf('v') + 1)
-            }
-            const currentCSV = subscription.status.currentCSV
-            ctx.nextVersion = currentCSV.substr(currentCSV.lastIndexOf('v') + 1)
-
-            if (subscription.status.state === 'UpgradePending' && subscription.status!.conditions) {
-              const installCondition = subscription.status.conditions.find(condition => condition.type === 'InstallPlanPending' && condition.status === 'True')
-              if (installCondition) {
-                ctx[OLM.INSTALL_PLAN] = subscription.status.installplan.name
-                task.title = `${task.title}...[OK]`
-                return
-              }
-            }
-
-            if (subscription.status.state === 'UpgradeAvailable' && installedCSV === currentCSV) {
-              cli.error('Another update is in progress')
-            }
-          }
-          cli.error('Unable to find installation plan to update.')
-        },
-      },
-      {
-        title: 'Approve InstallPlan',
-        enabled: (ctx: any) => ctx[OLM.INSTALL_PLAN],
-        task: async (ctx: any, task: any) => {
-          await this.kube.approveOperatorInstallationPlan(ctx[OLM.INSTALL_PLAN], OPENSHIFT_OPERATORS_NAMESPACE)
-          await this.kube.waitOperatorInstallPlan(ctx[OLM.INSTALL_PLAN], OPENSHIFT_OPERATORS_NAMESPACE, 60)
-          ctx.highlightedMessages.push(`Operator is updated from ${ctx.currentVersion} to ${ctx.nextVersion} version`)
-          task.title = `${task.title}...[OK]`
-        },
-      },
+      getApproveInstallPlanTask(this.flags),
       patchingEclipseCheCluster(this.flags, this.kube),
     ]
   }
@@ -444,20 +360,6 @@ export class DevSpacesOLMInstaller implements Installer {
         },
       },
     ]
-  }
-
-  private isOlmPreInstalledTask(): Listr.ListrTask<Listr.ListrContext> {
-    return {
-      title: 'Check if OLM is pre-installed on the platform',
-      task: async (_ctx: any, task: any) => {
-        if (!await this.kube.isPreInstalledOLM()) {
-          cli.warn('Looks like your platform hasn\'t got embedded OLM, so you should install it manually. For quick start you can use:')
-          cli.url('install.sh', 'https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/install.sh')
-          cli.error('OLM is required for installation of Eclipse Che with installer flag \'olm\'')
-        }
-        task.title = `${task.title}...[OK]`
-      },
-    }
   }
 
   private constructSubscription(
