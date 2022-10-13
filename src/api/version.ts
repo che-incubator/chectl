@@ -42,17 +42,14 @@ export namespace VersionHelper {
     return {
       title: 'Check OpenShift version',
       task: async (ctx: any, task: any) => {
-        const actualVersion = await getOpenShiftVersion()
-        if (actualVersion) {
-          task.title = `${task.title}: [${actualVersion}]`
-        } else if (ctx[ChectlContext.IS_OPENSHIFT]) {
-          task.title = `${task.title}: [4.x]`
-        }
+        ctx[ChectlContext.OPENSHIFT_ARCH] = await getOpenShiftArch()
+        ctx[ChectlContext.OPENSHIFT_VERSION] = await getOpenShiftVersion()
+        task.title = `${task.title}: [${ctx[ChectlContext.OPENSHIFT_VERSION]}]`
 
-        if (!flags['skip-version-check'] && actualVersion) {
-          const checkPassed = checkMinimalVersion(actualVersion, MINIMAL_OPENSHIFT_VERSION)
+        if (!flags['skip-version-check']) {
+          const checkPassed = checkMinimalVersion(ctx[ChectlContext.OPENSHIFT_VERSION], MINIMAL_OPENSHIFT_VERSION)
           if (!checkPassed) {
-            throw getMinimalVersionError(actualVersion, MINIMAL_OPENSHIFT_VERSION, 'OpenShift')
+            throw getMinimalVersionError(ctx[ChectlContext.OPENSHIFT_VERSION], MINIMAL_OPENSHIFT_VERSION, 'OpenShift')
           }
         }
       },
@@ -62,13 +59,7 @@ export namespace VersionHelper {
     return {
       title: 'Check Kubernetes version',
       task: async (ctx: any, task: any) => {
-        let actualVersion
-        if (ctx[ChectlContext.IS_OPENSHIFT]) {
-          actualVersion = await getK8sVersionWithOC()
-        } else {
-          actualVersion = await getK8sVersionWithKubectl()
-        }
-
+        const actualVersion = await getK8sVersionWithKubectl()
         if (actualVersion) {
           task.title = `${task.title}: [Found ${actualVersion}]`
         } else {
@@ -83,14 +74,6 @@ export namespace VersionHelper {
         }
       },
     }
-  }
-
-  export async function getOpenShiftVersion(): Promise<string | undefined> {
-    return getVersionWithOC('openshift ')
-  }
-
-  export async function getK8sVersionWithOC(): Promise<string | undefined> {
-    return getVersionWithOC('kubernetes ')
   }
 
   export async function getK8sVersionWithKubectl(): Promise<string | undefined> {
@@ -127,11 +110,20 @@ export namespace VersionHelper {
     return new Error(`The minimal supported version of ${component} is '${minimalVersion} but '${actualVersion}' was found. To bypass version check use '--skip-version-check' flag.`)
   }
 
-  async function getVersionWithOC(versionPrefix: string): Promise<string | undefined> {
-    const command = 'oc'
-    const args = ['version']
-    const { stdout } = await execa(command, args, { timeout: 60000 })
-    return stdout.split('\n').filter(value => value.startsWith(versionPrefix)).map(value => value.substring(versionPrefix.length))[0]
+  async function getOpenShiftVersion(): Promise<string | undefined> {
+    const { stdout } = await execa('oc', ['version', '-o', 'json'], { timeout: 60000 })
+    const versionOutput = JSON.parse(stdout)
+    const version = (versionOutput.openshiftVersion as string).match(new RegExp('^\\d.\\d+'))
+    if (version) {
+      return version[0]
+    }
+    return '4.x'
+  }
+
+  async function getOpenShiftArch(): Promise<string | undefined> {
+    const { stdout } = await execa('oc', ['version', '-o', 'json'], { timeout: 60000 })
+    const versionOutput = JSON.parse(stdout)
+    return (versionOutput.serverVersion.platform as string).replace('linux/', '').replace('amd64', 'x86_64')
   }
 
   async function getVersionWithKubectl(versionPrefix: string): Promise<string | undefined> {

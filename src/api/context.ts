@@ -28,6 +28,8 @@ import { CHECTL_DEVELOPMENT_VERSION } from './version'
  */
 export namespace ChectlContext {
   export const IS_OPENSHIFT = 'isOpenShift'
+  export const OPENSHIFT_VERSION = 'openshift-version'
+  export const OPENSHIFT_ARCH = 'openshift-arch'
   export const START_TIME = 'startTime'
   export const END_TIME = 'endTime'
   export const CONFIG_DIR = 'configDir'
@@ -146,7 +148,6 @@ export namespace OLM {
   export const ECLIPSE_CHE_SUBSCRIPTION = 'eclipse-che-subscription'
   export const APPROVAL_STRATEGY = 'approval-strategy'
   export const INSTALL_PLAN = 'install-plan'
-  export const PRE_INSTALLED_OLM = 'pre-installed-olm'
 }
 
 export namespace DevWorkspaceContextKeys {

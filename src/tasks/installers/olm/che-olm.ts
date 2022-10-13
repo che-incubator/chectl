@@ -11,10 +11,6 @@
  */
 
 import { KubeHelper } from '../../../api/kube'
-import {
-  CHECTL_PROJECT_NAME,
-} from '../../../constants'
-import { getProjectName } from '../../../util'
 import { createEclipseCheClusterTask, patchingEclipseCheCluster } from '../common-tasks'
 import { OLMDevWorkspaceTasks } from '../../components/devworkspace-olm-installer'
 import Listr = require('listr')
@@ -31,6 +27,8 @@ import {
   getSetCustomOperatorImageTask,
   getSetOlmContextTask,
 } from './common'
+import { CatalogSource } from '../../../api/types/olm'
+import { ECLIPSE_CHE_NEXT_CATALOG_SOURCE_IMAGE, ECLIPSE_CHE_NEXT_CHANNEL_CATALOG_SOURCE_NAME } from '../../../constants'
 
 export class CheOLMInstaller implements Installer {
   private readonly flags: any
@@ -47,7 +45,6 @@ export class CheOLMInstaller implements Installer {
     return [
       getSetOlmContextTask(this.flags),
       {
-        enabled: () => getProjectName() === CHECTL_PROJECT_NAME,
         title: 'Deploy Dev Workspace operator',
         task: (ctx: any, _task: any) => {
           const devWorkspaceTasks = new Listr(undefined, ctx.listrOptions)
@@ -56,7 +53,7 @@ export class CheOLMInstaller implements Installer {
         },
       },
       getCreatePrometheusRBACTask(this.flags),
-      getCreateCatalogSourceTask(this.flags),
+      getCreateCatalogSourceTask(this.flags, this.constructCatalogSourceForNextChannel),
       getCreateSubscriptionTask(this.flags),
       getSetCustomOperatorImageTask(this.flags),
       getFetchCheClusterCRSampleTask(this.flags),
@@ -83,5 +80,27 @@ export class CheOLMInstaller implements Installer {
       getDeleteCatalogSourceTask(this.flags),
       getDeletePrometheusRBACTask(this.flags),
     ]
+  }
+
+  private constructCatalogSourceForNextChannel(): CatalogSource {
+    return {
+      apiVersion: 'operators.coreos.com/v1alpha1',
+      kind: 'CatalogSource',
+      metadata: {
+        name: ECLIPSE_CHE_NEXT_CHANNEL_CATALOG_SOURCE_NAME,
+        labels: {
+          'app.kubernetes.io/part-of': 'che.eclipse.org',
+        },
+      },
+      spec: {
+        image: ECLIPSE_CHE_NEXT_CATALOG_SOURCE_IMAGE,
+        sourceType: 'grpc',
+        updateStrategy: {
+          registryPoll: {
+            interval: '15m',
+          },
+        },
+      },
+    }
   }
 }

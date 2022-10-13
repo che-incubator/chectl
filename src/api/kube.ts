@@ -664,10 +664,30 @@ export class KubeHelper {
     }
   }
 
-  async createJob(job: any, namespace: string): Promise<void> {
+  async getClusterCustomObject(group: string, version: string, plural: string, name: any): Promise<any> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      await k8sCoreApi.createNamespacedCustomObject('batch', 'v1', namespace, 'jobs', job)
+      return await k8sCoreApi.getClusterCustomObject(group, version, plural, name)
+    } catch (e: any) {
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
+    }
+  }
+
+  async createClusterCustomObject(group: string, version: string, plural: string, body: any): Promise<void> {
+    const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      await k8sCoreApi.createClusterCustomObject(group, version, plural, body)
+    } catch (e: any) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async deleteClusterCustomObject(group: string, version: string, plural: string, name: string): Promise<void> {
+    const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      await k8sCoreApi.deleteClusterCustomObject(group, version, plural, name)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }

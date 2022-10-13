@@ -14,7 +14,6 @@ import {
   CSV_PREFIX,
   DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME,
   DEFAULT_CUSTOM_CATALOG_SOURCE_NAME,
-  ECLIPSE_CHE_NEXT_CATALOG_SOURCE_IMAGE,
   ECLIPSE_CHE_NEXT_CHANNEL_CATALOG_SOURCE_NAME,
   ECLIPSE_CHE_NEXT_CHANNEL_PACKAGE_NAME,
   ECLIPSE_CHE_STABLE_CHANNEL_CATALOG_SOURCE_NAME,
@@ -108,7 +107,7 @@ export function getCreatePrometheusRBACTask(flags: any): Listr.ListrTask<Listr.L
   }
 }
 
-export function getCreateCatalogSourceTask(flags: any): Listr.ListrTask<Listr.ListrContext> {
+export function getCreateCatalogSourceTask(flags: any, constructCatalogSourceForNextChannel: () => any): Listr.ListrTask<Listr.ListrContext> {
   const kubeHelper = new KubeHelper(flags)
 
   return {
@@ -121,6 +120,8 @@ export function getCreateCatalogSourceTask(flags: any): Listr.ListrTask<Listr.Li
         merge(catalogSource.metadata, { labels: { 'app.kubernetes.io/part-of': 'che.eclipse.org' } })
       } else if (ctx[OLM.CHANNEL] === OLM_NEXT_CHANNEL_NAME && !flags[OLM.CATALOG_SOURCE_NAME]) {
         catalogSource = constructCatalogSourceForNextChannel()
+      } else {
+        task.skip()
       }
 
       if (catalogSource) {
@@ -238,7 +239,6 @@ export function getDeleteSubscriptionTask(flags: any): Listr.ListrTask<Listr.Lis
 
   return {
     title: 'Delete Subscription',
-    enabled: ctx => ctx[OLM.PRE_INSTALLED_OLM],
     task: async (ctx: any, task: any) => {
       try {
         const subscription = await cheHelper.findCheOperatorSubscription(OPENSHIFT_OPERATORS_NAMESPACE)
@@ -264,7 +264,6 @@ export function getDeleteCatalogSourceTask(flags: any): Listr.ListrTask<Listr.Li
 
   return {
     title: 'Delete CatalogSources',
-    enabled: ctx => ctx[OLM.PRE_INSTALLED_OLM],
     task: async (ctx: any, task: any) => {
       try {
         await kubeHelper.deleteCatalogSource(ECLIPSE_CHE_NEXT_CHANNEL_CATALOG_SOURCE_NAME, OPENSHIFT_MARKET_PLACE_NAMESPACE)
@@ -373,28 +372,6 @@ export function getCheckInstallPlanApprovalStrategyTask(flags: any): Listr.Listr
 
 function getVersionFromCSV(csvName: string): string {
   return csvName.substr(csvName.lastIndexOf('v') + 1)
-}
-
-function constructCatalogSourceForNextChannel(): CatalogSource {
-  return {
-    apiVersion: 'operators.coreos.com/v1alpha1',
-    kind: 'CatalogSource',
-    metadata: {
-      name: ECLIPSE_CHE_NEXT_CHANNEL_CATALOG_SOURCE_NAME,
-      labels: {
-        'app.kubernetes.io/part-of': 'che.eclipse.org',
-      },
-    },
-    spec: {
-      image: ECLIPSE_CHE_NEXT_CATALOG_SOURCE_IMAGE,
-      sourceType: 'grpc',
-      updateStrategy: {
-        registryPoll: {
-          interval: '15m',
-        },
-      },
-    },
-  }
 }
 
 function constructSubscription(

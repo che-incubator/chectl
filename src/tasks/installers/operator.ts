@@ -39,7 +39,7 @@ import { KubeTasks } from '../kube'
 import { createEclipseCheClusterTask, patchingEclipseCheCluster } from './common-tasks'
 import { V1Certificate } from '../../api/types/cert-manager'
 import { OpenShiftHelper } from '../../api/openshift'
-import { Installer } from "../../api/types/installer";
+import { Installer } from '../../api/types/installer'
 
 export class OperatorInstaller implements Installer {
   private static readonly VALIDATING_WEBHOOK = 'org.eclipse.che'

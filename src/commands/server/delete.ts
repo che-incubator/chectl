@@ -20,15 +20,23 @@ import { KubeHelper } from '../../api/kube'
 import { assumeYes, batch, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import {
   DEFAULT_ANALYTIC_HOOK_NAME,
-  DEFAULT_CHE_NAMESPACE, OPENSHIFT_OPERATORS_NAMESPACE, WORKSPACE_CONTROLLER_NAMESPACE,
+  DEFAULT_CHE_NAMESPACE, DSC_PROJECT_NAME, OPENSHIFT_OPERATORS_NAMESPACE, WORKSPACE_CONTROLLER_NAMESPACE,
 } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/components/devworkspace-operator-installer'
 import { CheOLMInstaller } from '../../tasks/installers/olm/che-olm'
 import { OperatorInstaller } from '../../tasks/installers/operator'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import {
+  findWorkingNamespace,
+  getCommandSuccessMessage,
+  getProjectName,
+  notifyCommandCompletedSuccessfully,
+  wrapCommandError,
+} from '../../util'
 import Listr = require('listr')
+import { DevSpacesOLMInstaller } from '../../tasks/installers/olm/ds-olm'
+import { Installer } from '../../api/types/installer'
 
 export default class Delete extends Command {
   static description = 'delete any Eclipse Che related resource'
@@ -110,7 +118,6 @@ export default class Delete extends Command {
       title: 'Uninstall Eclipse Che Operator',
       task: async (_ctx: any, _task: any) => {
         const operatorTasks = new OperatorInstaller(flags)
-        const olmTasks = new CheOLMInstaller(flags)
         const cheTasks = new CheTasks(flags)
 
         const tasks = new Listrq([], ctx.listrOptions)
@@ -118,10 +125,18 @@ export default class Delete extends Command {
           title: 'Delete Custom Resources',
           task: () => new Listr(operatorTasks.getDeleteCRsTasks()),
         })
-        tasks.add({
-          title: 'Delete OLM resources',
-          task: () => new Listr(olmTasks.getDeleteTasks()),
-        })
+        if (ctx[ChectlContext.IS_OPENSHIFT]) {
+          let olmInstaller: Installer
+          if (getProjectName() === DSC_PROJECT_NAME) {
+            olmInstaller = new DevSpacesOLMInstaller(flags)
+          } else {
+            olmInstaller = new CheOLMInstaller(flags)
+          }
+          tasks.add({
+            title: 'Delete OLM resources',
+            task: () => new Listr(olmInstaller.getDeleteTasks()),
+          })
+        }
         tasks.add({
           title: 'Delete operator resources',
           task: () => new Listr(operatorTasks.getDeleteTasks()),
