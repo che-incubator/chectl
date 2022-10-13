@@ -66,7 +66,7 @@ export default class Stop extends Command {
         },
       },
     ],
-      { renderer: flags['listr-renderer'] as any }
+    { renderer: flags['listr-renderer'] as any }
     )
     tasks.add(cheTasks.getSaleCheDownTasks())
     tasks.add(cheTasks.getWaitPodsDeletedTasks())
