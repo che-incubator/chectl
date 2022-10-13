@@ -59,25 +59,17 @@ export namespace VersionHelper {
     return {
       title: 'Check Kubernetes version',
       task: async (ctx: any, task: any) => {
-        const actualVersion = await getK8sVersionWithKubectl()
-        if (actualVersion) {
-          task.title = `${task.title}: [Found ${actualVersion}]`
-        } else {
-          task.title = `${task.title}: [Unknown]`
-        }
+        const k8sVersion = ctx[ChectlContext.IS_OPENSHIFT] ? await getOpenShiftK8sVersion() : await getK8sVersionWithKubectl()
+        task.title = `${task.title}: [${k8sVersion}]`
 
-        if (!ctx[ChectlContext.IS_OPENSHIFT] && !flags['skip-version-check'] && actualVersion) {
-          const checkPassed = checkMinimalK8sVersion(actualVersion)
+        if (!flags['skip-version-check']) {
+          const checkPassed = checkMinimalK8sVersion(k8sVersion)
           if (!checkPassed) {
-            throw getMinimalVersionError(actualVersion, MINIMAL_K8S_VERSION, 'Kubernetes')
+            throw getMinimalVersionError(k8sVersion, MINIMAL_K8S_VERSION, 'Kubernetes')
           }
         }
       },
     }
-  }
-
-  export async function getK8sVersionWithKubectl(): Promise<string | undefined> {
-    return getVersionWithKubectl('Server Version: ')
   }
 
   export function checkMinimalK8sVersion(actualVersion: string): boolean {
@@ -126,11 +118,16 @@ export namespace VersionHelper {
     return (versionOutput.serverVersion.platform as string).replace('linux/', '').replace('amd64', 'x86_64')
   }
 
-  async function getVersionWithKubectl(versionPrefix: string): Promise<string | undefined> {
-    const command = 'kubectl'
-    const args = ['version', '--short']
-    const { stdout } = await execa(command, args, { timeout: 60000 })
-    return stdout.split('\n').filter(value => value.startsWith(versionPrefix)).map(value => value.substring(versionPrefix.length))[0]
+  async function getOpenShiftK8sVersion(): Promise<string> {
+    const { stdout } = await execa('oc', ['version', '-o', 'json'], { timeout: 60000 })
+    const versionOutput = JSON.parse(stdout)
+    return versionOutput.serverVersion.major + '.' + versionOutput.serverVersion.minor
+  }
+
+  async function getK8sVersionWithKubectl(): Promise<string> {
+    const { stdout } = await execa('kubectl', ['version', '-o', 'json'], { timeout: 60000 })
+    const versionOutput = JSON.parse(stdout)
+    return versionOutput.serverVersion.major + '.' + versionOutput.serverVersion.minor
   }
 
   /**
