@@ -47,7 +47,7 @@ import {
   V1ServiceAccount,
   V1ServiceList,
   Watch,
-  V1CustomResourceDefinition, V1ValidatingWebhookConfiguration,
+  V1CustomResourceDefinition, V1ValidatingWebhookConfiguration, V1MutatingWebhookConfiguration,
 } from '@kubernetes/client-node'
 import { Cluster } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
@@ -418,6 +418,41 @@ export class KubeHelper {
       if (e.response.statusCode !== 404) {
         throw this.wrapK8sClientError(e)
       }
+    }
+  }
+
+  async isMutatingWebhookConfigurationExists(name: string): Promise<boolean> {
+    const k8sAdmissionApi = this.kubeConfig.makeApiClient(AdmissionregistrationV1Api)
+    try {
+      await k8sAdmissionApi.readMutatingWebhookConfiguration(name)
+      return true
+    } catch (e: any) {
+      if (e.response && e.response.statusCode === 404) {
+        return false
+      }
+
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async replaceVMutatingWebhookConfiguration(name: string, webhook: V1MutatingWebhookConfiguration): Promise<void> {
+    const k8sAdmissionApi = this.kubeConfig.makeApiClient(AdmissionregistrationV1Api)
+    try {
+      const response = await k8sAdmissionApi.readMutatingWebhookConfiguration(name)
+      webhook.metadata!.resourceVersion = (response.body as any).metadata.resourceVersion
+
+      await k8sAdmissionApi.replaceMutatingWebhookConfiguration(name, webhook)
+    } catch (e: any) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async createMutatingWebhookConfiguration(webhook: V1MutatingWebhookConfiguration): Promise<void> {
+    const k8sAdmissionApi = this.kubeConfig.makeApiClient(AdmissionregistrationV1Api)
+    try {
+      await k8sAdmissionApi.createMutatingWebhookConfiguration(webhook)
+    } catch (e: any) {
+      throw this.wrapK8sClientError(e)
     }
   }
 
