@@ -17,7 +17,7 @@ import {
   V1Role,
   V1RoleBinding,
   V1Service,
-  V1CustomResourceDefinition, V1ValidatingWebhookConfiguration,
+  V1CustomResourceDefinition, V1ValidatingWebhookConfiguration, V1MutatingWebhookConfiguration,
 } from '@kubernetes/client-node'
 import {cli} from 'cli-ux'
 import * as fs from 'fs'
@@ -42,6 +42,7 @@ import {OpenShiftHelper} from '../../api/openshift'
 
 export class OperatorTasks {
   private static readonly VALIDATING_WEBHOOK = 'org.eclipse.che'
+  private static readonly MUTATING_WEBHOOK = 'org.eclipse.che'
   private static readonly WEBHOOK_SERVICE = 'che-operator-service'
   private static readonly CERTIFICATE = 'che-operator-serving-cert'
   private static readonly ISSUER = 'che-operator-selfsigned-issuer'
@@ -312,6 +313,25 @@ export class OperatorTasks {
           }
         },
       },
+      {
+        title: `Create MutatingWebhookConfiguration ${OperatorTasks.MUTATING_WEBHOOK}`,
+        task: async (ctx: any, task: any) => {
+          const exists = await this.kh.isMutatingWebhookConfigurationExists(OperatorTasks.MUTATING_WEBHOOK)
+          if (exists) {
+            task.title = `${task.title}...[Exists]`
+          } else {
+            const webhookPath = this.getResourcePath('org.eclipse.che.MutatingWebhookConfiguration.yaml')
+            if (fs.existsSync(webhookPath)) {
+              const webhook = this.kh.safeLoadFromYamlFile(webhookPath) as V1MutatingWebhookConfiguration
+              webhook!.webhooks![0].clientConfig.service!.namespace = this.flags.chenamespace
+              await this.kh.createMutatingWebhookConfiguration(webhook)
+              task.title = `${task.title}...[OK: created]`
+            } else {
+              task.title = `${task.title}...[Not found]`
+            }
+          }
+        },
+      },
       createEclipseCheClusterTask(this.flags, kube),
     ]
   }
@@ -505,6 +525,27 @@ export class OperatorTasks {
               task.title = `${task.title}...[Ok: updated]`
             } else {
               await this.kh.createValidatingWebhookConfiguration(webhook)
+              task.title = `${task.title}...[OK: created]`
+            }
+          } else {
+            task.title = `${task.title}...[Not found]`
+          }
+        },
+      },
+      {
+        title: `Update MutatingWebhookConfiguration ${OperatorTasks.MUTATING_WEBHOOK}`,
+        task: async (ctx: any, task: any) => {
+          const webhookPath = this.getResourcePath('org.eclipse.che.MutatingWebhookConfiguration.yaml')
+          if (fs.existsSync(webhookPath)) {
+            const webhook = this.kh.safeLoadFromYamlFile(webhookPath) as V1MutatingWebhookConfiguration
+            webhook!.webhooks![0].clientConfig.service!.namespace = this.flags.chenamespace
+
+            const exists = await this.kh.isMutatingWebhookConfigurationExists(OperatorTasks.MUTATING_WEBHOOK)
+            if (exists) {
+              await this.kh.replaceVMutatingWebhookConfiguration(OperatorTasks.MUTATING_WEBHOOK, webhook)
+              task.title = `${task.title}...[Ok: updated]`
+            } else {
+              await this.kh.createMutatingWebhookConfiguration(webhook)
               task.title = `${task.title}...[OK: created]`
             }
           } else {

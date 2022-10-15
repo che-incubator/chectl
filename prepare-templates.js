@@ -53,6 +53,11 @@ function prepareCheOperatorTemplates() {
   fs.copySync(
     path.join(src, 'org.eclipse.che.ValidatingWebhookConfiguration.yaml'),
     path.join(templates, 'org.eclipse.che.ValidatingWebhookConfiguration.yaml'))
+  if (fs.existsSync(path.join(src, 'org.eclipse.che.MutatingWebhookConfiguration.yaml'))) {
+    fs.copySync(
+      path.join(src, 'org.eclipse.che.MutatingWebhookConfiguration.yaml'),
+      path.join(templates, 'org.eclipse.che.MutatingWebhookConfiguration.yaml'))
+  }
   fs.copySync(
     path.join(src, 'che-operator-leader-election.Role.yaml'),
     path.join(templates, 'leader-election-role.yaml'))
