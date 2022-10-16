@@ -17,7 +17,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, LOG_DIRECTORY_KEY } from '../common-flags'
-import {CHECTL_PROJECT_NAME, CHE_OPERATOR_TEMPLATE_DIR, DEVWORKSPACE_OPERATOR_TEMPLATE_DIR} from '../constants'
+import { CHECTL_PROJECT_NAME, CHE_OPERATOR_TEMPLATE_DIR, DEVWORKSPACE_OPERATOR_TEMPLATE_DIR } from '../constants'
 import { getEmbeddedTemplatesDirectory, getProjectName, getProjectVersion, readCRFile, safeLoadFromYamlFile } from '../util'
 
 import { CHECTL_DEVELOPMENT_VERSION } from './version'
@@ -28,6 +28,8 @@ import { CHECTL_DEVELOPMENT_VERSION } from './version'
  */
 export namespace ChectlContext {
   export const IS_OPENSHIFT = 'isOpenShift'
+  export const OPENSHIFT_VERSION = 'openshift-version'
+  export const OPENSHIFT_ARCH = 'openshift-arch'
   export const START_TIME = 'startTime'
   export const END_TIME = 'endTime'
   export const CONFIG_DIR = 'configDir'
@@ -146,7 +148,6 @@ export namespace OLM {
   export const ECLIPSE_CHE_SUBSCRIPTION = 'eclipse-che-subscription'
   export const APPROVAL_STRATEGY = 'approval-strategy'
   export const INSTALL_PLAN = 'install-plan'
-  export const PRE_INSTALLED_OLM = 'pre-installed-olm'
 }
 
 export namespace DevWorkspaceContextKeys {

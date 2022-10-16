@@ -19,7 +19,7 @@ import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
-import {DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CA_CERT_FILE_NAME, DEFAULT_CHE_NAMESPACE} from '../../constants'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CA_CERT_FILE_NAME, DEFAULT_CHE_NAMESPACE } from '../../constants'
 import { findWorkingNamespace, wrapCommandError } from '../../util'
 
 export default class Export extends Command {

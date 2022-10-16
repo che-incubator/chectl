@@ -23,8 +23,8 @@ import {
   DEVFILE_WORKSPACE_ROUTINGS_VERSION,
   WORKSPACE_CONTROLLER_NAMESPACE,
 } from '../../constants'
-import {ChectlContext} from '../../api/context'
-import {createNamespaceTask} from '../installers/common-tasks'
+import { ChectlContext } from '../../api/context'
+import { createNamespaceTask } from '../installers/common-tasks'
 
 /**
  * Handle setup of the dev workspace operator controller.

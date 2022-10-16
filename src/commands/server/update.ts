@@ -10,15 +10,15 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {Command, flags} from '@oclif/command'
-import {boolean, string} from '@oclif/parser/lib/flags'
-import {cli} from 'cli-ux'
+import { Command, flags } from '@oclif/command'
+import { boolean, string } from '@oclif/parser/lib/flags'
+import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 import * as semver from 'semver'
 
-import {CheHelper} from '../../api/che'
-import {ChectlContext} from '../../api/context'
-import {KubeHelper} from '../../api/kube'
+import { CheHelper } from '../../api/che'
+import { ChectlContext } from '../../api/context'
+import { KubeHelper } from '../../api/kube'
 import {
   assumeYes,
   batch,
@@ -37,9 +37,9 @@ import {
   OPERATOR_IMAGE_NAME,
   OPERATOR_IMAGE_NEXT_TAG,
 } from '../../constants'
-import {getPrintHighlightedMessagesTask} from '../../tasks/installers/common-tasks'
-import {InstallerTasks} from '../../tasks/installers/installer'
-import {ApiTasks} from '../../tasks/platforms/api'
+import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
+import { InstallerFactoryTasks } from '../../tasks/installers/installer-factory-tasks'
+import { ApiTasks } from '../../tasks/platforms/api'
 import {
   askForChectlUpdateIfNeeded,
   findWorkingNamespace,
@@ -50,7 +50,7 @@ import {
   notifyCommandCompletedSuccessfully,
   wrapCommandError,
 } from '../../util'
-import {DevWorkspaceTasks} from '../../tasks/components/devworkspace-operator-installer'
+import { DevWorkspaceTasks } from '../../tasks/components/devworkspace-operator-installer'
 
 export default class Update extends Command {
   static description = 'Update Eclipse Che server.'
@@ -126,7 +126,7 @@ export default class Update extends Command {
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Update.id, flags })
 
-    const installerTasks = new InstallerTasks()
+    const installerTasks = new InstallerFactoryTasks()
 
     // pre update tasks
     const apiTasks = new ApiTasks()
@@ -134,7 +134,7 @@ export default class Update extends Command {
     preUpdateTasks.add(apiTasks.testApiTasks(flags))
     preUpdateTasks.add({
       title: 'Preflight check',
-      task: () => new Listr(installerTasks.preUpdateTasks(flags), ctx.listrOptions),
+      task: () => new Listr(installerTasks.getPreUpdateTasks(flags), ctx.listrOptions),
     })
 
     // update tasks
@@ -145,7 +145,7 @@ export default class Update extends Command {
     }
     updateTasks.add({
       title: 'Update Eclipse Che',
-      task: () => new Listr(installerTasks.updateTasks(flags), ctx.listrOptions),
+      task: () => new Listr(installerTasks.getUpdateTasks(flags), ctx.listrOptions),
     })
 
     // post update tasks
