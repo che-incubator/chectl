@@ -315,9 +315,9 @@ export class OperatorInstaller implements Installer {
         },
       },
       {
-        title: `Create MutatingWebhookConfiguration ${OperatorTasks.MUTATING_WEBHOOK}`,
+        title: `Create MutatingWebhookConfiguration ${OperatorInstaller.MUTATING_WEBHOOK}`,
         task: async (ctx: any, task: any) => {
-          const exists = await this.kh.isMutatingWebhookConfigurationExists(OperatorTasks.MUTATING_WEBHOOK)
+          const exists = await this.kh.isMutatingWebhookConfigurationExists(OperatorInstaller.MUTATING_WEBHOOK)
           if (exists) {
             task.title = `${task.title}...[Exists]`
           } else {
@@ -534,16 +534,16 @@ export class OperatorInstaller implements Installer {
         },
       },
       {
-        title: `Update MutatingWebhookConfiguration ${OperatorTasks.MUTATING_WEBHOOK}`,
+        title: `Update MutatingWebhookConfiguration ${OperatorInstaller.MUTATING_WEBHOOK}`,
         task: async (ctx: any, task: any) => {
           const webhookPath = this.getResourcePath('org.eclipse.che.MutatingWebhookConfiguration.yaml')
           if (fs.existsSync(webhookPath)) {
             const webhook = this.kh.safeLoadFromYamlFile(webhookPath) as V1MutatingWebhookConfiguration
             webhook!.webhooks![0].clientConfig.service!.namespace = this.flags.chenamespace
 
-            const exists = await this.kh.isMutatingWebhookConfigurationExists(OperatorTasks.MUTATING_WEBHOOK)
+            const exists = await this.kh.isMutatingWebhookConfigurationExists(OperatorInstaller.MUTATING_WEBHOOK)
             if (exists) {
-              await this.kh.replaceVMutatingWebhookConfiguration(OperatorTasks.MUTATING_WEBHOOK, webhook)
+              await this.kh.replaceVMutatingWebhookConfiguration(OperatorInstaller.MUTATING_WEBHOOK, webhook)
               task.title = `${task.title}...[Ok: updated]`
             } else {
               await this.kh.createMutatingWebhookConfiguration(webhook)
