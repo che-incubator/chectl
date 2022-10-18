@@ -116,14 +116,14 @@ export default class Delete extends Command {
 
     tasks.add({
       title: 'Uninstall Eclipse Che Operator',
-      task: async (_ctx: any, _task: any) => {
+      task: async (ctx: any, _task: any) => {
         const operatorTasks = new OperatorInstaller(flags)
         const cheTasks = new CheTasks(flags)
 
         const tasks = new Listrq([], ctx.listrOptions)
         tasks.add({
-          title: 'Delete Custom Resources',
-          task: () => new Listr(operatorTasks.getDeleteCRsTasks()),
+          title: 'Delete operator resources',
+          task: () => new Listr(operatorTasks.getDeleteTasks()),
         })
         if (ctx[ChectlContext.IS_OPENSHIFT]) {
           let olmInstaller: Installer
@@ -138,14 +138,10 @@ export default class Delete extends Command {
           })
         }
         tasks.add({
-          title: 'Delete operator resources',
-          task: () => new Listr(operatorTasks.getDeleteTasks()),
-        })
-        tasks.add({
           title: 'Wait until all pods are deleted',
           task: () => new Listr(cheTasks.getWaitPodsDeletedTasks()),
         })
-        if (flags['delete-namespace'] || flags['delete-all']) {
+        if (flags['delete-namespace']) {
           tasks.add(cheTasks.getDeleteNamespaceTasks(flags))
         }
 
@@ -155,7 +151,7 @@ export default class Delete extends Command {
 
     if (flags.batch || await this.isDeletionConfirmed(flags)) {
       try {
-        await tasks.run()
+        await tasks.run(ctx)
         cli.log(getCommandSuccessMessage())
       } catch (err: any) {
         this.error(wrapCommandError(err))
