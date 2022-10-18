@@ -40,7 +40,7 @@ export default class Stop extends Command {
   async run() {
     const { flags } = this.parse(Stop)
     flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags) || DEFAULT_CHE_NAMESPACE
-    await ChectlContext.init(flags, this)
+    const ctx = await ChectlContext.initAndGet(flags, this)
 
     const Listr = require('listr')
     const cheTasks = new CheTasks(flags)
@@ -71,7 +71,7 @@ export default class Stop extends Command {
     tasks.add(cheTasks.getSaleCheDownTasks())
     tasks.add(cheTasks.getWaitPodsDeletedTasks())
     try {
-      await tasks.run()
+      await tasks.run(ctx)
       cli.log(getCommandSuccessMessage())
     } catch (err: any) {
       this.error(wrapCommandError(err))

@@ -702,7 +702,8 @@ export class KubeHelper {
   async getClusterCustomObject(group: string, version: string, plural: string, name: any): Promise<any> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      return await k8sCoreApi.getClusterCustomObject(group, version, plural, name)
+      const { body } = await k8sCoreApi.getClusterCustomObject(group, version, plural, name)
+      return body
     } catch (e: any) {
       if (e.response.statusCode !== 404) {
         throw this.wrapK8sClientError(e)
@@ -723,8 +724,11 @@ export class KubeHelper {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
       await k8sCoreApi.deleteClusterCustomObject(group, version, plural, name)
+      cli.debug(`Deleted ${plural}.${version}.${group} ${name} resource`)
     } catch (e: any) {
-      throw this.wrapK8sClientError(e)
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 
@@ -1435,39 +1439,6 @@ export class KubeHelper {
       return (body as any).items
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async listOAuthClientBySelector(selector: string): Promise<any[]> {
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-    try {
-      const { body } = await customObjectsApi.listClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclients', undefined, undefined, undefined, selector)
-      return (body as any).items
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async deleteOAuthClient(name: string): Promise<void> {
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-    try {
-      await customObjectsApi.deleteClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclients', name)
-    } catch (e: any) {
-      if (e.response && e.response.statusCode === 404) {
-        return
-      }
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async deleteConsoleLink(name: string): Promise<void> {
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-    try {
-      await customObjectsApi.deleteClusterCustomObject('console.openshift.io', 'v1', 'consolelinks', name)
-    } catch (e: any) {
-      if (e.response.statusCode !== 404) {
-        throw this.wrapK8sClientError(e)
-      }
     }
   }
 

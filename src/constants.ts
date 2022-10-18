@@ -12,6 +12,7 @@
 
 export const DSC_PROJECT_NAME = 'dsc'
 export const CHECTL_PROJECT_NAME = 'chectl'
+export const CHE_FLAVOR = 'che'
 export const CHE_OPERATOR_TEMPLATE_DIR = 'che-operator'
 export const DEVWORKSPACE_OPERATOR_TEMPLATE_DIR = 'devworkspace-operator'
 
