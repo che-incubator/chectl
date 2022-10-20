@@ -208,7 +208,8 @@ export function wrapCommandError(error: Error): Error {
 }
 
 export function newError(message: string, cause: Error): Error {
-  const error = new Error(message)
+  const error = new Error(message) as any
+  error.cause = cause
   error.stack += `\nCause: ${cause.stack}`
   return error
 }

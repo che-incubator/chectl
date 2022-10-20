@@ -20,7 +20,7 @@ import {
   getCreateCatalogSourceTask,
   getCreatePrometheusRBACTask,
   getCreateSubscriptionTask,
-  getDeleteCatalogSourceTask, getDeletePrometheusRBACTask,
+  getDeleteCatalogSourceTask,
   getDeleteSubscriptionTask,
   getFetchCheClusterCRSampleTask,
   getSetCustomOperatorImageTask,
@@ -78,7 +78,6 @@ export class DevSpacesOLMInstaller implements Installer {
 
   getDeleteTasks(): Listr.ListrTask<any>[] {
     return [
-      getDeletePrometheusRBACTask(this.flags),
       getDeleteSubscriptionTask(this.flags),
       getDeleteCatalogSourceTask(this.flags),
       {

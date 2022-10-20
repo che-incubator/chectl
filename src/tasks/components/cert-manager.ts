@@ -39,7 +39,7 @@ export class CertManagerTasks {
             {
               title: 'Install Cert Manager',
               task: async (ctx: any, task: any) => {
-                const certManagerCrd = await this.kubeHelper.getCrd('certificates.cert-manager.io')
+                const certManagerCrd = await this.kubeHelper.getCustomResourceDefinition('certificates.cert-manager.io')
                 if (certManagerCrd) {
                   task.title = `${task.title}...[Exists]`
                 } else {

@@ -85,30 +85,29 @@ export default class Delete extends Command {
       title: 'Uninstall Dev Workspace Operator',
       task: async (_ctx: any, _task: any) => {
         if (flags['delete-all']) {
-          const olmDevWorkspaceTasks = new OLMDevWorkspaceTasks(flags)
-          const devWorkspaceTasks = new DevWorkspaceTasks(flags)
-
           const tasks = new Listrq([], ctx.listrOptions)
-          tasks.add({
-            title: 'Delete Custom Resources',
-            task: () => new Listr(devWorkspaceTasks.getDeleteCRsTasks()),
-          })
-
-          let devWorkspaceNamespace = WORKSPACE_CONTROLLER_NAMESPACE
-          if (await olmDevWorkspaceTasks.isDevWorkspaceOperatorInstalledViaOLM()) {
-            devWorkspaceNamespace = OPENSHIFT_OPERATORS_NAMESPACE
-
-            tasks.add({
-              title: 'Delete OLM resources',
-              task: () => new Listr(olmDevWorkspaceTasks.getDeleteTasks()),
-            })
-          }
 
           tasks.add({
             title: 'Delete operator resources',
-            task: () => new Listr(devWorkspaceTasks.getDeleteTasks(devWorkspaceNamespace)),
+            task: () => {
+              const devWorkspaceTasks = new DevWorkspaceTasks(flags)
+              if (ctx[ChectlContext.IS_OPENSHIFT]) {
+                return new Listr(devWorkspaceTasks.getDeleteTasks(OPENSHIFT_OPERATORS_NAMESPACE))
+              } else {
+                return new Listr(devWorkspaceTasks.getDeleteTasks(WORKSPACE_CONTROLLER_NAMESPACE))
+              }
+            },
           })
 
+          if (ctx[ChectlContext.IS_OPENSHIFT]) {
+            tasks.add({
+              title: 'Delete OLM resources',
+              task: () => {
+                const olmDevWorkspaceTasks = new OLMDevWorkspaceTasks(flags)
+                return new Listr(olmDevWorkspaceTasks.getDeleteTasks())
+              },
+            })
+          }
           return tasks
         }
       },
@@ -117,14 +116,15 @@ export default class Delete extends Command {
     tasks.add({
       title: 'Uninstall Eclipse Che Operator',
       task: async (ctx: any, _task: any) => {
-        const operatorTasks = new OperatorInstaller(flags)
-        const cheTasks = new CheTasks(flags)
-
         const tasks = new Listrq([], ctx.listrOptions)
         tasks.add({
           title: 'Delete operator resources',
-          task: () => new Listr(operatorTasks.getDeleteTasks()),
+          task: () => {
+            const operatorTasks = new OperatorInstaller(flags)
+            return new Listr(operatorTasks.getDeleteTasks())
+          },
         })
+
         if (ctx[ChectlContext.IS_OPENSHIFT]) {
           let olmInstaller: Installer
           if (getProjectName() === DSC_PROJECT_NAME) {
@@ -137,6 +137,8 @@ export default class Delete extends Command {
             task: () => new Listr(olmInstaller.getDeleteTasks()),
           })
         }
+
+        const cheTasks = new CheTasks(flags)
         tasks.add({
           title: 'Wait until all pods are deleted',
           task: () => new Listr(cheTasks.getWaitPodsDeletedTasks()),

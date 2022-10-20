@@ -21,7 +21,7 @@ import {
   getCreateCatalogSourceTask,
   getCreatePrometheusRBACTask,
   getCreateSubscriptionTask,
-  getDeleteCatalogSourceTask, getDeletePrometheusRBACTask,
+  getDeleteCatalogSourceTask,
   getDeleteSubscriptionTask,
   getFetchCheClusterCRSampleTask,
   getSetCustomOperatorImageTask,
@@ -78,7 +78,6 @@ export class CheOLMInstaller implements Installer {
     return [
       getDeleteSubscriptionTask(this.flags),
       getDeleteCatalogSourceTask(this.flags),
-      getDeletePrometheusRBACTask(this.flags),
     ]
   }
 

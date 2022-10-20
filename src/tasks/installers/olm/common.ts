@@ -243,9 +243,13 @@ export function getDeleteSubscriptionTask(flags: any): Listr.ListrTask<Listr.Lis
       try {
         const subscription = await cheHelper.findCheOperatorSubscription(OPENSHIFT_OPERATORS_NAMESPACE)
         if (subscription) {
+          if (subscription.status?.installedCSV) {
+            await kubeHelper.deleteClusterServiceVersion(subscription.status.installedCSV, OPENSHIFT_OPERATORS_NAMESPACE)
+          }
           await kubeHelper.deleteOperatorSubscription(subscription.metadata.name!, OPENSHIFT_OPERATORS_NAMESPACE)
         }
 
+        // clean up remaining CSV
         const csvs = await kubeHelper.getCSVWithPrefix(CSV_PREFIX, OPENSHIFT_OPERATORS_NAMESPACE)
         for (const csv of csvs) {
           await kubeHelper.deleteClusterServiceVersion(csv.metadata.name!, OPENSHIFT_OPERATORS_NAMESPACE)
@@ -272,23 +276,6 @@ export function getDeleteCatalogSourceTask(flags: any): Listr.ListrTask<Listr.Li
         for (const catalogSource of catalogSources) {
           await kubeHelper.deleteCatalogSource(catalogSource.metadata.name!, OPENSHIFT_MARKET_PLACE_NAMESPACE)
         }
-        task.title = `${task.title}...[Ok]`
-      } catch (e: any) {
-        task.title = `${task.title}...[Failed: ${e.message}]`
-      }
-    },
-  }
-}
-
-export function getDeletePrometheusRBACTask(flags: any): Listr.ListrTask<Listr.ListrContext> {
-  const kubeHelper = new KubeHelper(flags)
-
-  return {
-    title: `Delete Role and RoleBinding ${PROMETHEUS}`,
-    task: async (_ctx: any, task: any) => {
-      try {
-        await kubeHelper.deleteRole(PROMETHEUS, flags.chenamespace)
-        await kubeHelper.deleteRoleBinding(PROMETHEUS, flags.chenamespace)
         task.title = `${task.title}...[Ok]`
       } catch (e: any) {
         task.title = `${task.title}...[Failed: ${e.message}]`

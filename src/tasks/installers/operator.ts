@@ -42,9 +42,11 @@ import { OpenShiftHelper } from '../../api/openshift'
 import { Installer } from '../../api/types/installer'
 
 export class OperatorInstaller implements Installer {
+  private static readonly PROMETHEUS = 'prometheus-k8s'
   private static readonly VALIDATING_WEBHOOK = 'org.eclipse.che'
   private static readonly MUTATING_WEBHOOK = 'org.eclipse.che'
-  private static readonly WEBHOOK_SERVICE = 'che-operator-service'
+  private static readonly OPERATOR_SERVICE = 'che-operator-service'
+  private static readonly OPERATOR_SERVICE_CERT = 'che-operator-webhook-server-cert'
   private static readonly CERTIFICATE = 'che-operator-serving-cert'
   private static readonly ISSUER = 'che-operator-selfsigned-issuer'
   private static readonly SERVICE_ACCOUNT = 'che-operator'
@@ -208,7 +210,7 @@ export class OperatorInstaller implements Installer {
             const yamlFilePath = this.getResourcePath('serving-cert.yaml')
             if (fs.existsSync(yamlFilePath)) {
               const certificate = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Certificate
-              certificate.spec.dnsNames = [`${OperatorInstaller.WEBHOOK_SERVICE}.${this.flags.chenamespace}.svc`, `${OperatorInstaller.WEBHOOK_SERVICE}.${this.flags.chenamespace}.svc.cluster.local`]
+              certificate.spec.dnsNames = [`${OperatorInstaller.OPERATOR_SERVICE}.${this.flags.chenamespace}.svc`, `${OperatorInstaller.OPERATOR_SERVICE}.${this.flags.chenamespace}.svc.cluster.local`]
 
               await this.kh.createCertificate(certificate, this.flags.chenamespace)
               task.title = `${task.title}...[OK: created]`
@@ -237,9 +239,9 @@ export class OperatorInstaller implements Installer {
         },
       },
       {
-        title: `Create Service ${OperatorInstaller.WEBHOOK_SERVICE}`,
+        title: `Create Service ${OperatorInstaller.OPERATOR_SERVICE}`,
         task: async (ctx: any, task: any) => {
-          const exists = await this.kh.isServiceExists(OperatorInstaller.WEBHOOK_SERVICE, this.flags.chenamespace)
+          const exists = await this.kh.isServiceExists(OperatorInstaller.OPERATOR_SERVICE, this.flags.chenamespace)
           if (exists) {
             task.title = `${task.title}...[Exists]`
           } else {
@@ -256,7 +258,7 @@ export class OperatorInstaller implements Installer {
       {
         title: `Create CRD ${CHE_CLUSTER_CRD}`,
         task: async (ctx: any, task: any) => {
-          const existedCRD = await this.kh.getCrd(CHE_CLUSTER_CRD)
+          const existedCRD = await this.kh.getCustomResourceDefinition(CHE_CLUSTER_CRD)
           if (existedCRD) {
             task.title = `${task.title}...[Exists]`
           } else {
@@ -265,7 +267,7 @@ export class OperatorInstaller implements Installer {
             crd.spec.conversion!.webhook!.clientConfig!.service!.namespace = this.flags.chenamespace
             crd.metadata!.annotations!['cert-manager.io/inject-ca-from'] = `${this.flags.chenamespace}/che-operator-serving-cert`
 
-            await this.kh.createCrdFromFile(crd)
+            await this.kh.createCrd(crd)
             task.title = `${task.title}...[OK: created]`
           }
         },
@@ -412,7 +414,7 @@ export class OperatorInstaller implements Installer {
           }
 
           const certificate = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Certificate
-          certificate.spec.dnsNames = [`${OperatorInstaller.WEBHOOK_SERVICE}.${this.flags.chenamespace}.svc`, `${OperatorInstaller.WEBHOOK_SERVICE}.${this.flags.chenamespace}.svc.cluster.local`]
+          certificate.spec.dnsNames = [`${OperatorInstaller.OPERATOR_SERVICE}.${this.flags.chenamespace}.svc`, `${OperatorInstaller.OPERATOR_SERVICE}.${this.flags.chenamespace}.svc.cluster.local`]
 
           const exist = await this.kh.isCertificateExists(OperatorInstaller.CERTIFICATE, this.flags.chenamespace)
           if (exist) {
@@ -445,7 +447,7 @@ export class OperatorInstaller implements Installer {
         },
       },
       {
-        title: `Update Service ${OperatorInstaller.WEBHOOK_SERVICE}`,
+        title: `Update Service ${OperatorInstaller.OPERATOR_SERVICE}`,
         task: async (ctx: any, task: any) => {
           const yamlFilePath = this.getResourcePath('webhook-service.yaml')
           if (!fs.existsSync(yamlFilePath)) {
@@ -454,9 +456,9 @@ export class OperatorInstaller implements Installer {
           }
 
           const service = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Service
-          const exist = await this.kh.isServiceExists(OperatorInstaller.WEBHOOK_SERVICE, this.flags.chenamespace)
+          const exist = await this.kh.isServiceExists(OperatorInstaller.OPERATOR_SERVICE, this.flags.chenamespace)
           if (exist) {
-            await this.kh.replaceService(OperatorInstaller.WEBHOOK_SERVICE, service, this.flags.chenamespace)
+            await this.kh.replaceService(OperatorInstaller.OPERATOR_SERVICE, service, this.flags.chenamespace)
             task.title = `${task.title}...[OK: updated]`
           } else {
             await this.kh.createService(service, this.flags.chenamespace)
@@ -467,7 +469,7 @@ export class OperatorInstaller implements Installer {
       {
         title: `Update Eclipse Che cluster CRD ${CHE_CLUSTER_CRD}`,
         task: async (ctx: any, task: any) => {
-          const existedCRD = await this.kh.getCrd(CHE_CLUSTER_CRD)
+          const existedCRD = await this.kh.getCustomResourceDefinition(CHE_CLUSTER_CRD)
 
           const crdPath = await this.getCRDPath()
           const crd = this.kh.safeLoadFromYamlFile(crdPath) as V1CustomResourceDefinition
@@ -475,10 +477,10 @@ export class OperatorInstaller implements Installer {
           crd.metadata!.annotations!['cert-manager.io/inject-ca-from'] = `${this.flags.chenamespace}/che-operator-serving-cert`
 
           if (existedCRD) {
-            await this.kh.replaceCrdFromFile(crd)
+            await this.kh.replaceCustomResourceDefinition(crd)
             task.title = `${task.title}...[OK: updated]`
           } else {
-            await this.kh.createCrdFromFile(crd)
+            await this.kh.createCrd(crd)
             task.title = `${task.title}...[OK: created]`
           }
         },
@@ -565,30 +567,32 @@ export class OperatorInstaller implements Installer {
     const kh = new KubeHelper(this.flags)
     return [
       {
-        title: 'Delete Cluster scope objects',
-        task: async (_ctx: any, task: any) => {
+        title: 'Delete cluster scope objects',
+        task: async (ctx: any, task: any) => {
           try {
+            // Webhooks
             await kh.deleteValidatingWebhookConfiguration(OperatorInstaller.VALIDATING_WEBHOOK)
             await kh.deleteMutatingWebhookConfiguration(OperatorInstaller.MUTATING_WEBHOOK)
 
-            await this.kh.deleteClusterCustomObject('console.openshift.io', 'v1', 'consolelinks', OperatorInstaller.CONSOLELINK)
+            if (ctx[ChectlContext.IS_OPENSHIFT]) {
+              const checluster = await kh.getCheClusterV2(this.flags.chenamespace)
 
-            const checluster = await kh.getCheClusterV2(this.flags.chenamespace)
-            if (checluster) {
-              const oauthClientName = checluster?.spec?.networking?.auth?.oAuthClientName || `${this.flags.chenamespace}-client`
-              if (oauthClientName) {
-                await kh.deleteClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclients', oauthClientName)
-              }
+              // ConsoleLink
+              await this.kh.deleteClusterCustomObject('console.openshift.io', 'v1', 'consolelinks', OperatorInstaller.CONSOLELINK)
 
-              const sccName = checluster?.spec?.devEnvironments?.containerBuildConfiguration?.openShiftSecurityContextConstraint
-              if (sccName) {
-                const scc = await kh.getClusterCustomObject('security.openshift.io', 'v1', 'securitycontextconstraints', sccName)
-                if (scc?.metadata?.labels?.['app.kubernetes.io/managed-by'] === `${CHE_FLAVOR}-operator`) {
-                  task.title = `${task.title} ${sccName}`
-                  await kh.deleteClusterCustomObject('security.openshift.io', 'v1', 'securitycontextconstraints', sccName)
-                }
+              // OAuthClient
+              const oAuthClientName = checluster?.spec?.networking?.auth?.oAuthClientName || `${this.flags.chenamespace}-client`
+              await kh.deleteClusterCustomObject('oauth.openshift.io', 'v1', 'oauthclients', oAuthClientName)
+
+              // SCC
+              const sccName = checluster?.spec?.devEnvironments?.containerBuildConfiguration?.openShiftSecurityContextConstraint || 'container-build'
+              const scc = await kh.getClusterCustomObject('security.openshift.io', 'v1', 'securitycontextconstraints', sccName)
+              if (scc?.metadata?.labels?.['app.kubernetes.io/managed-by'] === `${CHE_FLAVOR}-operator`) {
+                task.title = `${task.title} ${sccName}`
+                await kh.deleteClusterCustomObject('security.openshift.io', 'v1', 'securitycontextconstraints', sccName)
               }
             }
+
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -596,22 +600,10 @@ export class OperatorInstaller implements Installer {
         },
       },
       {
-        title: `Delete ${CHE_CLUSTER_API_GROUP}/${CHE_CLUSTER_API_VERSION_V2} resources`,
+        title: `Delete ${CHE_CLUSTER_KIND_PLURAL}.${CHE_CLUSTER_API_GROUP} resources`,
         task: async (_ctx: any, task: any) => {
           try {
-            await kh.patchCustomResource(CHE_CLUSTER_CRD, { spec: { conversion: null } }, 'apiextensions.k8s.io', 'v1', 'customresourcedefinitions')
-            await kh.deleteAllCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V2, CHE_CLUSTER_KIND_PLURAL)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: 'Delete CRDs',
-        task: async (_ctx: any, task: any) => {
-          try {
-            await kh.deleteCrd(CHE_CLUSTER_CRD)
+            await kh.deleteAllCustomResourcesAndCrd(CHE_CLUSTER_CRD, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V2, CHE_CLUSTER_KIND_PLURAL)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -620,14 +612,10 @@ export class OperatorInstaller implements Installer {
       },
       {
         title: 'Delete Networks',
+        enabled: (ctx: any) => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (ctx: any, task: any) => {
           try {
-            await this.kh.deleteAllServices(this.flags.chenamespace)
-            if (ctx[ChectlContext.IS_OPENSHIFT]) {
-              await this.oc.deleteAllRoutes(this.flags.chenamespace)
-            } else {
-              await this.kh.deleteAllIngresses(this.flags.chenamespace)
-            }
+            await this.kh.deleteService(OperatorInstaller.OPERATOR_SERVICE, this.flags.chenamespace)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -636,24 +624,23 @@ export class OperatorInstaller implements Installer {
       },
       {
         title: 'Delete Workloads',
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           try {
-            await this.kh.deleteSecret('che-operator-webhook-server-cert', this.flags.chenamespace)
+            const cms = await this.kh.listConfigMaps(this.flags.chenamespace, 'app.kubernetes.io/part-of=che.eclipse.org,app.kubernetes.io/component=gateway-config')
+            for (const cm of cms) {
+              await this.kh.deleteConfigMap(cm.metadata!.name!, this.flags.chenamespace)
+            }
 
-            await this.kh.deleteAllDeployments(this.flags.chenamespace)
+            if (!ctx[ChectlContext.IS_OPENSHIFT]) {
+              await this.kh.deleteSecret(OperatorInstaller.OPERATOR_SERVICE_CERT, this.flags.chenamespace)
+              await this.kh.deleteDeployment(OPERATOR_DEPLOYMENT_NAME, this.flags.chenamespace)
 
-            await this.kh.deleteConfigMap('che', this.flags.chenamespace)
-            await this.kh.deleteConfigMap('ca-certs-merged', this.flags.chenamespace)
-            await this.kh.deleteConfigMap('plugin-registry', this.flags.chenamespace)
-            await this.kh.deleteConfigMap('devfile-registry', this.flags.chenamespace)
-
-            const configMaps = await this.kh.listConfigMaps(this.flags.chenamespace)
-            for (const configMap of configMaps) {
-              const configMapName = configMap.metadata!.name!
-              if (configMapName.startsWith('che-gateway')) {
-                await this.kh.deleteConfigMap(configMapName, this.flags.chenamespace)
+              const pods = await this.kh.listNamespacedPod(this.flags.chenamespace, undefined, 'app.kubernetes.io/part-of=che.eclipse.org,app.kubernetes.io/component=che-create-tls-secret-job')
+              for (const pod of pods.items) {
+                await this.kh.deletePod(pod.metadata!.name!, pod.metadata!.namespace!)
               }
             }
+
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -662,46 +649,35 @@ export class OperatorInstaller implements Installer {
       },
       {
         title: 'Delete RBAC',
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           try {
-            // Delete all RoleBinding in a given namespace
-            const roleBindings = await kh.listRoleBindings(this.flags.chenamespace)
-            for (const roleBinding of roleBindings.items) {
-              await kh.deleteRoleBinding(roleBinding.metadata!.name!, this.flags.chenamespace)
+            if (ctx[ChectlContext.IS_OPENSHIFT]) {
+              await kh.deleteRole(OperatorInstaller.PROMETHEUS, this.flags.chenamespace)
+              await kh.deleteRoleBinding(OperatorInstaller.PROMETHEUS, this.flags.chenamespace)
+              await kh.deleteClusterRole(`${CHE_FLAVOR}-user-container-build`)
+              await kh.deleteClusterRole('dev-workspace-container-build')
+              await kh.deleteClusterRoleBinding('dev-workspace-container-build')
+            } else {
+              await kh.deleteRole('che-operator', this.flags.chenamespace)
+              await kh.deleteRole('che-operator-leader-election', this.flags.chenamespace)
+              await kh.deleteRoleBinding('che-operator', this.flags.chenamespace)
+              await kh.deleteRoleBinding('che-operator-leader-election', this.flags.chenamespace)
+              await kh.deleteClusterRole(`${this.flags.chenamespace}-che-operator`)
+              await kh.deleteClusterRoleBinding(`${this.flags.chenamespace}-che-operator`)
+              await this.kh.deleteServiceAccount(OperatorInstaller.SERVICE_ACCOUNT, this.flags.chenamespace)
             }
 
-            // Delete all Roles
-            const roles = await kh.listRoles(this.flags.chenamespace)
-            for (const role of roles.items) {
-              await kh.deleteRole(role.metadata!.name!, this.flags.chenamespace)
-            }
+            await kh.deleteClusterRole(`${this.flags.chenamespace}-che-gateway`)
+            await kh.deleteClusterRole(`${this.flags.chenamespace}-che-dashboard`)
+            await kh.deleteClusterRole(`${this.flags.chenamespace}-cheworkspaces-namespaces-clusterrole`)
+            await kh.deleteClusterRole(`${this.flags.chenamespace}-cheworkspaces-clusterrole`)
+            await kh.deleteClusterRole(`${this.flags.chenamespace}-cheworkspaces-devworkspace-clusterrole`)
 
-            // Delete ClusterRoleRinding starting with a given namespace
-            const clusterRoleBindings = await kh.listClusterRoleBindings()
-            for (const clusterRoleBinding of clusterRoleBindings.items) {
-              const name = clusterRoleBinding.metadata?.name
-              if (name && name.startsWith(this.flags.chenamespace)) {
-                await kh.deleteClusterRoleBinding(name)
-              }
-            }
-
-            // Delete ClusterRole starting with a given namespace
-            const clusterRoles = await kh.listClusterRoles()
-            for (const clusterRole of clusterRoles.items) {
-              const name = clusterRole.metadata?.name
-              if (name && name.startsWith(this.flags.chenamespace)) {
-                await kh.deleteClusterRole(name)
-              }
-            }
-
-            await kh.deleteClusterRole(`${CHE_FLAVOR}-container-build-scc`)
-            await kh.deleteClusterRoleBinding(`${CHE_FLAVOR}-container-build-scc`)
-
-            await this.kh.deleteServiceAccount('che', this.flags.chenamespace)
-            await this.kh.deleteServiceAccount('che-dashboard', this.flags.chenamespace)
-            await this.kh.deleteServiceAccount('che-gateway', this.flags.chenamespace)
-            await this.kh.deleteServiceAccount('che-tls-job-service-account', this.flags.chenamespace)
-            await this.kh.deleteServiceAccount(OperatorInstaller.SERVICE_ACCOUNT, this.flags.chenamespace)
+            await kh.deleteClusterRoleBinding(`${this.flags.chenamespace}-che-gateway`)
+            await kh.deleteClusterRoleBinding(`${this.flags.chenamespace}-che-dashboard`)
+            await kh.deleteClusterRoleBinding(`${this.flags.chenamespace}-cheworkspaces-namespaces-clusterrole`)
+            await kh.deleteClusterRoleBinding(`${this.flags.chenamespace}-cheworkspaces-clusterrole`)
+            await kh.deleteClusterRoleBinding(`${this.flags.chenamespace}-cheworkspaces-devworkspace-clusterrole`)
 
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
@@ -711,21 +687,11 @@ export class OperatorInstaller implements Installer {
       },
       {
         title: 'Delete Certificates',
+        enabled: (ctx: any) => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (_ctx: any, task: any) => {
           try {
             await kh.deleteIssuer(OperatorInstaller.ISSUER, this.flags.chenamespace)
             await kh.deleteCertificate(OperatorInstaller.CERTIFICATE, this.flags.chenamespace)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: 'Delete PVCs',
-        task: async (_ctx: any, task: any) => {
-          try {
-            await this.kh.deletePersistentVolumeClaim('postgres-data', this.flags.chenamespace)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -836,14 +802,6 @@ export class OperatorInstaller implements Installer {
    */
   async getCRDPath(): Promise<string> {
     const ctx = ChectlContext.get()
-
-    // Legacy CRD CheCluster API v1
-    const crdPath = path.join(ctx[ChectlContext.CHE_OPERATOR_RESOURCES], 'crds', 'org_v1_che_crd.yaml')
-    if (fs.existsSync(crdPath)) {
-      return crdPath
-    }
-
-    // Platform specific resource
     return path.join(ctx[ChectlContext.CHE_OPERATOR_RESOURCES], 'kubernetes', 'crds', 'org.eclipse.che_checlusters.yaml')
   }
 
