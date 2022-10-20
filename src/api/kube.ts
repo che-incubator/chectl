@@ -140,27 +140,6 @@ export class KubeHelper {
     }
   }
 
-  async deleteAllServices(namespace: string): Promise<void> {
-    const k8sApi = this.kubeConfig.makeApiClient(CoreV1Api)
-    try {
-      const res = await k8sApi.listNamespacedService(namespace)
-      if (res && res.response && res.response.statusCode === 200) {
-        const serviceList = res.body
-        await serviceList.items.forEach(async service => {
-          try {
-            await k8sApi.deleteNamespacedService(service.metadata!.name!, namespace)
-          } catch (error: any) {
-            if (error.response.statusCode !== 404) {
-              throw error
-            }
-          }
-        })
-      }
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
   async applyResource(yamlPath: string, opts = ''): Promise<void> {
     const command = `kubectl apply -f ${yamlPath} ${opts}`
     await execa(command, { timeout: 60000, shell: true })
@@ -568,10 +547,10 @@ export class KubeHelper {
     }
   }
 
-  async listConfigMaps(namespace: string): Promise<V1ConfigMap[]> {
+  async listConfigMaps(namespace: string, labelSelector: string | undefined): Promise<V1ConfigMap[]> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
-      const { body } = await k8sCoreApi.listNamespacedConfigMap(namespace)
+      const { body } = await k8sCoreApi.listNamespacedConfigMap(namespace, undefined, undefined, undefined, undefined, labelSelector)
       return body.items
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -679,7 +658,7 @@ export class KubeHelper {
     }
   }
 
-  async patchCustomResource(name: string, patch: any, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any | undefined> {
+  async patchClusterCustomObject(name: string, patch: any, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any | undefined> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     // It is required to patch content-type, otherwise request will be rejected with 415 (Unsupported media type) error.
@@ -1030,6 +1009,18 @@ export class KubeHelper {
     }
   }
 
+  async deletePod(name: string, namespace: string): Promise<void> {
+    const k8sApi = this.kubeConfig.makeApiClient(CoreV1Api)
+    try {
+      await k8sApi.deleteNamespacedPod(name, namespace)
+    } catch (e: any) {
+      if (e.response && e.response.statusCode === 404) {
+        return
+      }
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
   async replaceDeployment(yamlDeployment: V1Deployment): Promise<void> {
     // updating restartedAt to make sure that rollout will be restarted
     let annotations = yamlDeployment.spec!.template!.metadata!.annotations
@@ -1063,15 +1054,6 @@ export class KubeHelper {
       if (e.response && e.response.statusCode === 404) {
         return
       }
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async deleteAllDeployments(namespace: string): Promise<void> {
-    const k8sAppsApi = this.kubeConfig.makeApiClient(AppsV1Api)
-    try {
-      await k8sAppsApi.deleteCollectionNamespacedDeployment(namespace)
-    } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
   }
@@ -1115,16 +1097,7 @@ export class KubeHelper {
     }
   }
 
-  async deleteAllIngresses(namespace: string): Promise<void> {
-    const networkingV1Api = this.kubeConfig.makeApiClient(NetworkingV1Api)
-    try {
-      await networkingV1Api.deleteCollectionNamespacedIngress(namespace)
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async createCrdFromFile(crd: V1CustomResourceDefinition): Promise<void> {
+  async createCrd(crd: V1CustomResourceDefinition): Promise<void> {
     const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
     try {
       await k8sApi.createCustomResourceDefinition(crd)
@@ -1133,7 +1106,7 @@ export class KubeHelper {
     }
   }
 
-  async replaceCrdFromFile(crd: V1CustomResourceDefinition): Promise<void> {
+  async replaceCustomResourceDefinition(crd: V1CustomResourceDefinition): Promise<void> {
     const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
     try {
       const response = await k8sApi.readCustomResourceDefinition(crd.metadata!.name!)
@@ -1145,7 +1118,7 @@ export class KubeHelper {
     }
   }
 
-  async getCrd(name: string): Promise<any | undefined> {
+  async getCustomResourceDefinition(name: string): Promise<any | undefined> {
     const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
     try {
       const { body } = await k8sApi.readCustomResourceDefinition(name)
@@ -1154,7 +1127,6 @@ export class KubeHelper {
       if (e.response && e.response.statusCode === 404) {
         return
       }
-
       throw this.wrapK8sClientError(e)
     }
   }
@@ -1262,7 +1234,7 @@ export class KubeHelper {
   async getAllCheClusters(): Promise<any[]> {
     for (let i = 0; i < 30; i++) {
       try {
-        return await this.listCustomResources(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V2, CHE_CLUSTER_KIND_PLURAL)
+        return await this.listClusterCustomObject(CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V2, CHE_CLUSTER_KIND_PLURAL)
       } catch (e: any) {
         if (isWebhookAvailabilityError(e)) {
           await sleep(5 * 1000)
@@ -1275,10 +1247,27 @@ export class KubeHelper {
     return []
   }
 
-  async deleteAllCustomResources(apiGroup: string, version: string, plural: string): Promise<void> {
+  async deleteAllCustomResourcesAndCrd(crdName: string, apiGroup: string, version: string, plural: string): Promise<void> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
-    let resources = await this.listCustomResources(apiGroup, version, plural)
+    const crd = await this.getCustomResourceDefinition(crdName)
+    if (!crd) {
+      return
+    }
+
+    // 1. Disable conversion webhook
+    await this.patchClusterCustomObject(crdName, {spec: {conversion: null}}, 'apiextensions.k8s.io', 'v1', 'customresourcedefinitions')
+
+    // 2. Patch CRD to unblock potential invalid resource
+    for (let i = 0; i < crd.spec.versions.length; i++) {
+      if (crd.spec.versions[i].schema?.openAPIV3Schema?.properties?.spec) {
+        crd.spec.versions[i].schema.openAPIV3Schema.properties.spec = {type: 'object', properties: {}}
+      }
+    }
+    await this.replaceCustomResourceDefinition(crd)
+
+    // 3. Delete resources
+    let resources = await this.listClusterCustomObject(apiGroup, version, plural)
     for (const resource of resources) {
       const name = resource.metadata.name
       const namespace = resource.metadata.namespace
@@ -1289,34 +1278,39 @@ export class KubeHelper {
       }
     }
 
+    // wait and check
     for (let i = 0; i < 12; i++) {
-      await cli.wait(5 * 1000)
-      const resources = await this.listCustomResources(apiGroup, version, plural)
+      await cli.wait(5000)
+      const resources = await this.listClusterCustomObject(apiGroup, version, plural)
       if (resources.length === 0) {
-        return
+        break
       }
     }
 
-    // remove finalizers
+    // 4. Remove finalizers
+    resources = await this.listClusterCustomObject(apiGroup, version, plural)
     for (const resource of resources) {
       const name = resource.metadata.name
       const namespace = resource.metadata.namespace
       try {
         await this.patchNamespacedCustomResource(name, namespace, { metadata: { finalizers: null } }, apiGroup, version, plural)
       } catch (error) {
-        if (!await this.getCustomResource(name, namespace, apiGroup, version, plural)) {
-          continue // successfully removed
+        if (error.cause?.body?.reason === 'NotFound') {
+          continue
         }
         throw error
       }
     }
 
-    // wait for some time and check again
+    // wait and delete CRD
     await cli.wait(5000)
+    await this.deleteCustomResourceDefinition(crdName)
 
-    resources = await this.listCustomResources(apiGroup, version, plural)
+    // wait and check
+    await cli.wait(5000)
+    resources = await this.listClusterCustomObject(apiGroup, version, plural)
     if (resources.length !== 0) {
-      throw new Error(`Failed to remove Custom Resource ${apiGroup}/${version}, ${resources.length} left.`)
+      throw new Error(`Failed to remove Custom Resources: ${plural}${apiGroup}, ${resources.length} resource(s) left.`)
     }
   }
 
@@ -1365,7 +1359,7 @@ export class KubeHelper {
   /**
    * Returns all custom resources
    */
-  async listCustomResources(resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any[]> {
+  async listClusterCustomObject(resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any[]> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.listClusterCustomObject(resourceAPIGroup, resourceAPIVersion, resourcePlural)
@@ -1377,10 +1371,6 @@ export class KubeHelper {
       }
       throw this.wrapK8sClientError(e)
     }
-  }
-
-  async deleteAllCheClusters(namespace: string): Promise<void> {
-    return this.deleteCustomResource(namespace, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V2, CHE_CLUSTER_KIND_PLURAL)
   }
 
   /**
@@ -1734,7 +1724,7 @@ export class KubeHelper {
     }
   }
 
-  async deleteCrd(name: string): Promise<void> {
+  async deleteCustomResourceDefinition(name: string): Promise<void> {
     const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
     try {
       await k8sApi.deleteCustomResourceDefinition(name)

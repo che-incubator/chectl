@@ -17,11 +17,11 @@ import { KubeHelper } from '../../api/kube'
 import {
   DEVFILE_WORKSPACE_API_GROUP,
   DEVFILE_WORKSPACE_API_VERSION,
-  DEVFILE_WORKSPACE_KIND_PLURAL,
-  DEVFILE_WORKSPACE_ROUTINGS_API_GROUP,
-  DEVFILE_WORKSPACE_ROUTINGS_KIND_PLURAL,
-  DEVFILE_WORKSPACE_ROUTINGS_VERSION,
-  WORKSPACE_CONTROLLER_NAMESPACE,
+  DEVWORKSPACES_KIND_PLURAL,
+  DEVFILE_CONTROLLER_API_GROUP,
+  DEVWORKSPACEROUTINGS_KIND_PLURAL,
+  DEVFILE_CONTROLLER_API_VERSION, DEVWORKSPACETEMPLATES_KIND_PLURAL,
+  WORKSPACE_CONTROLLER_NAMESPACE, DEVWORKSPACEOPERATORCONFIGS_KIND_PLURAL,
 } from '../../constants'
 import { ChectlContext } from '../../api/context'
 import { createNamespaceTask } from '../installers/common-tasks'
@@ -183,25 +183,11 @@ export class DevWorkspaceTasks {
   getDeleteTasks(devWorkspaceNamespace: string): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: `Delete WebhookConfigurations ${this.webhookConfigurationName}`,
+        title: 'Delete cluster scope objects',
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteMutatingWebhookConfiguration(this.webhookConfigurationName)
             await this.kubeHelper.deleteValidatingWebhookConfiguration(this.webhookConfigurationName)
-            task.title = `${task.title} ...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: 'Delete CRDs',
-        task: async (_ctx: any, task: any) => {
-          try {
-            await this.kubeHelper.deleteCrd(this.devWorkspacesCrdName)
-            await this.kubeHelper.deleteCrd(this.devWorkspaceTemplatesCrdName)
-            await this.kubeHelper.deleteCrd(this.devWorkspaceRoutingsCrdName)
-            await this.kubeHelper.deleteCrd(this.devWorkspaceConfigCrdName)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -209,11 +195,13 @@ export class DevWorkspaceTasks {
         },
       },
       {
-        title: 'Delete Deployments',
+        title: `Delete ${DEVWORKSPACES_KIND_PLURAL}.${DEVFILE_WORKSPACE_API_GROUP} resources`,
         task: async (_ctx: any, task: any) => {
           try {
-            await this.kubeHelper.deleteDeployment(this.devWorkspaceControllerManagerDeploymentName, devWorkspaceNamespace)
-            await this.kubeHelper.deleteDeployment(this.webhookServerDeploymentName, devWorkspaceNamespace)
+            await this.kubeHelper.deleteAllCustomResourcesAndCrd(this.devWorkspacesCrdName,
+              DEVFILE_WORKSPACE_API_GROUP,
+              DEVFILE_WORKSPACE_API_VERSION,
+              DEVWORKSPACES_KIND_PLURAL)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -221,12 +209,56 @@ export class DevWorkspaceTasks {
         },
       },
       {
-        title: 'Delete Services',
+        title: `Delete ${DEVWORKSPACETEMPLATES_KIND_PLURAL}.${DEVFILE_WORKSPACE_API_GROUP} resources`,
         task: async (_ctx: any, task: any) => {
           try {
+            await this.kubeHelper.deleteAllCustomResourcesAndCrd(this.devWorkspaceTemplatesCrdName,
+              DEVFILE_WORKSPACE_API_GROUP,
+              DEVFILE_WORKSPACE_API_VERSION,
+              DEVWORKSPACETEMPLATES_KIND_PLURAL)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+      {
+        title: `Delete ${DEVWORKSPACEROUTINGS_KIND_PLURAL}.${DEVFILE_CONTROLLER_API_GROUP} resources`,
+        task: async (_ctx: any, task: any) => {
+          try {
+            await this.kubeHelper.deleteAllCustomResourcesAndCrd(this.devWorkspaceRoutingsCrdName,
+              DEVFILE_CONTROLLER_API_GROUP,
+              DEVFILE_CONTROLLER_API_VERSION,
+              DEVWORKSPACEROUTINGS_KIND_PLURAL)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+      {
+        title: `Delete ${DEVWORKSPACEOPERATORCONFIGS_KIND_PLURAL}.${DEVFILE_CONTROLLER_API_GROUP} resources`,
+        task: async (_ctx: any, task: any) => {
+          try {
+            await this.kubeHelper.deleteAllCustomResourcesAndCrd(this.devWorkspaceConfigCrdName,
+              DEVFILE_CONTROLLER_API_GROUP,
+              DEVFILE_CONTROLLER_API_VERSION,
+              DEVWORKSPACEOPERATORCONFIGS_KIND_PLURAL)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
+        },
+      },
+      {
+        title: 'Delete Networks',
+        task: async (ctx: any, task: any) => {
+          try {
+            if (!ctx[ChectlContext.IS_OPENSHIFT]) {
+              await this.kubeHelper.deleteService(this.devWorkspaceManagerServiceName, devWorkspaceNamespace)
+              await this.kubeHelper.deleteService(this.devWorkspaceMetricsServiceName, devWorkspaceNamespace)
+            }
             await this.kubeHelper.deleteService(this.webhookServiceName, devWorkspaceNamespace)
-            await this.kubeHelper.deleteService(this.devWorkspaceManagerServiceName, devWorkspaceNamespace)
-            await this.kubeHelper.deleteService(this.devWorkspaceMetricsServiceName, devWorkspaceNamespace)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
@@ -234,11 +266,15 @@ export class DevWorkspaceTasks {
         },
       },
       {
-        title: 'Delete Secrets',
-        task: async (_ctx: any, task: any) => {
+        title: 'Delete Workloads',
+        task: async (ctx: any, task: any) => {
           try {
-            await this.kubeHelper.deleteSecret(this.webhookCertSecretName, devWorkspaceNamespace)
-            await this.kubeHelper.deleteSecret(this.devWorkspaceCertSecretName, devWorkspaceNamespace)
+            if (!ctx[ChectlContext.IS_OPENSHIFT]) {
+              await this.kubeHelper.deleteDeployment(this.devWorkspaceControllerManagerDeploymentName, devWorkspaceNamespace)
+              await this.kubeHelper.deleteSecret(this.webhookCertSecretName, devWorkspaceNamespace)
+              await this.kubeHelper.deleteSecret(this.devWorkspaceCertSecretName, devWorkspaceNamespace)
+            }
+            await this.kubeHelper.deleteDeployment(this.webhookServerDeploymentName, devWorkspaceNamespace)
             await this.kubeHelper.deleteSecret(this.webhookTlsSecretName, devWorkspaceNamespace)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
@@ -247,62 +283,25 @@ export class DevWorkspaceTasks {
         },
       },
       {
-        title: 'Delete RoleBindings',
-        task: async (_ctx: any, task: any) => {
+        title: 'Delete RBAC',
+        task: async (ctx: any, task: any) => {
           try {
+            await this.kubeHelper.deleteRole(this.devWorkspaceLeaderElectionRoleName, devWorkspaceNamespace)
             await this.kubeHelper.deleteRoleBinding(this.devWorkspaceLeaderElectionRoleBindingName, devWorkspaceNamespace)
             await this.kubeHelper.deleteRoleBinding(this.devWorkspaceServiceCertRoleName, devWorkspaceNamespace)
             await this.kubeHelper.deleteRoleBinding(this.devWorkspaceServiceCertRoleBindingName, devWorkspaceNamespace)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: 'Delete Roles',
-        task: async (_ctx: any, task: any) => {
-          try {
-            await this.kubeHelper.deleteRole(this.devWorkspaceLeaderElectionRoleName, devWorkspaceNamespace)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: 'Delete ClusterRoleBindings',
-        task: async (_ctx: any, task: any) => {
-          try {
+
             await this.kubeHelper.deleteClusterRoleBinding(this.devWorkspaceClusterRoleBindingName)
             await this.kubeHelper.deleteClusterRoleBinding(this.devWorkspaceProxyClusterRoleBindingName)
             await this.kubeHelper.deleteClusterRoleBinding(this.webhookServerClusterRoleBindingName)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: 'Delete ClusterRoles',
-        task: async (_ctx: any, task: any) => {
-          try {
+
             await this.kubeHelper.deleteClusterRole(this.devWorkspaceEditWorkspaceClusterRoleName)
             await this.kubeHelper.deleteClusterRole(this.devWorkspaceViewWorkspaceClusterRoleName)
             await this.kubeHelper.deleteClusterRole(this.devWorkspaceProxyClusterRoleName)
             await this.kubeHelper.deleteClusterRole(this.devWorkspaceMetricsReaderClusterRoleName)
             await this.kubeHelper.deleteClusterRole(this.devWorkspaceClusterRoleName)
             await this.kubeHelper.deleteClusterRole(this.webhookServerClusterRoleName)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: 'Delete ServiceAccounts',
-        task: async (_ctx: any, task: any) => {
-          try {
+
             await this.kubeHelper.deleteServiceAccount(this.devWorkspaceSAName, devWorkspaceNamespace)
             await this.kubeHelper.deleteServiceAccount(this.webhookServerSAName, devWorkspaceNamespace)
             task.title = `${task.title}...[Ok]`
@@ -312,48 +311,12 @@ export class DevWorkspaceTasks {
         },
       },
       {
-        title: `Delete Issuer ${this.devWorkspaceIssuerName}`,
+        title: 'Delete Certificates',
+        enabled: (ctx: any) => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (_ctx: any, task: any) => {
           try {
             await this.kubeHelper.deleteIssuer(this.devWorkspaceIssuerName, devWorkspaceNamespace)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: `Delete Certificate ${this.devWorkspaceCertificateName}`,
-        task: async (_ctx: any, task: any) => {
-          try {
             await this.kubeHelper.deleteCertificate(this.devWorkspaceCertificateName, devWorkspaceNamespace)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-    ]
-  }
-
-  getDeleteCRsTasks(): ReadonlyArray<Listr.ListrTask> {
-    return [
-      {
-        title: `Delete ${DEVFILE_WORKSPACE_API_GROUP}/${DEVFILE_WORKSPACE_API_VERSION} resources`,
-        task: async (_ctx: any, task: any) => {
-          try {
-            await this.kubeHelper.deleteAllCustomResources(DEVFILE_WORKSPACE_API_GROUP, DEVFILE_WORKSPACE_API_VERSION, DEVFILE_WORKSPACE_KIND_PLURAL)
-            task.title = `${task.title}...[Ok]`
-          } catch (e: any) {
-            task.title = `${task.title}...[Failed: ${e.message}]`
-          }
-        },
-      },
-      {
-        title: `Delete ${DEVFILE_WORKSPACE_ROUTINGS_API_GROUP}/${DEVFILE_WORKSPACE_ROUTINGS_VERSION} resources`,
-        task: async (_ctx: any, task: any) => {
-          try {
-            await this.kubeHelper.deleteAllCustomResources(DEVFILE_WORKSPACE_ROUTINGS_API_GROUP, DEVFILE_WORKSPACE_ROUTINGS_VERSION, DEVFILE_WORKSPACE_ROUTINGS_KIND_PLURAL)
             task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`

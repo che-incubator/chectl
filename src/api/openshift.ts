@@ -34,10 +34,4 @@ export class OpenShiftHelper {
     const { stdout } = await execa(command, args, { timeout: 60000 })
     return stdout.trim().includes(name)
   }
-
-  async deleteAllRoutes(namespace = '') {
-    const command = 'oc'
-    const args = ['delete', 'route', '--all', '--namespace', namespace]
-    await execa(command, args, { timeout: 60000 })
-  }
 }
