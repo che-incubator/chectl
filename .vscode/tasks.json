@@ -106,8 +106,8 @@
             "group": "build"
         },
         {
-            "label": "Fix ts lint",
-            "command": "yarn run lint:fix",
+            "label": "[Chectl] Build",
+            "command": "yarn",
             "type": "shell",
             "args": [],
             "problemMatcher": [
@@ -119,8 +119,47 @@
             "group": "build"
         },
         {
-            "label": "Pack binaries",
-            "command": "yarn run pack-binaries",
+            "label": "[Chectl] Test",
+            "command": "yarn test",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "test"
+        },
+        {
+            "label": "[Chectl] Run",
+            "command": "./bin/run --help",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "test"
+        },
+        {
+            "label": "[Chectl] Format Sources",
+            "command": "yarn lint:fix",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "[Chectl] Pack Binaries",
+            "command": "yarn pack-binaries",
             "type": "shell",
             "args": [],
             "problemMatcher": [

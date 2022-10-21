@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "redhat.vscode-yaml",
+    "vscode.typescript",
+    "vscode.typescript-language-features"
+  ]
+}

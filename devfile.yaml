@@ -10,113 +10,17 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-apiVersion: 1.0.0
+schemaVersion: 2.1.0
 
 metadata:
   name: chectl-dev
 
-projects:
-
-  - name: chectl
-    source:
-      type: git
-      location: 'https://github.com/che-incubator/chectl.git'
-
 components:
+  - name: dev
+    container: 
+      image: 'quay.io/devfile/universal-developer-image:ubi8-latest'
+      cpuLimit: 500m
+      cpuRequest: 500m
+      memoryLimit: 5G
+      memoryRequest: 1G
 
-  - alias: dev
-    type: dockerimage
-    image: 'quay.io/eclipse/che-theia-dev:next'
-    mountSources: true
-    memoryLimit: 1G
-
-  - id: redhat/vscode-yaml/latest
-    type: chePlugin
-    memoryLimit: 128M
-
-  - id: vscode/typescript-language-features/latest
-    type: chePlugin
-    memoryLimit: 1G
-
-commands:
-
-  - name: Build
-    actions:
-      - type: exec
-        component: dev
-        command: >
-                 yarn
-        workdir: /projects/chectl
-
-  - name: Test
-    actions:
-      - type: exec
-        component: dev
-        command: >
-                 yarn test
-        workdir: /projects/chectl
-
-  - name: Run
-    actions:
-      - type: exec
-        component: dev
-        command: >
-                 ./run --help
-        workdir: /projects/chectl/bin
-
-  - name: Generate Devfile
-    actions:
-      - type: exec
-        component: dev
-        command: >
-                 ./run devfile:generate \
-                     --name=chectl-test \
-                     --language=typescript \
-                     --dockerimage=eclipse/che-theia-dev:next \
-                     --git-repo=https://github.com/che-incubator/chectl.git \
-                     --command="yarn" > /projects/sample.devfile;
-                  cat /projects/sample.devfile
-        workdir: /projects/chectl/bin
-
-  - name: Create Workspace
-    actions:
-      - type: exec
-        component: dev
-        command: >
-                 cat /projects/sample.devfile | curl -F 'clbin=<-' https://clbin.com > /projects/clbin;
-                 uri=$(cat /projects/clbin); ./run workspace:start -f=$uri
-        workdir: /projects/chectl/bin
-
-  - name: Package Binaries
-    actions:
-      - type: exec
-        component: dev
-        command: >
-                 yarn pack-binaries
-        workdir: /projects/chectl
-
-  - name: Format Sources
-    actions:
-      - type: exec
-        component: dev
-        command: >
-                 yarn format
-        workdir: /projects/chectl
-  - name: Attach remote debugger
-    actions:
-      - referenceContent: |
-          {
-            "version": "0.2.0",
-            "configurations": [
-              {
-                "type": "node",
-                "request": "attach",
-                "name": "Attach to Remote",
-                "address": "localhost",
-                "port": 9229,
-                "localRoot": "${workspaceFolder}",
-                "remoteRoot": "${workspaceFolder}"
-              }
-            ]
-          }
-        type: vscode-launch
