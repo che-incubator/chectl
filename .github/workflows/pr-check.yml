@@ -10,7 +10,7 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-name: PR validation
+name: PR Checks
 on: [pull_request]
 jobs:
   unit-tests:
