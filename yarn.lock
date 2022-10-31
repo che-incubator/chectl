@@ -749,10 +749,10 @@
     is-wsl "^2.1.1"
     tslib "^2.3.1"
 
-"@oclif/core@^1.1.1", "@oclif/core@^1.19.1":
-  version "1.19.1"
-  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-1.19.1.tgz#6dba92cfb7f1412e43068db3e9716215786f85a3"
-  integrity sha512-+LtMYQNzfLoYUcBTsWSFQ/4mqiA70XRU6tP+lDNmQQTrB5FHzDoBbyYvdjvMeS42izg78gjlN++rLUaAUCloNw==
+"@oclif/core@^1.1.1", "@oclif/core@^1.19.1", "@oclif/core@^1.20.0":
+  version "1.20.2"
+  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-1.20.2.tgz#724713086355d693e578960f72c7e2d14fd3e7c3"
+  integrity sha512-c6CpDbDPS9UuKwGoajzsjrjfnwQywWEV3WI5FDvb87h0/WW2tGf1QwHUWgdKOojafEcMAa9DnP5j+mXdUTtpCg==
   dependencies:
     "@oclif/linewrap" "^1.0.0"
     "@oclif/screen" "^3.0.2"
@@ -920,11 +920,11 @@
   integrity sha512-S/SF/XYJeevwIgHFmVDAFRUvM3m+OjhvCAYMk78ZJQCYCQ5wS7j+LTt1ZEv2jpEEGg2tx/F6TYYWxddNAYHrFQ==
 
 "@oclif/test@^2":
-  version "2.2.6"
-  resolved "https://registry.yarnpkg.com/@oclif/test/-/test-2.2.6.tgz#2c98bb1ecab3ddf6b01b51f8a3489c9105353d67"
-  integrity sha512-rf67rTBkEeulpomdeBYm0D+Q0e1uMqTPUNPhY2/G6guAJhmu3M+78HvSKpLdG7WqpbfQJ68D5Dh5HnauO+MY2g==
+  version "2.2.8"
+  resolved "https://registry.yarnpkg.com/@oclif/test/-/test-2.2.8.tgz#c4114922428f90f94e3775b596876a88830a91c2"
+  integrity sha512-VPVR1XLiTYqKToXlU7TPRnp5WMZvzfjyyPDH2sqKVCuEj9ZdEsK8m4woTK1n9aX1HI1Yv0tyyvg2a8HbUJOwhw==
   dependencies:
-    "@oclif/core" "^1.19.1"
+    "@oclif/core" "^1.20.0"
     fancy-test "^2.0.5"
 
 "@octokit/auth-token@^3.0.0":
