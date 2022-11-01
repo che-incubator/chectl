@@ -265,7 +265,7 @@ export class OperatorInstaller implements Installer {
             const crdPath = await this.getCRDPath()
             const crd = this.kh.safeLoadFromYamlFile(crdPath) as V1CustomResourceDefinition
             crd.spec.conversion!.webhook!.clientConfig!.service!.namespace = this.flags.chenamespace
-            crd.metadata!.annotations!['cert-manager.io/inject-ca-from'] = `${this.flags.chenamespace}/che-operator-serving-cert`
+            crd.metadata!.annotations!['cert-manager.io/inject-ca-from'] = `${this.flags.chenamespace}/${OperatorInstaller.CERTIFICATE}`
 
             await this.kh.createCrd(crd)
             task.title = `${task.title}...[OK: created]`
@@ -308,6 +308,7 @@ export class OperatorInstaller implements Installer {
             if (fs.existsSync(webhookPath)) {
               const webhook = this.kh.safeLoadFromYamlFile(webhookPath) as V1ValidatingWebhookConfiguration
               webhook!.webhooks![0].clientConfig.service!.namespace = this.flags.chenamespace
+              webhook.metadata!.annotations!['cert-manager.io/inject-ca-from'] = `${this.flags.chenamespace}/${OperatorInstaller.CERTIFICATE}`
               await this.kh.createValidatingWebhookConfiguration(webhook)
               task.title = `${task.title}...[OK: created]`
             } else {
@@ -327,6 +328,7 @@ export class OperatorInstaller implements Installer {
             if (fs.existsSync(webhookPath)) {
               const webhook = this.kh.safeLoadFromYamlFile(webhookPath) as V1MutatingWebhookConfiguration
               webhook!.webhooks![0].clientConfig.service!.namespace = this.flags.chenamespace
+              webhook.metadata!.annotations!['cert-manager.io/inject-ca-from'] = `${this.flags.chenamespace}/${OperatorInstaller.CERTIFICATE}`
               await this.kh.createMutatingWebhookConfiguration(webhook)
               task.title = `${task.title}...[OK: created]`
             } else {
@@ -474,7 +476,7 @@ export class OperatorInstaller implements Installer {
           const crdPath = await this.getCRDPath()
           const crd = this.kh.safeLoadFromYamlFile(crdPath) as V1CustomResourceDefinition
           crd.spec.conversion!.webhook!.clientConfig!.service!.namespace = this.flags.chenamespace
-          crd.metadata!.annotations!['cert-manager.io/inject-ca-from'] = `${this.flags.chenamespace}/che-operator-serving-cert`
+          crd.metadata!.annotations!['cert-manager.io/inject-ca-from'] = `${this.flags.chenamespace}/${OperatorInstaller.CERTIFICATE}`
 
           if (existedCRD) {
             await this.kh.replaceCustomResourceDefinition(crd)
@@ -521,6 +523,7 @@ export class OperatorInstaller implements Installer {
           if (fs.existsSync(webhookPath)) {
             const webhook = this.kh.safeLoadFromYamlFile(webhookPath) as V1ValidatingWebhookConfiguration
             webhook!.webhooks![0].clientConfig.service!.namespace = this.flags.chenamespace
+            webhook.metadata!.annotations!['cert-manager.io/inject-ca-from'] = `${this.flags.chenamespace}/${OperatorInstaller.CERTIFICATE}`
 
             const exists = await this.kh.isValidatingWebhookConfigurationExists(OperatorInstaller.VALIDATING_WEBHOOK)
             if (exists) {
@@ -542,6 +545,7 @@ export class OperatorInstaller implements Installer {
           if (fs.existsSync(webhookPath)) {
             const webhook = this.kh.safeLoadFromYamlFile(webhookPath) as V1MutatingWebhookConfiguration
             webhook!.webhooks![0].clientConfig.service!.namespace = this.flags.chenamespace
+            webhook.metadata!.annotations!['cert-manager.io/inject-ca-from'] = `${this.flags.chenamespace}/${OperatorInstaller.CERTIFICATE}`
 
             const exists = await this.kh.isMutatingWebhookConfigurationExists(OperatorInstaller.MUTATING_WEBHOOK)
             if (exists) {
