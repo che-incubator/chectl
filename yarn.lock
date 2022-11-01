@@ -854,12 +854,12 @@
     chalk "^4.1.0"
     tslib "^2.3.1"
 
-"@oclif/plugin-autocomplete@^1.3.4":
-  version "1.3.4"
-  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-1.3.4.tgz#38a0ae8f49a35651751cdba5afd97da6be1b5848"
-  integrity sha512-qlD1jlx/5PCGTpF7snKYDEQlLF2pcqr3P2Gw+JWyFnkrjWCLMGDnwaDL4ulruDp3sBxtKNY73sywmKJxQ8F76Q==
+"@oclif/plugin-autocomplete@^1.3.5":
+  version "1.3.5"
+  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-1.3.5.tgz#8b913279e198928e7a52c5de189d1fcbe2e1ad9c"
+  integrity sha512-86vKJATapihZohK81oLZKqxGebYvRQ4cK61sM68sKUsznfECevz7m3VHUDxhH/TwXttKc8Dv0LbBPBM/FiNAfQ==
   dependencies:
-    "@oclif/core" "^1.19.1"
+    "@oclif/core" "^1.20.0"
     chalk "^4.1.0"
     debug "^4.3.4"
     fs-extra "^9.0.1"
