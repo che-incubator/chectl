@@ -23,6 +23,8 @@ Issues are tracked on the main Eclipse Che Repository: https://github.com/eclips
 * [Usage](#usage)
 * [Commands](#commands)
 * [Contributing](#contributing)
+* [Builds](#builds)
+* [License](#license)
 <!-- tocstop -->
 # Installation
 
@@ -128,7 +130,7 @@ EXAMPLES
   $ chectl autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v1.3.0/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v1.3.5/src/commands/autocomplete/index.ts)_
 
 ## `chectl cacert:export`
 
@@ -191,7 +193,7 @@ OPTIONS
   -n, --nested-commands  Include all nested commands in the output.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.15/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.17/src/commands/help.ts)_
 
 ## `chectl server:debug`
 
