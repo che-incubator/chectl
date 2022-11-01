@@ -474,6 +474,7 @@ export class KubeHelper {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
       delete yamlRoleBinding.metadata?.namespace
+      yamlRoleBinding.subjects![0].namespace = namespace
       await k8sRbacAuthApi.createNamespacedRoleBinding(namespace, yamlRoleBinding)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -484,6 +485,7 @@ export class KubeHelper {
     const k8sRbacAuthApi = this.kubeConfig.makeApiClient(RbacAuthorizationV1Api)
     try {
       delete yamlRoleBinding.metadata?.namespace
+      yamlRoleBinding.subjects![0].namespace = namespace
       await k8sRbacAuthApi.replaceNamespacedRoleBinding(yamlRoleBinding.metadata!.name!, namespace, yamlRoleBinding)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
