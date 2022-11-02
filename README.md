@@ -533,9 +533,9 @@ Contributing to chectl is covered in [CONTRIBUTING.md](https://github.com/che-in
 # Builds
 
 This repo contains several [actions](https://github.com/eclipse-che/che-operator/actions), including:
-* ![release latest stable](https://github.com/che-incubator/chectl/actions/workflows/release.yml/badge.svg)
-* ![PR](https://github.com/che-incubator/chectl/actions/workflows/pr-check.yml/badge.svg)
-* ![try in webIDE](https://github.com/che-incubator/chectl/actions/workflows/try-in-web-ide.yaml/badge.svg)
+* [![release latest stable](https://github.com/che-incubator/chectl/actions/workflows/release.yml/badge.svg)](https://github.com/che-incubator/chectl/actions/workflows/release.yml)
+* [![PR](https://github.com/che-incubator/chectl/actions/workflows/pr-check.yml/badge.svg)](https://github.com/che-incubator/chectl/actions/workflows/pr-check.yml)
+* [![try in webIDE](https://github.com/che-incubator/chectl/actions/workflows/try-in-web-ide.yaml/badge.svg)](https://github.com/che-incubator/chectl/actions/workflows/try-in-web-ide.yaml)
 
 Downstream builds can be found at the link below, which is _internal to Red Hat_. Stable builds can be found by replacing the 3.x with a specific version like 3.2.  
 
