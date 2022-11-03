@@ -144,7 +144,14 @@ export default class Delete extends Command {
           task: () => new Listr(cheTasks.getWaitPodsDeletedTasks()),
         })
         if (flags['delete-namespace']) {
-          tasks.add(cheTasks.getDeleteNamespaceTasks(flags))
+          if (flags.chenamespace === OPENSHIFT_OPERATORS_NAMESPACE) {
+            tasks.add({
+              title: `Delete namespace ${flags.chenamespace}`,
+              task: (_ctx:any, task:any) => task.skip(`${OPENSHIFT_OPERATORS_NAMESPACE} namespace can't be deleted.`),
+            })
+          } else {
+            tasks.add(cheTasks.getDeleteNamespaceTasks(flags))
+          }
         }
 
         return tasks
