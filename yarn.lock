@@ -749,7 +749,7 @@
     is-wsl "^2.1.1"
     tslib "^2.3.1"
 
-"@oclif/core@^1.1.1", "@oclif/core@^1.19.1", "@oclif/core@^1.20.0":
+"@oclif/core@^1.1.1", "@oclif/core@^1.20.0":
   version "1.20.2"
   resolved "https://registry.yarnpkg.com/@oclif/core/-/core-1.20.2.tgz#724713086355d693e578960f72c7e2d14fd3e7c3"
   integrity sha512-c6CpDbDPS9UuKwGoajzsjrjfnwQywWEV3WI5FDvb87h0/WW2tGf1QwHUWgdKOojafEcMAa9DnP5j+mXdUTtpCg==
@@ -2446,8 +2446,8 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-operator@https://github.com/eclipse-che/che-operator#main":
   version "0.0.0"
-  uid b6def8e3f9d197aaedbea1864e987e295adf1084
-  resolved "https://github.com/eclipse-che/che-operator#b6def8e3f9d197aaedbea1864e987e295adf1084"
+  uid "349cb782a94ec0affa26c6fa45c143068b37ef97"
+  resolved "https://github.com/eclipse-che/che-operator#349cb782a94ec0affa26c6fa45c143068b37ef97"
 
 editorconfig@^0.15.0:
   version "0.15.3"
