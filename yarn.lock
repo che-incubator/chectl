@@ -749,7 +749,7 @@
     is-wsl "^2.1.1"
     tslib "^2.3.1"
 
-"@oclif/core@^1.1.1", "@oclif/core@^1.19.1", "@oclif/core@^1.20.0":
+"@oclif/core@^1.1.1", "@oclif/core@^1.20.0":
   version "1.20.2"
   resolved "https://registry.yarnpkg.com/@oclif/core/-/core-1.20.2.tgz#724713086355d693e578960f72c7e2d14fd3e7c3"
   integrity sha512-c6CpDbDPS9UuKwGoajzsjrjfnwQywWEV3WI5FDvb87h0/WW2tGf1QwHUWgdKOojafEcMAa9DnP5j+mXdUTtpCg==
@@ -2402,8 +2402,8 @@ detect-newline@^3.0.0:
 
 "devworkspace-operator@https://github.com/devfile/devworkspace-operator#main":
   version "0.0.0"
-  uid "81f75dff8eb0e9ac207cb6d0905a13ed9580c883"
-  resolved "https://github.com/devfile/devworkspace-operator#81f75dff8eb0e9ac207cb6d0905a13ed9580c883"
+  uid "890b27cba33cfeae081a682279b579ee6aaae4fb"
+  resolved "https://github.com/devfile/devworkspace-operator#890b27cba33cfeae081a682279b579ee6aaae4fb"
 
 diff-sequences@^29.2.0:
   version "29.2.0"
