@@ -19,7 +19,7 @@ export const DEVWORKSPACE_OPERATOR_TEMPLATE_DIR = 'devworkspace-operator'
 // images
 export const OPERATOR_IMAGE_NAME = 'quay.io/eclipse/che-operator'
 export const OPERATOR_IMAGE_NEXT_TAG = 'next'
-export const ECLIPSE_CHE_NEXT_CATALOG_SOURCE_IMAGE = 'quay.io/eclipse/eclipse-che-openshift-opm-catalog:next'
+export const ECLIPSE_CHE_NEXT_CATALOG_SOURCE_IMAGE = 'quay.io/eclipse/eclipse-che-olm-catalog:next'
 export const DEV_WORKSPACE_NEXT_CATALOG_SOURCE_IMAGE = 'quay.io/devfile/devworkspace-operator-index:next'
 export const DEV_WORKSPACE_STABLE_CATALOG_SOURCE_IMAGE = 'quay.io/devfile/devworkspace-operator-index:release'
 
@@ -41,16 +41,16 @@ export const ECLIPSE_CHE_STABLE_CHANNEL_PACKAGE_NAME = 'eclipse-che'
 export const ECLIPSE_CHE_STABLE_CHANNEL_CATALOG_SOURCE_NAME = 'community-operators'
 
 export const OLM_NEXT_CHANNEL_NAME = 'next'
-export const ECLIPSE_CHE_NEXT_CHANNEL_PACKAGE_NAME = 'eclipse-che-preview-openshift'
-export const ECLIPSE_CHE_NEXT_CHANNEL_CATALOG_SOURCE_NAME = 'eclipse-che-preview'
+export const ECLIPSE_CHE_NEXT_CHANNEL_PACKAGE_NAME = 'eclipse-che'
+export const ECLIPSE_CHE_NEXT_CHANNEL_CATALOG_SOURCE_NAME = 'eclipse-che'
 
-export const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME = 'eclipse-che-subscription'
+export const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME = 'eclipse-che'
 export const CSV_PREFIX = 'eclipse-che'
 
 export const OPENSHIFT_MARKET_PLACE_NAMESPACE = 'openshift-marketplace'
 export const OPENSHIFT_OPERATORS_NAMESPACE = 'openshift-operators'
 
-export const DEFAULT_CUSTOM_CATALOG_SOURCE_NAME = 'eclipse-che-custom-catalog-source'
+export const DEFAULT_CUSTOM_CATALOG_SOURCE_NAME = 'eclipse-che'
 
 // DevWorkspace
 export const NEXT_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR = 'custom-devworkspace-operator-catalog'
