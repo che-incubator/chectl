@@ -12,75 +12,76 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
-import * as Listr from 'listr'
 
-import { ChectlContext } from '../../api/context'
-import { batch, cheNamespace, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck } from '../../common-flags'
-import { CheTasks } from '../../tasks/che'
-import { ApiTasks } from '../../tasks/platforms/api'
-import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
-import { DEFAULT_CHE_NAMESPACE } from '../../constants'
+import {CheCtlContext} from '../../context'
+import {
+  K8S_POD_READY_TIMEOUT_FLAG,
+  LOG_DIRECTORY_FLAG,
+  CHE_NAMESPACE_FLAG,
+  CHE_NAMESPACE,
+  LISTR_RENDERER_FLAG,
+  LISTR_RENDERER,
+  TELEMETRY_FLAG,
+  TELEMETRY,
+  SKIP_KUBE_HEALTHZ_CHECK_FLAG,
+  SKIP_KUBE_HEALTHZ_CHECK,
+  BATCH_FLAG,
+  BATCH,
+  LOG_DIRECTORY,
+  K8S_POD_WAIT_TIMEOUT_FLAG,
+  K8S_POD_WAIT_TIMEOUT,
+  K8S_POD_READY_TIMEOUT,
+  K8S_POD_DOWNLOAD_IMAGE_TIMEOUT_FLAG,
+  K8S_POD_DOWNLOAD_IMAGE_TIMEOUT,
+  K8S_POD_ERROR_RECHECK_TIMEOUT_FLAG, K8S_POD_ERROR_RECHECK_TIMEOUT,
+} from '../../flags'
+import {KubeClient} from '../../api/kube-client'
+import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
+import {DEFAULT_ANALYTIC_HOOK_NAME} from '../../constants'
+import {CommonTasks} from '../../tasks/common-tasks'
+import {CheTasks} from '../../tasks/che-tasks'
+import {getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError} from '../../utils/command-utils'
+import {newListr} from '../../utils/utls'
 
 export default class Start extends Command {
-  static description = 'Start Eclipse Che server'
+  static description = `Start ${EclipseChe.PRODUCT_NAME} server`
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
-    chenamespace: cheNamespace,
-    batch,
-    'listr-renderer': listrRenderer,
-    [K8SPODWAITTIMEOUT_KEY]: k8sPodWaitTimeout,
-    [K8SPODREADYTIMEOUT_KEY]: k8sPodReadyTimeout,
-    [K8SPODDOWNLOADIMAGETIMEOUT_KEY]: k8sPodDownloadImageTimeout,
-    [K8SPODERRORRECHECKTIMEOUT_KEY]: k8sPodErrorRecheckTimeout,
-    [LOG_DIRECTORY_KEY]: logsDirectory,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    [CHE_NAMESPACE_FLAG]: CHE_NAMESPACE,
+    [LISTR_RENDERER_FLAG]: LISTR_RENDERER,
+    [TELEMETRY_FLAG]: TELEMETRY,
+    [SKIP_KUBE_HEALTHZ_CHECK_FLAG]: SKIP_KUBE_HEALTHZ_CHECK,
+    [BATCH_FLAG]: BATCH,
+    [K8S_POD_WAIT_TIMEOUT_FLAG]: K8S_POD_WAIT_TIMEOUT,
+    [K8S_POD_READY_TIMEOUT_FLAG]: K8S_POD_READY_TIMEOUT,
+    [K8S_POD_DOWNLOAD_IMAGE_TIMEOUT_FLAG]: K8S_POD_DOWNLOAD_IMAGE_TIMEOUT,
+    [K8S_POD_ERROR_RECHECK_TIMEOUT_FLAG]: K8S_POD_ERROR_RECHECK_TIMEOUT,
+    [LOG_DIRECTORY_FLAG]: LOG_DIRECTORY,
   }
 
   async run() {
-    const { flags } = this.parse(Start)
-    flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags) || DEFAULT_CHE_NAMESPACE
-    const ctx = await ChectlContext.initAndGet(flags, this)
+    const {flags} = this.parse(Start)
+    const ctx = await CheCtlContext.initAndGet(flags, this)
 
-    const cheTasks = new CheTasks(flags)
-    const apiTasks = new ApiTasks()
+    const kubeHelper = KubeClient.getInstance()
+    flags[CHE_NAMESPACE_FLAG] = flags[CHE_NAMESPACE_FLAG] || await kubeHelper.findCheClusterNamespace() || EclipseChe.NAMESPACE
 
-    // Checks if Eclipse Che is already deployed
-    const preInstallTasks = new Listr([
-      apiTasks.testApiTasks(flags),
-      {
-        title: '👀  Looking for an already existing Eclipse Che instance',
-        task: () => new Listr(cheTasks.getCheckIfCheIsInstalledTasks(flags)),
-      },
-    ], ctx.listrOptions)
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, {command: Start.id, flags})
 
-    const logsTasks = new Listr([{
-      title: 'Following Eclipse Che logs',
-      task: () => new Listr(cheTasks.getServerLogsTasks(flags, true)),
-    }], ctx.listrOptions)
-
-    const startCheTasks = new Listr([{
-      title: 'Starting Eclipse Che',
-      task: () => new Listr(cheTasks.getSaleCheUpTasks()),
-    }], ctx.listrOptions)
+    const tasks = newListr()
+    tasks.add(CommonTasks.getTestKubernetesApiTasks())
+    tasks.add(CheTasks.getServerLogsTasks(true))
+    tasks.add(CheTasks.getScaleCheUpTasks())
 
     try {
-      await preInstallTasks.run(ctx)
-
-      if (!ctx.isCheDeployed) {
-        cli.warn('Eclipse Che has not been deployed yet. Use server:deploy command to deploy a new Eclipse Che instance.')
-      } else if (ctx.isCheReady) {
-        cli.info('Eclipse Che has been already started.')
-      } else {
-        await logsTasks.run(ctx)
-        await startCheTasks.run(ctx)
-        this.log(getCommandSuccessMessage())
-      }
+      await tasks.run(ctx)
+      cli.log(getCommandSuccessMessage())
     } catch (err: any) {
       this.error(wrapCommandError(err))
     }
 
-    if (!flags.batch) {
+    if (!flags[BATCH_FLAG]) {
       notifyCommandCompletedSuccessfully()
     }
     this.exit(0)

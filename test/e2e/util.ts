@@ -14,10 +14,10 @@ import { Octokit } from '@octokit/rest'
 import * as execa from 'execa'
 import * as fs from 'fs-extra'
 
-import { CheHelper } from '../../src/api/che'
+import { CheHelper } from '../../src/api/che-logs-reader'
 import { CheGithubClient, TagInfo } from '../../src/api/github-client'
-import { KubeHelper } from '../../src/api/kube'
-import { OpenShiftHelper } from '../../src/api/openshift'
+import { KubeClient } from '../../src/api/kube-client'
+import { OpenShiftHelper } from '../../src/utils/openshift'
 
 export const NAMESPACE = 'eclipse-che'
 export const CHECTL_REPONAME = 'chectl'
@@ -27,13 +27,13 @@ export const OWNER = 'che-incubator'
 //Utilities to help e2e tests
 export class E2eHelper {
   private readonly octokit: Octokit
-  protected kubeHelper: KubeHelper
+  protected kubeHelper: KubeClient
   protected che: CheHelper
   protected oc: OpenShiftHelper
   protected devfileName: string
 
   constructor() {
-    this.kubeHelper = new KubeHelper({})
+    this.kubeHelper = new KubeClient({})
     this.che = new CheHelper({})
     // generate-name from https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml
     this.devfileName = 'quarkus-'
@@ -89,7 +89,7 @@ export class E2eHelper {
 
     let totalTimeMs = 0
     while (totalTimeMs < timeoutMs) {
-      const cheCR = await this.kubeHelper.getCheClusterV2(NAMESPACE)
+      const cheCR = await this.kubeHelper.getCheCluster(NAMESPACE)
       if (cheCR && cheCR.status && cheCR.status.cheVersion === version) {
         return
       }

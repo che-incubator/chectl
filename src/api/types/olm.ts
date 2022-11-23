@@ -131,13 +131,3 @@ export interface CatalogSourceUpdateStrategy {
 export interface CatalogSourceRegistryPoll {
   interval: string
 }
-
-export interface PackageManifest {
-  name: string
-  status?: PackageManifestStatus
-}
-
-export interface PackageManifestStatus {
-  catalogSource: string
-  catalogSourceNamespace: string
-}

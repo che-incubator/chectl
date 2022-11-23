@@ -11,48 +11,52 @@
  */
 
 import { Command, flags } from '@oclif/command'
-import { string } from '@oclif/parser/lib/flags'
-import * as Listr from 'listr'
 
-import { ChectlContext } from '../../api/context'
-import { cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE } from '../../constants'
-import { CheTasks } from '../../tasks/che'
-import { ApiTasks } from '../../tasks/platforms/api'
-import { findWorkingNamespace, getCommandSuccessMessage, wrapCommandError } from '../../util'
+import {CheCtlContext, CliContext} from '../../context'
+import {
+  CHE_NAMESPACE_FLAG,
+  CHE_NAMESPACE,
+  LISTR_RENDERER_FLAG,
+  LISTR_RENDERER,
+  TELEMETRY_FLAG,
+  TELEMETRY,
+  SKIP_KUBE_HEALTHZ_CHECK_FLAG, SKIP_KUBE_HEALTHZ_CHECK, LOG_DIRECTORY_FLAG, LOG_DIRECTORY,
+} from '../../flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { CheTasks } from '../../tasks/che-tasks'
+import {KubeClient} from '../../api/kube-client'
+import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
+import {CommonTasks} from '../../tasks/common-tasks'
+import {getCommandSuccessMessage, wrapCommandError} from '../../utils/command-utils'
+import {newListr} from '../../utils/utls'
 
 export default class Logs extends Command {
-  static description = 'Collect Eclipse Che logs'
+  static description = `Collect ${EclipseChe.PRODUCT_NAME} logs`
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
-    chenamespace: cheNamespace,
-    'listr-renderer': listrRenderer,
-    directory: string({
-      char: 'd',
-      description: 'Directory to store logs into',
-      env: 'CHE_LOGS',
-    }),
-    'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY,
+    [LOG_DIRECTORY_FLAG]: LOG_DIRECTORY,
+    [CHE_NAMESPACE_FLAG]: CHE_NAMESPACE,
+    [LISTR_RENDERER_FLAG]: LISTR_RENDERER,
+    [TELEMETRY_FLAG]: TELEMETRY,
+    [SKIP_KUBE_HEALTHZ_CHECK_FLAG]: SKIP_KUBE_HEALTHZ_CHECK,
   }
 
   async run() {
     const { flags } = this.parse(Logs)
-    flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags) || DEFAULT_CHE_NAMESPACE
-    const ctx = await ChectlContext.initAndGet(flags, this)
+    const ctx = await CheCtlContext.initAndGet(flags, this)
 
-    const cheTasks = new CheTasks(flags)
-    const apiTasks = new ApiTasks()
-    const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
+    const kubeHelper = KubeClient.getInstance()
+    flags[CHE_NAMESPACE_FLAG] = flags[CHE_NAMESPACE_FLAG] || await kubeHelper.findCheClusterNamespace() || EclipseChe.NAMESPACE
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logs.id, flags })
-    tasks.add(apiTasks.testApiTasks(flags))
-    tasks.add(cheTasks.getCheckCheNamespaceExistsTasks(flags, this))
-    tasks.add(cheTasks.getServerLogsTasks(flags, false))
+
+    const tasks = newListr()
+    tasks.add(CommonTasks.getTestKubernetesApiTasks())
+    tasks.add(CheTasks.getServerLogsTasks(false))
 
     try {
-      this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
+      this.log(`${EclipseChe.PRODUCT_NAME} logs will be available in '${ctx[CliContext.CLI_COMMAND_LOGS_DIR]}'`)
       await tasks.run(ctx)
       this.log(getCommandSuccessMessage())
     } catch (err: any) {

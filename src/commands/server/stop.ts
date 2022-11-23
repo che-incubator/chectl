@@ -11,65 +11,52 @@
  */
 
 import { Command, flags } from '@oclif/command'
-import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 
-import { ChectlContext } from '../../api/context'
-import { cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE } from '../../constants'
-import { CheTasks } from '../../tasks/che'
-import { ApiTasks } from '../../tasks/platforms/api'
-import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import {CheCtlContext} from '../../context'
+import {
+  CHE_NAMESPACE_FLAG,
+  CHE_NAMESPACE,
+  LISTR_RENDERER_FLAG,
+  LISTR_RENDERER,
+  TELEMETRY_FLAG,
+  TELEMETRY,
+  SKIP_KUBE_HEALTHZ_CHECK_FLAG,
+  SKIP_KUBE_HEALTHZ_CHECK, BATCH_FLAG,
+} from '../../flags'
+import { CheTasks } from '../../tasks/che-tasks'
+import {KubeClient} from '../../api/kube-client'
+import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
+import {CommonTasks} from '../../tasks/common-tasks'
+import {DEFAULT_ANALYTIC_HOOK_NAME} from '../../constants'
+import {getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError} from '../../utils/command-utils'
+import {newListr} from '../../utils/utls'
 
 export default class Stop extends Command {
-  static description = 'stop Eclipse Che server'
+  static description = `stop ${EclipseChe.PRODUCT_NAME} server`
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
-    chenamespace: cheNamespace,
-    'che-selector': string({
-      description: 'Selector for Eclipse Che server resources',
-      default: 'app=che,component=che',
-      env: 'CHE_SELECTOR',
-    }),
-    'listr-renderer': listrRenderer,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY,
+    [CHE_NAMESPACE_FLAG]: CHE_NAMESPACE,
+    [LISTR_RENDERER_FLAG]: LISTR_RENDERER,
+    [TELEMETRY_FLAG]: TELEMETRY,
+    [SKIP_KUBE_HEALTHZ_CHECK_FLAG]: SKIP_KUBE_HEALTHZ_CHECK,
   }
 
   async run() {
     const { flags } = this.parse(Stop)
-    flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags) || DEFAULT_CHE_NAMESPACE
-    const ctx = await ChectlContext.initAndGet(flags, this)
+    const ctx = await CheCtlContext.initAndGet(flags, this)
 
-    const Listr = require('listr')
-    const cheTasks = new CheTasks(flags)
-    const apiTasks = new ApiTasks()
+    const kubeHelper = KubeClient.getInstance()
+    flags[CHE_NAMESPACE_FLAG] = flags[CHE_NAMESPACE_FLAG] || await kubeHelper.findCheClusterNamespace() || EclipseChe.NAMESPACE
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Stop.id, flags })
 
-    const tasks = new Listr(undefined,
-      {
-        renderer: flags['listr-renderer'] as any,
-        collapse: false,
-      }
-    )
+    const tasks = newListr()
+    tasks.add(CommonTasks.getTestKubernetesApiTasks())
+    tasks.add(CheTasks.getScaleCheDownTasks())
+    tasks.add(CheTasks.getWaitPodsDeletedTasks())
 
-    tasks.add(apiTasks.testApiTasks(flags))
-    tasks.add(cheTasks.getCheckIfCheIsInstalledTasks(flags))
-    tasks.add([
-      {
-        title: 'Deployment doesn\'t exist',
-        enabled: (ctx: any) => !ctx.isCheDeployed,
-        task: async () => {
-          await this.error('Eclipse Che deployment not found')
-        },
-      },
-    ],
-    { renderer: flags['listr-renderer'] as any }
-    )
-    tasks.add(cheTasks.getSaleCheDownTasks())
-    tasks.add(cheTasks.getWaitPodsDeletedTasks())
     try {
       await tasks.run(ctx)
       cli.log(getCommandSuccessMessage())
@@ -77,7 +64,7 @@ export default class Stop extends Command {
       this.error(wrapCommandError(err))
     }
 
-    if (!flags.batch) {
+    if (!flags[BATCH_FLAG]) {
       notifyCommandCompletedSuccessfully()
     }
     this.exit(0)

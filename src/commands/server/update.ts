@@ -11,151 +11,99 @@
  */
 
 import { Command, flags } from '@oclif/command'
-import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
-import * as Listr from 'listr'
 import * as semver from 'semver'
 
-import { CheHelper } from '../../api/che'
-import { ChectlContext } from '../../api/context'
-import { KubeHelper } from '../../api/kube'
+import {CheCtlContext, CliContext, InfrastructureContext, OperatorImageUpgradeContext} from '../../context'
+import { KubeClient } from '../../api/kube-client'
+
+import { EclipseCheInstallerFactory } from '../../tasks/installers/eclipse-che/eclipse-che-installer-factory'
 import {
-  assumeYes,
-  batch,
-  CHE_OPERATOR_CR_PATCH_YAML_KEY,
-  CHE_TELEMETRY,
-  cheDeployVersion,
-  cheNamespace,
-  cheOperatorCRPatchYaml,
-  DEPLOY_VERSION_KEY,
-  listrRenderer,
-  skipKubeHealthzCheck,
-} from '../../common-flags'
-import {
-  DEFAULT_ANALYTIC_HOOK_NAME,
-  DEFAULT_CHE_NAMESPACE,
-  OPERATOR_IMAGE_NAME,
-  OPERATOR_IMAGE_NEXT_TAG,
-} from '../../constants'
-import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
-import { InstallerFactoryTasks } from '../../tasks/installers/installer-factory-tasks'
-import { ApiTasks } from '../../tasks/platforms/api'
+  ASSUME_YES,
+  ASSUME_YES_FLAG,
+  BATCH,
+  BATCH_FLAG,
+  CHE_NAMESPACE,
+  CHE_NAMESPACE_FLAG, CHE_OPERATOR_CR_PATCH_YAML,
+  CHE_OPERATOR_CR_PATCH_YAML_FLAG, CHE_OPERATOR_IMAGE, CHE_OPERATOR_IMAGE_FLAG, LISTR_RENDERER, LISTR_RENDERER_FLAG,
+  SKIP_DEV_WORKSPACE,
+  SKIP_DEV_WORKSPACE_FLAG, SKIP_KUBE_HEALTHZ_CHECK,
+  SKIP_KUBE_HEALTHZ_CHECK_FLAG, SKIP_VERSION_CHECK, SKIP_VERSION_CHECK_FLAG,
+  TELEMETRY,
+  TELEMETRY_FLAG,
+  TEMPLATES,
+  TEMPLATES_FLAG,
+} from '../../flags'
+import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
+import {DEFAULT_ANALYTIC_HOOK_NAME} from '../../constants'
 import {
   askForChectlUpdateIfNeeded,
-  findWorkingNamespace,
   getCommandSuccessMessage,
-  getProjectName,
-  getProjectVersion,
-  getWarnVersionFlagMsg,
   notifyCommandCompletedSuccessfully,
   wrapCommandError,
-} from '../../util'
-import { DevWorkspaceTasks } from '../../tasks/components/devworkspace-operator-installer'
+} from '../../utils/command-utils'
+import {CommonTasks} from '../../tasks/common-tasks'
+import {getProjectName, getProjectVersion, newListr} from '../../utils/utls'
 
 export default class Update extends Command {
-  static description = 'Update Eclipse Che server.'
+  static description = `Update ${EclipseChe.PRODUCT_NAME} server.`
 
   static examples = [
-    '# Update Eclipse Che:\n' +
+    `# Update ${EclipseChe.PRODUCT_NAME}:\n` +
     'chectl server:update',
-    '\n# Update Eclipse Che in \'eclipse-che\' namespace:\n' +
+    `\n# Update ${EclipseChe.PRODUCT_NAME} in \'eclipse-che\' namespace:\n` +
     'chectl server:update -n eclipse-che',
-    '\n# Update Eclipse Che and update its configuration in the custom resource:\n' +
-    `chectl server:update --${CHE_OPERATOR_CR_PATCH_YAML_KEY} patch.yaml`,
+    `\n# Update ${EclipseChe.PRODUCT_NAME} and update its configuration in the custom resource:\n` +
+    `chectl server:update --${CHE_OPERATOR_CR_PATCH_YAML_FLAG} patch.yaml`,
   ]
 
   static flags: flags.Input<any> = {
-    installer: string({
-      char: 'a',
-      description: 'Installer type. If not set, default is autodetected depending on previous installation.',
-      options: ['operator', 'olm'],
-      hidden: true,
-    }),
-    chenamespace: cheNamespace,
-    batch,
-    templates: string({
-      char: 't',
-      description: 'Path to the templates folder',
-      env: 'CHE_TEMPLATES_FOLDER',
-      exclusive: [DEPLOY_VERSION_KEY],
-    }),
-    'che-operator-image': string({
-      description: 'Container image of the operator. This parameter is used only when the installer is the operator or OLM.',
-      hidden: true,
-    }),
-    'skip-version-check': flags.boolean({
-      description: 'Skip minimal versions check.',
-      default: false,
-      hidden: true,
-    }),
-    'listr-renderer': listrRenderer,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    yes: assumeYes,
     help: flags.help({ char: 'h' }),
-    [CHE_OPERATOR_CR_PATCH_YAML_KEY]: cheOperatorCRPatchYaml,
-    telemetry: CHE_TELEMETRY,
-    [DEPLOY_VERSION_KEY]: cheDeployVersion,
-    'skip-devworkspace-operator': boolean({
-      default: false,
-      description: 'Skip updating Dev Workspace Operator (Kubernetes cluster only).',
-    }),
+    [CHE_NAMESPACE_FLAG]: CHE_NAMESPACE,
+    [BATCH_FLAG]: BATCH,
+    [ASSUME_YES_FLAG]: ASSUME_YES,
+    [TEMPLATES_FLAG]: TEMPLATES,
+    [CHE_OPERATOR_IMAGE_FLAG]: CHE_OPERATOR_IMAGE,
+    [CHE_OPERATOR_CR_PATCH_YAML_FLAG]: CHE_OPERATOR_CR_PATCH_YAML,
+    [SKIP_DEV_WORKSPACE_FLAG]: SKIP_DEV_WORKSPACE,
+    [SKIP_KUBE_HEALTHZ_CHECK_FLAG]: SKIP_KUBE_HEALTHZ_CHECK,
+    [SKIP_VERSION_CHECK_FLAG]: SKIP_VERSION_CHECK,
+    [TELEMETRY_FLAG]: TELEMETRY,
+    [LISTR_RENDERER_FLAG]: LISTR_RENDERER,
   }
 
   async run() {
     const { flags } = this.parse(Update)
-    flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags) || DEFAULT_CHE_NAMESPACE
-    const ctx = await ChectlContext.initAndGet(flags, this)
+    const ctx = await CheCtlContext.initAndGet(flags, this)
 
-    if (!flags.batch && ctx.isChectl) {
-      await askForChectlUpdateIfNeeded()
-    }
-
-    if (flags.version) {
-      cli.info(getWarnVersionFlagMsg(flags))
-      this.exit(1)
-    }
-
-    await this.setDomainFlag(flags)
-
-    if (!flags.installer) {
-      flags.installer = await this.getCurrentInstaller(flags)
-    }
-    if (flags.installer === 'operator' && ctx[ChectlContext.IS_OPENSHIFT]) {
-      cli.error('--installer=operator is not supported for OpenShift platform.')
-    }
+    const kubeHelper = KubeClient.getInstance()
+    flags[CHE_NAMESPACE_FLAG] = flags[CHE_NAMESPACE_FLAG] || await kubeHelper.findCheClusterNamespace() || EclipseChe.NAMESPACE
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Update.id, flags })
 
-    const installerTasks = new InstallerFactoryTasks()
-
-    // pre update tasks
-    const apiTasks = new ApiTasks()
-    const preUpdateTasks = new Listr([], ctx.listrOptions)
-    preUpdateTasks.add(apiTasks.testApiTasks(flags))
-    preUpdateTasks.add({
-      title: 'Preflight check',
-      task: () => new Listr(installerTasks.getPreUpdateTasks(flags), ctx.listrOptions),
-    })
-
-    // update tasks
-    const updateTasks = new Listr([], ctx.listrOptions)
-    if (!ctx[ChectlContext.IS_OPENSHIFT]) {
-      const devWorkspaceTask = new DevWorkspaceTasks(flags)
-      updateTasks.add(devWorkspaceTask.getUpdateTasks())
+    if (!flags[BATCH_FLAG] && ctx[CliContext.CLI_IS_CHECTL]) {
+      await askForChectlUpdateIfNeeded()
     }
-    updateTasks.add({
-      title: 'Update Eclipse Che',
-      task: () => new Listr(installerTasks.getUpdateTasks(flags), ctx.listrOptions),
-    })
 
-    // post update tasks
-    const postUpdateTasks = new Listr([], ctx.listrOptions)
-    postUpdateTasks.add(getPrintHighlightedMessagesTask())
+    const eclipseCheInstallerInstaller = EclipseCheInstallerFactory.getInstaller()
+
+    // PreUpdate tasks
+    const preUpdateTasks = newListr()
+    preUpdateTasks.add(CommonTasks.getTestKubernetesApiTasks())
+    preUpdateTasks.add(eclipseCheInstallerInstaller.getPreUpdateTasks())
+
+    // Update tasks
+    const updateTasks = newListr()
+    updateTasks.add(eclipseCheInstallerInstaller.getUpdateTasks())
+
+    // PostUpdate tasks
+    const postUpdateTasks = newListr()
+    postUpdateTasks.add(CommonTasks.getPrintHighlightedMessagesTask())
 
     try {
       await preUpdateTasks.run(ctx)
 
-      if (!ctx[ChectlContext.IS_OPENSHIFT]) {
+      if (!ctx[InfrastructureContext.IS_OPENSHIFT]) {
         if (!await this.checkAbilityToUpdateCheOperatorAndAskUser(flags)) {
           // Exit
           return
@@ -163,13 +111,12 @@ export default class Update extends Command {
       }
       await updateTasks.run(ctx)
       await postUpdateTasks.run(ctx)
-
       this.log(getCommandSuccessMessage())
     } catch (err: any) {
       this.error(wrapCommandError(err))
     }
 
-    if (!flags.batch) {
+    if (!flags[BATCH_FLAG]) {
       notifyCommandCompletedSuccessfully()
     }
   }
@@ -181,48 +128,48 @@ export default class Update extends Command {
    * Returns true if chectl can/should proceed with update, false otherwise.
    */
   private async checkAbilityToUpdateCheOperatorAndAskUser(flags: any): Promise<boolean> {
-    const ctx = ChectlContext.get()
-    cli.info(`Existing Eclipse Che operator: ${ctx.deployedCheOperatorImage}`)
-    cli.info(`New Eclipse Che operator     : ${ctx.newCheOperatorImage}`)
+    const ctx = CheCtlContext.get()
+    cli.info(`Existing ${EclipseChe.PRODUCT_NAME} operator: ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE]}`)
+    cli.info(`New ${EclipseChe.PRODUCT_NAME} operator     : ${ctx[OperatorImageUpgradeContext.NEW_IMAGE]}`)
 
-    if (ctx.deployedCheOperatorImageName === OPERATOR_IMAGE_NAME && ctx.newCheOperatorImageName === OPERATOR_IMAGE_NAME) {
+    if (ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE_NAME] === EclipseChe.OPERATOR_IMAGE_NAME && ctx[OperatorImageUpgradeContext.NEW_IMAGE_NAME] === EclipseChe.OPERATOR_IMAGE_NAME) {
       // Official images
 
-      if (ctx.deployedCheOperatorImage === ctx.newCheOperatorImage) {
-        if (ctx.newCheOperatorImageTag === OPERATOR_IMAGE_NEXT_TAG) {
-          cli.info(`Updating current Eclipse Che ${OPERATOR_IMAGE_NEXT_TAG} version to a new one.`)
+      if (ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE] === ctx[OperatorImageUpgradeContext.NEW_IMAGE]) {
+        if (ctx[OperatorImageUpgradeContext.NEW_IMAGE_TAG] === EclipseChe.OPERATOR_IMAGE_NEXT_TAG) {
+          cli.info(`Updating current ${EclipseChe.PRODUCT_NAME} ${EclipseChe.OPERATOR_IMAGE_NEXT_TAG} version to a new one.`)
           return true
         }
 
-        if (flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]) {
+        if (flags[CHE_OPERATOR_CR_PATCH_YAML_FLAG]) {
           // Despite the operator image is the same, CR patch might contain some changes.
-          cli.info('Patching existing Eclipse Che installation.')
+          cli.info(`Patching existing ${EclipseChe.PRODUCT_NAME} installation.`)
           return true
         } else {
-          cli.info('Eclipse Che is already up to date.')
+          cli.info(`${EclipseChe.PRODUCT_NAME} is already up to date.`)
           return false
         }
       }
 
-      if (this.isUpgrade(ctx.deployedCheOperatorImageTag, ctx.newCheOperatorImageTag)) {
+      if (this.isUpgrade(ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE_TAG], ctx[OperatorImageUpgradeContext.NEW_IMAGE_TAG])) {
         // Upgrade
 
         const currentChectlVersion = getProjectVersion()
-        if (!ctx.isDevVersion && (ctx.newCheOperatorImageTag === OPERATOR_IMAGE_NEXT_TAG || semver.lt(currentChectlVersion, ctx.newCheOperatorImageTag))) {
+        if (!ctx[CliContext.CLI_IS_DEV_VERSION] && (ctx[OperatorImageUpgradeContext.NEW_IMAGE_TAG] === EclipseChe.OPERATOR_IMAGE_NEXT_TAG || semver.lt(currentChectlVersion, ctx[OperatorImageUpgradeContext.NEW_IMAGE_TAG]))) {
           // Upgrade is not allowed
-          if (ctx.newCheOperatorImageTag === OPERATOR_IMAGE_NEXT_TAG) {
-            cli.warn(`Stable ${getProjectName()} cannot update stable Eclipse Che to ${OPERATOR_IMAGE_NEXT_TAG} version`)
+          if (ctx[OperatorImageUpgradeContext.NEW_IMAGE_TAG] === EclipseChe.OPERATOR_IMAGE_NEXT_TAG) {
+            cli.warn(`Stable ${getProjectName()} cannot update stable ${EclipseChe.PRODUCT_NAME} to ${EclipseChe.OPERATOR_IMAGE_NEXT_TAG} version`)
           } else {
-            cli.warn(`It is not possible to update Eclipse Che to a newer version using the current '${currentChectlVersion}' version of chectl. Please, update '${getProjectName()}' to a newer version using command '${getProjectName()} update' and then try again.`)
+            cli.warn(`It is not possible to update ${EclipseChe.PRODUCT_NAME} to a newer version using the current '${currentChectlVersion}' version of chectl. Please, update '${getProjectName()}' to a newer version using command '${getProjectName()} update' and then try again.`)
           }
           return false
         }
 
         // Upgrade allowed
-        if (ctx.newCheOperatorImageTag === OPERATOR_IMAGE_NEXT_TAG) {
-          cli.info(`You are going to update Eclipse Che ${ctx.deployedCheOperatorImageTag} to ${OPERATOR_IMAGE_NEXT_TAG} version.`)
+        if (ctx[OperatorImageUpgradeContext.NEW_IMAGE_TAG] === EclipseChe.OPERATOR_IMAGE_NEXT_TAG) {
+          cli.info(`You are going to update ${EclipseChe.PRODUCT_NAME} ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE_TAG]} to ${EclipseChe.OPERATOR_IMAGE_NEXT_TAG} version.`)
         } else {
-          cli.info(`You are going to update Eclipse Che ${ctx.deployedCheOperatorImageTag} to ${ctx.newCheOperatorImageTag}`)
+          cli.info(`You are going to update ${EclipseChe.PRODUCT_NAME} ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE_TAG]} to ${ctx[OperatorImageUpgradeContext.NEW_IMAGE_TAG]}`)
         }
       } else {
         // Downgrade
@@ -232,25 +179,25 @@ export default class Update extends Command {
       // At least one of the images is custom
 
       // Print message
-      if (ctx.deployedCheOperatorImage === ctx.newCheOperatorImage) {
+      if (ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE] === ctx[OperatorImageUpgradeContext.NEW_IMAGE]) {
         // Despite the image is the same it could be updated image, replace anyway.
-        cli.info(`You are going to replace Eclipse Che operator image ${ctx.newCheOperatorImage}.`)
-      } else if (ctx.deployedCheOperatorImageName !== OPERATOR_IMAGE_NAME && ctx.newCheOperatorImageName !== OPERATOR_IMAGE_NAME) {
+        cli.info(`You are going to replace ${EclipseChe.PRODUCT_NAME} operator image ${ctx[OperatorImageUpgradeContext.NEW_IMAGE]}.`)
+      } else if (ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE_NAME] !== EclipseChe.OPERATOR_IMAGE_NAME && ctx[OperatorImageUpgradeContext.NEW_IMAGE_NAME] !== EclipseChe.OPERATOR_IMAGE_NAME) {
         // Both images are custom
-        cli.info(`You are going to update ${ctx.deployedCheOperatorImage} to ${ctx.newCheOperatorImage}`)
+        cli.info(`You are going to update ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE]} to ${ctx[OperatorImageUpgradeContext.NEW_IMAGE]}`)
       } else {
         // One of the images is offical
-        if (ctx.deployedCheOperatorImageName === OPERATOR_IMAGE_NAME) {
+        if (ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE_NAME] === EclipseChe.OPERATOR_IMAGE_NAME) {
           // Update from offical to custom image
-          cli.info(`You are going to update official ${ctx.deployedCheOperatorImage} image with user provided one: ${ctx.newCheOperatorImage}`)
-        } else { // ctx.newCheOperatorImageName === DEFAULT_CHE_OPERATOR_IMAGE_NAME
+          cli.info(`You are going to update official ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE]} image with user provided one: ${ctx[OperatorImageUpgradeContext.NEW_IMAGE]}`)
+        } else { // ctx[OperatorImageUpgradeContext.NEW_IMAGE_NAME] === DEFAULT_CHE_OPERATOR_IMAGE_NAME
           // Update from custom to official image
-          cli.info(`You are going to update user provided image ${ctx.deployedCheOperatorImage} with official one: ${ctx.newCheOperatorImage}`)
+          cli.info(`You are going to update user provided image ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE]} with official one: ${ctx[OperatorImageUpgradeContext.NEW_IMAGE]}`)
         }
       }
     }
 
-    if (!flags.batch && !flags.yes && !await cli.confirm('If you want to continue - press Y')) {
+    if (!flags[BATCH_FLAG] && !flags[ASSUME_YES_FLAG] && !await cli.confirm('If you want to continue - press Y')) {
       cli.info('Update cancelled by user.')
       return false
     }
@@ -289,25 +236,6 @@ export default class Update extends Command {
     // if oldTag is NEXT_TAG it is downgrade
     // otherwise just compare new and old tags
     // Note, that semver lib doesn't handle text tags and throws an error in case NEXT_TAG is provided for comparation.
-    return newTag === OPERATOR_IMAGE_NEXT_TAG || (oldTag !== OPERATOR_IMAGE_NEXT_TAG && isUpdate)
-  }
-
-  /**
-   * Copies Ingress domain. It is needed later for updates.
-   */
-  private async setDomainFlag(flags: any): Promise<void> {
-    const kubeHelper = new KubeHelper(flags)
-    const cheCluster = await kubeHelper.getCheClusterV2(flags.chenamespace)
-    if (cheCluster?.spec?.networking?.domain) {
-      flags.domain = cheCluster.spec.networking.domain
-    }
-  }
-
-  private async getCurrentInstaller(flags: any): Promise<string> {
-    const cheHelper = new CheHelper(flags)
-    if (await cheHelper.findCheOperatorSubscription(flags.chenamespace)) {
-      return 'olm'
-    }
-    return 'operator'
+    return newTag === EclipseChe.OPERATOR_IMAGE_NEXT_TAG || (oldTag !== EclipseChe.OPERATOR_IMAGE_NEXT_TAG && isUpdate)
   }
 }

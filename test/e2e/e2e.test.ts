@@ -15,13 +15,13 @@
 import { expect } from '@oclif/test'
 import * as execa from 'execa'
 import { E2eHelper } from './util'
-import { DEFAULT_CHE_NAMESPACE } from '../../src/constants';
+import {EclipseChe} from '../../lib/tasks/installers/eclipse-che/eclipse-che'
 
 jest.setTimeout(1000000)
 
 const binChectl = E2eHelper.getChectlBinaries()
 
-const NAMESPACE = DEFAULT_CHE_NAMESPACE
+const NAMESPACE = EclipseChe.DEFAULT_CHE_NAMESPACE
 
 const PLATFORM = process.env.PLATFORM || ''
 const INSTALLER = process.env.INSTALLER || ''

@@ -13,11 +13,11 @@
 import * as execa from 'execa'
 import { expect, fancy } from 'fancy-test'
 
-import { CRCHelper } from '../../../src/tasks/platforms/crc'
+import { CRCTasks } from '../../../src/tasks/platforms/crc'
 
 jest.mock('execa')
 
-let crc = new CRCHelper()
+let crc = new CRCTasks()
 
 describe('start', () => {
   fancy

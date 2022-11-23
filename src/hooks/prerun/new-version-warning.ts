@@ -13,9 +13,8 @@
 import { Hook } from '@oclif/config'
 import { cli } from 'cli-ux'
 
-import { VersionHelper } from '../../api/version'
-import { CHECTL_PROJECT_NAME } from '../../constants'
-import { getProjectName } from '../../util'
+import { CheCtlVersion } from '../../utils/chectl-version'
+import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
 
 const DO_NO_PRINT_WARNING_COMMANDS = [
   'server:deploy',
@@ -24,9 +23,8 @@ const DO_NO_PRINT_WARNING_COMMANDS = [
   'version',
 ]
 
-const isChectl = getProjectName() === CHECTL_PROJECT_NAME
 const hook: Hook<'prerun'> = async function (options) {
-  if (!isChectl) {
+  if (EclipseChe.CHE_FLAVOR !== 'che') {
     return
   }
 
@@ -37,7 +35,7 @@ const hook: Hook<'prerun'> = async function (options) {
   }
 
   try {
-    if (await VersionHelper.isChectlUpdateAvailable(options.config.cacheDir)) {
+    if (await CheCtlVersion.isCheCtlUpdateAvailable(options.config.cacheDir)) {
       cli.warn('A newer version of chectl is available. Run "chectl update" to update to the newer version.')
     }
   } catch {

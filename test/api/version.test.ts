@@ -11,34 +11,34 @@
  */
 
 import { expect, fancy } from 'fancy-test'
-
-import { VersionHelper } from '../../src/api/version'
+import {K8sVersion} from '../../lib/utils/k8s-version'
+import {CheCtlVersion} from '../../lib/utils/chectl-version'
 
 describe('Version Helper', () => {
   describe('OpenShift API helper', () => {
     fancy
       .it('check minimal version: case #1', async () => {
-        const check = VersionHelper.checkMinimalVersion('v2.10', 'v2.10')
+        const check = K8sVersion.checkMinimalVersion('v2.10', 'v2.10')
         expect(check).to.true
       })
     fancy
       .it('check minimal version: case #2', async () => {
-        const check = VersionHelper.checkMinimalVersion('v3.12', 'v2.10')
+        const check = K8sVersion.checkMinimalVersion('v3.12', 'v2.10')
         expect(check).to.true
       })
     fancy
       .it('check minimal version: case #3', async () => {
-        const check = VersionHelper.checkMinimalVersion('v2.11', 'v2.10')
+        const check = K8sVersion.checkMinimalVersion('v2.11', 'v2.10')
         expect(check).to.true
       })
     fancy
       .it('check minimal version: case #4', async () => {
-        const check = VersionHelper.checkMinimalVersion('v2.09', 'v2.10')
+        const check = K8sVersion.checkMinimalVersion('v2.09', 'v2.10')
         expect(check).to.false
       })
     fancy
       .it('check minimal version: case #5', async () => {
-        const check = VersionHelper.checkMinimalVersion('v2.10', 'v3.10')
+        const check = K8sVersion.checkMinimalVersion('v2.10', 'v3.10')
         expect(check).to.false
       })
   })
@@ -58,42 +58,42 @@ describe('Version Helper', () => {
       .it('should update stable version', async () => {
         const currentVersion = '7.30.2'
         const newVersion = '7.31.1'
-        const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
+        const shouldUpdate = await CheCtlVersion.gtCheCtlVersion(newVersion, currentVersion)
         expect(shouldUpdate).to.be.true
       })
     fancy
       .it('should not update stable version', async () => {
         const currentVersion = '7.30.2'
         const newVersion = '7.30.2'
-        const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
+        const shouldUpdate = await CheCtlVersion.gtCheCtlVersion(newVersion, currentVersion)
         expect(shouldUpdate).to.be.false
       })
     fancy
       .it('should not downgrade stable version', async () => {
         const currentVersion = '7.31.1'
         const newVersion = '7.30.2'
-        const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
+        const shouldUpdate = await CheCtlVersion.gtCheCtlVersion(newVersion, currentVersion)
         expect(shouldUpdate).to.be.false
       })
     fancy
       .it('should update next version (release day differs)', async () => {
         const currentVersion = '0.0.20210727-next.81f31b0'
         const newVersion = '0.0.20210729-next.6041615'
-        const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
+        const shouldUpdate = CheCtlVersion.gtCheCtlVersion(newVersion, currentVersion)
         expect(shouldUpdate).to.be.true
       })
     fancy
       .it('should not update next version (release day differs)', async () => {
         const currentVersion = '0.0.20210729-next.6041615'
         const newVersion = '0.0.20210729-next.6041615'
-        const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
+        const shouldUpdate = CheCtlVersion.gtCheCtlVersion(newVersion, currentVersion)
         expect(shouldUpdate).to.be.false
       })
     fancy
       .it('should not downgrade next version (release day differs)', async () => {
         const currentVersion = '0.0.20210729-next.6041615'
         const newVersion = '0.0.20210727-next.81f31b0'
-        const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
+        const shouldUpdate = CheCtlVersion.gtCheCtlVersion(newVersion, currentVersion)
         expect(shouldUpdate).to.be.false
       })
     fancy
@@ -104,7 +104,7 @@ describe('Version Helper', () => {
       .it('should update next version (release day the same)', async () => {
         const currentVersion = '0.0.20210715-next.597729a'
         const newVersion = '0.0.20210715-next.4771039'
-        const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
+        const shouldUpdate = await CheCtlVersion.gtCheCtlVersion(newVersion, currentVersion)
         expect(shouldUpdate).to.be.true
       })
     fancy
@@ -115,7 +115,7 @@ describe('Version Helper', () => {
       .it('should not downgrade next version (release day the same)', async () => {
         const currentVersion = '0.0.20210715-next.4771039'
         const newVersion = '0.0.20210715-next.597729a'
-        const shouldUpdate = await VersionHelper.gtChectlVersion(newVersion, currentVersion)
+        const shouldUpdate = await CheCtlVersion.gtCheCtlVersion(newVersion, currentVersion)
         expect(shouldUpdate).to.be.false
       })
   })
