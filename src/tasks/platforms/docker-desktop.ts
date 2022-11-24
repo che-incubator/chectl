@@ -31,7 +31,7 @@ export namespace DockerDesktopTasks {
         title: 'Verify if kubectl context is Docker Desktop',
         task: async (_ctx: any, task: any) => {
           const kubeClient = KubeClient.getInstance()
-          const context = await kubeClient.currentContext()
+          const context = kubeClient.getCurrentContext()
           if (context !== 'docker-for-desktop' && context !== 'docker-desktop') {
             cli.error(`E_PLATFORM_NOT_READY: current kube context is not Docker Desktop context. Found ${context}`)
           } else {

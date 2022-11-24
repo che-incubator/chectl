@@ -192,7 +192,6 @@ export default class Deploy extends Command {
     const preInstallTasks = newListr()
     preInstallTasks.add(CommonTasks.getTestKubernetesApiTasks())
     preInstallTasks.add(CommonTasks.getOpenShiftVersionTask())
-    preInstallTasks.add(CheTasks.getServerLogsTasks(true))
 
     // Install tasks
     const installTasks = newListr()
@@ -206,6 +205,7 @@ export default class Deploy extends Command {
       installTasks.add(new DexInstaller().getDeployTasks())
     }
 
+    installTasks.add(CheTasks.getServerLogsTasks(true))
     installTasks.add(EclipseCheInstallerFactory.getInstaller().getDeployTasks())
 
     // PostInstall tasks

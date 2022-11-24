@@ -165,10 +165,14 @@ export namespace CheTasks {
 
   export function getServerLogsTasks(follow: boolean): Listr.ListrTask<any> {
     return {
-      title: `${follow ? 'Start following' : 'Read'} logs`,
+      title: `${follow ? 'Start following' : 'Read'} ${EclipseChe.PRODUCT_NAME} installation logs`,
       task: async (ctx: any, task: any) => {
         const flags = CheCtlContext.getFlags()
-        await Che.readPodLog(ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE], EclipseChe.CHE_OPERATOR_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
+        if (ctx[InfrastructureContext.IS_OPENSHIFT]) {
+          await Che.readPodLog(ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE], EclipseChe.CHE_OPERATOR_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
+        } else {
+          await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.CHE_OPERATOR_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
+        }
         await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.CHE_SERVER_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
         await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.POSTGRES_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
         await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.PLUGIN_REGISTRY_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)

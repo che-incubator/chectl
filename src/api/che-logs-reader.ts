@@ -76,7 +76,7 @@ export class CheLogsReader {
   private async watchNamespacedPods(namespace: string, podLabelSelector: string | undefined, directory: string): Promise<void> {
     const processedContainers = new Map<string, Set<string>>()
 
-    const watcher = new Watch(this.kubeHelper.kubeConfig)
+    const watcher = new Watch(this.kubeHelper.getKubeConfig())
     return watcher.watch(`/api/v1/namespaces/${namespace}/pods`, {},
       async (_phase: string, obj: any) => {
         const pod = obj as V1Pod

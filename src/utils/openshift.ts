@@ -18,14 +18,14 @@ export namespace OpenShift {
     return exitCode === 0
   }
 
-  export async function getRouteHost(name: string, namespace = ''): Promise<string> {
+  export async function getRouteHost(name: string, namespace: string): Promise<string> {
     const command = 'oc'
     const args = ['get', 'route', '--namespace', namespace, '-o', `jsonpath={range.items[?(.metadata.name=='${name}')]}{.spec.host}{end}`]
     const {stdout} = await execa(command, args, {timeout: 60000})
     return stdout.trim()
   }
 
-  export async function isRouteExist(name: string, namespace = ''): Promise<boolean> {
+  export async function isRouteExist(name: string, namespace: string): Promise<boolean> {
     const command = 'oc'
     const args = ['get', 'route', '--namespace', namespace, '-o', `jsonpath={range.items[?(.metadata.name=='${name}')]}{.metadata.name}{end}`]
     const {stdout} = await execa(command, args, {timeout: 60000})

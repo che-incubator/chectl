@@ -142,19 +142,17 @@ USAGE
 
 OPTIONS
   -d, --destination=destination
-      Destination where to store Che self-signed CA certificate.
+      Destination where to store Eclipse Che self-signed CA certificate.
       If the destination is a file (might not exist), then the certificate will be saved there in PEM format.
-      If the destination is a directory, then cheCA.crt file will be created there with Che certificate in PEM format.
-      If this option is omitted, then Che certificate will be stored in a user's temporary directory as cheCA.crt.
+      If the destination is a directory, then cheCA.crt file will be created there with Eclipse Che certificate in PEM
+      format.
+      If this option is omitted, then Eclipse Che certificate will be stored in a user's temporary directory as cheCA.crt.
 
   -h, --help
       show CLI help
 
   -n, --chenamespace=chenamespace
-      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
-
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
+      Eclipse Che Kubernetes namespace.
 
   --telemetry=on|off
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
@@ -172,7 +170,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
+  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace.
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
@@ -205,7 +203,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
+  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace.
   --debug-port=debug-port          [default: 8000] Eclipse Che server debug port
   --skip-kubernetes-health-check   Skip Kubernetes health check
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
@@ -223,7 +221,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
+  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace.
 
   -y, --yes                        Automatic yes to prompts; assume "yes" as answer to all prompts and run
                                    non-interactively
@@ -269,10 +267,7 @@ OPTIONS
       Eclipse Che server container image
 
   -n, --chenamespace=chenamespace
-      Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
-
-  -o, --cheboottimeout=cheboottimeout
-      (required) [default: 40000] Eclipse Che server bootstrap timeout (in milliseconds)
+      Eclipse Che Kubernetes namespace.
 
   -p, --platform=minikube|k8s|openshift|microk8s|docker-desktop|crc
       (required) Type of Kubernetes platform.
@@ -299,7 +294,7 @@ OPTIONS
 
   --catalog-source-yaml=catalog-source-yaml
       Path to a yaml file that describes custom catalog source for installation Eclipse Che operator.
-      Catalog source will be applied to the namespace with Che operator.
+      Catalog source will be applied to the namespace with Eclipse Che operator.
       Also you need define 'olm-channel' name and 'package-manifest-name'.
       This parameter is used only when the installer is the 'olm'.
 
@@ -315,8 +310,8 @@ OPTIONS
       Container image of the operator. This parameter is used only when the installer is the operator or OLM.
 
   --debug
-      Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug'
-      command.
+      'Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug'
+      command.'
 
   --devfile-registry-url=devfile-registry-url
       The URL of the external Devfile registry.
@@ -328,10 +323,10 @@ OPTIONS
       [default: 60000] Waiting time for Pod rechecking error (in milliseconds)
 
   --k8spodreadytimeout=k8spodreadytimeout
-      [default: 600000] Waiting time for Pod Ready condition (in milliseconds)
+      [default: 60000] Waiting time for Pod Ready condition (in milliseconds)
 
   --k8spodwaittimeout=k8spodwaittimeout
-      [default: 600000] Waiting time for Pod scheduled condition (in milliseconds)
+      [default: 60000] Waiting time for Pod scheduled condition (in milliseconds)
 
   --olm-channel=olm-channel
       Olm channel to install Eclipse Che, f.e. stable.
@@ -350,9 +345,6 @@ OPTIONS
 
   --skip-cert-manager
       Skip installing Cert Manager (Kubernetes cluster only).
-
-  --skip-cluster-availability-check
-      Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.
 
   --skip-devworkspace-operator
       Skip installing Dev Workspace Operator (Kubernetes cluster only).
@@ -395,7 +387,7 @@ USAGE
 OPTIONS
   -d, --directory=directory        Directory to store logs into
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
+  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace.
   --skip-kubernetes-health-check   Skip Kubernetes health check
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
@@ -413,7 +405,7 @@ USAGE
 OPTIONS
   -d, --directory=directory                                Directory to store logs into
   -h, --help                                               show CLI help
-  -n, --chenamespace=chenamespace                          Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
+  -n, --chenamespace=chenamespace                          Eclipse Che Kubernetes namespace.
   --batch                                                  Batch mode. Running a command without end user interaction.
 
   --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 1200000] Waiting time for Pod downloading image (in
@@ -422,13 +414,16 @@ OPTIONS
   --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout    [default: 60000] Waiting time for Pod rechecking error (in
                                                            milliseconds)
 
-  --k8spodreadytimeout=k8spodreadytimeout                  [default: 600000] Waiting time for Pod Ready condition (in
+  --k8spodreadytimeout=k8spodreadytimeout                  [default: 60000] Waiting time for Pod Ready condition (in
                                                            milliseconds)
 
-  --k8spodwaittimeout=k8spodwaittimeout                    [default: 600000] Waiting time for Pod scheduled condition
-                                                           (in milliseconds)
+  --k8spodwaittimeout=k8spodwaittimeout                    [default: 60000] Waiting time for Pod scheduled condition (in
+                                                           milliseconds)
 
   --skip-kubernetes-health-check                           Skip Kubernetes health check
+
+  --telemetry=on|off                                       Enable or disable telemetry. This flag skips a prompt and
+                                                           enable/disable telemetry
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
@@ -443,7 +438,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
+  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace.
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
@@ -459,8 +454,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
-  --che-selector=che-selector      [default: app=che,component=che] Selector for Eclipse Che server resources
+  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace.
   --skip-kubernetes-health-check   Skip Kubernetes health check
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
@@ -477,7 +471,7 @@ USAGE
 
 OPTIONS
   -h, --help                                               show CLI help
-  -n, --chenamespace=chenamespace                          Eclipse Che Kubernetes namespace. Default to 'eclipse-che'
+  -n, --chenamespace=chenamespace                          Eclipse Che Kubernetes namespace.
   -t, --templates=templates                                Path to the templates folder
 
   -y, --yes                                                Automatic yes to prompts; assume "yes" as answer to all
@@ -489,10 +483,15 @@ OPTIONS
                                                            CheCluster CR used by the operator. This parameter is used
                                                            only when the installer is the 'operator' or the 'olm'.
 
-  --skip-devworkspace-operator                             Skip updating Dev Workspace Operator (Kubernetes cluster
+  --che-operator-image=che-operator-image                  Container image of the operator. This parameter is used only
+                                                           when the installer is the operator or OLM.
+
+  --skip-devworkspace-operator                             Skip installing Dev Workspace Operator (Kubernetes cluster
                                                            only).
 
   --skip-kubernetes-health-check                           Skip Kubernetes health check
+
+  --skip-version-check                                     Skip minimal versions check.
 
   --telemetry=on|off                                       Enable or disable telemetry. This flag skips a prompt and
                                                            enable/disable telemetry

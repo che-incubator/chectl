@@ -30,7 +30,11 @@ import {
 } from '../../../context'
 import * as path from 'path'
 import {KubeClient} from '../../../api/kube-client'
-import {CATALOG_SOURCE_YAML_FLAG, CHE_NAMESPACE_FLAG, CHE_OPERATOR_IMAGE_FLAG} from '../../../flags'
+import {
+  CATALOG_SOURCE_YAML_FLAG,
+  CHE_NAMESPACE_FLAG,
+  CHE_OPERATOR_IMAGE_FLAG,
+} from '../../../flags'
 import {getImageNameAndTag, newListr, safeLoadFromYamlFile} from '../../../utils/utls'
 import {cli} from 'cli-ux'
 import {CatalogSource} from '../../../api/types/olm'
@@ -280,7 +284,7 @@ export namespace EclipseCheTasks {
         const flags = CheCtlContext.getFlags()
         const kubeClient = KubeClient.getInstance()
 
-        const deployment = await kubeClient.getDeployment(EclipseChe.OPERATOR_DEPLOYMENT_NAME, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE])
+        const deployment = await kubeClient.getDeployment(EclipseChe.OPERATOR_DEPLOYMENT_NAME, flags[CHE_NAMESPACE_FLAG])
         if (!deployment) {
           throw new Error(`Deployment ${EclipseChe.OPERATOR_DEPLOYMENT_NAME} not found`)
         }
@@ -515,14 +519,14 @@ export namespace EclipseCheTasks {
     return {
       title: 'Create CatalogSource',
       task: async (ctx: any, task: any) => {
-        let catalogSource: CatalogSource | undefined
+        let catalogSource: CatalogSource
 
         if (flags[CATALOG_SOURCE_YAML_FLAG]) {
           catalogSource = safeLoadFromYamlFile(flags[CATALOG_SOURCE_YAML_FLAG])
           // Move CatalogSource to `openshift-marketplace` namespace
           catalogSource!.metadata!.namespace = ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE]
-          merge(catalogSource!.metadata, { labels: { 'app.kubernetes.io/part-of': 'che.eclipse.org' } })
-        } else if (ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL && !ctx[EclipseCheContext.CATALOG_SOURCE_NAME]) {
+          merge(catalogSource!.metadata, {labels: {'app.kubernetes.io/part-of': 'che.eclipse.org'}})
+        } else {
           catalogSource = {
             apiVersion: 'operators.coreos.com/v1alpha1',
             kind: 'CatalogSource',
@@ -534,7 +538,7 @@ export namespace EclipseCheTasks {
               },
             },
             spec: {
-              image: EclipseChe.NEXT_CATALOG_SOURCE_IMAGE,
+              image: ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE],
               sourceType: 'grpc',
               updateStrategy: {
                 registryPoll: {
@@ -543,18 +547,16 @@ export namespace EclipseCheTasks {
               },
             },
           }
-        } else {
-          task.skip()
         }
 
-        if (catalogSource) {
-          if (!await kubeHelper.isCatalogSourceExists(catalogSource.metadata!.name!, catalogSource.metadata!.namespace!)) {
-            await kubeHelper.createCatalogSource(catalogSource, catalogSource.metadata!.namespace!)
-            await kubeHelper.waitCatalogSource(catalogSource.metadata!.name!, catalogSource.metadata!.namespace!)
-            task.title = `${task.title} ${catalogSource.metadata!.name!}...[Created]`
-          } else {
-            task.title = `${task.title}...[Exists]`
-          }
+        const catalogSourceName = catalogSource!.metadata!.name!
+        const catalogSourceNamespace = catalogSource!.metadata!.namespace!
+        if (!await kubeHelper.isCatalogSourceExists(catalogSourceName, catalogSourceNamespace)) {
+          await kubeHelper.createCatalogSource(catalogSource, catalogSourceNamespace)
+          await kubeHelper.waitCatalogSource(catalogSourceName, catalogSourceNamespace, 120)
+          task.title = `${task.title} ${catalogSource!.metadata!.name!}...[Created]`
+        } else {
+          task.title = `${task.title}...[Exists]`
         }
       },
     }

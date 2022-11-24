@@ -44,7 +44,7 @@ export namespace EclipseChe {
   export const NEXT_CHANNEL_CATALOG_SOURCE = PRODUCT_ID
   export const NEXT_CATALOG_SOURCE_IMAGE = 'quay.io/eclipse/eclipse-che-olm-catalog:next'
   export const SUBSCRIPTION = PRODUCT_ID
-  export const CSV_PREFIX = 'eclipse-che'
+  export const CSV_PREFIX = PRODUCT_ID
   export const APPROVAL_STRATEGY_MANUAL = 'Manual'
   export const APPROVAL_STRATEGY_AUTOMATIC = 'Automatic'
 

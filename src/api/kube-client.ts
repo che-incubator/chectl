@@ -63,7 +63,7 @@ import {CheCluster} from './types/che-cluster'
 const AWAIT_TIMEOUT_S = 30
 
 export class KubeClient {
-  readonly kubeConfig
+  private readonly kubeConfig
 
   private constructor(
     protected readonly podWaitTimeout: number,
@@ -77,7 +77,11 @@ export class KubeClient {
     return new KubeClient(ctx[KubeHelperContext.POD_WAIT_TIMEOUT], ctx[KubeHelperContext.POD_READY_TIMEOUT])
   }
 
-  async currentContext(): Promise<string> {
+  getKubeConfig(): KubeConfig {
+    return this.kubeConfig
+  }
+
+  getCurrentContext(): string {
     return this.kubeConfig.getCurrentContext()
   }
 
@@ -858,7 +862,6 @@ export class KubeClient {
       throw this.wrapK8sClientError(e)
     }
   }
-
 
   async isConfigMapExists(name: string, namespace: string): Promise<boolean> {
     const k8sApi = this.kubeConfig.makeApiClient(CoreV1Api)

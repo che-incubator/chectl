@@ -135,7 +135,7 @@ export namespace Che {
   }
 
   async function getCheOpenShiftURL(namespace: string): Promise<string> {
-    if (await OpenShift.isRouteExist(EclipseChe.CHE_FLAVOR)) {
+    if (await OpenShift.isRouteExist(`${EclipseChe.CHE_FLAVOR}`, namespace)) {
       const hostname = await OpenShift.getRouteHost(EclipseChe.CHE_FLAVOR, namespace)
       return `https://${hostname}`
     }

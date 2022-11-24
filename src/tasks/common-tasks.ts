@@ -33,7 +33,7 @@ export namespace CommonTasks {
         const kubeHelper = KubeClient.getInstance()
 
         try {
-          cli.info(`› Current Kubernetes context: '${await kubeHelper.currentContext()}'`)
+          cli.info(`› Current Kubernetes context: '${kubeHelper.getCurrentContext()}'`)
           if (!flags[SKIP_KUBE_HEALTHZ_CHECK_FLAG]) {
             await kubeHelper.checkKubeApi()
           }
@@ -58,7 +58,7 @@ export namespace CommonTasks {
       title: `Delete Namespace ${namespace}`,
       task: async (ctx: any, task: any) => {
         if (namespace === 'openshift-operators') {
-          return task.skip(`${ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE]} namespace is protected and can't be deleted.`)
+          return task.skip('openshift-operators namespace is protected and can not be deleted.')
         }
         const kubeHelper = KubeClient.getInstance()
         await kubeHelper.deleteNamespace(namespace)

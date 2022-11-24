@@ -48,6 +48,8 @@ export class DevWorkspaceOlmInstaller implements Installer  {
           ctx[DevWorkspaceContext.CHANNEL],
           ctx[EclipseCheContext.APPROVAL_STRATEGY]
         ))
+
+        tasks.add(DevWorkspacesTasks.getWaitDevWorkspaceTask())
         return tasks
       },
     }

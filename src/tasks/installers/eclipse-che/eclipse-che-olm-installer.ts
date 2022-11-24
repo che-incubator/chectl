@@ -39,7 +39,9 @@ export class EclipseCheOlmInstaller implements Installer {
           tasks.add(EclipseCheTasks.getCreateIIBCatalogSourceTask())
         }
 
-        tasks.add(DevWorkspaceInstallerFactory.getInstaller().getDeployTasks())
+        if (EclipseChe.CHE_FLAVOR !== 'che') {
+          tasks.add(DevWorkspaceInstallerFactory.getInstaller().getDeployTasks())
+        }
         tasks.add(EclipseCheTasks.getCreateEclipseCheCatalogSourceTask())
         tasks.add(OlmTasks.getCreateSubscriptionTask(
           EclipseChe.SUBSCRIPTION,

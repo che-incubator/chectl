@@ -57,7 +57,8 @@ export namespace OlmTasks {
         const kubeHelper = KubeClient.getInstance()
 
         let subscription = await kubeHelper.getOperatorSubscription(name, namespace)
-        if (!subscription) {
+        const subscriptionExists = subscription !== undefined
+        if (!subscriptionExists) {
           subscription = {
             apiVersion: 'operators.coreos.com/v1alpha1',
             kind: 'Subscription',
@@ -98,7 +99,7 @@ export namespace OlmTasks {
           throw new Error(`Cluster service version resource failed, cause: ${csv.status.message}, reason: ${csv.status.reason}.`)
         }
 
-        task.title = `${task.title}...[Created]`
+        task.title = `${task.title}...[${subscriptionExists ? 'Exists' : 'Created'}]`
       },
     }
   }
@@ -266,7 +267,7 @@ export namespace OlmTasks {
 
   export function getFetchCheClusterSampleTask(): Listr.ListrTask<any> {
     return {
-      title: 'Fetch CheCluster sample',
+      title: 'Fetch CheCluster sample from a CSV',
       enabled: (ctx: any) => !ctx[EclipseCheContext.CUSTOM_CR],
       task: async (ctx: any, task: any) => {
         const kubeHelper = KubeClient.getInstance()

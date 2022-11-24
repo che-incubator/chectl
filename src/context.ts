@@ -78,6 +78,7 @@ export namespace DexContext {
 export namespace EclipseCheContext {
   export const CHANNEL = 'eclipse-che-channel'
   export const CATALOG_SOURCE_NAME = 'eclipse-che-catalog-source-name'
+  export const CATALOG_SOURCE_IMAGE = 'eclipse-che-catalog-source-image'
   export const CATALOG_SOURCE_NAMESPACE = 'eclipse-che-catalog-source-namespace'
   export const PACKAGE_NAME = 'eclipse-che-package-name'
   export const APPROVAL_STRATEGY = 'eclipse-che-approval-strategy'
@@ -115,7 +116,7 @@ export namespace OperatorImageUpgradeContext {
  */
 export namespace CheCtlContext {
   const ctx: any = {}
-  const CHE_OPERATOR_TEMPLATE_DIR = 'che-operator'
+  const CHE_OPERATOR_TEMPLATE_DIR = `${EclipseChe.CHE_FLAVOR}-operator`
   const DEV_WORKSPACE_OPERATOR_TEMPLATE_DIR = 'devworkspace-operator'
 
   export async function init(flags: any, command: Command): Promise<void> {
@@ -151,8 +152,6 @@ export namespace CheCtlContext {
       ctx[InfrastructureContext.OPENSHIFT_ARCH] = await getOpenShiftArch()
       ctx[InfrastructureContext.OPENSHIFT_VERSION] = await getOpenShiftVersion()
       ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE] = 'openshift-operators'
-    } else {
-      ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE] = EclipseChe.NAMESPACE
     }
     ctx[InfrastructureContext.KUBERNETES_VERSION] = await getKubernetesVersion(ctx[InfrastructureContext.IS_OPENSHIFT])
 
@@ -185,6 +184,12 @@ export namespace CheCtlContext {
       } else {
         ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = EclipseChe.NEXT_CHANNEL_CATALOG_SOURCE
       }
+    }
+
+    if (ctx[EclipseCheContext.CHANNEL] === EclipseChe.STABLE_CHANNEL) {
+      ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = EclipseChe.STABLE_CATALOG_SOURCE_IMAGE
+    } else {
+      ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = EclipseChe.NEXT_CATALOG_SOURCE_IMAGE
     }
 
     if (ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL && EclipseChe.CHE_FLAVOR !== 'che') {
