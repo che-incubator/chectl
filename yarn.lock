@@ -749,7 +749,7 @@
     is-wsl "^2.1.1"
     tslib "^2.3.1"
 
-"@oclif/core@^1.1.1", "@oclif/core@^1.19.1", "@oclif/core@^1.20.0":
+"@oclif/core@^1.1.1", "@oclif/core@^1.20.0":
   version "1.20.2"
   resolved "https://registry.yarnpkg.com/@oclif/core/-/core-1.20.2.tgz#724713086355d693e578960f72c7e2d14fd3e7c3"
   integrity sha512-c6CpDbDPS9UuKwGoajzsjrjfnwQywWEV3WI5FDvb87h0/WW2tGf1QwHUWgdKOojafEcMAa9DnP5j+mXdUTtpCg==
@@ -2400,10 +2400,9 @@ detect-newline@^3.0.0:
   resolved "https://registry.yarnpkg.com/detect-newline/-/detect-newline-3.1.0.tgz#576f5dfc63ae1a192ff192d8ad3af6308991b651"
   integrity sha512-TLz+x/vEXm/Y7P7wn1EJFNLxYpUD4TgMosxY6fAVJUnJMbupHBOncxyWUG9OpTaH9EBD7uFI5LfEgmMOc54DsA==
 
-"devworkspace-operator@https://github.com/devfile/devworkspace-operator#main":
+"devworkspace-operator@https://github.com/devfile/devworkspace-operator#v0.17.0":
   version "0.0.0"
-  uid "81f75dff8eb0e9ac207cb6d0905a13ed9580c883"
-  resolved "https://github.com/devfile/devworkspace-operator#81f75dff8eb0e9ac207cb6d0905a13ed9580c883"
+  resolved "https://github.com/devfile/devworkspace-operator#bd6bffe44a9cc064688214059dfe05865cdfe491"
 
 diff-sequences@^29.2.0:
   version "29.2.0"
@@ -2444,10 +2443,9 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
-"eclipse-che-operator@https://github.com/eclipse-che/che-operator#main":
+"eclipse-che-operator@https://github.com/eclipse-che/che-operator#7.57.0":
   version "0.0.0"
-  uid b6def8e3f9d197aaedbea1864e987e295adf1084
-  resolved "https://github.com/eclipse-che/che-operator#b6def8e3f9d197aaedbea1864e987e295adf1084"
+  resolved "https://github.com/eclipse-che/che-operator#6882fb87ede85b9ef13998a7741749fc0bfa9df1"
 
 editorconfig@^0.15.0:
   version "0.15.3"
