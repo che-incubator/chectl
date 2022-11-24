@@ -109,6 +109,7 @@ commitChanges() {
   echo "[INFO] Push changes to $VERSION branch"
   git add -A
   git commit -s -m "chore(release): release version ${VERSION}"
+  git pull origin $VERSION | true
   git push origin $VERSION
 }
 
