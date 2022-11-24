@@ -60,20 +60,28 @@ resetChanges() {
 }
 
 checkoutToReleaseBranch() {
-  echo "[INFO] Checking out to $BRANCH branch."
+  createBranch=$1
+  echo "[INFO] Check out to $BRANCH branch"
   local branchExist=$(git ls-remote -q --heads | grep $BRANCH | wc -l)
   if [[ $branchExist == 1 ]]; then
-    echo "[INFO] $BRANCH exists."
+    echo "[INFO] Branch $BRANCH exists"
     resetChanges $BRANCH
   else
-    echo "[INFO] $BRANCH does not exist. Will be created a new one from main."
-    resetChanges main
+    if [[ $createBranch == "true" ]]; then 
+      echo "[INFO] Branch $BRANCH does not exist"
+      resetChanges main
+      git push origin main:$BRANCH
+      echo "[INFO] Created new branch $BRANCH from main"
+    else
+      echo "[WARN] Branch $BRANCH does not exist. Use 'checkoutToReleaseBranch true' to create it"
+    fi
+
   fi
   git checkout -B $VERSION
 }
 
 release() {
-  echo "[INFO] Releasing a new $VERSION version"
+  echo "[INFO] Release a new $VERSION version"
   echo "[INFO] Dev Workspace Operator version $DWO_VERSION"
 
   # Create VERSION file
@@ -98,7 +106,7 @@ release() {
 }
 
 commitChanges() {
-  echo "[INFO] Pushing changes to $VERSION branch"
+  echo "[INFO] Push changes to $VERSION branch"
   git add -A
   git commit -s -m "chore(release): release version ${VERSION}"
   git push origin $VERSION
@@ -110,7 +118,8 @@ createReleaseBranch() {
 }
 
 createPR() {
-  echo "[INFO] Creating a PR"
+  checkoutToReleaseBranch true
+  echo "[INFO] Create PR with base = ${BRANCH} and head = ${VERSION}"
   hub pull-request --base ${BRANCH} --head ${VERSION} -m "Release version ${VERSION}"
 }
 
