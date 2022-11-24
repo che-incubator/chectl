@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2019-2021 Red Hat, Inc.
+# Copyright (c) 2019-2022 Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -33,6 +33,7 @@ init() {
   [[ -z ${VERSION} ]] && { echo "[ERROR] Release version is not defined"; usage; }
   [[ -z ${DWO_VERSION} ]] && discoverLatestDevWorkspaceOperatorVersion
   BRANCH=$(echo $VERSION | sed 's/.$/x/')
+  git config pull.rebase true
 }
 
 discoverLatestDevWorkspaceOperatorVersion() {
