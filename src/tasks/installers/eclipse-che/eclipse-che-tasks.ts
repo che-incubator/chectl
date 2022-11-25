@@ -35,7 +35,7 @@ import {
   CHE_NAMESPACE_FLAG,
   CHE_OPERATOR_IMAGE_FLAG,
 } from '../../../flags'
-import {getImageNameAndTag, newListr, safeLoadFromYamlFile} from '../../../utils/utls'
+import {getImageNameAndTag, isPartOfEclipseChe, newListr, safeLoadFromYamlFile} from '../../../utils/utls'
 import {cli} from 'cli-ux'
 import {CatalogSource} from '../../../api/types/olm'
 import {merge} from 'lodash'
@@ -62,7 +62,7 @@ export namespace EclipseCheTasks {
     const deployment = safeLoadFromYamlFile(yamlFilePath) as V1Deployment
 
     if (flags[CHE_OPERATOR_IMAGE_FLAG]) {
-      const container = deployment.spec!.template.spec!.containers.find(c => c.name === 'che-operator')
+      const container = deployment.spec!.template.spec!.containers.find(c => c.name === `${EclipseChe.CHE_FLAVOR}-operator`)
       container!.image = flags[CHE_OPERATOR_IMAGE_FLAG]
     }
 
@@ -433,10 +433,15 @@ export namespace EclipseCheTasks {
       [() => kubeHelper.deleteService(EclipseChe.OPERATOR_SERVICE, flags[CHE_NAMESPACE_FLAG])])
   }
 
-  export function getDeleteImageContentSourcePolicyTask(): Listr.ListrTask<any> {
+  export async function getDeleteImageContentSourcePolicyTask(): Promise<Listr.ListrTask<any>> {
     const kubeHelper = KubeClient.getInstance()
-    return CommonTasks.getDeleteResourcesTask(`Delete ImageContentSourcePolicy ${EclipseChe.IMAGE_CONTENT_SOURCE_POLICY}`,
-      [() => kubeHelper.deleteClusterCustomObject('operator.openshift.io', 'v1alpha1', 'imagecontentsourcepolicies', EclipseChe.IMAGE_CONTENT_SOURCE_POLICY)])
+    const imsp = await kubeHelper.getClusterCustomObject('operator.openshift.io', 'v1alpha1', 'imagecontentsourcepolicies', EclipseChe.IMAGE_CONTENT_SOURCE_POLICY)
+    if (imsp && !isPartOfEclipseChe(imsp)) {
+      return CommonTasks.getSkipTask(`Delete ImageContentSourcePolicy ${EclipseChe.IMAGE_CONTENT_SOURCE_POLICY}`, `Not ${EclipseChe.PRODUCT_NAME} resource`)
+    } else {
+      return CommonTasks.getDeleteResourcesTask(`Delete ImageContentSourcePolicy ${EclipseChe.IMAGE_CONTENT_SOURCE_POLICY}`,
+        [() => kubeHelper.deleteClusterCustomObject('operator.openshift.io', 'v1alpha1', 'imagecontentsourcepolicies', EclipseChe.IMAGE_CONTENT_SOURCE_POLICY)])
+    }
   }
 
   export async function getDeleteWorkloadsTask(): Promise<Listr.ListrTask<any>> {
@@ -477,7 +482,7 @@ export namespace EclipseCheTasks {
       deleteResources.push(() => kubeClient.deleteClusterRole('dev-workspace-container-build'))
       deleteResources.push(() => kubeClient.deleteClusterRoleBinding('dev-workspace-container-build'))
     } else {
-      deleteResources.push(() =>  kubeClient.deleteRole('che-operator', flags[CHE_NAMESPACE_FLAG]))
+      deleteResources.push(() => kubeClient.deleteRole('che-operator', flags[CHE_NAMESPACE_FLAG]))
       deleteResources.push(() => kubeClient.deleteRole('che-operator-leader-election', flags[CHE_NAMESPACE_FLAG]))
       deleteResources.push(() => kubeClient.deleteRoleBinding('che-operator', flags[CHE_NAMESPACE_FLAG]))
       deleteResources.push(() => kubeClient.deleteRoleBinding('che-operator-leader-election', flags[CHE_NAMESPACE_FLAG]))
@@ -492,8 +497,8 @@ export namespace EclipseCheTasks {
     deleteResources.push(() => kubeClient.deleteClusterRole(`${flags[CHE_NAMESPACE_FLAG]}-cheworkspaces-clusterrole`))
     deleteResources.push(() => kubeClient.deleteClusterRole(`${flags[CHE_NAMESPACE_FLAG]}-cheworkspaces-devworkspace-clusterrole`))
 
-    deleteResources.push(() => kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG].chenamespace}-che-gateway`))
-    deleteResources.push(() => kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG].chenamespace}-che-dashboard`))
+    deleteResources.push(() => kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG]}-che-gateway`))
+    deleteResources.push(() => kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG]}-che-dashboard`))
     deleteResources.push(() => kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG]}-cheworkspaces-namespaces-clusterrole`))
     deleteResources.push(() => kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG]}-cheworkspaces-clusterrole`))
     deleteResources.push(() =>  kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG]}-cheworkspaces-devworkspace-clusterrole`))
@@ -554,9 +559,9 @@ export namespace EclipseCheTasks {
         if (!await kubeHelper.isCatalogSourceExists(catalogSourceName, catalogSourceNamespace)) {
           await kubeHelper.createCatalogSource(catalogSource, catalogSourceNamespace)
           await kubeHelper.waitCatalogSource(catalogSourceName, catalogSourceNamespace, 120)
-          task.title = `${task.title} ${catalogSource!.metadata!.name!}...[Created]`
+          task.title = `${task.title} ${catalogSourceName}...[Created]`
         } else {
-          task.title = `${task.title}...[Exists]`
+          task.title = `${task.title} ${catalogSourceName}...[Exists]`
         }
       },
     }

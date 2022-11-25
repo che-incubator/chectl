@@ -15,7 +15,7 @@
 import { expect } from '@oclif/test'
 import * as execa from 'execa'
 import { E2eHelper } from './util'
-import {EclipseChe} from '../../lib/tasks/installers/eclipse-che/eclipse-che'
+import {EclipseChe} from '../../src/tasks/installers/eclipse-che/eclipse-che'
 
 jest.setTimeout(1000000)
 

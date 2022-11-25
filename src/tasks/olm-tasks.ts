@@ -13,7 +13,7 @@
 import {CheCtlContext, CliContext, EclipseCheContext, InfrastructureContext} from '../context'
 import * as Listr from 'listr'
 import { KubeClient } from '../api/kube-client'
-import {getEmbeddedTemplatesDirectory, newListr, safeLoadFromYamlFile} from '../utils/utls'
+import {getEmbeddedTemplatesDirectory, isPartOfEclipseChe, newListr, safeLoadFromYamlFile} from '../utils/utls'
 import * as path from 'path'
 import { V1Role, V1RoleBinding } from '@kubernetes/client-node'
 import * as yaml from 'js-yaml'
@@ -22,23 +22,29 @@ import {CHE_NAMESPACE_FLAG, CHE_OPERATOR_IMAGE_FLAG, CLUSTER_MONITORING_FLAG} fr
 import {EclipseChe} from './installers/eclipse-che/eclipse-che'
 
 export namespace OlmTasks {
-  export function getDeleteCatalogSourceTask(name: string, namespace: string): Listr.ListrTask<any> {
-    const kubeHelper = KubeClient.getInstance()
-    return CommonTasks.getDeleteResourcesTask(`Delete CatalogSources ${name}`, [() => kubeHelper.deleteCatalogSource(name, namespace)])
-  }
+  export async function getDeleteSubscriptionAndCatalogSourceTask(name: string, namespace: string, csvPrefix: string): Promise<Listr.ListrTask<any>> {
+    let title = `Delete Subscription ${name}`
 
-  export function getDeleteSubscriptionTask(name: string, namespace: string, csvPrefix: string): Listr.ListrTask<any> {
     const kubeHelper = KubeClient.getInstance()
+    const deleteResources = []
 
-    return CommonTasks.getDeleteResourcesTask(`Delete Subscription ${name}`, [
-      () => kubeHelper.deleteOperatorSubscription(name, namespace),
-      async () => {
-        const csvs = await kubeHelper.getCSVWithPrefix(csvPrefix, namespace)
-        for (const csv of csvs) {
-          await kubeHelper.deleteClusterServiceVersion(csv.metadata.name!, namespace)
-        }
-      },
-    ])
+    const subscription = await kubeHelper.getOperatorSubscription(name, namespace)
+    if (subscription) {
+      deleteResources.push(() => kubeHelper.deleteOperatorSubscription(name, namespace))
+
+      const catalogSource = await kubeHelper.getCatalogSource(subscription.spec.source, subscription.spec.sourceNamespace)
+      if (isPartOfEclipseChe(catalogSource)) {
+        title = `${title} and CatalogSource ${subscription.spec.source}`
+        deleteResources.push(() => kubeHelper.deleteCatalogSource(subscription.spec.source, subscription.spec.sourceNamespace))
+      }
+    }
+
+    const csvs = await kubeHelper.getCSVWithPrefix(csvPrefix, namespace)
+    for (const csv of csvs) {
+      deleteResources.push(() => kubeHelper.deleteClusterServiceVersion(csv.metadata.name!, namespace))
+    }
+
+    return CommonTasks.getDeleteResourcesTask(title, deleteResources)
   }
 
   export function getCreateSubscriptionTask(

@@ -65,6 +65,7 @@ export default class Delete extends Command {
 
     const tasks = newListr()
     tasks.add(CommonTasks.getTestKubernetesApiTasks())
+    tasks.add(CommonTasks.getOpenShiftVersionTask())
     tasks.add(EclipseCheInstallerFactory.getInstaller().getDeleteTasks())
     tasks.add(CheTasks.getWaitPodsDeletedTasks())
 

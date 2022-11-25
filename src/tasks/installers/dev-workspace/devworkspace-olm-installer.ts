@@ -19,6 +19,8 @@ import {OlmTasks} from '../../olm-tasks'
 import {SKIP_DEV_WORKSPACE_FLAG} from '../../../flags'
 import {CommonTasks} from '../../common-tasks'
 import {newListr} from '../../../utils/utls'
+import {EclipseChe} from '../eclipse-che/eclipse-che'
+import {CHE} from '../../../constants'
 
 export class DevWorkspaceOlmInstaller implements Installer  {
   protected skip: boolean
@@ -34,10 +36,15 @@ export class DevWorkspaceOlmInstaller implements Installer  {
       skip: () => this.skip,
       task: async (ctx: any, _task: any) => {
         const tasks = newListr()
-        tasks.add(OlmTasks.getCreateCatalogSourceTask(
-          ctx[DevWorkspaceContext.CATALOG_SOURCE_NAME],
-          ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE],
-          ctx[DevWorkspaceContext.CATALOG_SOURCE_IMAGE]))
+
+        // Create CatalogSource to deploy a community version of Dev Workspace operator for Eclipse Che.
+        // Otherwise, CatalogSource must be pre-created.
+        if (EclipseChe.CHE_FLAVOR === CHE) {
+          tasks.add(OlmTasks.getCreateCatalogSourceTask(
+            ctx[DevWorkspaceContext.CATALOG_SOURCE_NAME],
+            ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE],
+            ctx[DevWorkspaceContext.CATALOG_SOURCE_IMAGE]))
+        }
 
         tasks.add(OlmTasks.getCreateSubscriptionTask(
           DevWorkspace.SUBSCRIPTION,
@@ -65,15 +72,7 @@ export class DevWorkspaceOlmInstaller implements Installer  {
         tasks.add(DevWorkspacesTasks.getDeleteServicesTask())
         tasks.add(DevWorkspacesTasks.getDeleteWorkloadsTask())
         tasks.add(DevWorkspacesTasks.getDeleteRbacTask())
-
-        tasks.add(OlmTasks.getDeleteSubscriptionTask(
-          DevWorkspace.SUBSCRIPTION,
-          ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE],
-          DevWorkspace.CSV_PREFIX))
-
-        tasks.add(OlmTasks.getDeleteCatalogSourceTask(
-          ctx[DevWorkspaceContext.CATALOG_SOURCE_NAME],
-          ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE]))
+        tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(DevWorkspace.SUBSCRIPTION, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE], DevWorkspace.CSV_PREFIX))
         return tasks
       },
     }

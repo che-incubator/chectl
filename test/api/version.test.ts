@@ -11,8 +11,8 @@
  */
 
 import { expect, fancy } from 'fancy-test'
-import {K8sVersion} from '../../lib/utils/k8s-version'
-import {CheCtlVersion} from '../../lib/utils/chectl-version'
+import {K8sVersion} from '../../src/utils/k8s-version'
+import {CheCtlVersion} from '../../src/utils/chectl-version'
 
 describe('Version Helper', () => {
   describe('OpenShift API helper', () => {
@@ -79,21 +79,21 @@ describe('Version Helper', () => {
       .it('should update next version (release day differs)', async () => {
         const currentVersion = '0.0.20210727-next.81f31b0'
         const newVersion = '0.0.20210729-next.6041615'
-        const shouldUpdate = CheCtlVersion.gtCheCtlVersion(newVersion, currentVersion)
+        const shouldUpdate = await CheCtlVersion.gtCheCtlVersion(newVersion, currentVersion)
         expect(shouldUpdate).to.be.true
       })
     fancy
       .it('should not update next version (release day differs)', async () => {
         const currentVersion = '0.0.20210729-next.6041615'
         const newVersion = '0.0.20210729-next.6041615'
-        const shouldUpdate = CheCtlVersion.gtCheCtlVersion(newVersion, currentVersion)
+        const shouldUpdate = await CheCtlVersion.gtCheCtlVersion(newVersion, currentVersion)
         expect(shouldUpdate).to.be.false
       })
     fancy
       .it('should not downgrade next version (release day differs)', async () => {
         const currentVersion = '0.0.20210729-next.6041615'
         const newVersion = '0.0.20210727-next.81f31b0'
-        const shouldUpdate = CheCtlVersion.gtCheCtlVersion(newVersion, currentVersion)
+        const shouldUpdate = await CheCtlVersion.gtCheCtlVersion(newVersion, currentVersion)
         expect(shouldUpdate).to.be.false
       })
     fancy

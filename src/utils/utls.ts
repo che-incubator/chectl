@@ -127,3 +127,7 @@ export function newListr(tasks?: ReadonlyArray<Listr.ListrTask<any>>, collapse =
   const options = { renderer: (flags[LISTR_RENDERER_FLAG] as any), collapse } as Listr.ListrOptions
   return new Listr(tasks, options)
 }
+
+export function isPartOfEclipseChe(resource: any): boolean {
+  return resource.metadata?.labels?.['app.kubernetes.io/part-of'] === 'che.eclipse.org'
+}

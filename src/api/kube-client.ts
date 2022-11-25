@@ -1258,12 +1258,24 @@ export class KubeClient {
     }
   }
 
-  async createCatalogSource(catalogSource: CatalogSource, namespace: string) {
+  async getCatalogSource(name: string, namespace: string): Promise<CatalogSource | undefined> {
+    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', name)
+      return body as CatalogSource
+    } catch (e: any) {
+      if (e.response && e.response.statusCode === 404) {
+        return
+      }
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async createCatalogSource(catalogSource: CatalogSource, namespace: string): Promise<void> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
       delete catalogSource.metadata?.namespace
-      const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', catalogSource)
-      return body
+      await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', catalogSource)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }

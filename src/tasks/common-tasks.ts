@@ -121,6 +121,19 @@ export namespace CommonTasks {
     }
   }
 
+  export function getSkipTask(title: string, skipMsg: string): Listr.ListrTask<any> {
+    return {
+      title,
+      task: (_ctx: any, task: any) => {
+        task.skip(skipMsg)
+      },
+    }
+  }
+
+  export function getNotEclipseCheResourceSkipTask(title: string): Listr.ListrTask<any> {
+    return getSkipTask(title, `Not ${EclipseChe.PRODUCT_NAME} resource`)
+  }
+
   export function getDisabledTask(): Listr.ListrTask<any> {
     return {
       title: '',

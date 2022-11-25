@@ -15,6 +15,7 @@ import { cli } from 'cli-ux'
 
 import { CheCtlVersion } from '../../utils/chectl-version'
 import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
+import {CHE} from '../../constants'
 
 const DO_NO_PRINT_WARNING_COMMANDS = [
   'server:deploy',
@@ -24,7 +25,7 @@ const DO_NO_PRINT_WARNING_COMMANDS = [
 ]
 
 const hook: Hook<'prerun'> = async function (options) {
-  if (EclipseChe.CHE_FLAVOR !== 'che') {
+  if (EclipseChe.CHE_FLAVOR !== CHE) {
     return
   }
 

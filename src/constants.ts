@@ -12,3 +12,4 @@
 
 // HOOKS
 export const DEFAULT_ANALYTIC_HOOK_NAME = 'analytics'
+export const CHE = 'che'

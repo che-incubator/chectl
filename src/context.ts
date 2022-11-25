@@ -36,6 +36,7 @@ import {DevWorkspace} from './tasks/installers/dev-workspace/dev-workspace'
 import {EclipseChe} from './tasks/installers/eclipse-che/eclipse-che'
 import * as fs from 'fs-extra'
 import * as execa from 'execa'
+import {CHE} from './constants'
 
 export namespace InfrastructureContext {
   export const IS_OPENSHIFT = 'infrastructure-is-openshift'
@@ -121,7 +122,7 @@ export namespace CheCtlContext {
 
   export async function init(flags: any, command: Command): Promise<void> {
     ctx[CliContext.CLI_COMMAND_FLAGS] = flags
-    ctx[CliContext.CLI_IS_CHECTL] = EclipseChe.CHE_FLAVOR === 'che'
+    ctx[CliContext.CLI_IS_CHECTL] = EclipseChe.CHE_FLAVOR === CHE
     ctx[CliContext.CLI_IS_DEV_VERSION] = getProjectVersion().includes('next') || getProjectVersion() === '0.0.2'
     ctx[CliContext.CLI_COMMAND_START_TIME] = Date.now()
     ctx[CliContext.CLI_CONFIG_DIR] = command.config.configDir
@@ -192,16 +193,22 @@ export namespace CheCtlContext {
       ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = EclipseChe.NEXT_CATALOG_SOURCE_IMAGE
     }
 
-    if (ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL && EclipseChe.CHE_FLAVOR !== 'che') {
-      ctx[DevWorkspaceContext.CHANNEL] = DevWorkspace.STABLE_CHANNEL
-      ctx[DevWorkspaceContext.CATALOG_SOURCE_NAME] = ctx[EclipseCheContext.CATALOG_SOURCE_NAME]
+    // DevWorkspaceContext
+    ctx[DevWorkspaceContext.CATALOG_SOURCE_NAME] = DevWorkspace.CATALOG_SOURCE
+    if (ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL) {
+      ctx[DevWorkspaceContext.CHANNEL] = DevWorkspace.NEXT_CHANNEL
+      ctx[DevWorkspaceContext.CATALOG_SOURCE_IMAGE] = DevWorkspace.NEXT_CHANNEL_CATALOG_SOURCE_IMAGE
+      if (EclipseChe.CHE_FLAVOR !== CHE) {
+        // Use the same IIB catalog source
+        ctx[DevWorkspaceContext.CATALOG_SOURCE_NAME] = ctx[EclipseCheContext.CATALOG_SOURCE_NAME]
+      }
     } else {
-      ctx[DevWorkspaceContext.CHANNEL] = ctx[EclipseCheContext.CHANNEL] === EclipseChe.STABLE_CHANNEL ? DevWorkspace.STABLE_CHANNEL : DevWorkspace.NEXT_CHANNEL
-      ctx[DevWorkspaceContext.CATALOG_SOURCE_NAME] = DevWorkspace.CATALOG_SOURCE
+      ctx[DevWorkspaceContext.CHANNEL] = DevWorkspace.STABLE_CHANNEL
+      ctx[DevWorkspaceContext.CATALOG_SOURCE_IMAGE] = DevWorkspace.STABLE_CHANNEL_CATALOG_SOURCE_IMAGE
     }
     ctx[DevWorkspaceContext.NAMESPACE] = ctx[InfrastructureContext.IS_OPENSHIFT] ? ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE] : DevWorkspace.KUBERNETES_NAMESPACE
-    ctx[DevWorkspaceContext.CATALOG_SOURCE_IMAGE] = ctx[EclipseCheContext.CHANNEL] === EclipseChe.STABLE_CHANNEL ? DevWorkspace.STABLE_CHANNEL_CATALOG_SOURCE_IMAGE : DevWorkspace.NEXT_CHANNEL_CATALOG_SOURCE_IMAGE
 
+    // KubeHelperContext
     ctx[KubeHelperContext.POD_WAIT_TIMEOUT] = parseInt(flags[K8S_POD_WAIT_TIMEOUT_FLAG] || DEFAULT_POD_WAIT_TIMEOUT, 10)
     ctx[KubeHelperContext.POD_READY_TIMEOUT] = parseInt(flags[K8S_POD_READY_TIMEOUT_FLAG] || DEFAULT_K8S_POD_READY_TIMEOUT, 10)
     ctx[KubeHelperContext.POD_DOWNLOAD_IMAGE_TIMEOUT] = parseInt(flags[K8S_POD_DOWNLOAD_IMAGE_TIMEOUT_FLAG] || DEFAULT_K8S_POD_DOWNLOAD_IMAGE_TIMEOUT, 10)

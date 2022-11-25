@@ -164,6 +164,7 @@ export const DOMAIN = string({
                     According changes should be done in Kubernetes cluster configuration as well.
                     In case of Openshift, domain adjustment should be done on the cluster configuration level.`,
   default: '',
+  hidden: false,
 })
 
 export const DEBUG_FLAG = 'debug'
