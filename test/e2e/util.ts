@@ -13,8 +13,8 @@
 import { Octokit } from '@octokit/rest'
 import * as execa from 'execa'
 import * as fs from 'fs-extra'
-import {KubeClient} from '../../lib/api/kube-client'
-import {CheGithubClient, TagInfo} from '../../lib/api/github-client'
+import {KubeClient} from '../../src/api/kube-client'
+import {CheGithubClient, TagInfo} from '../../src/api/github-client'
 
 export const NAMESPACE = 'eclipse-che'
 export const CHECTL_REPONAME = 'chectl'
