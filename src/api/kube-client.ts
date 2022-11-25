@@ -1258,6 +1258,16 @@ export class KubeClient {
     }
   }
 
+  async listCatalogSources(namespace: string, labelSelector: string): Promise<CatalogSource[]> {
+    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', undefined, undefined, undefined, labelSelector)
+      return (body as any).items
+    } catch (e: any) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
   async getCatalogSource(name: string, namespace: string): Promise<CatalogSource | undefined> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {

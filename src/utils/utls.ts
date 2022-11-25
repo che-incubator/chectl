@@ -129,5 +129,5 @@ export function newListr(tasks?: ReadonlyArray<Listr.ListrTask<any>>, collapse =
 }
 
 export function isPartOfEclipseChe(resource: any): boolean {
-  return resource.metadata?.labels?.['app.kubernetes.io/part-of'] === 'che.eclipse.org'
+  return resource?.metadata?.labels?.['app.kubernetes.io/part-of'] === 'che.eclipse.org'
 }

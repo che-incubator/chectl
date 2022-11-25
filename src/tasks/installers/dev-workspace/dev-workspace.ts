@@ -78,12 +78,13 @@ export namespace DevWorkspace {
 
   // Olm
   export const KUBERNETES_NAMESPACE = 'devworkspace-controller'
-  export const CATALOG_SOURCE = 'devworkspace-operator'
   export const CSV_PREFIX = 'devworkspace-operator'
   export const SUBSCRIPTION = 'devworkspace-operator'
   export const PACKAGE = 'devworkspace-operator'
+  export const NEXT_CHANNEL_CATALOG_SOURCE = 'devworkspace-operator'
   export const NEXT_CHANNEL = 'next'
   export const NEXT_CHANNEL_CATALOG_SOURCE_IMAGE = 'quay.io/devfile/devworkspace-operator-index:next'
+  export const STABLE_CHANNEL_CATALOG_SOURCE = 'devworkspace-operator'
   export const STABLE_CHANNEL = 'fast'
   export const STABLE_CHANNEL_CATALOG_SOURCE_IMAGE = 'quay.io/devfile/devworkspace-operator-index:release'
 }

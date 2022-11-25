@@ -194,9 +194,9 @@ export namespace CheCtlContext {
     }
 
     // DevWorkspaceContext
-    ctx[DevWorkspaceContext.CATALOG_SOURCE_NAME] = DevWorkspace.CATALOG_SOURCE
     if (ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL) {
       ctx[DevWorkspaceContext.CHANNEL] = DevWorkspace.NEXT_CHANNEL
+      ctx[DevWorkspaceContext.CATALOG_SOURCE_NAME] = DevWorkspace.NEXT_CHANNEL_CATALOG_SOURCE
       ctx[DevWorkspaceContext.CATALOG_SOURCE_IMAGE] = DevWorkspace.NEXT_CHANNEL_CATALOG_SOURCE_IMAGE
       if (EclipseChe.CHE_FLAVOR !== CHE) {
         // Use the same IIB catalog source
@@ -204,6 +204,7 @@ export namespace CheCtlContext {
       }
     } else {
       ctx[DevWorkspaceContext.CHANNEL] = DevWorkspace.STABLE_CHANNEL
+      ctx[DevWorkspaceContext.CATALOG_SOURCE_NAME] = DevWorkspace.STABLE_CHANNEL_CATALOG_SOURCE
       ctx[DevWorkspaceContext.CATALOG_SOURCE_IMAGE] = DevWorkspace.STABLE_CHANNEL_CATALOG_SOURCE_IMAGE
     }
     ctx[DevWorkspaceContext.NAMESPACE] = ctx[InfrastructureContext.IS_OPENSHIFT] ? ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE] : DevWorkspace.KUBERNETES_NAMESPACE

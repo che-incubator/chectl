@@ -13,11 +13,8 @@
 import { Octokit } from '@octokit/rest'
 import * as execa from 'execa'
 import * as fs from 'fs-extra'
-
-import { CheHelper } from '../../src/api/che-logs-reader'
-import { CheGithubClient, TagInfo } from '../../src/api/github-client'
-import { KubeClient } from '../../src/api/kube-client'
-import { OpenShiftHelper } from '../../src/utils/openshift'
+import {KubeClient} from '../../lib/api/kube-client'
+import {CheGithubClient, TagInfo} from '../../lib/api/github-client'
 
 export const NAMESPACE = 'eclipse-che'
 export const CHECTL_REPONAME = 'chectl'
@@ -28,16 +25,12 @@ export const OWNER = 'che-incubator'
 export class E2eHelper {
   private readonly octokit: Octokit
   protected kubeHelper: KubeClient
-  protected che: CheHelper
-  protected oc: OpenShiftHelper
   protected devfileName: string
 
   constructor() {
-    this.kubeHelper = new KubeClient({})
-    this.che = new CheHelper({})
+    this.kubeHelper = KubeClient.getInstance()
     // generate-name from https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml
     this.devfileName = 'quarkus-'
-    this.oc = new OpenShiftHelper()
     this.octokit = new Octokit({
       baseUrl: 'https://api.github.com',
       userAgent: 'chectl',

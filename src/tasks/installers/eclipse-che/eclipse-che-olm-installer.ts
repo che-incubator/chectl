@@ -40,13 +40,9 @@ export class EclipseCheOlmInstaller implements Installer {
           tasks.add(EclipseCheTasks.getCreateIIBCatalogSourceTask())
         }
 
-        // - Install Dev Workspace operator community version for Eclipse Che from custom CatalogSource
-        // - Install Dev Workspace operator from the IIB CatalogSource for DevSpaces fast channel
-        if (EclipseChe.CHE_FLAVOR === CHE || ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL) {
-          tasks.add(DevWorkspaceInstallerFactory.getInstaller().getDeployTasks())
-        }
+        tasks.add(DevWorkspaceInstallerFactory.getInstaller().getDeployTasks())
 
-        if (EclipseChe.CHE_FLAVOR === CHE) {
+        if (EclipseChe.CHE_FLAVOR === CHE && ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL) {
           tasks.add(EclipseCheTasks.getCreateEclipseCheCatalogSourceTask())
         }
 
@@ -107,7 +103,9 @@ export class EclipseCheOlmInstaller implements Installer {
         tasks.add(EclipseCheTasks.getDeleteEclipseCheResourcesTask())
         tasks.add(EclipseCheTasks.getDeleteRbacTask())
         tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(EclipseChe.SUBSCRIPTION, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE], EclipseChe.CSV_PREFIX))
-        tasks.add(await EclipseCheTasks.getDeleteImageContentSourcePolicyTask())
+        if (EclipseChe.CHE_FLAVOR !== CHE && ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL) {
+          tasks.add(await EclipseCheTasks.getDeleteImageContentSourcePolicyTask())
+        }
         return tasks
       },
     }
