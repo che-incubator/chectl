@@ -11,7 +11,7 @@
  */
 
 import { expect, fancy } from 'fancy-test'
-import {getImageNameAndTag} from '../../lib/utils/utls'
+import {getImageNameAndTag} from '../../src/utils/utls'
 
 describe('Util tests', () => {
   describe('Test getImageNameAndTag', () => {
