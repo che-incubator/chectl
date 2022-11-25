@@ -25,7 +25,7 @@ const PLATFORM = process.env.PLATFORM || ''
 const INSTALLER = process.env.INSTALLER || ''
 
 function getDeployCommand(): string {
-  let command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${EclipseChe.NAMESPACE} --telemetry=off`
+  let command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${EclipseChe.NAMESPACE} --telemetry=off --k8spodwaittimeout=120000 --k8spodreadytimeout=120000`
   if (PLATFORM === 'minikube') {
     command += ' --che-operator-cr-patch-yaml=test/e2e/resources/minikube-checluster-patch.yaml'
   }
