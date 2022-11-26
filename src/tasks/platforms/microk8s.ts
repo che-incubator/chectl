@@ -10,96 +10,57 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { Command } from '@oclif/command'
 import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
 
-import { VersionHelper } from '../../api/version'
+import {CheCtlContext} from '../../context'
+import {DOMAIN_FLAG} from '../../flags'
+import {CommonTasks} from '../common-tasks'
 
-export class MicroK8sTasks {
+export namespace MicroK8sTasks {
   /**
    * Returns tasks list which perform preflight platform checks.
    */
-  preflightCheckTasks(flags: any, command: Command): Listr {
-    return new Listr([
+  export function getPeflightCheckTasks(): Listr.ListrTask<any>[] {
+    const flags = CheCtlContext.getFlags()
+    return [
+      CommonTasks.getVerifyCommand('Verify if kubectl is installed', 'kubectl not found', () => commandExists.sync('kubectl')),
+      CommonTasks.getVerifyCommand('Verify if microk8s is installed', 'MicroK8s not found', () => commandExists.sync('microk8s.status')),
+      CommonTasks.getVerifyCommand('Verify if microk8s is running', 'MicroK8s is not running.', () => isMicroK8sRunning()),
       {
-        title: 'Verify if kubectl is installed',
-        task: () => {
-          if (!commandExists.sync('kubectl')) {
-            command.error('E_REQUISITE_NOT_FOUND')
+        title: 'Verify if microk8s ingress addon is enabled',
+        task: async (_ctx: any, task: any) => {
+          const enabledAddons = await getEnabledAddons()
+          if (!enabledAddons.ingress) {
+            await enableIngressAddon()
           }
+          task.title = `${task.title}...[Enabled]`
         },
       },
       {
-        title: 'Verify if microk8s is installed',
-        task: () => {
-          if (!commandExists.sync('microk8s.status')) {
-            command.error('E_REQUISITE_NOT_FOUND', { code: 'E_REQUISITE_NOT_FOUND' })
+        title: 'Verify if microk8s storage addon is enabled',
+        task: async (_ctx: any, task: any) => {
+          const enabledAddons = await getEnabledAddons()
+          if (!enabledAddons.storage) {
+            await enableStorageAddon()
           }
-        },
-      },
-      {
-        title: 'Verify if microk8s is running',
-        task: async (ctx: any) => {
-          ctx.isMicroK8sRunning = await this.isMicroK8sRunning()
-        },
-      },
-      {
-        title: 'Start microk8s',
-        skip: (ctx: any) => {
-          if (ctx.isMicroK8sRunning) {
-            return 'MicroK8s is already running.'
-          }
-        },
-        task: () => {
-          // microk8s.start requires sudo permissions
-          // this.startMicroK8s()
-          command.error('MicroK8s is not running.', { code: 'E_REQUISITE_NOT_RUNNING' })
-        },
-      },
-      VersionHelper.getK8sCheckVersionTask(flags),
-      {
-        title: 'Verify if microk8s ingress and storage addons is enabled',
-        task: async (ctx: any) => {
-          ctx.enabledAddons = await this.enabledAddons()
-        },
-      },
-      {
-        title: 'Enable microk8s ingress addon',
-        skip: (ctx: any) => {
-          if (ctx.enabledAddons.ingress) {
-            return 'Ingress addon is already enabled.'
-          }
-        },
-        task: () => this.enableIngressAddon(),
-      },
-      {
-        title: 'Enable microk8s storage addon',
-        skip: (ctx: any) => {
-          if (ctx.enabledAddons.storage) {
-            return 'Storage addon is already enabled.'
-          }
-        },
-        task: () => {
-          // Enabling storage requires sudo permissions
-          // this.enableStorageAddon()
-          return command.error('The storage addon hasn\'t been enabled in microk8s', { code: 'E_REQUISITE_NOT_FOUND' })
+          task.title = `${task.title}...[Enabled]`
         },
       },
       {
         title: 'Retrieving microk8s IP and domain for ingress URLs',
-        enabled: () => !flags.domain,
+        enabled: () => !flags[DOMAIN_FLAG],
         task: async (_ctx: any, task: any) => {
-          const ip = await this.getMicroK8sIP()
-          flags.domain = ip + '.nip.io'
-          task.title = `${task.title}...[${flags.domain}]`
+          const ip = await getMicroK8sIP()
+          flags[DOMAIN_FLAG] = ip + '.nip.io'
+          task.title = `${task.title}...[${flags[DOMAIN_FLAG]}]`
         },
       },
-    ], { renderer: flags['listr-renderer'] as any })
+    ]
   }
 
-  async isMicroK8sRunning(): Promise<boolean> {
+  async function isMicroK8sRunning(): Promise<boolean> {
     const { exitCode } = await execa('microk8s.status', { timeout: 10000, reject: false })
     if (exitCode === 0) {
       return true
@@ -108,11 +69,7 @@ export class MicroK8sTasks {
     }
   }
 
-  async startMicroK8s() {
-    execa('microk8s.start', { timeout: 180000 })
-  }
-
-  async enabledAddons(): Promise<object> {
+  async function getEnabledAddons(): Promise<any> {
     const { stdout } = await execa('microk8s.status', ['--format', 'short'], { timeout: 10000 })
     return {
       ingress: stdout.includes('ingress: enabled'),
@@ -120,15 +77,15 @@ export class MicroK8sTasks {
     }
   }
 
-  async enableIngressAddon() {
+  async function enableIngressAddon() {
     await execa('microk8s.enable', ['ingress'], { timeout: 10000 })
   }
 
-  async enableStorageAddon() {
+  async function enableStorageAddon() {
     await execa('microk8s.enable', ['storage'], { timeout: 10000 })
   }
 
-  async getMicroK8sIP(): Promise<string> {
+  async function getMicroK8sIP(): Promise<string> {
     const { stdout } = await execa('microk8s.config', { timeout: 10000 })
     const regMatch = /server:\s*https?:\/\/([\d.]+)/.exec(stdout)
     return regMatch ? regMatch[1] : ''

@@ -13,33 +13,40 @@
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
 
-import { CheHelper } from '../../api/che'
-import { ChectlContext } from '../../api/context'
-import { VersionHelper } from '../../api/version'
-import { cheNamespace, CHE_TELEMETRY } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE } from '../../constants'
-import { findWorkingNamespace } from '../../util'
+import { CheCtlContext } from '../../context'
+import {
+  CHE_NAMESPACE_FLAG,
+  CHE_NAMESPACE,
+  LISTR_RENDERER_FLAG,
+  LISTR_RENDERER,
+  TELEMETRY_FLAG,
+  TELEMETRY,
+} from '../../flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import {KubeClient} from '../../api/kube-client'
+import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
+import {Che} from '../../utils/che'
 
 export default class Status extends Command {
-  static description = 'Status Eclipse Che server'
+  static description = `Status ${EclipseChe.PRODUCT_NAME} server`
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
-    chenamespace: cheNamespace,
-    telemetry: CHE_TELEMETRY,
+    [CHE_NAMESPACE_FLAG]: CHE_NAMESPACE,
+    [LISTR_RENDERER_FLAG]: LISTR_RENDERER,
+    [TELEMETRY_FLAG]: TELEMETRY,
   }
 
   async run() {
     const { flags } = this.parse(Status)
-    flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags) || DEFAULT_CHE_NAMESPACE
-    await ChectlContext.init(flags, this)
+    await CheCtlContext.init(flags, this)
+
+    const kubeHelper = KubeClient.getInstance()
+    flags[CHE_NAMESPACE_FLAG] = flags[CHE_NAMESPACE_FLAG] || await kubeHelper.findCheClusterNamespace() || EclipseChe.NAMESPACE
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Status.id, flags })
 
-    const che = new CheHelper(flags)
-    const cheVersion = await VersionHelper.getCheVersion(flags)
-
-    cli.log(`Eclipse Che Version    : ${cheVersion}`)
-    cli.log(`Eclipse Che Url        : ${che.buildDashboardURL(await che.cheURL(flags.chenamespace))}`)
+    cli.log(`${EclipseChe.PRODUCT_NAME} Version    : ${await Che.getCheVersion()}`)
+    cli.log(`${EclipseChe.PRODUCT_NAME} Url        : ${Che.buildDashboardURL(await Che.getCheURL(flags[CHE_NAMESPACE_FLAG]))}`)
   }
 }

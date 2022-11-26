@@ -14,20 +14,18 @@
 
 import { expect } from '@oclif/test'
 import * as execa from 'execa'
-import { E2eHelper } from './util'
-import { DEFAULT_CHE_NAMESPACE } from '../../src/constants';
+import {EclipseChe} from '../../src/tasks/installers/eclipse-che/eclipse-che'
+import {E2eHelper} from './util'
 
 jest.setTimeout(1000000)
 
 const binChectl = E2eHelper.getChectlBinaries()
 
-const NAMESPACE = DEFAULT_CHE_NAMESPACE
-
 const PLATFORM = process.env.PLATFORM || ''
 const INSTALLER = process.env.INSTALLER || ''
 
 function getDeployCommand(): string {
-  let command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off`
+  let command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${EclipseChe.NAMESPACE} --telemetry=off --k8spodwaittimeout=120000 --k8spodreadytimeout=120000`
   if (PLATFORM === 'minikube') {
     command += ' --che-operator-cr-patch-yaml=test/e2e/resources/minikube-checluster-patch.yaml'
   }
@@ -55,7 +53,7 @@ describe(`server:deploy using ${INSTALLER} installer`, () => {
 
 describe('Export CA certificate', () => {
   it('cacert:export command', async () => {
-    const command = `${binChectl} cacert:export -n ${NAMESPACE} --telemetry=off`
+    const command = `${binChectl} cacert:export -n ${EclipseChe.NAMESPACE} --telemetry=off`
 
     const { exitCode, stdout, stderr } = await execa(command, { shell: true })
 
@@ -70,7 +68,7 @@ describe('Export CA certificate', () => {
 
 describe('Get Eclipse Che server status', () => {
   it('server:status command', async () => {
-    const { exitCode, stdout, stderr } = await execa(binChectl, ['server:status', `--chenamespace ${NAMESPACE}`, '--telemetry=off'], { shell: true })
+    const { exitCode, stdout, stderr } = await execa(binChectl, ['server:status', `--chenamespace ${EclipseChe.NAMESPACE}`, '--telemetry=off'], { shell: true })
 
     console.log(`stdout: ${stdout}`)
     console.log(`stderr: ${stderr}`)
@@ -80,7 +78,7 @@ describe('Get Eclipse Che server status', () => {
 
 describe('Stop Eclipse Che server', () => {
   it('server:stop command', async () => {
-    const { exitCode, stdout, stderr } = await execa(binChectl, ['server:stop', `-n ${NAMESPACE}`, '--telemetry=off'], { shell: true })
+    const { exitCode, stdout, stderr } = await execa(binChectl, ['server:stop', `-n ${EclipseChe.NAMESPACE}`, '--telemetry=off'], { shell: true })
 
     console.log(`stdout: ${stdout}`)
     console.log(`stderr: ${stderr}`)
@@ -90,7 +88,7 @@ describe('Stop Eclipse Che server', () => {
 
 describe('Delete Eclipse Che server', () => {
   it('server:delete command', async () => {
-    let result = await execa(binChectl, ['server:delete', `-n ${NAMESPACE}`, '--telemetry=off', '--delete-namespace', '--yes'], { shell: true })
+    let result = await execa(binChectl, ['server:delete', `-n ${EclipseChe.NAMESPACE}`, '--telemetry=off', '--delete-namespace', '--yes'], { shell: true })
 
     console.log(`stdout: ${result.stdout}`)
     console.log(`stderr: ${result.stderr}`)
@@ -98,7 +96,7 @@ describe('Delete Eclipse Che server', () => {
 
     // run deletion second time to ensure that
     // server:delete does not fail if resource is absent
-    result = await execa(binChectl, ['server:delete', `-n ${NAMESPACE}`, '--telemetry=off', '--delete-namespace', '--yes'], { shell: true })
+    result = await execa(binChectl, ['server:delete', `-n ${EclipseChe.NAMESPACE}`, '--telemetry=off', '--delete-namespace', '--yes'], { shell: true })
 
     console.log(`stdout: ${result.stdout}`)
     console.log(`stderr: ${result.stderr}`)

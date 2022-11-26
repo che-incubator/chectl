@@ -10,42 +10,20 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { Command } from '@oclif/command'
 import * as commandExists from 'command-exists'
 import * as Listr from 'listr'
 
-import { OpenShiftHelper } from '../../api/openshift'
-import { VersionHelper } from '../../api/version'
+import {OpenShift} from '../../utils/openshift'
+import {CommonTasks} from '../common-tasks'
 
-export class OpenshiftTasks {
+export namespace OpenshiftTasks {
   /**
    * Returns tasks list which perform preflight platform checks.
    */
-  preflightCheckTasks(flags: any, command: Command): Listr {
-    return new Listr([
-      {
-        title: 'Verify if oc is installed',
-        task: (_ctx: any, task: any) => {
-          if (!commandExists.sync('oc')) {
-            command.error('E_REQUISITE_NOT_FOUND')
-          } else {
-            task.title = `${task.title}...[OK]`
-          }
-        },
-      },
-      {
-        title: 'Verify if openshift is running',
-        task: async (_ctx: any, task: any) => {
-          const openShiftHelper = new OpenShiftHelper()
-          if (!await openShiftHelper.isOpenShiftRunning()) {
-            command.error('PLATFORM_NOT_READY: \'oc status\' command failed. Please login with \'oc login\' command and try again.')
-          } else {
-            task.title = `${task.title}...[OK]`
-          }
-        },
-      },
-      VersionHelper.getOpenShiftCheckVersionTask(flags),
-      VersionHelper.getK8sCheckVersionTask(flags),
-    ], { renderer: flags['listr-renderer'] as any })
+  export function getPreflightCheckTasks(): Listr.ListrTask<any>[] {
+    return [
+      CommonTasks.getVerifyCommand('Verify if oc is installed', 'oc not found',  () => commandExists.sync('oc')),
+      CommonTasks.getVerifyCommand('Verify if openshift is running', 'PLATFORM_NOT_READY: \'oc status\' command failed. Please login with \'oc login\' command and try again.',  () => OpenShift.isOpenShiftRunning()),
+    ]
   }
 }

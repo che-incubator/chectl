@@ -13,32 +13,37 @@
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
 
-import { CheHelper } from '../../api/che'
-import { ChectlContext } from '../../api/context'
-import { cheNamespace, CHE_TELEMETRY } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE } from '../../constants'
-import { findWorkingNamespace } from '../../util'
+import { CheCtlContext } from '../../context'
+import {
+  CHE_NAMESPACE_FLAG,
+  CHE_NAMESPACE,
+  TELEMETRY_FLAG, TELEMETRY,
+} from '../../flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import {KubeClient} from '../../api/kube-client'
+import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
+import {Che} from '../../utils/che'
 
 export default class Open extends Command {
-  static description = 'Open Eclipse Che dashboard'
+  static description = `Open ${EclipseChe.PRODUCT_NAME} dashboard`
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
-    chenamespace: cheNamespace,
-    telemetry: CHE_TELEMETRY,
+    [CHE_NAMESPACE_FLAG]: CHE_NAMESPACE,
+    [TELEMETRY_FLAG]: TELEMETRY,
   }
 
   async run() {
     const { flags } = this.parse(Open)
-    flags.chenamespace = flags.chenamespace || await findWorkingNamespace(flags) || DEFAULT_CHE_NAMESPACE
-    await ChectlContext.init(flags, this)
+    await CheCtlContext.init(flags, this)
+
+    const kubeHelper = KubeClient.getInstance()
+    flags[CHE_NAMESPACE_FLAG] = flags[CHE_NAMESPACE_FLAG] || await kubeHelper.findCheClusterNamespace() || EclipseChe.NAMESPACE
+
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Open.id, flags })
 
     try {
-      await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Open.id, flags })
-
-      const cheHelper = new CheHelper(flags)
-      const cheURL = await cheHelper.cheURL(flags.chenamespace)
-      const dashboardUrl = `${cheURL}/dashboard/`
+      const dashboardUrl = Che.buildDashboardURL(await Che.getCheURL(flags[CHE_NAMESPACE_FLAG]))
 
       cli.info(`Opening ... ${dashboardUrl}`)
       await cli.open(dashboardUrl)

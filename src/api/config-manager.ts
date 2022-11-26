@@ -14,7 +14,7 @@ import * as fs from 'fs-extra'
 import { merge } from 'lodash'
 import * as path from 'path'
 
-import { ChectlContext } from './context'
+import {CheCtlContext, CliContext} from '../context'
 
 /**
  * ChectlConfig contains necessary methods to interact with cache configDir of chectl.
@@ -42,8 +42,8 @@ export class ConfigManager {
       return this.configManager
     }
 
-    const ctx = ChectlContext.get()
-    const configDir = ctx[ChectlContext.CONFIG_DIR]
+    const ctx = CheCtlContext.get()
+    const configDir = ctx[CliContext.CLI_CONFIG_DIR]
 
     this.configManager = new ConfigManager(configDir)
     return this.configManager

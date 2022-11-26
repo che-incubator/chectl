@@ -19,7 +19,9 @@ import * as osLocale from 'os-locale'
 import * as path from 'path'
 import { v4 } from 'uuid'
 
-import { getDistribution, getProjectName, getProjectVersion } from '../../util'
+import {getProjectName, getProjectVersion} from '../../utils/utls'
+import * as getos from 'getos'
+import {promisify} from 'util'
 
 const Analytics = require('analytics-node')
 
@@ -115,7 +117,7 @@ export class SegmentAdapter {
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       os_name: os.platform(),
       os_version: os.release(),
-      os_distribution: await getDistribution(),
+      os_distribution: this.getDistribution(),
       locale: osLocale.sync().replace('_', '-'),
     }
   }
@@ -140,5 +142,17 @@ export class SegmentAdapter {
       },
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }
+  }
+
+  private async getDistribution(): Promise<string | undefined> {
+    if (os.platform() === 'linux') {
+      try {
+        const platform = await promisify(getos)() as getos.LinuxOs
+        return platform.dist
+      } catch {
+        return
+      }
+    }
+    return
   }
 }
