@@ -72,7 +72,7 @@ export class DevWorkspaceOlmInstaller implements Installer  {
         tasks.add(DevWorkspacesTasks.getDeleteServicesTask())
         tasks.add(DevWorkspacesTasks.getDeleteWorkloadsTask())
         tasks.add(DevWorkspacesTasks.getDeleteRbacTask())
-        tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(DevWorkspace.SUBSCRIPTION, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE], DevWorkspace.CSV_PREFIX))
+        tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(DevWorkspace.PACKAGE, DevWorkspace.CSV_PREFIX, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE]))
         return tasks
       },
     }
