@@ -30,7 +30,7 @@ export class EclipseCheOlmInstaller implements Installer {
   getDeployTasks(): Listr.ListrTask<any> {
     return {
       title: `Deploy ${EclipseChe.PRODUCT_NAME}`,
-      task: (ctx: any, _task: any) => {
+      task: async (ctx: any, _task: any) => {
         const tasks = newListr()
         const flags = CheCtlContext.getFlags()
 
@@ -40,7 +40,7 @@ export class EclipseCheOlmInstaller implements Installer {
           tasks.add(EclipseCheTasks.getCreateIIBCatalogSourceTask())
         }
 
-        tasks.add(DevWorkspaceInstallerFactory.getInstaller().getDeployTasks())
+        tasks.add(await EclipseCheTasks.getInstallDevWorkspaceOperatorTask())
 
         if (EclipseChe.CHE_FLAVOR === CHE && ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL) {
           tasks.add(EclipseCheTasks.getCreateEclipseCheCatalogSourceTask())
@@ -102,7 +102,7 @@ export class EclipseCheOlmInstaller implements Installer {
         tasks.add(await EclipseCheTasks.getDeleteClusterScopeObjectsTask())
         tasks.add(EclipseCheTasks.getDeleteEclipseCheResourcesTask())
         tasks.add(EclipseCheTasks.getDeleteRbacTask())
-        tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(EclipseChe.SUBSCRIPTION, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE], EclipseChe.CSV_PREFIX))
+        tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(EclipseChe.PACKAGE_NAME, EclipseChe.CSV_PREFIX, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE]))
         if (EclipseChe.CHE_FLAVOR !== CHE && ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL) {
           tasks.add(await EclipseCheTasks.getDeleteImageContentSourcePolicyTask())
         }

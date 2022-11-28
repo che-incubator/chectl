@@ -29,11 +29,11 @@ export class EclipseCheOperatorInstaller implements Installer {
   getDeployTasks(): Listr.ListrTask<any> {
     return {
       title: `Deploy ${EclipseChe.PRODUCT_NAME} operator`,
-      task: (_ctx: any, _task: any) => {
+      task: async (_ctx: any, _task: any) => {
         const tasks = newListr()
         const flags = CheCtlContext.getFlags()
 
-        tasks.add(DevWorkspaceInstallerFactory.getInstaller().getDeployTasks())
+        tasks.add(await EclipseCheTasks.getInstallDevWorkspaceOperatorTask())
         tasks.add(EclipseCheTasks.getCreateOrUpdateServiceAccountTask(true))
         tasks.add(EclipseCheTasks.getCreateOrUpdateRbacTasks(true))
         tasks.add(CertManager.getWaitCertManagerTask())

@@ -40,6 +40,8 @@ import {cli} from 'cli-ux'
 import {CatalogSource} from '../../../api/types/olm'
 import {merge} from 'lodash'
 import {OlmTasks} from '../../olm-tasks'
+import {DevWorkspaceInstallerFactory} from '../dev-workspace/dev-workspace-installer-factory'
+import {DevWorkspace} from '../dev-workspace/dev-workspace'
 
 /**
  * Copyright (c) 2019-2022 Red Hat, Inc.
@@ -54,6 +56,17 @@ import {OlmTasks} from '../../olm-tasks'
  */
 
 export namespace EclipseCheTasks {
+  export async function getInstallDevWorkspaceOperatorTask(): Promise<Listr.ListrTask<any>> {
+    const kubeClient = KubeClient.getInstance()
+    if (await kubeClient.getCustomResourceDefinition(DevWorkspace.DEV_WORKSPACES_CRD) &&
+      await kubeClient.getCustomResourceDefinition(DevWorkspace.DEV_WORKSPACE_OPERATOR_CONFIGS_CRD) &&
+      await kubeClient.getCustomResourceDefinition(DevWorkspace.DEV_WORKSPACE_ROUTINGS_CRD) &&
+      await kubeClient.getCustomResourceDefinition(DevWorkspace.DEV_WORKSPACES_TEMPLATES_CRD)) {
+      return CommonTasks.getSkipTask(`Install ${DevWorkspace.PRODUCT_NAME} operator`, `${DevWorkspace.PRODUCT_NAME} operator already installed`)
+    } else {
+      return DevWorkspaceInstallerFactory.getInstaller().getDeployTasks()
+    }
+  }
   export function getCreateOrUpdateDeploymentTask(isCreateOnly: boolean): Listr.ListrTask<any> {
     const flags = CheCtlContext.getFlags()
     const kubeHelper = KubeClient.getInstance()
@@ -582,148 +595,148 @@ export namespace EclipseCheTasks {
     const iibImage = `quay.io/devspaces/iib:next-v${ctx[InfrastructureContext.OPENSHIFT_VERSION]}-${ctx[InfrastructureContext.OPENSHIFT_ARCH]}`
     return OlmTasks.getCreateCatalogSourceTask(ctx[EclipseCheContext.CATALOG_SOURCE_NAME], ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE], iibImage)
   }
-}
 
-function constructImageContentSourcePolicy(): any {
-  return {
-    apiVersion: 'operator.openshift.io/v1alpha1',
-    kind: 'ImageContentSourcePolicy',
-    metadata: {
-      name: EclipseChe.IMAGE_CONTENT_SOURCE_POLICY,
-      labels: {
-        'app.kubernetes.io/part-of': 'che.eclipse.org',
+  function constructImageContentSourcePolicy(): any {
+    return {
+      apiVersion: 'operator.openshift.io/v1alpha1',
+      kind: 'ImageContentSourcePolicy',
+      metadata: {
+        name: EclipseChe.IMAGE_CONTENT_SOURCE_POLICY,
+        labels: {
+          'app.kubernetes.io/part-of': 'che.eclipse.org',
+        },
       },
-    },
-    spec: {
-      repositoryDigestMirrors: [
-        {
-          mirrors: [
-            'quay.io',
-          ],
-          source: 'registry.redhat.io',
-        },
-        {
-          mirrors: [
-            'quay.io',
-          ],
-          source: 'registry.stage.redhat.io',
-        },
-        {
-          mirrors: [
-            'quay.io',
-          ],
-          source: 'registry-proxy.engineering.redhat.com',
-        },
-        {
-          mirrors: [
-            'registry.redhat.io',
-          ],
-          source: 'registry.stage.redhat.io',
-        },
-        {
-          mirrors: [
-            'registry.stage.redhat.io',
-          ],
-          source: 'registry-proxy.engineering.redhat.com',
-        },
-        {
-          mirrors: [
-            'registry.redhat.io',
-          ],
-          source: 'registry-proxy.engineering.redhat.com',
-        },
-        {
-          mirrors: [
-            'quay.io/devfile/devworkspace-operator-bundle',
-          ],
-          source: 'registry.redhat.io/devworkspace/devworkspace-operator-bundle',
-        },
-        {
-          mirrors: [
-            'quay.io/devfile/devworkspace-operator-bundle',
-          ],
-          source: 'registry.stage.redhat.io/devworkspace/devworkspace-operator-bundle',
-        },
-        {
-          mirrors: [
-            'quay.io/devfile/devworkspace-operator-bundle',
-          ],
-          source: 'registry-proxy.engineering.redhat.com/rh-osbs/devworkspace-operator-bundle',
-        },
-        {
-          mirrors: [
-            'quay.io/devworkspace/devworkspace-operator-bundle',
-          ],
-          source: 'registry.redhat.io/devworkspace/devworkspace-operator-bundle',
-        },
-        {
-          mirrors: [
-            'quay.io/devworkspace/devworkspace-operator-bundle',
-          ],
-          source: 'registry.stage.redhat.io/devworkspace/devworkspace-operator-bundle',
-        },
-        {
-          mirrors: [
-            'quay.io/devworkspace/devworkspace-operator-bundle',
-          ],
-          source: 'registry-proxy.engineering.redhat.com/rh-osbs/devworkspace-operator-bundle',
-        },
-        {
-          mirrors: [
-            'registry.redhat.io/devworkspace/devworkspace-operator-bundle',
-          ],
-          source: 'registry.stage.redhat.io/devworkspace/devworkspace-operator-bundle',
-        },
-        {
-          mirrors: [
-            'registry.stage.redhat.io/devworkspace/devworkspace-operator-bundle',
-          ],
-          source: 'registry-proxy.engineering.redhat.com/rh-osbs/devworkspace-operator-bundle',
-        },
-        {
-          mirrors: [
-            'registry.redhat.io/devworkspace/devworkspace-operator-bundle',
-          ],
-          source: 'registry-proxy.engineering.redhat.com/rh-osbs/devworkspace-operator-bundle',
-        },
-        {
-          mirrors: [
-            'quay.io/devspaces/devspaces-operator-bundle',
-          ],
-          source: 'registry.redhat.io/devspaces/devspaces-operator-bundle',
-        },
-        {
-          mirrors: [
-            'quay.io/devspaces/devspaces-operator-bundle',
-          ],
-          source: 'registry.stage.redhat.io/devspaces/devspaces-operator-bundle',
-        },
-        {
-          mirrors: [
-            'quay.io/devspaces/devspaces-operator-bundle',
-          ],
-          source: 'registry-proxy.engineering.redhat.com/rh-osbs/devspaces-operator-bundle',
-        },
-        {
-          mirrors: [
-            'registry.redhat.io/devspaces/devspaces-operator-bundle',
-          ],
-          source: 'registry.stage.redhat.io/devspaces/devspaces-operator-bundle',
-        },
-        {
-          mirrors: [
-            'registry.stage.redhat.io/devspaces/devspaces-operator-bundle',
-          ],
-          source: 'registry-proxy.engineering.redhat.com/rh-osbs/devspaces-operator-bundle',
-        },
-        {
-          mirrors: [
-            'registry.redhat.io/devspaces/devspaces-operator-bundle',
-          ],
-          source: 'registry-proxy.engineering.redhat.com/rh-osbs/devspaces-operator-bundle',
-        },
-      ],
-    },
+      spec: {
+        repositoryDigestMirrors: [
+          {
+            mirrors: [
+              'quay.io',
+            ],
+            source: 'registry.redhat.io',
+          },
+          {
+            mirrors: [
+              'quay.io',
+            ],
+            source: 'registry.stage.redhat.io',
+          },
+          {
+            mirrors: [
+              'quay.io',
+            ],
+            source: 'registry-proxy.engineering.redhat.com',
+          },
+          {
+            mirrors: [
+              'registry.redhat.io',
+            ],
+            source: 'registry.stage.redhat.io',
+          },
+          {
+            mirrors: [
+              'registry.stage.redhat.io',
+            ],
+            source: 'registry-proxy.engineering.redhat.com',
+          },
+          {
+            mirrors: [
+              'registry.redhat.io',
+            ],
+            source: 'registry-proxy.engineering.redhat.com',
+          },
+          {
+            mirrors: [
+              'quay.io/devfile/devworkspace-operator-bundle',
+            ],
+            source: 'registry.redhat.io/devworkspace/devworkspace-operator-bundle',
+          },
+          {
+            mirrors: [
+              'quay.io/devfile/devworkspace-operator-bundle',
+            ],
+            source: 'registry.stage.redhat.io/devworkspace/devworkspace-operator-bundle',
+          },
+          {
+            mirrors: [
+              'quay.io/devfile/devworkspace-operator-bundle',
+            ],
+            source: 'registry-proxy.engineering.redhat.com/rh-osbs/devworkspace-operator-bundle',
+          },
+          {
+            mirrors: [
+              'quay.io/devworkspace/devworkspace-operator-bundle',
+            ],
+            source: 'registry.redhat.io/devworkspace/devworkspace-operator-bundle',
+          },
+          {
+            mirrors: [
+              'quay.io/devworkspace/devworkspace-operator-bundle',
+            ],
+            source: 'registry.stage.redhat.io/devworkspace/devworkspace-operator-bundle',
+          },
+          {
+            mirrors: [
+              'quay.io/devworkspace/devworkspace-operator-bundle',
+            ],
+            source: 'registry-proxy.engineering.redhat.com/rh-osbs/devworkspace-operator-bundle',
+          },
+          {
+            mirrors: [
+              'registry.redhat.io/devworkspace/devworkspace-operator-bundle',
+            ],
+            source: 'registry.stage.redhat.io/devworkspace/devworkspace-operator-bundle',
+          },
+          {
+            mirrors: [
+              'registry.stage.redhat.io/devworkspace/devworkspace-operator-bundle',
+            ],
+            source: 'registry-proxy.engineering.redhat.com/rh-osbs/devworkspace-operator-bundle',
+          },
+          {
+            mirrors: [
+              'registry.redhat.io/devworkspace/devworkspace-operator-bundle',
+            ],
+            source: 'registry-proxy.engineering.redhat.com/rh-osbs/devworkspace-operator-bundle',
+          },
+          {
+            mirrors: [
+              'quay.io/devspaces/devspaces-operator-bundle',
+            ],
+            source: 'registry.redhat.io/devspaces/devspaces-operator-bundle',
+          },
+          {
+            mirrors: [
+              'quay.io/devspaces/devspaces-operator-bundle',
+            ],
+            source: 'registry.stage.redhat.io/devspaces/devspaces-operator-bundle',
+          },
+          {
+            mirrors: [
+              'quay.io/devspaces/devspaces-operator-bundle',
+            ],
+            source: 'registry-proxy.engineering.redhat.com/rh-osbs/devspaces-operator-bundle',
+          },
+          {
+            mirrors: [
+              'registry.redhat.io/devspaces/devspaces-operator-bundle',
+            ],
+            source: 'registry.stage.redhat.io/devspaces/devspaces-operator-bundle',
+          },
+          {
+            mirrors: [
+              'registry.stage.redhat.io/devspaces/devspaces-operator-bundle',
+            ],
+            source: 'registry-proxy.engineering.redhat.com/rh-osbs/devspaces-operator-bundle',
+          },
+          {
+            mirrors: [
+              'registry.redhat.io/devspaces/devspaces-operator-bundle',
+            ],
+            source: 'registry-proxy.engineering.redhat.com/rh-osbs/devspaces-operator-bundle',
+          },
+        ],
+      },
+    }
   }
 }
 

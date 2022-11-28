@@ -22,20 +22,21 @@ import {CHE_NAMESPACE_FLAG, CHE_OPERATOR_IMAGE_FLAG, CLUSTER_MONITORING_FLAG} fr
 import {EclipseChe} from './installers/eclipse-che/eclipse-che'
 
 export namespace OlmTasks {
-  export async function getDeleteSubscriptionAndCatalogSourceTask(subscriptionName: string, namespace: string, csvPrefix: string): Promise<Listr.ListrTask<any>> {
-    let title = `Delete Subscription ${subscriptionName}`
+  export async function getDeleteSubscriptionAndCatalogSourceTask(packageName: string, csvPrefix: string, namespace: string): Promise<Listr.ListrTask<any>> {
+    let title = 'Delete Subscription'
 
     const kubeHelper = KubeClient.getInstance()
     const deleteResources = []
 
-    const subscription = await kubeHelper.getOperatorSubscription(subscriptionName, namespace)
+    const subscription = await kubeHelper.getOperatorSubscriptionByPackage(packageName, namespace)
     if (subscription) {
-      deleteResources.push(() => kubeHelper.deleteOperatorSubscription(subscriptionName, namespace))
+      title = `${title} ${subscription.metadata.name}`
+      deleteResources.push(() => kubeHelper.deleteOperatorSubscription(subscription.metadata.name!, namespace))
 
       const catalogSource = await kubeHelper.getCatalogSource(subscription.spec.source, subscription.spec.sourceNamespace)
       if (isPartOfEclipseChe(catalogSource)) {
         title = `${title} and CatalogSource ${subscription.spec.source}`
-        deleteResources.push(() => kubeHelper.deleteCatalogSource(subscription.spec.source, subscription.spec.sourceNamespace))
+        deleteResources.push(() => kubeHelper.deleteCatalogSource(subscription!.spec.source, subscription!.spec.sourceNamespace))
       }
     }
 
