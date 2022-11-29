@@ -25,8 +25,8 @@ export namespace CRCTasks {
     const flags = CheCtlContext.getFlags()
     return [
       CommonTasks.getVerifyCommand('Verify if oc is installed', 'oc not found',  () => commandExists.sync('oc')),
-      CommonTasks.getVerifyCommand('Verify if OpenShift Local is installed', ' OpenShift Local not found',  () => commandExists.sync('crc')),
-      CommonTasks.getVerifyCommand('Verify if OpenShift Local is running', ' OpenShift Local not ready',  () => isCRCRunning()),
+      CommonTasks.getVerifyCommand('Verify if OpenShift Local is installed', 'OpenShift Local not found',  () => commandExists.sync('crc')),
+      CommonTasks.getVerifyCommand('Verify if OpenShift Local is running', 'OpenShift Local not ready',  () => isCRCRunning()),
       {
         title: 'Retrieving OpenShift Local IP and domain for routes URLs',
         enabled: () => flags.domain !== undefined,
