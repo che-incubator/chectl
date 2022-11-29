@@ -43,7 +43,7 @@ export namespace PlatformTasks {
       }
     } else if (flags[PLATFORM_FLAG] === 'crc') {
       return {
-        title: 'CodeReady Containers preflight checklist',
+        title: 'OpenShift Local preflight checklist',
         task: () => newListr(CRCTasks.getPreflightCheckTasks()),
       }
       // platform-factory.ts BEGIN CHE ONLY
