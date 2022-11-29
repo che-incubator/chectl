@@ -28,7 +28,7 @@ export namespace CRCTasks {
       CommonTasks.getVerifyCommand('Verify if OpenShift Local is installed', ' OpenShift Local not found',  () => commandExists.sync('crc')),
       CommonTasks.getVerifyCommand('Verify if OpenShift Local is running', ' OpenShift Local not ready',  () => isCRCRunning()),
       {
-        title: 'Retrieving CodeReady Containers IP and domain for routes URLs',
+        title: 'Retrieving OpenShift Local IP and domain for routes URLs',
         enabled: () => flags.domain !== undefined,
         task: async (_ctx: any, task: any) => {
           const ip = await getCRCIP()
