@@ -30,7 +30,7 @@ import {
   LOG_DIRECTORY_FLAG, OLM_CHANNEL_FLAG, PACKAGE_MANIFEST_FLAG, STARTING_CSV_FLAG,
   TEMPLATES_FLAG,
 } from './flags'
-import { getEmbeddedTemplatesDirectory, getProjectVersion, safeLoadFromYamlFile } from './utils/utls'
+import {getEmbeddedTemplatesDirectory, getProjectVersion, isCheFlavor, safeLoadFromYamlFile} from './utils/utls'
 
 import {DevWorkspace} from './tasks/installers/dev-workspace/dev-workspace'
 import {EclipseChe} from './tasks/installers/eclipse-che/eclipse-che'
@@ -122,7 +122,7 @@ export namespace CheCtlContext {
 
   export async function init(flags: any, command: Command): Promise<void> {
     ctx[CliContext.CLI_COMMAND_FLAGS] = flags
-    ctx[CliContext.CLI_IS_CHECTL] = EclipseChe.CHE_FLAVOR === CHE
+    ctx[CliContext.CLI_IS_CHECTL] = isCheFlavor()
     ctx[CliContext.CLI_IS_DEV_VERSION] = getProjectVersion().includes('next') || getProjectVersion() === '0.0.2'
     ctx[CliContext.CLI_COMMAND_START_TIME] = Date.now()
     ctx[CliContext.CLI_CONFIG_DIR] = command.config.configDir
@@ -198,7 +198,7 @@ export namespace CheCtlContext {
       ctx[DevWorkspaceContext.CHANNEL] = DevWorkspace.NEXT_CHANNEL
       ctx[DevWorkspaceContext.CATALOG_SOURCE_NAME] = DevWorkspace.NEXT_CHANNEL_CATALOG_SOURCE
       ctx[DevWorkspaceContext.CATALOG_SOURCE_IMAGE] = DevWorkspace.NEXT_CHANNEL_CATALOG_SOURCE_IMAGE
-      if (EclipseChe.CHE_FLAVOR !== CHE) {
+      if (!isCheFlavor()) {
         // Use the same IIB catalog source
         ctx[DevWorkspaceContext.CATALOG_SOURCE_NAME] = ctx[EclipseCheContext.CATALOG_SOURCE_NAME]
       }

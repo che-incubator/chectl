@@ -22,7 +22,7 @@ import {EclipseChe} from './eclipse-che'
 import {CheClusterTasks} from '../../che-cluster-tasks'
 import {OlmTasks} from '../../olm-tasks'
 import {DELETE_ALL_FLAG, STARTING_CSV_FLAG} from '../../../flags'
-import {newListr} from '../../../utils/utls'
+import {isCheFlavor, newListr} from '../../../utils/utls'
 import {DevWorkspaceInstallerFactory} from '../dev-workspace/dev-workspace-installer-factory'
 import {CHE} from '../../../constants'
 
@@ -35,14 +35,14 @@ export class EclipseCheOlmInstaller implements Installer {
         const flags = CheCtlContext.getFlags()
 
         // Create a common CatalogSource (IIB) to deploy Dev Workspace operator and DevSpaces from fast channel
-        if (EclipseChe.CHE_FLAVOR !== CHE && ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL) {
+        if (!isCheFlavor() && ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL) {
           tasks.add(EclipseCheTasks.getCreateImageContentSourcePolicyTask())
           tasks.add(EclipseCheTasks.getCreateIIBCatalogSourceTask())
         }
 
         tasks.add(await EclipseCheTasks.getInstallDevWorkspaceOperatorTask())
 
-        if (EclipseChe.CHE_FLAVOR === CHE && ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL) {
+        if (isCheFlavor() && ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL) {
           tasks.add(EclipseCheTasks.getCreateEclipseCheCatalogSourceTask())
         }
 
@@ -103,7 +103,7 @@ export class EclipseCheOlmInstaller implements Installer {
         tasks.add(EclipseCheTasks.getDeleteEclipseCheResourcesTask())
         tasks.add(EclipseCheTasks.getDeleteRbacTask())
         tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(EclipseChe.PACKAGE_NAME, EclipseChe.CSV_PREFIX, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE]))
-        if (EclipseChe.CHE_FLAVOR !== CHE && ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL) {
+        if (!isCheFlavor() && ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL) {
           tasks.add(await EclipseCheTasks.getDeleteImageContentSourcePolicyTask())
         }
         return tasks
