@@ -135,7 +135,5 @@ export function isPartOfEclipseChe(resource: any): boolean {
 }
 
 export function isCheFlavor(): boolean {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore make downstream compilable
   return EclipseChe.CHE_FLAVOR === CHE
 }

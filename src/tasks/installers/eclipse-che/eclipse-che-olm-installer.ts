@@ -24,7 +24,6 @@ import {OlmTasks} from '../../olm-tasks'
 import {DELETE_ALL_FLAG, STARTING_CSV_FLAG} from '../../../flags'
 import {isCheFlavor, newListr} from '../../../utils/utls'
 import {DevWorkspaceInstallerFactory} from '../dev-workspace/dev-workspace-installer-factory'
-import {CHE} from '../../../constants'
 
 export class EclipseCheOlmInstaller implements Installer {
   getDeployTasks(): Listr.ListrTask<any> {

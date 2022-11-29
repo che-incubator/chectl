@@ -36,7 +36,6 @@ import {DevWorkspace} from './tasks/installers/dev-workspace/dev-workspace'
 import {EclipseChe} from './tasks/installers/eclipse-che/eclipse-che'
 import * as fs from 'fs-extra'
 import * as execa from 'execa'
-import {CHE} from './constants'
 
 export namespace InfrastructureContext {
   export const IS_OPENSHIFT = 'infrastructure-is-openshift'
