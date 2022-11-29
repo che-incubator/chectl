@@ -16,6 +16,8 @@ import * as path from 'path'
 import {CheCtlContext} from '../context'
 import * as Listr from 'listr'
 import {LISTR_RENDERER_FLAG} from '../flags'
+import {EclipseChe} from '../tasks/installers/eclipse-che/eclipse-che'
+import {CHE} from '../constants'
 
 const pkjson = require('../../package.json')
 
@@ -130,4 +132,8 @@ export function newListr(tasks?: ReadonlyArray<Listr.ListrTask<any>>, collapse =
 
 export function isPartOfEclipseChe(resource: any): boolean {
   return resource?.metadata?.labels?.['app.kubernetes.io/part-of'] === 'che.eclipse.org'
+}
+
+export function isCheFlavor(): boolean {
+  return EclipseChe.CHE_FLAVOR === CHE
 }

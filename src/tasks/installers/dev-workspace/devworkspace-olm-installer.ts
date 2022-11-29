@@ -18,9 +18,7 @@ import {DevWorkspace} from './dev-workspace'
 import {OlmTasks} from '../../olm-tasks'
 import {SKIP_DEV_WORKSPACE_FLAG} from '../../../flags'
 import {CommonTasks} from '../../common-tasks'
-import {newListr} from '../../../utils/utls'
-import {EclipseChe} from '../eclipse-che/eclipse-che'
-import {CHE} from '../../../constants'
+import {isCheFlavor, newListr} from '../../../utils/utls'
 
 export class DevWorkspaceOlmInstaller implements Installer  {
   protected skip: boolean
@@ -39,7 +37,7 @@ export class DevWorkspaceOlmInstaller implements Installer  {
 
         // Create CatalogSource to deploy a community version of Dev Workspace operator for Eclipse Che.
         // Otherwise, CatalogSource must be pre-created.
-        if (EclipseChe.CHE_FLAVOR === CHE) {
+        if (isCheFlavor()) {
           tasks.add(OlmTasks.getCreateCatalogSourceTask(
             ctx[DevWorkspaceContext.CATALOG_SOURCE_NAME],
             ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE],
