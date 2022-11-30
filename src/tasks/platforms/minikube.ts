@@ -35,7 +35,7 @@ export namespace MinikubeTasks {
           if (!isRunning) {
             await startMinikube()
           }
-          task.title = `${task.title}...[Ok]`
+          task.title = `${task.title}...[OK]`
         },
       },
       {

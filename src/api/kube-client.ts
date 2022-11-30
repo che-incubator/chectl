@@ -1123,7 +1123,7 @@ export class KubeClient {
   async deleteAllCustomResourcesAndCrd(crdName: string, apiGroup: string, version: string, plural: string): Promise<void> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
-    const crd = await this.getCustomResourceDefinition(crdName)
+    let crd = await this.getCustomResourceDefinition(crdName)
     if (!crd) {
       return
     }
@@ -1132,6 +1132,7 @@ export class KubeClient {
     await this.patchClusterCustomObject(crdName, {spec: {conversion: null}}, 'apiextensions.k8s.io', 'v1', 'customresourcedefinitions')
 
     // 2. Patch CRD to unblock potential invalid resource
+    crd = await this.getCustomResourceDefinition(crdName)
     for (let i = 0; i < crd.spec.versions.length; i++) {
       if (crd.spec.versions[i].schema?.openAPIV3Schema?.properties?.spec) {
         crd.spec.versions[i].schema.openAPIV3Schema.properties.spec = {type: 'object', properties: {}}
@@ -1153,11 +1154,11 @@ export class KubeClient {
 
     // wait and check
     for (let i = 0; i < 12; i++) {
-      await cli.wait(5000)
       const resources = await this.listClusterCustomObject(apiGroup, version, plural)
       if (resources.length === 0) {
         break
       }
+      await cli.wait(5000)
     }
 
     // 4. Remove finalizers
@@ -1175,12 +1176,8 @@ export class KubeClient {
       }
     }
 
-    // wait and delete CRD
-    await cli.wait(5000)
+    // 5. Remove CRD
     await this.deleteCustomResourceDefinition(crdName)
-
-    // wait and check
-    await cli.wait(5000)
     resources = await this.listClusterCustomObject(apiGroup, version, plural)
     if (resources.length !== 0) {
       throw new Error(`Failed to remove Custom Resources: ${plural}${apiGroup}, ${resources.length} resource(s) left.`)

@@ -48,7 +48,7 @@ export namespace PodTasks {
         const kubeClient = KubeClient.getInstance()
         await cli.wait(1000)
         await kubeClient.waitLatestReplica(deploymentName, namespace)
-        task.title = `${task.title}...[Ok]`
+        task.title = `${task.title}...[OK]`
       },
     }
   }
@@ -59,7 +59,7 @@ export namespace PodTasks {
       title: `Scale ${name} ${replicas > 0 ? 'Up' : 'Down'}`,
       task: async (_ctx: any, task: any) => {
         await kubeHelper.scaleDeployment(deploymentName, namespace, replicas)
-        task.title = `${task.title}...[Ok]`
+        task.title = `${task.title}...[OK]`
       },
     }
   }

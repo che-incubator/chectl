@@ -102,7 +102,7 @@ export class EclipseCheOlmInstaller implements Installer {
         tasks.add(EclipseCheTasks.getDeleteEclipseCheResourcesTask())
         tasks.add(EclipseCheTasks.getDeleteRbacTask())
         tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(EclipseChe.PACKAGE_NAME, EclipseChe.CSV_PREFIX, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE]))
-        if (!isCheFlavor() && ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL) {
+        if (!isCheFlavor()) {
           tasks.add(await EclipseCheTasks.getDeleteImageContentSourcePolicyTask())
         }
         return tasks

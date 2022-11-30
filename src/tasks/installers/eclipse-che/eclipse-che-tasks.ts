@@ -285,7 +285,7 @@ export namespace EclipseCheTasks {
         if (isDevWorkspaceEngineDisabledBeforeUpdate) {
           cli.error(`Unsupported operation: it is not possible to update current ${EclipseChe.PRODUCT_NAME} installation to new a version with \'devWorkspace\' engine enabled.`)
         }
-        task.title = `${task.title}...[Ok]`
+        task.title = `${task.title}...[OK]`
       },
     }
   }
