@@ -216,7 +216,7 @@ export namespace CheTasks {
           if (cheCluster?.status?.chePhase !== 'Active' || !cheCluster?.status?.cheVersion) {
             await sleep(500)
           } else {
-            task.title = `${task.title}...[Ok]`
+            task.title = `${task.title}...[OK]`
             return
           }
         }
