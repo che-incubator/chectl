@@ -714,14 +714,14 @@
     tslib "^1"
 
 "@oclif/command@^1", "@oclif/command@^1.7.0", "@oclif/command@^1.8.14", "@oclif/command@^1.8.15":
-  version "1.8.19"
-  resolved "https://registry.yarnpkg.com/@oclif/command/-/command-1.8.19.tgz#802c86d289bdf7a7419a600b57a71f34f04fc831"
-  integrity sha512-4fB3VB877Bbw2eewl7rp4UPV45GtPFUlk9xGtafl28mD95dGiYYXzU+pLgqMkrEdEfn4/py+3YnE3uYu+djfRA==
+  version "1.8.20"
+  resolved "https://registry.yarnpkg.com/@oclif/command/-/command-1.8.20.tgz#7e28387be8744145e1b2ee7db89275bc7f708f2f"
+  integrity sha512-BHM9byujY0kf0PiRorIyp99K50cA3i6Hyro0+TPpFFx+4QM+PyQ5vMHO/TG5wkEP8tIivNRs24bF8QVyJru25g==
   dependencies:
     "@oclif/config" "^1.18.2"
     "@oclif/errors" "^1.3.6"
     "@oclif/help" "^1.0.1"
-    "@oclif/parser" "^3.8.8"
+    "@oclif/parser" "^3.8.9"
     debug "^4.1.1"
     semver "^7.3.8"
 
@@ -844,15 +844,15 @@
   resolved "https://registry.yarnpkg.com/@oclif/linewrap/-/linewrap-1.0.0.tgz#aedcb64b479d4db7be24196384897b5000901d91"
   integrity sha512-Ups2dShK52xXa8w6iBWLgcjPJWjais6KPJQq3gQ/88AY6BXoTX+MIGFPrWQO1KLMiQfoTpcLnUwloN4brrVUHw==
 
-"@oclif/parser@^3.8.0", "@oclif/parser@^3.8.7", "@oclif/parser@^3.8.8":
-  version "3.8.8"
-  resolved "https://registry.yarnpkg.com/@oclif/parser/-/parser-3.8.8.tgz#6c2309111ca06ed5262bb38e4ab4343656460e3b"
-  integrity sha512-OgqQAtpyq1XFJG3dvLl9aqiO+F5pubkzt7AivUDkNoa6/hNgVZ79vvTO8sqo5XAAhOm/fcTSerZ35OTnTJb1ng==
+"@oclif/parser@^3.8.0", "@oclif/parser@^3.8.7", "@oclif/parser@^3.8.8", "@oclif/parser@^3.8.9":
+  version "3.8.9"
+  resolved "https://registry.yarnpkg.com/@oclif/parser/-/parser-3.8.9.tgz#9399041ada7e465043f34b24f4d82a8beb68a023"
+  integrity sha512-1j/kThdse7yHQz6+c3v8RA1I3gD6+SGt2O7IAb/MAMoxqyBrFQDabQHH2UU4eVFGMLN7U91AiYJp11zJ9LcQAg==
   dependencies:
     "@oclif/errors" "^1.3.6"
     "@oclif/linewrap" "^1.0.0"
     chalk "^4.1.0"
-    tslib "^2.3.1"
+    tslib "^2.4.1"
 
 "@oclif/plugin-autocomplete@^1.3.5":
   version "1.3.5"
