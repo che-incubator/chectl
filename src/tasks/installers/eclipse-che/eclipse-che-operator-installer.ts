@@ -17,7 +17,7 @@ import {
 } from '../../common-tasks'
 import { Installer } from '../installer'
 import {CertManager} from '../cert-manager-installer'
-import {CHE_NAMESPACE_FLAG, DELETE_ALL_FLAG} from '../../../flags'
+import {CHE_NAMESPACE_FLAG, DELETE_ALL_FLAG, SKIP_CERT_MANAGER_FLAG} from '../../../flags'
 import {EclipseChe} from './eclipse-che'
 import {PodTasks} from '../../pod-tasks'
 import {CheClusterTasks} from '../../che-cluster-tasks'
@@ -36,7 +36,9 @@ export class EclipseCheOperatorInstaller implements Installer {
         tasks.add(await EclipseCheTasks.getInstallDevWorkspaceOperatorTask())
         tasks.add(EclipseCheTasks.getCreateOrUpdateServiceAccountTask(true))
         tasks.add(EclipseCheTasks.getCreateOrUpdateRbacTasks(true))
-        tasks.add(CertManager.getWaitCertManagerTask())
+        if (!flags[SKIP_CERT_MANAGER_FLAG]) {
+          tasks.add(CertManager.getWaitCertManagerTask())
+        }
         tasks.add(EclipseCheTasks.getCreateOrUpdateCertificateTask(true))
         tasks.add(EclipseCheTasks.getCreateOrUpdateIssuerTask(true))
         tasks.add(EclipseCheTasks.getCreateOrUpdateServiceTask(true))
