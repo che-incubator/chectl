@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {CheCtlContext, CliContext, EclipseCheContext, InfrastructureContext} from '../context'
+import {CheCtlContext, CliContext, EclipseCheContext} from '../context'
 import * as Listr from 'listr'
 import { KubeClient } from '../api/kube-client'
 import {getEmbeddedTemplatesDirectory, isPartOfEclipseChe, newListr, safeLoadFromYamlFile} from '../utils/utls'
@@ -18,8 +18,10 @@ import * as path from 'path'
 import { V1Role, V1RoleBinding } from '@kubernetes/client-node'
 import * as yaml from 'js-yaml'
 import {CommonTasks} from './common-tasks'
-import {CHE_NAMESPACE_FLAG, CHE_OPERATOR_IMAGE_FLAG, CLUSTER_MONITORING_FLAG} from '../flags'
+import {CHE_NAMESPACE_FLAG, CHE_OPERATOR_IMAGE_FLAG, CLUSTER_MONITORING_FLAG, DELETE_ALL_FLAG} from '../flags'
 import {EclipseChe} from './installers/eclipse-che/eclipse-che'
+import {PART_OF_ECLIPSE_CHE_SELECTOR} from '../constants'
+import {DevWorkspace} from './installers/dev-workspace/dev-workspace'
 
 export namespace OlmTasks {
   export async function getDeleteSubscriptionAndCatalogSourceTask(packageName: string, csvPrefix: string, namespace: string): Promise<Listr.ListrTask<any>> {
@@ -28,11 +30,13 @@ export namespace OlmTasks {
     const kubeHelper = KubeClient.getInstance()
     const deleteResources = []
 
+    // Subscription
     const subscription = await kubeHelper.getOperatorSubscriptionByPackage(packageName, namespace)
     if (subscription) {
       title = `${title} ${subscription.metadata.name}`
       deleteResources.push(() => kubeHelper.deleteOperatorSubscription(subscription.metadata.name!, namespace))
 
+      // CatalogSource
       const catalogSource = await kubeHelper.getCatalogSource(subscription.spec.source, subscription.spec.sourceNamespace)
       if (isPartOfEclipseChe(catalogSource)) {
         title = `${title} and CatalogSource ${subscription.spec.source}`
@@ -40,12 +44,30 @@ export namespace OlmTasks {
       }
     }
 
+    const catalogSources = await kubeHelper.listCatalogSource(namespace, PART_OF_ECLIPSE_CHE_SELECTOR)
+    for (const catalogSource of catalogSources) {
+      deleteResources.push(() => kubeHelper.deleteCatalogSource(catalogSource.metadata.name!, catalogSource.metadata.namespace!))
+    }
+
+    // ClusterServiceVersion
     const csvs = await kubeHelper.getCSVWithPrefix(csvPrefix, namespace)
     for (const csv of csvs) {
       deleteResources.push(() => kubeHelper.deleteClusterServiceVersion(csv.metadata.name!, namespace))
     }
 
     return CommonTasks.getDeleteResourcesTask(title, deleteResources)
+  }
+
+  export function getDeleteOperatorsTask(): Listr.ListrTask<any> {
+    const kubeHelper = KubeClient.getInstance()
+    const ctx = CheCtlContext.get()
+    const flags = CheCtlContext.getFlags()
+
+    const deleteResources = [() => kubeHelper.deleteOperator(`${EclipseChe.PACKAGE}.${ctx[EclipseCheContext.OPERATOR_NAMESPACE]}`)]
+    if (flags[DELETE_ALL_FLAG]) {
+      deleteResources.push(() => kubeHelper.deleteOperator(`${DevWorkspace.PACKAGE}.${ctx[EclipseCheContext.OPERATOR_NAMESPACE]}`))
+    }
+    return CommonTasks.getDeleteResourcesTask('Delete Operators', deleteResources)
   }
 
   export function getCreateSubscriptionTask(
@@ -189,7 +211,7 @@ export namespace OlmTasks {
       task: async (ctx: any, task: any) => {
         const kubeHelper = KubeClient.getInstance()
 
-        const subscription = await kubeHelper.getOperatorSubscription(subscriptionName, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE])
+        const subscription = await kubeHelper.getOperatorSubscription(subscriptionName, ctx[EclipseCheContext.OPERATOR_NAMESPACE])
         if (!subscription) {
           throw new Error(`Subscription ${subscriptionName} not found.`)
         }
@@ -213,8 +235,8 @@ export namespace OlmTasks {
               throw new Error(`${EclipseChe.PRODUCT_NAME} InstallPlan name is empty.`)
             }
 
-            await kubeHelper.approveOperatorInstallationPlan(subscription.status.installplan.name, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE])
-            await kubeHelper.waitOperatorInstallPlan(subscription.status.installplan.name, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE], 60)
+            await kubeHelper.approveOperatorInstallationPlan(subscription.status.installplan.name, ctx[EclipseCheContext.OPERATOR_NAMESPACE])
+            await kubeHelper.waitOperatorInstallPlan(subscription.status.installplan.name, ctx[EclipseCheContext.OPERATOR_NAMESPACE], 60)
             if (installedCSV) {
               ctx[CliContext.CLI_COMMAND_POST_OUTPUT_MESSAGES].push(`${subscription.spec.name} is upgraded from '${getVersionFromCSV(installedCSV)}' to '${getVersionFromCSV(currentCSV)}' version`)
             } else {
@@ -238,7 +260,7 @@ export namespace OlmTasks {
       task: async (ctx: any, task: any) => {
         const kubeHelper = KubeClient.getInstance()
 
-        const subscription = await kubeHelper.getOperatorSubscription(subscriptionName, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE])
+        const subscription = await kubeHelper.getOperatorSubscription(subscriptionName, ctx[EclipseCheContext.OPERATOR_NAMESPACE])
         if (!subscription) {
           throw new Error(`Subscription ${subscriptionName} not found.`)
         }
@@ -261,7 +283,7 @@ export namespace OlmTasks {
       task: async (ctx: any, task: any) => {
         const kubeHelper = KubeClient.getInstance()
 
-        const csvs = await kubeHelper.getCSVWithPrefix(EclipseChe.CSV_PREFIX, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE])
+        const csvs = await kubeHelper.getCSVWithPrefix(EclipseChe.CSV_PREFIX, ctx[EclipseCheContext.OPERATOR_NAMESPACE])
         if (csvs.length !== 1) {
           throw new Error(`${EclipseChe.PRODUCT_NAME} operator CSV not found.`)
         }
@@ -279,13 +301,13 @@ export namespace OlmTasks {
       task: async (ctx: any, task: any) => {
         const kubeHelper = KubeClient.getInstance()
 
-        const subscription = await kubeHelper.getOperatorSubscription(EclipseChe.SUBSCRIPTION, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE])
+        const subscription = await kubeHelper.getOperatorSubscription(EclipseChe.SUBSCRIPTION, ctx[EclipseCheContext.OPERATOR_NAMESPACE])
         if (!subscription) {
           throw new Error(`Subscription ${EclipseChe.SUBSCRIPTION} not found.`)
         }
 
         const installedCSV = subscription.status!.installedCSV!
-        const csv = await kubeHelper.getCSV(installedCSV, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE])
+        const csv = await kubeHelper.getCSV(installedCSV, ctx[EclipseCheContext.OPERATOR_NAMESPACE])
 
         if (csv && csv.metadata.annotations) {
           const rawYaml = csv.metadata.annotations!['alm-examples']

@@ -175,9 +175,6 @@ export default class Deploy extends Command {
     const {flags} = this.parse(Deploy)
     const ctx = await CheCtlContext.initAndGet(flags, this)
 
-    const kubeHelper = KubeClient.getInstance()
-    flags[CHE_NAMESPACE_FLAG] = flags[CHE_NAMESPACE_FLAG] || await kubeHelper.findCheClusterNamespace() || EclipseChe.NAMESPACE
-
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, {command: Deploy.id, flags})
 
     if (!flags.batch && ctx.isChectl) {
@@ -211,7 +208,6 @@ export default class Deploy extends Command {
     // PostInstall tasks
     const postInstallTasks = newListr([], false)
     postInstallTasks.add(CheTasks.getWaitCheDeployedTasks())
-    postInstallTasks.add(CheTasks.getCheckEclipseCheStatusTask())
     postInstallTasks.add(CheTasks.getRetrieveSelfSignedCertificateTask())
     postInstallTasks.add(CommonTasks.getPreparePostInstallationOutputTask())
     postInstallTasks.add(CommonTasks.getPrintHighlightedMessagesTask())

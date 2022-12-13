@@ -34,7 +34,6 @@ import { CheTasks } from '../../tasks/che-tasks'
 import {EclipseCheInstallerFactory} from '../../tasks/installers/eclipse-che/eclipse-che-installer-factory'
 import {CommonTasks} from '../../tasks/common-tasks'
 import {KubeConfig} from '@kubernetes/client-node'
-import {KubeClient} from '../../api/kube-client'
 import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
 import {getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError} from '../../utils/command-utils'
 import {newListr} from '../../utils/utls'
@@ -57,9 +56,6 @@ export default class Delete extends Command {
   async run() {
     const { flags } = this.parse(Delete)
     const ctx = await CheCtlContext.initAndGet(flags, this)
-
-    const kubeHelper = KubeClient.getInstance()
-    flags[CHE_NAMESPACE_FLAG] = flags[CHE_NAMESPACE_FLAG] || await kubeHelper.findCheClusterNamespace() || EclipseChe.NAMESPACE
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Delete.id, flags })
 

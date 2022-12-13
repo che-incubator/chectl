@@ -1113,13 +1113,6 @@ export class KubeClient {
     return checluster.apiVersion === `${EclipseChe.CHE_CLUSTER_API_GROUP}/${EclipseChe.CHE_CLUSTER_API_VERSION_V2}`
   }
 
-  async findCheClusterNamespace(): Promise<string | undefined> {
-    const checlusters = await this.getAllCheClusters()
-    if (checlusters.length === 1) {
-      return checlusters[0].metadata.namespace
-    }
-  }
-
   async deleteAllCustomResourcesAndCrd(crdName: string, apiGroup: string, version: string, plural: string): Promise<void> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
@@ -1251,6 +1244,16 @@ export class KubeClient {
         return false
       }
 
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async listCatalogSource(namespace: string, labelSelector: string): Promise<CatalogSource[]> {
+    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      const { body } = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', undefined, undefined, undefined, labelSelector)
+      return (body as any).items as CatalogSource[]
+    } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
   }
@@ -1668,6 +1671,30 @@ export class KubeClient {
       }
 
       throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async deleteOperator(name: string): Promise<void> {
+    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+
+    try {
+      await customObjectsApi.deleteClusterCustomObject('operators.coreos.com', 'v1', 'operators', name)
+    } catch (e: any) {
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
+    }
+  }
+
+  async deleteLease(name: string, namespace: string): Promise<void> {
+    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+
+    try {
+      await customObjectsApi.deleteNamespacedCustomObject('coordination.k8s.io', 'v1', namespace, 'leases', name)
+    } catch (e: any) {
+      if (e.response.statusCode !== 404) {
+        throw this.wrapK8sClientError(e)
+      }
     }
   }
 

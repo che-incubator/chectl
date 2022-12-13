@@ -71,7 +71,7 @@ export class DevWorkspaceOperatorInstaller implements Installer {
         tasks.add(DevWorkspacesTasks.getDeleteWebhooksTask())
         tasks.add(DevWorkspacesTasks.getDeleteCustomResourcesTasks())
         tasks.add(DevWorkspacesTasks.getDeleteServicesTask())
-        tasks.add(DevWorkspacesTasks.getDeleteWorkloadsTask())
+        tasks.add(await DevWorkspacesTasks.getDeleteWorkloadsTask())
         tasks.add(DevWorkspacesTasks.getDeleteRbacTask())
         tasks.add(DevWorkspacesTasks.getDeleteCertificatesTask())
         return tasks

@@ -55,6 +55,7 @@ export namespace DevWorkspace {
   // RoleBindings
   export const DEV_WORKSPACE_LEADER_ELECTION_ROLE_BINDING = 'devworkspace-controller-leader-election-rolebinding'
   export const DEV_WORKSPACE_SERVICE_CERT_ROLE_BINDING = 'devworkspace-controller-manager-service-cert'
+  export const DEV_WORKSPACE_SERVICE_AUTH_READER_ROLE_BINDING = 'devworkspace-controller-manager-service-auth-reader'
 
   // ClusterRoles
   export const DEV_WORKSPACES_CLUSTER_ROLE = 'devworkspace-controller-role'

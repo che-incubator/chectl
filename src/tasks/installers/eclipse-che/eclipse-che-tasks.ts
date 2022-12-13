@@ -464,7 +464,7 @@ export namespace EclipseCheTasks {
 
     const deleteResources = []
 
-    const cms = await kubeHelper.listConfigMaps(flags[CHE_NAMESPACE_FLAG], 'app.kubernetes.io/part-of=che.eclipse.org,app.kubernetes.io/component=gateway-config')
+    let cms = await kubeHelper.listConfigMaps(flags[CHE_NAMESPACE_FLAG], 'app.kubernetes.io/part-of=che.eclipse.org,app.kubernetes.io/component=gateway-config')
     for (const cm of cms) {
       deleteResources.push(() => kubeHelper.deleteConfigMap(cm.metadata!.name!, cm.metadata!.namespace!))
     }
@@ -476,6 +476,16 @@ export namespace EclipseCheTasks {
       const pods = await kubeHelper.listNamespacedPod(flags[CHE_NAMESPACE_FLAG], undefined, 'app.kubernetes.io/part-of=che.eclipse.org,app.kubernetes.io/component=che-create-tls-secret-job')
       for (const pod of pods.items) {
         deleteResources.push(() => kubeHelper.deletePod(pod.metadata!.name!, pod.metadata!.namespace!))
+      }
+    }
+
+    // Delete leader election related resources
+    cms = await kubeHelper.listConfigMaps(ctx[EclipseCheContext.OPERATOR_NAMESPACE], undefined)
+    for (const cm of cms) {
+      const configMapName = cm.metadata!.name!
+      if (configMapName.endsWith('org.eclipse.che')) {
+        deleteResources.push(() => kubeHelper.deleteConfigMap(configMapName, ctx[EclipseCheContext.OPERATOR_NAMESPACE]))
+        deleteResources.push(() => kubeHelper.deleteLease(configMapName, ctx[EclipseCheContext.OPERATOR_NAMESPACE]))
       }
     }
 
@@ -494,6 +504,8 @@ export namespace EclipseCheTasks {
       deleteResources.push(() => kubeClient.deleteClusterRole(`${EclipseChe.CHE_FLAVOR}-user-container-build`))
       deleteResources.push(() => kubeClient.deleteClusterRole('dev-workspace-container-build'))
       deleteResources.push(() => kubeClient.deleteClusterRoleBinding('dev-workspace-container-build'))
+      deleteResources.push(() => kubeClient.deleteRoleBinding(EclipseChe.PROMETHEUS, flags[CHE_NAMESPACE_FLAG]))
+      deleteResources.push(() => kubeClient.deleteRoleBinding(`${EclipseChe.CHE_FLAVOR}-operator-service-auth-reader`, 'kube-system'))
     } else {
       deleteResources.push(() => kubeClient.deleteRole('che-operator', flags[CHE_NAMESPACE_FLAG]))
       deleteResources.push(() => kubeClient.deleteRole('che-operator-leader-election', flags[CHE_NAMESPACE_FLAG]))

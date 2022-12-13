@@ -10,13 +10,13 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { ApisApi, KubeConfig } from '@kubernetes/client-node'
+import {ApisApi, CustomObjectsApi, KubeConfig} from '@kubernetes/client-node'
 import Command from '@oclif/command'
 import * as os from 'os'
 import * as path from 'path'
 
 import {
-  AUTO_UPDATE_FLAG, CATALOG_SOURCE_NAME_FLAG, CATALOG_SOURCE_NAMESPACE_FLAG,
+  AUTO_UPDATE_FLAG, CATALOG_SOURCE_NAME_FLAG, CATALOG_SOURCE_NAMESPACE_FLAG, CHE_NAMESPACE_FLAG,
   CHE_OPERATOR_CR_PATCH_YAML_FLAG,
   CHE_OPERATOR_CR_YAML_FLAG,
   DEFAULT_K8S_POD_DOWNLOAD_IMAGE_TIMEOUT,
@@ -36,6 +36,7 @@ import {DevWorkspace} from './tasks/installers/dev-workspace/dev-workspace'
 import {EclipseChe} from './tasks/installers/eclipse-che/eclipse-che'
 import * as fs from 'fs-extra'
 import * as execa from 'execa'
+import {CheCluster} from './api/types/che-cluster'
 
 export namespace InfrastructureContext {
   export const IS_OPENSHIFT = 'infrastructure-is-openshift'
@@ -85,6 +86,8 @@ export namespace EclipseCheContext {
   export const CUSTOM_CR = 'eclipse-che-custom-cr'
   export const CR_PATCH = 'eclipse-che-cr-patch'
   export const DEFAULT_CR = 'eclipse-che-default-cr'
+  export const NAMESPACE = 'eclipse-che-namespace'
+  export const OPERATOR_NAMESPACE = 'eclipse-che-operator-namespace'
 }
 
 export namespace DevWorkspaceContext {
@@ -155,6 +158,15 @@ export namespace CheCtlContext {
     }
     ctx[InfrastructureContext.KUBERNETES_VERSION] = await getKubernetesVersion(ctx[InfrastructureContext.IS_OPENSHIFT])
 
+    ctx[EclipseCheContext.NAMESPACE] = flags[CHE_NAMESPACE_FLAG] || await findCheClusterNamespace() || EclipseChe.NAMESPACE
+    // for backward compatability
+    flags[CHE_NAMESPACE_FLAG] = ctx[EclipseCheContext.NAMESPACE]
+    if (ctx[InfrastructureContext.IS_OPENSHIFT]) {
+      ctx[EclipseCheContext.OPERATOR_NAMESPACE] = ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE]
+    } else {
+      ctx[EclipseCheContext.OPERATOR_NAMESPACE] = ctx[EclipseCheContext.NAMESPACE]
+    }
+
     ctx[EclipseCheContext.CUSTOM_CR] = readFile(flags, CHE_OPERATOR_CR_YAML_FLAG)
     ctx[EclipseCheContext.CR_PATCH] = readFile(flags, CHE_OPERATOR_CR_PATCH_YAML_FLAG)
     ctx[EclipseCheContext.DEFAULT_CR] = safeLoadFromYamlFile(path.join(ctx[CliContext.CLI_CHE_OPERATOR_RESOURCES_DIR], 'kubernetes', 'crds', 'org_checluster_cr.yaml'))
@@ -175,7 +187,7 @@ export namespace CheCtlContext {
       }
     }
 
-    ctx[EclipseCheContext.PACKAGE_NAME] = flags[PACKAGE_MANIFEST_FLAG] || EclipseChe.PACKAGE_NAME
+    ctx[EclipseCheContext.PACKAGE_NAME] = flags[PACKAGE_MANIFEST_FLAG] || EclipseChe.PACKAGE
     ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE] = flags[CATALOG_SOURCE_NAMESPACE_FLAG] || ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE]
     ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = flags[CATALOG_SOURCE_NAME_FLAG]
     if (!ctx[EclipseCheContext.CATALOG_SOURCE_NAME]) {
@@ -274,6 +286,17 @@ export namespace CheCtlContext {
     } else {
       return Boolean(group)
     }
+  }
+
+  async function findCheClusterNamespace(): Promise<string | undefined> {
+    const kubeConfig = new KubeConfig()
+    kubeConfig.loadFromDefault()
+
+    try {
+      const customObjectsApi = kubeConfig.makeApiClient(CustomObjectsApi)
+      const {body} = await customObjectsApi.listClusterCustomObject(EclipseChe.CHE_CLUSTER_API_GROUP, EclipseChe.CHE_CLUSTER_API_VERSION_V2, EclipseChe.CHE_CLUSTER_KIND_PLURAL)
+      return ((body as any).items as CheCluster[])[0]?.metadata.namespace
+    } catch { }
   }
 
   function readFile(flags: any, key: string): any {
