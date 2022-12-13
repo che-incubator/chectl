@@ -19,7 +19,6 @@ import {OpenShift} from './openshift'
 import * as nodeforge from 'node-forge'
 import {base64Decode} from './utls'
 import {CheLogsReader} from '../api/che-logs-reader'
-import {CheServerClient} from '../api/che-server-client'
 
 export namespace Che {
   export async function readPodLog(namespace: string, podLabelSelector: string | undefined, directory: string, follow: boolean): Promise<void> {
@@ -32,14 +31,7 @@ export namespace Che {
     return logsReader.readNamespaceEvents(namespace, directory, follow)
   }
 
-  export async function isCheServerReady(): Promise<boolean> {
-    const flags = CheCtlContext.getFlags()
-    const cheUrl = await getCheURL(flags[CHE_NAMESPACE_FLAG])
-    const cheServerClient = CheServerClient.getInstance(`${cheUrl}/api`)
-    return cheServerClient.isCheServerReady()
-  }
-
-  export function  getTlsSecretName(): string {
+  export function getTlsSecretName(): string {
     const ctx = CheCtlContext.get()
 
     const crPatch = ctx[EclipseCheContext.CR_PATCH] as CheCluster

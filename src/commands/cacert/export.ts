@@ -15,7 +15,6 @@ import * as fs from 'fs-extra'
 import * as os from 'os'
 import * as path from 'path'
 import { CheCtlContext } from '../../context'
-import { KubeClient } from '../../api/kube-client'
 import {
   CHE_NAMESPACE_FLAG,
   CHE_NAMESPACE,
@@ -44,9 +43,6 @@ export default class Export extends Command {
   async run() {
     const { flags } = this.parse(Export)
     await CheCtlContext.init(flags, this)
-
-    const kubeHelper = KubeClient.getInstance()
-    flags[CHE_NAMESPACE_FLAG] = flags[CHE_NAMESPACE_FLAG] || await kubeHelper.findCheClusterNamespace() || EclipseChe.NAMESPACE
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Export.id, flags })
 

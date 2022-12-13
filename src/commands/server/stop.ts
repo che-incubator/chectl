@@ -25,7 +25,6 @@ import {
   SKIP_KUBE_HEALTHZ_CHECK, BATCH_FLAG,
 } from '../../flags'
 import { CheTasks } from '../../tasks/che-tasks'
-import {KubeClient} from '../../api/kube-client'
 import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
 import {CommonTasks} from '../../tasks/common-tasks'
 import {DEFAULT_ANALYTIC_HOOK_NAME} from '../../constants'
@@ -46,9 +45,6 @@ export default class Stop extends Command {
   async run() {
     const { flags } = this.parse(Stop)
     const ctx = await CheCtlContext.initAndGet(flags, this)
-
-    const kubeHelper = KubeClient.getInstance()
-    flags[CHE_NAMESPACE_FLAG] = flags[CHE_NAMESPACE_FLAG] || await kubeHelper.findCheClusterNamespace() || EclipseChe.NAMESPACE
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Stop.id, flags })
 

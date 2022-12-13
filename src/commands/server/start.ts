@@ -35,7 +35,6 @@ import {
   K8S_POD_DOWNLOAD_IMAGE_TIMEOUT,
   K8S_POD_ERROR_RECHECK_TIMEOUT_FLAG, K8S_POD_ERROR_RECHECK_TIMEOUT,
 } from '../../flags'
-import {KubeClient} from '../../api/kube-client'
 import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
 import {DEFAULT_ANALYTIC_HOOK_NAME} from '../../constants'
 import {CommonTasks} from '../../tasks/common-tasks'
@@ -63,9 +62,6 @@ export default class Start extends Command {
   async run() {
     const {flags} = this.parse(Start)
     const ctx = await CheCtlContext.initAndGet(flags, this)
-
-    const kubeHelper = KubeClient.getInstance()
-    flags[CHE_NAMESPACE_FLAG] = flags[CHE_NAMESPACE_FLAG] || await kubeHelper.findCheClusterNamespace() || EclipseChe.NAMESPACE
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, {command: Start.id, flags})
 

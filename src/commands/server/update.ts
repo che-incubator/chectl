@@ -15,7 +15,6 @@ import { cli } from 'cli-ux'
 import * as semver from 'semver'
 
 import {CheCtlContext, CliContext, InfrastructureContext, OperatorImageUpgradeContext} from '../../context'
-import { KubeClient } from '../../api/kube-client'
 
 import { EclipseCheInstallerFactory } from '../../tasks/installers/eclipse-che/eclipse-che-installer-factory'
 import {
@@ -75,9 +74,6 @@ export default class Update extends Command {
   async run() {
     const { flags } = this.parse(Update)
     const ctx = await CheCtlContext.initAndGet(flags, this)
-
-    const kubeHelper = KubeClient.getInstance()
-    flags[CHE_NAMESPACE_FLAG] = flags[CHE_NAMESPACE_FLAG] || await kubeHelper.findCheClusterNamespace() || EclipseChe.NAMESPACE
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Update.id, flags })
 

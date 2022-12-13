@@ -15,7 +15,6 @@ import { Installer } from '../installer'
 import {
   CheCtlContext,
   EclipseCheContext,
-  InfrastructureContext,
 } from '../../../context'
 import {EclipseCheTasks} from './eclipse-che-tasks'
 import {EclipseChe} from './eclipse-che'
@@ -47,7 +46,7 @@ export class EclipseCheOlmInstaller implements Installer {
 
         tasks.add(OlmTasks.getCreateSubscriptionTask(
           EclipseChe.SUBSCRIPTION,
-          ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE],
+          ctx[EclipseCheContext.OPERATOR_NAMESPACE],
           ctx[EclipseCheContext.CATALOG_SOURCE_NAME],
           ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE],
           ctx[EclipseCheContext.PACKAGE_NAME],
@@ -100,11 +99,13 @@ export class EclipseCheOlmInstaller implements Installer {
 
         tasks.add(await EclipseCheTasks.getDeleteClusterScopeObjectsTask())
         tasks.add(EclipseCheTasks.getDeleteEclipseCheResourcesTask())
+        tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(EclipseChe.PACKAGE, EclipseChe.CSV_PREFIX, ctx[EclipseCheContext.OPERATOR_NAMESPACE]))
+        tasks.add(await EclipseCheTasks.getDeleteWorkloadsTask())
         tasks.add(EclipseCheTasks.getDeleteRbacTask())
-        tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(EclipseChe.PACKAGE_NAME, EclipseChe.CSV_PREFIX, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE]))
         if (!isCheFlavor()) {
           tasks.add(await EclipseCheTasks.getDeleteImageContentSourcePolicyTask())
         }
+        tasks.add(OlmTasks.getDeleteOperatorsTask())
         return tasks
       },
     }

@@ -56,7 +56,7 @@ export namespace DevWorkspacesTasks {
     return CommonTasks.getDeleteResourcesTask('Delete Services', deleteResources)
   }
 
-  export function getDeleteWorkloadsTask(): Listr.ListrTask<any> {
+  export async function getDeleteWorkloadsTask(): Promise<Listr.ListrTask<any>> {
     const kubeHelper = KubeClient.getInstance()
     const ctx = CheCtlContext.get()
 
@@ -69,6 +69,17 @@ export namespace DevWorkspacesTasks {
 
     deleteResources.push(() => kubeHelper.deleteDeployment(DevWorkspace.WEBHOOK_SERVER_DEPLOYMENT, ctx[DevWorkspaceContext.NAMESPACE]))
     deleteResources.push(() => kubeHelper.deleteSecret(DevWorkspace.WEBHOOK_SERVER_TLS, ctx[DevWorkspaceContext.NAMESPACE]))
+
+    // Delete leader election related resources
+    const cms = await kubeHelper.listConfigMaps(ctx[DevWorkspaceContext.NAMESPACE], undefined)
+    for (const cm of cms) {
+      const configMapName = cm.metadata!.name!
+      if (configMapName.endsWith('devfile.io')) {
+        deleteResources.push(() => kubeHelper.deleteConfigMap(configMapName, ctx[DevWorkspaceContext.NAMESPACE]))
+        deleteResources.push(() => kubeHelper.deleteLease(configMapName, ctx[DevWorkspaceContext.NAMESPACE]))
+      }
+    }
+
     return CommonTasks.getDeleteResourcesTask('Delete Workloads', deleteResources)
   }
 
@@ -82,6 +93,7 @@ export namespace DevWorkspacesTasks {
         () => kubeHelper.deleteRoleBinding(DevWorkspace.DEV_WORKSPACE_LEADER_ELECTION_ROLE_BINDING, ctx[DevWorkspaceContext.NAMESPACE]),
         () => kubeHelper.deleteRoleBinding(DevWorkspace.DEV_WORKSPACE_SERVICE_CERT_ROLE, ctx[DevWorkspaceContext.NAMESPACE]),
         () => kubeHelper.deleteRoleBinding(DevWorkspace.DEV_WORKSPACE_SERVICE_CERT_ROLE_BINDING, ctx[DevWorkspaceContext.NAMESPACE]),
+        () => kubeHelper.deleteRoleBinding(DevWorkspace.DEV_WORKSPACE_SERVICE_AUTH_READER_ROLE_BINDING, 'kube-system'),
 
         () => kubeHelper.deleteClusterRoleBinding(DevWorkspace.DEV_WORKSPACES_CLUSTER_ROLE_BINDING),
         () => kubeHelper.deleteClusterRoleBinding(DevWorkspace.DEV_WORKSPACES_PROXY_CLUSTER_ROLE_BINDING),

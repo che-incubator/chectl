@@ -36,7 +36,7 @@ export namespace EclipseChe {
   export const CHE_CLUSTER_KIND_PLURAL = 'checlusters'
 
   // OLM
-  export const PACKAGE_NAME = PRODUCT_ID
+  export const PACKAGE = PRODUCT_ID
   export const STABLE_CHANNEL = 'stable'
   export const STABLE_CHANNEL_CATALOG_SOURCE = 'community-operators'
   export const STABLE_CATALOG_SOURCE_IMAGE = 'quay.io/eclipse/eclipse-che-olm-catalog:stable'

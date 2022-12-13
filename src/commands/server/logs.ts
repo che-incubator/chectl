@@ -24,7 +24,6 @@ import {
 } from '../../flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che-tasks'
-import {KubeClient} from '../../api/kube-client'
 import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
 import {CommonTasks} from '../../tasks/common-tasks'
 import {getCommandSuccessMessage, wrapCommandError} from '../../utils/command-utils'
@@ -45,9 +44,6 @@ export default class Logs extends Command {
   async run() {
     const { flags } = this.parse(Logs)
     const ctx = await CheCtlContext.initAndGet(flags, this)
-
-    const kubeHelper = KubeClient.getInstance()
-    flags[CHE_NAMESPACE_FLAG] = flags[CHE_NAMESPACE_FLAG] || await kubeHelper.findCheClusterNamespace() || EclipseChe.NAMESPACE
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logs.id, flags })
 

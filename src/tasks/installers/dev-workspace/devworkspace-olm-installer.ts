@@ -46,7 +46,7 @@ export class DevWorkspaceOlmInstaller implements Installer  {
 
         tasks.add(OlmTasks.getCreateSubscriptionTask(
           DevWorkspace.SUBSCRIPTION,
-          ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE],
+          ctx[EclipseCheContext.OPERATOR_NAMESPACE],
           ctx[DevWorkspaceContext.CATALOG_SOURCE_NAME],
           ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE],
           DevWorkspace.PACKAGE,
@@ -67,10 +67,10 @@ export class DevWorkspaceOlmInstaller implements Installer  {
         const tasks = newListr()
         tasks.add(DevWorkspacesTasks.getDeleteWebhooksTask())
         tasks.add(DevWorkspacesTasks.getDeleteCustomResourcesTasks())
+        tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(DevWorkspace.PACKAGE, DevWorkspace.CSV_PREFIX, ctx[EclipseCheContext.OPERATOR_NAMESPACE]))
+        tasks.add(await DevWorkspacesTasks.getDeleteWorkloadsTask())
         tasks.add(DevWorkspacesTasks.getDeleteServicesTask())
-        tasks.add(DevWorkspacesTasks.getDeleteWorkloadsTask())
         tasks.add(DevWorkspacesTasks.getDeleteRbacTask())
-        tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(DevWorkspace.PACKAGE, DevWorkspace.CSV_PREFIX, ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE]))
         return tasks
       },
     }

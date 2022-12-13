@@ -13,7 +13,7 @@
 import * as Listr from 'listr'
 import { KubeClient } from '../api/kube-client'
 import {PodTasks} from './pod-tasks'
-import {CheCtlContext, CliContext, InfrastructureContext} from '../context'
+import {CheCtlContext, CliContext, EclipseCheContext} from '../context'
 import {CHE_NAMESPACE_FLAG, DEBUG_FLAG, DEBUG_PORT_FLAG} from '../flags'
 import {EclipseChe} from './installers/eclipse-che/eclipse-che'
 import * as path from 'path'
@@ -50,16 +50,6 @@ export namespace CheTasks {
           tasks.add(getWaitEclipseCheActiveTask())
         }
         return tasks
-      },
-    }
-  }
-
-  export function getCheckEclipseCheStatusTask(): Listr.ListrTask<any>  {
-    return  {
-      title: `${EclipseChe.PRODUCT_NAME} status check`,
-      task: async (ctx, task) => {
-        await Che.isCheServerReady()
-        task.title = `${task.title}...[OK]`
       },
     }
   }
@@ -168,11 +158,7 @@ export namespace CheTasks {
       title: `${follow ? 'Start following' : 'Read'} ${EclipseChe.PRODUCT_NAME} installation logs`,
       task: async (ctx: any, task: any) => {
         const flags = CheCtlContext.getFlags()
-        if (ctx[InfrastructureContext.IS_OPENSHIFT]) {
-          await Che.readPodLog(ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE], EclipseChe.CHE_OPERATOR_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
-        } else {
-          await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.CHE_OPERATOR_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
-        }
+        await Che.readPodLog(ctx[EclipseCheContext.OPERATOR_NAMESPACE], EclipseChe.CHE_OPERATOR_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
         await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.CHE_SERVER_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
         await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.POSTGRES_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
         await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.PLUGIN_REGISTRY_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)

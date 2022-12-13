@@ -23,7 +23,6 @@ import {
   TELEMETRY,
 } from '../../flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import {KubeClient} from '../../api/kube-client'
 import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
 import {Che} from '../../utils/che'
 
@@ -40,9 +39,6 @@ export default class Status extends Command {
   async run() {
     const { flags } = this.parse(Status)
     await CheCtlContext.init(flags, this)
-
-    const kubeHelper = KubeClient.getInstance()
-    flags[CHE_NAMESPACE_FLAG] = flags[CHE_NAMESPACE_FLAG] || await kubeHelper.findCheClusterNamespace() || EclipseChe.NAMESPACE
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Status.id, flags })
 
