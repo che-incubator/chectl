@@ -1121,11 +1121,11 @@ export class KubeClient {
       return
     }
 
+    crd = await this.getCustomResourceDefinition(crdName)
     // 1. Disable conversion webhook
-    await this.patchClusterCustomObject(crdName, {spec: {conversion: null}}, 'apiextensions.k8s.io', 'v1', 'customresourcedefinitions')
+    crd.spec.conversion = null
 
     // 2. Patch CRD to unblock potential invalid resource
-    crd = await this.getCustomResourceDefinition(crdName)
     for (let i = 0; i < crd.spec.versions.length; i++) {
       if (crd.spec.versions[i].schema?.openAPIV3Schema?.properties?.spec) {
         crd.spec.versions[i].schema.openAPIV3Schema.properties.spec = {type: 'object', properties: {}}
