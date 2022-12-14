@@ -12,10 +12,10 @@
 
 import { V1Pod, Watch } from '@kubernetes/client-node'
 import * as cp from 'child_process'
-import * as commandExists from 'command-exists'
 import * as fs from 'fs-extra'
 import * as path from 'path'
 import { KubeClient } from './kube-client'
+import {isCommandExists} from '../utils/utls'
 
 export class CheLogsReader {
   private kubeHelper: KubeClient
@@ -61,7 +61,7 @@ export class CheLogsReader {
     const fileName = path.resolve(directory, namespace, 'events.txt')
     fs.ensureFileSync(fileName)
 
-    const cli = (commandExists.sync('kubectl') && 'kubectl') || (commandExists.sync('oc') && 'oc')
+    const cli = (await isCommandExists('kubectl') && 'kubectl') || (await isCommandExists('oc') && 'oc')
     if (cli) {
       const command = 'get events'
       const namespaceParam = `-n ${namespace}`

@@ -10,12 +10,12 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
 
 import {CheCtlContext} from '../../context'
 import {CommonTasks} from '../common-tasks'
+import {isCommandExists} from '../../utils/utls'
 
 /**
  * Helper for Code Ready Container
@@ -24,8 +24,8 @@ export namespace CRCTasks {
   export function getPreflightCheckTasks(): Listr.ListrTask<any>[] {
     const flags = CheCtlContext.getFlags()
     return [
-      CommonTasks.getVerifyCommand('Verify if oc is installed', 'oc not found',  () => commandExists.sync('oc')),
-      CommonTasks.getVerifyCommand('Verify if OpenShift Local is installed', 'OpenShift Local not found',  () => commandExists.sync('crc')),
+      CommonTasks.getVerifyCommand('Verify if oc is installed', 'oc not found',  () => isCommandExists('oc')),
+      CommonTasks.getVerifyCommand('Verify if OpenShift Local is installed', 'OpenShift Local not found',  () => isCommandExists('crc')),
       CommonTasks.getVerifyCommand('Verify if OpenShift Local is running', 'OpenShift Local not ready',  () => isCRCRunning()),
       {
         title: 'Retrieving OpenShift Local IP and domain for routes URLs',

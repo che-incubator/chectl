@@ -10,7 +10,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
 import * as os from 'os'
@@ -19,6 +18,7 @@ import {CheCtlContext} from '../../context'
 import {DOMAIN_FLAG} from '../../flags'
 import {KubeClient} from '../../api/kube-client'
 import {CommonTasks} from '../common-tasks'
+import {isCommandExists} from '../../utils/utls'
 
 export namespace DockerDesktopTasks {
   /**
@@ -26,7 +26,7 @@ export namespace DockerDesktopTasks {
    */
   export function getPreflightCheckTasks(): Listr.ListrTask<any>[] {
     return [
-      CommonTasks.getVerifyCommand('Verify if oc is installed', 'oc not found',  () => commandExists.sync('oc')),
+      CommonTasks.getVerifyCommand('Verify if oc is installed', 'oc not found',  () => isCommandExists('oc')),
       {
         title: 'Verify if kubectl context is Docker Desktop',
         task: async (_ctx: any, task: any) => {

@@ -10,11 +10,11 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import * as commandExists from 'command-exists'
 import * as Listr from 'listr'
 
 import {OpenShift} from '../../utils/openshift'
 import {CommonTasks} from '../common-tasks'
+import {isCommandExists} from '../../utils/utls'
 
 export namespace OpenshiftTasks {
   /**
@@ -22,7 +22,7 @@ export namespace OpenshiftTasks {
    */
   export function getPreflightCheckTasks(): Listr.ListrTask<any>[] {
     return [
-      CommonTasks.getVerifyCommand('Verify if oc is installed', 'oc not found',  () => commandExists.sync('oc')),
+      CommonTasks.getVerifyCommand('Verify if oc is installed', 'oc not found',  () => isCommandExists('oc')),
       CommonTasks.getVerifyCommand('Verify if openshift is running', 'PLATFORM_NOT_READY: \'oc status\' command failed. Please login with \'oc login\' command and try again.',  () => OpenShift.isOpenShiftRunning()),
     ]
   }
