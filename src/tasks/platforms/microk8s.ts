@@ -10,13 +10,13 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
 
 import {CheCtlContext} from '../../context'
 import {DOMAIN_FLAG} from '../../flags'
 import {CommonTasks} from '../common-tasks'
+import {isCommandExists} from '../../utils/utls'
 
 export namespace MicroK8sTasks {
   /**
@@ -25,8 +25,8 @@ export namespace MicroK8sTasks {
   export function getPeflightCheckTasks(): Listr.ListrTask<any>[] {
     const flags = CheCtlContext.getFlags()
     return [
-      CommonTasks.getVerifyCommand('Verify if kubectl is installed', 'kubectl not found', () => commandExists.sync('kubectl')),
-      CommonTasks.getVerifyCommand('Verify if microk8s is installed', 'MicroK8s not found', () => commandExists.sync('microk8s.status')),
+      CommonTasks.getVerifyCommand('Verify if kubectl is installed', 'kubectl not found', () => isCommandExists('kubectl')),
+      CommonTasks.getVerifyCommand('Verify if microk8s is installed', 'MicroK8s not found', () => isCommandExists('microk8s.status')),
       CommonTasks.getVerifyCommand('Verify if microk8s is running', 'MicroK8s is not running.', () => isMicroK8sRunning()),
       {
         title: 'Verify if microk8s ingress addon is enabled',

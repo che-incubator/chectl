@@ -11,6 +11,7 @@
  */
 
 import * as fs from 'fs-extra'
+import * as os from 'os'
 import * as yaml from 'js-yaml'
 import * as path from 'path'
 import {CheCtlContext} from '../context'
@@ -18,6 +19,8 @@ import * as Listr from 'listr'
 import {LISTR_RENDERER_FLAG} from '../flags'
 import {EclipseChe} from '../tasks/installers/eclipse-che/eclipse-che'
 import {CHE} from '../constants'
+import * as commandExists from 'command-exists'
+import execa = require('execa')
 
 const pkjson = require('../../package.json')
 
@@ -136,4 +139,22 @@ export function isPartOfEclipseChe(resource: any): boolean {
 
 export function isCheFlavor(): boolean {
   return EclipseChe.CHE_FLAVOR === CHE
+}
+
+export async function isCommandExists(commandName: string): Promise<boolean> {
+  if (commandExists.sync(commandName)) {
+    return true
+  }
+
+  // commandExists.sync fails if not executable command exists in the same directory.
+  // Double check without accessing local file.
+  // The check above there is for backward compatability.
+
+  const whereCommand = os.platform() === 'win32' ? 'where' : 'whereis'
+  try {
+    await execa(whereCommand, [commandName])
+    return true
+  } catch {}
+
+  return false
 }

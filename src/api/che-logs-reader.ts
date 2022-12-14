@@ -61,7 +61,7 @@ export class CheLogsReader {
     const fileName = path.resolve(directory, namespace, 'events.txt')
     fs.ensureFileSync(fileName)
 
-    const cli = (commandExists.sync('kubectl') && 'kubectl') || (commandExists.sync('oc') && 'oc')
+    const cli = (await commandExists('kubectl') && 'kubectl') || (await commandExists('oc') && 'oc')
     if (cli) {
       const command = 'get events'
       const namespaceParam = `-n ${namespace}`

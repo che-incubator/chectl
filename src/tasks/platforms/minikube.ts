@@ -10,12 +10,11 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
 import {CheCtlContext, OIDCContext} from '../../context'
 import { KubeClient } from '../../api/kube-client'
-import { sleep } from '../../utils/utls'
+import {isCommandExists, sleep} from '../../utils/utls'
 import {DOMAIN_FLAG} from '../../flags'
 import {CommonTasks} from '../common-tasks'
 
@@ -26,8 +25,8 @@ export namespace MinikubeTasks {
   export function getPreflightCheckTasks(): Listr.ListrTask<any>[] {
     const flags = CheCtlContext.getFlags()
     return [
-      CommonTasks.getVerifyCommand('Verify if kubectl is installed', 'kubectl not found', () => commandExists.sync('kubectl')),
-      CommonTasks.getVerifyCommand('Verify if minikube is installed', 'minikube not found', () => commandExists.sync('minikube')),
+      CommonTasks.getVerifyCommand('Verify if kubectl is installed', 'kubectl not found', () => isCommandExists('kubectl')),
+      CommonTasks.getVerifyCommand('Verify if minikube is installed', 'minikube not found', () => isCommandExists('minikube')),
       {
         title: 'Verify if minikube is running',
         task: async (_ctx: any, task: any) => {

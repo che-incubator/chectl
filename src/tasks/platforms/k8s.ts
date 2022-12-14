@@ -10,18 +10,18 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import * as commandExists from 'command-exists'
 import * as Listr from 'listr'
 import {CheCtlContext} from '../../context'
 import {DOMAIN_FLAG} from '../../flags'
 import {CommonTasks} from '../common-tasks'
+import {isCommandExists} from '../../utils/utls'
 
 export namespace K8sTasks {
   export function getPeflightCheckTasks(): Listr.ListrTask<any>[] {
     const flags = CheCtlContext.getFlags()
 
     return [
-      CommonTasks.getVerifyCommand('Verify if kubectl is installed', 'kubectl not found', () => commandExists.sync('kubectl')),
+      CommonTasks.getVerifyCommand('Verify if kubectl is installed', 'kubectl not found', () => isCommandExists('kubectl')),
       CommonTasks.getVerifyCommand('Verify domain is set', `--${DOMAIN_FLAG} flag needs to be defined`, () => Boolean(flags[DOMAIN_FLAG])),
     ]
   }
