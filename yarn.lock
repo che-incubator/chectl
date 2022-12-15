@@ -2405,9 +2405,9 @@ detect-newline@^3.0.0:
   resolved "https://registry.yarnpkg.com/detect-newline/-/detect-newline-3.1.0.tgz#576f5dfc63ae1a192ff192d8ad3af6308991b651"
   integrity sha512-TLz+x/vEXm/Y7P7wn1EJFNLxYpUD4TgMosxY6fAVJUnJMbupHBOncxyWUG9OpTaH9EBD7uFI5LfEgmMOc54DsA==
 
-"devworkspace-operator@https://github.com/devfile/devworkspace-operator#main":
+"devworkspace-operator@https://github.com/devfile/devworkspace-operator#v0.17.0":
   version "0.0.0"
-  resolved "https://github.com/devfile/devworkspace-operator#25373d9a2b21fccbc092ec27992ec559af03e9da"
+  resolved "https://github.com/devfile/devworkspace-operator#bd6bffe44a9cc064688214059dfe05865cdfe491"
 
 diff-sequences@^29.3.1:
   version "29.3.1"
@@ -2448,9 +2448,9 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
-"eclipse-che-operator@https://github.com/eclipse-che/che-operator#main":
+"eclipse-che-operator@https://github.com/eclipse-che/che-operator#7.58.0":
   version "0.0.0"
-  resolved "https://github.com/eclipse-che/che-operator#783d35046c68d43d611011e21764744e3218f418"
+  resolved "https://github.com/eclipse-che/che-operator#3ade61b0a8ce187df36df8a35c0e383d87bffabd"
 
 editorconfig@^0.15.0:
   version "0.15.3"
