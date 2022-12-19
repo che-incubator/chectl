@@ -749,10 +749,10 @@
     is-wsl "^2.1.1"
     tslib "^2.3.1"
 
-"@oclif/core@^1.1.1", "@oclif/core@^1.20.0", "@oclif/core@^1.20.4":
-  version "1.20.4"
-  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-1.20.4.tgz#7378b52e1f1b502e383ffb07f95dffc9fd8588ff"
-  integrity sha512-giug32M4YhSYNYKQwE1L57/+k5gp1+Bq3/0vKNQmzAY1tizFGhvBJc6GIRZasHjU+xtZLutQvrVrJo7chX3hxg==
+"@oclif/core@^1.1.1", "@oclif/core@^1.20.0", "@oclif/core@^1.20.4", "@oclif/core@^1.22.0":
+  version "1.22.0"
+  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-1.22.0.tgz#dfdd76db6435cc1be2de7bbe25c23302332b9297"
+  integrity sha512-Bvyi6uFbmpkFl9XUATsGMlqEDGfqMKWL0Mu5VQTuPg7/NIyfygYkaburn11uGkOp0a8yG6fPpyVBfGmztjNPGA==
   dependencies:
     "@oclif/linewrap" "^1.0.0"
     "@oclif/screen" "^3.0.3"
@@ -854,12 +854,12 @@
     chalk "^4.1.0"
     tslib "^2.3.1"
 
-"@oclif/plugin-autocomplete@^1.3.5":
-  version "1.3.5"
-  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-1.3.5.tgz#8b913279e198928e7a52c5de189d1fcbe2e1ad9c"
-  integrity sha512-86vKJATapihZohK81oLZKqxGebYvRQ4cK61sM68sKUsznfECevz7m3VHUDxhH/TwXttKc8Dv0LbBPBM/FiNAfQ==
+"@oclif/plugin-autocomplete@^1.3.8":
+  version "1.3.8"
+  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-1.3.8.tgz#094df7eaf52c4dfd5f682c211c079db0af619d49"
+  integrity sha512-jDJAoyCoyFwlxtGasRM/3HwdjUTIL4AnIuqG4/AJhw4XjfyPayE0JILqqnpggOJQ1oc/XcDV94wVJvwlWeUXzQ==
   dependencies:
-    "@oclif/core" "^1.20.0"
+    "@oclif/core" "^1.22.0"
     chalk "^4.1.0"
     debug "^4.3.4"
     fs-extra "^9.0.1"
