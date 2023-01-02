@@ -749,10 +749,10 @@
     is-wsl "^2.1.1"
     tslib "^2.3.1"
 
-"@oclif/core@^1.1.1", "@oclif/core@^1.20.0", "@oclif/core@^1.20.4", "@oclif/core@^1.21.0":
-  version "1.21.0"
-  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-1.21.0.tgz#d91b2f40a4f446279ab6335c619fc1716fc23ab6"
-  integrity sha512-B/AKYfHcNRAbb6Xz2kj0FlH9gWEi8aFS4iEr7EzguP3E2DpDk4wcf7eOMOfJYEmhuVd9sOpVWSnI2yP+FL/3Sg==
+"@oclif/core@^1.1.1", "@oclif/core@^1.20.0", "@oclif/core@^1.20.4", "@oclif/core@^1.23.1":
+  version "1.23.1"
+  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-1.23.1.tgz#bebbbc4e02a4c1a4216d64165f892037f8a1e14a"
+  integrity sha512-nz7wVGesJ1Qg74p1KNKluZpQ3Z042mqdaRlczEI4Xwqj5s9jjdDBCDHNkiGzV4UAKzicVzipNj6qqhyUWKYnaA==
   dependencies:
     "@oclif/linewrap" "^1.0.0"
     "@oclif/screen" "^3.0.3"
@@ -844,7 +844,7 @@
   resolved "https://registry.yarnpkg.com/@oclif/linewrap/-/linewrap-1.0.0.tgz#aedcb64b479d4db7be24196384897b5000901d91"
   integrity sha512-Ups2dShK52xXa8w6iBWLgcjPJWjais6KPJQq3gQ/88AY6BXoTX+MIGFPrWQO1KLMiQfoTpcLnUwloN4brrVUHw==
 
-"@oclif/parser@^3.8.0", "@oclif/parser@^3.8.7", "@oclif/parser@^3.8.8", "@oclif/parser@^3.8.9":
+"@oclif/parser@^3.8.0", "@oclif/parser@^3.8.7", "@oclif/parser@^3.8.9":
   version "3.8.9"
   resolved "https://registry.yarnpkg.com/@oclif/parser/-/parser-3.8.9.tgz#9399041ada7e465043f34b24f4d82a8beb68a023"
   integrity sha512-1j/kThdse7yHQz6+c3v8RA1I3gD6+SGt2O7IAb/MAMoxqyBrFQDabQHH2UU4eVFGMLN7U91AiYJp11zJ9LcQAg==
@@ -882,11 +882,11 @@
     wrap-ansi "^6.2.0"
 
 "@oclif/plugin-help@^5":
-  version "5.1.20"
-  resolved "https://registry.yarnpkg.com/@oclif/plugin-help/-/plugin-help-5.1.20.tgz#eba25a93266c271c7bbd08034bf53975f022476e"
-  integrity sha512-N8xRxE/isFcdBDI8cobixEZA5toxIK5jbxpwALNTr4s8KNAtBA3ORQrSiY0fWGkcv0sCGMwZw7rJ0Izh18JPsw==
+  version "5.1.22"
+  resolved "https://registry.yarnpkg.com/@oclif/plugin-help/-/plugin-help-5.1.22.tgz#65b78efe34af10e9427e046fb4d3524d62149226"
+  integrity sha512-gflrCqV3c7nd1UgknuZZTX6Th9CTkvVyTjL76UNHrea3kCZEpPzsMGhwP989R+j3KSGJGeZVrq2i9g2QXI9tZA==
   dependencies:
-    "@oclif/core" "^1.21.0"
+    "@oclif/core" "^1.23.1"
 
 "@oclif/plugin-update@^1.5.0":
   version "1.5.0"
