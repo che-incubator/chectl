@@ -19,15 +19,15 @@ on:
       - 'main'
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2.3.1
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           persist-credentials: false
       - name: Install NodeJS
-        uses: actions/setup-node@v2.1.2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.13
       - name: Generate tag utilities
@@ -75,7 +75,7 @@ jobs:
           echo $(date +%s) > gh-pages/update
           env
       - name: Deploy to github pages
-        uses: JamesIves/github-pages-deploy-action@3.7.1
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages

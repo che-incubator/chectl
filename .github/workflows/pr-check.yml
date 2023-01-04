@@ -14,15 +14,15 @@ name: PR Checks
 on: [pull_request]
 jobs:
   unit-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2.3.1
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           persist-credentials: false
       - name: Install NodeJS
-        uses: actions/setup-node@v2.1.2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.13.2
       - name: Build chectl
@@ -32,15 +32,15 @@ jobs:
       - name: Run unit tests
         run: yarn test
   readme-md-validation:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2.3.1
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           persist-credentials: false
       - name: Install NodeJS
-        uses: actions/setup-node@v2.1.2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.13
       - name: Build chectl
@@ -56,21 +56,21 @@ jobs:
             exit 1
           fi
   license-validation:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2.3.1
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           persist-credentials: false
       - name: Install NodeJS
-        uses: actions/setup-node@v2.1.2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.13
       - name: Build chectl
         run: yarn
       - name: Set up Go 1.15
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: 1.15
       - name: Check license headers
