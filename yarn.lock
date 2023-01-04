@@ -844,7 +844,7 @@
   resolved "https://registry.yarnpkg.com/@oclif/linewrap/-/linewrap-1.0.0.tgz#aedcb64b479d4db7be24196384897b5000901d91"
   integrity sha512-Ups2dShK52xXa8w6iBWLgcjPJWjais6KPJQq3gQ/88AY6BXoTX+MIGFPrWQO1KLMiQfoTpcLnUwloN4brrVUHw==
 
-"@oclif/parser@^3.8.0", "@oclif/parser@^3.8.7", "@oclif/parser@^3.8.8", "@oclif/parser@^3.8.9":
+"@oclif/parser@^3.8.0", "@oclif/parser@^3.8.7", "@oclif/parser@^3.8.9":
   version "3.8.9"
   resolved "https://registry.yarnpkg.com/@oclif/parser/-/parser-3.8.9.tgz#9399041ada7e465043f34b24f4d82a8beb68a023"
   integrity sha512-1j/kThdse7yHQz6+c3v8RA1I3gD6+SGt2O7IAb/MAMoxqyBrFQDabQHH2UU4eVFGMLN7U91AiYJp11zJ9LcQAg==
@@ -2450,7 +2450,8 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-operator@https://github.com/eclipse-che/che-operator#main":
   version "0.0.0"
-  resolved "https://github.com/eclipse-che/che-operator#571cd1e329ede241b5f5c05aa4dd3b9d358341ca"
+  uid "39114e198678c3ad242aaeb5afd93e2ab89db89d"
+  resolved "https://github.com/eclipse-che/che-operator#39114e198678c3ad242aaeb5afd93e2ab89db89d"
 
 editorconfig@^0.15.0:
   version "0.15.3"
