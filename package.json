@@ -47,7 +47,7 @@
     "@types/chai": "^4",
     "@types/command-exists": "^1.2.0",
     "@types/countries-and-timezones": "^3.2.3",
-    "@types/fs-extra": "^9.0.13",
+    "@types/fs-extra": "^11.0.0",
     "@types/getos": "^3.0.1",
     "@types/jest": "29.2.4",
     "@types/js-yaml": "^4.0.5",
