@@ -31,14 +31,11 @@ import {
 import * as path from 'path'
 import {KubeClient} from '../../../api/kube-client'
 import {
-  CATALOG_SOURCE_YAML_FLAG,
   CHE_NAMESPACE_FLAG,
   CHE_OPERATOR_IMAGE_FLAG,
 } from '../../../flags'
 import {getImageNameAndTag, isPartOfEclipseChe, newListr, safeLoadFromYamlFile} from '../../../utils/utls'
 import {cli} from 'cli-ux'
-import {CatalogSource} from '../../../api/types/olm'
-import {merge} from 'lodash'
 import {OlmTasks} from '../../olm-tasks'
 import {DevWorkspaceInstallerFactory} from '../dev-workspace/dev-workspace-installer-factory'
 import {DevWorkspace} from '../dev-workspace/dev-workspace'
@@ -544,39 +541,29 @@ export namespace EclipseCheTasks {
 
   export function getCreateEclipseCheCatalogSourceTask(): Listr.ListrTask<any> {
     const kubeHelper = KubeClient.getInstance()
-    const flags = CheCtlContext.getFlags()
 
     return {
       title: 'Create CatalogSource',
       task: async (ctx: any, task: any) => {
-        let catalogSource: CatalogSource
-
-        if (flags[CATALOG_SOURCE_YAML_FLAG]) {
-          catalogSource = safeLoadFromYamlFile(flags[CATALOG_SOURCE_YAML_FLAG])
-          // Move CatalogSource to `openshift-marketplace` namespace
-          catalogSource!.metadata!.namespace = ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE]
-          merge(catalogSource!.metadata, {labels: {'app.kubernetes.io/part-of': 'che.eclipse.org'}})
-        } else {
-          catalogSource = {
-            apiVersion: 'operators.coreos.com/v1alpha1',
-            kind: 'CatalogSource',
-            metadata: {
-              name: ctx[EclipseCheContext.CATALOG_SOURCE_NAME],
-              namespace: ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE],
-              labels: {
-                'app.kubernetes.io/part-of': 'che.eclipse.org',
+        const catalogSource = {
+          apiVersion: 'operators.coreos.com/v1alpha1',
+          kind: 'CatalogSource',
+          metadata: {
+            name: ctx[EclipseCheContext.CATALOG_SOURCE_NAME],
+            namespace: ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE],
+            labels: {
+              'app.kubernetes.io/part-of': 'che.eclipse.org',
+            },
+          },
+          spec: {
+            image: ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE],
+            sourceType: 'grpc',
+            updateStrategy: {
+              registryPoll: {
+                interval: '15m',
               },
             },
-            spec: {
-              image: ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE],
-              sourceType: 'grpc',
-              updateStrategy: {
-                registryPoll: {
-                  interval: '15m',
-                },
-              },
-            },
-          }
+          },
         }
 
         const catalogSourceName = catalogSource!.metadata!.name!

@@ -40,7 +40,7 @@ export class EclipseCheOlmInstaller implements Installer {
 
         tasks.add(await EclipseCheTasks.getInstallDevWorkspaceOperatorTask())
 
-        if (isCheFlavor() && ctx[EclipseCheContext.CHANNEL] === EclipseChe.NEXT_CHANNEL) {
+        if (isCheFlavor()) {
           tasks.add(EclipseCheTasks.getCreateEclipseCheCatalogSourceTask())
         }
 
