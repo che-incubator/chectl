@@ -27,7 +27,7 @@ metadata:
   name: eclipse-che
   namespace: openshift-marketplace
   labels:
-  app.kubernetes.io/part-of: che.eclipse.org
+    app.kubernetes.io/part-of: che.eclipse.org
 spec:
   sourceType: grpc
   publisher: Eclipse Che
