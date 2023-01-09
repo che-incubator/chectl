@@ -16,6 +16,18 @@ set -e -x
 # Stop execution on any error
 trap "catchFinish" EXIT SIGINT
 
+# Catch_Finish is executed after finish script.
+catchFinish() {
+  result=$?
+  if [ "$result" != "0" ]; then
+    echo "Failed on running tests. Please check logs or contact QE team (e-mail:codereadyqe-workspaces-qe@redhat.com, Slack: #che-qe-internal, Eclipse mattermost: 'Eclipse Che QE'"
+    echo "Logs should be availabe on /tmp/artifacts/che-logs"
+    getCheClusterLogs
+    exit 1
+  fi
+
+  exit $result
+}
 
 # Setup all necessary environments needed by e2e and Openshift CI
 init() {
@@ -34,6 +46,12 @@ init() {
   else
     export CHECTL_REPO=$(dirname "$SCRIPT_DIR");
   fi
+}
+
+# Function to get all logs and events from Che deployments
+getCheClusterLogs() {
+  mkdir -p ${ARTIFACTS_DIR}/che-logs
+  ${CHECTL_REPO}/bin/run server:logs --directory=${ARTIFACTS_DIR}/che-logs
 }
 
 run() {
