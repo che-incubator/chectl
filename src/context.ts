@@ -16,7 +16,11 @@ import * as os from 'os'
 import * as path from 'path'
 
 import {
-  AUTO_UPDATE_FLAG, CATALOG_SOURCE_NAME_FLAG, CATALOG_SOURCE_NAMESPACE_FLAG, CHE_NAMESPACE_FLAG,
+  AUTO_UPDATE_FLAG,
+  CATALOG_SOURCE_NAME_FLAG,
+  CATALOG_SOURCE_NAMESPACE_FLAG,
+  CATALOG_SOURCE_YAML_FLAG,
+  CHE_NAMESPACE_FLAG,
   CHE_OPERATOR_CR_PATCH_YAML_FLAG,
   CHE_OPERATOR_CR_YAML_FLAG,
   DEFAULT_K8S_POD_DOWNLOAD_IMAGE_TIMEOUT,
@@ -27,7 +31,10 @@ import {
   K8S_POD_ERROR_RECHECK_TIMEOUT_FLAG,
   K8S_POD_READY_TIMEOUT_FLAG,
   K8S_POD_WAIT_TIMEOUT_FLAG,
-  LOG_DIRECTORY_FLAG, OLM_CHANNEL_FLAG, PACKAGE_MANIFEST_FLAG, STARTING_CSV_FLAG,
+  LOG_DIRECTORY_FLAG,
+  OLM_CHANNEL_FLAG,
+  PACKAGE_MANIFEST_FLAG,
+  STARTING_CSV_FLAG,
   TEMPLATES_FLAG,
 } from './flags'
 import {getEmbeddedTemplatesDirectory, getProjectVersion, isCheFlavor, safeLoadFromYamlFile} from './utils/utls'
@@ -202,6 +209,13 @@ export namespace CheCtlContext {
       ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = EclipseChe.STABLE_CATALOG_SOURCE_IMAGE
     } else {
       ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = EclipseChe.NEXT_CATALOG_SOURCE_IMAGE
+    }
+
+    if (flags[CATALOG_SOURCE_YAML_FLAG]) {
+      const catalogSource = safeLoadFromYamlFile(flags[CATALOG_SOURCE_YAML_FLAG])
+      ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = catalogSource.metadata.name
+      ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE] = ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE]
+      ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = catalogSource.spec.image
     }
 
     // DevWorkspaceContext

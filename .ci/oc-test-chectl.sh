@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright (c) 2019-2021 Red Hat, Inc.
 # This program and the accompanying materials are made
@@ -10,10 +11,16 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-# Dockerfile to bootstrap build and test in openshift-ci
+set -ex
 
-FROM registry.ci.openshift.org/openshift/release:golang-1.18
+export CHECTL_REPO=$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")
+source ${CHECTL_REPO}/.ci/oc-common.sh
 
-RUN curl -sL https://rpm.nodesource.com/setup_16.x | bash - && \
-  yum-config-manager --add-repo https://dl.yarnpkg.com/rpm/yarn.repo && \
-  yum install -y yarn
+trap "catchFinish" EXIT SIGINT
+
+runTests() {
+  yarn --cwd ${CHECTL_REPO}
+  yarn test --coverage=false --forceExit --testRegex=${CHECTL_REPO}/test/e2e/e2e.test.ts
+}
+
+runTests
