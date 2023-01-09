@@ -844,7 +844,7 @@
   resolved "https://registry.yarnpkg.com/@oclif/linewrap/-/linewrap-1.0.0.tgz#aedcb64b479d4db7be24196384897b5000901d91"
   integrity sha512-Ups2dShK52xXa8w6iBWLgcjPJWjais6KPJQq3gQ/88AY6BXoTX+MIGFPrWQO1KLMiQfoTpcLnUwloN4brrVUHw==
 
-"@oclif/parser@^3.8.0", "@oclif/parser@^3.8.7", "@oclif/parser@^3.8.8", "@oclif/parser@^3.8.9":
+"@oclif/parser@^3.8.0", "@oclif/parser@^3.8.7", "@oclif/parser@^3.8.9":
   version "3.8.9"
   resolved "https://registry.yarnpkg.com/@oclif/parser/-/parser-3.8.9.tgz#9399041ada7e465043f34b24f4d82a8beb68a023"
   integrity sha512-1j/kThdse7yHQz6+c3v8RA1I3gD6+SGt2O7IAb/MAMoxqyBrFQDabQHH2UU4eVFGMLN7U91AiYJp11zJ9LcQAg==
@@ -2405,9 +2405,9 @@ detect-newline@^3.0.0:
   resolved "https://registry.yarnpkg.com/detect-newline/-/detect-newline-3.1.0.tgz#576f5dfc63ae1a192ff192d8ad3af6308991b651"
   integrity sha512-TLz+x/vEXm/Y7P7wn1EJFNLxYpUD4TgMosxY6fAVJUnJMbupHBOncxyWUG9OpTaH9EBD7uFI5LfEgmMOc54DsA==
 
-"devworkspace-operator@https://github.com/devfile/devworkspace-operator#main":
+"devworkspace-operator@https://github.com/devfile/devworkspace-operator#v0.18.1":
   version "0.0.0"
-  resolved "https://github.com/devfile/devworkspace-operator#0b46c1c44b8cc391779bc72ecbbdc56de5a40bd2"
+  resolved "https://github.com/devfile/devworkspace-operator#f84206d475b4b8115e82f57457b2c3cfcb97e09d"
 
 diff-sequences@^29.3.1:
   version "29.3.1"
@@ -2448,9 +2448,9 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
-"eclipse-che-operator@https://github.com/eclipse-che/che-operator#main":
+"eclipse-che-operator@https://github.com/eclipse-che/che-operator#7.59.0":
   version "0.0.0"
-  resolved "https://github.com/eclipse-che/che-operator#571cd1e329ede241b5f5c05aa4dd3b9d358341ca"
+  resolved "https://github.com/eclipse-che/che-operator#d79c27be493ce1f0d9f5e8b6eb5d0f28f1629924"
 
 editorconfig@^0.15.0:
   version "0.15.3"
