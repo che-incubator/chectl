@@ -58,7 +58,6 @@ run() {
   # Before to start to run the e2e tests we need to install all deps with yarn
   yarn --cwd ${CHECTL_REPO}
   export PLATFORM=openshift
-  export INSTALLER=olm
   export XDG_CONFIG_HOME=/tmp/chectl/config
   export XDG_CACHE_HOME=/tmp/chectl/cache
   export XDG_DATA_HOME=/tmp/chectl/data

@@ -98,7 +98,7 @@ USAGE
 * [`chectl autocomplete [SHELL]`](#chectl-autocomplete-shell)
 * [`chectl cacert:export`](#chectl-cacertexport)
 * [`chectl dashboard:open`](#chectl-dashboardopen)
-* [`chectl help [COMMAND]`](#chectl-help-command)
+* [`chectl help [COMMANDS]`](#chectl-help-commands)
 * [`chectl server:debug`](#chectl-serverdebug)
 * [`chectl server:delete`](#chectl-serverdelete)
 * [`chectl server:deploy`](#chectl-serverdeploy)
@@ -130,7 +130,7 @@ EXAMPLES
   $ chectl autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v1.3.5/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v1.3.10/src/commands/autocomplete/index.ts)_
 
 ## `chectl cacert:export`
 
@@ -176,22 +176,22 @@ OPTIONS
 
 _See code: [src/commands/dashboard/open.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/dashboard/open.ts)_
 
-## `chectl help [COMMAND]`
+## `chectl help [COMMANDS]`
 
 Display help for chectl.
 
 ```
 USAGE
-  $ chectl help [COMMAND]
+  $ chectl help [COMMANDS]
 
 ARGUMENTS
-  COMMAND  Command to show help for.
+  COMMANDS  Command to show help for.
 
 OPTIONS
   -n, --nested-commands  Include all nested commands in the output.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.20/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.2.0/src/commands/help.ts)_
 
 ## `chectl server:debug`
 
