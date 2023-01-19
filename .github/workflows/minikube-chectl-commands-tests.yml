@@ -34,7 +34,6 @@ jobs:
     - name: Run e2e tests
       run: |
         export PLATFORM=minikube
-        export INSTALLER=operator
         yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
     - uses: actions/upload-artifact@v2
       if: ${{ always() }}
@@ -64,7 +63,6 @@ jobs:
     - name: Run tests
       run: |
         export PLATFORM=minikube
-        export INSTALLER=operator
         yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e-upgrade.test.ts
     - uses: actions/upload-artifact@v2
       if: ${{ always() }}

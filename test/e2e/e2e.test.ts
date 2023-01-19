@@ -22,10 +22,9 @@ jest.setTimeout(1000000)
 const binChectl = E2eHelper.getChectlBinaries()
 
 const PLATFORM = process.env.PLATFORM || ''
-const INSTALLER = process.env.INSTALLER || ''
 
 function getDeployCommand(): string {
-  let command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${EclipseChe.NAMESPACE} --telemetry=off --k8spodwaittimeout=120000 --k8spodreadytimeout=120000`
+  let command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --chenamespace=${EclipseChe.NAMESPACE} --telemetry=off --k8spodwaittimeout=120000 --k8spodreadytimeout=120000`
   if (PLATFORM === 'minikube') {
     command += ' --che-operator-cr-patch-yaml=test/e2e/resources/minikube-checluster-patch.yaml'
   }
@@ -33,8 +32,8 @@ function getDeployCommand(): string {
   return command
 }
 
-describe(`server:deploy using ${INSTALLER} installer`, () => {
-  it(`server:deploy using ${INSTALLER} installer command`, async () => {
+describe(`server:deploy`, () => {
+  it(`server:deploy`, async () => {
     const command = getDeployCommand()
     console.log(command)
     const { exitCode, stdout, stderr } = await execa(command, { shell: true })
