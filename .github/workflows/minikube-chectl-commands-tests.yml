@@ -14,10 +14,10 @@ name: Commands tests
 on: pull_request
 jobs:
   chectl-deploy-commands:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.3.1
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
         persist-credentials: false
@@ -26,7 +26,7 @@ jobs:
       with:
         minikube-version: v1.23.2
     - name: Install NodeJS
-      uses: actions/setup-node@v2.1.2
+      uses: actions/setup-node@v3
       with:
         node-version: 16.13.2
     - name: Build chectl
@@ -35,16 +35,16 @@ jobs:
       run: |
         export PLATFORM=minikube
         yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       if: ${{ always() }}
       with:
         name: test-artifacts
         path: /tmp/logs/*
   chectl-update-commands:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.3.1
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
         persist-credentials: false
@@ -55,7 +55,7 @@ jobs:
     - name: Install chectl from the stable channel
       run: bash <(curl -sL  https://www.eclipse.org/che/chectl/) --channel=stable
     - name: Install NodeJS
-      uses: actions/setup-node@v2.1.2
+      uses: actions/setup-node@v3
       with:
         node-version: 16.13.2
     - name: Build chectl
@@ -64,7 +64,7 @@ jobs:
       run: |
         export PLATFORM=minikube
         yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e-upgrade.test.ts
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       if: ${{ always() }}
       with:
         name: test-artifacts
