@@ -783,10 +783,10 @@
     widest-line "^3.1.0"
     wrap-ansi "^7.0.0"
 
-"@oclif/core@^2.0.2-beta.6":
-  version "2.0.2-beta.6"
-  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-2.0.2-beta.6.tgz#d794d53886683f37ab712092ff88741981b2c02f"
-  integrity sha512-g3M/I2VrZaN6Ba8qyn2KggGoxDc2ys88LV/7+cGhxpaK98ZVWlgPCTLNHyY1DiA0KSDTTBhUsPV+Uis5mbHB4g==
+"@oclif/core@^2.0.2-beta.6", "@oclif/core@^2.0.3":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-2.0.3.tgz#ce71efbfc6e4c2655579ce81adce6471be2bc799"
+  integrity sha512-Dr6tghg32KKEivcWYqrx9bgC8FDE4i47FLR1wjnLg3jNJWf+blTYorj6aHize2WF0wiwkvB28Cr5TUNBooB4AQ==
   dependencies:
     "@types/cli-progress" "^3.11.0"
     ansi-escapes "^4.3.2"
@@ -954,12 +954,12 @@
   integrity sha512-IMsTN1dXEXaOSre27j/ywGbBjrzx0FNd1XmuhCWCB9NTPrhWI1Ifbz+YLSEcstfQfocYsrbrIessxXb2oon4lA==
 
 "@oclif/test@^2":
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/@oclif/test/-/test-2.3.0.tgz#c62efef4e4fa2ec3d44a3a79b58cc9e43898413b"
-  integrity sha512-DgoEOY/Y1FvNwA1J0Sy7u6jZSHbDutw6kNOWqVizlf1wSJiHKV6Ia9DyhHsg2Nb4EZ+1AKcetC0fI7ixLxxJHw==
+  version "2.3.3"
+  resolved "https://registry.yarnpkg.com/@oclif/test/-/test-2.3.3.tgz#ac9e546c58edb8c1a0767fe9e4b556af71a0154a"
+  integrity sha512-7cT12WxuNTcbON3dRxu3D8GNOqv/cCKkH3d39Dsa+QQFtFPzhQysaW27QdwivTRPSauD+3jQfmScb2qd1l6Dig==
   dependencies:
-    "@oclif/core" "^2.0.2-beta.6"
-    fancy-test "^2.0.11"
+    "@oclif/core" "^2.0.3"
+    fancy-test "^2.0.12"
 
 "@octokit/auth-token@^3.0.0":
   version "3.0.0"
@@ -2938,7 +2938,7 @@ extsprintf@^1.2.0:
   resolved "https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.4.0.tgz#e2689f8f356fad62cca65a3a91c5df5f9551692f"
   integrity sha1-4mifjzVvrWLMplo6kcXfX5VRaS8=
 
-fancy-test@^2.0.11, fancy-test@^2.0.12:
+fancy-test@^2.0.12:
   version "2.0.12"
   resolved "https://registry.yarnpkg.com/fancy-test/-/fancy-test-2.0.12.tgz#a93cd92ffc23f70b069c39f19940d34f64c6ca67"
   integrity sha512-S7qVQNaViLTMzn71huZvrUCV59ldq+enQ1EQOkdNbl4q4Om97gwqbYKvZoglsnzCWRRFaFP+qHynpdqaLdiZqg==
