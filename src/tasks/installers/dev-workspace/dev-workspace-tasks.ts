@@ -143,30 +143,4 @@ export namespace DevWorkspacesTasks {
       },
     }
   }
-
-  export function getCreateOrUpdateDevWorkspaceOperatorConfigTask(isCreateOnly: boolean): Listr.ListrTask<any> {
-    const ctx = CheCtlContext.get()
-    const kubeHelper = KubeClient.getInstance()
-
-    const devWorkspaceOperatorConfig = {
-      apiVersion: `${DevWorkspace.CONTROLLER_API_GROUP}/${DevWorkspace.CONTROLLER_API_VERSION}`,
-      kind: 'DevWorkspaceOperatorConfig',
-      metadata: {
-        name: DevWorkspace.DEV_WORKSPACE_OPERATOR_CONFIG,
-      },
-      config: {
-        workspace: {
-          progressTimeout: '30m',
-        },
-      },
-    }
-
-    return CommonTasks.getCreateOrUpdateResourceTask(
-      isCreateOnly,
-      'DevWorkspaceOperatorConfig',
-      DevWorkspace.DEV_WORKSPACE_OPERATOR_CONFIG,
-      () => kubeHelper.isCustomResourceExists(DevWorkspace.DEV_WORKSPACE_OPERATOR_CONFIG, ctx[DevWorkspaceContext.NAMESPACE], DevWorkspace.CONTROLLER_API_GROUP, DevWorkspace.CONTROLLER_API_VERSION, DevWorkspace.DEV_WORKSPACE_OPERATOR_CONFIGS_PLURAL),
-      () => kubeHelper.createNamespacedCustomObject(ctx[DevWorkspaceContext.NAMESPACE], DevWorkspace.CONTROLLER_API_GROUP, DevWorkspace.CONTROLLER_API_VERSION, DevWorkspace.DEV_WORKSPACE_OPERATOR_CONFIGS_PLURAL, devWorkspaceOperatorConfig, false),
-      () => kubeHelper.patchNamespacedCustomObject(DevWorkspace.DEV_WORKSPACE_OPERATOR_CONFIG, ctx[DevWorkspaceContext.NAMESPACE], devWorkspaceOperatorConfig, DevWorkspace.CONTROLLER_API_GROUP, DevWorkspace.CONTROLLER_API_VERSION, DevWorkspace.DEV_WORKSPACE_OPERATOR_CONFIGS_PLURAL))
-  }
 }
