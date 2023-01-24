@@ -18,7 +18,7 @@ import {
   CHE_IMAGE_FLAG,
   CHE_NAMESPACE_FLAG,
   DEBUG_FLAG, DEVFILE_REGISTRY_URL_FLAG,
-  DOMAIN_FLAG, PLUGIN_REGISTRY_URL_FLAG,
+  DOMAIN_FLAG, PLATFORM_FLAG, PLUGIN_REGISTRY_URL_FLAG,
   POSTGRES_PVS_STORAGE_CLASS_NAME_FLAG, WORKSPACE_PVS_STORAGE_CLASS_NAME_FLAG,
 } from '../flags'
 import {cli} from 'cli-ux'
@@ -97,6 +97,10 @@ export namespace CheClusterTasks {
 
         if (flags[DEVFILE_REGISTRY_URL_FLAG]) {
           merge(cheCluster, { spec: { components: { devfileRegistry: { disableInternalRegistry: true, externalDevfileRegistries: [{ url: flags[DEVFILE_REGISTRY_URL_FLAG] }] } } } })
+        }
+
+        if (flags[PLATFORM_FLAG] === 'minikube' || flags[PLATFORM_FLAG] === 'microk8s' || flags[PLATFORM_FLAG] === 'docker-desktop') {
+          merge(cheCluster, { spec: { devEnvironments: { startTimeoutSeconds: 3000 } } })
         }
 
         // override default values with patch file

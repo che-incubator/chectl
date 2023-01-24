@@ -42,7 +42,6 @@ export class DevWorkspaceOperatorInstaller implements Installer {
         tasks.add(CommonTasks.getCreateNamespaceTask(ctx[DevWorkspaceContext.NAMESPACE], {}))
         tasks.add(DevWorkspacesTasks.getCreateOrUpdateDevWorkspaceTask(true))
         tasks.add(DevWorkspacesTasks.getWaitDevWorkspaceTask())
-        tasks.add(DevWorkspacesTasks.getCreateOrUpdateDevWorkspaceOperatorConfigTask(true))
         return tasks
       },
     }
@@ -56,7 +55,6 @@ export class DevWorkspaceOperatorInstaller implements Installer {
         const tasks = newListr()
         tasks.add(DevWorkspacesTasks.getCreateOrUpdateDevWorkspaceTask(false))
         tasks.add(DevWorkspacesTasks.getWaitDevWorkspaceTask())
-        tasks.add(DevWorkspacesTasks.getCreateOrUpdateDevWorkspaceOperatorConfigTask(false))
         return tasks
       },
     }
