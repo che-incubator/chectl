@@ -153,9 +153,6 @@ export default class Deploy extends Command {
       if (flags[OLM_CHANNEL_FLAG]) {
         this.error(`--${OLM_CHANNEL_FLAG} flag should be used only for OpenShift platform.`)
       }
-      if (flags[OLM_CHANNEL_FLAG]) {
-        this.error(`--${OLM_CHANNEL_FLAG} flag should be used only for OpenShift platform.`)
-      }
       if (flags[PACKAGE_MANIFEST_FLAG]) {
         this.error(`--${PACKAGE_MANIFEST_FLAG} flag should be used only for OpenShift platform.`)
       }
