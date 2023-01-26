@@ -95,6 +95,7 @@ export namespace EclipseCheContext {
   export const DEFAULT_CR = 'eclipse-che-default-cr'
   export const NAMESPACE = 'eclipse-che-namespace'
   export const OPERATOR_NAMESPACE = 'eclipse-che-operator-namespace'
+  export const IIB_IMAGE = 'eclipse-che-iib-image'
 }
 
 export namespace DevWorkspaceContext {
@@ -191,6 +192,19 @@ export namespace CheCtlContext {
         ctx[EclipseCheContext.CHANNEL] = EclipseChe.NEXT_CHANNEL
       } else {
         ctx[EclipseCheContext.CHANNEL] = EclipseChe.STABLE_CHANNEL
+      }
+    }
+
+    if (!ctx[CliContext.CLI_IS_CHECTL]) {
+      if (ctx[EclipseCheContext.CHANNEL] !== 'stable') {
+        let iibImageTag = 'next'
+        if (ctx[EclipseCheContext.CHANNEL] === 'latest') {
+          iibImageTag = 'latest'
+        }
+        // It is always EclipseChe.NEXT_CHANNEL, 'latest` and 'next` are added only to simplify UI
+        // See https://issues.redhat.com/browse/CRW-3877
+        ctx[EclipseCheContext.CHANNEL] = EclipseChe.NEXT_CHANNEL
+        ctx[EclipseCheContext.IIB_IMAGE] = `quay.io/devspaces/iib:${iibImageTag}-v${ctx[InfrastructureContext.OPENSHIFT_VERSION]}-${ctx[InfrastructureContext.OPENSHIFT_ARCH]}`
       }
     }
 

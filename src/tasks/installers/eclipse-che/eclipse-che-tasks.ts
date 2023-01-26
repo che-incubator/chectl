@@ -591,8 +591,10 @@ export namespace EclipseCheTasks {
 
   export function getCreateIIBCatalogSourceTask(): Listr.ListrTask<any> {
     const ctx = CheCtlContext.get()
-    const iibImage = `quay.io/devspaces/iib:next-v${ctx[InfrastructureContext.OPENSHIFT_VERSION]}-${ctx[InfrastructureContext.OPENSHIFT_ARCH]}`
-    return OlmTasks.getCreateCatalogSourceTask(ctx[EclipseCheContext.CATALOG_SOURCE_NAME], ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE], iibImage)
+    return OlmTasks.getCreateCatalogSourceTask(
+      ctx[EclipseCheContext.CATALOG_SOURCE_NAME],
+      ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE],
+      ctx[EclipseCheContext.IIB_IMAGE])
   }
 
   function constructImageContentSourcePolicy(): any {
