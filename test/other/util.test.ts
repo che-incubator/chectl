@@ -12,6 +12,8 @@
 
 import { expect, fancy } from 'fancy-test'
 import {getImageNameAndTag} from '../../src/utils/utls'
+import {Che} from '../../src/utils/che'
+import {CheCtlContext, EclipseCheContext} from '../../src/context'
 
 describe('Util tests', () => {
   describe('Test getImageNameAndTag', () => {
@@ -36,6 +38,29 @@ describe('Util tests', () => {
 
         expect(imageRepo).to.equal(expectedImageRepo)
         expect(imageTag).to.equal(expectedImageTag)
+      }
+    })
+  })
+
+  describe('Test getCheClusterFieldConfigured', () => {
+    // test data format: full image reference, image repository, tag
+    const data = [
+      [{spec: {networking: {auth: {identityProviderURL: 'url'}}}}, 'spec.networking.auth.identityProviderURL', 'url'],
+      [{spec: {networking: {auth: {identityProviderURL: ''}}}}, 'spec.networking.auth.identityProviderURL', ''],
+      [{spec: {networking: {auth: {}}}}, 'spec.networking.auth.identityProviderURL', undefined],
+    ]
+    fancy.it('Should get field value', async () => {
+      for (const testCaseData of data) {
+        const crPatch = testCaseData[0]
+        const fieldPath = testCaseData[1] as string
+        const expectedFieldValue = testCaseData[2]
+
+        const ctx = await CheCtlContext.get()
+        ctx[EclipseCheContext.CR_PATCH] = crPatch
+
+        const actualFieldValue = Che.getCheClusterFieldConfigured(fieldPath)
+
+        expect(actualFieldValue).to.equal(expectedFieldValue)
       }
     })
   })

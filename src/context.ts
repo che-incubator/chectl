@@ -130,15 +130,15 @@ export namespace CheCtlContext {
   const CHE_OPERATOR_TEMPLATE_DIR = `${EclipseChe.CHE_FLAVOR}-operator`
   const DEV_WORKSPACE_OPERATOR_TEMPLATE_DIR = 'devworkspace-operator'
 
-  export async function init(flags: any, command: Command): Promise<void> {
+  export async function init(flags: any, command?: Command): Promise<void> {
     ctx[CliContext.CLI_COMMAND_FLAGS] = flags
     ctx[CliContext.CLI_IS_CHECTL] = isCheFlavor()
     ctx[CliContext.CLI_IS_DEV_VERSION] = getProjectVersion().includes('next') || getProjectVersion() === '0.0.2'
     ctx[CliContext.CLI_COMMAND_START_TIME] = Date.now()
-    ctx[CliContext.CLI_CONFIG_DIR] = command.config.configDir
-    ctx[CliContext.CLI_CACHE_DIR] = command.config.cacheDir
-    ctx[CliContext.CLI_ERROR_LOG] = command.config.errlog
-    ctx[CliContext.CLI_COMMAND_ID] = command.id
+    ctx[CliContext.CLI_CONFIG_DIR] = command?.config?.configDir
+    ctx[CliContext.CLI_CACHE_DIR] = command?.config?.cacheDir
+    ctx[CliContext.CLI_ERROR_LOG] = command?.config?.errlog
+    ctx[CliContext.CLI_COMMAND_ID] = command?.id
     ctx[CliContext.CLI_COMMAND_LOGS_DIR] = path.resolve(flags[LOG_DIRECTORY_FLAG] ? flags[LOG_DIRECTORY_FLAG] : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
     ctx[CliContext.CLI_COMMAND_POST_OUTPUT_MESSAGES] = [] as string[]
 
