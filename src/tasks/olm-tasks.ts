@@ -170,7 +170,7 @@ export namespace OlmTasks {
   }
 
   export function getCreatePrometheusRBACTask(): Listr.ListrTask<any> {
-    const flags = CheCtlContext.get()
+    const flags = CheCtlContext.getFlags()
     return {
       enabled: () => flags[CLUSTER_MONITORING_FLAG],
       title: `Create ${EclipseChe.PROMETHEUS} RBAC`,
