@@ -144,6 +144,19 @@ export default class Deploy extends Command {
     }
 
     if (!ctx[InfrastructureContext.IS_OPENSHIFT]) {
+      // Ensure required CheCluster fields are set (k8s platforms)
+      if (flags[PLATFORM_FLAG] !== 'minikube') {
+        for (const field of [
+          'spec.networking.auth.identityProviderURL',
+          'spec.networking.auth.oAuthSecret',
+          'spec.networking.auth.oAuthClientName',
+        ]) {
+          if (!Che.getCheClusterFieldConfigured(field)) {
+            this.error(getMissedOIDCConfigClusterFieldErrorMsg())
+          }
+        }
+      }
+
       // Not OLM installer
       if (flags[STARTING_CSV_FLAG]) {
         this.error(`--${STARTING_CSV_FLAG} flag should be used only for OpenShift platform.`)
@@ -165,19 +178,6 @@ export default class Deploy extends Command {
       }
       if (flags[CLUSTER_MONITORING_FLAG]) {
         this.error(`--${CLUSTER_MONITORING_FLAG} flag should be used only for OpenShift platform.`)
-      }
-    }
-
-    // Ensure required CheCluster fields are set (k8s platforms)
-    if (flags[PLATFORM_FLAG] !== 'minikube') {
-      for (const field of [
-        'spec.networking.auth.identityProviderURL',
-        'spec.networking.auth.oAuthSecret',
-        'spec.networking.auth.oAuthClientName',
-      ]) {
-        if (!Che.getCheClusterFieldConfigured(field)) {
-          this.error(getMissedOIDCConfigClusterFieldErrorMsg())
-        }
       }
     }
   }
