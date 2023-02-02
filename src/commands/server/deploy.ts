@@ -13,7 +13,7 @@
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
 import { CertManagerInstaller } from '../../tasks/installers/cert-manager-installer'
-import {CheCtlContext, InfrastructureContext } from '../../context'
+import {CheCtlContext, InfrastructureContext} from '../../context'
 import { KubeClient } from '../../api/kube-client'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { DexInstaller } from '../../tasks/installers/dex-installer'
@@ -92,6 +92,7 @@ import {
 import {CommonTasks} from '../../tasks/common-tasks'
 import {CheTasks} from '../../tasks/che-tasks'
 import {newListr} from '../../utils/utls'
+import {Che} from '../../utils/che'
 
 export default class Deploy extends Command {
   static description = `Deploy ${EclipseChe.PRODUCT_NAME} server`
@@ -143,6 +144,19 @@ export default class Deploy extends Command {
     }
 
     if (!ctx[InfrastructureContext.IS_OPENSHIFT]) {
+      // Ensure required CheCluster fields are set (k8s platforms)
+      if (flags[PLATFORM_FLAG] !== 'minikube') {
+        for (const field of [
+          'spec.networking.auth.identityProviderURL',
+          'spec.networking.auth.oAuthSecret',
+          'spec.networking.auth.oAuthClientName',
+        ]) {
+          if (!Che.getCheClusterFieldConfigured(field)) {
+            this.error(getMissedOIDCConfigClusterFieldErrorMsg())
+          }
+        }
+      }
+
       // Not OLM installer
       if (flags[STARTING_CSV_FLAG]) {
         this.error(`--${STARTING_CSV_FLAG} flag should be used only for OpenShift platform.`)
@@ -241,3 +255,19 @@ function getNamespaceLabels(flags: any): any {
   return {}
 }
 
+function getMissedOIDCConfigClusterFieldErrorMsg(): string {
+  return `Some required configuration is not specifed in order to deploy ${EclipseChe.PRODUCT_NAME}
+on a Kubernetes cluster with an OIDC provider configured. Use the flag '--${CHE_OPERATOR_CR_PATCH_YAML_FLAG} <PATH_TO_PATCH_FILE>' to
+provide a CheCluster Custom Resource patch with the needed configuration. Find an example of such a configuration below:
+
+kind: CheCluster
+apiVersion: org.eclipse.che/v2
+spec:
+  networking:
+    auth:
+      oAuthClientName: "<CLIENT_ID>"
+      oAuthSecret: "<CLIENT_SECRET>"
+      identityProviderURL: "<ISSUER_URL>"
+
+`
+}

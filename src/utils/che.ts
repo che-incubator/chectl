@@ -47,6 +47,23 @@ export namespace Che {
     return EclipseChe.CHE_TLS_SECRET_NAME
   }
 
+  export function getCheClusterFieldConfigured(fieldPath: string): any | undefined {
+    const ctx = CheCtlContext.get()
+
+    const cheClusterPatch = ctx[EclipseCheContext.CR_PATCH]
+    const cheCluster = ctx[EclipseCheContext.CUSTOM_CR] || ctx[EclipseCheContext.DEFAULT_CR]
+
+    for (const cr of [cheClusterPatch, cheCluster]) {
+      const fieldValue = fieldPath.split('.').reduce((acc, prop) => {
+        return acc?.[prop]
+      }, cr)
+
+      if (fieldValue !== undefined) {
+        return fieldValue
+      }
+    }
+  }
+
   export async function getCheVersion(): Promise<string> {
     const kubeHelper = KubeClient.getInstance()
     const flags = CheCtlContext.getFlags()
