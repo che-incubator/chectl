@@ -166,17 +166,17 @@ export default class Deploy extends Command {
       if (flags[CLUSTER_MONITORING_FLAG]) {
         this.error(`--${CLUSTER_MONITORING_FLAG} flag should be used only for OpenShift platform.`)
       }
+    }
 
-      // Ensure required CheCluster fields are set (k8s platforms)
-      if (flags[PLATFORM_FLAG] !== 'minikube') {
-        for (const field of [
-          'spec.networking.auth.identityProviderURL',
-          'spec.networking.auth.oAuthSecret',
-          'spec.networking.auth.oAuthClientName',
-        ]) {
-          if (!Che.getCheClusterFieldConfigured(field)) {
-            this.error(getMissedOIDCConfigClusterFieldErrorMsg(field))
-          }
+    // Ensure required CheCluster fields are set (k8s platforms)
+    if (flags[PLATFORM_FLAG] !== 'minikube') {
+      for (const field of [
+        'spec.networking.auth.identityProviderURL',
+        'spec.networking.auth.oAuthSecret',
+        'spec.networking.auth.oAuthClientName',
+      ]) {
+        if (!Che.getCheClusterFieldConfigured(field)) {
+          this.error(getMissedOIDCConfigClusterFieldErrorMsg())
         }
       }
     }
@@ -255,7 +255,19 @@ function getNamespaceLabels(flags: any): any {
   return {}
 }
 
-function getMissedOIDCConfigClusterFieldErrorMsg(field: string): string {
-  return `In order to deploy ${EclipseChe.PRODUCT_NAME} on Kubernetes cluster, you have to specify required
-CheCluster CR field '${field}' using --${CHE_OPERATOR_CR_PATCH_YAML_FLAG} flag.`
+function getMissedOIDCConfigClusterFieldErrorMsg(): string {
+  return `Some required configuration is not specifed in order to deploy ${EclipseChe.PRODUCT_NAME}
+on a Kubernetes cluster with an OIDC provider configured. Use the flag '--${CHE_OPERATOR_CR_PATCH_YAML_FLAG} <PATH_TO_PATCH_FILE>' to
+provide a CheCluster Custom Resource patch with the needed configuration. Find an example of such a configuration below:
+
+kind: CheCluster
+apiVersion: org.eclipse.che/v2
+spec:
+  networking:
+    auth:
+      oAuthClientName: "<CLIENT_ID>"
+      oAuthSecret: "<CLIENT_SECRET>"
+      identityProviderURL: "<ISSUER_URL>"
+
+`
 }

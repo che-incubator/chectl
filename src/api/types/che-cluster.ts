@@ -27,9 +27,7 @@ export interface CheClusterStatus {
 }
 
 interface CheClusterAuth {
-  oAuthSecret?: string
   oAuthClientName?: string
-  identityProviderURL?: string
 }
 
 interface CheClusterSpecNetworking {
