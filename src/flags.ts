@@ -56,7 +56,7 @@ export const SKIP_CERT_MANAGER = boolean({
 export const SKIP_DEV_WORKSPACE_FLAG = 'skip-devworkspace-operator'
 export const SKIP_DEV_WORKSPACE = boolean({
   default: false,
-  description: 'Skip installing Dev Workspace Operator (Kubernetes cluster only).',
+  description: 'Skip installing Dev Workspace Operator.',
 })
 
 export const CHE_OPERATOR_CR_PATCH_YAML_FLAG = 'che-operator-cr-patch-yaml'
