@@ -24,7 +24,7 @@ export class DevWorkspaceOlmInstaller implements Installer  {
   protected skip: boolean
 
   constructor() {
-    const flags = CheCtlContext.get()
+    const flags = CheCtlContext.getFlags()
     this.skip = flags[SKIP_DEV_WORKSPACE_FLAG]
   }
 

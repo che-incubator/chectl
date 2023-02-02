@@ -347,7 +347,7 @@ OPTIONS
       Skip installing Cert Manager (Kubernetes cluster only).
 
   --skip-devworkspace-operator
-      Skip installing Dev Workspace Operator (Kubernetes cluster only).
+      Skip installing Dev Workspace Operator.
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
@@ -486,8 +486,7 @@ OPTIONS
   --che-operator-image=che-operator-image                  Container image of the operator. This parameter is used only
                                                            when the installer is the operator or OLM.
 
-  --skip-devworkspace-operator                             Skip installing Dev Workspace Operator (Kubernetes cluster
-                                                           only).
+  --skip-devworkspace-operator                             Skip installing Dev Workspace Operator.
 
   --skip-kubernetes-health-check                           Skip Kubernetes health check
 
