@@ -19,7 +19,7 @@ import {
   CHE_NAMESPACE_FLAG,
   DEBUG_FLAG, DEVFILE_REGISTRY_URL_FLAG,
   DOMAIN_FLAG, PLATFORM_FLAG, PLUGIN_REGISTRY_URL_FLAG,
-  POSTGRES_PVS_STORAGE_CLASS_NAME_FLAG, WORKSPACE_PVS_STORAGE_CLASS_NAME_FLAG,
+  WORKSPACE_PVS_STORAGE_CLASS_NAME_FLAG,
 } from '../flags'
 import {cli} from 'cli-ux'
 import {EclipseChe} from './installers/eclipse-che/eclipse-che'
@@ -81,10 +81,6 @@ export namespace CheClusterTasks {
           if (flags[DOMAIN_FLAG]) {
             merge(cheCluster, { spec: { networking: { domain: flags[DOMAIN_FLAG] } } })
           }
-        }
-
-        if (flags[POSTGRES_PVS_STORAGE_CLASS_NAME_FLAG]) {
-          merge(cheCluster, { spec: { components: { database: { pvc: { storageClass: flags[POSTGRES_PVS_STORAGE_CLASS_NAME_FLAG] } } } } })
         }
 
         if (flags[WORKSPACE_PVS_STORAGE_CLASS_NAME_FLAG]) {
