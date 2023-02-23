@@ -66,7 +66,6 @@ export namespace EclipseChe {
   export const CHE_SERVER = `${PRODUCT_NAME} Server`
   export const DASHBOARD = 'Dashboard'
   export const GATEWAY = 'Gateway'
-  export const POSTGRES = 'Postgres'
   export const DEVFILE_REGISTRY = 'Devfile Registry'
   export const PLUGIN_REGISTRY = 'Plugin Registry'
   export const CHE_OPERATOR = `${PRODUCT_NAME} Operator`
@@ -76,7 +75,6 @@ export namespace EclipseChe {
   export const CHE_SERVER_DEPLOYMENT_NAME = `${CHE_FLAVOR}`
   export const DASHBOARD_DEPLOYMENT_NAME = `${CHE_FLAVOR}-dashboard`
   export const GATEWAY_DEPLOYMENT_NAME = 'che-gateway'
-  export const POSTGRES_DEPLOYMENT_NAME = 'postgres'
   export const DEVFILE_REGISTRY_DEPLOYMENT_NAME = 'devfile-registry'
   export const PLUGIN_REGISTRY_DEPLOYMENT_NAME = 'plugin-registry'
 
@@ -84,7 +82,6 @@ export namespace EclipseChe {
   export const CHE_OPERATOR_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=${CHE_FLAVOR}-operator`
   export const CHE_SERVER_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=${CHE_FLAVOR}`
   export const DASHBOARD_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=${CHE_FLAVOR}-dashboard`
-  export const POSTGRES_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=postgres`
   export const DEVFILE_REGISTRY_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=devfile-registry`
   export const PLUGIN_REGISTRY_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=plugin-registry`
   export const GATEWAY_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=che-gateway`

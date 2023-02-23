@@ -58,12 +58,7 @@ interface CheClusterDevfileRegistryComponent {
   disableInternalRegistry?: boolean
 }
 
-interface CheClusterDatabaseComponent {
-  externalDb?: boolean
-}
-
 export interface CheClusterComponents {
   pluginRegistry?: CheClusterPluginRegistryComponent
   devfileRegistry?: CheClusterDevfileRegistryComponent
-  database?: CheClusterDatabaseComponent
 }

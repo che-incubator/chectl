@@ -35,9 +35,6 @@ export namespace CheTasks {
 
         const cheCluster = await kubeHelper.getCheCluster(flags[CHE_NAMESPACE_FLAG])
         if (cheCluster) {
-          if (!cheCluster.spec?.components?.database?.externalDb) {
-            tasks.add(PodTasks.getPodStartTasks(EclipseChe.POSTGRES, EclipseChe.POSTGRES_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
-          }
           if (!cheCluster.spec?.components?.devfileRegistry?.disableInternalRegistry) {
             tasks.add(PodTasks.getPodStartTasks(EclipseChe.DEVFILE_REGISTRY, EclipseChe.DEVFILE_REGISTRY_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
           }
@@ -63,7 +60,6 @@ export namespace CheTasks {
         const tasks = newListr()
         tasks.add(PodTasks.getPodDeletedTask(EclipseChe.CHE_SERVER, EclipseChe.CHE_SERVER_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
         tasks.add(PodTasks.getPodDeletedTask(EclipseChe.DASHBOARD, EclipseChe.DASHBOARD_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
-        tasks.add(PodTasks.getPodDeletedTask(EclipseChe.POSTGRES, EclipseChe.POSTGRES_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
         tasks.add(PodTasks.getPodDeletedTask(EclipseChe.DEVFILE_REGISTRY, EclipseChe.DEVFILE_REGISTRY_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
         tasks.add(PodTasks.getPodDeletedTask(EclipseChe.PLUGIN_REGISTRY, EclipseChe.PLUGIN_REGISTRY_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
         tasks.add(PodTasks.getPodDeletedTask(EclipseChe.GATEWAY, EclipseChe.GATEWAY_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
@@ -82,7 +78,6 @@ export namespace CheTasks {
         tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.GATEWAY, EclipseChe.GATEWAY_DEPLOYMENT_NAME, 0, flags[CHE_NAMESPACE_FLAG]))
         tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.DASHBOARD, EclipseChe.DASHBOARD_DEPLOYMENT_NAME, 0, flags[CHE_NAMESPACE_FLAG]))
         tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.CHE_SERVER, EclipseChe.CHE_SERVER_DEPLOYMENT_NAME, 0, flags[CHE_NAMESPACE_FLAG]))
-        tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.POSTGRES, EclipseChe.POSTGRES_DEPLOYMENT_NAME, 0, flags[CHE_NAMESPACE_FLAG]))
         tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.PLUGIN_REGISTRY, EclipseChe.PLUGIN_REGISTRY_DEPLOYMENT_NAME, 0, flags[CHE_NAMESPACE_FLAG]))
         tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.DEVFILE_REGISTRY, EclipseChe.DEVFILE_REGISTRY_DEPLOYMENT_NAME, 0, flags[CHE_NAMESPACE_FLAG]))
         return tasks
@@ -100,11 +95,6 @@ export namespace CheTasks {
         const tasks = newListr()
         const cheCluster = await kubeHelper.getCheCluster(flags[CHE_NAMESPACE_FLAG])
         if (cheCluster) {
-          if (!cheCluster.spec?.components?.database?.externalDb) {
-            tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.POSTGRES, EclipseChe.POSTGRES_DEPLOYMENT_NAME, 1, flags[CHE_NAMESPACE_FLAG]))
-            tasks.add(PodTasks.getPodStartTasks(EclipseChe.POSTGRES, EclipseChe.POSTGRES_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
-          }
-
           if (!cheCluster.spec?.components?.devfileRegistry?.disableInternalRegistry) {
             tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.DEVFILE_REGISTRY, EclipseChe.DEVFILE_REGISTRY_DEPLOYMENT_NAME, 1, flags[CHE_NAMESPACE_FLAG]))
             tasks.add(PodTasks.getPodStartTasks(EclipseChe.DEVFILE_REGISTRY, EclipseChe.DEVFILE_REGISTRY_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
@@ -160,7 +150,6 @@ export namespace CheTasks {
         const flags = CheCtlContext.getFlags()
         await Che.readPodLog(ctx[EclipseCheContext.OPERATOR_NAMESPACE], EclipseChe.CHE_OPERATOR_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
         await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.CHE_SERVER_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
-        await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.POSTGRES_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
         await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.PLUGIN_REGISTRY_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
         await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.DEVFILE_REGISTRY_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
         await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.DASHBOARD_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)

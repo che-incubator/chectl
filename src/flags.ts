@@ -180,12 +180,6 @@ export const WORKSPACE_PVS_STORAGE_CLASS_NAME = string({
   default: '',
 })
 
-export const POSTGRES_PVS_STORAGE_CLASS_NAME_FLAG = 'postgres-pvc-storage-class-name'
-export const POSTGRES_PVS_STORAGE_CLASS_NAME = string({
-  description: `persistent volume storage class name to use to store ${EclipseChe.PRODUCT_NAME} postgres database`,
-  default: '',
-})
-
 export const DEVFILE_REGISTRY_URL_FLAG = 'devfile-registry-url'
 export const DEVFILE_REGISTRY_URL = string({
   description: 'The URL of the external Devfile registry.',

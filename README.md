@@ -340,9 +340,6 @@ OPTIONS
   --plugin-registry-url=plugin-registry-url
       The URL of the external plugin registry.
 
-  --postgres-pvc-storage-class-name=postgres-pvc-storage-class-name
-      persistent volume storage class name to use to store Eclipse Che postgres database
-
   --skip-cert-manager
       Skip installing Cert Manager (Kubernetes cluster only).
 
