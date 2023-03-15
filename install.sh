@@ -80,7 +80,11 @@ get_arch() {
   if [ "$(uname -m)" == "x86_64" ]; then
     echo "x64"
   elif [[ "$(uname -m)" == arm* ]]; then
-    echo "arm"
+    if [ "$(uname)" == "Darwin" ]; then
+      echo "arm64"
+    else
+      echo "arm"
+    fi
   else
     error "unsupported arch: $(uname -m)"
     return 1
@@ -90,7 +94,7 @@ get_arch() {
 get_channel() {
   DEFAULT_CHANNEL="stable"
   CHANNEL=${CHANNEL:-${DEFAULT_CHANNEL}}
-  
+
   if [ ! "${CHANNEL}" == "stable" ]  && [ ! "${CHANNEL}" == "next" ]; then
     error "unsupported channel: Only stable and next are supported. Found '${CHANNEL}'"
     return 1
@@ -112,7 +116,7 @@ check_requirements() {
 }
 
 compute_download_link() {
-  
+
   OS=$(get_operating_system)
   ARCH=$(get_arch)
   CHANNEL=$(get_channel)
@@ -172,22 +176,22 @@ chectl_install() {
 
   # Check there is no other chectl installed in another directory
   check_another_install
-  
+
   # Cleanup
   cleanup_previous_install
-  
+
   # Do we have a final link ?
   if ! REDIRECT_LINK=$(grab_download_link) ; then
     error "No download link found at $(compute_download_link)"
     return 1
   fi
-  
+
   # Check if not empty
   if [ -z "${REDIRECT_LINK}" ]; then
     error "Missing redirect link from the download link $(compute_download_link). Content found is '${REDIRECT_LINK}''"
     return 1
   fi
-  
+
   # let's download and unpack
   echo "Downloading ${REDIRECT_LINK}..."
   DOWNLOAD_COMMAND=$(grab_progress_command)
@@ -196,7 +200,7 @@ chectl_install() {
     error "Unable to download chectl binary from ${REDIRECT_LINK}"
     return 1
   fi
-  
+
   # now, install bin
   # delete old chectl bin if exists
   log "rm -f $(command -v chectl) || true"
@@ -205,7 +209,7 @@ chectl_install() {
   rm -f /usr/local/bin/chectl
   log "ln -s /usr/local/lib/chectl/bin/chectl /usr/local/bin/chectl"
   ln -s /usr/local/lib/chectl/bin/chectl /usr/local/bin/chectl
-  
+
   # on alpine (and maybe others) the basic node binary does not work
   # remove our node binary and fall back to whatever node is on the PATH
   log "/usr/local/lib/chectl/bin/node -v > /dev/null 2>&1 || rm /usr/local/lib/chectl/bin/node"
