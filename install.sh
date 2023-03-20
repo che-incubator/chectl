@@ -232,6 +232,7 @@ while [ $# -gt 0 ]; do
 done
 
 SUDO=''
+SUDO_ENV_ARGS=""
 
 # init constants
 init_constants
@@ -243,6 +244,7 @@ if [ "$(id -u)" != "0" ]; then
   echo "chectl script requires superuser access."
   echo "You will be prompted for your password by sudo."
   SUDO='sudo'
+  SUDO_ENV_ARGS="PATH=$PATH"
   # clear any previous sudo permission
   sudo -k
 fi
@@ -258,7 +260,7 @@ for f in $(declare -F); do
   fi
 done
 FUNC=$(declare -f "${PRE_DEFINED[@]}")
-${SUDO} bash -c "${FUNC}; CURRENT_DIR=$(pwd) INSTALL_LOG_FILE=\"${CURRENT_DIR}/chectl-install.log\" CHANNEL=\"${CHANNEL}\" chectl_install"
+${SUDO} env ${SUDO_ENV_ARGS} bash -c "${FUNC}; CURRENT_DIR=$(pwd) INSTALL_LOG_FILE=\"${CURRENT_DIR}/chectl-install.log\" CHANNEL=\"${CHANNEL}\" chectl_install"
 
 # test the CLI
 if command_exists chectl; then
