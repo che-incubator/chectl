@@ -242,7 +242,7 @@ check_requirements
 if [ "$(id -u)" != "0" ]; then
   echo "chectl script requires superuser access."
   echo "You will be prompted for your password by sudo."
-  SUDO='sudo env PATH=$PATH'
+  SUDO='sudo'
   # clear any previous sudo permission
   sudo -k
 fi
