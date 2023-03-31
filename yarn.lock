@@ -2463,7 +2463,8 @@ detect-newline@^3.0.0:
 
 "devworkspace-operator@https://github.com/devfile/devworkspace-operator#main":
   version "0.0.0"
-  resolved "https://github.com/devfile/devworkspace-operator#e97ad530f84b6529fd85109a83d16aa0a600c158"
+  uid "22e3f2b996c8128834762da9601b68123af04c9a"
+  resolved "https://github.com/devfile/devworkspace-operator#22e3f2b996c8128834762da9601b68123af04c9a"
 
 diff-sequences@^29.4.2:
   version "29.4.2"
