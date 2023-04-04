@@ -2,6 +2,7 @@
 
 1. Launch release script
 
+
 ```bash
 ./make-release.sh ${RELEASE} ${BRANCH_NAME}
 ```
