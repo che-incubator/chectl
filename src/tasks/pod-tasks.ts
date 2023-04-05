@@ -16,7 +16,7 @@ import {KubeClient} from '../api/kube-client'
 import {KubeHelperContext} from '../context'
 import {EclipseChe} from './installers/eclipse-che/eclipse-che'
 import {newListr} from '../utils/utls'
-import {Che} from "../utils/che";
+import {Che} from '../utils/che'
 
 export namespace PodTasks {
   interface FailState {
