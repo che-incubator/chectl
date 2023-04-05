@@ -25,6 +25,7 @@ export namespace EclipseChe {
   export const VALIDATING_WEBHOOK = 'org.eclipse.che'
   export const MUTATING_WEBHOOK = 'org.eclipse.che'
   export const CONFIG_MAP = 'che'
+  export const PLUGIN_REGISTRY_CONFIG_MAP = 'plugin-registry'
   export const CONSOLE_LINK = 'che'
   export const PROMETHEUS = 'prometheus-k8s'
   export const IMAGE_CONTENT_SOURCE_POLICY = 'quay.io'
