@@ -24,6 +24,7 @@ import {
   CHE_OPERATOR_CR_PATCH_YAML_FLAG,
   CHE_OPERATOR_CR_YAML_FLAG,
   DEFAULT_K8S_POD_DOWNLOAD_IMAGE_TIMEOUT,
+  DEFAULT_K8S_POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY,
   DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT,
   DEFAULT_K8S_POD_READY_TIMEOUT,
   DEFAULT_POD_WAIT_TIMEOUT,
@@ -108,6 +109,7 @@ export namespace DevWorkspaceContext {
 export namespace KubeHelperContext {
   export const POD_WAIT_TIMEOUT = 'kube-pod-wait-timeout'
   export const POD_READY_TIMEOUT = 'kube-pod-ready-timeout'
+  export const POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY = 'kube-pod-ready-timeout-embedded-plugin-registry'
   export const POD_DOWNLOAD_IMAGE_TIMEOUT = 'kube-pod-download-image-timeout'
   export const POD_ERROR_RECHECK_TIMEOUT = 'kube-pod-error-recheck-timeout'
 }
@@ -251,6 +253,7 @@ export namespace CheCtlContext {
     // KubeHelperContext
     ctx[KubeHelperContext.POD_WAIT_TIMEOUT] = parseInt(flags[K8S_POD_WAIT_TIMEOUT_FLAG] || DEFAULT_POD_WAIT_TIMEOUT, 10)
     ctx[KubeHelperContext.POD_READY_TIMEOUT] = parseInt(flags[K8S_POD_READY_TIMEOUT_FLAG] || DEFAULT_K8S_POD_READY_TIMEOUT, 10)
+    ctx[KubeHelperContext.POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY] = Math.max(ctx[KubeHelperContext.POD_READY_TIMEOUT],  parseInt(DEFAULT_K8S_POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY, 10))
     ctx[KubeHelperContext.POD_DOWNLOAD_IMAGE_TIMEOUT] = parseInt(flags[K8S_POD_DOWNLOAD_IMAGE_TIMEOUT_FLAG] || DEFAULT_K8S_POD_DOWNLOAD_IMAGE_TIMEOUT, 10)
     ctx[KubeHelperContext.POD_ERROR_RECHECK_TIMEOUT] = parseInt(flags[K8S_POD_ERROR_RECHECK_TIMEOUT_FLAG] || DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, 10)
   }
