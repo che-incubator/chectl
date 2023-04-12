@@ -1768,16 +1768,16 @@ export class KubeClient {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher
-        .watch(`/api/v1/namespaces/${namespace}/configmaps/`, { fieldSelector: `metadata.name=${name}` },
-          (_phase: string, _obj: any) => {
-            request.abort()
-            resolve()
-          },
-          error => {
-            if (error) {
-              reject(error)
-            }
-          })
+      .watch(`/api/v1/namespaces/${namespace}/configmaps/`, { fieldSelector: `metadata.name=${name}` },
+        (_phase: string, _obj: any) => {
+          request.abort()
+          resolve()
+        },
+        error => {
+          if (error) {
+            reject(error)
+          }
+        })
 
       // Automatically stop watching after timeout
       const timeoutHandler = setTimeout(() => {
