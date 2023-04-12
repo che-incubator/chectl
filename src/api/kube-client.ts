@@ -1763,6 +1763,38 @@ export class KubeClient {
     }
   }
 
+  async waitConfigMap(name: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      // Set up watcher
+      const watcher = new Watch(this.kubeConfig)
+      const request = await watcher
+      .watch(`/api/v1/namespaces/${namespace}/configmaps/`, { fieldSelector: `metadata.name=${name}` },
+        (_phase: string, _obj: any) => {
+          request.abort()
+          resolve()
+        },
+        error => {
+          if (error) {
+            reject(error)
+          }
+        })
+
+      // Automatically stop watching after timeout
+      const timeoutHandler = setTimeout(() => {
+        request.abort()
+        reject(`Timeout reached while waiting for "${name}" ConfigMap.`)
+      }, timeout * 1000)
+
+      // Request configMap, for case if it is already exist
+      const configMap = await this.getConfigMap(name, namespace)
+      if (configMap) {
+        request.abort()
+        clearTimeout(timeoutHandler)
+        resolve()
+      }
+    })
+  }
+
   /**
    * Awaits secret to be present and contain non-empty data fields specified in dataKeys parameter.
    */
