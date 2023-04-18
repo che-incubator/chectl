@@ -29,12 +29,12 @@ jobs:
         id: TAG_UTIL
         run: |
           if [[ ${GITHUB_REF#refs/tags/} =~ 7.*.* ]]; then
-            echo "::set-output name=chectl_version::$(cat VERSION)"
-            echo "::set-output name=gh_tag::/tag/$(cat VERSION)"
+            echo "chectl_version=$(cat VERSION)" >> $GITHUB_OUTPUT
+            echo "gh_tag=/tag/$(cat VERSION)" >> $GITHUB_OUTPUT
             echo "MM_ANNOUNCE=true" >> "$GITHUB_ENV"
           elif [[ ${{ github.event.inputs.version }} =~ 7.*.* ]]; then
-            echo "::set-output name=chectl_version::${{ github.event.inputs.version }}"
-            echo "::set-output name=gh_tag::/tag/${{ github.event.inputs.version }}"
+            echo "chectl_version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "gh_tag=/tag/${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
             echo "MM_ANNOUNCE=true" >> "$GITHUB_ENV"
           else
             echo "MM_ANNOUNCE=false" >> "$GITHUB_ENV"

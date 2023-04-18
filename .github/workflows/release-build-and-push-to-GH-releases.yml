@@ -34,16 +34,16 @@ jobs:
         id: TAG_UTIL
         run: |
           if [[ ${GITHUB_REF#refs/heads/} =~ 7.* ]]; then
-            echo "::set-output name=chectl_version::$(cat VERSION)"
-            echo "::set-output name=gh_release_name::$(cat VERSION)"
-            echo "::set-output name=gh_tag::$(cat VERSION)"
+            echo "chectl_version=$(cat VERSION)" >> $GITHUB_OUTPUT
+            echo "gh_release_name=$(cat VERSION)" >> $GITHUB_OUTPUT
+            echo "gh_tag=$(cat VERSION)" >> $GITHUB_OUTPUT
             echo "MM_ANNOUNCE=true" >> "$GITHUB_ENV"
           elif [[ ${GITHUB_REF#refs/heads/} =~ main ]]; then
             CURRENT_DAY=$(date +'%Y%m%d')
             SHORT_SHA1=$(git rev-parse --short HEAD)
-            echo "::set-output name=gh_tag::$(date +'%Y%m%d%H%M%S')"
-            echo "::set-output name=chectl_version::0.0.$CURRENT_DAY-next"
-            echo "::set-output name=gh_release_name::0.0.$CURRENT_DAY-next.$SHORT_SHA1"
+            echo "gh_tag=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+            echo "chectl_version=0.0.$CURRENT_DAY-next" >> $GITHUB_OUTPUT
+            echo "gh_release_name=0.0.$CURRENT_DAY-next.$SHORT_SHA1" >> $GITHUB_OUTPUT
             echo "MM_ANNOUNCE=false" >> "$GITHUB_ENV"
           fi
       - name: Build chectl
