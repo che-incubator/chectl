@@ -1,7 +1,7 @@
 chectl
 ======
 
-[Eclipse Che](https://github.com/eclipse/che/) CLI
+[Eclipse Che®](https://github.com/eclipse/che/) CLI
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![codecov](https://codecov.io/gh/che-incubator/chectl/branch/main/graph/badge.svg?token=ZBQtKMeiYu)](https://codecov.io/gh/che-incubator/chectl)
@@ -10,7 +10,7 @@ chectl
 
 ## Report issues
 
-Issues are tracked on the main Eclipse Che Repository: https://github.com/eclipse/che/issues
+Issues are tracked on the main Eclipse Che® Repository: https://github.com/eclipse/che/issues
 
 [![New questions](https://img.shields.io/badge/New-question-blue.svg?style=flat-curved)](https://github.com/eclipse/che/issues/new?labels=area/chectl,kind/question)
 [![New bug](https://img.shields.io/badge/New-bug-red.svg?style=flat-curved)](https://github.com/eclipse/che/issues/new?labels=area/chectl,kind/bug)
@@ -25,12 +25,13 @@ Issues are tracked on the main Eclipse Che Repository: https://github.com/eclips
 * [Contributing](#contributing)
 * [Builds](#builds)
 * [License](#license)
+* [Trademark](#trademark)
 <!-- tocstop -->
 # Installation
 
 There are two channels of `chectl`: `stable` and `next`
 
-Stable is for all tagged versions of Eclipse Che. Next is updated after each commit/Pull Request being merged in main branch of the [Chectl repository](https://github.com/che-incubator/chectl).
+Stable is for all tagged versions of Eclipse Che®. Next is updated after each commit/Pull Request being merged in main branch of the [Chectl repository](https://github.com/che-incubator/chectl).
 
 If you're using Windows x64, here is how to install chectl by using one single PowerShell command:
 
@@ -543,4 +544,8 @@ See also:
 
 # License
 
-Che is open sourced under the Eclipse Public License 2.0.
+Eclipse Che® is open sourced under the Eclipse Public License 2.0.
+
+# Trademark
+
+"Che" is a trademark of the Eclipse Foundation.
