@@ -352,9 +352,6 @@ export default class Update extends Command {
       if (flags[CATALOG_SOURCE_NAMESPACE_FLAG]) {
         this.error(`--${CATALOG_SOURCE_NAMESPACE_FLAG} flag should be used only for OpenShift platform.`)
       }
-      if (flags[AUTO_UPDATE_FLAG]) {
-        this.error(`--${AUTO_UPDATE_FLAG} flag should be used only for OpenShift platform.`)
-      }
     }
   }
 }
