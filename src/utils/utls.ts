@@ -28,10 +28,6 @@ export function base64Decode(arg: string): string {
   return Buffer.from(arg, 'base64').toString('ascii')
 }
 
-export function base64Encode(arg: string): string {
-  return Buffer.from(arg).toString('base64')
-}
-
 export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
@@ -113,18 +109,6 @@ export function getImageNameAndTag(image: string): [string, string] {
     }
   }
   return [imageName, imageTag]
-}
-
-export function getImageTag(image: string): string | undefined {
-  let entries = image.split('@')
-  if (entries.length === 2) {
-    // digest
-    return entries[1]
-  }
-
-  entries = image.split(':')
-  // tag
-  return entries[1]
 }
 
 export function newListr(tasks?: ReadonlyArray<Listr.ListrTask<any>>, collapse = false): Listr {

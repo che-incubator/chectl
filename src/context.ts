@@ -96,7 +96,7 @@ export namespace EclipseCheContext {
   export const DEFAULT_CR = 'eclipse-che-default-cr'
   export const NAMESPACE = 'eclipse-che-namespace'
   export const OPERATOR_NAMESPACE = 'eclipse-che-operator-namespace'
-  export const IIB_IMAGE = 'eclipse-che-iib-image'
+  export const UPDATE_CATALOG_SOURCE_AND_SUBSCRIPTION = 'eclipse-che-update-catalog-source-and-subscription'
 }
 
 export namespace DevWorkspaceContext {
@@ -197,7 +197,13 @@ export namespace CheCtlContext {
       }
     }
 
-    if (!ctx[CliContext.CLI_IS_CHECTL]) {
+    if (ctx[CliContext.CLI_IS_CHECTL]) {
+      if (ctx[EclipseCheContext.CHANNEL] === EclipseChe.STABLE_CHANNEL) {
+        ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = EclipseChe.STABLE_CATALOG_SOURCE_IMAGE
+      } else {
+        ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = EclipseChe.NEXT_CATALOG_SOURCE_IMAGE
+      }
+    } else {
       if (ctx[EclipseCheContext.CHANNEL] !== 'stable') {
         let iibImageTag = 'next'
         if (ctx[EclipseCheContext.CHANNEL] === 'latest') {
@@ -206,7 +212,7 @@ export namespace CheCtlContext {
         // It is always EclipseChe.NEXT_CHANNEL, 'latest` and 'next` are added only to simplify UI
         // See https://issues.redhat.com/browse/CRW-3877
         ctx[EclipseCheContext.CHANNEL] = EclipseChe.NEXT_CHANNEL
-        ctx[EclipseCheContext.IIB_IMAGE] = `quay.io/devspaces/iib:${iibImageTag}-v${ctx[InfrastructureContext.OPENSHIFT_VERSION]}-${ctx[InfrastructureContext.OPENSHIFT_ARCH]}`
+        ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = `quay.io/devspaces/iib:${iibImageTag}-v${ctx[InfrastructureContext.OPENSHIFT_VERSION]}-${ctx[InfrastructureContext.OPENSHIFT_ARCH]}`
       }
     }
 
@@ -219,12 +225,6 @@ export namespace CheCtlContext {
       } else {
         ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = EclipseChe.NEXT_CHANNEL_CATALOG_SOURCE
       }
-    }
-
-    if (ctx[EclipseCheContext.CHANNEL] === EclipseChe.STABLE_CHANNEL) {
-      ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = EclipseChe.STABLE_CATALOG_SOURCE_IMAGE
-    } else {
-      ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = EclipseChe.NEXT_CATALOG_SOURCE_IMAGE
     }
 
     if (flags[CATALOG_SOURCE_YAML_FLAG]) {
