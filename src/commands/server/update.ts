@@ -174,7 +174,6 @@ export default class Update extends Command {
         ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE] !== subscription.spec.sourceNamespace ||
         ctx[EclipseCheContext.PACKAGE_NAME] !== subscription.spec.name ||
         (!isCheFlavor() && ctx[EclipseCheContext.CHANNEL] !== EclipseChe.STABLE_CHANNEL)) {
-
         cli.info('CatalogSource and Subscription will be updated              :')
         cli.info('-------------------------------------------------------------')
         cli.info(`Current channel                 : ${subscription.spec.channel}`)
