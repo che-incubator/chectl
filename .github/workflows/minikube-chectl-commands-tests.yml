@@ -40,7 +40,7 @@ jobs:
       with:
         name: test-artifacts
         path: /tmp/logs/*
-  chectl-update-version-commands:
+  chectl-update-commands:
     runs-on: ubuntu-22.04
     steps:
     - name: Checkout
@@ -69,28 +69,3 @@ jobs:
       with:
         name: test-artifacts
         path: /tmp/logs/*
-  chectl-update-channel-commands:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Start minikube cluster
-        uses: che-incubator/setup-minikube-action@next
-        with:
-          minikube-version: v1.23.2
-      - name: Install NodeJS
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.13.2
-      - name: Build chectl
-        run: yarn
-      - name: Run tests
-        run: yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e-upgrade-channel.test.ts
-      - uses: actions/upload-artifact@v3
-        if: ${{ always() }}
-        with:
-          name: test-artifacts
-          path: /tmp/logs/*

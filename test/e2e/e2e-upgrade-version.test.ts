@@ -16,8 +16,6 @@ import { E2eHelper, NAMESPACE } from './util'
 const helper = new E2eHelper()
 jest.setTimeout(1000000)
 
-const PLATFORM = process.env.PLATFORM || 'minikube'
-
 const UPDATE_CHE_TIMEOUT_MS = 10 * 60 * 1000
 const CHE_VERSION_TIMEOUT_MS = 10 * 60 * 1000
 
@@ -26,10 +24,7 @@ describe('Test Che upgrade', () => {
     it(`Deploy Che using operator installer and self signed certificates`, async () => {
       // uses installed chectl (from a stable channel)
       // see github workflow
-      let deployCommand = `chectl server:deploy --batch --platform=${PLATFORM} --chenamespace=${NAMESPACE} --telemetry=off`
-      if (PLATFORM === 'minikube') {
-        deployCommand += ' --che-operator-cr-patch-yaml=test/e2e/resources/minikube-checluster-patch.yaml'
-      }
+      const deployCommand = `chectl server:deploy --batch --platform=openshift --chenamespace=${NAMESPACE} --telemetry=off`
       await helper.runCliCommand(deployCommand)
     })
   })
