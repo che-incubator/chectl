@@ -640,26 +640,6 @@ export class KubeClient {
     }
   }
 
-  async patchClusterCustomObject(name: string, patch: any, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any | undefined> {
-    const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-
-    // It is required to patch content-type, otherwise request will be rejected with 415 (Unsupported media type) error.
-    const requestOptions = {
-      headers: {
-        'content-type': 'application/merge-patch+json',
-      },
-    }
-
-    try {
-      const res = await k8sCoreApi.patchClusterCustomObject(resourceAPIGroup, resourceAPIVersion, resourcePlural, name, patch, undefined, undefined, undefined, requestOptions)
-      if (res && res.body) {
-        return res.body
-      }
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
   async getClusterCustomObject(group: string, version: string, plural: string, name: any): Promise<any> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
@@ -874,31 +854,6 @@ export class KubeClient {
       }
 
       throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async isDeploymentReady(name: string, namespace: string): Promise<boolean> {
-    const k8sApi = this.kubeConfig.makeApiClient(AppsV1Api)
-    try {
-      const res = await k8sApi.readNamespacedDeployment(name, namespace)
-      return ((res && res.body &&
-        res.body.status && res.body.status.readyReplicas &&
-        res.body.status.readyReplicas > 0) as boolean)
-    } catch {
-      return false
-    }
-  }
-
-  async isDeploymentStopped(name: string, namespace: string): Promise<boolean> {
-    const k8sApi = this.kubeConfig.makeApiClient(AppsV1Api)
-    try {
-      const res = await k8sApi.readNamespacedDeployment(name, namespace)
-      if (res && res.body && res.body.spec && res.body.spec.replicas) {
-        throw new Error(`Deployment '${name}' without replicas in spec is fetched`)
-      }
-      return res.body!.spec!.replicas === 0
-    } catch {
-      return false
     }
   }
 
@@ -1174,19 +1129,6 @@ export class KubeClient {
     resources = await this.listClusterCustomObject(apiGroup, version, plural)
     if (resources.length !== 0) {
       throw new Error(`Failed to remove Custom Resources: ${plural}${apiGroup}, ${resources.length} resource(s) left.`)
-    }
-  }
-
-  async isCustomResourceExists(name: string, namespace: string, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<boolean> {
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-    try {
-      await customObjectsApi.getNamespacedCustomObject(resourceAPIGroup, resourceAPIVersion, namespace, resourcePlural, name)
-      return true
-    } catch (e: any) {
-      if (e.response && e.response.statusCode === 404) {
-        return false
-      }
-      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -1847,17 +1789,6 @@ export class KubeClient {
         resolve()
       }
     })
-  }
-
-  async deletePersistentVolumeClaim(name: string, namespace: string): Promise<void> {
-    const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
-    try {
-      await k8sCoreApi.deleteNamespacedPersistentVolumeClaim(name, namespace)
-    } catch (e: any) {
-      if (e.response.statusCode !== 404) {
-        throw this.wrapK8sClientError(e)
-      }
-    }
   }
 
   async listNamespacedPod(namespace: string, fieldSelector?: string, labelSelector?: string): Promise<V1PodList> {

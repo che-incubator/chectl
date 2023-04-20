@@ -254,27 +254,6 @@ export namespace OlmTasks {
     }
   }
 
-  export function getCheckInstallPlanApprovalStrategyTask(subscriptionName: string): Listr.ListrTask<any> {
-    return {
-      title: 'Check InstallPlan approval strategy',
-      task: async (ctx: any, task: any) => {
-        const kubeHelper = KubeClient.getInstance()
-
-        const subscription = await kubeHelper.getOperatorSubscription(subscriptionName, ctx[EclipseCheContext.OPERATOR_NAMESPACE])
-        if (!subscription) {
-          throw new Error(`Subscription ${subscriptionName} not found.`)
-        }
-
-        if (subscription.spec.installPlanApproval === EclipseChe.APPROVAL_STRATEGY_AUTOMATIC) {
-          task.title = `${task.title}...[${EclipseChe.APPROVAL_STRATEGY_AUTOMATIC}]`
-          throw new Error(`Use \'chectl server:update\' command only with ${EclipseChe.APPROVAL_STRATEGY_MANUAL} InstallPlan approval strategy.`)
-        }
-
-        task.title = `${task.title}...[${EclipseChe.APPROVAL_STRATEGY_MANUAL}]`
-      },
-    }
-  }
-
   export function getSetCustomEclipseCheOperatorImageTask(): Listr.ListrTask<any> {
     const flags = CheCtlContext.getFlags()
     return {

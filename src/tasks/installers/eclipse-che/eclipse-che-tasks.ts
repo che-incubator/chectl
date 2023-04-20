@@ -36,7 +36,6 @@ import {
 } from '../../../flags'
 import {getImageNameAndTag, isPartOfEclipseChe, newListr, safeLoadFromYamlFile} from '../../../utils/utls'
 import {cli} from 'cli-ux'
-import {OlmTasks} from '../../olm-tasks'
 import {DevWorkspaceInstallerFactory} from '../dev-workspace/dev-workspace-installer-factory'
 import {DevWorkspace} from '../dev-workspace/dev-workspace'
 
@@ -587,14 +586,6 @@ export namespace EclipseCheTasks {
       () => kubeHelper.getClusterCustomObject('operator.openshift.io', 'v1alpha1', 'imagecontentsourcepolicies', EclipseChe.IMAGE_CONTENT_SOURCE_POLICY),
       () => kubeHelper.createClusterCustomObject('operator.openshift.io', 'v1alpha1', 'imagecontentsourcepolicies', constructImageContentSourcePolicy()),
     )
-  }
-
-  export function getCreateIIBCatalogSourceTask(): Listr.ListrTask<any> {
-    const ctx = CheCtlContext.get()
-    return OlmTasks.getCreateCatalogSourceTask(
-      ctx[EclipseCheContext.CATALOG_SOURCE_NAME],
-      ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE],
-      ctx[EclipseCheContext.IIB_IMAGE])
   }
 
   function constructImageContentSourcePolicy(): any {

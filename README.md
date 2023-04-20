@@ -468,30 +468,77 @@ USAGE
   $ chectl server:update
 
 OPTIONS
-  -h, --help                                               show CLI help
-  -n, --chenamespace=chenamespace                          Eclipse Che Kubernetes namespace.
-  -t, --templates=templates                                Path to the templates folder
+  -h, --help
+      show CLI help
 
-  -y, --yes                                                Automatic yes to prompts; assume "yes" as answer to all
-                                                           prompts and run non-interactively
+  -n, --chenamespace=chenamespace
+      Eclipse Che Kubernetes namespace.
 
-  --batch                                                  Batch mode. Running a command without end user interaction.
+  -t, --templates=templates
+      Path to the templates folder
 
-  --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml  Path to a yaml file that overrides the default values in
-                                                           CheCluster CR used by the operator. This parameter is used
-                                                           only when the installer is the 'operator' or the 'olm'.
+  -y, --yes
+      Automatic yes to prompts; assume "yes" as answer to all prompts and run non-interactively
 
-  --che-operator-image=che-operator-image                  Container image of the operator. This parameter is used only
-                                                           when the installer is the operator or OLM.
+  --[no-]auto-update
+      Auto update approval strategy for installation Eclipse Che.
+      With this strategy will be provided auto-update Eclipse Che without any human interaction.
+      By default this flag is enabled.
+      This parameter is used only when the installer is 'olm'.
 
-  --skip-devworkspace-operator                             Skip installing Dev Workspace Operator.
+  --batch
+      Batch mode. Running a command without end user interaction.
 
-  --skip-kubernetes-health-check                           Skip Kubernetes health check
+  --catalog-source-name=catalog-source-name
+      OLM catalog source to install Eclipse Che operator.
+      This parameter is used only when the installer is the 'olm'.
 
-  --skip-version-check                                     Skip minimal versions check.
+  --catalog-source-namespace=catalog-source-namespace
+      Namespace for OLM catalog source to install Eclipse Che operator.
+      This parameter is used only when the installer is the 'olm'.
 
-  --telemetry=on|off                                       Enable or disable telemetry. This flag skips a prompt and
-                                                           enable/disable telemetry
+  --catalog-source-yaml=catalog-source-yaml
+      Path to a yaml file that describes custom catalog source for installation Eclipse Che operator.
+      Catalog source will be applied to the namespace with Eclipse Che operator.
+      Also you need define 'olm-channel' name and 'package-manifest-name'.
+      This parameter is used only when the installer is the 'olm'.
+
+  --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
+      Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used
+      only when the installer is the 'operator' or the 'olm'.
+
+  --che-operator-image=che-operator-image
+      Container image of the operator. This parameter is used only when the installer is the operator or OLM.
+
+  --olm-channel=olm-channel
+      Olm channel to install Eclipse Che, f.e. stable.
+      If options was not set, will be used default version for package manifest.
+      This parameter is used only when the installer is the 'olm'.
+
+  --package-manifest-name=package-manifest-name
+      Package manifest name to subscribe to Eclipse Che OLM package manifest.
+      This parameter is used only when the installer is the 'olm'.
+
+  --skip-devworkspace-operator
+      Skip installing Dev Workspace Operator.
+
+  --skip-kubernetes-health-check
+      Skip Kubernetes health check
+
+  --skip-version-check
+      Skip minimal versions check.
+
+  --starting-csv=starting-csv
+      Starting cluster service version(CSV) for installation Eclipse Che.
+      Flags uses to set up start installation version Che.
+      For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
+      Then OLM will install Eclipse Che with version 7.10.0.
+      Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known
+      version.
+      This parameter is used only when the installer is 'olm'.
+
+  --telemetry=on|off
+      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 
 EXAMPLES
   # Update Eclipse Che:
@@ -502,6 +549,9 @@ EXAMPLES
 
   # Update Eclipse Che and update its configuration in the custom resource:
   chectl server:update --che-operator-cr-patch-yaml patch.yaml
+
+  # Update Eclipse Che and switch to a different channel:
+  chectl server:update --olm-channel next
 ```
 
 _See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_
