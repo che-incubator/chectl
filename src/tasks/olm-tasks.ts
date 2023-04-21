@@ -13,14 +13,13 @@
 import {CheCtlContext, CliContext, EclipseCheContext} from '../context'
 import * as Listr from 'listr'
 import { KubeClient } from '../api/kube-client'
-import {getEmbeddedTemplatesDirectory, isPartOfEclipseChe, newListr, safeLoadFromYamlFile} from '../utils/utls'
+import {getEmbeddedTemplatesDirectory, newListr, safeLoadFromYamlFile} from '../utils/utls'
 import * as path from 'path'
 import { V1Role, V1RoleBinding } from '@kubernetes/client-node'
 import * as yaml from 'js-yaml'
 import {CommonTasks} from './common-tasks'
 import {CHE_NAMESPACE_FLAG, CHE_OPERATOR_IMAGE_FLAG, CLUSTER_MONITORING_FLAG, DELETE_ALL_FLAG} from '../flags'
 import {EclipseChe} from './installers/eclipse-che/eclipse-che'
-import {PART_OF_ECLIPSE_CHE_SELECTOR} from '../constants'
 import {DevWorkspace} from './installers/dev-workspace/dev-workspace'
 
 export namespace OlmTasks {
@@ -38,15 +37,10 @@ export namespace OlmTasks {
 
       // CatalogSource
       const catalogSource = await kubeHelper.getCatalogSource(subscription.spec.source, subscription.spec.sourceNamespace)
-      if (isPartOfEclipseChe(catalogSource)) {
+      if (catalogSource?.metadata.name !== EclipseChe.STABLE_CHANNEL_CATALOG_SOURCE) {
         title = `${title} and CatalogSource ${subscription.spec.source}`
         deleteResources.push(() => kubeHelper.deleteCatalogSource(subscription!.spec.source, subscription!.spec.sourceNamespace))
       }
-    }
-
-    const catalogSources = await kubeHelper.listCatalogSource(namespace, PART_OF_ECLIPSE_CHE_SELECTOR)
-    for (const catalogSource of catalogSources) {
-      deleteResources.push(() => kubeHelper.deleteCatalogSource(catalogSource.metadata.name!, catalogSource.metadata.namespace!))
     }
 
     // ClusterServiceVersion
