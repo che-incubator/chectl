@@ -1224,20 +1224,26 @@ export class KubeClient {
   }
 
   async waitCatalogSource(name: string, namespace: string, timeout = 60): Promise<CatalogSource> {
+    let timeoutHandler: NodeJS.Timeout
+
     return new Promise<CatalogSource>(async (resolve, reject) => {
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/catalogsources`,
         { fieldSelector: `metadata.name=${name}` },
         (_phase: string, obj: any) => {
+          request.response.destroy()
           resolve(obj as CatalogSource)
         },
         error => {
+          if (timeoutHandler) {
+            clearTimeout(timeoutHandler)
+          }
           if (error) {
             reject(error)
           }
         })
 
-      setTimeout(() => {
+      timeoutHandler = setTimeout(() => {
         request.abort()
         reject(`Timeout reached while waiting for "${name}" catalog source is created.`)
       }, timeout * 1000)
@@ -1289,23 +1295,29 @@ export class KubeClient {
   }
 
   async waitInstalledCSVInSubscription(name: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<string> {
+    let timeoutHandler: NodeJS.Timeout
+
     return new Promise<string>(async (resolve, reject) => {
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
         { fieldSelector: `metadata.name=${name}` },
-        (_phase: string, obj: any) => {
+        (_phase: string, obj: unknown) => {
           const subscription = obj as Subscription
-          if (subscription.status && subscription.status.installedCSV) {
+          if (subscription.status?.installedCSV) {
+            request.response.destroy()
             resolve(subscription.status.installedCSV)
           }
         },
         error => {
+          if (timeoutHandler) {
+            clearTimeout(timeoutHandler)
+          }
           if (error) {
             reject(error)
           }
         })
 
-      setTimeout(() => {
+      timeoutHandler = setTimeout(() => {
         request.abort()
         reject(`Timeout reached while waiting for installed CSV of '${name}' subscription.`)
       }, timeout * 1000)
@@ -1313,23 +1325,29 @@ export class KubeClient {
   }
 
   async waitCSVStatusPhase(name: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<string> {
+    let timeoutHandler: NodeJS.Timeout
+
     return new Promise<string>(async (resolve, reject) => {
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/clusterserviceversions`,
         { fieldSelector: `metadata.name=${name}` },
         (_phase: string, obj: any) => {
           const csv = obj as ClusterServiceVersion
-          if (csv.status && csv.status.phase) {
+          if (csv.status?.phase) {
+            request.response.destroy()
             resolve(csv.status.phase)
           }
         },
         error => {
+          if (timeoutHandler) {
+            clearTimeout(timeoutHandler)
+          }
           if (error) {
             reject(error)
           }
         })
 
-      setTimeout(() => {
+      timeoutHandler = setTimeout(() => {
         request.abort()
         reject(`Timeout reached while waiting CSV '${name}' status.`)
       }, timeout * 1000)
@@ -1349,39 +1367,37 @@ export class KubeClient {
   }
 
   async waitOperatorSubscriptionReadyForApproval(name: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<InstallPlan> {
+    let timeoutHandler: NodeJS.Timeout
+
     return new Promise<InstallPlan>(async (resolve, reject) => {
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
         { fieldSelector: `metadata.name=${name}` },
-        (_phase: string, obj: any) => {
+        (_phase: string, obj: unknown) => {
           const subscription = obj as Subscription
-          if (subscription.status && subscription.status.conditions) {
-            if (subscription.status.installedCSV) {
-              resolve(subscription.status.installplan)
-              return
-            }
-            for (const condition of subscription.status.conditions) {
-              if (condition.type === 'InstallPlanPending' && condition.status === 'True') {
-                resolve(subscription.status.installplan)
-                return
-              }
-            }
+          if (subscription.status?.installplan) {
+            request.response.destroy()
+            resolve(subscription.status.installplan)
           }
         },
         error => {
+          if (timeoutHandler) {
+            clearTimeout(timeoutHandler)
+          }
+
           if (error) {
             reject(error)
           }
         })
 
-      setTimeout(() => {
+      timeoutHandler = setTimeout(() => {
         request.abort()
         reject(`Timeout reached while waiting for "${name}" subscription is ready.`)
       }, timeout * 1000)
     })
   }
 
-  async approveOperatorInstallationPlan(name: string, namespace: string) {
+  async approveOperatorInstallationPlan(name: string, namespace: string): Promise<void> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
       const patch: InstallPlan = {
@@ -1396,13 +1412,15 @@ export class KubeClient {
   }
 
   async waitOperatorInstallPlan(name: string, namespace: string, timeout = 240) {
+    let timeoutHandler: NodeJS.Timeout
+
     return new Promise<InstallPlan>(async (resolve, reject) => {
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`,
         { fieldSelector: `metadata.name=${name}` },
         (_phase: string, obj: any) => {
           const installPlan = obj as InstallPlan
-          if (installPlan.status && installPlan.status.phase === 'Failed') {
+          if (installPlan.status?.phase === 'Failed') {
             const errorMessage = []
             for (const condition of installPlan.status.conditions) {
               if (!condition.reason) {
@@ -1410,23 +1428,29 @@ export class KubeClient {
                 errorMessage.push(!condition.message ? `Message: ${condition.message}` : '')
               }
             }
+            request.response.destroy()
             reject(errorMessage.join(' '))
           }
-          if (installPlan.status && installPlan.status.conditions) {
+
+          if (installPlan.status?.conditions) {
             for (const condition of installPlan.status.conditions) {
               if (condition.type === 'Installed' && condition.status === 'True') {
+                request.response.destroy()
                 resolve(installPlan)
               }
             }
           }
         },
         error => {
+          if (timeoutHandler) {
+            clearTimeout(timeoutHandler)
+          }
           if (error) {
             reject(error)
           }
         })
 
-      setTimeout(() => {
+      timeoutHandler = setTimeout(() => {
         request.abort()
         reject(`Timeout reached while waiting for "${name}" has go status 'Installed'.`)
       }, timeout * 1000)
