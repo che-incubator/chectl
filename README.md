@@ -545,8 +545,18 @@ EXAMPLES
   # Update Eclipse Che and update its configuration in the custom resource:
   chectl server:update --che-operator-cr-patch-yaml patch.yaml
 
-  # Update Eclipse Che and switch to a different channel:
+  # Update Eclipse Che from the provided channel:
   chectl server:update --olm-channel next
+
+  # Update Eclipse Che from the provided CatalogSource and channel:
+  chectl server:update --olm-channel fast --catalog-source-name MyCatalogName --catalog-source-namespace 
+  MyCatalogNamespace
+
+  # Create CatalogSource based on provided image and update Eclipse Che from it:
+  chectl server:update --olm-channel latest --catalog-source-image MyCatalogImage
+
+  # Create a CatalogSource defined in yaml file and update Eclipse Che from it:
+  chectl server:update --olm-channel stable --catalog-source-yaml PATH_TO_CATALOG_SOURCE_YAML
 ```
 
 _See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_

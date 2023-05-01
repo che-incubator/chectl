@@ -86,8 +86,14 @@ export default class Update extends Command {
     'chectl server:update -n eclipse-che',
     `\n# Update ${EclipseChe.PRODUCT_NAME} and update its configuration in the custom resource:\n` +
     `chectl server:update --${CHE_OPERATOR_CR_PATCH_YAML_FLAG} patch.yaml`,
-    `\n# Update ${EclipseChe.PRODUCT_NAME} and switch to a different channel:\n` +
+    `\n# Update ${EclipseChe.PRODUCT_NAME} from the provided channel:\n` +
     'chectl server:update --olm-channel next',
+    `\n# Update ${EclipseChe.PRODUCT_NAME} from the provided CatalogSource and channel:\n` +
+    'chectl server:update --olm-channel fast --catalog-source-name MyCatalogName --catalog-source-namespace MyCatalogNamespace',
+    `\n# Create CatalogSource based on provided image and update ${EclipseChe.PRODUCT_NAME} from it:\n` +
+    'chectl server:update --olm-channel latest --catalog-source-image MyCatalogImage',
+    `\n# Create a CatalogSource defined in yaml file and update ${EclipseChe.PRODUCT_NAME} from it:\n` +
+    'chectl server:update --olm-channel stable --catalog-source-yaml PATH_TO_CATALOG_SOURCE_YAML',
   ]
 
   static flags: flags.Input<any> = {

@@ -38,7 +38,12 @@ import {
   TEMPLATES_FLAG,
   CATALOG_SOURCE_IMAGE_FLAG,
 } from './flags'
-import {getEmbeddedTemplatesDirectory, getProjectVersion, isCheFlavor, safeLoadFromYamlFile} from './utils/utls'
+import {
+  getEmbeddedTemplatesDirectory,
+  getProjectVersion,
+  isCheFlavor,
+  safeLoadFromYamlFile,
+} from './utils/utls'
 
 import {DevWorkspace} from './tasks/installers/dev-workspace/dev-workspace'
 import {EclipseChe} from './tasks/installers/eclipse-che/eclipse-che'
@@ -205,8 +210,8 @@ export namespace CheCtlContext {
 
     ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = flags[CATALOG_SOURCE_IMAGE_FLAG]
     if (ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE]) {
-      ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = EclipseChe.NEXT_CHANNEL_CATALOG_SOURCE
       ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE] = ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE]
+      ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE].replace(new RegExp('[/.@_:]', 'g'), '-')
     } else {
       if (ctx[EclipseCheContext.CHANNEL] !== EclipseChe.STABLE_CHANNEL) {
         if (ctx[CliContext.CLI_IS_CHECTL]) {
