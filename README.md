@@ -280,35 +280,37 @@ OPTIONS
       Auto update approval strategy for installation Eclipse Che.
       With this strategy will be provided auto-update Eclipse Che without any human interaction.
       By default this flag is enabled.
-      This parameter is used only when the installer is 'olm'.
 
   --batch
       Batch mode. Running a command without end user interaction.
 
+  --catalog-source-image=catalog-source-image
+      OLM catalog source image or index bundle (IIB) from which to install the Eclipse Che operator.
+
   --catalog-source-name=catalog-source-name
-      OLM catalog source to install Eclipse Che operator.
-      This parameter is used only when the installer is the 'olm'.
+      Name of the OLM catalog source or index bundle (IIB) from which to install Eclipse Che operator.
 
   --catalog-source-namespace=catalog-source-namespace
       Namespace for OLM catalog source to install Eclipse Che operator.
-      This parameter is used only when the installer is the 'olm'.
 
   --catalog-source-yaml=catalog-source-yaml
       Path to a yaml file that describes custom catalog source for installation Eclipse Che operator.
       Catalog source will be applied to the namespace with Eclipse Che operator.
       Also you need define 'olm-channel' name and 'package-manifest-name'.
-      This parameter is used only when the installer is the 'olm'.
 
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
       Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used
       only when the installer is the 'operator' or the 'olm'.
 
   --che-operator-cr-yaml=che-operator-cr-yaml
-      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer
-      is the 'operator' or the 'olm'.
+      Path to a yaml file that defines a CheCluster used by the operator.
 
   --che-operator-image=che-operator-image
-      Container image of the operator. This parameter is used only when the installer is the operator or OLM.
+      Container image of the operator.
+
+  --cluster-monitoring
+      Enable cluster monitoring to scrape Eclipse Che metrics in Prometheus.
+      This parameter is used only when the platform is 'openshift'.
 
   --debug
       'Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug'
@@ -332,11 +334,9 @@ OPTIONS
   --olm-channel=olm-channel
       Olm channel to install Eclipse Che, f.e. stable.
       If options was not set, will be used default version for package manifest.
-      This parameter is used only when the installer is the 'olm'.
 
   --package-manifest-name=package-manifest-name
       Package manifest name to subscribe to Eclipse Che OLM package manifest.
-      This parameter is used only when the installer is the 'olm'.
 
   --plugin-registry-url=plugin-registry-url
       The URL of the external plugin registry.
@@ -363,7 +363,6 @@ OPTIONS
       Then OLM will install Eclipse Che with version 7.10.0.
       Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known
       version.
-      This parameter is used only when the installer is 'olm'.
 
   --telemetry=on|off
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
@@ -484,40 +483,37 @@ OPTIONS
       Auto update approval strategy for installation Eclipse Che.
       With this strategy will be provided auto-update Eclipse Che without any human interaction.
       By default this flag is enabled.
-      This parameter is used only when the installer is 'olm'.
 
   --batch
       Batch mode. Running a command without end user interaction.
 
+  --catalog-source-image=catalog-source-image
+      OLM catalog source image or index bundle (IIB) from which to install the Eclipse Che operator.
+
   --catalog-source-name=catalog-source-name
-      OLM catalog source to install Eclipse Che operator.
-      This parameter is used only when the installer is the 'olm'.
+      Name of the OLM catalog source or index bundle (IIB) from which to install Eclipse Che operator.
 
   --catalog-source-namespace=catalog-source-namespace
       Namespace for OLM catalog source to install Eclipse Che operator.
-      This parameter is used only when the installer is the 'olm'.
 
   --catalog-source-yaml=catalog-source-yaml
       Path to a yaml file that describes custom catalog source for installation Eclipse Che operator.
       Catalog source will be applied to the namespace with Eclipse Che operator.
       Also you need define 'olm-channel' name and 'package-manifest-name'.
-      This parameter is used only when the installer is the 'olm'.
 
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
       Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used
       only when the installer is the 'operator' or the 'olm'.
 
   --che-operator-image=che-operator-image
-      Container image of the operator. This parameter is used only when the installer is the operator or OLM.
+      Container image of the operator.
 
   --olm-channel=olm-channel
       Olm channel to install Eclipse Che, f.e. stable.
       If options was not set, will be used default version for package manifest.
-      This parameter is used only when the installer is the 'olm'.
 
   --package-manifest-name=package-manifest-name
       Package manifest name to subscribe to Eclipse Che OLM package manifest.
-      This parameter is used only when the installer is the 'olm'.
 
   --skip-devworkspace-operator
       Skip installing Dev Workspace Operator.
@@ -535,7 +531,6 @@ OPTIONS
       Then OLM will install Eclipse Che with version 7.10.0.
       Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known
       version.
-      This parameter is used only when the installer is 'olm'.
 
   --telemetry=on|off
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry

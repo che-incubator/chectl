@@ -21,6 +21,9 @@ import {base64Decode} from './utls'
 import {CheLogsReader} from '../api/che-logs-reader'
 
 export namespace Che {
+  export function isRedHatCatalogSources(catalogSourceName?: string): boolean {
+    return catalogSourceName === 'community-operators' || catalogSourceName === 'redhat-operators'
+  }
   export async function readPodLog(namespace: string, podLabelSelector: string | undefined, directory: string, follow: boolean): Promise<void> {
     const logsReader = new CheLogsReader()
     return logsReader.readPodLog(namespace, podLabelSelector, directory, follow)

@@ -35,8 +35,8 @@ import {
   LOG_DIRECTORY_FLAG,
   OLM_CHANNEL_FLAG,
   PACKAGE_MANIFEST_FLAG,
-  STARTING_CSV_FLAG,
   TEMPLATES_FLAG,
+  CATALOG_SOURCE_IMAGE_FLAG,
 } from './flags'
 import {getEmbeddedTemplatesDirectory, getProjectVersion, isCheFlavor, safeLoadFromYamlFile} from './utils/utls'
 
@@ -96,7 +96,7 @@ export namespace EclipseCheContext {
   export const DEFAULT_CR = 'eclipse-che-default-cr'
   export const NAMESPACE = 'eclipse-che-namespace'
   export const OPERATOR_NAMESPACE = 'eclipse-che-operator-namespace'
-  export const UPDATE_CATALOG_SOURCE_AND_SUBSCRIPTION = 'eclipse-che-update-catalog-source-and-subscription'
+  export const CREATE_CATALOG_SOURCE_AND_SUBSCRIPTION = 'eclipse-che-create-catalog-source-and-subscription'
 }
 
 export namespace DevWorkspaceContext {
@@ -133,6 +133,7 @@ export namespace CheCtlContext {
   const DEV_WORKSPACE_OPERATOR_TEMPLATE_DIR = 'devworkspace-operator'
 
   export async function init(flags: any, command: Command): Promise<void> {
+    // CLI context
     ctx[CliContext.CLI_COMMAND_FLAGS] = flags
     ctx[CliContext.CLI_IS_CHECTL] = isCheFlavor()
     ctx[CliContext.CLI_IS_DEV_VERSION] = getProjectVersion().includes('next') || getProjectVersion() === '0.0.2'
@@ -159,6 +160,7 @@ export namespace CheCtlContext {
       ctx[CliContext.CLI_DEV_WORKSPACE_OPERATOR_RESOURCES_DIR] = path.join(getEmbeddedTemplatesDirectory(), DEV_WORKSPACE_OPERATOR_TEMPLATE_DIR)
     }
 
+    // Infrastructure context
     ctx[InfrastructureContext.IS_OPENSHIFT] = await isOpenShift()
     ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE] = 'openshift-marketplace'
     if (ctx[InfrastructureContext.IS_OPENSHIFT]) {
@@ -177,60 +179,53 @@ export namespace CheCtlContext {
       ctx[EclipseCheContext.OPERATOR_NAMESPACE] = ctx[EclipseCheContext.NAMESPACE]
     }
 
+    // Eclipse Che context
     ctx[EclipseCheContext.CUSTOM_CR] = readFile(flags, CHE_OPERATOR_CR_YAML_FLAG)
     ctx[EclipseCheContext.CR_PATCH] = readFile(flags, CHE_OPERATOR_CR_PATCH_YAML_FLAG)
     ctx[EclipseCheContext.DEFAULT_CR] = safeLoadFromYamlFile(path.join(ctx[CliContext.CLI_CHE_OPERATOR_RESOURCES_DIR], 'kubernetes', 'crds', 'org_checluster_cr.yaml'))
 
-    if (flags[STARTING_CSV_FLAG]) {
-      // Ignore auto-update flag, otherwise it will automatically update to the latest version and 'starting-csv' will not have any effect.
-      ctx[EclipseCheContext.APPROVAL_STRATEGY] = EclipseChe.APPROVAL_STRATEGY_MANUAL
-    } else {
-      ctx[EclipseCheContext.APPROVAL_STRATEGY] = flags[AUTO_UPDATE_FLAG] ? EclipseChe.APPROVAL_STRATEGY_AUTOMATIC : EclipseChe.APPROVAL_STRATEGY_MANUAL
-    }
+    ctx[EclipseCheContext.APPROVAL_STRATEGY] = flags[AUTO_UPDATE_FLAG] ? EclipseChe.APPROVAL_STRATEGY_AUTOMATIC : EclipseChe.APPROVAL_STRATEGY_MANUAL
 
     ctx[EclipseCheContext.CHANNEL] = flags[OLM_CHANNEL_FLAG]
     if (!ctx[EclipseCheContext.CHANNEL]) {
-      if (ctx[CliContext.CLI_IS_DEV_VERSION]) {
-        ctx[EclipseCheContext.CHANNEL] = EclipseChe.NEXT_CHANNEL
-      } else {
-        ctx[EclipseCheContext.CHANNEL] = EclipseChe.STABLE_CHANNEL
-      }
-    }
-
-    if (ctx[CliContext.CLI_IS_CHECTL]) {
-      if (ctx[EclipseCheContext.CHANNEL] === EclipseChe.STABLE_CHANNEL) {
-        ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = EclipseChe.STABLE_CATALOG_SOURCE_IMAGE
-      } else {
-        ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = EclipseChe.NEXT_CATALOG_SOURCE_IMAGE
-      }
-    } else {
-      if (ctx[EclipseCheContext.CHANNEL] !== 'stable') {
-        let iibImageTag = 'next'
-        if (ctx[EclipseCheContext.CHANNEL] === 'latest') {
-          iibImageTag = 'latest'
-        }
-        // It is always EclipseChe.NEXT_CHANNEL, 'latest` and 'next` are added only to simplify UI
-        // See https://issues.redhat.com/browse/CRW-3877
-        ctx[EclipseCheContext.CHANNEL] = EclipseChe.NEXT_CHANNEL
-        ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = `quay.io/devspaces/iib:${iibImageTag}-v${ctx[InfrastructureContext.OPENSHIFT_VERSION]}-${ctx[InfrastructureContext.OPENSHIFT_ARCH]}`
-      }
+      ctx[EclipseCheContext.CHANNEL] = ctx[CliContext.CLI_IS_DEV_VERSION] ? EclipseChe.NEXT_CHANNEL : EclipseChe.STABLE_CHANNEL
+    } else if (!ctx[CliContext.CLI_IS_CHECTL] && ctx[EclipseCheContext.CHANNEL] !== EclipseChe.STABLE_CHANNEL) {
+      // It is always EclipseChe.NEXT_CHANNEL, 'latest` and 'next` are added only to simplify UI
+      // See https://issues.redhat.com/browse/CRW-3877
+      ctx[EclipseCheContext.CHANNEL] = EclipseChe.NEXT_CHANNEL
     }
 
     ctx[EclipseCheContext.PACKAGE_NAME] = flags[PACKAGE_MANIFEST_FLAG] || EclipseChe.PACKAGE
     ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE] = flags[CATALOG_SOURCE_NAMESPACE_FLAG] || ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE]
+
     ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = flags[CATALOG_SOURCE_NAME_FLAG]
     if (!ctx[EclipseCheContext.CATALOG_SOURCE_NAME]) {
-      if (ctx[EclipseCheContext.CHANNEL] === EclipseChe.STABLE_CHANNEL) {
-        ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = EclipseChe.STABLE_CHANNEL_CATALOG_SOURCE
-      } else {
-        ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = EclipseChe.NEXT_CHANNEL_CATALOG_SOURCE
-      }
+      ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = ctx[EclipseCheContext.CHANNEL] === EclipseChe.STABLE_CHANNEL ? EclipseChe.STABLE_CHANNEL_CATALOG_SOURCE : EclipseChe.NEXT_CHANNEL_CATALOG_SOURCE
+    }
+
+    ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = flags[CATALOG_SOURCE_IMAGE_FLAG]
+    if (ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE]) {
+      ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = EclipseChe.NEXT_CHANNEL_CATALOG_SOURCE
+      ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE] = ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE]
+    } else {
+      if (ctx[EclipseCheContext.CHANNEL] !== EclipseChe.STABLE_CHANNEL) {
+        if (ctx[CliContext.CLI_IS_CHECTL]) {
+          ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = EclipseChe.NEXT_CATALOG_SOURCE_IMAGE
+        } else {
+          let iibImageTag = 'next'
+          if (flags[OLM_CHANNEL_FLAG] === 'latest') {
+            iibImageTag = 'latest'
+          }
+
+          ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = `quay.io/devspaces/iib:${iibImageTag}-v${ctx[InfrastructureContext.OPENSHIFT_VERSION]}-${ctx[InfrastructureContext.OPENSHIFT_ARCH]}`
+        }
+      } // RedHat catalog source is used for the stable channel
     }
 
     if (flags[CATALOG_SOURCE_YAML_FLAG]) {
       const catalogSource = safeLoadFromYamlFile(flags[CATALOG_SOURCE_YAML_FLAG])
       ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = catalogSource.metadata.name
-      ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE] = ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE]
+      ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE] = catalogSource.metadata.namespace
       ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = catalogSource.spec.image
     }
 

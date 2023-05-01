@@ -60,6 +60,8 @@ import {
   CATALOG_SOURCE_NAME_FLAG,
   CATALOG_SOURCE_YAML_FLAG,
   CATALOG_SOURCE_YAML,
+  CATALOG_SOURCE_IMAGE_FLAG,
+  CATALOG_SOURCE_IMAGE, checkFlagsCompatability,
 } from '../../flags'
 import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
 import {DEFAULT_ANALYTIC_HOOK_NAME} from '../../constants'
@@ -70,8 +72,9 @@ import {
   wrapCommandError,
 } from '../../utils/command-utils'
 import {CommonTasks} from '../../tasks/common-tasks'
-import {getProjectName, getProjectVersion, isCheFlavor, newListr} from '../../utils/utls'
+import {getProjectName, getProjectVersion, newListr} from '../../utils/utls'
 import {KubeClient} from '../../api/kube-client'
+import {Che} from '../../utils/che'
 
 export default class Update extends Command {
   static description = `Update ${EclipseChe.PRODUCT_NAME} server.`
@@ -106,6 +109,7 @@ export default class Update extends Command {
     [CATALOG_SOURCE_NAMESPACE_FLAG]: CATALOG_SOURCE_NAMESPACE,
     [CATALOG_SOURCE_NAME_FLAG]: CATALOG_SOURCE_NAME,
     [CATALOG_SOURCE_YAML_FLAG]: CATALOG_SOURCE_YAML,
+    [CATALOG_SOURCE_IMAGE_FLAG]: CATALOG_SOURCE_IMAGE,
     [AUTO_UPDATE_FLAG]: AUTO_UPDATE,
     [STARTING_CSV_FLAG]: STARTING_CSV,
   }
@@ -119,6 +123,8 @@ export default class Update extends Command {
     if (!flags[BATCH_FLAG] && ctx[CliContext.CLI_IS_CHECTL]) {
       await askForChectlUpdateIfNeeded()
     }
+
+    checkFlagsCompatability(flags)
 
     const eclipseCheInstallerInstaller = EclipseCheInstallerFactory.getInstaller()
 
@@ -136,7 +142,6 @@ export default class Update extends Command {
     postUpdateTasks.add(CommonTasks.getPrintHighlightedMessagesTask())
 
     try {
-      this.checkCompatibility(flags)
       await preUpdateTasks.run(ctx)
 
       if (!ctx[InfrastructureContext.IS_OPENSHIFT]) {
@@ -163,42 +168,41 @@ export default class Update extends Command {
 
   private async checkAbilityToUpdateCatalogSource(flags: any): Promise<boolean> {
     const ctx = CheCtlContext.get()
-    ctx[EclipseCheContext.UPDATE_CATALOG_SOURCE_AND_SUBSCRIPTION] = false
+    ctx[EclipseCheContext.CREATE_CATALOG_SOURCE_AND_SUBSCRIPTION] = false
 
     const kubeClient = KubeClient.getInstance()
     const subscription = await kubeClient.getOperatorSubscription(EclipseChe.SUBSCRIPTION, ctx[EclipseCheContext.OPERATOR_NAMESPACE])
     if (subscription) {
+      const catalogSource = await kubeClient.getCatalogSource(subscription.spec.source, subscription.spec.sourceNamespace)
+
       if (ctx[EclipseCheContext.CHANNEL] !== subscription.spec.channel ||
-        ctx[EclipseCheContext.CATALOG_SOURCE_NAME] !== subscription.spec.source ||
         ctx[EclipseCheContext.CATALOG_SOURCE_NAME] !== subscription.spec.source ||
         ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE] !== subscription.spec.sourceNamespace ||
         ctx[EclipseCheContext.PACKAGE_NAME] !== subscription.spec.name ||
-        (!isCheFlavor() && ctx[EclipseCheContext.CHANNEL] !== EclipseChe.STABLE_CHANNEL)) {
+        ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] !== catalogSource?.spec.image ||
+        !Che.isRedHatCatalogSources(ctx[EclipseCheContext.CATALOG_SOURCE_NAME])) {
         cli.info('CatalogSource and Subscription will be updated              :')
         cli.info('-------------------------------------------------------------')
         cli.info(`Current channel                 : ${subscription.spec.channel}`)
         cli.info(`Current catalog source          : ${subscription.spec.source}`)
         cli.info(`Current catalog source namespace: ${subscription.spec.sourceNamespace}`)
-        if (!isCheFlavor() && ctx[EclipseCheContext.CHANNEL] !== EclipseChe.STABLE_CHANNEL) {
-          const catalogSource = await kubeClient.getCatalogSource(subscription.spec.source, subscription.spec.sourceNamespace)
-          if (catalogSource) {
-            cli.info(`Current catalog source image    : ${catalogSource.spec.image}`)
-          }
+        if (catalogSource && !Che.isRedHatCatalogSources(catalogSource.metadata.name)) {
+          cli.info(`Current catalog source image    : ${catalogSource.spec.image}`)
         }
         cli.info(`Current package name            : ${subscription.spec.name}`)
-        ctx[EclipseCheContext.UPDATE_CATALOG_SOURCE_AND_SUBSCRIPTION] = true
+        ctx[EclipseCheContext.CREATE_CATALOG_SOURCE_AND_SUBSCRIPTION] = true
       }
     } else {
       cli.info('Subscription will be created  :')
-      ctx[EclipseCheContext.UPDATE_CATALOG_SOURCE_AND_SUBSCRIPTION] = true
+      ctx[EclipseCheContext.CREATE_CATALOG_SOURCE_AND_SUBSCRIPTION] = true
     }
 
-    if (ctx[EclipseCheContext.UPDATE_CATALOG_SOURCE_AND_SUBSCRIPTION]) {
+    if (ctx[EclipseCheContext.CREATE_CATALOG_SOURCE_AND_SUBSCRIPTION]) {
       cli.info('-------------------------------------------------------------')
       cli.info(`New channel                     : ${ctx[EclipseCheContext.CHANNEL]}`)
       cli.info(`New catalog source              : ${ctx[EclipseCheContext.CATALOG_SOURCE_NAME]}`)
       cli.info(`New catalog source namespace    : ${ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE]}`)
-      if (!isCheFlavor() && ctx[EclipseCheContext.CHANNEL] !== EclipseChe.STABLE_CHANNEL) {
+      if (!Che.isRedHatCatalogSources(ctx[EclipseCheContext.CATALOG_SOURCE_NAME])) {
         cli.info(`New catalog source image        : ${ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE]}`)
       }
       cli.info(`New package name                : ${ctx[EclipseCheContext.PACKAGE_NAME]}`)
@@ -328,30 +332,5 @@ export default class Update extends Command {
     // otherwise just compare new and old tags
     // Note, that semver lib doesn't handle text tags and throws an error in case NEXT_TAG is provided for comparation.
     return newTag === EclipseChe.OPERATOR_IMAGE_NEXT_TAG || (oldTag !== EclipseChe.OPERATOR_IMAGE_NEXT_TAG && isUpdate)
-  }
-
-  private checkCompatibility(flags: any) {
-    const ctx = CheCtlContext.get()
-
-    if (!ctx[InfrastructureContext.IS_OPENSHIFT]) {
-      if (flags[STARTING_CSV_FLAG]) {
-        this.error(`--${STARTING_CSV_FLAG} flag should be used only for OpenShift platform.`)
-      }
-      if (flags[CATALOG_SOURCE_YAML_FLAG]) {
-        this.error(`--${CATALOG_SOURCE_YAML_FLAG} flag should be used only for OpenShift platform.`)
-      }
-      if (flags[OLM_CHANNEL_FLAG]) {
-        this.error(`--${OLM_CHANNEL_FLAG} flag should be used only for OpenShift platform.`)
-      }
-      if (flags[PACKAGE_MANIFEST_FLAG]) {
-        this.error(`--${PACKAGE_MANIFEST_FLAG} flag should be used only for OpenShift platform.`)
-      }
-      if (flags[CATALOG_SOURCE_NAME_FLAG]) {
-        this.error(`--${CATALOG_SOURCE_NAME_FLAG} flag should be used only for OpenShift platform.`)
-      }
-      if (flags[CATALOG_SOURCE_NAMESPACE_FLAG]) {
-        this.error(`--${CATALOG_SOURCE_NAMESPACE_FLAG} flag should be used only for OpenShift platform.`)
-      }
-    }
   }
 }
