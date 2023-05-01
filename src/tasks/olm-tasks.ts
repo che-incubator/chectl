@@ -21,6 +21,7 @@ import {CommonTasks} from './common-tasks'
 import {CHE_NAMESPACE_FLAG, CHE_OPERATOR_IMAGE_FLAG, CLUSTER_MONITORING_FLAG, DELETE_ALL_FLAG} from '../flags'
 import {EclipseChe} from './installers/eclipse-che/eclipse-che'
 import {DevWorkspace} from './installers/dev-workspace/dev-workspace'
+import {Che} from '../utils/che'
 
 export namespace OlmTasks {
   export async function getDeleteSubscriptionAndCatalogSourceTask(packageName: string, csvPrefix: string, namespace: string): Promise<Listr.ListrTask<any>> {
@@ -37,7 +38,7 @@ export namespace OlmTasks {
 
       // CatalogSource
       const catalogSource = await kubeHelper.getCatalogSource(subscription.spec.source, subscription.spec.sourceNamespace)
-      if (catalogSource?.metadata.name !== EclipseChe.STABLE_CHANNEL_CATALOG_SOURCE) {
+      if (!Che.isRedHatCatalogSources(catalogSource?.metadata.name)) {
         title = `${title} and CatalogSource ${subscription.spec.source}`
         deleteResources.push(() => kubeHelper.deleteCatalogSource(subscription!.spec.source, subscription!.spec.sourceNamespace))
       }
@@ -153,6 +154,7 @@ export namespace OlmTasks {
               },
             },
           }
+
           await kubeHelper.createCatalogSource(catalogSource, namespace)
           await kubeHelper.waitCatalogSource(name, namespace)
           task.title = `${task.title}...[Created]`
@@ -262,7 +264,7 @@ export namespace OlmTasks {
         }
         const jsonPatch = [{ op: 'replace', path: '/spec/install/spec/deployments/0/spec/template/spec/containers/0/image', value: flags[CHE_OPERATOR_IMAGE_FLAG] }]
         await kubeHelper.patchClusterServiceVersion(csvs[0].metadata.name!, csvs[0].metadata.namespace!, jsonPatch)
-        task.title = `${task.title}...[OK]`
+        task.title = `${task.title}...[${flags[CHE_OPERATOR_IMAGE_FLAG]}: OK]`
       },
     }
   }

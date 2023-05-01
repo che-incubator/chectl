@@ -13,8 +13,7 @@
 import Listr = require('listr')
 import { Installer } from '../installer'
 import {
-  CheCtlContext, DevWorkspaceContext,
-  EclipseCheContext, InfrastructureContext,
+  CheCtlContext, EclipseCheContext,
 } from '../../../context'
 import {EclipseCheTasks} from './eclipse-che-tasks'
 import {EclipseChe} from './eclipse-che'
@@ -25,42 +24,18 @@ import {isCheFlavor, newListr} from '../../../utils/utls'
 import {DevWorkspaceInstallerFactory} from '../dev-workspace/dev-workspace-installer-factory'
 import {CommonTasks} from '../../common-tasks'
 import {DevWorkspace} from '../dev-workspace/dev-workspace'
+import {Che} from '../../../utils/che'
 
 export class EclipseCheOlmInstaller implements Installer {
   getDeployTasks(): Listr.ListrTask<any> {
     return {
       title: `Deploy ${EclipseChe.PRODUCT_NAME}`,
-      task: async (ctx: any, _task: any) => {
+      task: async (_ctx: any, _task: any) => {
         const tasks = newListr()
-        const flags = CheCtlContext.getFlags()
+        await this.addCommonInstallTasks(tasks)
 
-        // Create a common CatalogSource (IIB) to deploy Dev Workspace operator and DevSpaces from fast channel
-        if (!isCheFlavor() && ctx[EclipseCheContext.CHANNEL] !== EclipseChe.STABLE_CHANNEL) {
-          tasks.add(EclipseCheTasks.getCreateImageContentSourcePolicyTask())
-          tasks.add(OlmTasks.getCreateCatalogSourceTask(
-            ctx[EclipseCheContext.CATALOG_SOURCE_NAME],
-            ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE],
-            ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE]))
-        }
-
-        tasks.add(await EclipseCheTasks.getInstallDevWorkspaceOperatorTask())
-
-        if (isCheFlavor()) {
-          tasks.add(EclipseCheTasks.getCreateEclipseCheCatalogSourceTask())
-        }
-
-        tasks.add(OlmTasks.getCreateSubscriptionTask(
-          EclipseChe.SUBSCRIPTION,
-          ctx[EclipseCheContext.OPERATOR_NAMESPACE],
-          ctx[EclipseCheContext.CATALOG_SOURCE_NAME],
-          ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE],
-          ctx[EclipseCheContext.PACKAGE_NAME],
-          ctx[EclipseCheContext.CHANNEL],
-          ctx[EclipseCheContext.APPROVAL_STRATEGY],
-          flags[STARTING_CSV_FLAG]
-        ))
-        tasks.add(OlmTasks.getCreatePrometheusRBACTask())
         tasks.add(OlmTasks.getSetCustomEclipseCheOperatorImageTask())
+        tasks.add(OlmTasks.getCreatePrometheusRBACTask())
         tasks.add(OlmTasks.getFetchCheClusterSampleTask())
         tasks.add(CheClusterTasks.getCreateEclipseCheClusterTask())
         return tasks
@@ -77,9 +52,8 @@ export class EclipseCheOlmInstaller implements Installer {
       title: `Update ${EclipseChe.PRODUCT_NAME} operator`,
       task: async (ctx: any, _task: any) => {
         const tasks = newListr()
-        const flags = CheCtlContext.getFlags()
 
-        if (ctx[EclipseCheContext.UPDATE_CATALOG_SOURCE_AND_SUBSCRIPTION]) {
+        if (ctx[EclipseCheContext.CREATE_CATALOG_SOURCE_AND_SUBSCRIPTION]) {
           tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(
             DevWorkspace.PACKAGE,
             DevWorkspace.CSV_PREFIX,
@@ -89,42 +63,7 @@ export class EclipseCheOlmInstaller implements Installer {
             EclipseChe.CSV_PREFIX,
             ctx[EclipseCheContext.OPERATOR_NAMESPACE]))
 
-          if (isCheFlavor()) {
-            tasks.add(OlmTasks.getCreateCatalogSourceTask(
-              ctx[DevWorkspaceContext.CATALOG_SOURCE_NAME],
-              ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE],
-              ctx[DevWorkspaceContext.CATALOG_SOURCE_IMAGE]))
-            tasks.add(EclipseCheTasks.getCreateEclipseCheCatalogSourceTask())
-          } else {
-            if (ctx[EclipseCheContext.CHANNEL] !== EclipseChe.STABLE_CHANNEL) {
-              tasks.add(EclipseCheTasks.getCreateImageContentSourcePolicyTask())
-              tasks.add(OlmTasks.getCreateCatalogSourceTask(
-                ctx[EclipseCheContext.CATALOG_SOURCE_NAME],
-                ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE],
-                ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE]))
-            }
-          }
-
-          tasks.add(OlmTasks.getCreateSubscriptionTask(
-            DevWorkspace.SUBSCRIPTION,
-            ctx[EclipseCheContext.OPERATOR_NAMESPACE],
-            ctx[DevWorkspaceContext.CATALOG_SOURCE_NAME],
-            ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE],
-            DevWorkspace.PACKAGE,
-            ctx[DevWorkspaceContext.CHANNEL],
-            ctx[EclipseCheContext.APPROVAL_STRATEGY]
-          ))
-
-          tasks.add(OlmTasks.getCreateSubscriptionTask(
-            EclipseChe.SUBSCRIPTION,
-            ctx[EclipseCheContext.OPERATOR_NAMESPACE],
-            ctx[EclipseCheContext.CATALOG_SOURCE_NAME],
-            ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE],
-            ctx[EclipseCheContext.PACKAGE_NAME],
-            ctx[EclipseCheContext.CHANNEL],
-            ctx[EclipseCheContext.APPROVAL_STRATEGY],
-            flags[STARTING_CSV_FLAG]
-          ))
+          await this.addCommonInstallTasks(tasks)
         }
 
         tasks.add(OlmTasks.getSetCustomEclipseCheOperatorImageTask())
@@ -158,5 +97,34 @@ export class EclipseCheOlmInstaller implements Installer {
         return tasks
       },
     }
+  }
+
+  async addCommonInstallTasks(tasks: Listr): Promise<void> {
+    const ctx = CheCtlContext.get()
+    const flags = CheCtlContext.getFlags()
+
+    if (!Che.isRedHatCatalogSources(ctx[EclipseCheContext.CATALOG_SOURCE_NAME])) {
+      if (!isCheFlavor()) {
+        tasks.add(EclipseCheTasks.getCreateImageContentSourcePolicyTask())
+      }
+
+      tasks.add(OlmTasks.getCreateCatalogSourceTask(
+        ctx[EclipseCheContext.CATALOG_SOURCE_NAME],
+        ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE],
+        ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE]))
+    }
+
+    tasks.add(DevWorkspaceInstallerFactory.getInstaller().getDeployTasks())
+
+    tasks.add(OlmTasks.getCreateSubscriptionTask(
+      EclipseChe.SUBSCRIPTION,
+      ctx[EclipseCheContext.OPERATOR_NAMESPACE],
+      ctx[EclipseCheContext.CATALOG_SOURCE_NAME],
+      ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE],
+      ctx[EclipseCheContext.PACKAGE_NAME],
+      ctx[EclipseCheContext.CHANNEL],
+      ctx[EclipseCheContext.APPROVAL_STRATEGY],
+      flags[STARTING_CSV_FLAG]
+    ))
   }
 }
