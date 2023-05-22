@@ -211,7 +211,7 @@ export namespace CheCtlContext {
     ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = flags[CATALOG_SOURCE_IMAGE_FLAG]
     if (ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE]) {
       ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE] = ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE]
-      ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE].replace(new RegExp('[/.@_:]', 'g'), '-')
+      ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE].replace(new RegExp('[/.@_:]', 'g'), '-').toLowerCase()
     } else {
       if (ctx[EclipseCheContext.CHANNEL] !== EclipseChe.STABLE_CHANNEL) {
         if (ctx[CliContext.CLI_IS_CHECTL]) {
