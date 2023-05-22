@@ -267,23 +267,25 @@ export const CATALOG_SOURCE_YAML = string({
   description: `Path to a yaml file that describes custom catalog source for installation ${EclipseChe.PRODUCT_NAME} operator.
                     Catalog source will be applied to the namespace with ${EclipseChe.PRODUCT_NAME} operator.
                     Also you need define 'olm-channel' name and 'package-manifest-name'.`,
+  dependsOn: [OLM_CHANNEL_FLAG],
   exclusive: [CATALOG_SOURCE_NAME_FLAG, CATALOG_SOURCE_NAMESPACE_FLAG, CATALOG_SOURCE_IMAGE_FLAG],
 })
 
 export const CATALOG_SOURCE_NAMESPACE = string({
   description: `Namespace for OLM catalog source to install ${EclipseChe.PRODUCT_NAME} operator.`,
-  dependsOn: [CATALOG_SOURCE_NAME_FLAG],
+  dependsOn: [CATALOG_SOURCE_NAME_FLAG, OLM_CHANNEL_FLAG],
   exclusive: [CATALOG_SOURCE_YAML_FLAG, CATALOG_SOURCE_IMAGE_FLAG],
 })
 
 export const CATALOG_SOURCE_NAME =  string({
   description: `Name of the OLM catalog source or index bundle (IIB) from which to install ${EclipseChe.PRODUCT_NAME} operator.`,
-  dependsOn: [CATALOG_SOURCE_NAMESPACE_FLAG],
+  dependsOn: [CATALOG_SOURCE_NAMESPACE_FLAG, OLM_CHANNEL_FLAG],
   exclusive: [CATALOG_SOURCE_YAML_FLAG, CATALOG_SOURCE_IMAGE_FLAG],
 })
 
 export const CATALOG_SOURCE_IMAGE =  string({
   description: `OLM catalog source image or index bundle (IIB) from which to install the ${EclipseChe.PRODUCT_NAME} operator.`,
+  dependsOn: [OLM_CHANNEL_FLAG],
   exclusive: [CATALOG_SOURCE_YAML_FLAG, CATALOG_SOURCE_NAMESPACE_FLAG, CATALOG_SOURCE_NAME_FLAG],
 })
 
