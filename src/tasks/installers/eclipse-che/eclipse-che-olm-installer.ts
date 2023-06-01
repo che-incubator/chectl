@@ -104,7 +104,7 @@ export class EclipseCheOlmInstaller implements Installer {
     const flags = CheCtlContext.getFlags()
 
     if (!Che.isRedHatCatalogSources(ctx[EclipseCheContext.CATALOG_SOURCE_NAME])) {
-      if (!isCheFlavor()) {
+      if (!isCheFlavor() && ctx[EclipseCheContext.CHANNEL] !== EclipseChe.STABLE_CHANNEL) {
         tasks.add(EclipseCheTasks.getCreateImageContentSourcePolicyTask())
       }
 
