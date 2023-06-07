@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Install Che on Minikube",
+            "label": "Run chectl to deploy Che on Minikube",
             "command": "./bin/run server:deploy -p minikube",
             "type": "shell",
             "args": [],
@@ -15,7 +15,20 @@
             "group": "build"
         },
         {
-            "label": "Install Che on OpenShift",
+            "label": "Debug chectl to deploy Che on Minikube",
+            "command": "./bin/debug server:deploy -p minikube",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },        
+        {
+            "label": "Run chectl to deploy Che on OpenShift",
             "command": "./bin/run server:deploy -p openshift",
             "type": "shell",
             "args": [],
@@ -27,6 +40,19 @@
             },
             "group": "build"
         },
+        {
+            "label": "Debug chectl to deploy Che on OpenShift",
+            "command": "./bin/debug server:deploy -p openshift",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },        
         {
             "label": "Build",
             "command": "yarn",
