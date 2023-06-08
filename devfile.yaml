@@ -16,11 +16,12 @@ metadata:
   name: chectl-dev
 
 components:
-  - name: dev
+  - name: tooling-container
     container: 
       image: 'quay.io/devfile/universal-developer-image:ubi8-latest'
       cpuLimit: 500m
       cpuRequest: 500m
       memoryLimit: 5G
       memoryRequest: 1G
+
 
