@@ -138,7 +138,7 @@ export class SegmentAdapter {
         version: os.release(),
       },
       location: {
-        country: getTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)?.countries || 'XX',
+        country: this.getCountry(Intl.DateTimeFormat().resolvedOptions().timeZone),
       },
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }
@@ -154,5 +154,14 @@ export class SegmentAdapter {
       }
     }
     return
+  }
+
+  private getCountry(timeZone: string): string {
+    const tz = getTimezone(timeZone)
+    if (tz && tz?.countries) {
+      return tz.countries[0]
+    }
+    // Probably UTC timezone
+    return 'ZZ' // Unknown country
   }
 }
