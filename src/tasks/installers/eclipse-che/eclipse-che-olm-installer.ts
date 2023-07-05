@@ -19,7 +19,7 @@ import {EclipseCheTasks} from './eclipse-che-tasks'
 import {EclipseChe} from './eclipse-che'
 import {CheClusterTasks} from '../../che-cluster-tasks'
 import {OlmTasks} from '../../olm-tasks'
-import {DELETE_ALL_FLAG, STARTING_CSV_FLAG} from '../../../flags'
+import {DELETE_ALL_FLAG, SKIP_DEV_WORKSPACE_FLAG, STARTING_CSV_FLAG} from '../../../flags'
 import {isCheFlavor, newListr} from '../../../utils/utls'
 import {DevWorkspaceInstallerFactory} from '../dev-workspace/dev-workspace-installer-factory'
 import {CommonTasks} from '../../common-tasks'
@@ -52,12 +52,16 @@ export class EclipseCheOlmInstaller implements Installer {
       title: `Update ${EclipseChe.PRODUCT_NAME} operator`,
       task: async (ctx: any, _task: any) => {
         const tasks = newListr()
+        const flags = CheCtlContext.getFlags()
 
         if (ctx[EclipseCheContext.CREATE_CATALOG_SOURCE_AND_SUBSCRIPTION]) {
-          tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(
-            DevWorkspace.PACKAGE,
-            DevWorkspace.CSV_PREFIX,
-            ctx[EclipseCheContext.OPERATOR_NAMESPACE]))
+          if (!flags[SKIP_DEV_WORKSPACE_FLAG]) {
+            tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(
+              DevWorkspace.PACKAGE,
+              DevWorkspace.CSV_PREFIX,
+              ctx[EclipseCheContext.OPERATOR_NAMESPACE]))
+          }
+
           tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(
             EclipseChe.PACKAGE,
             EclipseChe.CSV_PREFIX,
@@ -114,7 +118,9 @@ export class EclipseCheOlmInstaller implements Installer {
         ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE]))
     }
 
-    tasks.add(DevWorkspaceInstallerFactory.getInstaller().getDeployTasks())
+    if (!flags[SKIP_DEV_WORKSPACE_FLAG]) {
+      tasks.add(DevWorkspaceInstallerFactory.getInstaller().getDeployTasks())
+    }
 
     tasks.add(OlmTasks.getCreateSubscriptionTask(
       EclipseChe.SUBSCRIPTION,

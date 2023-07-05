@@ -10,28 +10,19 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {CheCtlContext, DevWorkspaceContext, EclipseCheContext, InfrastructureContext} from '../../../context'
+import {DevWorkspaceContext, EclipseCheContext, InfrastructureContext} from '../../../context'
 import Listr = require('listr')
 import {Installer} from '../installer'
 import {DevWorkspacesTasks} from './dev-workspace-tasks'
 import {DevWorkspace} from './dev-workspace'
 import {OlmTasks} from '../../olm-tasks'
-import {SKIP_DEV_WORKSPACE_FLAG} from '../../../flags'
 import {CommonTasks} from '../../common-tasks'
 import {isCheFlavor, newListr} from '../../../utils/utls'
 
 export class DevWorkspaceOlmInstaller implements Installer  {
-  protected skip: boolean
-
-  constructor() {
-    const flags = CheCtlContext.getFlags()
-    this.skip = flags[SKIP_DEV_WORKSPACE_FLAG]
-  }
-
   getDeployTasks(): Listr.ListrTask<any> {
     return {
       title: `Install ${DevWorkspace.PRODUCT_NAME} operator`,
-      skip: () => this.skip,
       task: async (ctx: any, _task: any) => {
         const tasks = newListr()
 
