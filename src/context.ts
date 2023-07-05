@@ -50,6 +50,7 @@ import {EclipseChe} from './tasks/installers/eclipse-che/eclipse-che'
 import * as fs from 'fs-extra'
 import * as execa from 'execa'
 import {CheCluster} from './api/types/che-cluster'
+import {CatalogSource} from './api/types/olm'
 
 export namespace InfrastructureContext {
   export const IS_OPENSHIFT = 'infrastructure-is-openshift'
@@ -224,7 +225,10 @@ export namespace CheCtlContext {
 
           ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = `quay.io/devspaces/iib:${iibImageTag}-v${ctx[InfrastructureContext.OPENSHIFT_VERSION]}-${ctx[InfrastructureContext.OPENSHIFT_ARCH]}`
         }
-      } // RedHat catalog source is used for the stable channel
+      } else {
+        const catalogSource = await getCatalogSource(ctx[EclipseCheContext.CATALOG_SOURCE_NAME], ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE])
+        ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = catalogSource?.spec.image
+      }
     }
 
     if (flags[CATALOG_SOURCE_YAML_FLAG]) {
@@ -316,6 +320,22 @@ export namespace CheCtlContext {
       return Boolean(group.versions.find(v => v.version === version))
     } else {
       return Boolean(group)
+    }
+  }
+
+  async function getCatalogSource(name: string, namespace: string): Promise<CatalogSource | undefined> {
+    const kubeConfig = new KubeConfig()
+    kubeConfig.loadFromDefault()
+
+    const customObjectsApi = kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      const response = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', name)
+      return response.body as CatalogSource
+    } catch (e: any) {
+      if (e.response && e.response.statusCode === 404) {
+        return
+      }
+      throw e
     }
   }
 

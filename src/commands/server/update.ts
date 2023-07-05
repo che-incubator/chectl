@@ -192,7 +192,7 @@ export default class Update extends Command {
         cli.info(`Current channel                 : ${subscription.spec.channel}`)
         cli.info(`Current catalog source          : ${subscription.spec.source}`)
         cli.info(`Current catalog source namespace: ${subscription.spec.sourceNamespace}`)
-        if (catalogSource && !Che.isRedHatCatalogSources(catalogSource.metadata.name)) {
+        if (!Che.isRedHatCatalogSources(catalogSource?.metadata.name) && catalogSource?.spec.image) {
           cli.info(`Current catalog source image    : ${catalogSource.spec.image}`)
         }
         cli.info(`Current package name            : ${subscription.spec.name}`)
@@ -208,7 +208,7 @@ export default class Update extends Command {
       cli.info(`New channel                     : ${ctx[EclipseCheContext.CHANNEL]}`)
       cli.info(`New catalog source              : ${ctx[EclipseCheContext.CATALOG_SOURCE_NAME]}`)
       cli.info(`New catalog source namespace    : ${ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE]}`)
-      if (!Che.isRedHatCatalogSources(ctx[EclipseCheContext.CATALOG_SOURCE_NAME])) {
+      if (!Che.isRedHatCatalogSources(ctx[EclipseCheContext.CATALOG_SOURCE_NAME]) && ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE]) {
         cli.info(`New catalog source image        : ${ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE]}`)
       }
       cli.info(`New package name                : ${ctx[EclipseCheContext.PACKAGE_NAME]}`)
