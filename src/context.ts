@@ -39,7 +39,7 @@ import {
   CATALOG_SOURCE_IMAGE_FLAG,
 } from './flags'
 import {
-  getEmbeddedTemplatesDirectory,
+  getEmbeddedTemplatesDirectory, getProjectName,
   getProjectVersion,
   isCheFlavor,
   safeLoadFromYamlFile,
@@ -180,9 +180,9 @@ export namespace CheCtlContext {
     // for backward compatability
     flags[CHE_NAMESPACE_FLAG] = ctx[EclipseCheContext.NAMESPACE]
     if (ctx[InfrastructureContext.IS_OPENSHIFT]) {
-      ctx[EclipseCheContext.OPERATOR_NAMESPACE] = ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE]
+      ctx[EclipseCheContext.OPERATOR_NAMESPACE] = process.env[`${getProjectName().toUpperCase()}_OPERATOR_NAMESPACE`] || ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE]
     } else {
-      ctx[EclipseCheContext.OPERATOR_NAMESPACE] = ctx[EclipseCheContext.NAMESPACE]
+      ctx[EclipseCheContext.OPERATOR_NAMESPACE] = process.env[`${getProjectName().toUpperCase()}_OPERATOR_NAMESPACE`] || ctx[EclipseCheContext.NAMESPACE]
     }
 
     // Eclipse Che context
