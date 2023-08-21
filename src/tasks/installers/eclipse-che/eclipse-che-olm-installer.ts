@@ -25,6 +25,7 @@ import {DevWorkspaceInstallerFactory} from '../dev-workspace/dev-workspace-insta
 import {CommonTasks} from '../../common-tasks'
 import {DevWorkspace} from '../dev-workspace/dev-workspace'
 import {Che} from '../../../utils/che'
+import {PodTasks} from '../../pod-tasks'
 
 export class EclipseCheOlmInstaller implements Installer {
   getDeployTasks(): Listr.ListrTask<any> {
@@ -132,5 +133,7 @@ export class EclipseCheOlmInstaller implements Installer {
       ctx[EclipseCheContext.APPROVAL_STRATEGY],
       flags[STARTING_CSV_FLAG]
     ))
+
+    tasks.add(PodTasks.getPodStartTasks(EclipseChe.CHE_OPERATOR, EclipseChe.CHE_OPERATOR_SELECTOR, ctx[EclipseCheContext.OPERATOR_NAMESPACE]))
   }
 }
