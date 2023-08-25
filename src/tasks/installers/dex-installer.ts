@@ -24,7 +24,6 @@ import { KubeClient } from '../../api/kube-client'
 import {base64Decode, getEmbeddedTemplatesDirectory, newListr, safeLoadFromYamlFile} from '../../utils/utls'
 import { V1Certificate } from '../../api/types/cert-manager'
 import {Installer} from './installer'
-import {Che} from '../../utils/che'
 import {CHE_NAMESPACE_FLAG, DOMAIN_FLAG} from '../../flags'
 import {PlatformTasks} from '../platforms/platform-tasks'
 import {CommonTasks} from '../common-tasks'
@@ -90,7 +89,6 @@ export class DexInstaller implements Installer {
         })
         tasks.add({
           title: 'Create Certificates',
-          skip: () => Che.getTlsSecretName() === '',
           task: async (_ctx: any, task: any) => {
             const dexCaCertificateFilePath = this.getDexCaCertificateFilePath()
 
@@ -132,7 +130,6 @@ export class DexInstaller implements Installer {
         })
         tasks.add({
           title: `Create ConfigMap ${Dex.CONFIG_MAP}`,
-          skip: () => Che.getTlsSecretName() === '',
           task: async (ctx: any, task: any) => {
             const flags = CheCtlContext.getFlags()
             const dexCa = new V1ConfigMap()
