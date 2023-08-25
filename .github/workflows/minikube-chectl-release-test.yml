@@ -28,7 +28,7 @@ jobs:
     - name: Install NodeJS
       uses: actions/setup-node@v3
       with:
-        node-version: 16.13.2
+        node-version: 18.16.1
     - name: Pack chectl binaries
       run: yarn && npx oclif-dev pack --targets=linux-x64
     - name: UnPack chectl binaries in $HOME/chectl
