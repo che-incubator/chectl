@@ -12,6 +12,11 @@
 
 # Dockerfile to bootstrap build and test in openshift-ci
 
-FROM registry.access.redhat.com/ubi8/nodejs-18
-RUN npm install --global yarn
+FROM quay.io/eclipse/che-node:18.17
+
+ENV PATH=$PATH:/usr/local/go/bin
+RUN wget https://golang.org/dl/go1.18.9.linux-amd64.tar.gz && \
+  rm -rf /usr/local/go && tar -C /usr/local -xzf go1.18.9.linux-amd64.tar.gz
+
+
 
