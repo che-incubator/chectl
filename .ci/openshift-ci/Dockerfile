@@ -12,8 +12,6 @@
 
 # Dockerfile to bootstrap build and test in openshift-ci
 
-FROM registry.ci.openshift.org/openshift/release:golang-1.18
+FROM registry.access.redhat.com/ubi8/nodejs-18
+RUN npm install --global yarn
 
-RUN curl -sL https://rpm.nodesource.com/setup_18.x | bash - && \
-  yum-config-manager --add-repo https://dl.yarnpkg.com/rpm/yarn.repo && \
-  yum install -y yarn
