@@ -29,6 +29,16 @@ catchFinish() {
   exit $result
 }
 
+installNodeVersion() {
+  local version=$1
+
+  curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.35.3/install.sh | bash
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  nvm install ${version
+  nvm use ${version
+}
+
 collectEclipseCheLogs() {
   mkdir -p ${ARTIFACTS_DIR}/che-logs
   ${CHECTL_REPO}/bin/run server:logs --directory ${ARTIFACTS_DIR}/che-logs --telemetry off

@@ -48,4 +48,5 @@ EOF
   bash <(curl -s ${DEVWORKSPACE_HAPPY_PATH}/remote-launch.sh)
 }
 
+installNodeVersion 18.17.0
 runTests

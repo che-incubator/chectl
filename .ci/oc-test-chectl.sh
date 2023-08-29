@@ -23,4 +23,5 @@ runTests() {
   yarn test --coverage=false --forceExit --testRegex=${CHECTL_REPO}/test/e2e/e2e.test.ts
 }
 
+installNodeVersion 18.17.0
 runTests
