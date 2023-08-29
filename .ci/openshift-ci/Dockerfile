@@ -14,6 +14,6 @@
 
 FROM registry.ci.openshift.org/openshift/release:golang-1.18
 
-RUN curl -sL https://rpm.nodesource.com/setup_16.x | bash - && \
+RUN curl -sL https://rpm.nodesource.com/setup_18.x | bash - && \
   yum-config-manager --add-repo https://dl.yarnpkg.com/rpm/yarn.repo && \
   yum install -y yarn
