@@ -12,11 +12,8 @@
 
 # Dockerfile to bootstrap build and test in openshift-ci
 
-FROM quay.io/eclipse/che-node:18.17
+FROM registry.ci.openshift.org/openshift/release:golang-1.18
 
-ENV PATH=$PATH:/usr/local/go/bin
-RUN wget https://golang.org/dl/go1.18.9.linux-amd64.tar.gz && \
-  rm -rf /usr/local/go && tar -C /usr/local -xzf go1.18.9.linux-amd64.tar.gz
-
-
-
+RUN curl -sL https://rpm.nodesource.com/setup_16.x | bash - && \
+  yum-config-manager --add-repo https://dl.yarnpkg.com/rpm/yarn.repo && \
+  yum install -y yarn
