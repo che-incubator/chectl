@@ -38,7 +38,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v3
         with:
-          node-version: 16.13
+          node-version: 18.16.1
       - name: Check existing tags
         run: |
           set +e
