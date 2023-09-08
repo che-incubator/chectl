@@ -16,9 +16,12 @@ FROM registry.access.redhat.com/ubi9/nodejs-18:1
 USER 0
 
 # hadolint ignore=DL3041
-RUN dnf install -y -q --allowerasing --nobest nodejs-devel nodejs-libs \
+RUN dnf install -y -q --allowerasing --nobest nodejs-devel nodejs-libs python3-pip \
   # already installed or installed as deps:
   openssl openssl-devel ca-certificates make cmake cpp gcc gcc-c++ zlib zlib-devel brotli brotli-devel python3 nodejs-packaging && \
+  pip3 install --upgrade pip && \
+  pip3 install --upgrade setuptools && \
+  pip3 install yq && \
   dnf update -y && dnf clean all && \
   npm install -g yarn@1.22 npm@9 && \
   echo -n "node version: "; node -v; \
