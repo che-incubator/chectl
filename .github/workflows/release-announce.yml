@@ -10,7 +10,7 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-name: Release - announce in mattermost
+name: Release
 on:
   # Trigger the workflow on tag creation only
   push:
@@ -39,17 +39,3 @@ jobs:
           else
             echo "MM_ANNOUNCE=false" >> "$GITHUB_ENV"
           fi
-      - name: Create success MM message
-        run: |
-          echo "{\"text\":\":white_check_mark: Chectl ${{ steps.TAG_UTIL.outputs.chectl_version }} released! https://github.com/che-incubator/chectl/releases${{ steps.TAG_UTIL.outputs.gh_tag }}\"}" > mattermost.json
-      - name: Create failure message
-        if: ${{ failure() }}
-        run: |
-          echo "{\"text\":\":che-logo: Problem with chectl ${{ steps.TAG_UTIL.outputs.chectl_version }} release!\n\n \"}" > mattermost.json
-      - name: Send MM message
-        if: ${{ env.MM_ANNOUNCE == 'true' }}
-        uses: mattermost/action-mattermost-notify@1.0.2
-        env:
-          MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
-          MATTERMOST_CHANNEL: eclipse-che-releases
-          MATTERMOST_USERNAME: che-bot
