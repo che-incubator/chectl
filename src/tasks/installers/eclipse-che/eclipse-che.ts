@@ -79,7 +79,9 @@ export namespace EclipseChe {
   export const PLUGIN_REGISTRY_DEPLOYMENT_NAME = 'plugin-registry'
 
   // Selectors
-  export const CHE_OPERATOR_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=${CHE_FLAVOR}-operator`
+  // It must be `app=`, see: https://issues.redhat.com/browse/CRW-4848
+  export const CHE_OPERATOR_SELECTOR = `app=${CHE_FLAVOR}-operator,app.kubernetes.io/component=${CHE_FLAVOR}-operator`
+
   export const CHE_SERVER_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=${CHE_FLAVOR}`
   export const DASHBOARD_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=${CHE_FLAVOR}-dashboard`
   export const DEVFILE_REGISTRY_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=devfile-registry`
