@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019-2021 Red Hat, Inc.
+# Copyright (c) 2019-2023 Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -9,19 +9,26 @@
 # Contributors:
 #   Red Hat, Inc. - initial API and implementation
 #
-
 schemaVersion: 2.1.0
-
 metadata:
   name: chectl-dev
-
 components:
   - name: tooling-container
-    container: 
+    container:
       image: 'quay.io/devfile/universal-developer-image:ubi8-latest'
       cpuLimit: 500m
       cpuRequest: 500m
       memoryLimit: 5G
       memoryRequest: 1G
-
-
+commands:
+  - id: 1-build-chectl
+    exec:
+      label: "Build chectl"
+      component: tools
+      group:
+        kind: build
+      workingDir: ${PROJECT_SOURCE}
+      commandLine: >-
+        yarn && yarn pack-binaries
+# optional other flags to pass include:
+# --targets=linux-x64,arm64,...
