@@ -107,7 +107,7 @@
         },
         {
             "label": "Update README.md",
-            "command": "yarn oclif-dev readme",
+            "command": "yarn oclif readme",
             "type": "shell",
             "args": [],
             "problemMatcher": [

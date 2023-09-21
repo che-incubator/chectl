@@ -64,11 +64,11 @@ Testing summary will be printed to the output.
 To test ensure `chectl` is built successfully, launch the `[Chectl] Run` command. It wil run `chectl` with `--help` directive.
 
 ## Package binaries
-For packaging binaries, [oclif](https://github.com/oclif/dev-cli) is used. It generates packages for Linux, Windows, and MacOS operating systems and puts the result in the `dist/channels/stable` directory.
+For packaging binaries, [oclif](https://github.com/oclif/dev-cli) is used. It generates packages for Linux, Windows, and MacOS operating systems and puts the result in the `dist/` directory.
 To start packaging, just run the `[Chectl] Package Binaries` command. It will run the following in the `/projects/chectl` directory:
 
 ```bash
-yarn oclif-dev pack
+yarn oclif pack tarballs --no-xz --parallel
 ```
 
 > Note: you need to build your `chectl` before by `yarn` command, or install all node packages by running `npm install` in `/projects/chectl` directory.

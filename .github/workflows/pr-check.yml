@@ -25,7 +25,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.16.1
-      - name: Build chectl
+      - name: Install yarn deps
         run: yarn
       - name: Run eslint
         run: yarn lint
@@ -43,16 +43,16 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.16.1
-      - name: Build chectl
-        run: yarn
+      - name: Build chectl and pack binaries
+        run: yarn && yarn pack-binaries --targets=linux-x64
       - name: Build README.md
-        run: yarn oclif-dev readme
+        run: DEBUG=* npx oclif readme
       - name: Check README.md state
         run: |
           IFS=$'\n' read -d '' -r -a FILES_CHANGED_ARRAY < <( git ls-files -m ) || true
           # check if readme it is up to date
           if [[ " ${FILES_CHANGED_ARRAY[@]} " =~ "README.md" ]]; then
-            echo "[ERROR] README.md it is not up to date. Please run 'yarn oclif-dev readme' to update and commit the changes."
+            echo "[ERROR] README.md it is not up to date. Please run 'yarn oclif readme' to update and commit the changes."
             exit 1
           fi
   license-validation:

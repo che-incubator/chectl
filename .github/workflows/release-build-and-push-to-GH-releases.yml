@@ -59,13 +59,13 @@ jobs:
           git tag ${{ steps.TAG_UTIL.outputs.gh_tag }}
 
           TARGETS=linux-arm,linux-x64,linux-s390x,linux-ppc64le,darwin-x64,darwin-arm64,win32-x64,win32-x86
-          npx oclif-dev pack --targets=$TARGETS
+          yarn prepack && yarn pack-binaries --targets=$TARGETS
       - name: Create Release and push artifacts
         uses: softprops/action-gh-release@v1
         with:
           name: ${{ steps.TAG_UTIL.outputs.gh_release_name }}
           tag_name: ${{ steps.TAG_UTIL.outputs.gh_tag }}
-          files: "./dist/channels/**/chectl-*.gz"
+          files: "./dist/chectl-*.gz"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Update github pages
