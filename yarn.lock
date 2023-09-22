@@ -1780,10 +1780,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/node@*", "@types/node@>= 8", "@types/node@^18":
-  version "18.15.2"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.15.2.tgz#0407ceb15647f186318101546d5ae40725b73810"
-  integrity sha512-sDPHm2wfx2QhrMDK0pOt2J4KLJMAcerqWNvnED0itPRJWvI+bK+uNHzcH1dFsBlf7G3u8tqXmRF3wkvL9yUwMw==
+"@types/node@*", "@types/node@>= 8", "@types/node@^20":
+  version "20.6.3"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.6.3.tgz#5b763b321cd3b80f6b8dde7a37e1a77ff9358dd9"
+  integrity sha512-HksnYH4Ljr4VQgEy2lTStbCKv/P590tmPe5HqOnv9Gprffgv5WXAY+Y5Gqniu0GGqeTCUdBnzC3QSrzPkBkAMA==
 
 "@types/node@^10.12.0":
   version "10.17.35"
@@ -3826,7 +3826,7 @@ extsprintf@^1.2.0:
   resolved "https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.4.0.tgz#e2689f8f356fad62cca65a3a91c5df5f9551692f"
   integrity sha1-4mifjzVvrWLMplo6kcXfX5VRaS8=
 
-fancy-test@^2.0.12, fancy-test@^2.0.25:
+fancy-test@^2.0.25:
   version "2.0.25"
   resolved "https://registry.yarnpkg.com/fancy-test/-/fancy-test-2.0.25.tgz#9a0578a4820460cb2c1250dfb48d4664ca59c83a"
   integrity sha512-4OKW+SC62aP3Y19YlCWxjKJD0iW4kjLqUvdd9OaW1lM7Co/FX3PTi2NHguzsj2vmPs/6mMITKu0saYAr2uZA4g==
