@@ -24,7 +24,7 @@
     "countries-and-timezones": "^3.4.1",
     "devworkspace-operator": "https://github.com/devfile/devworkspace-operator#main",
     "eclipse-che-operator": "https://github.com/eclipse-che/che-operator#main",
-    "execa": "^5.1.1",
+    "execa": "^8.0.1",
     "fancy-test": "^2.0.25",
     "fs-extra": "^11.1.0",
     "getos": "^3.2.1",
