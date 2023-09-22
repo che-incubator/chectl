@@ -28,13 +28,12 @@ jobs:
     - name: Install NodeJS
       uses: actions/setup-node@v3
       with:
-        node-version: 16.13.2
-    - name: Pack chectl binaries
-      run: yarn && npx oclif-dev pack --targets=linux-x64
-    - name: UnPack chectl binaries in $HOME/chectl
+        node-version: 18.16.1
+    - name: Pack chectl binary (single arch target)
+      run: yarn && yarn prepack && yarn pack-binaries --targets=linux-x64
+    - name: Unpack chectl tarball to $HOME/chectl
       run: |
-        # Will unpack chectl binaries in $HOME/chectl
-        tar -xvf dist/channels/*/chectl-linux-x64.tar.gz -C $HOME
+        tar -xvf $(find dist/ -name "chectl*linux-x64.tar.gz" | head -1) -C $HOME
         echo "$HOME/chectl/bin" >> $GITHUB_PATH
         rm -rf tmp/
     - name: Run tests

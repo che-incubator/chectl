@@ -197,7 +197,7 @@ export namespace CommonTasks {
       title: 'OpenShift version',
       enabled: (ctx: any) => ctx[InfrastructureContext.IS_OPENSHIFT],
       task: async (ctx: any, task: any) => {
-        task.title = `${task.title}: [${ctx[InfrastructureContext.OPENSHIFT_VERSION]}]`
+        task.title = `${task.title}...[${ctx[InfrastructureContext.OPENSHIFT_VERSION]}]`
       },
     }
   }

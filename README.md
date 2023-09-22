@@ -1,7 +1,7 @@
 chectl
 ======
 
-[Eclipse Che](https://github.com/eclipse/che/) CLI
+[Eclipse Che®](https://github.com/eclipse/che/) CLI
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![codecov](https://codecov.io/gh/che-incubator/chectl/branch/main/graph/badge.svg?token=ZBQtKMeiYu)](https://codecov.io/gh/che-incubator/chectl)
@@ -10,7 +10,7 @@ chectl
 
 ## Report issues
 
-Issues are tracked on the main Eclipse Che Repository: https://github.com/eclipse/che/issues
+Issues are tracked on the main Eclipse Che® Repository: https://github.com/eclipse/che/issues
 
 [![New questions](https://img.shields.io/badge/New-question-blue.svg?style=flat-curved)](https://github.com/eclipse/che/issues/new?labels=area/chectl,kind/question)
 [![New bug](https://img.shields.io/badge/New-bug-red.svg?style=flat-curved)](https://github.com/eclipse/che/issues/new?labels=area/chectl,kind/bug)
@@ -25,12 +25,13 @@ Issues are tracked on the main Eclipse Che Repository: https://github.com/eclips
 * [Contributing](#contributing)
 * [Builds](#builds)
 * [License](#license)
+* [Trademark](#trademark)
 <!-- tocstop -->
 # Installation
 
 There are two channels of `chectl`: `stable` and `next`
 
-Stable is for all tagged versions of Eclipse Che. Next is updated after each commit/Pull Request being merged in main branch of the [Chectl repository](https://github.com/che-incubator/chectl).
+Stable is for all tagged versions of Eclipse Che®. Next is updated after each commit/Pull Request being merged in main branch of the [Chectl repository](https://github.com/che-incubator/chectl).
 
 If you're using Windows x64, here is how to install chectl by using one single PowerShell command:
 
@@ -115,18 +116,24 @@ display autocomplete installation instructions
 
 ```
 USAGE
-  $ chectl autocomplete [SHELL]
+  $ chectl autocomplete [SHELL] [-r]
 
 ARGUMENTS
   SHELL  shell type
 
-OPTIONS
+FLAGS
   -r, --refresh-cache  Refresh cache (ignores displaying instructions)
+
+DESCRIPTION
+  display autocomplete installation instructions
 
 EXAMPLES
   $ chectl autocomplete
+
   $ chectl autocomplete bash
+
   $ chectl autocomplete zsh
+
   $ chectl autocomplete --refresh-cache
 ```
 
@@ -138,10 +145,10 @@ Retrieves Eclipse Che self-signed certificate
 
 ```
 USAGE
-  $ chectl cacert:export
+  $ chectl cacert:export [-h] [-n <value>] [--telemetry on|off] [-d <value>]
 
-OPTIONS
-  -d, --destination=destination
+FLAGS
+  -d, --destination=<value>
       Destination where to store Eclipse Che self-signed CA certificate.
       If the destination is a file (might not exist), then the certificate will be saved there in PEM format.
       If the destination is a directory, then cheCA.crt file will be created there with Eclipse Che certificate in PEM
@@ -151,11 +158,15 @@ OPTIONS
   -h, --help
       show CLI help
 
-  -n, --chenamespace=chenamespace
+  -n, --chenamespace=<value>
       Eclipse Che Kubernetes namespace.
 
-  --telemetry=on|off
+  --telemetry=<option>
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+      <options: on|off>
+
+DESCRIPTION
+  Retrieves Eclipse Che self-signed certificate
 ```
 
 _See code: [src/commands/cacert/export.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/cacert/export.ts)_
@@ -166,12 +177,16 @@ Open Eclipse Che dashboard
 
 ```
 USAGE
-  $ chectl dashboard:open
+  $ chectl dashboard:open [-h] [-n <value>] [--telemetry on|off]
 
-OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace.
-  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+FLAGS
+  -h, --help                  show CLI help
+  -n, --chenamespace=<value>  Eclipse Che Kubernetes namespace.
+  --telemetry=<option>        Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+                              <options: on|off>
+
+DESCRIPTION
+  Open Eclipse Che dashboard
 ```
 
 _See code: [src/commands/dashboard/open.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/dashboard/open.ts)_
@@ -182,13 +197,16 @@ Display help for chectl.
 
 ```
 USAGE
-  $ chectl help [COMMANDS]
+  $ chectl help [COMMANDS] [-n]
 
 ARGUMENTS
   COMMANDS  Command to show help for.
 
-OPTIONS
+FLAGS
   -n, --nested-commands  Include all nested commands in the output.
+
+DESCRIPTION
+  Display help for chectl.
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.2.0/src/commands/help.ts)_
@@ -199,14 +217,19 @@ Enable local debug of Eclipse Che server
 
 ```
 USAGE
-  $ chectl server:debug
+  $ chectl server:debug [-h] [--debug-port <value>] [-n <value>] [--telemetry on|off]
+    [--skip-kubernetes-health-check]
 
-OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace.
-  --debug-port=debug-port          [default: 8000] Eclipse Che server debug port
-  --skip-kubernetes-health-check   Skip Kubernetes health check
-  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+FLAGS
+  -h, --help                      show CLI help
+  -n, --chenamespace=<value>      Eclipse Che Kubernetes namespace.
+  --debug-port=<value>            [default: 8000] Eclipse Che server debug port
+  --skip-kubernetes-health-check  Skip Kubernetes health check
+  --telemetry=<option>            Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+                                  <options: on|off>
+
+DESCRIPTION
+  Enable local debug of Eclipse Che server
 ```
 
 _See code: [src/commands/server/debug.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/debug.ts)_
@@ -217,24 +240,23 @@ delete any Eclipse Che related resource
 
 ```
 USAGE
-  $ chectl server:delete
+  $ chectl server:delete [-h] [-n <value>] [--delete-all] [--delete-namespace] [--telemetry on|off]
+    [--skip-kubernetes-health-check] [-y | --batch]
 
-OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace.
+FLAGS
+  -h, --help                      show CLI help
+  -n, --chenamespace=<value>      Eclipse Che Kubernetes namespace.
+  -y, --yes                       Automatic yes to prompts; assume "yes" as answer to all prompts and run
+                                  non-interactively
+  --batch                         Batch mode. Running a command without end user interaction.
+  --delete-all                    Indicates to delete Eclipse Che and Dev Workspace related resources
+  --delete-namespace              Indicates that a Eclipse Che namespace will be deleted as well
+  --skip-kubernetes-health-check  Skip Kubernetes health check
+  --telemetry=<option>            Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+                                  <options: on|off>
 
-  -y, --yes                        Automatic yes to prompts; assume "yes" as answer to all prompts and run
-                                   non-interactively
-
-  --batch                          Batch mode. Running a command without end user interaction.
-
-  --delete-all                     Indicates to delete Eclipse Che and Dev Workspace related resources
-
-  --delete-namespace               Indicates that a Eclipse Che namespace will be deleted as well
-
-  --skip-kubernetes-health-check   Skip Kubernetes health check
-
-  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+DESCRIPTION
+  delete any Eclipse Che related resource
 ```
 
 _See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/delete.ts)_
@@ -245,10 +267,18 @@ Deploy Eclipse Che server
 
 ```
 USAGE
-  $ chectl server:deploy
+  $ chectl server:deploy -p minikube|k8s|openshift|microk8s|docker-desktop|crc [-h] [-n <value>] [--batch] [-i
+    <value>] [-t <value>] [--devfile-registry-url <value>] [--plugin-registry-url <value>] [--k8spodwaittimeout <value>]
+    [--k8spodreadytimeout <value>] [--k8spoddownloadimagetimeout <value>] [--k8spoderrorrechecktimeout <value>] [-d
+    <value>] [-b <value>] [--debug] [--che-operator-image <value>] [--che-operator-cr-yaml <value>]
+    [--che-operator-cr-patch-yaml <value>] [--workspace-pvc-storage-class-name <value>] [--skip-version-check]
+    [--skip-cert-manager] [--skip-devworkspace-operator] [--skip-oidc-provider-check] [--auto-update] [--starting-csv
+    <value>] [--package-manifest-name <value>] [--catalog-source-yaml <value> --olm-channel <value>]
+    [--catalog-source-name <value> --catalog-source-namespace <value> ] [--catalog-source-image <value> ]
+    [--cluster-monitoring] [--telemetry on|off] [--skip-kubernetes-health-check]
 
-OPTIONS
-  -b, --domain=domain
+FLAGS
+  -b, --domain=<value>
       Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
       This flag makes sense only for Kubernetes family infrastructures and will be autodetected for Minikube and MicroK8s
       in most cases.
@@ -257,87 +287,88 @@ OPTIONS
       According changes should be done in Kubernetes cluster configuration as well.
       In case of Openshift, domain adjustment should be done on the cluster configuration level.
 
-  -d, --directory=directory
+  -d, --directory=<value>
       Directory to store logs into
 
   -h, --help
       show CLI help
 
-  -i, --cheimage=cheimage
+  -i, --cheimage=<value>
       Eclipse Che server container image
 
-  -n, --chenamespace=chenamespace
+  -n, --chenamespace=<value>
       Eclipse Che Kubernetes namespace.
 
-  -p, --platform=minikube|k8s|openshift|microk8s|docker-desktop|crc
+  -p, --platform=<option>
       (required) Type of Kubernetes platform.
+      <options: minikube|k8s|openshift|microk8s|docker-desktop|crc>
 
-  -t, --templates=templates
+  -t, --templates=<value>
       Path to the templates folder
 
   --[no-]auto-update
       Auto update approval strategy for installation Eclipse Che.
       With this strategy will be provided auto-update Eclipse Che without any human interaction.
       By default this flag is enabled.
-      This parameter is used only when the installer is 'olm'.
 
   --batch
       Batch mode. Running a command without end user interaction.
 
-  --catalog-source-name=catalog-source-name
-      OLM catalog source to install Eclipse Che operator.
-      This parameter is used only when the installer is the 'olm'.
+  --catalog-source-image=<value>
+      OLM catalog source image or index bundle (IIB) from which to install the Eclipse Che operator.
 
-  --catalog-source-namespace=catalog-source-namespace
+  --catalog-source-name=<value>
+      Name of the OLM catalog source or index bundle (IIB) from which to install Eclipse Che operator.
+
+  --catalog-source-namespace=<value>
       Namespace for OLM catalog source to install Eclipse Che operator.
-      This parameter is used only when the installer is the 'olm'.
 
-  --catalog-source-yaml=catalog-source-yaml
+  --catalog-source-yaml=<value>
       Path to a yaml file that describes custom catalog source for installation Eclipse Che operator.
       Catalog source will be applied to the namespace with Eclipse Che operator.
       Also you need define 'olm-channel' name and 'package-manifest-name'.
-      This parameter is used only when the installer is the 'olm'.
 
-  --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
+  --che-operator-cr-patch-yaml=<value>
       Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used
       only when the installer is the 'operator' or the 'olm'.
 
-  --che-operator-cr-yaml=che-operator-cr-yaml
-      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer
-      is the 'operator' or the 'olm'.
+  --che-operator-cr-yaml=<value>
+      Path to a yaml file that defines a CheCluster used by the operator.
 
-  --che-operator-image=che-operator-image
-      Container image of the operator. This parameter is used only when the installer is the operator or OLM.
+  --che-operator-image=<value>
+      Container image of the operator.
+
+  --cluster-monitoring
+      Enable cluster monitoring to scrape Eclipse Che metrics in Prometheus.
+      This parameter is used only when the platform is 'openshift'.
 
   --debug
       'Enables the debug mode for Eclipse Che server. To debug Eclipse Che server from localhost use 'server:debug'
       command.'
 
-  --devfile-registry-url=devfile-registry-url
+  --devfile-registry-url=<value>
       The URL of the external Devfile registry.
 
-  --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout
+  --k8spoddownloadimagetimeout=<value>
       [default: 1200000] Waiting time for Pod downloading image (in milliseconds)
 
-  --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout
+  --k8spoderrorrechecktimeout=<value>
       [default: 60000] Waiting time for Pod rechecking error (in milliseconds)
 
-  --k8spodreadytimeout=k8spodreadytimeout
+  --k8spodreadytimeout=<value>
       [default: 60000] Waiting time for Pod Ready condition (in milliseconds)
 
-  --k8spodwaittimeout=k8spodwaittimeout
+  --k8spodwaittimeout=<value>
       [default: 60000] Waiting time for Pod scheduled condition (in milliseconds)
 
-  --olm-channel=olm-channel
+  --olm-channel=<value>
       Olm channel to install Eclipse Che, f.e. stable.
       If options was not set, will be used default version for package manifest.
-      This parameter is used only when the installer is the 'olm'.
 
-  --package-manifest-name=package-manifest-name
+  --package-manifest-name=<value>
       Package manifest name to subscribe to Eclipse Che OLM package manifest.
-      This parameter is used only when the installer is the 'olm'.
 
-  --plugin-registry-url=plugin-registry-url
+  --plugin-registry-url=<value>
       The URL of the external plugin registry.
 
   --skip-cert-manager
@@ -355,20 +386,23 @@ OPTIONS
   --skip-version-check
       Skip minimal versions check.
 
-  --starting-csv=starting-csv
+  --starting-csv=<value>
       Starting cluster service version(CSV) for installation Eclipse Che.
       Flags uses to set up start installation version Che.
       For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
       Then OLM will install Eclipse Che with version 7.10.0.
       Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known
       version.
-      This parameter is used only when the installer is 'olm'.
 
-  --telemetry=on|off
+  --telemetry=<option>
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+      <options: on|off>
 
-  --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
+  --workspace-pvc-storage-class-name=<value>
       persistent volume(s) storage class name to use to store Eclipse Che workspaces data
+
+DESCRIPTION
+  Deploy Eclipse Che server
 ```
 
 _See code: [src/commands/server/deploy.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/deploy.ts)_
@@ -379,14 +413,18 @@ Collect Eclipse Che logs
 
 ```
 USAGE
-  $ chectl server:logs
+  $ chectl server:logs [-h] [-d <value>] [-n <value>] [--telemetry on|off] [--skip-kubernetes-health-check]
 
-OPTIONS
-  -d, --directory=directory        Directory to store logs into
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace.
-  --skip-kubernetes-health-check   Skip Kubernetes health check
-  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+FLAGS
+  -d, --directory=<value>         Directory to store logs into
+  -h, --help                      show CLI help
+  -n, --chenamespace=<value>      Eclipse Che Kubernetes namespace.
+  --skip-kubernetes-health-check  Skip Kubernetes health check
+  --telemetry=<option>            Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+                                  <options: on|off>
+
+DESCRIPTION
+  Collect Eclipse Che logs
 ```
 
 _See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/logs.ts)_
@@ -397,30 +435,26 @@ Start Eclipse Che server
 
 ```
 USAGE
-  $ chectl server:start
+  $ chectl server:start [-h] [-n <value>] [--telemetry on|off] [--skip-kubernetes-health-check] [--batch]
+    [--k8spodwaittimeout <value>] [--k8spodreadytimeout <value>] [--k8spoddownloadimagetimeout <value>]
+    [--k8spoderrorrechecktimeout <value>] [-d <value>]
 
-OPTIONS
-  -d, --directory=directory                                Directory to store logs into
-  -h, --help                                               show CLI help
-  -n, --chenamespace=chenamespace                          Eclipse Che Kubernetes namespace.
-  --batch                                                  Batch mode. Running a command without end user interaction.
+FLAGS
+  -d, --directory=<value>               Directory to store logs into
+  -h, --help                            show CLI help
+  -n, --chenamespace=<value>            Eclipse Che Kubernetes namespace.
+  --batch                               Batch mode. Running a command without end user interaction.
+  --k8spoddownloadimagetimeout=<value>  [default: 1200000] Waiting time for Pod downloading image (in milliseconds)
+  --k8spoderrorrechecktimeout=<value>   [default: 60000] Waiting time for Pod rechecking error (in milliseconds)
+  --k8spodreadytimeout=<value>          [default: 60000] Waiting time for Pod Ready condition (in milliseconds)
+  --k8spodwaittimeout=<value>           [default: 60000] Waiting time for Pod scheduled condition (in milliseconds)
+  --skip-kubernetes-health-check        Skip Kubernetes health check
+  --telemetry=<option>                  Enable or disable telemetry. This flag skips a prompt and enable/disable
+                                        telemetry
+                                        <options: on|off>
 
-  --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 1200000] Waiting time for Pod downloading image (in
-                                                           milliseconds)
-
-  --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout    [default: 60000] Waiting time for Pod rechecking error (in
-                                                           milliseconds)
-
-  --k8spodreadytimeout=k8spodreadytimeout                  [default: 60000] Waiting time for Pod Ready condition (in
-                                                           milliseconds)
-
-  --k8spodwaittimeout=k8spodwaittimeout                    [default: 60000] Waiting time for Pod scheduled condition (in
-                                                           milliseconds)
-
-  --skip-kubernetes-health-check                           Skip Kubernetes health check
-
-  --telemetry=on|off                                       Enable or disable telemetry. This flag skips a prompt and
-                                                           enable/disable telemetry
+DESCRIPTION
+  Start Eclipse Che server
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
@@ -431,12 +465,16 @@ Status Eclipse Che server
 
 ```
 USAGE
-  $ chectl server:status
+  $ chectl server:status [-h] [-n <value>] [--telemetry on|off]
 
-OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace.
-  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+FLAGS
+  -h, --help                  show CLI help
+  -n, --chenamespace=<value>  Eclipse Che Kubernetes namespace.
+  --telemetry=<option>        Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+                              <options: on|off>
+
+DESCRIPTION
+  Status Eclipse Che server
 ```
 
 _See code: [src/commands/server/status.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/status.ts)_
@@ -447,13 +485,17 @@ stop Eclipse Che server
 
 ```
 USAGE
-  $ chectl server:stop
+  $ chectl server:stop [-h] [-n <value>] [--telemetry on|off] [--skip-kubernetes-health-check]
 
-OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Eclipse Che Kubernetes namespace.
-  --skip-kubernetes-health-check   Skip Kubernetes health check
-  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+FLAGS
+  -h, --help                      show CLI help
+  -n, --chenamespace=<value>      Eclipse Che Kubernetes namespace.
+  --skip-kubernetes-health-check  Skip Kubernetes health check
+  --telemetry=<option>            Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+                                  <options: on|off>
+
+DESCRIPTION
+  stop Eclipse Che server
 ```
 
 _See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
@@ -464,43 +506,114 @@ Update Eclipse Che server.
 
 ```
 USAGE
-  $ chectl server:update
+  $ chectl server:update [-h] [-n <value>] [-y | --batch] [-t <value>] [--che-operator-image <value>]
+    [--che-operator-cr-patch-yaml <value>] [--skip-devworkspace-operator] [--skip-kubernetes-health-check]
+    [--skip-version-check] [--telemetry on|off] [--package-manifest-name <value>] [--catalog-source-namespace <value>
+    --catalog-source-name <value> --olm-channel <value>] [--catalog-source-yaml <value> ] [--catalog-source-image
+    <value> ] [--auto-update] [--starting-csv <value>]
 
-OPTIONS
-  -h, --help                                               show CLI help
-  -n, --chenamespace=chenamespace                          Eclipse Che Kubernetes namespace.
-  -t, --templates=templates                                Path to the templates folder
+FLAGS
+  -h, --help
+      show CLI help
 
-  -y, --yes                                                Automatic yes to prompts; assume "yes" as answer to all
-                                                           prompts and run non-interactively
+  -n, --chenamespace=<value>
+      Eclipse Che Kubernetes namespace.
 
-  --batch                                                  Batch mode. Running a command without end user interaction.
+  -t, --templates=<value>
+      Path to the templates folder
 
-  --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml  Path to a yaml file that overrides the default values in
-                                                           CheCluster CR used by the operator. This parameter is used
-                                                           only when the installer is the 'operator' or the 'olm'.
+  -y, --yes
+      Automatic yes to prompts; assume "yes" as answer to all prompts and run non-interactively
 
-  --che-operator-image=che-operator-image                  Container image of the operator. This parameter is used only
-                                                           when the installer is the operator or OLM.
+  --[no-]auto-update
+      Auto update approval strategy for installation Eclipse Che.
+      With this strategy will be provided auto-update Eclipse Che without any human interaction.
+      By default this flag is enabled.
 
-  --skip-devworkspace-operator                             Skip installing Dev Workspace Operator.
+  --batch
+      Batch mode. Running a command without end user interaction.
 
-  --skip-kubernetes-health-check                           Skip Kubernetes health check
+  --catalog-source-image=<value>
+      OLM catalog source image or index bundle (IIB) from which to install the Eclipse Che operator.
 
-  --skip-version-check                                     Skip minimal versions check.
+  --catalog-source-name=<value>
+      Name of the OLM catalog source or index bundle (IIB) from which to install Eclipse Che operator.
 
-  --telemetry=on|off                                       Enable or disable telemetry. This flag skips a prompt and
-                                                           enable/disable telemetry
+  --catalog-source-namespace=<value>
+      Namespace for OLM catalog source to install Eclipse Che operator.
+
+  --catalog-source-yaml=<value>
+      Path to a yaml file that describes custom catalog source for installation Eclipse Che operator.
+      Catalog source will be applied to the namespace with Eclipse Che operator.
+      Also you need define 'olm-channel' name and 'package-manifest-name'.
+
+  --che-operator-cr-patch-yaml=<value>
+      Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used
+      only when the installer is the 'operator' or the 'olm'.
+
+  --che-operator-image=<value>
+      Container image of the operator.
+
+  --olm-channel=<value>
+      Olm channel to install Eclipse Che, f.e. stable.
+      If options was not set, will be used default version for package manifest.
+
+  --package-manifest-name=<value>
+      Package manifest name to subscribe to Eclipse Che OLM package manifest.
+
+  --skip-devworkspace-operator
+      Skip installing Dev Workspace Operator.
+
+  --skip-kubernetes-health-check
+      Skip Kubernetes health check
+
+  --skip-version-check
+      Skip minimal versions check.
+
+  --starting-csv=<value>
+      Starting cluster service version(CSV) for installation Eclipse Che.
+      Flags uses to set up start installation version Che.
+      For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
+      Then OLM will install Eclipse Che with version 7.10.0.
+      Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known
+      version.
+
+  --telemetry=<option>
+      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+      <options: on|off>
+
+DESCRIPTION
+  Update Eclipse Che server.
 
 EXAMPLES
   # Update Eclipse Che:
-  chectl server:update
+
+    $ chectl server:update
 
   # Update Eclipse Che in 'eclipse-che' namespace:
-  chectl server:update -n eclipse-che
+
+    $ chectl server:update -n eclipse-che
 
   # Update Eclipse Che and update its configuration in the custom resource:
-  chectl server:update --che-operator-cr-patch-yaml patch.yaml
+
+    $ chectl server:update --che-operator-cr-patch-yaml patch.yaml
+
+  # Update Eclipse Che from the provided channel:
+
+    $ chectl server:update --olm-channel next
+
+  # Update Eclipse Che from the provided CatalogSource and channel:
+
+    $ chectl server:update --olm-channel fast --catalog-source-name MyCatalogName --catalog-source-namespace \
+      MyCatalogNamespace
+
+  # Create CatalogSource based on provided image and update Eclipse Che from it:
+
+    $ chectl server:update --olm-channel latest --catalog-source-image MyCatalogImage
+
+  # Create a CatalogSource defined in yaml file and update Eclipse Che from it:
+
+    $ chectl server:update --olm-channel stable --catalog-source-yaml PATH_TO_CATALOG_SOURCE_YAML
 ```
 
 _See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_
@@ -511,10 +624,13 @@ update the chectl CLI
 
 ```
 USAGE
-  $ chectl update [CHANNEL]
+  $ chectl update [CHANNEL] [--from-local]
 
-OPTIONS
+FLAGS
   --from-local  interactively choose an already installed version
+
+DESCRIPTION
+  update the chectl CLI
 ```
 
 _See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.5.0/src/commands/update.ts)_
@@ -543,4 +659,8 @@ See also:
 
 # License
 
-Che is open sourced under the Eclipse Public License 2.0.
+Eclipse Che® is open sourced under the Eclipse Public License 2.0.
+
+# Trademark
+
+"Che" is a trademark of the Eclipse Foundation.

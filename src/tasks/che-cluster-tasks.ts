@@ -75,7 +75,7 @@ export namespace CheClusterTasks {
         }
 
         if (!ctx[InfrastructureContext.IS_OPENSHIFT]) {
-          if (!cheCluster.spec?.networking?.tlsSecretName) {
+          if (cheCluster.spec?.networking?.tlsSecretName === undefined) {
             merge(cheCluster, { spec: { networking: { tlsSecretName: EclipseChe.CHE_TLS_SECRET_NAME } } })
           }
           if (flags[DOMAIN_FLAG]) {

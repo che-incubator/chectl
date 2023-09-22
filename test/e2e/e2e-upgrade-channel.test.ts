@@ -12,18 +12,31 @@
 
 // tslint:disable: no-console
 import { E2eHelper, NAMESPACE } from './util'
+import {EclipseChe} from "../../src/tasks/installers/eclipse-che/eclipse-che";
 
 const helper = new E2eHelper()
 jest.setTimeout(1000000)
 
 const PLATFORM = process.env.PLATFORM || 'minikube'
 
-const UPDATE_CHE_TIMEOUT_MS = 10 * 60 * 1000
-const CHE_VERSION_TIMEOUT_MS = 10 * 60 * 1000
+const TIMEOUT_MS = 15 * 60 * 1000
 
-describe('Test Che upgrade', () => {
-  describe('Prepare latest stable Che', () => {
-    it(`Deploy Che using operator installer and self signed certificates`, async () => {
+describe('Upgrade channel test', () => {
+  describe('Deploy Eclipse Che from stable channel and then upgrade to next ', () => {
+    it(`Deploy Eclipse Che from stable channel`, async () => {
+      const binChectl = E2eHelper.getChectlBinaries()
+      await helper.runCliCommand(binChectl, [
+        'server:deploy',
+        '--batch',
+        `--platform=${PLATFORM}`,
+        `--chenamespace=${EclipseChe.NAMESPACE}`,
+        '--che-operator-cr-patch-yaml=test/e2e/resources/minikube-checluster-patch.yaml',
+        '--telemetry=off',
+        '--k8spodwaittimeout=120000',
+        '--k8spodreadytimeout=120000',
+      ])
+
+      await helper.waitForCheServerImageTag(helper.getNewVersion(), TIMEOUT_MS)
       // uses installed chectl (from a stable channel)
       // see github workflow
       let deployCommand = `chectl server:deploy --batch --platform=${PLATFORM} --chenamespace=${NAMESPACE} --telemetry=off`
@@ -32,20 +45,22 @@ describe('Test Che upgrade', () => {
       }
       await helper.runCliCommand(deployCommand)
     })
-  })
 
-  describe('Test Che update', () => {
-    it('Update Eclipse Che Version', async () => {
+    it('Upgrade Eclipse Che to next channel', async () => {
       const binChectl = E2eHelper.getChectlBinaries()
       // scale deployments down to free up some resources
       await helper.runCliCommand('kubectl', ['scale', 'deployment', 'che', '--replicas=0', `-n ${NAMESPACE}`])
 
-      await helper.runCliCommand(binChectl, ['server:update', '-y', `-n ${NAMESPACE}`, '--telemetry=off'])
-      await helper.waitForCheServerImageTag(helper.getNewVersion(), UPDATE_CHE_TIMEOUT_MS)
+      await helper.runCliCommand(binChectl, [
+        'server:update',
+        '--batch',
+        '--olm-channel=next',
+        '--telemetry=off'
+      ])
     })
 
-    it('Check updated Che version', async () => {
-        await helper.waitForVersionInCheCR(helper.getNewVersion(), CHE_VERSION_TIMEOUT_MS)
+    it('Check Eclipse Che version', async () => {
+      await helper.waitForVersionInCheCR(helper.getNewVersion(), TIMEOUT_MS)
     })
   })
 })

@@ -24,6 +24,7 @@ import {
   CHE_OPERATOR_CR_PATCH_YAML_FLAG,
   CHE_OPERATOR_CR_YAML_FLAG,
   DEFAULT_K8S_POD_DOWNLOAD_IMAGE_TIMEOUT,
+  DEFAULT_K8S_POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY,
   DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT,
   DEFAULT_K8S_POD_READY_TIMEOUT,
   DEFAULT_POD_WAIT_TIMEOUT,
@@ -34,16 +35,22 @@ import {
   LOG_DIRECTORY_FLAG,
   OLM_CHANNEL_FLAG,
   PACKAGE_MANIFEST_FLAG,
-  STARTING_CSV_FLAG,
   TEMPLATES_FLAG,
+  CATALOG_SOURCE_IMAGE_FLAG,
 } from './flags'
-import {getEmbeddedTemplatesDirectory, getProjectVersion, isCheFlavor, safeLoadFromYamlFile} from './utils/utls'
+import {
+  getEmbeddedTemplatesDirectory, getProjectName,
+  getProjectVersion,
+  isCheFlavor,
+  safeLoadFromYamlFile,
+} from './utils/utls'
 
 import {DevWorkspace} from './tasks/installers/dev-workspace/dev-workspace'
 import {EclipseChe} from './tasks/installers/eclipse-che/eclipse-che'
 import * as fs from 'fs-extra'
 import * as execa from 'execa'
 import {CheCluster} from './api/types/che-cluster'
+import {CatalogSource} from './api/types/olm'
 
 export namespace InfrastructureContext {
   export const IS_OPENSHIFT = 'infrastructure-is-openshift'
@@ -95,7 +102,7 @@ export namespace EclipseCheContext {
   export const DEFAULT_CR = 'eclipse-che-default-cr'
   export const NAMESPACE = 'eclipse-che-namespace'
   export const OPERATOR_NAMESPACE = 'eclipse-che-operator-namespace'
-  export const IIB_IMAGE = 'eclipse-che-iib-image'
+  export const CREATE_CATALOG_SOURCE_AND_SUBSCRIPTION = 'eclipse-che-create-catalog-source-and-subscription'
 }
 
 export namespace DevWorkspaceContext {
@@ -108,6 +115,7 @@ export namespace DevWorkspaceContext {
 export namespace KubeHelperContext {
   export const POD_WAIT_TIMEOUT = 'kube-pod-wait-timeout'
   export const POD_READY_TIMEOUT = 'kube-pod-ready-timeout'
+  export const POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY = 'kube-pod-ready-timeout-embedded-plugin-registry'
   export const POD_DOWNLOAD_IMAGE_TIMEOUT = 'kube-pod-download-image-timeout'
   export const POD_ERROR_RECHECK_TIMEOUT = 'kube-pod-error-recheck-timeout'
 }
@@ -131,6 +139,7 @@ export namespace CheCtlContext {
   const DEV_WORKSPACE_OPERATOR_TEMPLATE_DIR = 'devworkspace-operator'
 
   export async function init(flags: any, command: Command): Promise<void> {
+    // CLI context
     ctx[CliContext.CLI_COMMAND_FLAGS] = flags
     ctx[CliContext.CLI_IS_CHECTL] = isCheFlavor()
     ctx[CliContext.CLI_IS_DEV_VERSION] = getProjectVersion().includes('next') || getProjectVersion() === '0.0.2'
@@ -157,6 +166,7 @@ export namespace CheCtlContext {
       ctx[CliContext.CLI_DEV_WORKSPACE_OPERATOR_RESOURCES_DIR] = path.join(getEmbeddedTemplatesDirectory(), DEV_WORKSPACE_OPERATOR_TEMPLATE_DIR)
     }
 
+    // Infrastructure context
     ctx[InfrastructureContext.IS_OPENSHIFT] = await isOpenShift()
     ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE] = 'openshift-marketplace'
     if (ctx[InfrastructureContext.IS_OPENSHIFT]) {
@@ -170,65 +180,61 @@ export namespace CheCtlContext {
     // for backward compatability
     flags[CHE_NAMESPACE_FLAG] = ctx[EclipseCheContext.NAMESPACE]
     if (ctx[InfrastructureContext.IS_OPENSHIFT]) {
-      ctx[EclipseCheContext.OPERATOR_NAMESPACE] = ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE]
+      ctx[EclipseCheContext.OPERATOR_NAMESPACE] = process.env[`${getProjectName().toUpperCase()}_OPERATOR_NAMESPACE`] || ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE]
     } else {
-      ctx[EclipseCheContext.OPERATOR_NAMESPACE] = ctx[EclipseCheContext.NAMESPACE]
+      ctx[EclipseCheContext.OPERATOR_NAMESPACE] = process.env[`${getProjectName().toUpperCase()}_OPERATOR_NAMESPACE`] || ctx[EclipseCheContext.NAMESPACE]
     }
 
+    // Eclipse Che context
     ctx[EclipseCheContext.CUSTOM_CR] = readFile(flags, CHE_OPERATOR_CR_YAML_FLAG)
     ctx[EclipseCheContext.CR_PATCH] = readFile(flags, CHE_OPERATOR_CR_PATCH_YAML_FLAG)
     ctx[EclipseCheContext.DEFAULT_CR] = safeLoadFromYamlFile(path.join(ctx[CliContext.CLI_CHE_OPERATOR_RESOURCES_DIR], 'kubernetes', 'crds', 'org_checluster_cr.yaml'))
 
-    if (flags[STARTING_CSV_FLAG]) {
-      // Ignore auto-update flag, otherwise it will automatically update to the latest version and 'starting-csv' will not have any effect.
-      ctx[EclipseCheContext.APPROVAL_STRATEGY] = EclipseChe.APPROVAL_STRATEGY_MANUAL
-    } else {
-      ctx[EclipseCheContext.APPROVAL_STRATEGY] = flags[AUTO_UPDATE_FLAG] ? EclipseChe.APPROVAL_STRATEGY_AUTOMATIC : EclipseChe.APPROVAL_STRATEGY_MANUAL
-    }
+    ctx[EclipseCheContext.APPROVAL_STRATEGY] = flags[AUTO_UPDATE_FLAG] ? EclipseChe.APPROVAL_STRATEGY_AUTOMATIC : EclipseChe.APPROVAL_STRATEGY_MANUAL
 
     ctx[EclipseCheContext.CHANNEL] = flags[OLM_CHANNEL_FLAG]
     if (!ctx[EclipseCheContext.CHANNEL]) {
-      if (ctx[CliContext.CLI_IS_DEV_VERSION]) {
-        ctx[EclipseCheContext.CHANNEL] = EclipseChe.NEXT_CHANNEL
-      } else {
-        ctx[EclipseCheContext.CHANNEL] = EclipseChe.STABLE_CHANNEL
-      }
-    }
-
-    if (!ctx[CliContext.CLI_IS_CHECTL]) {
-      if (ctx[EclipseCheContext.CHANNEL] !== 'stable') {
-        let iibImageTag = 'next'
-        if (ctx[EclipseCheContext.CHANNEL] === 'latest') {
-          iibImageTag = 'latest'
-        }
-        // It is always EclipseChe.NEXT_CHANNEL, 'latest` and 'next` are added only to simplify UI
-        // See https://issues.redhat.com/browse/CRW-3877
-        ctx[EclipseCheContext.CHANNEL] = EclipseChe.NEXT_CHANNEL
-        ctx[EclipseCheContext.IIB_IMAGE] = `quay.io/devspaces/iib:${iibImageTag}-v${ctx[InfrastructureContext.OPENSHIFT_VERSION]}-${ctx[InfrastructureContext.OPENSHIFT_ARCH]}`
-      }
+      ctx[EclipseCheContext.CHANNEL] = ctx[CliContext.CLI_IS_DEV_VERSION] ? EclipseChe.NEXT_CHANNEL : EclipseChe.STABLE_CHANNEL
+    } else if (!ctx[CliContext.CLI_IS_CHECTL] && ctx[EclipseCheContext.CHANNEL] !== EclipseChe.STABLE_CHANNEL) {
+      // It is always EclipseChe.NEXT_CHANNEL, 'latest` and 'next` are added only to simplify UI
+      // See https://issues.redhat.com/browse/CRW-3877
+      ctx[EclipseCheContext.CHANNEL] = EclipseChe.NEXT_CHANNEL
     }
 
     ctx[EclipseCheContext.PACKAGE_NAME] = flags[PACKAGE_MANIFEST_FLAG] || EclipseChe.PACKAGE
     ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE] = flags[CATALOG_SOURCE_NAMESPACE_FLAG] || ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE]
+
     ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = flags[CATALOG_SOURCE_NAME_FLAG]
     if (!ctx[EclipseCheContext.CATALOG_SOURCE_NAME]) {
-      if (ctx[EclipseCheContext.CHANNEL] === EclipseChe.STABLE_CHANNEL) {
-        ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = EclipseChe.STABLE_CHANNEL_CATALOG_SOURCE
-      } else {
-        ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = EclipseChe.NEXT_CHANNEL_CATALOG_SOURCE
-      }
+      ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = ctx[EclipseCheContext.CHANNEL] === EclipseChe.STABLE_CHANNEL ? EclipseChe.STABLE_CHANNEL_CATALOG_SOURCE : EclipseChe.NEXT_CHANNEL_CATALOG_SOURCE
     }
 
-    if (ctx[EclipseCheContext.CHANNEL] === EclipseChe.STABLE_CHANNEL) {
-      ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = EclipseChe.STABLE_CATALOG_SOURCE_IMAGE
+    ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = flags[CATALOG_SOURCE_IMAGE_FLAG]
+    if (ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE]) {
+      ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE] = ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE]
+      ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE].replace(new RegExp('[/.@_:]', 'g'), '-').toLowerCase()
     } else {
-      ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = EclipseChe.NEXT_CATALOG_SOURCE_IMAGE
+      if (ctx[EclipseCheContext.CHANNEL] !== EclipseChe.STABLE_CHANNEL) {
+        if (ctx[CliContext.CLI_IS_CHECTL]) {
+          ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = EclipseChe.NEXT_CATALOG_SOURCE_IMAGE
+        } else {
+          let iibImageTag = 'next'
+          if (flags[OLM_CHANNEL_FLAG] === 'latest') {
+            iibImageTag = 'latest'
+          }
+
+          ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = `quay.io/devspaces/iib:${iibImageTag}-v${ctx[InfrastructureContext.OPENSHIFT_VERSION]}-${ctx[InfrastructureContext.OPENSHIFT_ARCH]}`
+        }
+      } else {
+        const catalogSource = await getCatalogSource(ctx[EclipseCheContext.CATALOG_SOURCE_NAME], ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE])
+        ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = catalogSource?.spec.image
+      }
     }
 
     if (flags[CATALOG_SOURCE_YAML_FLAG]) {
       const catalogSource = safeLoadFromYamlFile(flags[CATALOG_SOURCE_YAML_FLAG])
       ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = catalogSource.metadata.name
-      ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE] = ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE]
+      ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE] = catalogSource.metadata.namespace
       ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = catalogSource.spec.image
     }
 
@@ -251,6 +257,7 @@ export namespace CheCtlContext {
     // KubeHelperContext
     ctx[KubeHelperContext.POD_WAIT_TIMEOUT] = parseInt(flags[K8S_POD_WAIT_TIMEOUT_FLAG] || DEFAULT_POD_WAIT_TIMEOUT, 10)
     ctx[KubeHelperContext.POD_READY_TIMEOUT] = parseInt(flags[K8S_POD_READY_TIMEOUT_FLAG] || DEFAULT_K8S_POD_READY_TIMEOUT, 10)
+    ctx[KubeHelperContext.POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY] = Math.max(ctx[KubeHelperContext.POD_READY_TIMEOUT],  parseInt(DEFAULT_K8S_POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY, 10))
     ctx[KubeHelperContext.POD_DOWNLOAD_IMAGE_TIMEOUT] = parseInt(flags[K8S_POD_DOWNLOAD_IMAGE_TIMEOUT_FLAG] || DEFAULT_K8S_POD_DOWNLOAD_IMAGE_TIMEOUT, 10)
     ctx[KubeHelperContext.POD_ERROR_RECHECK_TIMEOUT] = parseInt(flags[K8S_POD_ERROR_RECHECK_TIMEOUT_FLAG] || DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, 10)
   }
@@ -313,6 +320,22 @@ export namespace CheCtlContext {
       return Boolean(group.versions.find(v => v.version === version))
     } else {
       return Boolean(group)
+    }
+  }
+
+  async function getCatalogSource(name: string, namespace: string): Promise<CatalogSource | undefined> {
+    const kubeConfig = new KubeConfig()
+    kubeConfig.loadFromDefault()
+
+    const customObjectsApi = kubeConfig.makeApiClient(CustomObjectsApi)
+    try {
+      const response = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', name)
+      return response.body as CatalogSource
+    } catch (e: any) {
+      if (e.response && e.response.statusCode === 404) {
+        return
+      }
+      throw e
     }
   }
 

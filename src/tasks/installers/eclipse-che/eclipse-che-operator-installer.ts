@@ -33,7 +33,7 @@ export class EclipseCheOperatorInstaller implements Installer {
         const tasks = newListr()
         const flags = CheCtlContext.getFlags()
 
-        tasks.add(await EclipseCheTasks.getInstallDevWorkspaceOperatorTask())
+        tasks.add(DevWorkspaceInstallerFactory.getInstaller().getDeployTasks())
         tasks.add(EclipseCheTasks.getCreateOrUpdateServiceAccountTask(true))
         tasks.add(EclipseCheTasks.getCreateOrUpdateRbacTasks(true))
         if (!flags[SKIP_CERT_MANAGER_FLAG]) {

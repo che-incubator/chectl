@@ -24,6 +24,8 @@ import {
   AUTO_UPDATE_FLAG,
   BATCH,
   BATCH_FLAG,
+  CATALOG_SOURCE_IMAGE,
+  CATALOG_SOURCE_IMAGE_FLAG,
   CATALOG_SOURCE_NAME,
   CATALOG_SOURCE_NAME_FLAG, CATALOG_SOURCE_NAMESPACE,
   CATALOG_SOURCE_NAMESPACE_FLAG,
@@ -36,7 +38,9 @@ import {
   CHE_OPERATOR_CR_PATCH_YAML,
   CHE_OPERATOR_CR_PATCH_YAML_FLAG,
   CHE_OPERATOR_CR_YAML,
-  CHE_OPERATOR_CR_YAML_FLAG, CHE_OPERATOR_IMAGE, CHE_OPERATOR_IMAGE_FLAG,
+  CHE_OPERATOR_CR_YAML_FLAG,
+  CHE_OPERATOR_IMAGE,
+  CHE_OPERATOR_IMAGE_FLAG,
   CLUSTER_MONITORING,
   CLUSTER_MONITORING_FLAG,
   DEBUG,
@@ -68,7 +72,9 @@ import {
   SKIP_DEV_WORKSPACE,
   SKIP_DEV_WORKSPACE_FLAG,
   SKIP_KUBE_HEALTHZ_CHECK,
-  SKIP_KUBE_HEALTHZ_CHECK_FLAG, SKIP_OIDC_PROVIDER, SKIP_OIDC_PROVIDER_FLAG,
+  SKIP_KUBE_HEALTHZ_CHECK_FLAG,
+  SKIP_OIDC_PROVIDER,
+  SKIP_OIDC_PROVIDER_FLAG,
   SKIP_VERSION_CHECK,
   SKIP_VERSION_CHECK_FLAG,
   STARTING_CSV,
@@ -79,6 +85,7 @@ import {
   TEMPLATES_FLAG,
   WORKSPACE_PVS_STORAGE_CLASS_NAME,
   WORKSPACE_PVS_STORAGE_CLASS_NAME_FLAG,
+  checkFlagsCompatability,
 } from '../../flags'
 import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
 import {
@@ -128,55 +135,10 @@ export default class Deploy extends Command {
     [CATALOG_SOURCE_YAML_FLAG]: CATALOG_SOURCE_YAML,
     [CATALOG_SOURCE_NAME_FLAG]: CATALOG_SOURCE_NAME,
     [CATALOG_SOURCE_NAMESPACE_FLAG]: CATALOG_SOURCE_NAMESPACE,
+    [CATALOG_SOURCE_IMAGE_FLAG]: CATALOG_SOURCE_IMAGE,
     [CLUSTER_MONITORING_FLAG]: CLUSTER_MONITORING,
     [TELEMETRY_FLAG]: TELEMETRY,
     [SKIP_KUBE_HEALTHZ_CHECK_FLAG]: SKIP_KUBE_HEALTHZ_CHECK,
-  }
-
-  private checkCompatibility(flags: any) {
-    const ctx = CheCtlContext.get()
-
-    if (flags[DOMAIN_FLAG] && ctx[InfrastructureContext.IS_OPENSHIFT]) {
-      this.warn(`--${DOMAIN_FLAG} flag is ignored for OpenShift platform.`)
-    }
-
-    if (!ctx[InfrastructureContext.IS_OPENSHIFT]) {
-      // Ensure required CheCluster fields are set (k8s platforms)
-      if (flags[PLATFORM_FLAG] !== 'minikube') {
-        for (const field of [
-          'spec.networking.auth.identityProviderURL',
-          'spec.networking.auth.oAuthSecret',
-          'spec.networking.auth.oAuthClientName',
-        ]) {
-          if (!Che.getCheClusterFieldConfigured(field)) {
-            this.error(getMissedOIDCConfigClusterFieldErrorMsg())
-          }
-        }
-      }
-
-      // Not OLM installer
-      if (flags[STARTING_CSV_FLAG]) {
-        this.error(`--${STARTING_CSV_FLAG} flag should be used only for OpenShift platform.`)
-      }
-      if (flags[CATALOG_SOURCE_YAML_FLAG]) {
-        this.error(`--${CATALOG_SOURCE_YAML_FLAG} flag should be used only for OpenShift platform.`)
-      }
-      if (flags[OLM_CHANNEL_FLAG]) {
-        this.error(`--${OLM_CHANNEL_FLAG} flag should be used only for OpenShift platform.`)
-      }
-      if (flags[PACKAGE_MANIFEST_FLAG]) {
-        this.error(`--${PACKAGE_MANIFEST_FLAG} flag should be used only for OpenShift platform.`)
-      }
-      if (flags[CATALOG_SOURCE_NAME_FLAG]) {
-        this.error(`--${CATALOG_SOURCE_NAME_FLAG} flag should be used only for OpenShift platform.`)
-      }
-      if (flags[CATALOG_SOURCE_NAMESPACE_FLAG]) {
-        this.error(`--${CATALOG_SOURCE_NAMESPACE_FLAG} flag should be used only for OpenShift platform.`)
-      }
-      if (flags[CLUSTER_MONITORING_FLAG]) {
-        this.error(`--${CLUSTER_MONITORING_FLAG} flag should be used only for OpenShift platform.`)
-      }
-    }
   }
 
   async run() {
@@ -188,6 +150,9 @@ export default class Deploy extends Command {
     if (!flags.batch && ctx.isChectl) {
       await askForChectlUpdateIfNeeded()
     }
+
+    checkFlagsCompatability(flags)
+    checkK8sRequiredConfig(flags)
 
     // Platform Checks
     const platformTasks = newListr()
@@ -221,7 +186,6 @@ export default class Deploy extends Command {
     postInstallTasks.add(CommonTasks.getPrintHighlightedMessagesTask())
 
     try {
-      this.checkCompatibility(flags)
       await preInstallTasks.run(ctx)
 
       const kubeHelper = KubeClient.getInstance()
@@ -250,6 +214,25 @@ function getNamespaceLabels(flags: any): any {
     return { 'openshift.io/cluster-monitoring': 'true' }
   }
   return {}
+}
+
+export function checkK8sRequiredConfig(flags: any) {
+  const ctx = CheCtlContext.get()
+
+  if (!ctx[InfrastructureContext.IS_OPENSHIFT]) {
+    // Ensure required CheCluster fields are set (k8s platforms)
+    if (flags[PLATFORM_FLAG] !== 'minikube') {
+      for (const field of [
+        'spec.networking.auth.identityProviderURL',
+        'spec.networking.auth.oAuthSecret',
+        'spec.networking.auth.oAuthClientName',
+      ]) {
+        if (!Che.getCheClusterFieldConfigured(field)) {
+          throw new Error(getMissedOIDCConfigClusterFieldErrorMsg())
+        }
+      }
+    }
+  }
 }
 
 function getMissedOIDCConfigClusterFieldErrorMsg(): string {

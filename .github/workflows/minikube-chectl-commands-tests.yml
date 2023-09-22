@@ -28,7 +28,7 @@ jobs:
     - name: Install NodeJS
       uses: actions/setup-node@v3
       with:
-        node-version: 16.13.2
+        node-version: 18.16.1
     - name: Build chectl
       run: yarn
     - name: Run e2e tests
@@ -57,13 +57,13 @@ jobs:
     - name: Install NodeJS
       uses: actions/setup-node@v3
       with:
-        node-version: 16.13.2
+        node-version: 18.16.1
     - name: Build chectl
       run: yarn
     - name: Run tests
       run: |
         export PLATFORM=minikube
-        yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e-upgrade.test.ts
+        yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e-upgrade-version.test.ts
     - uses: actions/upload-artifact@v3
       if: ${{ always() }}
       with:

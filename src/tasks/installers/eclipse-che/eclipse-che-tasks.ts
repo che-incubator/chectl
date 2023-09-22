@@ -36,9 +36,6 @@ import {
 } from '../../../flags'
 import {getImageNameAndTag, isPartOfEclipseChe, newListr, safeLoadFromYamlFile} from '../../../utils/utls'
 import {cli} from 'cli-ux'
-import {OlmTasks} from '../../olm-tasks'
-import {DevWorkspaceInstallerFactory} from '../dev-workspace/dev-workspace-installer-factory'
-import {DevWorkspace} from '../dev-workspace/dev-workspace'
 
 /**
  * Copyright (c) 2019-2022 Red Hat, Inc.
@@ -53,17 +50,6 @@ import {DevWorkspace} from '../dev-workspace/dev-workspace'
  */
 
 export namespace EclipseCheTasks {
-  export async function getInstallDevWorkspaceOperatorTask(): Promise<Listr.ListrTask<any>> {
-    const kubeClient = KubeClient.getInstance()
-    if (await kubeClient.getCustomResourceDefinition(DevWorkspace.DEV_WORKSPACES_CRD) &&
-      await kubeClient.getCustomResourceDefinition(DevWorkspace.DEV_WORKSPACE_OPERATOR_CONFIGS_CRD) &&
-      await kubeClient.getCustomResourceDefinition(DevWorkspace.DEV_WORKSPACE_ROUTINGS_CRD) &&
-      await kubeClient.getCustomResourceDefinition(DevWorkspace.DEV_WORKSPACES_TEMPLATES_CRD)) {
-      return CommonTasks.getSkipTask(`Install ${DevWorkspace.PRODUCT_NAME} operator`, `${DevWorkspace.PRODUCT_NAME} operator already installed`)
-    } else {
-      return DevWorkspaceInstallerFactory.getInstaller().getDeployTasks()
-    }
-  }
   export function getCreateOrUpdateDeploymentTask(isCreateOnly: boolean): Listr.ListrTask<any> {
     const flags = CheCtlContext.getFlags()
     const kubeHelper = KubeClient.getInstance()
@@ -539,46 +525,6 @@ export namespace EclipseCheTasks {
       ])
   }
 
-  export function getCreateEclipseCheCatalogSourceTask(): Listr.ListrTask<any> {
-    const kubeHelper = KubeClient.getInstance()
-
-    return {
-      title: 'Create CatalogSource',
-      task: async (ctx: any, task: any) => {
-        const catalogSource = {
-          apiVersion: 'operators.coreos.com/v1alpha1',
-          kind: 'CatalogSource',
-          metadata: {
-            name: ctx[EclipseCheContext.CATALOG_SOURCE_NAME],
-            namespace: ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE],
-            labels: {
-              'app.kubernetes.io/part-of': 'che.eclipse.org',
-            },
-          },
-          spec: {
-            image: ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE],
-            sourceType: 'grpc',
-            updateStrategy: {
-              registryPoll: {
-                interval: '15m',
-              },
-            },
-          },
-        }
-
-        const catalogSourceName = catalogSource!.metadata!.name!
-        const catalogSourceNamespace = catalogSource!.metadata!.namespace!
-        if (!await kubeHelper.isCatalogSourceExists(catalogSourceName, catalogSourceNamespace)) {
-          await kubeHelper.createCatalogSource(catalogSource, catalogSourceNamespace)
-          await kubeHelper.waitCatalogSource(catalogSourceName, catalogSourceNamespace, 120)
-          task.title = `${task.title} ${catalogSourceName}...[Created]`
-        } else {
-          task.title = `${task.title} ${catalogSourceName}...[Exists]`
-        }
-      },
-    }
-  }
-
   export function getCreateImageContentSourcePolicyTask(): Listr.ListrTask<Listr.ListrContext> {
     const kubeHelper = KubeClient.getInstance()
     return CommonTasks.getCreateResourceTask(
@@ -587,14 +533,6 @@ export namespace EclipseCheTasks {
       () => kubeHelper.getClusterCustomObject('operator.openshift.io', 'v1alpha1', 'imagecontentsourcepolicies', EclipseChe.IMAGE_CONTENT_SOURCE_POLICY),
       () => kubeHelper.createClusterCustomObject('operator.openshift.io', 'v1alpha1', 'imagecontentsourcepolicies', constructImageContentSourcePolicy()),
     )
-  }
-
-  export function getCreateIIBCatalogSourceTask(): Listr.ListrTask<any> {
-    const ctx = CheCtlContext.get()
-    return OlmTasks.getCreateCatalogSourceTask(
-      ctx[EclipseCheContext.CATALOG_SOURCE_NAME],
-      ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE],
-      ctx[EclipseCheContext.IIB_IMAGE])
   }
 
   function constructImageContentSourcePolicy(): any {

@@ -29,21 +29,21 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v3
         with:
-          node-version: 16.13
+          node-version: 18.16.1
       - name: Generate tag utilities
         id: TAG_UTIL
         run: |
           if [[ ${GITHUB_REF#refs/heads/} =~ 7.* ]]; then
-            echo "::set-output name=chectl_version::$(cat VERSION)"
-            echo "::set-output name=gh_release_name::$(cat VERSION)"
-            echo "::set-output name=gh_tag::$(cat VERSION)"
+            echo "chectl_version=$(cat VERSION)" >> $GITHUB_OUTPUT
+            echo "gh_release_name=$(cat VERSION)" >> $GITHUB_OUTPUT
+            echo "gh_tag=$(cat VERSION)" >> $GITHUB_OUTPUT
             echo "MM_ANNOUNCE=true" >> "$GITHUB_ENV"
           elif [[ ${GITHUB_REF#refs/heads/} =~ main ]]; then
             CURRENT_DAY=$(date +'%Y%m%d')
             SHORT_SHA1=$(git rev-parse --short HEAD)
-            echo "::set-output name=gh_tag::$(date +'%Y%m%d%H%M%S')"
-            echo "::set-output name=chectl_version::0.0.$CURRENT_DAY-next"
-            echo "::set-output name=gh_release_name::0.0.$CURRENT_DAY-next.$SHORT_SHA1"
+            echo "gh_tag=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+            echo "chectl_version=0.0.$CURRENT_DAY-next" >> $GITHUB_OUTPUT
+            echo "gh_release_name=0.0.$CURRENT_DAY-next.$SHORT_SHA1" >> $GITHUB_OUTPUT
             echo "MM_ANNOUNCE=false" >> "$GITHUB_ENV"
           fi
       - name: Build chectl
@@ -59,13 +59,13 @@ jobs:
           git tag ${{ steps.TAG_UTIL.outputs.gh_tag }}
 
           TARGETS=linux-arm,linux-x64,linux-s390x,linux-ppc64le,darwin-x64,darwin-arm64,win32-x64,win32-x86
-          npx oclif-dev pack --targets=$TARGETS
+          yarn prepack && yarn pack-binaries --targets=$TARGETS
       - name: Create Release and push artifacts
         uses: softprops/action-gh-release@v1
         with:
           name: ${{ steps.TAG_UTIL.outputs.gh_release_name }}
           tag_name: ${{ steps.TAG_UTIL.outputs.gh_tag }}
-          files: "./dist/channels/**/chectl-*.gz"
+          files: "./dist/chectl-*.gz"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Update github pages
@@ -81,17 +81,3 @@ jobs:
           BRANCH: gh-pages
           FOLDER: gh-pages
           CLEAN: true # Automatically remove deleted files from the deploy branch
-      - name: Create success MM message
-        run: |
-          echo "{\"text\":\":white_check_mark: Chectl ${{ steps.TAG_UTIL.outputs.chectl_version }} released: https://github.com/che-incubator/chectl/releases${{ steps.TAG_UTIL.outputs.gh_tag }}\"}" > mattermost.json
-      - name: Create failure message
-        if: ${{ failure() }}
-        run: |
-          echo "{\"text\":\":che-logo: Problem with chectl ${{ steps.TAG_UTIL.outputs.chectl_version }} release.\n\n \"}" > mattermost.json
-      - name: Send MM message
-        if: ${{ env.MM_ANNOUNCE == 'true' }}
-        uses: mattermost/action-mattermost-notify@1.0.2
-        env:
-          MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
-          MATTERMOST_CHANNEL: eclipse-che-releases
-          MATTERMOST_USERNAME: che-bot

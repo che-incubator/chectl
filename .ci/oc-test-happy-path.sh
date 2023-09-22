@@ -44,7 +44,10 @@ EOF
     --telemetry off \
     --batch
 
-  export HAPPY_PATH_SUITE=test-empty-workspace-devworkspace-happy-path-code
+  alias chectl=$(pwd)/bin/run
+
+  export HAPPY_PATH_USERSTORY=EmptyWorkspace
+  export HAPPY_PATH_SUITE=test
   bash <(curl -s ${DEVWORKSPACE_HAPPY_PATH}/remote-launch.sh)
 }
 

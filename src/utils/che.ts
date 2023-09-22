@@ -14,13 +14,15 @@ import {CheCtlContext, EclipseCheContext, InfrastructureContext} from '../contex
 import {EclipseChe} from '../tasks/installers/eclipse-che/eclipse-che'
 import {KubeClient} from '../api/kube-client'
 import {CHE_NAMESPACE_FLAG} from '../flags'
-import {CheCluster} from '../api/types/che-cluster'
 import {OpenShift} from './openshift'
 import * as nodeforge from 'node-forge'
 import {base64Decode} from './utls'
 import {CheLogsReader} from '../api/che-logs-reader'
 
 export namespace Che {
+  export function isRedHatCatalogSources(catalogSourceName?: string): boolean {
+    return catalogSourceName === 'community-operators' || catalogSourceName === 'redhat-operators'
+  }
   export async function readPodLog(namespace: string, podLabelSelector: string | undefined, directory: string, follow: boolean): Promise<void> {
     const logsReader = new CheLogsReader()
     return logsReader.readPodLog(namespace, podLabelSelector, directory, follow)
@@ -29,22 +31,6 @@ export namespace Che {
   export async function readNamespaceEvents(namespace: string, directory: string, follow: boolean): Promise<void> {
     const logsReader = new CheLogsReader()
     return logsReader.readNamespaceEvents(namespace, directory, follow)
-  }
-
-  export function getTlsSecretName(): string {
-    const ctx = CheCtlContext.get()
-
-    const crPatch = ctx[EclipseCheContext.CR_PATCH] as CheCluster
-    if (crPatch?.spec?.networking?.tlsSecretName !== undefined) {
-      return crPatch?.spec?.networking?.tlsSecretName
-    }
-
-    const customCR = ctx[EclipseCheContext.CUSTOM_CR] as CheCluster
-    if (customCR?.spec?.networking?.tlsSecretName !== undefined) {
-      return customCR?.spec?.networking?.tlsSecretName
-    }
-
-    return EclipseChe.CHE_TLS_SECRET_NAME
   }
 
   export function getCheClusterFieldConfigured(fieldPath: string): any | undefined {
@@ -150,5 +136,11 @@ export namespace Che {
     }
 
     throw new Error(`Route ${EclipseChe.CHE_FLAVOR} not found`)
+  }
+
+  export async function isEmbeddedPluginRegistryConfigured(namespace: string): Promise<boolean> {
+    const kubeClient = KubeClient.getInstance()
+    await kubeClient.waitConfigMap(EclipseChe.PLUGIN_REGISTRY_CONFIG_MAP, namespace)
+    return await kubeClient.getConfigMapValue(EclipseChe.PLUGIN_REGISTRY_CONFIG_MAP, namespace, 'START_OPENVSX') === 'true'
   }
 }

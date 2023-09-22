@@ -2,8 +2,8 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "[Minikube] Install Che",
-            "command": "./bin/run server:deploy -n che -m -p minikube",
+            "label": "Run chectl to deploy Che on Minikube",
+            "command": "./bin/run server:deploy -p minikube",
             "type": "shell",
             "args": [],
             "problemMatcher": [
@@ -15,8 +15,21 @@
             "group": "build"
         },
         {
-            "label": "[Minikube] Install Che with custom che-operator image",
-            "command": "./bin/run server:deploy -n che -m -p minikube --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:next",
+            "label": "Debug chectl to deploy Che on Minikube",
+            "command": "./bin/debug server:deploy -p minikube",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },        
+        {
+            "label": "Run chectl to deploy Che on OpenShift",
+            "command": "./bin/run server:deploy -p openshift",
             "type": "shell",
             "args": [],
             "problemMatcher": [
@@ -28,8 +41,8 @@
             "group": "build"
         },
         {
-            "label": "[Openshift] Install Che",
-            "command": "./bin/run server:deploy -n che -m -p openshift",
+            "label": "Debug chectl to deploy Che on OpenShift",
+            "command": "./bin/debug server:deploy -p openshift",
             "type": "shell",
             "args": [],
             "problemMatcher": [
@@ -39,74 +52,9 @@
                 "reveal": "always"
             },
             "group": "build"
-        },
+        },        
         {
-            "label": "[Openshift] Install Che with custom che-operator image",
-            "command": "./bin/run server:deploy -n che -m -p openshift -a operator --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:next",
-            "type": "shell",
-            "args": [],
-            "problemMatcher": [
-                "$tsc"
-            ],
-            "presentation": {
-                "reveal": "always"
-            },
-            "group": "build"
-        },
-        {
-            "label": "[Openshift] Install Che with custom che-operator and che-server images",
-            "command": "./bin/run server:deploy -n che -m -p openshift -a operator --che-operator-image=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-operator:next --cheimage=${IMAGE_REGISTRY_HOST}/${IMAGE_REGISTRY_USER_NAME}/che-server:next",
-            "type": "shell",
-            "args": [],
-            "problemMatcher": [
-                "$tsc"
-            ],
-            "presentation": {
-                "reveal": "always"
-            },
-            "group": "build"
-        },
-        {
-            "label": "Debug Che",
-            "command": "./bin/run server:debug -n che",
-            "type": "shell",
-            "args": [],
-            "problemMatcher": [
-                "$tsc"
-            ],
-            "presentation": {
-                "reveal": "always"
-            },
-            "group": "build"
-        },
-        {
-            "label": "Delete Che",
-            "command": "echo y | ./bin/run server:delete -n che",
-            "type": "shell",
-            "args": [],
-            "problemMatcher": [
-                "$tsc"
-            ],
-            "presentation": {
-                "reveal": "always"
-            },
-            "group": "build"
-        },
-        {
-            "label": "Export sertificate",
-            "command": "./bin/run cacert:export -n che",
-            "type": "shell",
-            "args": [],
-            "problemMatcher": [
-                "$tsc"
-            ],
-            "presentation": {
-                "reveal": "always"
-            },
-            "group": "build"
-        },
-        {
-            "label": "[Chectl] Build",
+            "label": "Build",
             "command": "yarn",
             "type": "shell",
             "args": [],
@@ -119,7 +67,7 @@
             "group": "build"
         },
         {
-            "label": "[Chectl] Test",
+            "label": "Test",
             "command": "yarn test",
             "type": "shell",
             "args": [],
@@ -132,20 +80,7 @@
             "group": "test"
         },
         {
-            "label": "[Chectl] Run",
-            "command": "./bin/run --help",
-            "type": "shell",
-            "args": [],
-            "problemMatcher": [
-                "$tsc"
-            ],
-            "presentation": {
-                "reveal": "always"
-            },
-            "group": "test"
-        },
-        {
-            "label": "[Chectl] Format Sources",
+            "label": "Format sources",
             "command": "yarn lint:fix",
             "type": "shell",
             "args": [],
@@ -158,8 +93,21 @@
             "group": "build"
         },
         {
-            "label": "[Chectl] Pack Binaries",
+            "label": "Pack Binaries",
             "command": "yarn pack-binaries",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Update README.md",
+            "command": "yarn oclif readme",
             "type": "shell",
             "args": [],
             "problemMatcher": [

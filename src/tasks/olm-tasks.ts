@@ -13,15 +13,15 @@
 import {CheCtlContext, CliContext, EclipseCheContext} from '../context'
 import * as Listr from 'listr'
 import { KubeClient } from '../api/kube-client'
-import {getEmbeddedTemplatesDirectory, isPartOfEclipseChe, newListr, safeLoadFromYamlFile} from '../utils/utls'
+import {getEmbeddedTemplatesDirectory, newListr, safeLoadFromYamlFile} from '../utils/utls'
 import * as path from 'path'
 import { V1Role, V1RoleBinding } from '@kubernetes/client-node'
 import * as yaml from 'js-yaml'
 import {CommonTasks} from './common-tasks'
 import {CHE_NAMESPACE_FLAG, CHE_OPERATOR_IMAGE_FLAG, CLUSTER_MONITORING_FLAG, DELETE_ALL_FLAG} from '../flags'
 import {EclipseChe} from './installers/eclipse-che/eclipse-che'
-import {PART_OF_ECLIPSE_CHE_SELECTOR} from '../constants'
 import {DevWorkspace} from './installers/dev-workspace/dev-workspace'
+import {Che} from '../utils/che'
 
 export namespace OlmTasks {
   export async function getDeleteSubscriptionAndCatalogSourceTask(packageName: string, csvPrefix: string, namespace: string): Promise<Listr.ListrTask<any>> {
@@ -38,15 +38,10 @@ export namespace OlmTasks {
 
       // CatalogSource
       const catalogSource = await kubeHelper.getCatalogSource(subscription.spec.source, subscription.spec.sourceNamespace)
-      if (isPartOfEclipseChe(catalogSource)) {
+      if (!Che.isRedHatCatalogSources(catalogSource?.metadata.name)) {
         title = `${title} and CatalogSource ${subscription.spec.source}`
         deleteResources.push(() => kubeHelper.deleteCatalogSource(subscription!.spec.source, subscription!.spec.sourceNamespace))
       }
-    }
-
-    const catalogSources = await kubeHelper.listCatalogSource(namespace, PART_OF_ECLIPSE_CHE_SELECTOR)
-    for (const catalogSource of catalogSources) {
-      deleteResources.push(() => kubeHelper.deleteCatalogSource(catalogSource.metadata.name!, catalogSource.metadata.namespace!))
     }
 
     // ClusterServiceVersion
@@ -159,6 +154,7 @@ export namespace OlmTasks {
               },
             },
           }
+
           await kubeHelper.createCatalogSource(catalogSource, namespace)
           await kubeHelper.waitCatalogSource(name, namespace)
           task.title = `${task.title}...[Created]`
@@ -254,27 +250,6 @@ export namespace OlmTasks {
     }
   }
 
-  export function getCheckInstallPlanApprovalStrategyTask(subscriptionName: string): Listr.ListrTask<any> {
-    return {
-      title: 'Check InstallPlan approval strategy',
-      task: async (ctx: any, task: any) => {
-        const kubeHelper = KubeClient.getInstance()
-
-        const subscription = await kubeHelper.getOperatorSubscription(subscriptionName, ctx[EclipseCheContext.OPERATOR_NAMESPACE])
-        if (!subscription) {
-          throw new Error(`Subscription ${subscriptionName} not found.`)
-        }
-
-        if (subscription.spec.installPlanApproval === EclipseChe.APPROVAL_STRATEGY_AUTOMATIC) {
-          task.title = `${task.title}...[${EclipseChe.APPROVAL_STRATEGY_AUTOMATIC}]`
-          throw new Error(`Use \'chectl server:update\' command only with ${EclipseChe.APPROVAL_STRATEGY_MANUAL} InstallPlan approval strategy.`)
-        }
-
-        task.title = `${task.title}...[${EclipseChe.APPROVAL_STRATEGY_MANUAL}]`
-      },
-    }
-  }
-
   export function getSetCustomEclipseCheOperatorImageTask(): Listr.ListrTask<any> {
     const flags = CheCtlContext.getFlags()
     return {
@@ -289,7 +264,7 @@ export namespace OlmTasks {
         }
         const jsonPatch = [{ op: 'replace', path: '/spec/install/spec/deployments/0/spec/template/spec/containers/0/image', value: flags[CHE_OPERATOR_IMAGE_FLAG] }]
         await kubeHelper.patchClusterServiceVersion(csvs[0].metadata.name!, csvs[0].metadata.namespace!, jsonPatch)
-        task.title = `${task.title}...[OK]`
+        task.title = `${task.title}...[${flags[CHE_OPERATOR_IMAGE_FLAG]}: OK]`
       },
     }
   }

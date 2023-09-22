@@ -640,26 +640,6 @@ export class KubeClient {
     }
   }
 
-  async patchClusterCustomObject(name: string, patch: any, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any | undefined> {
-    const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-
-    // It is required to patch content-type, otherwise request will be rejected with 415 (Unsupported media type) error.
-    const requestOptions = {
-      headers: {
-        'content-type': 'application/merge-patch+json',
-      },
-    }
-
-    try {
-      const res = await k8sCoreApi.patchClusterCustomObject(resourceAPIGroup, resourceAPIVersion, resourcePlural, name, patch, undefined, undefined, undefined, requestOptions)
-      if (res && res.body) {
-        return res.body
-      }
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
   async getClusterCustomObject(group: string, version: string, plural: string, name: any): Promise<any> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
@@ -874,31 +854,6 @@ export class KubeClient {
       }
 
       throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async isDeploymentReady(name: string, namespace: string): Promise<boolean> {
-    const k8sApi = this.kubeConfig.makeApiClient(AppsV1Api)
-    try {
-      const res = await k8sApi.readNamespacedDeployment(name, namespace)
-      return ((res && res.body &&
-        res.body.status && res.body.status.readyReplicas &&
-        res.body.status.readyReplicas > 0) as boolean)
-    } catch {
-      return false
-    }
-  }
-
-  async isDeploymentStopped(name: string, namespace: string): Promise<boolean> {
-    const k8sApi = this.kubeConfig.makeApiClient(AppsV1Api)
-    try {
-      const res = await k8sApi.readNamespacedDeployment(name, namespace)
-      if (res && res.body && res.body.spec && res.body.spec.replicas) {
-        throw new Error(`Deployment '${name}' without replicas in spec is fetched`)
-      }
-      return res.body!.spec!.replicas === 0
-    } catch {
-      return false
     }
   }
 
@@ -1177,19 +1132,6 @@ export class KubeClient {
     }
   }
 
-  async isCustomResourceExists(name: string, namespace: string, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<boolean> {
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-    try {
-      await customObjectsApi.getNamespacedCustomObject(resourceAPIGroup, resourceAPIVersion, namespace, resourcePlural, name)
-      return true
-    } catch (e: any) {
-      if (e.response && e.response.statusCode === 404) {
-        return false
-      }
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
   async createNamespacedCustomObject(namespace: string, group: string, version: string, plural: string, body: any, handleWebhookAvailabilityError: boolean): Promise<void> {
     if (body.apiVersion !== `${group}/${version}`) {
       throw new Error(`${body.metadata.name} Custom Object must be ${group}/${version} version`)
@@ -1282,20 +1224,26 @@ export class KubeClient {
   }
 
   async waitCatalogSource(name: string, namespace: string, timeout = 60): Promise<CatalogSource> {
+    let timeoutHandler: NodeJS.Timeout
+
     return new Promise<CatalogSource>(async (resolve, reject) => {
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/catalogsources`,
         { fieldSelector: `metadata.name=${name}` },
         (_phase: string, obj: any) => {
+          request.response.destroy()
           resolve(obj as CatalogSource)
         },
         error => {
+          if (timeoutHandler) {
+            clearTimeout(timeoutHandler)
+          }
           if (error) {
             reject(error)
           }
         })
 
-      setTimeout(() => {
+      timeoutHandler = setTimeout(() => {
         request.abort()
         reject(`Timeout reached while waiting for "${name}" catalog source is created.`)
       }, timeout * 1000)
@@ -1347,23 +1295,29 @@ export class KubeClient {
   }
 
   async waitInstalledCSVInSubscription(name: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<string> {
+    let timeoutHandler: NodeJS.Timeout
+
     return new Promise<string>(async (resolve, reject) => {
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
         { fieldSelector: `metadata.name=${name}` },
-        (_phase: string, obj: any) => {
+        (_phase: string, obj: unknown) => {
           const subscription = obj as Subscription
-          if (subscription.status && subscription.status.installedCSV) {
+          if (subscription.status?.installedCSV) {
+            request.response.destroy()
             resolve(subscription.status.installedCSV)
           }
         },
         error => {
+          if (timeoutHandler) {
+            clearTimeout(timeoutHandler)
+          }
           if (error) {
             reject(error)
           }
         })
 
-      setTimeout(() => {
+      timeoutHandler = setTimeout(() => {
         request.abort()
         reject(`Timeout reached while waiting for installed CSV of '${name}' subscription.`)
       }, timeout * 1000)
@@ -1371,23 +1325,29 @@ export class KubeClient {
   }
 
   async waitCSVStatusPhase(name: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<string> {
+    let timeoutHandler: NodeJS.Timeout
+
     return new Promise<string>(async (resolve, reject) => {
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/clusterserviceversions`,
         { fieldSelector: `metadata.name=${name}` },
         (_phase: string, obj: any) => {
           const csv = obj as ClusterServiceVersion
-          if (csv.status && csv.status.phase) {
+          if (csv.status?.phase) {
+            request.response.destroy()
             resolve(csv.status.phase)
           }
         },
         error => {
+          if (timeoutHandler) {
+            clearTimeout(timeoutHandler)
+          }
           if (error) {
             reject(error)
           }
         })
 
-      setTimeout(() => {
+      timeoutHandler = setTimeout(() => {
         request.abort()
         reject(`Timeout reached while waiting CSV '${name}' status.`)
       }, timeout * 1000)
@@ -1407,39 +1367,37 @@ export class KubeClient {
   }
 
   async waitOperatorSubscriptionReadyForApproval(name: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<InstallPlan> {
+    let timeoutHandler: NodeJS.Timeout
+
     return new Promise<InstallPlan>(async (resolve, reject) => {
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
         { fieldSelector: `metadata.name=${name}` },
-        (_phase: string, obj: any) => {
+        (_phase: string, obj: unknown) => {
           const subscription = obj as Subscription
-          if (subscription.status && subscription.status.conditions) {
-            if (subscription.status.installedCSV) {
-              resolve(subscription.status.installplan)
-              return
-            }
-            for (const condition of subscription.status.conditions) {
-              if (condition.type === 'InstallPlanPending' && condition.status === 'True') {
-                resolve(subscription.status.installplan)
-                return
-              }
-            }
+          if (subscription.status?.installplan) {
+            request.response.destroy()
+            resolve(subscription.status.installplan)
           }
         },
         error => {
+          if (timeoutHandler) {
+            clearTimeout(timeoutHandler)
+          }
+
           if (error) {
             reject(error)
           }
         })
 
-      setTimeout(() => {
+      timeoutHandler = setTimeout(() => {
         request.abort()
         reject(`Timeout reached while waiting for "${name}" subscription is ready.`)
       }, timeout * 1000)
     })
   }
 
-  async approveOperatorInstallationPlan(name: string, namespace: string) {
+  async approveOperatorInstallationPlan(name: string, namespace: string): Promise<void> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
       const patch: InstallPlan = {
@@ -1454,13 +1412,15 @@ export class KubeClient {
   }
 
   async waitOperatorInstallPlan(name: string, namespace: string, timeout = 240) {
+    let timeoutHandler: NodeJS.Timeout
+
     return new Promise<InstallPlan>(async (resolve, reject) => {
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`,
         { fieldSelector: `metadata.name=${name}` },
         (_phase: string, obj: any) => {
           const installPlan = obj as InstallPlan
-          if (installPlan.status && installPlan.status.phase === 'Failed') {
+          if (installPlan.status?.phase === 'Failed') {
             const errorMessage = []
             for (const condition of installPlan.status.conditions) {
               if (!condition.reason) {
@@ -1468,23 +1428,29 @@ export class KubeClient {
                 errorMessage.push(!condition.message ? `Message: ${condition.message}` : '')
               }
             }
+            request.response.destroy()
             reject(errorMessage.join(' '))
           }
-          if (installPlan.status && installPlan.status.conditions) {
+
+          if (installPlan.status?.conditions) {
             for (const condition of installPlan.status.conditions) {
               if (condition.type === 'Installed' && condition.status === 'True') {
+                request.response.destroy()
                 resolve(installPlan)
               }
             }
           }
         },
         error => {
+          if (timeoutHandler) {
+            clearTimeout(timeoutHandler)
+          }
           if (error) {
             reject(error)
           }
         })
 
-      setTimeout(() => {
+      timeoutHandler = setTimeout(() => {
         request.abort()
         reject(`Timeout reached while waiting for "${name}" has go status 'Installed'.`)
       }, timeout * 1000)
@@ -1763,6 +1729,38 @@ export class KubeClient {
     }
   }
 
+  async waitConfigMap(name: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      // Set up watcher
+      const watcher = new Watch(this.kubeConfig)
+      const request = await watcher
+      .watch(`/api/v1/namespaces/${namespace}/configmaps/`, { fieldSelector: `metadata.name=${name}` },
+        (_phase: string, _obj: any) => {
+          request.abort()
+          resolve()
+        },
+        error => {
+          if (error) {
+            reject(error)
+          }
+        })
+
+      // Automatically stop watching after timeout
+      const timeoutHandler = setTimeout(() => {
+        request.abort()
+        reject(`Timeout reached while waiting for "${name}" ConfigMap.`)
+      }, timeout * 1000)
+
+      // Request configMap, for case if it is already exist
+      const configMap = await this.getConfigMap(name, namespace)
+      if (configMap) {
+        request.abort()
+        clearTimeout(timeoutHandler)
+        resolve()
+      }
+    })
+  }
+
   /**
    * Awaits secret to be present and contain non-empty data fields specified in dataKeys parameter.
    */
@@ -1815,17 +1813,6 @@ export class KubeClient {
         resolve()
       }
     })
-  }
-
-  async deletePersistentVolumeClaim(name: string, namespace: string): Promise<void> {
-    const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
-    try {
-      await k8sCoreApi.deleteNamespacedPersistentVolumeClaim(name, namespace)
-    } catch (e: any) {
-      if (e.response.statusCode !== 404) {
-        throw this.wrapK8sClientError(e)
-      }
-    }
   }
 
   async listNamespacedPod(namespace: string, fieldSelector?: string, labelSelector?: string): Promise<V1PodList> {

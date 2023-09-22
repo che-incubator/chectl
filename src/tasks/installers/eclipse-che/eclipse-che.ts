@@ -25,6 +25,7 @@ export namespace EclipseChe {
   export const VALIDATING_WEBHOOK = 'org.eclipse.che'
   export const MUTATING_WEBHOOK = 'org.eclipse.che'
   export const CONFIG_MAP = 'che'
+  export const PLUGIN_REGISTRY_CONFIG_MAP = 'plugin-registry'
   export const CONSOLE_LINK = 'che'
   export const PROMETHEUS = 'prometheus-k8s'
   export const IMAGE_CONTENT_SOURCE_POLICY = 'quay.io'
@@ -39,7 +40,6 @@ export namespace EclipseChe {
   export const PACKAGE = PRODUCT_ID
   export const STABLE_CHANNEL = 'stable'
   export const STABLE_CHANNEL_CATALOG_SOURCE = 'community-operators'
-  export const STABLE_CATALOG_SOURCE_IMAGE = 'quay.io/eclipse/eclipse-che-olm-catalog:stable'
   export const NEXT_CHANNEL = 'next'
   export const NEXT_CHANNEL_CATALOG_SOURCE = PRODUCT_ID
   export const NEXT_CATALOG_SOURCE_IMAGE = 'quay.io/eclipse/eclipse-che-olm-catalog:next'
@@ -79,7 +79,9 @@ export namespace EclipseChe {
   export const PLUGIN_REGISTRY_DEPLOYMENT_NAME = 'plugin-registry'
 
   // Selectors
-  export const CHE_OPERATOR_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=${CHE_FLAVOR}-operator`
+  // It must be `app=`, see: https://issues.redhat.com/browse/CRW-4848
+  export const CHE_OPERATOR_SELECTOR = `app=${CHE_FLAVOR}-operator,app.kubernetes.io/component=${CHE_FLAVOR}-operator`
+
   export const CHE_SERVER_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=${CHE_FLAVOR}`
   export const DASHBOARD_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=${CHE_FLAVOR}-dashboard`
   export const DEVFILE_REGISTRY_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=devfile-registry`

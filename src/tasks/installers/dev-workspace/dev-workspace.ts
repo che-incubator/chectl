@@ -74,9 +74,6 @@ export namespace DevWorkspace {
   export const DEV_WORKSPACE_CONTROLLER_CERTIFICATE = 'devworkspace-controller-serving-cert'
   export const DEV_WORKSPACE_CONTROLLER_ISSUER = 'devworkspace-controller-selfsigned-issuer'
 
-  // Config
-  export const DEV_WORKSPACE_OPERATOR_CONFIG = 'devworkspace-operator-config'
-
   // Olm
   export const KUBERNETES_NAMESPACE = 'devworkspace-controller'
   export const CSV_PREFIX = 'devworkspace-operator'

@@ -16,6 +16,7 @@ import {KubeClient} from '../api/kube-client'
 import {KubeHelperContext} from '../context'
 import {EclipseChe} from './installers/eclipse-che/eclipse-che'
 import {newListr} from '../utils/utls'
+import {Che} from '../utils/che'
 
 export namespace PodTasks {
   interface FailState {
@@ -78,11 +79,16 @@ export namespace PodTasks {
   export function getPodStartTasks(name: string, selector: string, namespace: string): Listr.ListrTask<any> {
     return {
       title: `${name} pod bootstrap`,
-      task: async (_ctx: any, _task: any) => {
+      task: async (ctx: any, _task: any) => {
         const tasks = newListr([])
         tasks.add(getSchedulingTask(selector, namespace))
         tasks.add(getDownloadingTask(selector, namespace))
-        tasks.add(getStartingTask(selector, namespace))
+        if (name === EclipseChe.PLUGIN_REGISTRY && await Che.isEmbeddedPluginRegistryConfigured(namespace)) {
+          // if embedded plugin registry is configured, use longer timeout for pod readiness
+          tasks.add(getStartingTask(selector, namespace, ctx[KubeHelperContext.POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY]))
+        } else {
+          tasks.add(getStartingTask(selector, namespace))
+        }
         return tasks
       },
     }
@@ -180,13 +186,17 @@ export namespace PodTasks {
       }
     }
 
-    function getStartingTask(selector: string, namespace: string): Listr.ListrTask<any> {
+    function getStartingTask(selector: string, namespace: string, podReadyTimeout?: number): Listr.ListrTask<any> {
       const kubeHelper = KubeClient.getInstance()
 
       return {
         title: 'Starting',
         task: async (ctx: any, task: any) => {
-          const iterations = ctx[KubeHelperContext.POD_READY_TIMEOUT] / INTERVAL
+          let iterations = ctx[KubeHelperContext.POD_READY_TIMEOUT] / INTERVAL
+          if (podReadyTimeout) {
+            iterations = podReadyTimeout / INTERVAL
+          }
+
           for (let i = 1; i <= iterations; i++) {
             // check cheCluster status
             const cheClusterFailState = await getCheClusterFailState(namespace)
