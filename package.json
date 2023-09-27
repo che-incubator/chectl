@@ -1,7 +1,7 @@
 {
   "name": "chectl",
   "description": "Eclipse Che CLI",
-  "version": "0.0.2",
+  "version": "0.0.27092023-next.a047295",
   "author": "Mario Loriedo @l0rd",
   "bin": {
     "chectl": "./bin/run"

@@ -169,7 +169,7 @@ DESCRIPTION
   Retrieves Eclipse Che self-signed certificate
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/cacert/export.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/che-incubator/chectl/blob/v0.0.27092023-next.a047295/src/commands/cacert/export.ts)_
 
 ## `chectl dashboard:open`
 
@@ -189,7 +189,7 @@ DESCRIPTION
   Open Eclipse Che dashboard
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/dashboard/open.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/che-incubator/chectl/blob/v0.0.27092023-next.a047295/src/commands/dashboard/open.ts)_
 
 ## `chectl help [COMMANDS]`
 
@@ -232,7 +232,7 @@ DESCRIPTION
   Enable local debug of Eclipse Che server
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/che-incubator/chectl/blob/v0.0.27092023-next.a047295/src/commands/server/debug.ts)_
 
 ## `chectl server:delete`
 
@@ -259,7 +259,7 @@ DESCRIPTION
   delete any Eclipse Che related resource
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.27092023-next.a047295/src/commands/server/delete.ts)_
 
 ## `chectl server:deploy`
 
@@ -405,7 +405,7 @@ DESCRIPTION
   Deploy Eclipse Che server
 ```
 
-_See code: [src/commands/server/deploy.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/deploy.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/che-incubator/chectl/blob/v0.0.27092023-next.a047295/src/commands/server/deploy.ts)_
 
 ## `chectl server:logs`
 
@@ -427,7 +427,7 @@ DESCRIPTION
   Collect Eclipse Che logs
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.27092023-next.a047295/src/commands/server/logs.ts)_
 
 ## `chectl server:start`
 
@@ -457,7 +457,7 @@ DESCRIPTION
   Start Eclipse Che server
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.27092023-next.a047295/src/commands/server/start.ts)_
 
 ## `chectl server:status`
 
@@ -477,7 +477,7 @@ DESCRIPTION
   Status Eclipse Che server
 ```
 
-_See code: [src/commands/server/status.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/status.ts)_
+_See code: [src/commands/server/status.ts](https://github.com/che-incubator/chectl/blob/v0.0.27092023-next.a047295/src/commands/server/status.ts)_
 
 ## `chectl server:stop`
 
@@ -498,7 +498,7 @@ DESCRIPTION
   stop Eclipse Che server
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.27092023-next.a047295/src/commands/server/stop.ts)_
 
 ## `chectl server:update`
 
@@ -616,7 +616,7 @@ EXAMPLES
     $ chectl server:update --olm-channel stable --catalog-source-yaml PATH_TO_CATALOG_SOURCE_YAML
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.27092023-next.a047295/src/commands/server/update.ts)_
 
 ## `chectl update [CHANNEL]`
 
