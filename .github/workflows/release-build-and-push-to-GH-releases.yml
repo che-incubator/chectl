@@ -33,6 +33,9 @@ jobs:
       - name: Generate tag utilities
         id: TAG_UTIL
         run: |
+          SHORT_SHA1=$(git rev-parse --short HEAD)
+          echo "short_sha1=$SHORT_SHA1" >> $GITHUB_OUTPUT
+
           if [[ ${GITHUB_REF#refs/heads/} =~ 7.* ]]; then
             echo "chectl_version=$(cat VERSION)" >> $GITHUB_OUTPUT
             echo "gh_release_name=$(cat VERSION)" >> $GITHUB_OUTPUT
@@ -40,9 +43,8 @@ jobs:
             echo "MM_ANNOUNCE=true" >> "$GITHUB_ENV"
           elif [[ ${GITHUB_REF#refs/heads/} =~ main ]]; then
             CURRENT_DAY=$(date +'%Y%m%d')
-            SHORT_SHA1=$(git rev-parse --short HEAD)
             echo "gh_tag=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
-            echo "chectl_version=0.0.$CURRENT_DAY-next" >> $GITHUB_OUTPUT
+            echo "chectl_version=0.0.$CURRENT_DAY-next.$SHORT_SHA1" >> $GITHUB_OUTPUT
             echo "gh_release_name=0.0.$CURRENT_DAY-next.$SHORT_SHA1" >> $GITHUB_OUTPUT
             echo "MM_ANNOUNCE=false" >> "$GITHUB_ENV"
           fi
@@ -60,6 +62,11 @@ jobs:
 
           TARGETS=linux-arm,linux-x64,linux-s390x,linux-ppc64le,darwin-x64,darwin-arm64,win32-x64,win32-x86
           yarn prepack && yarn pack-binaries --targets=$TARGETS
+
+          # Rename binaries to remove the sha1 from their names
+          for file in ./dist/*; do
+            mv "$file" "${file/-v${{ steps.TAG_UTIL.outputs.chectl_version }}-${{ steps.TAG_UTIL.outputs.short_sha1 }}/}"
+          done
       - name: Create Release and push artifacts
         uses: softprops/action-gh-release@v1
         with:

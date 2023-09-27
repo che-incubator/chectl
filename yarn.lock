@@ -3276,7 +3276,7 @@ detect-newline@^3.0.0:
 
 "devworkspace-operator@https://github.com/devfile/devworkspace-operator#main":
   version "0.0.0"
-  resolved "https://github.com/devfile/devworkspace-operator#58ada48c0ec852fd5670868edb4702d0e4ed81e3"
+  resolved "https://github.com/devfile/devworkspace-operator#9450aa8894047f242cb0b40ce8e0e60df13ea27c"
 
 dezalgo@^1.0.0:
   version "1.0.4"
@@ -3337,7 +3337,7 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-operator@https://github.com/eclipse-che/che-operator#main":
   version "0.0.0"
-  resolved "https://github.com/eclipse-che/che-operator#5d702069dde221cfcfffeddca5b9f6119e76c15d"
+  resolved "https://github.com/eclipse-che/che-operator#5f0843ab268a69a0c3ad6e95f56d0d700e47e90f"
 
 editorconfig@^0.15.0:
   version "0.15.3"
@@ -3826,7 +3826,7 @@ extsprintf@^1.2.0:
   resolved "https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.4.0.tgz#e2689f8f356fad62cca65a3a91c5df5f9551692f"
   integrity sha1-4mifjzVvrWLMplo6kcXfX5VRaS8=
 
-fancy-test@^2.0.12, fancy-test@^2.0.25:
+fancy-test@^2.0.25:
   version "2.0.25"
   resolved "https://registry.yarnpkg.com/fancy-test/-/fancy-test-2.0.25.tgz#9a0578a4820460cb2c1250dfb48d4664ca59c83a"
   integrity sha512-4OKW+SC62aP3Y19YlCWxjKJD0iW4kjLqUvdd9OaW1lM7Co/FX3PTi2NHguzsj2vmPs/6mMITKu0saYAr2uZA4g==
