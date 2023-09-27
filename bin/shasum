@@ -1,0 +1,4 @@
+#!/bin/sh
+# workaround for https://github.com/oclif/oclif/blob/main/src/tarballs/node.ts#L62 in case no shasum on your OS, but there is a sha256sum
+# shellcheck disable=SC2086,SC2048
+shift 2; sha256sum $*
