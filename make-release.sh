@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2019-2022 Red Hat, Inc.
+# Copyright (c) 2019-2023 Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -91,6 +91,8 @@ release() {
   # now replace package.json dependencies
   apply_sed "s;github.com/eclipse-che/che-operator#\(.*\)\",;github.com/eclipse-che/che-operator#${VERSION}\",;g" package.json
   apply_sed "s;https://github.com/devfile/devworkspace-operator#\(.*\)\",;https://github.com/devfile/devworkspace-operator#${DWO_VERSION}\",;g" package.json
+  # and update the app version in package.json
+  jq '.version |= "'$VERSION'"' package.json > package.json_; mv -f package.json_ package.json
 
   if ! grep -q "github.com/eclipse-che/che-operator#${VERSION}" package.json; then
     echo "[ERROR] Unable to find Che Operator version ${VERSION} in the package.json"; exit 1
