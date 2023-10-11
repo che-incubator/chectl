@@ -10,10 +10,10 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { Command, flags } from '@oclif/command'
+import { Command, Flags } from '@oclif/core'
 import * as fs from 'fs-extra'
-import * as os from 'os'
-import * as path from 'path'
+import * as os from 'node:os'
+import * as path from 'node:path'
 import { CheCtlContext } from '../../context'
 import {
   CHE_NAMESPACE_FLAG,
@@ -32,8 +32,8 @@ import {Che} from '../../utils/che'
 export default class Export extends Command {
   static description = `Retrieves ${EclipseChe.PRODUCT_NAME} self-signed certificate`
 
-  static flags: flags.Input<any> = {
-    help: flags.help({ char: 'h' }),
+  static flags = {
+    help: Flags.help({ char: 'h' }),
     [CHE_NAMESPACE_FLAG]: CHE_NAMESPACE,
     [LISTR_RENDERER_FLAG]: LISTR_RENDERER,
     [TELEMETRY_FLAG]: TELEMETRY,
@@ -41,13 +41,13 @@ export default class Export extends Command {
   }
 
   async run() {
-    const { flags } = this.parse(Export)
+    const { flags } = await this.parse(Export)
     await CheCtlContext.init(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Export.id, flags })
 
     try {
-      const cheCaCert = await Che.readCheCaCert(flags[CHE_NAMESPACE_FLAG])
+      const cheCaCert = await Che.readCheCaCert(flags[CHE_NAMESPACE_FLAG]!)
       if (cheCaCert) {
         const targetFile = this.getTargetFile(flags[DESTINATION_FLAG])
         fs.writeFileSync(targetFile, cheCaCert)

@@ -10,8 +10,8 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { Command, flags } from '@oclif/command'
-import { cli } from 'cli-ux'
+import { Command, Flags } from '@oclif/core'
+import { ux } from '@oclif/core'
 import { CertManagerInstaller } from '../../tasks/installers/cert-manager-installer'
 import {CheCtlContext, InfrastructureContext} from '../../context'
 import { KubeClient } from '../../api/kube-client'
@@ -102,8 +102,8 @@ import {Che} from '../../utils/che'
 export default class Deploy extends Command {
   static description = `Deploy ${EclipseChe.PRODUCT_NAME} server`
 
-  static flags: flags.Input<any> = {
-    help: flags.help({ char: 'h' }),
+  static flags = {
+    help: Flags.help({ char: 'h' }),
     [CHE_NAMESPACE_FLAG]: CHE_NAMESPACE,
     [BATCH_FLAG]: BATCH,
     [LISTR_RENDERER_FLAG]: LISTR_RENDERER,
@@ -142,7 +142,7 @@ export default class Deploy extends Command {
   }
 
   async run() {
-    const {flags} = this.parse(Deploy)
+    const {flags} = await this.parse(Deploy)
     const ctx = await CheCtlContext.initAndGet(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, {command: Deploy.id, flags})
@@ -165,7 +165,7 @@ export default class Deploy extends Command {
 
     // Install tasks
     const installTasks = newListr()
-    installTasks.add(CommonTasks.getCreateNamespaceTask(flags[CHE_NAMESPACE_FLAG], getNamespaceLabels(flags)))
+    installTasks.add(CommonTasks.getCreateNamespaceTask(flags[CHE_NAMESPACE_FLAG]!, getNamespaceLabels(flags)))
 
     if (!ctx[InfrastructureContext.IS_OPENSHIFT]) {
       installTasks.add(new CertManagerInstaller().getDeployTasks())
@@ -189,9 +189,9 @@ export default class Deploy extends Command {
       await preInstallTasks.run(ctx)
 
       const kubeHelper = KubeClient.getInstance()
-      const cheCluster = await kubeHelper.getCheCluster(flags[CHE_NAMESPACE_FLAG])
+      const cheCluster = await kubeHelper.getCheCluster(flags[CHE_NAMESPACE_FLAG]!)
       if (cheCluster) {
-        cli.warn(`${EclipseChe.PRODUCT_NAME} has been already deployed. Use server:start command to start a stopped ${EclipseChe.PRODUCT_NAME} instance.`)
+        ux.warn(`${EclipseChe.PRODUCT_NAME} has been already deployed. Use server:start command to start a stopped ${EclipseChe.PRODUCT_NAME} instance.`)
       } else {
         await platformTasks.run(ctx)
         await installTasks.run(ctx)
@@ -205,6 +205,7 @@ export default class Deploy extends Command {
     if (!flags[BATCH_FLAG]) {
       notifyCommandCompletedSuccessfully()
     }
+
     this.exit(0)
   }
 }
@@ -213,23 +214,22 @@ function getNamespaceLabels(flags: any): any {
   if (flags[CLUSTER_MONITORING_FLAG] && flags[PLATFORM_FLAG] === 'openshift') {
     return { 'openshift.io/cluster-monitoring': 'true' }
   }
+
   return {}
 }
 
 export function checkK8sRequiredConfig(flags: any) {
   const ctx = CheCtlContext.get()
 
-  if (!ctx[InfrastructureContext.IS_OPENSHIFT]) {
-    // Ensure required CheCluster fields are set (k8s platforms)
-    if (flags[PLATFORM_FLAG] !== 'minikube') {
-      for (const field of [
-        'spec.networking.auth.identityProviderURL',
-        'spec.networking.auth.oAuthSecret',
-        'spec.networking.auth.oAuthClientName',
-      ]) {
-        if (!Che.getCheClusterFieldConfigured(field)) {
-          throw new Error(getMissedOIDCConfigClusterFieldErrorMsg())
-        }
+  if (!ctx[InfrastructureContext.IS_OPENSHIFT] && // Ensure required CheCluster fields are set (k8s platforms)
+    flags[PLATFORM_FLAG] !== 'minikube') {
+    for (const field of [
+      'spec.networking.auth.identityProviderURL',
+      'spec.networking.auth.oAuthSecret',
+      'spec.networking.auth.oAuthClientName',
+    ]) {
+      if (!Che.getCheClusterFieldConfigured(field)) {
+        throw new Error(getMissedOIDCConfigClusterFieldErrorMsg())
       }
     }
   }

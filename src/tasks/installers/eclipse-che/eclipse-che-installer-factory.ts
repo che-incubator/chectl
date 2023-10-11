@@ -25,6 +25,7 @@ export class EclipseCheInstallerFactory {
     if (ctx[InfrastructureContext.IS_OPENSHIFT]) {
       return new EclipseCheOlmInstaller()
     }
+
     return new EclipseCheOperatorInstaller()
   }
 }

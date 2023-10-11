@@ -10,8 +10,8 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { Command, flags } from '@oclif/command'
-import { cli } from 'cli-ux'
+import { Command, Flags } from '@oclif/core'
+import { ux } from '@oclif/core'
 
 import { CheCtlContext } from '../../context'
 import {
@@ -29,20 +29,20 @@ import {Che} from '../../utils/che'
 export default class Status extends Command {
   static description = `Status ${EclipseChe.PRODUCT_NAME} server`
 
-  static flags: flags.Input<any> = {
-    help: flags.help({ char: 'h' }),
+  static flags = {
+    help: Flags.help({ char: 'h' }),
     [CHE_NAMESPACE_FLAG]: CHE_NAMESPACE,
     [LISTR_RENDERER_FLAG]: LISTR_RENDERER,
     [TELEMETRY_FLAG]: TELEMETRY,
   }
 
   async run() {
-    const { flags } = this.parse(Status)
+    const { flags } = await this.parse(Status)
     await CheCtlContext.init(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Status.id, flags })
 
-    cli.log(`${EclipseChe.PRODUCT_NAME} Version    : ${await Che.getCheVersion()}`)
-    cli.log(`${EclipseChe.PRODUCT_NAME} Url        : ${Che.buildDashboardURL(await Che.getCheURL(flags[CHE_NAMESPACE_FLAG]))}`)
+    ux.log(`${EclipseChe.PRODUCT_NAME} Version    : ${await Che.getCheVersion()}`)
+    ux.log(`${EclipseChe.PRODUCT_NAME} Url        : ${Che.buildDashboardURL(await Che.getCheURL(flags[CHE_NAMESPACE_FLAG]!))}`)
   }
 }

@@ -10,18 +10,18 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { Hook } from '@oclif/config'
-import { cli } from 'cli-ux'
+import { Hook } from '@oclif/core'
+import { ux } from '@oclif/core'
 
 import { CheCtlVersion } from '../../utils/chectl-version'
 import {isCheFlavor} from '../../utils/utls'
 
-const DO_NO_PRINT_WARNING_COMMANDS = [
+const DO_NO_PRINT_WARNING_COMMANDS = new Set([
   'server:deploy',
   'server:update',
   'update',
   'version',
-]
+])
 
 const hook: Hook<'prerun'> = async function (options) {
   if (!isCheFlavor()) {
@@ -29,14 +29,14 @@ const hook: Hook<'prerun'> = async function (options) {
   }
 
   const commandName: string = options.Command.id
-  if (DO_NO_PRINT_WARNING_COMMANDS.includes(commandName)) {
+  if (DO_NO_PRINT_WARNING_COMMANDS.has(commandName)) {
     // Do nothing
     return
   }
 
   try {
     if (await CheCtlVersion.isCheCtlUpdateAvailable(options.config.cacheDir)) {
-      cli.warn('A newer version of chectl is available. Run "chectl update" to update to the newer version.')
+      ux.warn('A newer version of chectl is available. Run "chectl update" to update to the newer version.')
     }
   } catch {
     // An error occured while checking for newer version. Ignore it.

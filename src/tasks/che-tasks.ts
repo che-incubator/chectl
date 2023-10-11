@@ -16,12 +16,12 @@ import {PodTasks} from './pod-tasks'
 import {CheCtlContext, CliContext, EclipseCheContext} from '../context'
 import {CHE_NAMESPACE_FLAG, DEBUG_FLAG, DEBUG_PORT_FLAG} from '../flags'
 import {EclipseChe} from './installers/eclipse-che/eclipse-che'
-import * as path from 'path'
-import * as os from 'os'
+import * as path from 'node:path'
+import * as os from 'node:os'
 import * as fs from 'fs-extra'
 import {Che} from '../utils/che'
 import {newListr, sleep} from '../utils/utls'
-import {cli} from 'cli-ux'
+import { ux } from '@oclif/core'
 
 export namespace CheTasks {
   export function getWaitCheDeployedTasks(): Listr.ListrTask<any> {
@@ -38,14 +38,17 @@ export namespace CheTasks {
           if (!cheCluster.spec?.components?.devfileRegistry?.disableInternalRegistry) {
             tasks.add(PodTasks.getPodStartTasks(EclipseChe.DEVFILE_REGISTRY, EclipseChe.DEVFILE_REGISTRY_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
           }
+
           if (!cheCluster.spec?.components?.pluginRegistry?.disableInternalRegistry) {
             tasks.add(PodTasks.getPodStartTasks(EclipseChe.PLUGIN_REGISTRY, EclipseChe.PLUGIN_REGISTRY_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
           }
+
           tasks.add(PodTasks.getPodStartTasks(EclipseChe.DASHBOARD, EclipseChe.DASHBOARD_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
           tasks.add(PodTasks.getPodStartTasks(EclipseChe.GATEWAY, EclipseChe.GATEWAY_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
           tasks.add(PodTasks.getPodStartTasks(EclipseChe.CHE_SERVER, EclipseChe.CHE_SERVER_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
           tasks.add(getWaitEclipseCheActiveTask())
         }
+
         return tasks
       },
     }
@@ -114,6 +117,7 @@ export namespace CheTasks {
           tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.CHE_SERVER, EclipseChe.CHE_SERVER_DEPLOYMENT_NAME, 1, flags[CHE_NAMESPACE_FLAG]))
           tasks.add(PodTasks.getPodStartTasks(EclipseChe.CHE_SERVER, EclipseChe.CHE_SERVER_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
         }
+
         return tasks
       },
     }
@@ -196,7 +200,7 @@ export namespace CheTasks {
           }
         }
 
-        cli.error(`${EclipseChe.PRODUCT_NAME} is not Active.`)
+        ux.error(`${EclipseChe.PRODUCT_NAME} is not Active.`, {exit: 1})
       },
     }
   }

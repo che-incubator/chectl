@@ -25,6 +25,7 @@ export class DevWorkspaceInstallerFactory {
     if (ctx[InfrastructureContext.IS_OPENSHIFT]) {
       return new DevWorkspaceOlmInstaller()
     }
+
     return new DevWorkspaceOperatorInstaller()
   }
 }

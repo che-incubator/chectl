@@ -10,18 +10,18 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { cli } from 'cli-ux'
+import { ux } from '@oclif/core'
 import { getTimezone } from 'countries-and-timezones'
 import * as fs from 'fs-extra'
 import { pick } from 'lodash'
-import * as os from 'os'
+import * as os from 'node:os'
 import * as osLocale from 'os-locale'
-import * as path from 'path'
+import * as path from 'node:path'
 import { v4 } from 'uuid'
 
 import {getProjectName, getProjectVersion} from '../../utils/utls'
 import * as getos from 'getos'
-import {promisify} from 'util'
+import {promisify} from 'node:util'
 
 const Analytics = require('analytics-node')
 
@@ -68,10 +68,11 @@ export class SegmentAdapter {
         if (!fs.existsSync(anonymousIdPath)) {
           fs.mkdirSync(path.join(os.homedir(), '.redhat'))
         }
+
         fs.writeFileSync(anonymousIdPath, anonymousId, { encoding: 'utf8' })
       }
     } catch (error) {
-      cli.debug(`Failed to store anonymousId ${error}`)
+      ux.debug(`Failed to store anonymousId ${error}`)
     }
 
     return anonymousId.trim()
@@ -153,6 +154,7 @@ export class SegmentAdapter {
         return
       }
     }
+
     return
   }
 
@@ -161,6 +163,7 @@ export class SegmentAdapter {
     if (tz && tz?.countries) {
       return tz.countries[0]
     }
+
     // Probably UTC timezone
     return 'ZZ' // Unknown country
   }

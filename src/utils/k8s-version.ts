@@ -24,13 +24,13 @@ export namespace K8sVersion {
   export function checkMinimalVersion(actual: string, minimal: string): boolean {
     actual = removeVPrefix(actual)
     let vers = actual.split('.')
-    const actualMajor = parseInt(vers[0], 10)
-    const actualMinor = parseInt(vers[1], 10)
+    const actualMajor = Number.parseInt(vers[0], 10)
+    const actualMinor = Number.parseInt(vers[1], 10)
 
     minimal = removeVPrefix(minimal)
     vers = minimal.split('.')
-    const minimalMajor = parseInt(vers[0], 10)
-    const minimalMinor = parseInt(vers[1], 10)
+    const minimalMajor = Number.parseInt(vers[0], 10)
+    const minimalMinor = Number.parseInt(vers[1], 10)
 
     return (actualMajor > minimalMajor || (actualMajor === minimalMajor && actualMinor >= minimalMinor))
   }
@@ -49,11 +49,13 @@ export namespace K8sVersion {
       if (checkForNumber) {
         const char2 = version.charAt(1)
         if (char2 >= '0' && char2 <= '9') {
-          return version.substr(1)
+          return version.slice(1)
         }
       }
-      return version.substr(1)
+
+      return version.slice(1)
     }
+
     return version
   }
 }

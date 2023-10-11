@@ -10,8 +10,8 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { Command, flags } from '@oclif/command'
-import { cli } from 'cli-ux'
+import { Command, Flags } from '@oclif/core'
+import { ux } from '@oclif/core'
 
 import {CheCtlContext} from '../../context'
 import {
@@ -34,8 +34,8 @@ import {newListr} from '../../utils/utls'
 export default class Stop extends Command {
   static description = `stop ${EclipseChe.PRODUCT_NAME} server`
 
-  static flags: flags.Input<any> = {
-    help: flags.help({ char: 'h' }),
+  static flags= {
+    help: Flags.help({ char: 'h' }),
     [CHE_NAMESPACE_FLAG]: CHE_NAMESPACE,
     [LISTR_RENDERER_FLAG]: LISTR_RENDERER,
     [TELEMETRY_FLAG]: TELEMETRY,
@@ -43,7 +43,7 @@ export default class Stop extends Command {
   }
 
   async run() {
-    const { flags } = this.parse(Stop)
+    const { flags } = await this.parse(Stop)
     const ctx = await CheCtlContext.initAndGet(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Stop.id, flags })
@@ -55,7 +55,7 @@ export default class Stop extends Command {
 
     try {
       await tasks.run(ctx)
-      cli.log(getCommandSuccessMessage())
+      ux.log(getCommandSuccessMessage())
     } catch (err: any) {
       this.error(wrapCommandError(err))
     }
@@ -63,6 +63,7 @@ export default class Stop extends Command {
     if (!flags[BATCH_FLAG]) {
       notifyCommandCompletedSuccessfully()
     }
+
     this.exit(0)
   }
 }

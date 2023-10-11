@@ -11,9 +11,9 @@
  */
 
 import * as fs from 'fs-extra'
-import * as os from 'os'
+import * as os from 'node:os'
 import * as yaml from 'js-yaml'
-import * as path from 'path'
+import * as path from 'node:path'
 import {CheCtlContext} from '../context'
 import * as Listr from 'listr'
 import {LISTR_RENDERER_FLAG} from '../flags'
@@ -29,7 +29,9 @@ export function base64Decode(arg: string): string {
 }
 
 export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return new Promise(resolve => {
+    setTimeout(resolve, ms)
+  })
 }
 
 export function newError(message: string, cause: Error): Error {
@@ -45,10 +47,6 @@ export function getProjectName(): string {
 
 export function getProjectVersion(): string {
   return pkjson.version
-}
-
-export function readPackageJson(): any {
-  return JSON.parse(fs.readFileSync('../package.json').toString())
 }
 
 export function safeLoadFromYamlFile(filePath: string): any {
@@ -75,6 +73,7 @@ export function addTrailingSlash(url: string): string {
   if (url.endsWith('/')) {
     return url
   }
+
   return url + '/'
 }
 
@@ -85,8 +84,8 @@ export function getImageNameAndTag(image: string): [string, string] {
   if (image.includes('@')) {
     // Image is referenced via a digest
     const index = image.indexOf('@')
-    imageName = image.substring(0, index)
-    imageTag = image.substring(index + 1)
+    imageName = image.slice(0, Math.max(0, index))
+    imageTag = image.slice(Math.max(0, index + 1))
   } else {
     // Image is referenced via a tag
     const lastColonIndex = image.lastIndexOf(':')
@@ -95,8 +94,8 @@ export function getImageNameAndTag(image: string): [string, string] {
       imageName = image
       imageTag = 'latest'
     } else {
-      const beforeLastColon = image.substring(0, lastColonIndex)
-      const afterLastColon = image.substring(lastColonIndex + 1)
+      const beforeLastColon = image.slice(0, Math.max(0, lastColonIndex))
+      const afterLastColon = image.slice(Math.max(0, lastColonIndex + 1))
       if (afterLastColon.includes('/')) {
         // The colon is for registry port and not for a tag
         imageName = image
@@ -108,6 +107,7 @@ export function getImageNameAndTag(image: string): [string, string] {
       }
     }
   }
+
   return [imageName, imageTag]
 }
 

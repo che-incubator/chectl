@@ -20,7 +20,7 @@ import {
   InfrastructureContext,
 } from '../../../context'
 import {DevWorkspace} from './dev-workspace'
-import * as path from 'path'
+import * as path from 'node:path'
 
 export namespace DevWorkspacesTasks {
   export function getDeleteWebhooksTask(): Listr.ListrTask<any> {
@@ -48,8 +48,7 @@ export namespace DevWorkspacesTasks {
 
     const deleteResources = []
     if (!ctx[InfrastructureContext.IS_OPENSHIFT]) {
-      deleteResources.push(() => kubeHelper.deleteService(DevWorkspace.DEV_WORKSPACE_CONTROLLER_SERVICE, ctx[DevWorkspaceContext.NAMESPACE]))
-      deleteResources.push(() => kubeHelper.deleteService(DevWorkspace.DEV_WORKSPACE_CONTROLLER_METRICS_SERVICE, ctx[DevWorkspaceContext.NAMESPACE]))
+      deleteResources.push(() => kubeHelper.deleteService(DevWorkspace.DEV_WORKSPACE_CONTROLLER_SERVICE, ctx[DevWorkspaceContext.NAMESPACE]), () => kubeHelper.deleteService(DevWorkspace.DEV_WORKSPACE_CONTROLLER_METRICS_SERVICE, ctx[DevWorkspaceContext.NAMESPACE]))
     }
 
     deleteResources.push(() => kubeHelper.deleteService(DevWorkspace.WEBHOOK_SERVER_SERVICE, ctx[DevWorkspaceContext.NAMESPACE]))
@@ -62,21 +61,17 @@ export namespace DevWorkspacesTasks {
 
     const deleteResources = []
     if (!ctx[InfrastructureContext.IS_OPENSHIFT]) {
-      deleteResources.push(() => kubeHelper.deleteDeployment(DevWorkspace.DEV_WORKSPACE_CONTROLLER_DEPLOYMENT, ctx[DevWorkspaceContext.NAMESPACE]))
-      deleteResources.push(() => kubeHelper.deleteSecret(DevWorkspace.WEBHOOK_SERVER_CERT, ctx[DevWorkspaceContext.NAMESPACE]))
-      deleteResources.push(() => kubeHelper.deleteSecret(DevWorkspace.DEV_WORKSPACE_CONTROLLER_SERVICE_CERT, ctx[DevWorkspaceContext.NAMESPACE]))
+      deleteResources.push(() => kubeHelper.deleteDeployment(DevWorkspace.DEV_WORKSPACE_CONTROLLER_DEPLOYMENT, ctx[DevWorkspaceContext.NAMESPACE]), () => kubeHelper.deleteSecret(DevWorkspace.WEBHOOK_SERVER_CERT, ctx[DevWorkspaceContext.NAMESPACE]), () => kubeHelper.deleteSecret(DevWorkspace.DEV_WORKSPACE_CONTROLLER_SERVICE_CERT, ctx[DevWorkspaceContext.NAMESPACE]))
     }
 
-    deleteResources.push(() => kubeHelper.deleteDeployment(DevWorkspace.WEBHOOK_SERVER_DEPLOYMENT, ctx[DevWorkspaceContext.NAMESPACE]))
-    deleteResources.push(() => kubeHelper.deleteSecret(DevWorkspace.WEBHOOK_SERVER_TLS, ctx[DevWorkspaceContext.NAMESPACE]))
+    deleteResources.push(() => kubeHelper.deleteDeployment(DevWorkspace.WEBHOOK_SERVER_DEPLOYMENT, ctx[DevWorkspaceContext.NAMESPACE]), () => kubeHelper.deleteSecret(DevWorkspace.WEBHOOK_SERVER_TLS, ctx[DevWorkspaceContext.NAMESPACE]))
 
     // Delete leader election related resources
-    const cms = await kubeHelper.listConfigMaps(ctx[DevWorkspaceContext.NAMESPACE], undefined)
+    const cms = await kubeHelper.listConfigMaps(ctx[DevWorkspaceContext.NAMESPACE])
     for (const cm of cms) {
       const configMapName = cm.metadata!.name!
       if (configMapName.endsWith('devfile.io')) {
-        deleteResources.push(() => kubeHelper.deleteConfigMap(configMapName, ctx[DevWorkspaceContext.NAMESPACE]))
-        deleteResources.push(() => kubeHelper.deleteLease(configMapName, ctx[DevWorkspaceContext.NAMESPACE]))
+        deleteResources.push(() => kubeHelper.deleteConfigMap(configMapName, ctx[DevWorkspaceContext.NAMESPACE]), () => kubeHelper.deleteLease(configMapName, ctx[DevWorkspaceContext.NAMESPACE]))
       }
     }
 

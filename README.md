@@ -109,6 +109,7 @@ USAGE
 * [`chectl server:stop`](#chectl-serverstop)
 * [`chectl server:update`](#chectl-serverupdate)
 * [`chectl update [CHANNEL]`](#chectl-update-channel)
+* [`chectl version`](#chectl-version)
 
 ## `chectl autocomplete [SHELL]`
 
@@ -119,7 +120,7 @@ USAGE
   $ chectl autocomplete [SHELL] [-r]
 
 ARGUMENTS
-  SHELL  shell type
+  SHELL  (zsh|bash|powershell) Shell type
 
 FLAGS
   -r, --refresh-cache  Refresh cache (ignores displaying instructions)
@@ -134,10 +135,12 @@ EXAMPLES
 
   $ chectl autocomplete zsh
 
+  $ chectl autocomplete powershell
+
   $ chectl autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v1.3.10/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v2.3.9/src/commands/autocomplete/index.ts)_
 
 ## `chectl cacert:export`
 
@@ -156,7 +159,7 @@ FLAGS
       If this option is omitted, then Eclipse Che certificate will be stored in a user's temporary directory as cheCA.crt.
 
   -h, --help
-      show CLI help
+      Show CLI help.
 
   -n, --chenamespace=<value>
       Eclipse Che Kubernetes namespace.
@@ -180,7 +183,7 @@ USAGE
   $ chectl dashboard:open [-h] [-n <value>] [--telemetry on|off]
 
 FLAGS
-  -h, --help                  show CLI help
+  -h, --help                  Show CLI help.
   -n, --chenamespace=<value>  Eclipse Che Kubernetes namespace.
   --telemetry=<option>        Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
                               <options: on|off>
@@ -209,7 +212,7 @@ DESCRIPTION
   Display help for chectl.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.2.0/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.2.20/src/commands/help.ts)_
 
 ## `chectl server:debug`
 
@@ -221,7 +224,7 @@ USAGE
     [--skip-kubernetes-health-check]
 
 FLAGS
-  -h, --help                      show CLI help
+  -h, --help                      Show CLI help.
   -n, --chenamespace=<value>      Eclipse Che Kubernetes namespace.
   --debug-port=<value>            [default: 8000] Eclipse Che server debug port
   --skip-kubernetes-health-check  Skip Kubernetes health check
@@ -244,7 +247,7 @@ USAGE
     [--skip-kubernetes-health-check] [-y | --batch]
 
 FLAGS
-  -h, --help                      show CLI help
+  -h, --help                      Show CLI help.
   -n, --chenamespace=<value>      Eclipse Che Kubernetes namespace.
   -y, --yes                       Automatic yes to prompts; assume "yes" as answer to all prompts and run
                                   non-interactively
@@ -267,15 +270,15 @@ Deploy Eclipse Che server
 
 ```
 USAGE
-  $ chectl server:deploy -p minikube|k8s|openshift|microk8s|docker-desktop|crc [-h] [-n <value>] [--batch] [-i
-    <value>] [-t <value>] [--devfile-registry-url <value>] [--plugin-registry-url <value>] [--k8spodwaittimeout <value>]
-    [--k8spodreadytimeout <value>] [--k8spoddownloadimagetimeout <value>] [--k8spoderrorrechecktimeout <value>] [-d
-    <value>] [-b <value>] [--debug] [--che-operator-image <value>] [--che-operator-cr-yaml <value>]
-    [--che-operator-cr-patch-yaml <value>] [--workspace-pvc-storage-class-name <value>] [--skip-version-check]
-    [--skip-cert-manager] [--skip-devworkspace-operator] [--skip-oidc-provider-check] [--auto-update] [--starting-csv
-    <value>] [--package-manifest-name <value>] [--catalog-source-yaml <value> --olm-channel <value>]
-    [--catalog-source-name <value> --catalog-source-namespace <value> ] [--catalog-source-image <value> ]
-    [--cluster-monitoring] [--telemetry on|off] [--skip-kubernetes-health-check]
+  $ chectl server:deploy [-h] [-n <value>] [--batch] [-i <value>] [-t <value>] [--devfile-registry-url <value>]
+    [--plugin-registry-url <value>] [--k8spodwaittimeout <value>] [--k8spodreadytimeout <value>]
+    [--k8spoddownloadimagetimeout <value>] [--k8spoderrorrechecktimeout <value>] [-d <value>] [-p
+    minikube|k8s|openshift|microk8s|docker-desktop|crc] [-b <value>] [--debug] [--che-operator-image <value>]
+    [--che-operator-cr-yaml <value>] [--che-operator-cr-patch-yaml <value>] [--workspace-pvc-storage-class-name <value>]
+    [--skip-version-check] [--skip-cert-manager] [--skip-devworkspace-operator] [--skip-oidc-provider-check]
+    [--auto-update] [--starting-csv <value>] [--package-manifest-name <value>] [--catalog-source-yaml <value>
+    --olm-channel <value>] [--catalog-source-name <value> --catalog-source-namespace <value> ] [--catalog-source-image
+    <value> ] [--cluster-monitoring] [--telemetry on|off] [--skip-kubernetes-health-check]
 
 FLAGS
   -b, --domain=<value>
@@ -291,7 +294,7 @@ FLAGS
       Directory to store logs into
 
   -h, --help
-      show CLI help
+      Show CLI help.
 
   -i, --cheimage=<value>
       Eclipse Che server container image
@@ -300,7 +303,7 @@ FLAGS
       Eclipse Che Kubernetes namespace.
 
   -p, --platform=<option>
-      (required) Type of Kubernetes platform.
+      Type of Kubernetes platform.
       <options: minikube|k8s|openshift|microk8s|docker-desktop|crc>
 
   -t, --templates=<value>
@@ -417,7 +420,7 @@ USAGE
 
 FLAGS
   -d, --directory=<value>         Directory to store logs into
-  -h, --help                      show CLI help
+  -h, --help                      Show CLI help.
   -n, --chenamespace=<value>      Eclipse Che Kubernetes namespace.
   --skip-kubernetes-health-check  Skip Kubernetes health check
   --telemetry=<option>            Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
@@ -441,7 +444,7 @@ USAGE
 
 FLAGS
   -d, --directory=<value>               Directory to store logs into
-  -h, --help                            show CLI help
+  -h, --help                            Show CLI help.
   -n, --chenamespace=<value>            Eclipse Che Kubernetes namespace.
   --batch                               Batch mode. Running a command without end user interaction.
   --k8spoddownloadimagetimeout=<value>  [default: 1200000] Waiting time for Pod downloading image (in milliseconds)
@@ -468,7 +471,7 @@ USAGE
   $ chectl server:status [-h] [-n <value>] [--telemetry on|off]
 
 FLAGS
-  -h, --help                  show CLI help
+  -h, --help                  Show CLI help.
   -n, --chenamespace=<value>  Eclipse Che Kubernetes namespace.
   --telemetry=<option>        Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
                               <options: on|off>
@@ -488,7 +491,7 @@ USAGE
   $ chectl server:stop [-h] [-n <value>] [--telemetry on|off] [--skip-kubernetes-health-check]
 
 FLAGS
-  -h, --help                      show CLI help
+  -h, --help                      Show CLI help.
   -n, --chenamespace=<value>      Eclipse Che Kubernetes namespace.
   --skip-kubernetes-health-check  Skip Kubernetes health check
   --telemetry=<option>            Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
@@ -514,7 +517,7 @@ USAGE
 
 FLAGS
   -h, --help
-      show CLI help
+      Show CLI help.
 
   -n, --chenamespace=<value>
       Eclipse Che Kubernetes namespace.
@@ -634,6 +637,26 @@ DESCRIPTION
 ```
 
 _See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.5.0/src/commands/update.ts)_
+
+## `chectl version`
+
+```
+USAGE
+  $ chectl version [--json] [--verbose]
+
+FLAGS
+  --verbose  Show additional information about the CLI.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+FLAG DESCRIPTIONS
+  --verbose  Show additional information about the CLI.
+
+    Additionally shows the architecture, node version, operating system, and versions of plugins that the CLI is using.
+```
+
+_See code: [@oclif/plugin-version](https://github.com/oclif/plugin-version/blob/v1.3.10/src/commands/version.ts)_
 <!-- commandsstop -->
 
 

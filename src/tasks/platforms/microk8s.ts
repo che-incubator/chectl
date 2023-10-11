@@ -35,6 +35,7 @@ export namespace MicroK8sTasks {
           if (!enabledAddons.ingress) {
             await enableIngressAddon()
           }
+
           task.title = `${task.title}...[Enabled]`
         },
       },
@@ -45,6 +46,7 @@ export namespace MicroK8sTasks {
           if (!enabledAddons.storage) {
             await enableStorageAddon()
           }
+
           task.title = `${task.title}...[Enabled]`
         },
       },
@@ -61,16 +63,12 @@ export namespace MicroK8sTasks {
   }
 
   async function isMicroK8sRunning(): Promise<boolean> {
-    const { exitCode } = await execa('microk8s.status', { timeout: 10000, reject: false })
-    if (exitCode === 0) {
-      return true
-    } else {
-      return false
-    }
+    const { exitCode } = await execa('microk8s.status', { timeout: 10_000, reject: false })
+    return exitCode === 0
   }
 
   async function getEnabledAddons(): Promise<any> {
-    const { stdout } = await execa('microk8s.status', ['--format', 'short'], { timeout: 10000 })
+    const { stdout } = await execa('microk8s.status', ['--format', 'short'], { timeout: 10_000 })
     return {
       ingress: stdout.includes('ingress: enabled'),
       storage: stdout.includes('storage: enabled'),
@@ -78,15 +76,15 @@ export namespace MicroK8sTasks {
   }
 
   async function enableIngressAddon() {
-    await execa('microk8s.enable', ['ingress'], { timeout: 10000 })
+    await execa('microk8s.enable', ['ingress'], { timeout: 10_000 })
   }
 
   async function enableStorageAddon() {
-    await execa('microk8s.enable', ['storage'], { timeout: 10000 })
+    await execa('microk8s.enable', ['storage'], { timeout: 10_000 })
   }
 
   async function getMicroK8sIP(): Promise<string> {
-    const { stdout } = await execa('microk8s.config', { timeout: 10000 })
+    const { stdout } = await execa('microk8s.config', { timeout: 10_000 })
     const regMatch = /server:\s*https?:\/\/([\d.]+)/.exec(stdout)
     return regMatch ? regMatch[1] : ''
   }

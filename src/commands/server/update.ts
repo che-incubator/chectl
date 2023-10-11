@@ -10,8 +10,8 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { Command, flags } from '@oclif/command'
-import { cli } from 'cli-ux'
+import { Command, Flags } from '@oclif/core'
+import { ux } from '@oclif/core'
 import * as semver from 'semver'
 
 import {
@@ -96,8 +96,8 @@ export default class Update extends Command {
     'chectl server:update --olm-channel stable --catalog-source-yaml PATH_TO_CATALOG_SOURCE_YAML',
   ]
 
-  static flags: flags.Input<any> = {
-    help: flags.help({ char: 'h' }),
+  static flags = {
+    help: Flags.help({ char: 'h' }),
     [CHE_NAMESPACE_FLAG]: CHE_NAMESPACE,
     [BATCH_FLAG]: BATCH,
     [ASSUME_YES_FLAG]: ASSUME_YES,
@@ -121,7 +121,7 @@ export default class Update extends Command {
   }
 
   async run() {
-    const { flags } = this.parse(Update)
+    const { flags } = await this.parse(Update)
     const ctx = await CheCtlContext.initAndGet(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Update.id, flags })
@@ -187,34 +187,36 @@ export default class Update extends Command {
         ctx[EclipseCheContext.PACKAGE_NAME] !== subscription.spec.name ||
         ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] !== catalogSource?.spec.image ||
         !Che.isRedHatCatalogSources(ctx[EclipseCheContext.CATALOG_SOURCE_NAME])) {
-        cli.info('CatalogSource and Subscription will be updated              :')
-        cli.info('-------------------------------------------------------------')
-        cli.info(`Current channel                 : ${subscription.spec.channel}`)
-        cli.info(`Current catalog source          : ${subscription.spec.source}`)
-        cli.info(`Current catalog source namespace: ${subscription.spec.sourceNamespace}`)
+        ux.info('CatalogSource and Subscription will be updated              :')
+        ux.info('-------------------------------------------------------------')
+        ux.info(`Current channel                 : ${subscription.spec.channel}`)
+        ux.info(`Current catalog source          : ${subscription.spec.source}`)
+        ux.info(`Current catalog source namespace: ${subscription.spec.sourceNamespace}`)
         if (!Che.isRedHatCatalogSources(catalogSource?.metadata.name) && catalogSource?.spec.image) {
-          cli.info(`Current catalog source image    : ${catalogSource.spec.image}`)
+          ux.info(`Current catalog source image    : ${catalogSource.spec.image}`)
         }
-        cli.info(`Current package name            : ${subscription.spec.name}`)
+
+        ux.info(`Current package name            : ${subscription.spec.name}`)
         ctx[EclipseCheContext.CREATE_CATALOG_SOURCE_AND_SUBSCRIPTION] = true
       }
     } else {
-      cli.info('Subscription will be created  :')
+      ux.info('Subscription will be created  :')
       ctx[EclipseCheContext.CREATE_CATALOG_SOURCE_AND_SUBSCRIPTION] = true
     }
 
     if (ctx[EclipseCheContext.CREATE_CATALOG_SOURCE_AND_SUBSCRIPTION]) {
-      cli.info('-------------------------------------------------------------')
-      cli.info(`New channel                     : ${ctx[EclipseCheContext.CHANNEL]}`)
-      cli.info(`New catalog source              : ${ctx[EclipseCheContext.CATALOG_SOURCE_NAME]}`)
-      cli.info(`New catalog source namespace    : ${ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE]}`)
+      ux.info('-------------------------------------------------------------')
+      ux.info(`New channel                     : ${ctx[EclipseCheContext.CHANNEL]}`)
+      ux.info(`New catalog source              : ${ctx[EclipseCheContext.CATALOG_SOURCE_NAME]}`)
+      ux.info(`New catalog source namespace    : ${ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE]}`)
       if (!Che.isRedHatCatalogSources(ctx[EclipseCheContext.CATALOG_SOURCE_NAME]) && ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE]) {
-        cli.info(`New catalog source image        : ${ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE]}`)
+        ux.info(`New catalog source image        : ${ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE]}`)
       }
-      cli.info(`New package name                : ${ctx[EclipseCheContext.PACKAGE_NAME]}`)
 
-      if (!flags[BATCH_FLAG] && !flags[ASSUME_YES_FLAG] && !await cli.confirm('If you want to continue - press Y')) {
-        cli.info('Update cancelled by user.')
+      ux.info(`New package name                : ${ctx[EclipseCheContext.PACKAGE_NAME]}`)
+
+      if (!flags[BATCH_FLAG] && !flags[ASSUME_YES_FLAG] && !await ux.confirm('If you want to continue - press Y')) {
+        ux.info('Update cancelled by user.')
         return false
       }
     }
@@ -230,24 +232,24 @@ export default class Update extends Command {
    */
   private async checkAbilityToUpdateCheOperatorAndAskUser(flags: any): Promise<boolean> {
     const ctx = CheCtlContext.get()
-    cli.info(`Existing ${EclipseChe.PRODUCT_NAME} operator: ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE]}`)
-    cli.info(`New ${EclipseChe.PRODUCT_NAME} operator     : ${ctx[OperatorImageUpgradeContext.NEW_IMAGE]}`)
+    ux.info(`Existing ${EclipseChe.PRODUCT_NAME} operator: ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE]}`)
+    ux.info(`New ${EclipseChe.PRODUCT_NAME} operator     : ${ctx[OperatorImageUpgradeContext.NEW_IMAGE]}`)
 
     if (ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE_NAME] === EclipseChe.OPERATOR_IMAGE_NAME && ctx[OperatorImageUpgradeContext.NEW_IMAGE_NAME] === EclipseChe.OPERATOR_IMAGE_NAME) {
       // Official images
 
       if (ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE] === ctx[OperatorImageUpgradeContext.NEW_IMAGE]) {
         if (ctx[OperatorImageUpgradeContext.NEW_IMAGE_TAG] === EclipseChe.OPERATOR_IMAGE_NEXT_TAG) {
-          cli.info(`Updating current ${EclipseChe.PRODUCT_NAME} ${EclipseChe.OPERATOR_IMAGE_NEXT_TAG} version to a new one.`)
+          ux.info(`Updating current ${EclipseChe.PRODUCT_NAME} ${EclipseChe.OPERATOR_IMAGE_NEXT_TAG} version to a new one.`)
           return true
         }
 
         if (flags[CHE_OPERATOR_CR_PATCH_YAML_FLAG]) {
           // Despite the operator image is the same, CR patch might contain some changes.
-          cli.info(`Patching existing ${EclipseChe.PRODUCT_NAME} installation.`)
+          ux.info(`Patching existing ${EclipseChe.PRODUCT_NAME} installation.`)
           return true
         } else {
-          cli.info(`${EclipseChe.PRODUCT_NAME} is already up to date.`)
+          ux.info(`${EclipseChe.PRODUCT_NAME} is already up to date.`)
           return false
         }
       }
@@ -259,22 +261,23 @@ export default class Update extends Command {
         if (!ctx[CliContext.CLI_IS_DEV_VERSION] && (ctx[OperatorImageUpgradeContext.NEW_IMAGE_TAG] === EclipseChe.OPERATOR_IMAGE_NEXT_TAG || semver.lt(currentChectlVersion, ctx[OperatorImageUpgradeContext.NEW_IMAGE_TAG]))) {
           // Upgrade is not allowed
           if (ctx[OperatorImageUpgradeContext.NEW_IMAGE_TAG] === EclipseChe.OPERATOR_IMAGE_NEXT_TAG) {
-            cli.warn(`Stable ${getProjectName()} cannot update stable ${EclipseChe.PRODUCT_NAME} to ${EclipseChe.OPERATOR_IMAGE_NEXT_TAG} version`)
+            ux.warn(`Stable ${getProjectName()} cannot update stable ${EclipseChe.PRODUCT_NAME} to ${EclipseChe.OPERATOR_IMAGE_NEXT_TAG} version`)
           } else {
-            cli.warn(`It is not possible to update ${EclipseChe.PRODUCT_NAME} to a newer version using the current '${currentChectlVersion}' version of chectl. Please, update '${getProjectName()}' to a newer version using command '${getProjectName()} update' and then try again.`)
+            ux.warn(`It is not possible to update ${EclipseChe.PRODUCT_NAME} to a newer version using the current '${currentChectlVersion}' version of chectl. Please, update '${getProjectName()}' to a newer version using command '${getProjectName()} update' and then try again.`)
           }
+
           return false
         }
 
         // Upgrade allowed
         if (ctx[OperatorImageUpgradeContext.NEW_IMAGE_TAG] === EclipseChe.OPERATOR_IMAGE_NEXT_TAG) {
-          cli.info(`You are going to update ${EclipseChe.PRODUCT_NAME} ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE_TAG]} to ${EclipseChe.OPERATOR_IMAGE_NEXT_TAG} version.`)
+          ux.info(`You are going to update ${EclipseChe.PRODUCT_NAME} ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE_TAG]} to ${EclipseChe.OPERATOR_IMAGE_NEXT_TAG} version.`)
         } else {
-          cli.info(`You are going to update ${EclipseChe.PRODUCT_NAME} ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE_TAG]} to ${ctx[OperatorImageUpgradeContext.NEW_IMAGE_TAG]}`)
+          ux.info(`You are going to update ${EclipseChe.PRODUCT_NAME} ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE_TAG]} to ${ctx[OperatorImageUpgradeContext.NEW_IMAGE_TAG]}`)
         }
       } else {
         // Downgrade
-        cli.error('Downgrading is not supported.')
+        ux.error('Downgrading is not supported.', {exit: 1})
       }
     } else {
       // At least one of the images is custom
@@ -282,24 +285,24 @@ export default class Update extends Command {
       // Print message
       if (ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE] === ctx[OperatorImageUpgradeContext.NEW_IMAGE]) {
         // Despite the image is the same it could be updated image, replace anyway.
-        cli.info(`You are going to replace ${EclipseChe.PRODUCT_NAME} operator image ${ctx[OperatorImageUpgradeContext.NEW_IMAGE]}.`)
+        ux.info(`You are going to replace ${EclipseChe.PRODUCT_NAME} operator image ${ctx[OperatorImageUpgradeContext.NEW_IMAGE]}.`)
       } else if (ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE_NAME] !== EclipseChe.OPERATOR_IMAGE_NAME && ctx[OperatorImageUpgradeContext.NEW_IMAGE_NAME] !== EclipseChe.OPERATOR_IMAGE_NAME) {
         // Both images are custom
-        cli.info(`You are going to update ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE]} to ${ctx[OperatorImageUpgradeContext.NEW_IMAGE]}`)
+        ux.info(`You are going to update ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE]} to ${ctx[OperatorImageUpgradeContext.NEW_IMAGE]}`)
       } else {
         // One of the images is offical
         if (ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE_NAME] === EclipseChe.OPERATOR_IMAGE_NAME) {
           // Update from offical to custom image
-          cli.info(`You are going to update official ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE]} image with user provided one: ${ctx[OperatorImageUpgradeContext.NEW_IMAGE]}`)
+          ux.info(`You are going to update official ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE]} image with user provided one: ${ctx[OperatorImageUpgradeContext.NEW_IMAGE]}`)
         } else { // ctx[OperatorImageUpgradeContext.NEW_IMAGE_NAME] === DEFAULT_CHE_OPERATOR_IMAGE_NAME
           // Update from custom to official image
-          cli.info(`You are going to update user provided image ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE]} with official one: ${ctx[OperatorImageUpgradeContext.NEW_IMAGE]}`)
+          ux.info(`You are going to update user provided image ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE]} with official one: ${ctx[OperatorImageUpgradeContext.NEW_IMAGE]}`)
         }
       }
     }
 
-    if (!flags[BATCH_FLAG] && !flags[ASSUME_YES_FLAG] && !await cli.confirm('If you want to continue - press Y')) {
-      cli.info('Update cancelled by user.')
+    if (!flags[BATCH_FLAG] && !flags[ASSUME_YES_FLAG] && !await ux.confirm('If you want to continue - press Y')) {
+      ux.info('Update cancelled by user.')
       return false
     }
 
@@ -330,7 +333,7 @@ export default class Update extends Command {
       isUpdate = semver.gt(newTag, oldTag)
     } catch (error) {
       // not to fail unexpectedly
-      cli.debug(`Failed to compare versions '${newTag}' and '${oldTag}': ${error}`)
+      ux.debug(`Failed to compare versions '${newTag}' and '${oldTag}': ${error}`)
     }
 
     // if newTag is NEXT_TAG it is upgrade

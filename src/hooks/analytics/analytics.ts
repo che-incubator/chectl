@@ -10,14 +10,13 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { IConfig } from '@oclif/config'
-import { cli } from 'cli-ux'
+import { ux } from '@oclif/core'
 
 import { ConfigManager } from '../../api/config-manager'
 
 import { SegmentAdapter, SegmentProperties } from './segment-adapter'
 
-export const hook = async (options: { command: string, flags: any, config: IConfig }) => {
+export const hook = async (options: { command: string, flags: any }) => {
   // In case of disable telemetry by flag not additional configs are enabled.
   if (options.flags && options.flags.telemetry === 'off') {
     return this
@@ -33,7 +32,8 @@ export const hook = async (options: { command: string, flags: any, config: IConf
       if (options.flags.batch) {
         return
       }
-      const confirmed = await cli.confirm('Enable CLI usage data to be sent to Red Hat online services. More info: https://developers.redhat.com/article/tool-data-collection [y/n]')
+
+      const confirmed = await ux.confirm('Enable CLI usage data to be sent to Red Hat online services. More info: https://developers.redhat.com/article/tool-data-collection [y/n]')
       segmentTelemetry = confirmed ? 'on' : 'off'
       configManager.setProperty(SegmentProperties.Telemetry, segmentTelemetry)
     }

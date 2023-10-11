@@ -10,8 +10,8 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { Command, flags } from '@oclif/command'
-import { cli } from 'cli-ux'
+import { Command, Flags } from '@oclif/core'
+import { ux } from '@oclif/core'
 
 import { CheCtlContext } from '../../context'
 import {
@@ -26,23 +26,23 @@ import {Che} from '../../utils/che'
 export default class Open extends Command {
   static description = `Open ${EclipseChe.PRODUCT_NAME} dashboard`
 
-  static flags: flags.Input<any> = {
-    help: flags.help({ char: 'h' }),
+  static flags = {
+    help: Flags.help({ char: 'h' }),
     [CHE_NAMESPACE_FLAG]: CHE_NAMESPACE,
     [TELEMETRY_FLAG]: TELEMETRY,
   }
 
   async run() {
-    const { flags } = this.parse(Open)
+    const { flags } = await this.parse(Open)
     await CheCtlContext.init(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Open.id, flags })
 
     try {
-      const dashboardUrl = Che.buildDashboardURL(await Che.getCheURL(flags[CHE_NAMESPACE_FLAG]))
+      const dashboardUrl = Che.buildDashboardURL(await Che.getCheURL(flags[CHE_NAMESPACE_FLAG]!))
 
-      cli.info(`Opening ... ${dashboardUrl}`)
-      await cli.open(dashboardUrl)
+      ux.info(`Opening ... ${dashboardUrl}`)
+      await open(dashboardUrl)
     } catch (error: any) {
       this.error(error)
     }

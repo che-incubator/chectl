@@ -11,10 +11,10 @@
  */
 
 import axios from 'axios'
-import { cli } from 'cli-ux'
+import { ux } from '@oclif/core'
 import * as fs from 'fs-extra'
-import * as https from 'https'
-import * as path from 'path'
+import * as https from 'node:https'
+import * as path from 'node:path'
 import * as semver from 'semver'
 import { CHECTL_REPO, CheGithubClient, ECLIPSE_CHE_INCUBATOR_ORG } from '../api/github-client'
 import { getProjectVersion } from './utls'
@@ -89,7 +89,7 @@ export namespace CheCtlVersion {
       isCachedNewerVersionAvailable = await gtCheCtlVersion(newVersionInfo.latestVersion, currentVersion)
     } catch (error) {
       // not a version (corrupted data)
-      cli.debug(`Failed to compare versions '${newVersionInfo.latestVersion}' and '${currentVersion}': ${error}`)
+      ux.debug(`Failed to compare versions '${newVersionInfo.latestVersion}' and '${currentVersion}': ${error}`)
     }
 
     const now = Date.now()
@@ -103,13 +103,14 @@ export namespace CheCtlVersion {
       if (!latestVersion) {
         return false
       }
+
       newVersionInfo = { latestVersion, lastCheck: now }
       await fs.writeJson(newVersionInfoFilePath, newVersionInfo, { encoding: 'utf8' })
       try {
         return gtCheCtlVersion(newVersionInfo.latestVersion, currentVersion)
       } catch (error) {
         // not to fail unexpectedly
-        cli.debug(`Failed to compare versions '${newVersionInfo.latestVersion}' and '${currentVersion}': ${error}`)
+        ux.debug(`Failed to compare versions '${newVersionInfo.latestVersion}' and '${currentVersion}': ${error}`)
         return false
       }
     }

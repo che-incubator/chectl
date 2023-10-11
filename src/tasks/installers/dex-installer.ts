@@ -11,14 +11,14 @@
  */
 
 import {V1ConfigMap, V1Ingress, V1Namespace, V1ObjectMeta} from '@kubernetes/client-node'
-import { cli } from 'cli-ux'
-import * as crypto from 'crypto'
+import { ux } from '@oclif/core'
+import * as crypto from 'node:crypto'
 import * as fs from 'fs-extra'
 import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
 import { merge } from 'lodash'
-import * as os from 'os'
-import * as path from 'path'
+import * as os from 'node:os'
+import * as path from 'node:path'
 import {CheCtlContext, DexContext, EclipseCheContext, OIDCContext} from '../../context'
 import { KubeClient } from '../../api/kube-client'
 import {base64Decode, getEmbeddedTemplatesDirectory, newListr, safeLoadFromYamlFile} from '../../utils/utls'
@@ -254,7 +254,7 @@ export class DexInstaller implements Installer {
               const config = yaml.load(configYamlData) as any
               const eclipseCheClient = (config.staticClients as Array<any>).find(client => client.id === DexInstaller.CLIENT_ID)
               if (!eclipseCheClient) {
-                cli.error(`'${DexInstaller.CLIENT_ID}' client not found in the configmap '${DexInstaller.DEX_NAME}' in the namespace '${DexInstaller.NAMESPACE_NAME}'.`)
+                ux.error(`'${DexInstaller.CLIENT_ID}' client not found in the configmap '${DexInstaller.DEX_NAME}' in the namespace '${DexInstaller.NAMESPACE_NAME}'.`, {exit: 1})
               }
 
               // set in a CR
