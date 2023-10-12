@@ -1286,10 +1286,10 @@
     wordwrap "^1.0.0"
     wrap-ansi "^7.0.0"
 
-"@oclif/core@^3.0.4":
-  version "3.0.4"
-  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-3.0.4.tgz#1ef4667fbbbcf2d4cab02eead27cd80de83b952a"
-  integrity sha512-zP+OF/PVCgPLVNfoBMevafki71Zn6t1SbU4AIQcsNNAsoC2SpBiUFx81yvJbMG2172ss58ePT5odr1JweuYdhA==
+"@oclif/core@^3.0.4", "@oclif/core@^3.0.9":
+  version "3.0.9"
+  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-3.0.9.tgz#655fcb2bf675b4ef0f673f2c4b39962b2c71cba8"
+  integrity sha512-rwM6MWQ47W8U0++aG+qK6aATDqBl5sn5nkUqR6YmnJ4clR455gMyjUnzEqhwlzw+YfDf2MBhxC8wDlhPTImfvQ==
   dependencies:
     ansi-escapes "^4.3.2"
     ansi-styles "^4.3.0"
@@ -1378,12 +1378,19 @@
     chalk "^4.1.0"
     debug "^4.3.4"
 
-"@oclif/plugin-help@^5.2.14", "@oclif/plugin-help@^5.2.20":
+"@oclif/plugin-help@^5.2.14":
   version "5.2.20"
   resolved "https://registry.yarnpkg.com/@oclif/plugin-help/-/plugin-help-5.2.20.tgz#4035a0ac231f95fb8e334da342175e3ca00f6abc"
   integrity sha512-u+GXX/KAGL9S10LxAwNUaWdzbEBARJ92ogmM7g3gDVud2HioCmvWQCDohNRVZ9GYV9oKwZ/M8xwd6a1d95rEKQ==
   dependencies:
     "@oclif/core" "^2.15.0"
+
+"@oclif/plugin-help@^6.0.2":
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/@oclif/plugin-help/-/plugin-help-6.0.2.tgz#f9cf0ac668e5ffabdebec33d374350495e981830"
+  integrity sha512-rHe19ySqU+sIA1qJYQrnB8Jh+LvdMxIN2cIQPSsMobhdOThW5R7jRpMDe9iZwO+okQmvXiP/gIx/vEnWST33HQ==
+  dependencies:
+    "@oclif/core" "^3.0.9"
 
 "@oclif/plugin-not-found@^2.3.32":
   version "2.4.1"
