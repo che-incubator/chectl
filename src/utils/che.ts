@@ -40,6 +40,7 @@ export namespace Che {
     const cheCluster = ctx[EclipseCheContext.CUSTOM_CR] || ctx[EclipseCheContext.DEFAULT_CR]
 
     for (const cr of [cheClusterPatch, cheCluster]) {
+      // eslint-disable-next-line unicorn/no-array-reduce
       const fieldValue = fieldPath.split('.').reduce((acc, prop) => {
         return acc?.[prop]
       }, cr)
@@ -64,11 +65,7 @@ export namespace Che {
 
   export function getCheURL(namespace: string): Promise<string> {
     const ctx = CheCtlContext.get()
-    if (ctx[InfrastructureContext.IS_OPENSHIFT]) {
-      return getCheOpenShiftURL(namespace)
-    } else {
-      return getCheK8sURL(namespace)
-    }
+    return ctx[InfrastructureContext.IS_OPENSHIFT] ? getCheOpenShiftURL(namespace) : getCheK8sURL(namespace)
   }
 
   /**

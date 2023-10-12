@@ -40,18 +40,14 @@ export namespace CRCTasks {
   }
 
   async function isCRCRunning(): Promise<boolean> {
-    const {exitCode, stdout} = await execa('crc', ['status'], {timeout: 60000, reject: false})
-    if (exitCode === 0 &&
+    const {exitCode, stdout} = await execa('crc', ['status'], {timeout: 60_000, reject: false})
+    return Boolean(exitCode === 0 &&
       stdout.includes('CRC VM:          Running') &&
-      stdout.includes('OpenShift:       Running')) {
-      return true
-    } else {
-      return false
-    }
+      stdout.includes('OpenShift:       Running'))
   }
 
   async function getCRCIP(): Promise<string> {
-    const {stdout} = await execa('crc', ['ip'], {timeout: 10000})
+    const {stdout} = await execa('crc', ['ip'], {timeout: 10_000})
     return stdout
   }
 }

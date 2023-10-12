@@ -62,22 +62,24 @@ export class CheGithubClient {
       data: TagInfo
     }
 
+    // eslint-disable-next-line unicorn/no-array-reduce
     const semanticTags: SemanticTagData[] = tags.reduce<SemanticTagData[]>((acceptedTags, tagInfo, _index: number, _all: TagInfo[]) => {
       // Remove 'v' prefix if any
       if (tagInfo.name.startsWith('v')) {
-        tagInfo.name = tagInfo.name.substring(1)
+        tagInfo.name = tagInfo.name.slice(1)
       }
 
       const versionComponents = tagInfo.name.split('.')
       // Accept the tag only if it has format x.y.z and z has no suffix (like '-RC2' or '-5e87ab1')
-      if (versionComponents.length === 3 && (parseInt(versionComponents[2], 10).toString() === versionComponents[2])) {
+      if (versionComponents.length === 3 && (Number.parseInt(versionComponents[2], 10).toString() === versionComponents[2])) {
         acceptedTags.push({
-          major: parseInt(versionComponents[0], 10),
-          minor: parseInt(versionComponents[1], 10),
-          patch: parseInt(versionComponents[2], 10),
+          major: Number.parseInt(versionComponents[0], 10),
+          minor: Number.parseInt(versionComponents[1], 10),
+          patch: Number.parseInt(versionComponents[2], 10),
           data: tagInfo,
         })
       }
+
       return acceptedTags
     }, [])
     if (semanticTags.length === 0) {
@@ -105,6 +107,7 @@ export class CheGithubClient {
     if (commitDataResponse.status !== 200) {
       throw new Error(`Failed to get commit data from the repository '${repo}'. Request: ${commitDataResponse.url}, response: ${commitDataResponse.status}`)
     }
+
     return commitDataResponse.data
   }
 
@@ -119,6 +122,7 @@ export class CheGithubClient {
     if (!commitData.commit.committer || !commitData.commit.committer.date) {
       throw new Error(`Failed to read '${commitId}' commit date`)
     }
+
     return commitData.commit.committer.date
   }
 }

@@ -34,6 +34,7 @@ export namespace MinikubeTasks {
           if (!isRunning) {
             await startMinikube()
           }
+
           task.title = `${task.title}...[OK]`
         },
       },
@@ -46,6 +47,7 @@ export namespace MinikubeTasks {
             const kubeClient = KubeClient.getInstance()
             await kubeClient.waitForPodReady('app.kubernetes.io/instance=ingress-nginx,app.kubernetes.io/component=controller', 'ingress-nginx')
           }
+
           task.title = `${task.title}...[Enabled]`
         },
       },
@@ -63,9 +65,9 @@ export namespace MinikubeTasks {
         task: async (ctx: any, task: any) => {
           const version = await getMinikubeVersion()
           const versionComponents = version.split('.')
-          ctx.minikubeVersionMajor = parseInt(versionComponents[0], 10)
-          ctx.minikubeVersionMinor = parseInt(versionComponents[1], 10)
-          ctx.minikubeVersionPatch = parseInt(versionComponents[2], 10)
+          ctx.minikubeVersionMajor = Number.parseInt(versionComponents[0], 10)
+          ctx.minikubeVersionMinor = Number.parseInt(versionComponents[1], 10)
+          ctx.minikubeVersionPatch = Number.parseInt(versionComponents[2], 10)
 
           task.title = `${task.title}...[${version}]`
         },
@@ -80,10 +82,9 @@ export namespace MinikubeTasks {
         enabled: (ctx: any) => Boolean(ctx[OIDCContext.CA_FILE]),
         task: async (_ctx: any, task: any) => {
           const args: string[] = []
-          args.push('ssh')
-          args.push('sudo mkdir -p /etc/ca-certificates')
+          args.push('ssh', 'sudo mkdir -p /etc/ca-certificates')
 
-          await execa('minikube', args, { timeout: 60000 })
+          await execa('minikube', args, { timeout: 60_000 })
 
           task.title = `${task.title}...[Created]`
         },
@@ -93,11 +94,9 @@ export namespace MinikubeTasks {
         enabled: (ctx: any) => Boolean(ctx[OIDCContext.CA_FILE]),
         task: async (ctx: any, task: any) => {
           const args: string[] = []
-          args.push('cp')
-          args.push(ctx[OIDCContext.CA_FILE])
-          args.push('/etc/ca-certificates/dex-ca.crt')
+          args.push('cp', ctx[OIDCContext.CA_FILE], '/etc/ca-certificates/dex-ca.crt')
 
-          await execa('minikube', args, { timeout: 60000 })
+          await execa('minikube', args, { timeout: 60_000 })
 
           task.title = `${task.title}...[OK]`
         },
@@ -106,19 +105,15 @@ export namespace MinikubeTasks {
         title: 'Configure Minikube API server',
         task: async (ctx: any, task: any) => {
           const args: string[] = []
-          args.push(`--extra-config=apiserver.oidc-issuer-url=${ctx[OIDCContext.ISSUER_URL]}`)
-          args.push(`--extra-config=apiserver.oidc-client-id=${ctx[OIDCContext.CLIENT_ID]}`)
+          args.push(`--extra-config=apiserver.oidc-issuer-url=${ctx[OIDCContext.ISSUER_URL]}`, `--extra-config=apiserver.oidc-client-id=${ctx[OIDCContext.CLIENT_ID]}`)
 
           if (ctx[OIDCContext.CA_FILE]) {
             args.push('--extra-config=apiserver.oidc-ca-file=/etc/ca-certificates/dex-ca.crt')
           }
 
-          args.push('--extra-config=apiserver.oidc-username-claim=name')
-          args.push('--extra-config=apiserver.oidc-username-prefix=-')
-          args.push('--extra-config=apiserver.oidc-groups-claim=groups')
-          args.push('start')
+          args.push('--extra-config=apiserver.oidc-username-claim=name', '--extra-config=apiserver.oidc-username-prefix=-', '--extra-config=apiserver.oidc-groups-claim=groups', 'start')
 
-          await execa('minikube', args, { timeout: 180000 })
+          await execa('minikube', args, { timeout: 180_000 })
 
           task.title = `${task.title}...[OK]`
         },
@@ -138,45 +133,41 @@ export namespace MinikubeTasks {
   }
 
   async function isMinikubeRunning(): Promise<boolean> {
-    const {exitCode} = await execa('minikube', ['status'], {timeout: 10000, reject: false})
-    if (exitCode === 0) {
-      return true
-    } else {
-      return false
-    }
+    const {exitCode} = await execa('minikube', ['status'], {timeout: 10_000, reject: false})
+    return exitCode === 0
   }
 
   async function startMinikube() {
-    await execa('minikube', ['start', '--memory=4096', '--cpus=4', '--disk-size=50g'], { timeout: 180000 })
+    await execa('minikube', ['start', '--memory=4096', '--cpus=4', '--disk-size=50g'], { timeout: 180_000 })
   }
 
   async function isIngressAddonEnabled(): Promise<boolean> {
     // try with json output (recent minikube version)
-    const { stdout, exitCode } = await execa('minikube', ['addons', 'list', '-o', 'json'], { timeout: 10000, reject: false })
+    const { stdout, exitCode } = await execa('minikube', ['addons', 'list', '-o', 'json'], { timeout: 10_000, reject: false })
     if (exitCode === 0) {
       // grab json
       const json = JSON.parse(stdout)
       return json.ingress && json.ingress.Status === 'enabled'
     } else {
       // probably with old minikube, let's try with classic output
-      const { stdout } = await execa('minikube', ['addons', 'list'], { timeout: 10000 })
+      const { stdout } = await execa('minikube', ['addons', 'list'], { timeout: 10_000 })
       return stdout.includes('ingress: enabled')
     }
   }
 
   async function enableIngressAddon(): Promise<void> {
-    await execa('minikube', ['addons', 'enable', 'ingress'], { timeout: 60000 })
+    await execa('minikube', ['addons', 'enable', 'ingress'], { timeout: 60_000 })
   }
 
   async function getMinikubeIP(): Promise<string> {
-    const { stdout } = await execa('minikube', ['ip'], { timeout: 10000 })
+    const { stdout } = await execa('minikube', ['ip'], { timeout: 10_000 })
     return stdout
   }
 
   async function getMinikubeVersion(): Promise<string> {
-    const { stdout } = await execa('minikube', ['version'], { timeout: 10000 })
+    const { stdout } = await execa('minikube', ['version'], { timeout: 10_000 })
     const versionLine = stdout.split('\n')[0]
-    const versionString = versionLine.trim().split(' ')[2].substr(1)
+    const versionString = versionLine.trim().split(' ')[2].slice(1)
     return versionString
   }
 }

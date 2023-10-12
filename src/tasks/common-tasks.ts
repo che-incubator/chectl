@@ -14,7 +14,7 @@ import {CheCtlContext, CliContext, InfrastructureContext} from '../context'
 import * as Listr from 'listr'
 import { KubeClient } from '../api/kube-client'
 
-import { cli } from 'cli-ux'
+import { ux } from '@oclif/core'
 import {CreateResource, DeleteResource, IsResourceExists, ReplaceResource} from './installers/installer'
 import {CHE_NAMESPACE_FLAG, PLATFORM_FLAG, SKIP_KUBE_HEALTHZ_CHECK_FLAG, SKIP_VERSION_CHECK_FLAG} from '../flags'
 import {EclipseChe} from './installers/eclipse-che/eclipse-che'
@@ -33,7 +33,7 @@ export namespace CommonTasks {
         const kubeHelper = KubeClient.getInstance()
 
         try {
-          cli.info(`› Current Kubernetes context: '${kubeHelper.getCurrentContext()}'`)
+          ux.info(`› Current Kubernetes context: '${kubeHelper.getCurrentContext()}'`)
           if (!flags[SKIP_KUBE_HEALTHZ_CHECK_FLAG]) {
             await kubeHelper.checkKubeApi()
           }
@@ -60,6 +60,7 @@ export namespace CommonTasks {
         if (namespace === 'openshift-operators') {
           return task.skip('openshift-operators namespace is protected and can not be deleted.')
         }
+
         const kubeHelper = KubeClient.getInstance()
         await kubeHelper.deleteNamespace(namespace)
         task.title = `${task.title}...[Deleted]`
@@ -138,7 +139,7 @@ export namespace CommonTasks {
     return {
       title: '',
       enabled: () => false,
-      task: async () => { },
+      task: async () => {},
     }
   }
 
@@ -186,7 +187,7 @@ export namespace CommonTasks {
     return {
       title: 'Waiting',
       task: async (_ctx: any, task: any) => {
-        await cli.wait(milliseconds)
+        await ux.wait(milliseconds)
         task.title = `${task.title}...[OK]`
       },
     }
@@ -212,38 +213,34 @@ export namespace CommonTasks {
         const messages: string[] = []
 
         const version = await Che.getCheVersion()
-        messages.push(`${EclipseChe.PRODUCT_NAME} ${version.trim()} has been successfully deployed.`)
-        messages.push(`Documentation             : ${EclipseChe.DOC_LINK}`)
+        messages.push(`${EclipseChe.PRODUCT_NAME} ${version.trim()} has been successfully deployed.`, `Documentation             : ${EclipseChe.DOC_LINK}`)
         if (EclipseChe.DOC_LINK_RELEASE_NOTES) {
           messages.push(`Release Notes           : ${EclipseChe.DOC_LINK_RELEASE_NOTES}`)
         }
+
         messages.push(OUTPUT_SEPARATOR)
 
         const dashboardURL = Che.buildDashboardURL(await Che.getCheURL(flags[CHE_NAMESPACE_FLAG]))
-        messages.push(`Users Dashboard           : ${dashboardURL}`)
-        messages.push(OUTPUT_SEPARATOR)
+        messages.push(`Users Dashboard           : ${dashboardURL}`, OUTPUT_SEPARATOR)
 
         const cheConfigMap = await kubeHelper.getConfigMap(EclipseChe.CONFIG_MAP, flags[CHE_NAMESPACE_FLAG])
         if (cheConfigMap && cheConfigMap.data) {
           if (cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL) {
             messages.push(`Plug-in Registry          : ${addTrailingSlash(cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL)}`)
           }
+
           if (cheConfigMap.data.CHE_WORKSPACE_DEVFILE__REGISTRY__URL) {
             messages.push(`Devfile Registry          : ${addTrailingSlash(cheConfigMap.data.CHE_WORKSPACE_DEVFILE__REGISTRY__URL)}`)
           }
+
           messages.push(OUTPUT_SEPARATOR)
 
           if (flags[PLATFORM_FLAG] === 'minikube') {
-            messages.push('Dex user credentials      : che@eclipse.org:admin')
-            messages.push('Dex user credentials      : user1@che:password')
-            messages.push('Dex user credentials      : user2@che:password')
-            messages.push('Dex user credentials      : user3@che:password')
-            messages.push('Dex user credentials      : user4@che:password')
-            messages.push('Dex user credentials      : user5@che:password')
-            messages.push(OUTPUT_SEPARATOR)
+            messages.push('Dex user credentials      : che@eclipse.org:admin', 'Dex user credentials      : user1@che:password', 'Dex user credentials      : user2@che:password', 'Dex user credentials      : user3@che:password', 'Dex user credentials      : user4@che:password', 'Dex user credentials      : user5@che:password', OUTPUT_SEPARATOR)
           }
         }
 
+        // eslint-disable-next-line unicorn/prefer-spread
         ctx[CliContext.CLI_COMMAND_POST_OUTPUT_MESSAGES] = messages.concat(ctx[CliContext.CLI_COMMAND_POST_OUTPUT_MESSAGES])
         task.title = `${task.title}...[OK]`
       },
@@ -259,9 +256,10 @@ export namespace CommonTasks {
         for (const message of ctx[CliContext.CLI_COMMAND_POST_OUTPUT_MESSAGES]) {
           tasks.add({
             title: message,
-            task: () => { },
+            task: () => {},
           })
         }
+
         return tasks
       },
     }
@@ -274,7 +272,7 @@ export namespace CommonTasks {
         if (await isVerifiedResource()) {
           task.title = `${task.title}...[OK]`
         } else {
-          cli.error(errorMsg)
+          ux.error(errorMsg, {exit: 1})
         }
       },
     }

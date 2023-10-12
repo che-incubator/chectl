@@ -12,7 +12,7 @@
 
 import * as fs from 'fs-extra'
 import { merge } from 'lodash'
-import * as path from 'path'
+import * as path from 'node:path'
 
 import {CheCtlContext, CliContext} from '../context'
 

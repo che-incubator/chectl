@@ -34,22 +34,20 @@ export namespace PlatformTasks {
           if (!pod.spec) {
             continue
           }
+
           for (const container of pod.spec.containers) {
-            if (container.command) {
-              if (container.command.some(value => value.includes(OIDCContext.ISSUER_URL)) && container.command.some(value => value.includes(OIDCContext.CLIENT_ID))) {
-                task.title = `${task.title}...[OK]`
-                return
-              }
+            if (container.command && container.command.some(value => value.includes(OIDCContext.ISSUER_URL)) && container.command.some(value => value.includes(OIDCContext.CLIENT_ID))) {
+              task.title = `${task.title}...[OK]`
+              return
             }
 
-            if (container.args) {
-              if (container.args.some(value => value.includes(OIDCContext.ISSUER_URL)) && container.args.some(value => value.includes(OIDCContext.CLIENT_ID))) {
-                task.title = `${task.title}...[OK]`
-                return
-              }
+            if (container.args && container.args.some(value => value.includes(OIDCContext.ISSUER_URL)) && container.args.some(value => value.includes(OIDCContext.CLIENT_ID))) {
+              task.title = `${task.title}...[OK]`
+              return
             }
           }
         }
+
         task.title = `${task.title}...[Not Found]`
         throw new Error(`API server is not configured with OIDC Identity Provider, see details ${EclipseChe.DOC_LINK_CONFIGURE_API_SERVER}. To bypass OIDC Provider check, use \'--skip-oidc-provider-check\' flag`)
       },

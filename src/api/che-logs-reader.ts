@@ -11,9 +11,9 @@
  */
 
 import { V1Pod, Watch } from '@kubernetes/client-node'
-import * as cp from 'child_process'
+import * as cp from 'node:child_process'
 import * as fs from 'fs-extra'
-import * as path from 'path'
+import * as path from 'node:path'
 import { KubeClient } from './kube-client'
 import {isCommandExists} from '../utils/utls'
 
@@ -28,11 +28,7 @@ export class CheLogsReader {
    * Reads logs from pods that match a given selector.
    */
   async readPodLog(namespace: string, podLabelSelector: string | undefined, directory: string, follow: boolean): Promise<void> {
-    if (follow) {
-      await this.watchNamespacedPods(namespace, podLabelSelector, directory)
-    } else {
-      await this.readNamespacedPodLog(namespace, podLabelSelector, directory)
-    }
+    await (follow ? this.watchNamespacedPods(namespace, podLabelSelector, directory) : this.readNamespacedPodLog(namespace, podLabelSelector, directory))
   }
 
   /**
@@ -77,32 +73,30 @@ export class CheLogsReader {
     const processedContainers = new Map<string, Set<string>>()
 
     const watcher = new Watch(this.kubeHelper.getKubeConfig())
-    return watcher.watch(`/api/v1/namespaces/${namespace}/pods`, {},
-      async (_phase: string, obj: any) => {
-        const pod = obj as V1Pod
-        if (!pod || !pod.metadata || !pod.metadata.name) {
-          return
-        }
-        const podName = pod.metadata.name!
+    return watcher.watch(`/api/v1/namespaces/${namespace}/pods`, {}, async (_phase: string, obj: any) => {
+      const pod = obj as V1Pod
+      if (!pod || !pod.metadata || !pod.metadata.name) {
+        return
+      }
 
-        if (!processedContainers.has(podName)) {
-          processedContainers.set(podName, new Set<string>())
-        }
+      const podName = pod.metadata.name!
 
-        if (!podLabelSelector || this.matchLabels(pod.metadata!.labels || {}, podLabelSelector)) {
-          for (const containerName of this.getContainers(pod)) {
-            // not to read logs from the same containers twice
-            if (!processedContainers.get(podName)!.has(containerName)) {
+      if (!processedContainers.has(podName)) {
+        processedContainers.set(podName, new Set<string>())
+      }
+
+      if (!podLabelSelector || this.matchLabels(pod.metadata!.labels || {}, podLabelSelector)) {
+        for (const containerName of this.getContainers(pod)) {
+          // not to read logs from the same containers twice
+          if (!processedContainers.get(podName)!.has(containerName)) {
               processedContainers.get(podName)!.add(containerName)
 
               const fileName = this.doCreateLogFile(namespace, podName, containerName, directory)
               await this.doReadNamespacedPodLog(namespace, pod.metadata!.name!, containerName, fileName, true)
-            }
           }
         }
-      },
-      // ignore errors
-      () => { })
+      }
+    }, () => {})
   }
 
   /**
@@ -129,6 +123,7 @@ export class CheLogsReader {
     if (!pod.status || !pod.status.containerStatuses) {
       return []
     }
+
     return pod.status.containerStatuses.map(containerStatus => containerStatus.name)
   }
 

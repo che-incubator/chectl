@@ -14,7 +14,7 @@ import {CheCtlContext, CliContext, EclipseCheContext} from '../context'
 import * as Listr from 'listr'
 import { KubeClient } from '../api/kube-client'
 import {getEmbeddedTemplatesDirectory, newListr, safeLoadFromYamlFile} from '../utils/utls'
-import * as path from 'path'
+import * as path from 'node:path'
 import { V1Role, V1RoleBinding } from '@kubernetes/client-node'
 import * as yaml from 'js-yaml'
 import {CommonTasks} from './common-tasks'
@@ -62,6 +62,7 @@ export namespace OlmTasks {
     if (flags[DELETE_ALL_FLAG]) {
       deleteResources.push(() => kubeHelper.deleteOperator(`${DevWorkspace.PACKAGE}.${ctx[EclipseCheContext.OPERATOR_NAMESPACE]}`))
     }
+
     return CommonTasks.getDeleteResourcesTask('Delete Operators', deleteResources)
   }
 
@@ -120,6 +121,7 @@ export namespace OlmTasks {
           if (!csv) {
             throw new Error(`Cluster service version '${installedCSVName}' not found.`)
           }
+
           throw new Error(`Cluster service version resource failed, cause: ${csv.status.message}, reason: ${csv.status.reason}.`)
         }
 
@@ -238,6 +240,7 @@ export namespace OlmTasks {
             } else {
               ctx[CliContext.CLI_COMMAND_POST_OUTPUT_MESSAGES].push(`${subscription.spec.name} '${getVersionFromCSV(currentCSV)}' version installed`)
             }
+
             task.title = `${task.title}...[OK]`
             return
           }
@@ -262,6 +265,7 @@ export namespace OlmTasks {
         if (csvs.length !== 1) {
           throw new Error(`${EclipseChe.PRODUCT_NAME} operator CSV not found.`)
         }
+
         const jsonPatch = [{ op: 'replace', path: '/spec/install/spec/deployments/0/spec/template/spec/containers/0/image', value: flags[CHE_OPERATOR_IMAGE_FLAG] }]
         await kubeHelper.patchClusterServiceVersion(csvs[0].metadata.name!, csvs[0].metadata.namespace!, jsonPatch)
         task.title = `${task.title}...[${flags[CHE_OPERATOR_IMAGE_FLAG]}: OK]`
@@ -297,6 +301,6 @@ export namespace OlmTasks {
   }
 
   function getVersionFromCSV(csvName: string): string {
-    return csvName.substr(csvName.lastIndexOf('v') + 1)
+    return csvName.slice(csvName.lastIndexOf('v') + 1)
   }
 }

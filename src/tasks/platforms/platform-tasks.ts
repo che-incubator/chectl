@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { cli } from 'cli-ux'
+import { ux } from '@oclif/core'
 import * as Listr from 'listr'
 import { CRCTasks } from './crc'
 import { DockerDesktopTasks } from './docker-desktop'
@@ -33,7 +33,7 @@ export namespace PlatformTasks {
       return  {
         title: 'Platform preflight checklist',
         task: () => {
-          cli.error('Platform is required')
+          ux.error('Platform is required', {exit: 1})
         },
       }
     } else if (flags[PLATFORM_FLAG] === 'openshift') {
@@ -72,7 +72,7 @@ export namespace PlatformTasks {
       return  {
         title: 'Platform preflight checklist',
         task: () => {
-          cli.error(`Platform ${flags[PLATFORM_FLAG]} is not supported yet ¯\\_(ツ)_/¯`)
+          ux.error(`Platform ${flags[PLATFORM_FLAG]} is not supported yet ¯\\_(ツ)_/¯`, {exit: 1})
         },
       }
     }
@@ -83,7 +83,7 @@ export namespace PlatformTasks {
     if (flags[PLATFORM_FLAG] === 'minikube') {
       return MinikubeTasks.configureApiServerForDex()
     } else {
-      cli.error(`It is not possible to configure API server for ${flags[PLATFORM_FLAG]}.`)
+      ux.error(`It is not possible to configure API server for ${flags[PLATFORM_FLAG]}.`, {exit: 1})
     }
   }
 }

@@ -11,11 +11,11 @@
  */
 
 import UpdateCommand from '@oclif/plugin-update/lib/commands/update'
-import { cli } from 'cli-ux'
+import { ux } from '@oclif/core'
 import * as notifier from 'node-notifier'
 import {newError} from './utls'
 import {CheCtlContext, CliContext} from '../context'
-import * as fs from 'fs'
+import * as fs from 'node:fs'
 import {CheCtlVersion} from './chectl-version'
 import {EclipseChe} from '../tasks/installers/eclipse-che/eclipse-che'
 
@@ -66,11 +66,11 @@ export function notifyCommandCompletedSuccessfully(): void {
 export async function askForChectlUpdateIfNeeded(): Promise<void> {
   const ctx = CheCtlContext.get()
   if (await CheCtlVersion.isCheCtlUpdateAvailable(ctx[CliContext.CLI_CACHE_DIR])) {
-    cli.info(`A more recent version of chectl is available. To deploy the latest version of ${EclipseChe.PRODUCT_NAME}, update the chectl tool first.`)
-    if (await cli.confirm('Do you want to update chectl now? [y/n]')) {
+    ux.info(`A more recent version of chectl is available. To deploy the latest version of ${EclipseChe.PRODUCT_NAME}, update the chectl tool first.`)
+    if (await ux.confirm('Do you want to update chectl now? [y/n]')) {
       // Update chectl
       await UpdateCommand.run([])
-      cli.exit(0)
+      ux.exit(0)
     }
   }
 }

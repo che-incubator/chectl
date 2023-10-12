@@ -21,7 +21,7 @@ import {
   DOMAIN_FLAG, PLATFORM_FLAG, PLUGIN_REGISTRY_URL_FLAG,
   WORKSPACE_PVS_STORAGE_CLASS_NAME_FLAG,
 } from '../flags'
-import {cli} from 'cli-ux'
+import { ux } from '@oclif/core'
 import {EclipseChe} from './installers/eclipse-che/eclipse-che'
 import {CheCluster} from '../api/types/che-cluster'
 
@@ -36,7 +36,7 @@ export namespace CheClusterTasks {
 
         const cheCluster = await kubeHelper.getCheCluster(flags[CHE_NAMESPACE_FLAG])
         if (!cheCluster) {
-          cli.error(`${EclipseChe.PRODUCT_NAME} cluster Custom Object not found in the namespace '${flags[CHE_NAMESPACE_FLAG]}'`)
+          ux.error(`${EclipseChe.PRODUCT_NAME} cluster Custom Object not found in the namespace '${flags[CHE_NAMESPACE_FLAG]}'`, {exit: 1})
         }
 
         await kubeHelper.patchNamespacedCustomObject(
@@ -78,6 +78,7 @@ export namespace CheClusterTasks {
           if (cheCluster.spec?.networking?.tlsSecretName === undefined) {
             merge(cheCluster, { spec: { networking: { tlsSecretName: EclipseChe.CHE_TLS_SECRET_NAME } } })
           }
+
           if (flags[DOMAIN_FLAG]) {
             merge(cheCluster, { spec: { networking: { domain: flags[DOMAIN_FLAG] } } })
           }

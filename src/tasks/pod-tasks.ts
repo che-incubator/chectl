@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { cli } from 'cli-ux'
+import { ux } from '@oclif/core'
 import * as Listr from 'listr'
 import {KubeClient} from '../api/kube-client'
 import {KubeHelperContext} from '../context'
@@ -34,7 +34,7 @@ export namespace PodTasks {
 
         const exists = await kubeClient.isDeploymentExist(deploymentName, namespace)
         if (!exists) {
-          cli.error(`Deployment ${deploymentName} not found.`)
+          ux.error(`Deployment ${deploymentName} not found.`, {exit: 1})
         }
 
         task.title = `${task.title}...[Found]`
@@ -47,7 +47,7 @@ export namespace PodTasks {
       title: `Wait for ${deploymentName} latest replica`,
       task: async (_ctx: any, task: any) => {
         const kubeClient = KubeClient.getInstance()
-        await cli.wait(1000)
+        await ux.wait(1000)
         await kubeClient.waitLatestReplica(deploymentName, namespace)
         task.title = `${task.title}...[OK]`
       },
@@ -89,6 +89,7 @@ export namespace PodTasks {
         } else {
           tasks.add(getStartingTask(selector, namespace))
         }
+
         return tasks
       },
     }
@@ -110,7 +111,7 @@ export namespace PodTasks {
               let podFailState: FailState | undefined
 
               for (let j = 0; j < iterations; j++) {
-                await cli.wait(1000)
+                await ux.wait(1000)
 
                 cheClusterFailState = await getCheClusterFailState(namespace)
                 podFailState = await getPodFailState(namespace, selector, 'PodScheduled')
@@ -135,7 +136,7 @@ export namespace PodTasks {
               return
             }
 
-            await cli.wait(INTERVAL)
+            await ux.wait(INTERVAL)
           }
 
           throw new Error(`Failed to schedule a pod: ${await getTimeOutErrorMessage(namespace, selector)}`)
@@ -157,7 +158,7 @@ export namespace PodTasks {
               let failedState: FailState | undefined
 
               for (let j = 0; j < iterations; j++) {
-                await cli.wait(1000)
+                await ux.wait(1000)
 
                 failedState = await getContainerFailState(namespace, selector, 'Pending')
 
@@ -178,7 +179,7 @@ export namespace PodTasks {
               return
             }
 
-            await cli.wait(INTERVAL)
+            await ux.wait(INTERVAL)
           }
 
           throw new Error(`Failed to download image: ${await getTimeOutErrorMessage(namespace, selector)}`)
@@ -207,7 +208,7 @@ export namespace PodTasks {
               let failedState: FailState | undefined
 
               for (let j = 0; j < iterations; j++) {
-                await cli.wait(1000)
+                await ux.wait(1000)
 
                 cheClusterFailState = await getCheClusterFailState(namespace)
                 failedState = await getContainerFailState(namespace, selector, 'Running')
@@ -241,7 +242,7 @@ export namespace PodTasks {
               return
             }
 
-            await cli.wait(INTERVAL)
+            await ux.wait(INTERVAL)
           }
 
           throw new Error(`Failed to start a pod: ${await getTimeOutErrorMessage(namespace, selector)}`)
@@ -291,6 +292,7 @@ export namespace PodTasks {
          if (pod.status.containerStatuses) {
            errorMessage += `\n\t\tstatus: ${JSON.stringify(pod.status.containerStatuses, undefined, '  ')}`
          }
+
          if (pod.status.conditions) {
            errorMessage += `\n\t\tconditions: ${JSON.stringify(pod.status.conditions, undefined, '  ')}`
          }

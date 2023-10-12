@@ -39,6 +39,7 @@ export class EclipseCheOperatorInstaller implements Installer {
         if (!flags[SKIP_CERT_MANAGER_FLAG]) {
           tasks.add(CertManager.getWaitCertManagerTask())
         }
+
         tasks.add(EclipseCheTasks.getCreateOrUpdateCertificateTask(true))
         tasks.add(EclipseCheTasks.getCreateOrUpdateIssuerTask(true))
         tasks.add(EclipseCheTasks.getCreateOrUpdateServiceTask(true))
@@ -103,6 +104,7 @@ export class EclipseCheOperatorInstaller implements Installer {
         if (flags[DELETE_ALL_FLAG]) {
           tasks.add(DevWorkspaceInstallerFactory.getInstaller().getDeleteTasks())
         }
+
         tasks.add(await EclipseCheTasks.getDeleteClusterScopeObjectsTask())
         tasks.add(EclipseCheTasks.getDeleteEclipseCheResourcesTask())
         tasks.add(EclipseCheTasks.getDeleteNetworksTask())

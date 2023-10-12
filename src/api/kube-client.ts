@@ -44,12 +44,12 @@ import {
 } from '@kubernetes/client-node'
 import { Cluster } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
-import { cli } from 'cli-ux'
+import { ux } from '@oclif/core'
 import * as execa from 'execa'
-import * as fs from 'fs'
-import * as https from 'https'
-import * as net from 'net'
-import { Writable } from 'stream'
+import * as fs from 'node:fs'
+import * as https from 'node:https'
+import * as net from 'node:net'
+import { Writable } from 'node:stream'
 import {
   newError,
   sleep,
@@ -123,9 +123,11 @@ export class KubeClient {
       if (error.response && error.response.status === 403) {
         throw new Error(`E_K8S_API_FORBIDDEN - Message: ${error.response.data.message}`)
       }
+
       if (error.response && error.response.status === 401) {
         throw new Error(`E_K8S_API_UNAUTHORIZED - Message: ${error.response.data.message}`)
       }
+
       if (error.response) {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
@@ -156,9 +158,11 @@ export class KubeClient {
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
+
     if (!res || !res.body) {
       throw new Error('Unable to get default service account')
     }
+
     const v1SecretList = res.body
 
     if (!v1SecretList.items || v1SecretList.items.length === 0) {
@@ -178,7 +182,7 @@ export class KubeClient {
 
   async applyResource(yamlPath: string, opts = ''): Promise<void> {
     const command = `kubectl apply -f ${yamlPath} ${opts}`
-    await execa(command, { timeout: 60000, shell: true })
+    await execa(command, { timeout: 60_000, shell: true })
   }
 
   async createNamespace(namespace: V1Namespace): Promise<void> {
@@ -190,14 +194,15 @@ export class KubeClient {
     }
   }
 
-  async waitNamespaceActive(name: string, intervalMs = 500, timeoutMs = 60000) {
+  async waitNamespaceActive(name: string, intervalMs = 500, timeoutMs = 60_000) {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
       const namespace = await this.getNamespace(name)
       if (namespace && namespace.status && namespace.status.phase && namespace.status.phase === 'Active') {
         return
       }
-      await cli.wait(intervalMs)
+
+      await ux.wait(intervalMs)
     }
 
     throw new Error(`Namespace '${name}' is not in 'Active' phase.`)
@@ -233,6 +238,7 @@ export class KubeClient {
       if (e.response && e.response.statusCode === 404) {
         return false
       }
+
       throw this.wrapK8sClientError(e)
     }
   }
@@ -280,6 +286,7 @@ export class KubeClient {
       if (e.response && e.response.statusCode === 404) {
         return false
       }
+
       throw this.wrapK8sClientError(e)
     }
   }
@@ -293,6 +300,7 @@ export class KubeClient {
       if (e.response && e.response.statusCode === 404) {
         return false
       }
+
       throw this.wrapK8sClientError(e)
     }
   }
@@ -376,6 +384,7 @@ export class KubeClient {
       if (e.response && e.response.statusCode === 404) {
         return false
       }
+
       throw this.wrapK8sClientError(e)
     }
   }
@@ -389,6 +398,7 @@ export class KubeClient {
       if (e.response && e.response.statusCode === 404) {
         return false
       }
+
       throw this.wrapK8sClientError(e)
     }
   }
@@ -433,6 +443,7 @@ export class KubeClient {
       if (e.response && e.response.statusCode === 404) {
         return false
       }
+
       throw this.wrapK8sClientError(e)
     }
   }
@@ -477,6 +488,7 @@ export class KubeClient {
       if (e.response && e.response.statusCode === 404) {
         return false
       }
+
       throw this.wrapK8sClientError(e)
     }
   }
@@ -555,7 +567,7 @@ export class KubeClient {
     }
   }
 
-  async listConfigMaps(namespace: string, labelSelector: string | undefined): Promise<V1ConfigMap[]> {
+  async listConfigMaps(namespace: string, labelSelector?: string): Promise<V1ConfigMap[]> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
       const { body } = await k8sCoreApi.listNamespacedConfigMap(namespace, undefined, undefined, undefined, undefined, labelSelector)
@@ -616,8 +628,7 @@ export class KubeClient {
     try {
       const { body } = await k8sApi.readNamespace(namespace)
       return body
-    } catch {
-    }
+    } catch {}
   }
 
   async patchNamespacedCustomObject(name: string, namespace: string, patch: any, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any | undefined> {
@@ -665,7 +676,7 @@ export class KubeClient {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
       await k8sCoreApi.deleteClusterCustomObject(group, version, plural, name)
-      cli.debug(`Deleted ${plural}.${version}.${group} ${name} resource`)
+      ux.debug(`Deleted ${plural}.${version}.${group} ${name} resource`)
     } catch (e: any) {
       if (e.response.statusCode !== 404) {
         throw this.wrapK8sClientError(e)
@@ -776,8 +787,10 @@ export class KubeClient {
       if (readyStatus === 'True') {
         return
       }
-      await cli.wait(intervalMs)
+
+      await ux.wait(intervalMs)
     }
+
     throw new Error(`ERR_TIMEOUT: Timeout set to pod ready timeout ${this.podReadyTimeout}`)
   }
 
@@ -788,8 +801,10 @@ export class KubeClient {
       if (!pods.items.length) {
         return
       }
-      await cli.wait(intervalMs)
+
+      await ux.wait(intervalMs)
     }
+
     throw new Error('ERR_TIMEOUT: Waiting until pod is deleted took too long.')
   }
 
@@ -807,7 +822,7 @@ export class KubeClient {
       }
 
       if (deploymentStatus.unavailableReplicas && deploymentStatus.unavailableReplicas > 0) {
-        await cli.wait(intervalMs)
+        await ux.wait(intervalMs)
       } else {
         return
       }
@@ -908,6 +923,7 @@ export class KubeClient {
       if (e.response && e.response.statusCode === 404) {
         return false
       }
+
       throw this.wrapK8sClientError(e)
     }
   }
@@ -930,6 +946,7 @@ export class KubeClient {
       if (e.response && e.response.statusCode === 404) {
         return
       }
+
       throw this.wrapK8sClientError(e)
     }
   }
@@ -941,6 +958,7 @@ export class KubeClient {
       annotations = {}
       deployment.spec!.template!.metadata!.annotations = annotations
     }
+
     annotations['kubectl.kubernetes.io/restartedAt'] = new Date().toISOString()
 
     const k8sAppsApi = this.kubeConfig.makeApiClient(AppsV1Api)
@@ -955,6 +973,7 @@ export class KubeClient {
           throw this.wrapK8sClientError(e)
         }
       }
+
       throw this.wrapK8sClientError(e)
     }
   }
@@ -967,6 +986,7 @@ export class KubeClient {
       if (e.response && e.response.statusCode === 404) {
         return
       }
+
       throw this.wrapK8sClientError(e)
     }
   }
@@ -982,8 +1002,10 @@ export class KubeClient {
       if (error.response && error.response.statusCode === 404) {
         return
       }
+
       throw this.wrapK8sClientError(error)
     }
+
     throw new Error('ERR_GET_DEPLOYMENT')
   }
 
@@ -1006,6 +1028,7 @@ export class KubeClient {
       if (e.response && e.response.statusCode === 404) {
         return false
       }
+
       return false
     }
   }
@@ -1039,6 +1062,7 @@ export class KubeClient {
       if (e.response && e.response.statusCode === 404) {
         return
       }
+
       throw this.wrapK8sClientError(e)
     }
   }
@@ -1086,6 +1110,7 @@ export class KubeClient {
         crd.spec.versions[i].schema.openAPIV3Schema.properties.spec = {type: 'object', properties: {}}
       }
     }
+
     await this.replaceCustomResourceDefinition(crd)
 
     // 3. Delete resources
@@ -1095,7 +1120,7 @@ export class KubeClient {
       const namespace = resource.metadata.namespace
       try {
         await customObjectsApi.deleteNamespacedCustomObject(apiGroup, version, namespace, plural, name, 60)
-      } catch (e: any) {
+      } catch {
         // ignore, check existence later
       }
     }
@@ -1106,7 +1131,8 @@ export class KubeClient {
       if (resources.length === 0) {
         break
       }
-      await cli.wait(5000)
+
+      await ux.wait(5000)
     }
 
     // 4. Remove finalizers
@@ -1116,10 +1142,11 @@ export class KubeClient {
       const namespace = resource.metadata.namespace
       try {
         await this.patchNamespacedCustomObject(name, namespace, { metadata: { finalizers: null } }, apiGroup, version, plural)
-      } catch (error) {
+      } catch (error: any) {
         if (error.cause?.body?.reason === 'NotFound') {
           continue
         }
+
         throw error
       }
     }
@@ -1172,6 +1199,7 @@ export class KubeClient {
         // There is no CRD
         return []
       }
+
       throw this.wrapK8sClientError(e)
     }
   }
@@ -1209,6 +1237,7 @@ export class KubeClient {
       if (e.response && e.response.statusCode === 404) {
         return
       }
+
       throw this.wrapK8sClientError(e)
     }
   }
@@ -1238,6 +1267,7 @@ export class KubeClient {
           if (timeoutHandler) {
             clearTimeout(timeoutHandler)
           }
+
           if (error) {
             reject(error)
           }
@@ -1258,6 +1288,7 @@ export class KubeClient {
       if (e.response && e.response.statusCode === 404) {
         return
       }
+
       throw this.wrapK8sClientError(e)
     }
   }
@@ -1312,6 +1343,7 @@ export class KubeClient {
           if (timeoutHandler) {
             clearTimeout(timeoutHandler)
           }
+
           if (error) {
             reject(error)
           }
@@ -1342,6 +1374,7 @@ export class KubeClient {
           if (timeoutHandler) {
             clearTimeout(timeoutHandler)
           }
+
           if (error) {
             reject(error)
           }
@@ -1362,6 +1395,7 @@ export class KubeClient {
       if (e.response && e.response.statusCode === 404) {
         return
       }
+
       throw this.wrapK8sClientError(e)
     }
   }
@@ -1424,10 +1458,10 @@ export class KubeClient {
             const errorMessage = []
             for (const condition of installPlan.status.conditions) {
               if (!condition.reason) {
-                errorMessage.push(`Reason: ${condition.reason}`)
-                errorMessage.push(!condition.message ? `Message: ${condition.message}` : '')
+                errorMessage.push(`Reason: ${condition.reason}`, !condition.message ? `Message: ${condition.message}` : '')
               }
             }
+
             request.response.destroy()
             reject(errorMessage.join(' '))
           }
@@ -1445,6 +1479,7 @@ export class KubeClient {
           if (timeoutHandler) {
             clearTimeout(timeoutHandler)
           }
+
           if (error) {
             reject(error)
           }
@@ -1674,6 +1709,7 @@ export class KubeClient {
         res.body.spec.rules.length > 0) {
         return res.body.spec.rules[0].host || ''
       }
+
       throw new Error('ERR_INGRESS_NO_HOST')
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -1686,11 +1722,7 @@ export class KubeClient {
     // now get the matching secrets
     try {
       const res = await k8sCoreApi.readNamespacedSecret(name, namespace)
-      if (res && res.body && res.body) {
-        return res.body
-      } else {
-        return
-      }
+      return res && res.body && res.body ? res.body : undefined
     } catch {
       return
     }
@@ -1705,6 +1737,7 @@ export class KubeClient {
       if (e.response && e.response.statusCode === 404) {
         return false
       }
+
       throw this.wrapK8sClientError(e)
     }
   }
@@ -1734,16 +1767,14 @@ export class KubeClient {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher
-      .watch(`/api/v1/namespaces/${namespace}/configmaps/`, { fieldSelector: `metadata.name=${name}` },
-        (_phase: string, _obj: any) => {
-          request.abort()
-          resolve()
-        },
-        error => {
-          if (error) {
-            reject(error)
-          }
-        })
+      .watch(`/api/v1/namespaces/${namespace}/configmaps/`, { fieldSelector: `metadata.name=${name}` }, (_phase: string, _obj: any) => {
+        request.abort()
+        resolve()
+      }, error => {
+        if (error) {
+          reject(error)
+        }
+      })
 
       // Automatically stop watching after timeout
       const timeoutHandler = setTimeout(() => {
@@ -1769,32 +1800,31 @@ export class KubeClient {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher
-      .watch(`/api/v1/namespaces/${namespace}/secrets/`, { fieldSelector: `metadata.name=${name}` },
-        (_phase: string, obj: any) => {
-          const secret = obj as V1Secret
+      .watch(`/api/v1/namespaces/${namespace}/secrets/`, { fieldSelector: `metadata.name=${name}` }, (_phase: string, obj: any) => {
+        const secret = obj as V1Secret
 
-          // Check all required data fields to be present
-          if (dataKeys.length > 0 && secret.data) {
-            for (const key of dataKeys) {
-              if (!secret.data[key]) {
-                // Key is missing or empty
-                return
-              }
+        // Check all required data fields to be present
+        if (dataKeys.length > 0 && secret.data) {
+          for (const key of dataKeys) {
+            if (!secret.data[key]) {
+              // Key is missing or empty
+              return
             }
           }
+        }
 
-          // The secret with all specified fields is present, stop watching
-          if (request) {
-            request.abort()
-          }
-          // Release awaiter
-          resolve()
-        },
-        error => {
-          if (error) {
-            reject(error)
-          }
-        })
+        // The secret with all specified fields is present, stop watching
+        if (request) {
+          request.abort()
+        }
+
+        // Release awaiter
+        resolve()
+      }, error => {
+        if (error) {
+          reject(error)
+        }
+      })
 
       // Automatically stop watching after timeout
       const timeoutHandler = setTimeout(() => {
@@ -1819,12 +1849,8 @@ export class KubeClient {
     const k8sApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
       const res = await k8sApi.listNamespacedPod(namespace, undefined, undefined, undefined, fieldSelector, labelSelector)
-      if (res && res.body) {
-        return res.body
-      } else {
-        return {
-          items: [],
-        }
+      return res && res.body ? res.body : {
+        items: [],
       }
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -1876,17 +1902,19 @@ export class KubeClient {
       if (e.response.body.message) {
         return newError(e.response.body.message, e)
       }
+
       return newError(e.response.body, e)
     }
+
     return e
   }
 
   private isWebhookAvailabilityError(error: any): boolean {
     const msg = error.message as string
-    return msg.indexOf(`service "${EclipseChe.CHE_FLAVOR}-operator-service" not found`) !== -1 ||
-      msg.indexOf(`no endpoints available for service "${EclipseChe.CHE_FLAVOR}-operator-service"`) !== -1 ||
-      msg.indexOf('failed calling webhook') !== -1 ||
-      msg.indexOf('conversion webhook') !== -1
+    return msg.includes(`service "${EclipseChe.CHE_FLAVOR}-operator-service" not found`) ||
+      msg.includes(`no endpoints available for service "${EclipseChe.CHE_FLAVOR}-operator-service"`) ||
+      msg.includes('failed calling webhook') ||
+      msg.includes('conversion webhook')
   }
 }
 

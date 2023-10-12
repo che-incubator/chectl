@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { Command, flags } from '@oclif/command'
+import { Command, Flags } from '@oclif/core'
 
 import {CheCtlContext, CliContext} from '../../context'
 import {
@@ -32,8 +32,8 @@ import {newListr} from '../../utils/utls'
 export default class Logs extends Command {
   static description = `Collect ${EclipseChe.PRODUCT_NAME} logs`
 
-  static flags: flags.Input<any> = {
-    help: flags.help({ char: 'h' }),
+  static flags = {
+    help: Flags.help({ char: 'h' }),
     [LOG_DIRECTORY_FLAG]: LOG_DIRECTORY,
     [CHE_NAMESPACE_FLAG]: CHE_NAMESPACE,
     [LISTR_RENDERER_FLAG]: LISTR_RENDERER,
@@ -42,7 +42,7 @@ export default class Logs extends Command {
   }
 
   async run() {
-    const { flags } = this.parse(Logs)
+    const { flags } = await this.parse(Logs)
     const ctx = await CheCtlContext.initAndGet(flags, this)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logs.id, flags })

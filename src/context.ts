@@ -11,9 +11,8 @@
  */
 
 import {ApisApi, CustomObjectsApi, KubeConfig} from '@kubernetes/client-node'
-import Command from '@oclif/command'
-import * as os from 'os'
-import * as path from 'path'
+import * as os from 'node:os'
+import * as path from 'node:path'
 
 import {
   AUTO_UPDATE_FLAG,
@@ -51,6 +50,7 @@ import * as fs from 'fs-extra'
 import * as execa from 'execa'
 import {CheCluster} from './api/types/che-cluster'
 import {CatalogSource} from './api/types/olm'
+import {Command} from '@oclif/core'
 
 export namespace InfrastructureContext {
   export const IS_OPENSHIFT = 'infrastructure-is-openshift'
@@ -174,6 +174,7 @@ export namespace CheCtlContext {
       ctx[InfrastructureContext.OPENSHIFT_VERSION] = await getOpenShiftVersion()
       ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE] = 'openshift-operators'
     }
+
     ctx[InfrastructureContext.KUBERNETES_VERSION] = await getKubernetesVersion(ctx[InfrastructureContext.IS_OPENSHIFT])
 
     ctx[EclipseCheContext.NAMESPACE] = flags[CHE_NAMESPACE_FLAG] || await findCheClusterNamespace() || EclipseChe.NAMESPACE
@@ -212,7 +213,7 @@ export namespace CheCtlContext {
     ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE] = flags[CATALOG_SOURCE_IMAGE_FLAG]
     if (ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE]) {
       ctx[EclipseCheContext.CATALOG_SOURCE_NAMESPACE] = ctx[InfrastructureContext.OPENSHIFT_MARKETPLACE_NAMESPACE]
-      ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE].replace(new RegExp('[/.@_:]', 'g'), '-').toLowerCase()
+      ctx[EclipseCheContext.CATALOG_SOURCE_NAME] = ctx[EclipseCheContext.CATALOG_SOURCE_IMAGE].replaceAll(' ', '-').toLowerCase()
     } else {
       if (ctx[EclipseCheContext.CHANNEL] !== EclipseChe.STABLE_CHANNEL) {
         if (ctx[CliContext.CLI_IS_CHECTL]) {
@@ -252,14 +253,15 @@ export namespace CheCtlContext {
       ctx[DevWorkspaceContext.CATALOG_SOURCE_NAME] = DevWorkspace.STABLE_CHANNEL_CATALOG_SOURCE
       ctx[DevWorkspaceContext.CATALOG_SOURCE_IMAGE] = DevWorkspace.STABLE_CHANNEL_CATALOG_SOURCE_IMAGE
     }
+
     ctx[DevWorkspaceContext.NAMESPACE] = ctx[InfrastructureContext.IS_OPENSHIFT] ? ctx[InfrastructureContext.OPENSHIFT_OPERATOR_NAMESPACE] : DevWorkspace.KUBERNETES_NAMESPACE
 
     // KubeHelperContext
-    ctx[KubeHelperContext.POD_WAIT_TIMEOUT] = parseInt(flags[K8S_POD_WAIT_TIMEOUT_FLAG] || DEFAULT_POD_WAIT_TIMEOUT, 10)
-    ctx[KubeHelperContext.POD_READY_TIMEOUT] = parseInt(flags[K8S_POD_READY_TIMEOUT_FLAG] || DEFAULT_K8S_POD_READY_TIMEOUT, 10)
-    ctx[KubeHelperContext.POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY] = Math.max(ctx[KubeHelperContext.POD_READY_TIMEOUT],  parseInt(DEFAULT_K8S_POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY, 10))
-    ctx[KubeHelperContext.POD_DOWNLOAD_IMAGE_TIMEOUT] = parseInt(flags[K8S_POD_DOWNLOAD_IMAGE_TIMEOUT_FLAG] || DEFAULT_K8S_POD_DOWNLOAD_IMAGE_TIMEOUT, 10)
-    ctx[KubeHelperContext.POD_ERROR_RECHECK_TIMEOUT] = parseInt(flags[K8S_POD_ERROR_RECHECK_TIMEOUT_FLAG] || DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, 10)
+    ctx[KubeHelperContext.POD_WAIT_TIMEOUT] = Number.parseInt(flags[K8S_POD_WAIT_TIMEOUT_FLAG] || DEFAULT_POD_WAIT_TIMEOUT, 10)
+    ctx[KubeHelperContext.POD_READY_TIMEOUT] = Number.parseInt(flags[K8S_POD_READY_TIMEOUT_FLAG] || DEFAULT_K8S_POD_READY_TIMEOUT, 10)
+    ctx[KubeHelperContext.POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY] = Math.max(ctx[KubeHelperContext.POD_READY_TIMEOUT],  Number.parseInt(DEFAULT_K8S_POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY, 10))
+    ctx[KubeHelperContext.POD_DOWNLOAD_IMAGE_TIMEOUT] = Number.parseInt(flags[K8S_POD_DOWNLOAD_IMAGE_TIMEOUT_FLAG] || DEFAULT_K8S_POD_DOWNLOAD_IMAGE_TIMEOUT, 10)
+    ctx[KubeHelperContext.POD_ERROR_RECHECK_TIMEOUT] = Number.parseInt(flags[K8S_POD_ERROR_RECHECK_TIMEOUT_FLAG] || DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, 10)
   }
 
   export async function initAndGet(flags: any, command: Command): Promise<any> {
@@ -280,23 +282,24 @@ export namespace CheCtlContext {
   }
 
   async function getKubernetesVersion(isOpenShift: boolean): Promise<string> {
-    const { stdout } = await execa(isOpenShift ? 'oc' : 'kubectl', ['version', '-o', 'json'], { timeout: 60000 })
+    const { stdout } = await execa(isOpenShift ? 'oc' : 'kubectl', ['version', '-o', 'json'], { timeout: 60_000 })
     const versionOutput = JSON.parse(stdout)
     return versionOutput.serverVersion.major + '.' + versionOutput.serverVersion.minor
   }
 
   async function getOpenShiftVersion(): Promise<string | undefined> {
-    const { stdout } = await execa('oc', ['version', '-o', 'json'], { timeout: 60000 })
+    const { stdout } = await execa('oc', ['version', '-o', 'json'], { timeout: 60_000 })
     const versionOutput = JSON.parse(stdout)
-    const version = (versionOutput.openshiftVersion as string).match(new RegExp('^\\d.\\d+'))
+    const version = (versionOutput.openshiftVersion as string).match(/^\d.\d+/)
     if (version) {
       return version[0]
     }
+
     return '4.x'
   }
 
   async function getOpenShiftArch(): Promise<string | undefined> {
-    const { stdout } = await execa('oc', ['version', '-o', 'json'], { timeout: 60000 })
+    const { stdout } = await execa('oc', ['version', '-o', 'json'], { timeout: 60_000 })
     const versionOutput = JSON.parse(stdout)
     return (versionOutput.serverVersion.platform as string).replace('linux/', '').replace('amd64', 'x86_64')
   }
@@ -316,11 +319,7 @@ export namespace CheCtlContext {
       return false
     }
 
-    if (version) {
-      return Boolean(group.versions.find(v => v.version === version))
-    } else {
-      return Boolean(group)
-    }
+    return version ? Boolean(group.versions.some(v => v.version === version)) : Boolean(group)
   }
 
   async function getCatalogSource(name: string, namespace: string): Promise<CatalogSource | undefined> {
@@ -335,6 +334,7 @@ export namespace CheCtlContext {
       if (e.response && e.response.statusCode === 404) {
         return
       }
+
       throw e
     }
   }
@@ -347,7 +347,7 @@ export namespace CheCtlContext {
       const customObjectsApi = kubeConfig.makeApiClient(CustomObjectsApi)
       const {body} = await customObjectsApi.listClusterCustomObject(EclipseChe.CHE_CLUSTER_API_GROUP, EclipseChe.CHE_CLUSTER_API_VERSION_V2, EclipseChe.CHE_CLUSTER_KIND_PLURAL)
       return ((body as any).items as CheCluster[])[0]?.metadata.namespace
-    } catch { }
+    } catch {}
   }
 
   function readFile(flags: any, key: string): any {

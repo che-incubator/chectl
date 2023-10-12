@@ -98,6 +98,7 @@ export class EclipseCheOlmInstaller implements Installer {
         if (!isCheFlavor()) {
           tasks.add(await EclipseCheTasks.getDeleteImageContentSourcePolicyTask())
         }
+
         tasks.add(OlmTasks.getDeleteOperatorsTask())
         return tasks
       },
