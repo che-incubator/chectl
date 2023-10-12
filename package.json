@@ -8,7 +8,7 @@
   },
   "bugs": "https://github.com/che-incubator/chectl/issues",
   "dependencies": {
-    "@kubernetes/client-node": "0.14.3",
+    "@kubernetes/client-node": "0.19.0",
     "@oclif/core": "^3.0.4",
     "@oclif/parser": "^3.8.17",
     "@oclif/plugin-autocomplete": "^2.3.9",
