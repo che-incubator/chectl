@@ -56,7 +56,7 @@ jobs:
         run: |
           git config --local user.name ${{ github.actor }}
 
-          sed -i  "s#version\":\ \"\(.*\)\",#version\":\ \"${{ steps.TAG_UTIL.outputs.chectl_version }}\",#g" package.json
+          sed -i  "0,/\"version\":\ \"\(.*\)\",/s/\"version\":\ \"\(.*\)\",/\"version\":\ \"${{ steps.TAG_UTIL.outputs.chectl_version }}\",/" package.json
           sed -i "s|INSERT-KEY-HERE|${{ secrets.SEGMENT_WRITE_KEY }}|g" src/hooks/analytics/analytics.ts
           git tag ${{ steps.TAG_UTIL.outputs.gh_tag }}
 
