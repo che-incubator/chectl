@@ -12,6 +12,7 @@
 
 import { Command, Flags } from '@oclif/core'
 import { ux } from '@oclif/core'
+import cli from 'cli-ux'
 
 import { CheCtlContext } from '../../context'
 import {
@@ -42,7 +43,7 @@ export default class Open extends Command {
       const dashboardUrl = Che.buildDashboardURL(await Che.getCheURL(flags[CHE_NAMESPACE_FLAG]!))
 
       ux.info(`Opening ... ${dashboardUrl}`)
-      await open(dashboardUrl)
+      await cli.open(dashboardUrl)
     } catch (error: any) {
       this.error(error)
     }
