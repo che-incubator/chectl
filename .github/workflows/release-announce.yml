@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019-2022 Red Hat, Inc.
+# Copyright (c) 2019-2023 Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -16,6 +16,8 @@ on:
   push:
     tags:
       - '7.*.*'
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       version:
@@ -25,17 +27,34 @@ jobs:
   announce:
     runs-on: ubuntu-22.04
     steps:
-      - name: Generate tag utilities
-        id: TAG_UTIL
-        run: |
-          if [[ ${GITHUB_REF#refs/tags/} =~ 7.*.* ]]; then
-            echo "chectl_version=$(cat VERSION)" >> $GITHUB_OUTPUT
-            echo "gh_tag=/tag/$(cat VERSION)" >> $GITHUB_OUTPUT
-            echo "MM_ANNOUNCE=true" >> "$GITHUB_ENV"
-          elif [[ ${{ github.event.inputs.version }} =~ 7.*.* ]]; then
-            echo "chectl_version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-            echo "gh_tag=/tag/${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-            echo "MM_ANNOUNCE=true" >> "$GITHUB_ENV"
-          else
-            echo "MM_ANNOUNCE=false" >> "$GITHUB_ENV"
-          fi
+    - name: Create success message
+      run: |
+        milestone=${{ github.event.inputs.version }}
+        milestone=${milestone%.*}; echo "milestone: ${milestone}"
+        echo "{\"text\":\"Che ${{ github.event.inputs.version }} has been released.\n\n Please resolve or move unresolved issues assigned to this milestone: https://github.com/eclipse/che/milestones/${milestone}\"}"
+        echo "{\"text\":\"Che ${{ github.event.inputs.version }} has been released.\n\n Please resolve or move unresolved issues assigned to this milestone: https://github.com/eclipse/che/milestones/${milestone}\"}" > message.json
+    - name: Create failure message
+      if: ${{ failure() }}
+      run: |
+        echo "{\"text\":\"Che ${{ github.event.inputs.version }} release final checks have failed:\n\n failed: https://github.com/che-incubator/chectl/actions/workflows/release-announce.yml.\"}"
+        echo "{\"text\":\"Che ${{ github.event.inputs.version }} release final checks have failed:\n\n failed: https://github.com/che-incubator/chectl/actions/workflows/release-announce.yml.\"}" > message.json
+
+    # # SLACK_BOT_TOKEN only works if we have an app, webhook, or other slack integration - https://github.com/slackapi/slack-github-action#how-to-send-data-to-slack
+    # - name: Send message
+    #   if: ${{ success() }} || ${{ failure() }}
+    #   uses: slackapi/slack-github-action@v1.24.0
+    #   with:
+    #     channel-id: '@nboldt'
+    #     #channel-id: 'forum-che-release'
+    #     payload-file-path: "./message.json"
+    #   env:
+    #     SLACK_BOT_TOKEN: ${{ secrets.ECLIPSE_CHE_RELEASE_BOT_TOKEN}}
+    # - name: Ping Productization Team if Failure
+    #   if: ${{ failure() }}
+    #   uses: slackapi/slack-github-action@v1.24.0
+    #   with:
+    #     channel-id: '@nboldt'
+    #     #channel-id: 'forum-che-release,@sdawley,@mkuznets'
+    #     payload-file-path: "./message.json"
+    #   env:
+    #     SLACK_BOT_TOKEN: ${{ secrets.ECLIPSE_CHE_RELEASE_BOT_TOKEN}}
