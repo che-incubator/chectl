@@ -35,6 +35,11 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.CHE_INCUBATOR_BOT_GITHUB_TOKEN }}
+      - name: Set up environment
+        run: |
+          sudo apt-get update -y || true
+          sudo apt-get -y -q install curl bash git hub
+          hub --version
       - name: Install NodeJS
         uses: actions/setup-node@v3
         with:
