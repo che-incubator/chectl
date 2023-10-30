@@ -1286,10 +1286,10 @@
     wordwrap "^1.0.0"
     wrap-ansi "^7.0.0"
 
-"@oclif/core@^3.0.4":
-  version "3.0.4"
-  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-3.0.4.tgz#1ef4667fbbbcf2d4cab02eead27cd80de83b952a"
-  integrity sha512-zP+OF/PVCgPLVNfoBMevafki71Zn6t1SbU4AIQcsNNAsoC2SpBiUFx81yvJbMG2172ss58ePT5odr1JweuYdhA==
+"@oclif/core@^3.0.4", "@oclif/core@^3.9.1":
+  version "3.9.2"
+  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-3.9.2.tgz#6bc0e67398913ec369ebaae6eb948b574d4d2a26"
+  integrity sha512-fDygnFqh2KXn/IDquhypZSP7Q2V071WgRswq8cgli5uw6RzS4Uyj/7EkijboiAo7H+bRFxN0PdgGQHGyAoc+XQ==
   dependencies:
     ansi-escapes "^4.3.2"
     ansi-styles "^4.3.0"
@@ -1298,7 +1298,7 @@
     clean-stack "^3.0.1"
     cli-progress "^3.12.0"
     debug "^4.3.4"
-    ejs "^3.1.8"
+    ejs "^3.1.9"
     get-package-type "^0.1.0"
     globby "^11.1.0"
     hyperlinker "^1.0.0"
@@ -1378,12 +1378,19 @@
     chalk "^4.1.0"
     debug "^4.3.4"
 
-"@oclif/plugin-help@^5.2.14", "@oclif/plugin-help@^5.2.20":
+"@oclif/plugin-help@^5.2.14":
   version "5.2.20"
   resolved "https://registry.yarnpkg.com/@oclif/plugin-help/-/plugin-help-5.2.20.tgz#4035a0ac231f95fb8e334da342175e3ca00f6abc"
   integrity sha512-u+GXX/KAGL9S10LxAwNUaWdzbEBARJ92ogmM7g3gDVud2HioCmvWQCDohNRVZ9GYV9oKwZ/M8xwd6a1d95rEKQ==
   dependencies:
     "@oclif/core" "^2.15.0"
+
+"@oclif/plugin-help@^6.0.5":
+  version "6.0.5"
+  resolved "https://registry.yarnpkg.com/@oclif/plugin-help/-/plugin-help-6.0.5.tgz#4457212909c60bf67939b8c88773696f448f910a"
+  integrity sha512-PnwmnpNGE3y7zZBKMH7Le+iFKuvKViO1lboJbz8BEhM+XXvTDkIJ1TYFlETMHzK+KSB2JyFCJmqn2AnAKSyTKA==
+  dependencies:
+    "@oclif/core" "^3.9.1"
 
 "@oclif/plugin-not-found@^2.3.32":
   version "2.4.1"
@@ -3702,7 +3709,7 @@ editorconfig@^0.15.0:
     semver "^5.6.0"
     sigmund "^1.0.1"
 
-ejs@^3.1.6:
+ejs@^3.1.6, ejs@^3.1.9:
   version "3.1.9"
   resolved "https://registry.yarnpkg.com/ejs/-/ejs-3.1.9.tgz#03c9e8777fe12686a9effcef22303ca3d8eeb361"
   integrity sha512-rC+QVNMJWv+MtPgkt0y+0rVEIdbtxVADApW9JXrUVlzHetgcyczP/E7DJmWJ4fJCZF2cPcBk0laWO9ZHMG3DmQ==
