@@ -18,6 +18,7 @@ import * as fs from 'node:fs'
 import {EclipseChe} from '../tasks/installers/eclipse-che/eclipse-che'
 import * as execa from 'execa'
 import * as path from 'node:path'
+import {CheCtlVersion} from './chectl-version'
 
 /**
  * Returns command success message with execution time.
@@ -64,11 +65,14 @@ export function notifyCommandCompletedSuccessfully(): void {
 }
 
 export async function askForChectlUpdateIfNeeded(): Promise<void> {
-  ux.info(`A more recent version of chectl is available. To deploy the latest version of ${EclipseChe.PRODUCT_NAME}, update the chectl tool first.`)
-  if (await ux.confirm('Do you want to update chectl now? [y/n]')) {
-    const bin = path.join(__dirname, '..', '..', 'bin', getProjectName())
-    await execa(bin, ['update'], {stdout: 'inherit', stderr: 'inherit', timeout: 60_000})
-    ux.exit(0)
+  const ctx = CheCtlContext.get()
+  if (await CheCtlVersion.isCheCtlUpdateAvailable(ctx[CliContext.CLI_CACHE_DIR])) {
+    ux.info(`A more recent version of chectl is available. To deploy the latest version of ${EclipseChe.PRODUCT_NAME}, update the chectl tool first.`)
+    if (await ux.confirm('Do you want to update chectl now? [y/n]')) {
+      const bin = path.join(__dirname, '..', '..', 'bin', getProjectName())
+      await execa(bin, ['update'], {stdout: 'inherit', stderr: 'inherit', timeout: 60_000})
+      ux.exit(0)
+    }
   }
 }
 
