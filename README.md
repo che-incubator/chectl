@@ -98,6 +98,7 @@ USAGE
 <!-- commands -->
 * [`chectl autocomplete [SHELL]`](#chectl-autocomplete-shell)
 * [`chectl cacert:export`](#chectl-cacertexport)
+* [`chectl commands`](#chectl-commands)
 * [`chectl dashboard:open`](#chectl-dashboardopen)
 * [`chectl help [COMMANDS]`](#chectl-help-commands)
 * [`chectl server:debug`](#chectl-serverdebug)
@@ -174,6 +175,38 @@ DESCRIPTION
 
 _See code: [src/commands/cacert/export.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/cacert/export.ts)_
 
+## `chectl commands`
+
+list all the commands
+
+```
+USAGE
+  $ chectl commands [--json] [-h] [--hidden] [--tree] [--columns <value> | -x] [--filter <value>] [--no-header
+    | [--csv | --no-truncate]] [--output csv|json|yaml |  | ] [--sort <value>]
+
+FLAGS
+  -h, --help         Show CLI help.
+  -x, --extended     show extra columns
+  --columns=<value>  only show provided columns (comma-separated)
+  --csv              output is csv format [alias: --output=csv]
+  --filter=<value>   filter property by partial string matching, ex: name=foo
+  --hidden           show hidden commands
+  --no-header        hide table header from output
+  --no-truncate      do not truncate output to fit screen
+  --output=<option>  output in a more machine friendly format
+                     <options: csv|json|yaml>
+  --sort=<value>     property to sort by (prepend '-' for descending)
+  --tree             show tree of commands
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  list all the commands
+```
+
+_See code: [@oclif/plugin-commands](https://github.com/oclif/plugin-commands/blob/v3.0.7/src/commands/commands.ts)_
+
 ## `chectl dashboard:open`
 
 Open Eclipse Che dashboard
@@ -212,7 +245,7 @@ DESCRIPTION
   Display help for chectl.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.2.20/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.7/src/commands/help.ts)_
 
 ## `chectl server:debug`
 
@@ -627,16 +660,36 @@ update the chectl CLI
 
 ```
 USAGE
-  $ chectl update [CHANNEL] [--from-local]
+  $ chectl update [CHANNEL] [-a] [--force] [-i | -v <value>]
 
 FLAGS
-  --from-local  interactively choose an already installed version
+  -a, --available        See available versions.
+  -i, --interactive      Interactively select version to install. This is ignored if a channel is provided.
+  -v, --version=<value>  Install a specific version.
+  --force                Force a re-download of the requested version.
 
 DESCRIPTION
   update the chectl CLI
+
+EXAMPLES
+  Update to the stable channel:
+
+    $ chectl update stable
+
+  Update to a specific version:
+
+    $ chectl update --version 1.0.0
+
+  Interactively select version:
+
+    $ chectl update --interactive
+
+  See available versions:
+
+    $ chectl update --available
 ```
 
-_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.5.0/src/commands/update.ts)_
+_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v4.1.4/dist/commands/update.ts)_
 
 ## `chectl version`
 
