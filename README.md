@@ -660,36 +660,16 @@ update the chectl CLI
 
 ```
 USAGE
-  $ chectl update [CHANNEL] [-a] [--force] [-i | -v <value>]
+  $ chectl update [CHANNEL] [--from-local]
 
 FLAGS
-  -a, --available        See available versions.
-  -i, --interactive      Interactively select version to install. This is ignored if a channel is provided.
-  -v, --version=<value>  Install a specific version.
-  --force                Force a re-download of the requested version.
+  --from-local  interactively choose an already installed version
 
 DESCRIPTION
   update the chectl CLI
-
-EXAMPLES
-  Update to the stable channel:
-
-    $ chectl update stable
-
-  Update to a specific version:
-
-    $ chectl update --version 1.0.0
-
-  Interactively select version:
-
-    $ chectl update --interactive
-
-  See available versions:
-
-    $ chectl update --available
 ```
 
-_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v4.1.4/dist/commands/update.ts)_
+_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.5.0/src/commands/update.ts)_
 
 ## `chectl version`
 
