@@ -66,8 +66,8 @@ jobs:
         run: |
           # since we're using Flavius' token below to generate PRs, should also make tags/branches/commits by same owner
           # see https://github.com/che-incubator/chectl/settings/secrets/actions for the token used
-          git config --global user.name "Anatolii Bazko"
-          git config --global user.email "abazko@redhat.com"
+          git config --global user.name "Flavius Lacatusu"
+          git config --global user.email "flacatus@redhat.com"
           export GITHUB_TOKEN=${{ secrets.CHE_INCUBATOR_BOT_GITHUB_TOKEN }}
           DWO_VERSION=${{ github.event.inputs.devworkspaceOperatorVersion }}
           if [[ -z ${DWO_VERSION} ]]; then
