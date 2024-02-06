@@ -305,7 +305,7 @@ export namespace EclipseCheTasks {
         ctx[OperatorImageUpgradeContext.NEW_IMAGE_NAME] = newImage
         ctx[OperatorImageUpgradeContext.NEW_IMAGE_TAG] = newTag
 
-        task.title = `${task.title} ${ctx[OperatorImageUpgradeContext.NEW_IMAGE_TAG]} -> ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE_TAG]}`
+        task.title = `${task.title} ${ctx[OperatorImageUpgradeContext.DEPLOYED_IMAGE_TAG]} -> ${ctx[OperatorImageUpgradeContext.NEW_IMAGE_TAG]}`
       },
     }
   }
