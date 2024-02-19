@@ -76,13 +76,21 @@ export namespace CheTasks {
       title: `Scale ${EclipseChe.PRODUCT_NAME} down`,
       task: async (_ctx: any, _task: any) => {
         const flags = CheCtlContext.getFlags()
+        const kubeHelper = KubeClient.getInstance()
+        const cheCluster = await kubeHelper.getCheCluster(flags[CHE_NAMESPACE_FLAG])
 
         const tasks = newListr()
         tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.GATEWAY, EclipseChe.GATEWAY_DEPLOYMENT_NAME, 0, flags[CHE_NAMESPACE_FLAG]))
         tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.DASHBOARD, EclipseChe.DASHBOARD_DEPLOYMENT_NAME, 0, flags[CHE_NAMESPACE_FLAG]))
         tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.CHE_SERVER, EclipseChe.CHE_SERVER_DEPLOYMENT_NAME, 0, flags[CHE_NAMESPACE_FLAG]))
-        tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.PLUGIN_REGISTRY, EclipseChe.PLUGIN_REGISTRY_DEPLOYMENT_NAME, 0, flags[CHE_NAMESPACE_FLAG]))
-        tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.DEVFILE_REGISTRY, EclipseChe.DEVFILE_REGISTRY_DEPLOYMENT_NAME, 0, flags[CHE_NAMESPACE_FLAG]))
+        if (!cheCluster?.spec?.components?.pluginRegistry?.disableInternalRegistry) {
+          tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.PLUGIN_REGISTRY, EclipseChe.PLUGIN_REGISTRY_DEPLOYMENT_NAME, 0, flags[CHE_NAMESPACE_FLAG]))
+        }
+
+        if (!cheCluster?.spec?.components?.devfileRegistry?.disableInternalRegistry) {
+          tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.DEVFILE_REGISTRY, EclipseChe.DEVFILE_REGISTRY_DEPLOYMENT_NAME, 0, flags[CHE_NAMESPACE_FLAG]))
+        }
+
         return tasks
       },
     }
@@ -94,9 +102,9 @@ export namespace CheTasks {
       task: async (_ctx: any, _task: any) => {
         const flags = CheCtlContext.getFlags()
         const kubeHelper = KubeClient.getInstance()
+        const cheCluster = await kubeHelper.getCheCluster(flags[CHE_NAMESPACE_FLAG])
 
         const tasks = newListr()
-        const cheCluster = await kubeHelper.getCheCluster(flags[CHE_NAMESPACE_FLAG])
         if (cheCluster) {
           if (!cheCluster.spec?.components?.devfileRegistry?.disableInternalRegistry) {
             tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.DEVFILE_REGISTRY, EclipseChe.DEVFILE_REGISTRY_DEPLOYMENT_NAME, 1, flags[CHE_NAMESPACE_FLAG]))
