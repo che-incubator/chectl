@@ -59,13 +59,12 @@ export namespace PodTasks {
     return {
       title: `Scale ${name} ${replicas > 0 ? 'Up' : 'Down'}`,
       task: async (_ctx: any, task: any) => {
-        if (replicas === 0 && !await kubeHelper.isDeploymentExist(deploymentName, namespace)) {
+        if (await kubeHelper.isDeploymentExist(deploymentName, namespace)) {
+          await kubeHelper.scaleDeployment(deploymentName, namespace, replicas)
+          task.title = `${task.title}...[OK]`
+        } else {
           task.title = `${task.title}...[Not found]`
-          return
         }
-
-        await kubeHelper.scaleDeployment(deploymentName, namespace, replicas)
-        task.title = `${task.title}...[OK]`
       },
     }
   }
