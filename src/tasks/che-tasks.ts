@@ -70,9 +70,11 @@ export namespace CheTasks {
         if (!cheCluster?.spec?.components?.devfileRegistry?.disableInternalRegistry) {
           tasks.add(PodTasks.getPodDeletedTask(EclipseChe.DEVFILE_REGISTRY, EclipseChe.DEVFILE_REGISTRY_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
         }
+
         if (!cheCluster?.spec?.components?.pluginRegistry?.disableInternalRegistry) {
           tasks.add(PodTasks.getPodDeletedTask(EclipseChe.PLUGIN_REGISTRY, EclipseChe.PLUGIN_REGISTRY_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
         }
+
         return tasks
       },
     }
