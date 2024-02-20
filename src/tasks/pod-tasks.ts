@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { ux } from '@oclif/core'
+import {ux} from '@oclif/core'
 import * as Listr from 'listr'
 import {KubeClient} from '../api/kube-client'
 import {KubeHelperContext} from '../context'
@@ -265,8 +265,8 @@ export namespace PodTasks {
   }
 
   /**
-  * Checks if there is any reason for a given pod state and returns message if so.
-  */
+   * Checks if there is any reason for a given pod state and returns message if so.
+   */
   async function getContainerFailState(namespace: string, selector: string, state: string): Promise<FailState | undefined> {
     const kubeHelper = KubeClient.getInstance()
     const waitingState = await kubeHelper.getPodWaitingState(namespace, selector, state)
@@ -278,38 +278,38 @@ export namespace PodTasks {
   /**
    * Returns extended timeout error message explaining a failure.
    */
-   async function getTimeOutErrorMessage(namespace: string, selector: string): Promise<string> {
-     const kubeHelper = KubeClient.getInstance()
-     const pods = await kubeHelper.getPodListByLabel(namespace, selector)
-     if (!pods.length) {
-       throw new Error(`Timeout: there are no pods in the namespace: ${namespace}, selector: ${selector}. Check ${EclipseChe.PRODUCT_NAME} logs for details. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
-     }
+  async function getTimeOutErrorMessage(namespace: string, selector: string): Promise<string> {
+    const kubeHelper = KubeClient.getInstance()
+    const pods = await kubeHelper.getPodListByLabel(namespace, selector)
+    if (!pods.length) {
+      throw new Error(`Timeout: there are no pods in the namespace: ${namespace}, selector: ${selector}. Check ${EclipseChe.PRODUCT_NAME} logs for details. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
+    }
 
-     let errorMessage = 'Timeout:'
-     for (const pod of pods) {
-       errorMessage += `\nPod: ${pod.metadata!.name}`
-       if (pod.status) {
-         if (pod.status.containerStatuses) {
-           errorMessage += `\n\t\tstatus: ${JSON.stringify(pod.status.containerStatuses, undefined, '  ')}`
-         }
+    let errorMessage = 'Timeout:'
+    for (const pod of pods) {
+      errorMessage += `\nPod: ${pod.metadata!.name}`
+      if (pod.status) {
+        if (pod.status.containerStatuses) {
+          errorMessage += `\n\t\tstatus: ${JSON.stringify(pod.status.containerStatuses, undefined, '  ')}`
+        }
 
-         if (pod.status.conditions) {
-           errorMessage += `\n\t\tconditions: ${JSON.stringify(pod.status.conditions, undefined, '  ')}`
-         }
-       } else {
-         errorMessage += ', status not found.'
-       }
-     }
+        if (pod.status.conditions) {
+          errorMessage += `\n\t\tconditions: ${JSON.stringify(pod.status.conditions, undefined, '  ')}`
+        }
+      } else {
+        errorMessage += ', status not found.'
+      }
+    }
 
-     return errorMessage
-   }
+    return errorMessage
+  }
 
-   async function getCheClusterFailState(namespace: string): Promise<FailState | undefined> {
-     const kubeHelper = KubeClient.getInstance()
-     const cheCluster = await kubeHelper.getCheCluster(namespace)
-     if (cheCluster?.status?.reason && cheCluster?.status?.message) {
-       return cheCluster.status
-     }
-   }
+  async function getCheClusterFailState(namespace: string): Promise<FailState | undefined> {
+    const kubeHelper = KubeClient.getInstance()
+    const cheCluster = await kubeHelper.getCheCluster(namespace)
+    if (cheCluster?.status?.reason && cheCluster?.status?.message) {
+      return cheCluster.status
+    }
+  }
 }
 
