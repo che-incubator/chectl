@@ -24,7 +24,7 @@ jobs:
     - name: Start minikube cluster
       uses: che-incubator/setup-minikube-action@next
       with:
-        minikube-version: v1.23.2
+        minikube-version: v1.29.0
     - name: Install NodeJS
       uses: actions/setup-node@v3
       with:
@@ -51,7 +51,7 @@ jobs:
     - name: Start minikube cluster
       uses: che-incubator/setup-minikube-action@next
       with:
-        minikube-version: v1.23.2
+        minikube-version: v1.29.0
     - name: Install chectl from the stable channel
       run: bash <(curl -sL  https://www.eclipse.org/che/chectl/) --channel=stable
     - name: Install NodeJS
