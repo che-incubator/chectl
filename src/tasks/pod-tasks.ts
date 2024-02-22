@@ -83,7 +83,7 @@ export namespace PodTasks {
         const tasks = newListr([])
         tasks.add(getSchedulingTask(selector, namespace))
         tasks.add(getDownloadingTask(selector, namespace))
-        if (name === EclipseChe.PLUGIN_REGISTRY && await Che.isEmbeddedPluginRegistryConfigured(namespace)) {
+        if (name === EclipseChe.PLUGIN_REGISTRY && await Che.isEmbeddedOpenVSXRegistryConfigured(namespace)) {
           // if embedded plugin registry is configured, use longer timeout for pod readiness
           tasks.add(getStartingTask(selector, namespace, ctx[KubeHelperContext.POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY]))
         } else {

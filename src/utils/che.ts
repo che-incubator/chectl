@@ -135,7 +135,7 @@ export namespace Che {
     throw new Error(`Route ${EclipseChe.CHE_FLAVOR} not found`)
   }
 
-  export async function isEmbeddedPluginRegistryConfigured(namespace: string): Promise<boolean> {
+  export async function isEmbeddedOpenVSXRegistryConfigured(namespace: string): Promise<boolean> {
     const kubeClient = KubeClient.getInstance()
     const cheCluster = await kubeClient.getCheCluster(namespace)
 
