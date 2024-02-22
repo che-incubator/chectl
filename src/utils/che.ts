@@ -137,7 +137,8 @@ export namespace Che {
 
   export async function isEmbeddedPluginRegistryConfigured(namespace: string): Promise<boolean> {
     const kubeClient = KubeClient.getInstance()
-    await kubeClient.waitConfigMap(EclipseChe.PLUGIN_REGISTRY_CONFIG_MAP, namespace)
-    return await kubeClient.getConfigMapValue(EclipseChe.PLUGIN_REGISTRY_CONFIG_MAP, namespace, 'START_OPENVSX') === 'true'
+    const cheCluster = await kubeClient.getCheCluster(namespace)
+
+    return !cheCluster?.spec?.components?.pluginRegistry?.openVSXURL
   }
 }

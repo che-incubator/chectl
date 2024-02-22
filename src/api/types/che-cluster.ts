@@ -52,6 +52,7 @@ export interface CheClusterSpec {
 
 interface CheClusterPluginRegistryComponent {
   disableInternalRegistry?: boolean
+  openVSXURL?: string
 }
 
 interface CheClusterDevfileRegistryComponent {
