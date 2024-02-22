@@ -139,6 +139,6 @@ export namespace Che {
     const kubeClient = KubeClient.getInstance()
     const cheCluster = await kubeClient.getCheCluster(namespace)
 
-    return !cheCluster?.spec?.components?.pluginRegistry?.openVSXURL
+    return !!cheCluster?.spec?.components?.pluginRegistry?.openVSXURL
   }
 }
