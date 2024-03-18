@@ -3673,7 +3673,7 @@ detect-newline@^3.0.0:
 
 "devworkspace-operator@https://github.com/devfile/devworkspace-operator#main":
   version "0.0.0"
-  resolved "https://github.com/devfile/devworkspace-operator#54561af09cf51e78e5e1295fb9f78b542138a0b9"
+  resolved "https://github.com/devfile/devworkspace-operator#067847d900c18a3fe0d47de920a9ce77af29e722"
 
 dezalgo@^1.0.0:
   version "1.0.4"
@@ -3734,7 +3734,7 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-operator@https://github.com/eclipse-che/che-operator#main":
   version "0.0.0"
-  resolved "https://github.com/eclipse-che/che-operator#76b21ea63282e75c664913f0ed47f708870fdcc2"
+  resolved "https://github.com/eclipse-che/che-operator#903ad387e047129ad0053a641a590fd12411f34e"
 
 editorconfig@^0.15.0:
   version "0.15.3"

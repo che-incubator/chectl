@@ -56,12 +56,6 @@ function prepareCheOperatorTemplates() {
   fs.copySync(
     path.join(src, 'org.eclipse.che.MutatingWebhookConfiguration.yaml'),
     path.join(templates, 'org.eclipse.che.MutatingWebhookConfiguration.yaml'))
-  fs.copySync(
-    path.join(src, 'che-operator-leader-election.Role.yaml'),
-    path.join(templates, 'leader-election-role.yaml'))
-  fs.copySync(
-    path.join(src, 'che-operator-leader-election.RoleBinding.yaml'),
-    path.join(templates, 'leader-election-role_binding.yaml'))
 }
 
 function prepareDevWorkspaceOperatorTemplates() {
