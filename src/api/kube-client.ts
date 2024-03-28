@@ -951,24 +951,20 @@ export class KubeClient {
     }
   }
 
-  async replaceDeployment(deployment: V1Deployment): Promise<void> {
-    // updating restartedAt to make sure that rollout will be restarted
-    let annotations = deployment.spec!.template!.metadata!.annotations
-    if (!annotations) {
-      annotations = {}
-      deployment.spec!.template!.metadata!.annotations = annotations
-    }
-
-    annotations['kubectl.kubernetes.io/restartedAt'] = new Date().toISOString()
-
+  async replaceDeployment(name: string, deployment: V1Deployment, namespace: string): Promise<void> {
     const k8sAppsApi = this.kubeConfig.makeApiClient(AppsV1Api)
+
+    deployment.spec!.template!.metadata!.annotations = deployment.spec!.template!.metadata!.annotations || {}
+    deployment.spec!.template!.metadata!.annotations['kubectl.kubernetes.io/restartedAt'] = new Date().toISOString()
+    delete deployment.metadata?.namespace
+
     try {
-      await k8sAppsApi.replaceNamespacedDeployment(deployment.metadata!.name!, deployment.metadata!.namespace!, deployment)
+      await k8sAppsApi.replaceNamespacedDeployment(name, namespace, deployment)
     } catch (e: any) {
       if (e.response && e.response.body && e.response.body.message && e.response.body.message.toString().endsWith('field is immutable')) {
         try {
-          await k8sAppsApi.deleteNamespacedDeployment(deployment.metadata!.name!, deployment.metadata!.namespace!)
-          await k8sAppsApi.createNamespacedDeployment(deployment.metadata!.namespace!, deployment)
+          await k8sAppsApi.deleteNamespacedDeployment(name, namespace)
+          await k8sAppsApi.createNamespacedDeployment(namespace, deployment)
         } catch (e: any) {
           throw this.wrapK8sClientError(e)
         }

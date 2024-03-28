@@ -68,7 +68,7 @@ export namespace EclipseCheTasks {
       EclipseChe.OPERATOR_DEPLOYMENT_NAME,
       () => kubeHelper.isDeploymentExist(EclipseChe.OPERATOR_DEPLOYMENT_NAME, flags[CHE_NAMESPACE_FLAG]),
       () => kubeHelper.createDeployment(deployment, flags[CHE_NAMESPACE_FLAG]),
-      () => kubeHelper.replaceDeployment(deployment))
+      () => kubeHelper.replaceDeployment(EclipseChe.OPERATOR_DEPLOYMENT_NAME, deployment, flags[CHE_NAMESPACE_FLAG]))
   }
 
   export function getCreateOrUpdateCrdTask(isCreateOnly: boolean): Listr.ListrTask<any> {
