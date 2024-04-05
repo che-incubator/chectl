@@ -203,11 +203,11 @@ export namespace CheTasks {
   export function getWaitEclipseCheActiveTask(): Listr.ListrTask<any> {
     return {
       title: `Wait ${EclipseChe.PRODUCT_NAME} active`,
-      task: async (ctx: any, task: any) => {
+      task: async (_ctx: any, task: any) => {
         const flags = CheCtlContext.getFlags()
         const kubeHelper = KubeClient.getInstance()
 
-        for (let i = 0; i < 120; i++) {
+        for (let i = 0; i < 240; i++) {
           const cheCluster = await kubeHelper.getCheCluster(flags[CHE_NAMESPACE_FLAG])
           if (cheCluster?.status?.chePhase !== 'Active' || !cheCluster?.status?.cheVersion) {
             await sleep(500)
