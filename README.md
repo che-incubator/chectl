@@ -37,24 +37,24 @@ If you're using Windows x64, here is how to install chectl by using one single P
 
 - For `stable` channel:
 ```
-C:\Users> Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://www.eclipse.org/che/chectl/win/'))
+C:\Users> Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://che-incubator.github.io/chectl/install.ps1'))
 ```
 
 - For `next` channel:
 ```
-C:\Users> $CHANNEL="next"; Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://www.eclipse.org/che/chectl/win/'))
+C:\Users> $CHANNEL="next"; Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://che-incubator.github.io/chectl/install.ps1'))
 ```
 
 If you're using linux or macOS, here is how to install chectl by using one single command:
 
 - For `stable` channel:
 ```
-$ bash <(curl -sL  https://www.eclipse.org/che/chectl/)
+$ bash <(curl -sL  https://che-incubator.github.io/chectl/install.sh)
 ```
 
 - For `next` channel:
 ```
-$ bash <(curl -sL  https://www.eclipse.org/che/chectl/) --channel=next
+$ bash <(curl -sL  https://che-incubator.github.io/chectl/install.sh) --channel=next
 ```
 
 Manual install:
