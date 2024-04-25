@@ -207,10 +207,10 @@ export namespace CheTasks {
         const flags = CheCtlContext.getFlags()
         const kubeHelper = KubeClient.getInstance()
 
-        for (let i = 0; i < 240; i++) {
+        for (let i = 0; i < 300; i++) {
           const cheCluster = await kubeHelper.getCheCluster(flags[CHE_NAMESPACE_FLAG])
           if (cheCluster?.status?.chePhase !== 'Active' || !cheCluster?.status?.cheVersion) {
-            await sleep(500)
+            await sleep(1000)
           } else {
             task.title = `${task.title}...[OK]`
             return
