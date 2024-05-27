@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2021 Red Hat, Inc.
+ * Copyright (c) 2019-2024 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -16,7 +16,6 @@ import {KubeClient} from '../api/kube-client'
 import {KubeHelperContext} from '../context'
 import {EclipseChe} from './installers/eclipse-che/eclipse-che'
 import {newListr} from '../utils/utls'
-import {Che} from '../utils/che'
 
 export namespace PodTasks {
   interface FailState {
@@ -83,7 +82,7 @@ export namespace PodTasks {
         const tasks = newListr([])
         tasks.add(getSchedulingTask(selector, namespace))
         tasks.add(getDownloadingTask(selector, namespace))
-        if (name === EclipseChe.PLUGIN_REGISTRY && await Che.isEmbeddedOpenVSXRegistryConfigured(namespace)) {
+        if (name === EclipseChe.PLUGIN_REGISTRY) {
           // if embedded plugin registry is configured, use longer timeout for pod readiness
           tasks.add(getStartingTask(selector, namespace, ctx[KubeHelperContext.POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY]))
         } else {
