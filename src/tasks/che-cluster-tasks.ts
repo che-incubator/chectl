@@ -100,12 +100,19 @@ export namespace CheClusterTasks {
           merge(cheCluster, { spec: { devEnvironments: { startTimeoutSeconds: 3000 } } })
         }
 
-        // override default values with patch file
+        await kubeHelper.createNamespacedCustomObject(flags[CHE_NAMESPACE_FLAG], EclipseChe.CHE_CLUSTER_API_GROUP, EclipseChe.CHE_CLUSTER_API_VERSION_V2, EclipseChe.CHE_CLUSTER_KIND_PLURAL, cheCluster, true)
+
         if (ctx[EclipseCheContext.CR_PATCH]) {
-          merge(cheCluster, ctx[EclipseCheContext.CR_PATCH])
+          // merge(cheCluster, ctx[EclipseCheContext.CR_PATCH])
+          await kubeHelper.patchNamespacedCustomObject(
+            cheCluster.metadata.name!,
+            flags[CHE_NAMESPACE_FLAG],
+            ctx[EclipseCheContext.CR_PATCH],
+            EclipseChe.CHE_CLUSTER_API_GROUP,
+            EclipseChe.CHE_CLUSTER_API_VERSION_V2,
+            EclipseChe.CHE_CLUSTER_KIND_PLURAL)
         }
 
-        await kubeHelper.createNamespacedCustomObject(flags[CHE_NAMESPACE_FLAG], EclipseChe.CHE_CLUSTER_API_GROUP, EclipseChe.CHE_CLUSTER_API_VERSION_V2, EclipseChe.CHE_CLUSTER_KIND_PLURAL, cheCluster, true)
         task.title = `${task.title}...[Created]`
       },
     }
