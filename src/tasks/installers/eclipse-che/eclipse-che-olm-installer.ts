@@ -90,11 +90,14 @@ export class EclipseCheOlmInstaller implements Installer {
           tasks.add(DevWorkspaceInstallerFactory.getInstaller().getDeleteTasks())
         }
 
+        tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(
+          EclipseChe.PACKAGE,
+          EclipseChe.CSV_PREFIX,
+          ctx[EclipseCheContext.OPERATOR_NAMESPACE]))
         tasks.add(await EclipseCheTasks.getDeleteClusterScopeObjectsTask())
-        tasks.add(EclipseCheTasks.getDeleteEclipseCheResourcesTask())
-        tasks.add(await OlmTasks.getDeleteSubscriptionAndCatalogSourceTask(EclipseChe.PACKAGE, EclipseChe.CSV_PREFIX, ctx[EclipseCheContext.OPERATOR_NAMESPACE]))
         tasks.add(await EclipseCheTasks.getDeleteWorkloadsTask())
         tasks.add(EclipseCheTasks.getDeleteRbacTask())
+        tasks.add(EclipseCheTasks.getDeleteEclipseCheResourcesTask())
         if (!isCheFlavor()) {
           tasks.add(await EclipseCheTasks.getDeleteImageContentSourcePolicyTask())
         }
