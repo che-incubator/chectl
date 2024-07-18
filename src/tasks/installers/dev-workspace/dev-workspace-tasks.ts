@@ -133,7 +133,7 @@ export namespace DevWorkspacesTasks {
       task: async (ctx: any, task: any) => {
         const kubeHelper = KubeClient.getInstance()
         await kubeHelper.waitForPodReady('app.kubernetes.io/name=devworkspace-controller', ctx[DevWorkspaceContext.NAMESPACE])
-        await kubeHelper.waitForPodReady('app.kubernetes.io/name=devworkspace-webhook-server', ctx[DevWorkspaceContext.NAMESPACE])
+        await kubeHelper.waitForPodReady('app.kubernetes.io/name=devworkspace-webhook-server', ctx[DevWorkspaceContext.NAMESPACE], true)
         task.title = `${task.title}...[OK]`
       },
     }
