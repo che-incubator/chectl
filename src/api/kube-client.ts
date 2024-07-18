@@ -745,7 +745,7 @@ export class KubeClient {
     return conditions
   }
 
-  async getPodReadyConditionStatus(selector: string, namespace: string): Promise<string | undefined> {
+  async getPodReadyConditionStatus(selector: string, namespace: string, allowMultiple: boolean): Promise<string | undefined> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     let res
     try {
@@ -763,7 +763,7 @@ export class KubeClient {
       return 'False'
     }
 
-    if (res.body.items.length > 1) {
+    if (!allowMultiple && res.body.items.length > 1) {
       // Several pods found, rolling update?
       return
     }
@@ -780,10 +780,10 @@ export class KubeClient {
     }
   }
 
-  async waitForPodReady(selector: string, namespace: string, intervalMs = 500, timeoutMs = this.podReadyTimeout) {
+  async waitForPodReady(selector: string, namespace: string, allowMultiple = false, intervalMs = 500, timeoutMs = this.podReadyTimeout) {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
-      const readyStatus = await this.getPodReadyConditionStatus(selector, namespace)
+      const readyStatus = await this.getPodReadyConditionStatus(selector, namespace, allowMultiple)
       if (readyStatus === 'True') {
         return
       }
