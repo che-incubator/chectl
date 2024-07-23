@@ -18,14 +18,53 @@ import { K8sTasks } from './k8s'
 import { MicroK8sTasks } from './microk8s'
 import { MinikubeTasks } from './minikube'
 import { OpenshiftTasks } from './openshift'
-import {CheCtlContext} from '../../context'
-import {PLATFORM_FLAG} from '../../flags'
+import {EclipseChe} from '../installers/eclipse-che/eclipse-che'
+import {KubeClient} from '../../api/kube-client'
+import {CheCtlContext, OIDCContext} from '../../context'
+import {PLATFORM_FLAG, SKIP_OIDC_PROVIDER_FLAG} from '../../flags'
 import {newListr} from '../../utils/utls'
 
 /**
  * Platform specific tasks.
  */
 export namespace PlatformTasks {
+  export function getEnsureOIDCProviderInstalledTask(): Listr.ListrTask {
+    const flags = CheCtlContext.getFlags()
+    return {
+      title: 'Check if OIDC Provider installed',
+      enabled: () => !flags[SKIP_OIDC_PROVIDER_FLAG],
+      skip: () => {
+        if (flags[PLATFORM_FLAG] === 'minikube') {
+          return 'Dex will be automatically installed as OIDC Identity Provider'
+        }
+      },
+      task: async (_ctx: any, task: any) => {
+        const kubeHelper = KubeClient.getInstance()
+        const apiServerPods = await kubeHelper.getPodListByLabel('kube-system', 'component=kube-apiserver')
+        for (const pod of apiServerPods) {
+          if (!pod.spec) {
+            continue
+          }
+
+          for (const container of pod.spec.containers) {
+            if (container.command && container.command.some(value => value.includes(OIDCContext.ISSUER_URL)) && container.command.some(value => value.includes(OIDCContext.CLIENT_ID))) {
+              task.title = `${task.title}...[OK]`
+              return
+            }
+
+            if (container.args && container.args.some(value => value.includes(OIDCContext.ISSUER_URL)) && container.args.some(value => value.includes(OIDCContext.CLIENT_ID))) {
+              task.title = `${task.title}...[OK]`
+              return
+            }
+          }
+        }
+
+        task.title = `${task.title}...[Not Found]`
+        throw new Error(`API server is not configured with OIDC Identity Provider, see details ${EclipseChe.DOC_LINK_CONFIGURE_API_SERVER}. To bypass OIDC Provider check, use \'--skip-oidc-provider-check\' flag`)
+      },
+    }
+  }
+
   export function getPreflightCheckTasks(): Listr.ListrTask<any> {
     const flags = CheCtlContext.getFlags()
 
