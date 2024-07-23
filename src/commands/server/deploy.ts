@@ -156,6 +156,7 @@ export default class Deploy extends Command {
 
     // Platform Checks
     const platformTasks = newListr()
+    platformTasks.add(PlatformTasks.getEnsureOIDCProviderInstalledTask())
     platformTasks.add(PlatformTasks.getPreflightCheckTasks())
 
     // PreInstall tasks
