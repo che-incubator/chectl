@@ -308,10 +308,10 @@ USAGE
     [--k8spoddownloadimagetimeout <value>] [--k8spoderrorrechecktimeout <value>] [-d <value>] [-p
     minikube|k8s|openshift|microk8s|docker-desktop|crc] [-b <value>] [--debug] [--che-operator-image <value>]
     [--che-operator-cr-yaml <value>] [--che-operator-cr-patch-yaml <value>] [--workspace-pvc-storage-class-name <value>]
-    [--skip-version-check] [--skip-cert-manager] [--skip-devworkspace-operator]
-    [--auto-update] [--starting-csv <value>] [--package-manifest-name <value>] [--catalog-source-yaml <value>
-    --olm-channel <value>] [--catalog-source-name <value> --catalog-source-namespace <value> ] [--catalog-source-image
-    <value> ] [--cluster-monitoring] [--telemetry on|off] [--skip-kubernetes-health-check]
+    [--skip-version-check] [--skip-cert-manager] [--skip-devworkspace-operator] [--auto-update] [--starting-csv <value>]
+    [--package-manifest-name <value>] [--catalog-source-yaml <value> --olm-channel <value>] [--catalog-source-name
+    <value> --catalog-source-namespace <value> ] [--catalog-source-image <value> ] [--cluster-monitoring] [--telemetry
+    on|off] [--skip-kubernetes-health-check]
 
 FLAGS
   -b, --domain=<value>
