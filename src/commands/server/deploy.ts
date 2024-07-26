@@ -73,8 +73,6 @@ import {
   SKIP_DEV_WORKSPACE_FLAG,
   SKIP_KUBE_HEALTHZ_CHECK,
   SKIP_KUBE_HEALTHZ_CHECK_FLAG,
-  SKIP_OIDC_PROVIDER,
-  SKIP_OIDC_PROVIDER_FLAG,
   SKIP_VERSION_CHECK,
   SKIP_VERSION_CHECK_FLAG,
   STARTING_CSV,
@@ -127,7 +125,6 @@ export default class Deploy extends Command {
     [SKIP_VERSION_CHECK_FLAG]: SKIP_VERSION_CHECK,
     [SKIP_CERT_MANAGER_FLAG]: SKIP_CERT_MANAGER,
     [SKIP_DEV_WORKSPACE_FLAG]: SKIP_DEV_WORKSPACE,
-    [SKIP_OIDC_PROVIDER_FLAG]: SKIP_OIDC_PROVIDER,
     [AUTO_UPDATE_FLAG]: AUTO_UPDATE,
     [STARTING_CSV_FLAG]: STARTING_CSV,
     [OLM_CHANNEL_FLAG]: OLM_CHANNEL,
@@ -156,7 +153,6 @@ export default class Deploy extends Command {
 
     // Platform Checks
     const platformTasks = newListr()
-    platformTasks.add(PlatformTasks.getEnsureOIDCProviderInstalledTask())
     platformTasks.add(PlatformTasks.getPreflightCheckTasks())
 
     // PreInstall tasks

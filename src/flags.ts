@@ -43,12 +43,6 @@ export const LISTR_RENDERER  = Flags.string({
   hidden: true,
 })
 
-export const SKIP_OIDC_PROVIDER_FLAG = 'skip-oidc-provider-check'
-export const SKIP_OIDC_PROVIDER = Flags.boolean({
-  description: 'Skip OIDC Provider check',
-  default: false,
-})
-
 export const SKIP_KUBE_HEALTHZ_CHECK_FLAG = 'skip-kubernetes-health-check'
 export const SKIP_KUBE_HEALTHZ_CHECK = Flags.boolean({
   description: 'Skip Kubernetes health check',
