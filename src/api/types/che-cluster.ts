@@ -55,11 +55,6 @@ interface CheClusterPluginRegistryComponent {
   openVSXURL?: string
 }
 
-interface CheClusterDevfileRegistryComponent {
-  disableInternalRegistry?: boolean
-}
-
 export interface CheClusterComponents {
   pluginRegistry?: CheClusterPluginRegistryComponent
-  devfileRegistry?: CheClusterDevfileRegistryComponent
 }

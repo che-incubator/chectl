@@ -25,12 +25,9 @@ export const OWNER = 'che-incubator'
 export class E2eHelper {
   private readonly octokit: Octokit
   protected kubeHelper: KubeClient
-  protected devfileName: string
 
   constructor() {
     this.kubeHelper = KubeClient.getInstance()
-    // generate-name from https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml
-    this.devfileName = 'quarkus-'
     this.octokit = new Octokit({
       baseUrl: 'https://api.github.com',
       userAgent: 'chectl',
