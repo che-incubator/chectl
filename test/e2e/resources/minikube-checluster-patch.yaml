@@ -21,14 +21,6 @@ spec:
                 cpu: '50m'
               limits:
                 cpu: '50m'
-    devfileRegistry:
-      deployment:
-        containers:
-          - resources:
-              request:
-                cpu: '50m'
-              limits:
-                cpu: '50m'
     cheServer:
       deployment:
         containers:

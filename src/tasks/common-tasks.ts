@@ -229,10 +229,6 @@ export namespace CommonTasks {
             messages.push(`Plug-in Registry          : ${addTrailingSlash(cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL)}`)
           }
 
-          if (cheConfigMap.data.CHE_WORKSPACE_DEVFILE__REGISTRY__URL) {
-            messages.push(`Devfile Registry          : ${addTrailingSlash(cheConfigMap.data.CHE_WORKSPACE_DEVFILE__REGISTRY__URL)}`)
-          }
-
           messages.push(OUTPUT_SEPARATOR)
 
           if (flags[PLATFORM_FLAG] === 'minikube') {
