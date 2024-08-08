@@ -226,10 +226,8 @@ export namespace CommonTasks {
         const cheConfigMap = await kubeHelper.getConfigMap(EclipseChe.CONFIG_MAP, flags[CHE_NAMESPACE_FLAG])
         if (cheConfigMap && cheConfigMap.data) {
           if (cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL) {
-            messages.push(`Plug-in Registry          : ${addTrailingSlash(cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL)}`)
+            messages.push(`Plug-in Registry          : ${addTrailingSlash(cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL)}`, OUTPUT_SEPARATOR)
           }
-
-          messages.push(OUTPUT_SEPARATOR)
 
           if (flags[PLATFORM_FLAG] === 'minikube') {
             messages.push('Dex user credentials      : che@eclipse.org:admin', 'Dex user credentials      : user1@che:password', 'Dex user credentials      : user2@che:password', 'Dex user credentials      : user3@che:password', 'Dex user credentials      : user4@che:password', 'Dex user credentials      : user5@che:password', OUTPUT_SEPARATOR)
