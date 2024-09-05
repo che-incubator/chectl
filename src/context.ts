@@ -290,11 +290,12 @@ export namespace CheCtlContext {
   async function getOpenShiftVersion(): Promise<string | undefined> {
     const { stdout } = await execa('oc', ['version', '-o', 'json'], { timeout: 60_000 })
     const versionOutput = JSON.parse(stdout)
-    const version = (versionOutput.openshiftVersion as string).match(/^\d.\d+/)
-    if (version) {
-      return version[0]
+    if (versionOutput?.openshiftVersion) {
+      const version = (versionOutput.openshiftVersion as string).match(/^\d.\d+/)
+      if (version) {
+        return version[0]
+      }
     }
-
     return '4.x'
   }
 
