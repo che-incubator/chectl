@@ -296,6 +296,7 @@ export namespace CheCtlContext {
         return version[0]
       }
     }
+
     return '4.x'
   }
 
