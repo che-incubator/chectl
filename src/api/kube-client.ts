@@ -1041,10 +1041,10 @@ export class KubeClient {
   async replaceCustomResourceDefinition(crd: V1CustomResourceDefinition): Promise<void> {
     const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
     try {
-      const response = await k8sApi.readCustomResourceDefinition(crd.metadata?.name!)
+      const response = await k8sApi.readCustomResourceDefinition(crd.metadata!.name!)
 
       crd.metadata!.resourceVersion = (response.body as any).metadata.resourceVersion
-      await k8sApi.replaceCustomResourceDefinition(crd.metadata?.name!, crd)
+      await k8sApi.replaceCustomResourceDefinition(crd.metadata!.name!, crd)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
