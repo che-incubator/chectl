@@ -1038,13 +1038,13 @@ export class KubeClient {
     }
   }
 
-  async replaceCustomResourceDefinition(name: string, crd: V1CustomResourceDefinition): Promise<void> {
+  async replaceCustomResourceDefinition(crd: V1CustomResourceDefinition): Promise<void> {
     const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
     try {
-      const response = await k8sApi.readCustomResourceDefinition(name)
+      const response = await k8sApi.readCustomResourceDefinition(crd.metadata?.name!)
 
       crd.metadata!.resourceVersion = (response.body as any).metadata.resourceVersion
-      await k8sApi.replaceCustomResourceDefinition(name, crd)
+      await k8sApi.replaceCustomResourceDefinition(crd.metadata?.name!, crd)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
@@ -1099,7 +1099,7 @@ export class KubeClient {
 
     // 1. Disable conversion webhook
     crd.spec.conversion = null
-    await this.replaceCustomResourceDefinition(crdName, crd)
+    await this.replaceCustomResourceDefinition(crd)
 
     // 2. Patch CRD to unblock potential invalid resource error
     crd = await this.getCustomResourceDefinition(crdName)
@@ -1109,7 +1109,7 @@ export class KubeClient {
       }
     }
 
-    await this.replaceCustomResourceDefinition(crdName, crd)
+    await this.replaceCustomResourceDefinition(crd)
 
     // 3. Delete resources
     let resources = await this.listClusterCustomObject(apiGroup, version, plural)
