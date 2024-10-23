@@ -26,7 +26,7 @@ describe('Test Che upgrade', () => {
     it(`Deploy Che using operator installer and self signed certificates`, async () => {
       // uses installed chectl (from a stable channel)
       // see github workflow
-      let deployCommand = `chectl server:deploy --batch --platform=${PLATFORM} --chenamespace=${NAMESPACE} --telemetry=off --k8spodwaittimeout=120000 --k8spodreadytimeout=120000`
+      let deployCommand = `chectl server:deploy --batch --platform=${PLATFORM} --chenamespace=${NAMESPACE} --telemetry=off --k8spodwaittimeout=240000 --k8spodreadytimeout=240000`
       if (PLATFORM === 'minikube') {
         deployCommand += ' --che-operator-cr-patch-yaml=test/e2e/resources/minikube-checluster-patch.yaml'
       }

@@ -24,7 +24,7 @@ const binChectl = E2eHelper.getChectlBinaries()
 const PLATFORM = process.env.PLATFORM || ''
 
 function getDeployCommand(): string {
-  let command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --chenamespace=${EclipseChe.NAMESPACE} --telemetry=off --k8spodwaittimeout=120000 --k8spodreadytimeout=120000`
+  let command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --chenamespace=${EclipseChe.NAMESPACE} --telemetry=off --k8spodwaittimeout=240000 --k8spodreadytimeout=240000`
   if (PLATFORM === 'minikube') {
     command += ' --che-operator-cr-patch-yaml=test/e2e/resources/minikube-checluster-patch.yaml'
   }
