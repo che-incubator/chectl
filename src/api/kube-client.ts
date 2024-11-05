@@ -628,8 +628,7 @@ export class KubeClient {
     try {
       const {body} = await k8sApi.readNamespace(namespace)
       return body
-    } catch {
-    }
+    } catch {}
   }
 
   async patchNamespacedCustomObject(name: string, namespace: string, patch: any, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any | undefined> {
@@ -1095,7 +1094,7 @@ export class KubeClient {
   async deleteAllCustomResourcesAndCrd(crdName: string, apiGroup: string, version: string, plural: string): Promise<void> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
-    let crd = await this.getCustomResourceDefinition(crdName)
+    const crd = await this.getCustomResourceDefinition(crdName)
     if (!crd) {
       return
     }
@@ -1766,14 +1765,14 @@ export class KubeClient {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher
-        .watch(`/api/v1/namespaces/${namespace}/configmaps/`, {fieldSelector: `metadata.name=${name}`}, (_phase: string, _obj: any) => {
-          request.abort()
-          resolve()
-        }, error => {
-          if (error) {
-            reject(error)
-          }
-        })
+      .watch(`/api/v1/namespaces/${namespace}/configmaps/`, {fieldSelector: `metadata.name=${name}`}, (_phase: string, _obj: any) => {
+        request.abort()
+        resolve()
+      }, error => {
+        if (error) {
+          reject(error)
+        }
+      })
 
       // Automatically stop watching after timeout
       const timeoutHandler = setTimeout(() => {
@@ -1799,31 +1798,31 @@ export class KubeClient {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher
-        .watch(`/api/v1/namespaces/${namespace}/secrets/`, {fieldSelector: `metadata.name=${name}`}, (_phase: string, obj: any) => {
-          const secret = obj as V1Secret
+      .watch(`/api/v1/namespaces/${namespace}/secrets/`, {fieldSelector: `metadata.name=${name}`}, (_phase: string, obj: any) => {
+        const secret = obj as V1Secret
 
-          // Check all required data fields to be present
-          if (dataKeys.length > 0 && secret.data) {
-            for (const key of dataKeys) {
-              if (!secret.data[key]) {
-                // Key is missing or empty
-                return
-              }
+        // Check all required data fields to be present
+        if (dataKeys.length > 0 && secret.data) {
+          for (const key of dataKeys) {
+            if (!secret.data[key]) {
+              // Key is missing or empty
+              return
             }
           }
+        }
 
-          // The secret with all specified fields is present, stop watching
-          if (request) {
-            request.abort()
-          }
+        // The secret with all specified fields is present, stop watching
+        if (request) {
+          request.abort()
+        }
 
-          // Release awaiter
-          resolve()
-        }, error => {
-          if (error) {
-            reject(error)
-          }
-        })
+        // Release awaiter
+        resolve()
+      }, error => {
+        if (error) {
+          reject(error)
+        }
+      })
 
       // Automatically stop watching after timeout
       const timeoutHandler = setTimeout(() => {
