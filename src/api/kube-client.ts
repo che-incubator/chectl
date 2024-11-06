@@ -42,21 +42,21 @@ import {
   Watch,
   V1CustomResourceDefinition, V1ValidatingWebhookConfiguration, V1MutatingWebhookConfiguration,
 } from '@kubernetes/client-node'
-import { Cluster } from '@kubernetes/client-node/dist/config_types'
-import axios, { AxiosRequestConfig } from 'axios'
-import { ux } from '@oclif/core'
+import {Cluster} from '@kubernetes/client-node/dist/config_types'
+import axios, {AxiosRequestConfig} from 'axios'
+import {ux} from '@oclif/core'
 import * as execa from 'execa'
 import * as fs from 'node:fs'
 import * as https from 'node:https'
 import * as net from 'node:net'
-import { Writable } from 'node:stream'
+import {Writable} from 'node:stream'
 import {
   newError,
   sleep,
 } from '../utils/utls'
 import {CheCtlContext, KubeHelperContext} from '../context'
-import { V1Certificate } from './types/cert-manager'
-import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, Subscription } from './types/olm'
+import {V1Certificate} from './types/cert-manager'
+import {CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, Subscription} from './types/olm'
 import {EclipseChe} from '../tasks/installers/eclipse-che/eclipse-che'
 import {CheCluster} from './types/che-cluster'
 
@@ -112,7 +112,7 @@ export class KubeClient {
           rejectUnauthorized: false,
           requestCert: true,
         }),
-        headers: token && { Authorization: 'bearer ' + token },
+        headers: token && {Authorization: 'bearer ' + token},
       }
 
       const response = await axios.get(`${endpoint}`, config)
@@ -182,7 +182,7 @@ export class KubeClient {
 
   async applyResource(yamlPath: string, opts = ''): Promise<void> {
     const command = `kubectl apply -f ${yamlPath} ${opts}`
-    await execa(command, { timeout: 60_000, shell: true })
+    await execa(command, {timeout: 60_000, shell: true})
   }
 
   async createNamespace(namespace: V1Namespace): Promise<void> {
@@ -357,7 +357,7 @@ export class KubeClient {
   async getPodListByLabel(namespace: string, labelSelector: string): Promise<V1Pod[]> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
-      const { body: podList } = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, labelSelector)
+      const {body: podList} = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, labelSelector)
       return podList.items
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -558,7 +558,7 @@ export class KubeClient {
   async getConfigMap(name: string, namespace: string): Promise<V1ConfigMap | undefined> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
-      const { body } = await k8sCoreApi.readNamespacedConfigMap(name, namespace)
+      const {body} = await k8sCoreApi.readNamespacedConfigMap(name, namespace)
       return body
     } catch (e: any) {
       if (e.response.statusCode !== 404) {
@@ -570,7 +570,7 @@ export class KubeClient {
   async listConfigMaps(namespace: string, labelSelector?: string): Promise<V1ConfigMap[]> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
-      const { body } = await k8sCoreApi.listNamespacedConfigMap(namespace, undefined, undefined, undefined, undefined, labelSelector)
+      const {body} = await k8sCoreApi.listNamespacedConfigMap(namespace, undefined, undefined, undefined, undefined, labelSelector)
       return body.items
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -582,7 +582,7 @@ export class KubeClient {
   async getConfigMapValue(name: string, namespace: string, key: string): Promise<string | undefined> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
-      const { body } = await k8sCoreApi.readNamespacedConfigMap(name, namespace)
+      const {body} = await k8sCoreApi.readNamespacedConfigMap(name, namespace)
       if (body.data) {
         return body.data[key]
       }
@@ -626,7 +626,7 @@ export class KubeClient {
   async getNamespace(namespace: string): Promise<V1Namespace | undefined> {
     const k8sApi = this.kubeConfig.makeApiClient(CoreV1Api)
     try {
-      const { body } = await k8sApi.readNamespace(namespace)
+      const {body} = await k8sApi.readNamespace(namespace)
       return body
     } catch {}
   }
@@ -654,7 +654,7 @@ export class KubeClient {
   async getClusterCustomObject(group: string, version: string, plural: string, name: any): Promise<any> {
     const k8sCoreApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await k8sCoreApi.getClusterCustomObject(group, version, plural, name)
+      const {body} = await k8sCoreApi.getClusterCustomObject(group, version, plural, name)
       return body
     } catch (e: any) {
       if (e.response.statusCode !== 404) {
@@ -1041,9 +1041,11 @@ export class KubeClient {
   async replaceCustomResourceDefinition(crd: V1CustomResourceDefinition): Promise<void> {
     const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
     try {
-      const response = await k8sApi.readCustomResourceDefinition(crd.metadata!.name!)
+      if (!crd.metadata!.resourceVersion) {
+        const response = await k8sApi.readCustomResourceDefinition(crd.metadata!.name!)
+        crd.metadata!.resourceVersion = (response.body as any).metadata.resourceVersion
+      }
 
-      crd.metadata!.resourceVersion = (response.body as any).metadata.resourceVersion
       await k8sApi.replaceCustomResourceDefinition(crd.metadata!.name!, crd)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -1053,7 +1055,7 @@ export class KubeClient {
   async getCustomResourceDefinition(name: string): Promise<any | undefined> {
     const k8sApi = this.kubeConfig.makeApiClient(ApiextensionsV1Api)
     try {
-      const { body } = await k8sApi.readCustomResourceDefinition(name)
+      const {body} = await k8sApi.readCustomResourceDefinition(name)
       return body
     } catch (e: any) {
       if (e.response && e.response.statusCode === 404) {
@@ -1092,17 +1094,15 @@ export class KubeClient {
   async deleteAllCustomResourcesAndCrd(crdName: string, apiGroup: string, version: string, plural: string): Promise<void> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
-    let crd = await this.getCustomResourceDefinition(crdName)
+    const crd = await this.getCustomResourceDefinition(crdName)
     if (!crd) {
       return
     }
 
     // 1. Disable conversion webhook
     crd.spec.conversion = null
-    await this.replaceCustomResourceDefinition(crd)
 
     // 2. Patch CRD to unblock potential invalid resource error
-    crd = await this.getCustomResourceDefinition(crdName)
     for (let i = 0; i < crd.spec.versions.length; i++) {
       if (crd.spec.versions[i].schema?.openAPIV3Schema?.properties?.spec) {
         crd.spec.versions[i].schema.openAPIV3Schema.properties.spec = {type: 'object', properties: {}}
@@ -1139,7 +1139,7 @@ export class KubeClient {
       const name = resource.metadata.name
       const namespace = resource.metadata.namespace
       try {
-        await this.patchNamespacedCustomObject(name, namespace, { metadata: { finalizers: null } }, apiGroup, version, plural)
+        await this.patchNamespacedCustomObject(name, namespace, {metadata: {finalizers: null}}, apiGroup, version, plural)
       } catch (error: any) {
         if (error.cause?.body?.reason === 'NotFound') {
           continue
@@ -1190,7 +1190,7 @@ export class KubeClient {
   async listClusterCustomObject(resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any[]> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.listClusterCustomObject(resourceAPIGroup, resourceAPIVersion, resourcePlural)
+      const {body} = await customObjectsApi.listClusterCustomObject(resourceAPIGroup, resourceAPIVersion, resourcePlural)
       return (body as any).items ? (body as any).items : []
     } catch (e: any) {
       if (e.response && e.response.statusCode === 404) {
@@ -1219,7 +1219,7 @@ export class KubeClient {
   async listCatalogSource(namespace: string, labelSelector: string): Promise<CatalogSource[]> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', undefined, undefined, undefined, labelSelector)
+      const {body} = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', undefined, undefined, undefined, labelSelector)
       return (body as any).items as CatalogSource[]
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -1229,7 +1229,7 @@ export class KubeClient {
   async getCatalogSource(name: string, namespace: string): Promise<CatalogSource | undefined> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', name)
+      const {body} = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', name)
       return body as CatalogSource
     } catch (e: any) {
       if (e.response && e.response.statusCode === 404) {
@@ -1256,7 +1256,7 @@ export class KubeClient {
     return new Promise<CatalogSource>(async (resolve, reject) => {
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/catalogsources`,
-        { fieldSelector: `metadata.name=${name}` },
+        {fieldSelector: `metadata.name=${name}`},
         (_phase: string, obj: any) => {
           request.response.destroy()
           resolve(obj as CatalogSource)
@@ -1304,7 +1304,7 @@ export class KubeClient {
   async getOperatorSubscriptionByPackage(packageName: string, namespace: string): Promise<Subscription | undefined> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions')
+      const {body} = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions')
       return ((body as any).items as Subscription[]).find(sub => sub.spec.name === packageName)
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -1314,7 +1314,7 @@ export class KubeClient {
   async getOperatorSubscription(name: string, namespace: string): Promise<Subscription | undefined> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', name)
+      const {body} = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', name)
       return body as Subscription
     } catch (e: any) {
       if (e.response.statusCode !== 404) {
@@ -1329,7 +1329,7 @@ export class KubeClient {
     return new Promise<string>(async (resolve, reject) => {
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
-        { fieldSelector: `metadata.name=${name}` },
+        {fieldSelector: `metadata.name=${name}`},
         (_phase: string, obj: unknown) => {
           const subscription = obj as Subscription
           if (subscription.status?.installedCSV) {
@@ -1360,7 +1360,7 @@ export class KubeClient {
     return new Promise<string>(async (resolve, reject) => {
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/clusterserviceversions`,
-        { fieldSelector: `metadata.name=${name}` },
+        {fieldSelector: `metadata.name=${name}`},
         (_phase: string, obj: any) => {
           const csv = obj as ClusterServiceVersion
           if (csv.status?.phase) {
@@ -1404,7 +1404,7 @@ export class KubeClient {
     return new Promise<InstallPlan>(async (resolve, reject) => {
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
-        { fieldSelector: `metadata.name=${name}` },
+        {fieldSelector: `metadata.name=${name}`},
         (_phase: string, obj: unknown) => {
           const subscription = obj as Subscription
           if (subscription.status?.installplan) {
@@ -1437,7 +1437,7 @@ export class KubeClient {
           approved: true,
         },
       }
-      await customObjectsApi.patchNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'installplans', name, patch, undefined, undefined, undefined, { headers: { 'Content-Type': 'application/merge-patch+json' } })
+      await customObjectsApi.patchNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'installplans', name, patch, undefined, undefined, undefined, {headers: {'Content-Type': 'application/merge-patch+json'}})
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
@@ -1449,7 +1449,7 @@ export class KubeClient {
     return new Promise<InstallPlan>(async (resolve, reject) => {
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`,
-        { fieldSelector: `metadata.name=${name}` },
+        {fieldSelector: `metadata.name=${name}`},
         (_phase: string, obj: any) => {
           const installPlan = obj as InstallPlan
           if (installPlan.status?.phase === 'Failed') {
@@ -1493,7 +1493,7 @@ export class KubeClient {
   async getCSV(name: string, namespace: string): Promise<ClusterServiceVersion | undefined> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions', name)
+      const {body} = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions', name)
       return body as ClusterServiceVersion
     } catch (e: any) {
       if (e.response.statusCode !== 404) {
@@ -1514,7 +1514,7 @@ export class KubeClient {
   async listCSV(namespace: string): Promise<ClusterServiceVersionList> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions')
+      const {body} = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions')
       return body as ClusterServiceVersionList
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
@@ -1765,7 +1765,7 @@ export class KubeClient {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher
-      .watch(`/api/v1/namespaces/${namespace}/configmaps/`, { fieldSelector: `metadata.name=${name}` }, (_phase: string, _obj: any) => {
+      .watch(`/api/v1/namespaces/${namespace}/configmaps/`, {fieldSelector: `metadata.name=${name}`}, (_phase: string, _obj: any) => {
         request.abort()
         resolve()
       }, error => {
@@ -1798,7 +1798,7 @@ export class KubeClient {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
       const request = await watcher
-      .watch(`/api/v1/namespaces/${namespace}/secrets/`, { fieldSelector: `metadata.name=${name}` }, (_phase: string, obj: any) => {
+      .watch(`/api/v1/namespaces/${namespace}/secrets/`, {fieldSelector: `metadata.name=${name}`}, (_phase: string, obj: any) => {
         const secret = obj as V1Secret
 
         // Check all required data fields to be present
@@ -1863,7 +1863,7 @@ export class KubeClient {
       const logHelper = new Log(this.kubeConfig)
       const stream = new Writable()
       stream._write = function (chunk, encoding, done) {
-        fs.appendFileSync(filename, chunk, { encoding })
+        fs.appendFileSync(filename, chunk, {encoding})
         done()
       }
 
@@ -1874,7 +1874,7 @@ export class KubeClient {
         } else {
           resolve()
         }
-      }, { follow })
+      }, {follow})
     })
   }
 
