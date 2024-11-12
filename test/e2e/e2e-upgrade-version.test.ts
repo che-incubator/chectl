@@ -26,7 +26,7 @@ describe('Test Che upgrade', () => {
     it(`Deploy Che using operator installer and self signed certificates`, async () => {
       // uses installed chectl (from a stable channel)
       // see github workflow
-      let deployCommand = `chectl server:deploy --batch --platform=${PLATFORM} --chenamespace=${NAMESPACE} --telemetry=off --k8spodwaittimeout=240000 --k8spodreadytimeout=240000`
+      let deployCommand = `chectl server:deploy --batch --platform=${PLATFORM} --chenamespace=${NAMESPACE} --telemetry=off --k8spodwaittimeout=600000 --k8spodreadytimeout=600000`
       if (PLATFORM === 'minikube') {
         deployCommand += ' --che-operator-cr-patch-yaml=test/e2e/resources/minikube-checluster-patch.yaml'
       }
@@ -40,7 +40,7 @@ describe('Test Che upgrade', () => {
       // scale deployments down to free up some resources
       await helper.runCliCommand('kubectl', ['scale', 'deployment', 'che', '--replicas=0', `-n ${NAMESPACE}`])
       await helper.runCliCommand(binChectl, ['server:update', '-y', `-n ${NAMESPACE}`, '--telemetry=off'])
-      await helper.runCliCommand(binChectl, ['server:start', `-n ${NAMESPACE}`, '--telemetry=off'])
+      await helper.runCliCommand(binChectl, ['server:start', `-n ${NAMESPACE}`, '--telemetry=off', '--k8spodwaittimeout=600000', '--k8spodreadytimeout=600000'])
       await helper.waitForCheServerImageTag(helper.getNewVersion(), UPDATE_CHE_TIMEOUT_MS)
     })
 

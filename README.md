@@ -389,10 +389,10 @@ FLAGS
       [default: 60000] Waiting time for Pod rechecking error (in milliseconds)
 
   --k8spodreadytimeout=<value>
-      [default: 60000] Waiting time for Pod Ready condition (in milliseconds)
+      [default: 120000] Waiting time for Pod Ready condition (in milliseconds)
 
   --k8spodwaittimeout=<value>
-      [default: 60000] Waiting time for Pod scheduled condition (in milliseconds)
+      [default: 120000] Waiting time for Pod scheduled condition (in milliseconds)
 
   --olm-channel=<value>
       Olm channel to install Eclipse Che, f.e. stable.
@@ -476,8 +476,8 @@ FLAGS
   --batch                               Batch mode. Running a command without end user interaction.
   --k8spoddownloadimagetimeout=<value>  [default: 1200000] Waiting time for Pod downloading image (in milliseconds)
   --k8spoderrorrechecktimeout=<value>   [default: 60000] Waiting time for Pod rechecking error (in milliseconds)
-  --k8spodreadytimeout=<value>          [default: 60000] Waiting time for Pod Ready condition (in milliseconds)
-  --k8spodwaittimeout=<value>           [default: 60000] Waiting time for Pod scheduled condition (in milliseconds)
+  --k8spodreadytimeout=<value>          [default: 120000] Waiting time for Pod Ready condition (in milliseconds)
+  --k8spodwaittimeout=<value>           [default: 120000] Waiting time for Pod scheduled condition (in milliseconds)
   --skip-kubernetes-health-check        Skip Kubernetes health check
   --telemetry=<option>                  Enable or disable telemetry. This flag skips a prompt and enable/disable
                                         telemetry

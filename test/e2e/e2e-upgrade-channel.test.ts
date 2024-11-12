@@ -32,8 +32,8 @@ describe('Upgrade channel test', () => {
         `--chenamespace=${EclipseChe.NAMESPACE}`,
         '--che-operator-cr-patch-yaml=test/e2e/resources/minikube-checluster-patch.yaml',
         '--telemetry=off',
-        '--k8spodwaittimeout=240000',
-        '--k8spodreadytimeout=240000',
+        '--k8spodwaittimeout=600000',
+        '--k8spodreadytimeout=600000',
       ])
 
       await helper.waitForCheServerImageTag(helper.getNewVersion(), TIMEOUT_MS)

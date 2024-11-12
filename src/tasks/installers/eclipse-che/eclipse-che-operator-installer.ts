@@ -38,6 +38,7 @@ export class EclipseCheOperatorInstaller implements Installer {
         tasks.add(EclipseCheTasks.getCreateOrUpdateRbacTasks(true))
         if (!flags[SKIP_CERT_MANAGER_FLAG]) {
           tasks.add(CertManager.getWaitCertManagerTask())
+          tasks.add(CommonTasks.getWaitTask(5000))
         }
 
         tasks.add(EclipseCheTasks.getCreateOrUpdateCertificateTask(true))
