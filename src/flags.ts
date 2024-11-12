@@ -82,7 +82,7 @@ export const CHE_OPERATOR_CR_YAML  = Flags.string({
   default: '',
 })
 
-export const DEFAULT_POD_WAIT_TIMEOUT = '60000'
+export const DEFAULT_POD_WAIT_TIMEOUT = '120000'
 export const K8S_POD_WAIT_TIMEOUT_FLAG = 'k8spodwaittimeout'
 export const K8S_POD_WAIT_TIMEOUT  = Flags.string({
   description: 'Waiting time for Pod scheduled condition (in milliseconds)',
@@ -97,7 +97,7 @@ export const K8S_POD_DOWNLOAD_IMAGE_TIMEOUT  = Flags.string({
 })
 
 export const DEFAULT_K8S_POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY = '600000'
-export const DEFAULT_K8S_POD_READY_TIMEOUT = '60000'
+export const DEFAULT_K8S_POD_READY_TIMEOUT = '120000'
 export const K8S_POD_READY_TIMEOUT_FLAG = 'k8spodreadytimeout'
 export const K8S_POD_READY_TIMEOUT  = Flags.string({
   description: 'Waiting time for Pod Ready condition (in milliseconds)',
