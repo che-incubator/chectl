@@ -77,18 +77,32 @@ get_operating_system() {
 }
 
 get_arch() {
-  if [ "$(uname -m)" == "x86_64" ]; then
+  case "$(uname -m)" in
+    "x86_64")
     echo "x64"
-  elif [[ "$(uname -m)" == arm* ]]; then
-    if [ "$(uname)" == "Darwin" ]; then
+      ;;
+
+    "aarch64")
       echo "arm64"
-    else
-      echo "arm"
-    fi
-  else
-    error "unsupported arch: $(uname -m)"
-    return 1
-  fi
+      ;;
+
+    "armv7l")
+       echo "arm"
+      ;;
+
+    "ppc64le")
+       echo "ppc64le"
+      ;;
+
+    "s390x")
+       echo "s390x"
+      ;;
+
+    *)
+      error "unsupported arch: $(uname -m)"
+      return 1
+      ;;
+  esac
 }
 
 get_channel() {
