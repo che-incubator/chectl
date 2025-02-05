@@ -13,34 +13,7 @@
 name: Commands tests
 on: pull_request
 jobs:
-  chectl-deploy-commands:
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-        persist-credentials: false
-    - name: Start minikube cluster
-      uses: che-incubator/setup-minikube-action@next
-      with:
-        minikube-version: v1.29.0
-    - name: Install NodeJS
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18.18.0
-    - name: Build chectl
-      run: yarn
-    - name: Run e2e tests
-      run: |
-        export PLATFORM=minikube
-        yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
-    - uses: actions/upload-artifact@v4
-      if: ${{ always() }}
-      with:
-        name: test-artifacts-deploy
-        path: /tmp/logs/*
-  chectl-update-commands:
+  chectl-update-test:
     runs-on: ubuntu-22.04
     steps:
     - name: Checkout
@@ -67,5 +40,5 @@ jobs:
     - uses: actions/upload-artifact@v4
       if: ${{ always() }}
       with:
-        name: test-artifacts-update
+        name: test-artifacts
         path: /tmp/logs/*
