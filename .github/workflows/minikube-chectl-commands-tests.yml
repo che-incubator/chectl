@@ -38,7 +38,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       if: ${{ always() }}
       with:
-        name: test-artifacts
+        name: test-artifacts-deploy
         path: /tmp/logs/*
   chectl-update-commands:
     runs-on: ubuntu-22.04
@@ -67,5 +67,5 @@ jobs:
     - uses: actions/upload-artifact@v4
       if: ${{ always() }}
       with:
-        name: test-artifacts
+        name: test-artifacts-update
         path: /tmp/logs/*
