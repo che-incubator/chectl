@@ -10,10 +10,10 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-name: Test release binaries
+name: Commands tests
 on: pull_request
 jobs:
-  release-test:
+  chectl-deploy-test:
     runs-on: ubuntu-22.04
     steps:
     - name: Checkout
@@ -29,19 +29,11 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 18.18.0
-    - name: Pack chectl binary (single arch target)
-      run: yarn && yarn prepack && yarn pack-binaries --targets=linux-x64
-    - name: Unpack chectl tarball to $HOME/chectl
-      run: |
-        tar -xvf $(find dist/ -name "chectl*linux-x64.tar.gz" | head -1) -C $HOME
-        echo "$HOME/chectl/bin" >> $GITHUB_PATH
-        rm -rf tmp/
-    - name: Run tests
+    - name: Build chectl
+      run: yarn
+    - name: Run e2e tests
       run: |
         export PLATFORM=minikube
-        export ASSEMBLY_MODE=on
-
-        which chectl
         yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
     - uses: actions/upload-artifact@v4
       if: ${{ always() }}
