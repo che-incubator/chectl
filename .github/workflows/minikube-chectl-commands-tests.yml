@@ -35,7 +35,7 @@ jobs:
       run: |
         export PLATFORM=minikube
         yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e.test.ts
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: ${{ always() }}
       with:
         name: test-artifacts
@@ -64,7 +64,7 @@ jobs:
       run: |
         export PLATFORM=minikube
         yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e-upgrade-version.test.ts
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: ${{ always() }}
       with:
         name: test-artifacts
