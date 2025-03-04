@@ -9,7 +9,7 @@
 # Contributors:
 #   Red Hat, Inc. - initial API and implementation
 #
-schemaVersion: 2.1.0
+schemaVersion: 2.3.0
 metadata:
   name: chectl-dev
 components:
