@@ -112,7 +112,9 @@ export class KubeClient {
           rejectUnauthorized: false,
           requestCert: true,
         }),
-        headers: token && {Authorization: 'bearer ' + token},
+      }
+      if (token) {
+        config.headers = {Authorization: 'Bearer ' + token}
       }
 
       const response = await axios.get(`${endpoint}`, config)
