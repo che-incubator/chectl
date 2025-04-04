@@ -12,13 +12,13 @@
 
 import { ux } from '@oclif/core'
 import * as notifier from 'node-notifier'
-import {getProjectName, newError} from './utls'
-import {CheCtlContext, CliContext} from '../context'
+import { getProjectName, newError } from './utls'
+import { CheCtlContext, CliContext } from '../context'
 import * as fs from 'node:fs'
-import {EclipseChe} from '../tasks/installers/eclipse-che/eclipse-che'
+import { EclipseChe } from '../tasks/installers/eclipse-che/eclipse-che'
 import * as execa from 'execa'
 import * as path from 'node:path'
-import {CheCtlVersion} from './chectl-version'
+import { CheCtlVersion } from './chectl-version'
 
 /**
  * Returns command success message with execution time.
@@ -70,7 +70,7 @@ export async function askForChectlUpdateIfNeeded(): Promise<void> {
     ux.info(`A more recent version of chectl is available. To deploy the latest version of ${EclipseChe.PRODUCT_NAME}, update the chectl tool first.`)
     if (await ux.confirm('Do you want to update chectl now? [y/n]')) {
       const bin = path.join(__dirname, '..', '..', 'bin', getProjectName())
-      await execa(bin, ['update'], {stdout: 'inherit', stderr: 'inherit', timeout: 60_000})
+      await execa(bin, ['update'], { stdout: 'inherit', stderr: 'inherit', timeout: 60_000 })
       ux.exit(0)
     }
   }

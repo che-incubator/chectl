@@ -18,7 +18,7 @@ import * as path from 'node:path'
 import * as semver from 'semver'
 import { CHECTL_REPO, CheGithubClient, ECLIPSE_CHE_INCUBATOR_ORG } from '../api/github-client'
 import { getProjectVersion } from './utls'
-import {CheCtlContext, CliContext} from '../context'
+import { CheCtlContext, CliContext } from '../context'
 
 export const CHECTL_DEVELOPMENT_VERSION = '0.0.2'
 

@@ -15,7 +15,7 @@ import * as cp from 'node:child_process'
 import * as fs from 'fs-extra'
 import * as path from 'node:path'
 import { KubeClient } from './kube-client'
-import {isCommandExists} from '../utils/utls'
+import { isCommandExists } from '../utils/utls'
 
 export class CheLogsReader {
   private kubeHelper: KubeClient
@@ -69,7 +69,7 @@ export class CheLogsReader {
     }
   }
 
-  private async watchNamespacedPods(namespace: string, podLabelSelector: string | undefined, directory: string): Promise<void> {
+  private async watchNamespacedPods(namespace: string, podLabelSelector: string | undefined, directory: string): Promise<AbortController> {
     const processedContainers = new Map<string, Set<string>>()
 
     const watcher = new Watch(this.kubeHelper.getKubeConfig())
@@ -89,14 +89,14 @@ export class CheLogsReader {
         for (const containerName of this.getContainers(pod)) {
           // not to read logs from the same containers twice
           if (!processedContainers.get(podName)!.has(containerName)) {
-              processedContainers.get(podName)!.add(containerName)
+            processedContainers.get(podName)!.add(containerName)
 
-              const fileName = this.doCreateLogFile(namespace, podName, containerName, directory)
-              await this.doReadNamespacedPodLog(namespace, pod.metadata!.name!, containerName, fileName, true)
+            const fileName = this.doCreateLogFile(namespace, podName, containerName, directory)
+            await this.doReadNamespacedPodLog(namespace, pod.metadata!.name!, containerName, fileName, true)
           }
         }
       }
-    }, () => {})
+    }, () => { })
   }
 
   /**

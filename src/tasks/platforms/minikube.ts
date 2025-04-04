@@ -12,11 +12,11 @@
 
 import * as execa from 'execa'
 import * as Listr from 'listr'
-import {CheCtlContext, OIDCContext} from '../../context'
+import { CheCtlContext, OIDCContext } from '../../context'
 import { KubeClient } from '../../api/kube-client'
-import {isCommandExists, sleep} from '../../utils/utls'
-import {DOMAIN_FLAG} from '../../flags'
-import {CommonTasks} from '../common-tasks'
+import { isCommandExists, sleep } from '../../utils/utls'
+import { DOMAIN_FLAG } from '../../flags'
+import { CommonTasks } from '../common-tasks'
 
 export namespace MinikubeTasks {
   /**
@@ -133,7 +133,7 @@ export namespace MinikubeTasks {
   }
 
   async function isMinikubeRunning(): Promise<boolean> {
-    const {exitCode} = await execa('minikube', ['status'], {timeout: 10_000, reject: false})
+    const { exitCode } = await execa('minikube', ['status'], { timeout: 10_000, reject: false })
     return exitCode === 0
   }
 

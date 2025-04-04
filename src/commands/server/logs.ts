@@ -12,7 +12,7 @@
 
 import { Command, Flags } from '@oclif/core'
 
-import {CheCtlContext, CliContext} from '../../context'
+import { CheCtlContext, CliContext } from '../../context'
 import {
   CHE_NAMESPACE_FLAG,
   CHE_NAMESPACE,
@@ -24,10 +24,10 @@ import {
 } from '../../flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che-tasks'
-import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
-import {CommonTasks} from '../../tasks/common-tasks'
-import {getCommandSuccessMessage, wrapCommandError} from '../../utils/command-utils'
-import {newListr} from '../../utils/utls'
+import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
+import { CommonTasks } from '../../tasks/common-tasks'
+import { getCommandSuccessMessage, wrapCommandError } from '../../utils/command-utils'
+import { newListr } from '../../utils/utls'
 
 export default class Logs extends Command {
   static description = `Collect ${EclipseChe.PRODUCT_NAME} logs`

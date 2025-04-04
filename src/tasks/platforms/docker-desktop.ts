@@ -14,11 +14,11 @@ import * as execa from 'execa'
 import * as Listr from 'listr'
 import * as os from 'node:os'
 import { ux } from '@oclif/core'
-import {CheCtlContext} from '../../context'
-import {DOMAIN_FLAG} from '../../flags'
-import {KubeClient} from '../../api/kube-client'
-import {CommonTasks} from '../common-tasks'
-import {isCommandExists} from '../../utils/utls'
+import { CheCtlContext } from '../../context'
+import { DOMAIN_FLAG } from '../../flags'
+import { KubeClient } from '../../api/kube-client'
+import { CommonTasks } from '../common-tasks'
+import { isCommandExists } from '../../utils/utls'
 
 export namespace DockerDesktopTasks {
   /**
@@ -26,14 +26,14 @@ export namespace DockerDesktopTasks {
    */
   export function getPreflightCheckTasks(): Listr.ListrTask<any>[] {
     return [
-      CommonTasks.getVerifyCommand('Verify if oc is installed', 'oc not found',  () => isCommandExists('oc')),
+      CommonTasks.getVerifyCommand('Verify if oc is installed', 'oc not found', () => isCommandExists('oc')),
       {
         title: 'Verify if kubectl context is Docker Desktop',
         task: async (_ctx: any, task: any) => {
           const kubeClient = KubeClient.getInstance()
           const context = kubeClient.getCurrentContext()
           if (context !== 'docker-for-desktop' && context !== 'docker-desktop') {
-            ux.error(`E_PLATFORM_NOT_READY: current kube context is not Docker Desktop context. Found ${context}`, {exit: 1})
+            ux.error(`E_PLATFORM_NOT_READY: current kube context is not Docker Desktop context. Found ${context}`, { exit: 1 })
           } else {
             task.title = `${task.title}: [Found ${context}]`
           }
@@ -61,7 +61,7 @@ export namespace DockerDesktopTasks {
           if (!flags[DOMAIN_FLAG]) {
             const ips = grabIps()
             if (ips.length === 0) {
-              ux.error('E_MISSING_DOMAIN: Unable to find IPV4 ip on this computer. Needs to provide --domain flag', {exit: 1})
+              ux.error('E_MISSING_DOMAIN: Unable to find IPV4 ip on this computer. Needs to provide --domain flag', { exit: 1 })
             } else if (ips.length >= 1) {
               flags[DOMAIN_FLAG] = `${ips[0]}.nip.io`
             }

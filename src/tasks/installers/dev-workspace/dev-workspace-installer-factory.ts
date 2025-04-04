@@ -10,11 +10,11 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {CheCtlContext, InfrastructureContext} from '../../../context'
+import { CheCtlContext, InfrastructureContext } from '../../../context'
 
 import { Installer } from '../installer'
-import {DevWorkspaceOlmInstaller} from './devworkspace-olm-installer'
-import {DevWorkspaceOperatorInstaller} from './devworkspace-operator-installer'
+import { DevWorkspaceOlmInstaller } from './devworkspace-olm-installer'
+import { DevWorkspaceOperatorInstaller } from './devworkspace-operator-installer'
 
 /**
  * Installer factory.

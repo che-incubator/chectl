@@ -10,16 +10,16 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {DevWorkspaceContext, EclipseCheContext, InfrastructureContext} from '../../../context'
+import { DevWorkspaceContext, EclipseCheContext, InfrastructureContext } from '../../../context'
 import Listr = require('listr')
-import {Installer} from '../installer'
-import {DevWorkspacesTasks} from './dev-workspace-tasks'
-import {DevWorkspace} from './dev-workspace'
-import {OlmTasks} from '../../olm-tasks'
-import {CommonTasks} from '../../common-tasks'
-import {isCheFlavor, newListr} from '../../../utils/utls'
+import { Installer } from '../installer'
+import { DevWorkspacesTasks } from './dev-workspace-tasks'
+import { DevWorkspace } from './dev-workspace'
+import { OlmTasks } from '../../olm-tasks'
+import { CommonTasks } from '../../common-tasks'
+import { isCheFlavor, newListr } from '../../../utils/utls'
 
-export class DevWorkspaceOlmInstaller implements Installer  {
+export class DevWorkspaceOlmInstaller implements Installer {
   getDeployTasks(): Listr.ListrTask<any> {
     return {
       title: `Install ${DevWorkspace.PRODUCT_NAME} operator`,

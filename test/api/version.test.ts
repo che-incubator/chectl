@@ -14,6 +14,22 @@ import { expect, fancy } from 'fancy-test'
 import {K8sVersion} from '../../src/utils/k8s-version'
 import {CheCtlVersion} from '../../src/utils/chectl-version'
 
+jest.mock("@kubernetes/client-node", () => {
+  return {
+    KubeConfig: jest.fn().mockImplementation(() => {
+      return {
+        loadFromFile: jest.fn(),
+        loadFromDefault: jest.fn(),
+        getCurrentContext: jest.fn(),
+        setCurrentContext: jest.fn(),
+        getContexts: jest.fn(),
+        getUserName: jest.fn(),
+        getClusterName: jest.fn()
+      }
+    })
+  }
+})
+
 describe('Version Helper', () => {
   describe('OpenShift API helper', () => {
     fancy

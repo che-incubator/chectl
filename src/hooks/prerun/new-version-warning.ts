@@ -14,7 +14,7 @@ import { Hook } from '@oclif/core'
 import { ux } from '@oclif/core'
 
 import { CheCtlVersion } from '../../utils/chectl-version'
-import {isCheFlavor} from '../../utils/utls'
+import { isCheFlavor } from '../../utils/utls'
 
 const DO_NO_PRINT_WARNING_COMMANDS = new Set([
   'server:deploy',

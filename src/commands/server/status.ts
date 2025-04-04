@@ -23,8 +23,8 @@ import {
   TELEMETRY,
 } from '../../flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
-import {Che} from '../../utils/che'
+import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
+import { Che } from '../../utils/che'
 
 export default class Status extends Command {
   static description = `Status ${EclipseChe.PRODUCT_NAME} server`

@@ -12,11 +12,11 @@
 
 import * as Listr from 'listr'
 import { KubeClient } from '../../api/kube-client'
-import {Installer} from './installer'
-import {CheCtlContext} from '../../context'
-import {SKIP_CERT_MANAGER_FLAG} from '../../flags'
-import {CommonTasks} from '../common-tasks'
-import {newListr} from '../../utils/utls'
+import { Installer } from './installer'
+import { CheCtlContext } from '../../context'
+import { SKIP_CERT_MANAGER_FLAG } from '../../flags'
+import { CommonTasks } from '../common-tasks'
+import { newListr } from '../../utils/utls'
 
 export namespace CertManager {
   export const NAMESPACE = 'cert-manager'

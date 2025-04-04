@@ -25,9 +25,9 @@ import {
   DESTINATION_FLAG, DESTINATION,
 } from '../../flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
-import {wrapCommandError} from '../../utils/command-utils'
-import {Che} from '../../utils/che'
+import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
+import { wrapCommandError } from '../../utils/command-utils'
+import { Che } from '../../utils/che'
 
 export default class Export extends Command {
   static description = `Retrieves ${EclipseChe.PRODUCT_NAME} self-signed certificate`

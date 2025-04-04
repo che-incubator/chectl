@@ -19,9 +19,9 @@ import * as osLocale from 'os-locale'
 import * as path from 'node:path'
 import { v4 } from 'uuid'
 
-import {getProjectName, getProjectVersion} from '../../utils/utls'
+import { getProjectName, getProjectVersion } from '../../utils/utls'
 import * as getos from 'getos'
-import {promisify} from 'node:util'
+import { promisify } from 'node:util'
 
 const Analytics = require('analytics-node')
 

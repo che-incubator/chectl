@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {ApisApi, CustomObjectsApi, KubeConfig} from '@kubernetes/client-node'
+import { ApisApi, CustomObjectsApi, KubeConfig } from '@kubernetes/client-node'
 import * as os from 'node:os'
 import * as path from 'node:path'
 
@@ -44,13 +44,13 @@ import {
   safeLoadFromYamlFile,
 } from './utils/utls'
 
-import {DevWorkspace} from './tasks/installers/dev-workspace/dev-workspace'
-import {EclipseChe} from './tasks/installers/eclipse-che/eclipse-che'
+import { DevWorkspace } from './tasks/installers/dev-workspace/dev-workspace'
+import { EclipseChe } from './tasks/installers/eclipse-che/eclipse-che'
 import * as fs from 'fs-extra'
 import * as execa from 'execa'
-import {CheCluster} from './api/types/che-cluster'
-import {CatalogSource} from './api/types/olm'
-import {Command} from '@oclif/core'
+import { CheCluster } from './api/types/che-cluster'
+import { CatalogSource } from './api/types/olm'
+import { Command } from '@oclif/core'
 
 export namespace InfrastructureContext {
   export const IS_OPENSHIFT = 'infrastructure-is-openshift'
@@ -259,7 +259,7 @@ export namespace CheCtlContext {
     // KubeHelperContext
     ctx[KubeHelperContext.POD_WAIT_TIMEOUT] = Number.parseInt(flags[K8S_POD_WAIT_TIMEOUT_FLAG] || DEFAULT_POD_WAIT_TIMEOUT, 10)
     ctx[KubeHelperContext.POD_READY_TIMEOUT] = Number.parseInt(flags[K8S_POD_READY_TIMEOUT_FLAG] || DEFAULT_K8S_POD_READY_TIMEOUT, 10)
-    ctx[KubeHelperContext.POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY] = Math.max(ctx[KubeHelperContext.POD_READY_TIMEOUT],  Number.parseInt(DEFAULT_K8S_POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY, 10))
+    ctx[KubeHelperContext.POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY] = Math.max(ctx[KubeHelperContext.POD_READY_TIMEOUT], Number.parseInt(DEFAULT_K8S_POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY, 10))
     ctx[KubeHelperContext.POD_DOWNLOAD_IMAGE_TIMEOUT] = Number.parseInt(flags[K8S_POD_DOWNLOAD_IMAGE_TIMEOUT_FLAG] || DEFAULT_K8S_POD_DOWNLOAD_IMAGE_TIMEOUT, 10)
     ctx[KubeHelperContext.POD_ERROR_RECHECK_TIMEOUT] = Number.parseInt(flags[K8S_POD_ERROR_RECHECK_TIMEOUT_FLAG] || DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, 10)
   }
@@ -312,11 +312,11 @@ export namespace CheCtlContext {
 
     const k8sCoreApi = kubeConfig.makeApiClient(ApisApi)
     const res = await k8sCoreApi.getAPIVersions()
-    if (!res || !res.body || !res.body.groups) {
+    if (!res.groups) {
       return false
     }
 
-    const group = res.body.groups.find(g => g.name === name)
+    const group = res.groups.find(g => g.name === name)
     if (!group) {
       return false
     }
@@ -330,7 +330,7 @@ export namespace CheCtlContext {
 
     const customObjectsApi = kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      const response = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', name)
+      const response = await customObjectsApi.getNamespacedCustomObject({ group: 'operators.coreos.com', version: 'v1alpha1', namespace, plural: 'catalogsources', name })
       return response.body as CatalogSource
     } catch (e: any) {
       if (e.response && e.response.statusCode === 404) {
@@ -347,9 +347,9 @@ export namespace CheCtlContext {
 
     try {
       const customObjectsApi = kubeConfig.makeApiClient(CustomObjectsApi)
-      const {body} = await customObjectsApi.listClusterCustomObject(EclipseChe.CHE_CLUSTER_API_GROUP, EclipseChe.CHE_CLUSTER_API_VERSION_V2, EclipseChe.CHE_CLUSTER_KIND_PLURAL)
+      const { body } = await customObjectsApi.listClusterCustomObject({ group: EclipseChe.CHE_CLUSTER_API_GROUP, version: EclipseChe.CHE_CLUSTER_API_VERSION_V2, plural: EclipseChe.CHE_CLUSTER_KIND_PLURAL })
       return ((body as any).items as CheCluster[])[0]?.metadata.namespace
-    } catch {}
+    } catch { }
   }
 
   function readFile(flags: any, key: string): any {

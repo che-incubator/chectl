@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {CheCtlContext, InfrastructureContext} from '../../../context'
+import { CheCtlContext, InfrastructureContext } from '../../../context'
 
 import { EclipseCheOlmInstaller } from './eclipse-che-olm-installer'
 import { EclipseCheOperatorInstaller } from './eclipse-che-operator-installer'

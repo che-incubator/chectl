@@ -63,18 +63,18 @@ import {
   CATALOG_SOURCE_IMAGE_FLAG,
   CATALOG_SOURCE_IMAGE, checkFlagsCompatability,
 } from '../../flags'
-import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
-import {DEFAULT_ANALYTIC_HOOK_NAME} from '../../constants'
+import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import {
   askForChectlUpdateIfNeeded,
   getCommandSuccessMessage,
   notifyCommandCompletedSuccessfully,
   wrapCommandError,
 } from '../../utils/command-utils'
-import {CommonTasks} from '../../tasks/common-tasks'
-import {getProjectName, getProjectVersion, newListr} from '../../utils/utls'
-import {KubeClient} from '../../api/kube-client'
-import {Che} from '../../utils/che'
+import { CommonTasks } from '../../tasks/common-tasks'
+import { getProjectName, getProjectVersion, newListr } from '../../utils/utls'
+import { KubeClient } from '../../api/kube-client'
+import { Che } from '../../utils/che'
 
 export default class Update extends Command {
   static description = `Update ${EclipseChe.PRODUCT_NAME} server.`
@@ -277,7 +277,7 @@ export default class Update extends Command {
         }
       } else {
         // Downgrade
-        ux.error('Downgrading is not supported.', {exit: 1})
+        ux.error('Downgrading is not supported.', { exit: 1 })
       }
     } else {
       // At least one of the images is custom

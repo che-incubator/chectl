@@ -11,9 +11,9 @@
  */
 
 import * as Listr from 'listr'
-import {KubeClient} from '../api/kube-client'
-import {isEmpty, merge} from 'lodash'
-import {CheCtlContext, EclipseCheContext, InfrastructureContext} from '../context'
+import { KubeClient } from '../api/kube-client'
+import { isEmpty, merge } from 'lodash'
+import { CheCtlContext, EclipseCheContext, InfrastructureContext } from '../context'
 import {
   CHE_IMAGE_FLAG,
   CHE_NAMESPACE_FLAG,
@@ -22,8 +22,8 @@ import {
   WORKSPACE_PVS_STORAGE_CLASS_NAME_FLAG,
 } from '../flags'
 import { ux } from '@oclif/core'
-import {EclipseChe} from './installers/eclipse-che/eclipse-che'
-import {CheCluster} from '../api/types/che-cluster'
+import { EclipseChe } from './installers/eclipse-che/eclipse-che'
+import { CheCluster } from '../api/types/che-cluster'
 
 export namespace CheClusterTasks {
   export function getPatchEclipseCheCluster(): Listr.ListrTask<any> {
@@ -36,7 +36,7 @@ export namespace CheClusterTasks {
 
         const cheCluster = await kubeHelper.getCheCluster(flags[CHE_NAMESPACE_FLAG])
         if (!cheCluster) {
-          ux.error(`${EclipseChe.PRODUCT_NAME} cluster Custom Object not found in the namespace '${flags[CHE_NAMESPACE_FLAG]}'`, {exit: 1})
+          ux.error(`${EclipseChe.PRODUCT_NAME} cluster Custom Object not found in the namespace '${flags[CHE_NAMESPACE_FLAG]}'`, { exit: 1 })
         }
 
         await kubeHelper.patchNamespacedCustomObject(
@@ -68,7 +68,7 @@ export namespace CheClusterTasks {
         cheCluster = (ctx[EclipseCheContext.CUSTOM_CR] || ctx[EclipseCheContext.DEFAULT_CR]) as CheCluster
 
         // merge flags
-        merge(cheCluster, { spec: { components: { cheServer: { debug: flags[DEBUG_FLAG]} } } })
+        merge(cheCluster, { spec: { components: { cheServer: { debug: flags[DEBUG_FLAG] } } } })
 
         if (flags[CHE_IMAGE_FLAG]) {
           merge(cheCluster, { spec: { components: { cheServer: { deployment: { containers: [{ image: flags[CHE_IMAGE_FLAG] }] } } } } })
@@ -100,7 +100,7 @@ export namespace CheClusterTasks {
           merge(cheCluster, { spec: { devEnvironments: { startTimeoutSeconds: 3000 } } })
         }
 
-        await kubeHelper.createNamespacedCustomObject(flags[CHE_NAMESPACE_FLAG], EclipseChe.CHE_CLUSTER_API_GROUP, EclipseChe.CHE_CLUSTER_API_VERSION_V2, EclipseChe.CHE_CLUSTER_KIND_PLURAL, cheCluster, true)
+        await kubeHelper.createCheClusterObject(flags[CHE_NAMESPACE_FLAG], cheCluster, true)
 
         if (ctx[EclipseCheContext.CR_PATCH]) {
           // merge(cheCluster, ctx[EclipseCheContext.CR_PATCH])

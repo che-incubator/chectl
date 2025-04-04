@@ -14,11 +14,11 @@ import * as fs from 'fs-extra'
 import * as os from 'node:os'
 import * as yaml from 'js-yaml'
 import * as path from 'node:path'
-import {CheCtlContext} from '../context'
+import { CheCtlContext } from '../context'
 import * as Listr from 'listr'
-import {LISTR_RENDERER_FLAG} from '../flags'
-import {EclipseChe} from '../tasks/installers/eclipse-che/eclipse-che'
-import {CHE} from '../constants'
+import { LISTR_RENDERER_FLAG } from '../flags'
+import { EclipseChe } from '../tasks/installers/eclipse-che/eclipse-che'
+import { CHE } from '../constants'
 import * as commandExists from 'command-exists'
 import execa = require('execa')
 
@@ -138,7 +138,7 @@ export async function isCommandExists(commandName: string): Promise<boolean> {
   try {
     await execa(whereCommand, [commandName])
     return true
-  } catch {}
+  } catch { }
 
   return false
 }

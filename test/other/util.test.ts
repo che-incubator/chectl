@@ -15,6 +15,22 @@ import {getImageNameAndTag} from '../../src/utils/utls'
 import {Che} from '../../src/utils/che'
 import {CheCtlContext, EclipseCheContext} from '../../src/context'
 
+jest.mock("@kubernetes/client-node", () => {
+  return {
+    KubeConfig: jest.fn().mockImplementation(() => {
+      return {
+        loadFromFile: jest.fn(),
+        loadFromDefault: jest.fn(),
+        getCurrentContext: jest.fn(),
+        setCurrentContext: jest.fn(),
+        getContexts: jest.fn(),
+        getUserName: jest.fn(),
+        getClusterName: jest.fn()
+      }
+    })
+  }
+})
+
 describe('Util tests', () => {
   describe('Test getImageNameAndTag', () => {
     // test data format: full image reference, image repository, tag

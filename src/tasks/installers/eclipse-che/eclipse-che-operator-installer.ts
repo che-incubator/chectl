@@ -11,19 +11,19 @@
  */
 
 import * as Listr from 'listr'
-import {CheCtlContext} from '../../../context'
+import { CheCtlContext } from '../../../context'
 import {
   CommonTasks,
 } from '../../common-tasks'
 import { Installer } from '../installer'
-import {CertManager} from '../cert-manager-installer'
-import {CHE_NAMESPACE_FLAG, DELETE_ALL_FLAG, SKIP_CERT_MANAGER_FLAG} from '../../../flags'
-import {EclipseChe} from './eclipse-che'
-import {PodTasks} from '../../pod-tasks'
-import {CheClusterTasks} from '../../che-cluster-tasks'
-import {EclipseCheTasks} from './eclipse-che-tasks'
-import {newListr} from '../../../utils/utls'
-import {DevWorkspaceInstallerFactory} from '../dev-workspace/dev-workspace-installer-factory'
+import { CertManager } from '../cert-manager-installer'
+import { CHE_NAMESPACE_FLAG, DELETE_ALL_FLAG, SKIP_CERT_MANAGER_FLAG } from '../../../flags'
+import { EclipseChe } from './eclipse-che'
+import { PodTasks } from '../../pod-tasks'
+import { CheClusterTasks } from '../../che-cluster-tasks'
+import { EclipseCheTasks } from './eclipse-che-tasks'
+import { newListr } from '../../../utils/utls'
+import { DevWorkspaceInstallerFactory } from '../dev-workspace/dev-workspace-installer-factory'
 
 export class EclipseCheOperatorInstaller implements Installer {
   getDeployTasks(): Listr.ListrTask<any> {

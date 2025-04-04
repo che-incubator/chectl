@@ -10,12 +10,12 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {ux} from '@oclif/core'
+import { ux } from '@oclif/core'
 import * as Listr from 'listr'
-import {KubeClient} from '../api/kube-client'
-import {KubeHelperContext} from '../context'
-import {EclipseChe} from './installers/eclipse-che/eclipse-che'
-import {newListr} from '../utils/utls'
+import { KubeClient } from '../api/kube-client'
+import { KubeHelperContext } from '../context'
+import { EclipseChe } from './installers/eclipse-che/eclipse-che'
+import { newListr } from '../utils/utls'
 
 export namespace PodTasks {
   interface FailState {
@@ -33,7 +33,7 @@ export namespace PodTasks {
 
         const exists = await kubeClient.isDeploymentExist(deploymentName, namespace)
         if (!exists) {
-          ux.error(`Deployment ${deploymentName} not found.`, {exit: 1})
+          ux.error(`Deployment ${deploymentName} not found.`, { exit: 1 })
         }
 
         task.title = `${task.title}...[Found]`
