@@ -138,7 +138,7 @@ export async function isCommandExists(commandName: string): Promise<boolean> {
   try {
     await execa(whereCommand, [commandName])
     return true
-  } catch { }
+  } catch {}
 
   return false
 }

@@ -353,19 +353,19 @@ export namespace EclipseCheTasks {
         }
 
         switch (yamlContent.kind) {
-          case 'Role':
-            resources.roles.push(yamlContent)
-            break
-          case 'RoleBinding':
-            resources.roleBindings.push(yamlContent)
-            break
-          case 'ClusterRole':
-            resources.clusterRoles.push(yamlContent)
-            break
-          case 'ClusterRoleBinding':
-            resources.clusterRoleBindings.push(yamlContent)
-            break
-          default:
+        case 'Role':
+          resources.roles.push(yamlContent)
+          break
+        case 'RoleBinding':
+          resources.roleBindings.push(yamlContent)
+          break
+        case 'ClusterRole':
+          resources.clusterRoles.push(yamlContent)
+          break
+        case 'ClusterRoleBinding':
+          resources.clusterRoleBindings.push(yamlContent)
+          break
+        default:
           // Ignore this object kind
         }
       }

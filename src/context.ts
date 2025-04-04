@@ -349,7 +349,7 @@ export namespace CheCtlContext {
       const customObjectsApi = kubeConfig.makeApiClient(CustomObjectsApi)
       const { body } = await customObjectsApi.listClusterCustomObject({ group: EclipseChe.CHE_CLUSTER_API_GROUP, version: EclipseChe.CHE_CLUSTER_API_VERSION_V2, plural: EclipseChe.CHE_CLUSTER_KIND_PLURAL })
       return ((body as any).items as CheCluster[])[0]?.metadata.namespace
-    } catch { }
+    } catch {}
   }
 
   function readFile(flags: any, key: string): any {
