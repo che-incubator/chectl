@@ -29,7 +29,7 @@ commands:
         kind: build
       workingDir: ${PROJECT_SOURCE}
       commandLine: >-
-        NODEJS_VERSION=18.18.0; nvm install $NODEJS_VERSION && nvm use v$NODEJS_VERSION && npm i yarn@1 npm@10 -g
+        NODEJS_VERSION=18.20.8; nvm install $NODEJS_VERSION && nvm use v$NODEJS_VERSION && npm i yarn@1 npm@10 -g
   - id: 1-build-chectl
     exec:
       label: "Build chectl"

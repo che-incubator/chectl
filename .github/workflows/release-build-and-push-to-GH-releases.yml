@@ -27,9 +27,9 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Install NodeJS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.18.0
+          node-version: 18
       - name: Compute tags and SHAs
         id: TAG_SHA
         run: |
