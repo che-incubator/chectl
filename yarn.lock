@@ -3694,7 +3694,7 @@ eastasianwidth@^0.2.0:
 
 "eclipse-che-operator@https://github.com/eclipse-che/che-operator#main":
   version "0.0.0"
-  resolved "https://github.com/eclipse-che/che-operator#f8346720b3f54486ab409afcfef6671667e7d1aa"
+  resolved "https://github.com/eclipse-che/che-operator#7a90932f80b265e60e2c6a7b59d15b093d9ce888"
 
 editorconfig@^0.15.0:
   version "0.15.3"
