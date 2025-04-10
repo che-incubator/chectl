@@ -98,6 +98,9 @@ get_arch() {
        echo "s390x"
       ;;
 
+    "arm64")
+       echo "arm64"
+      ;;
     *)
       error "unsupported arch: $(uname -m)"
       return 1
