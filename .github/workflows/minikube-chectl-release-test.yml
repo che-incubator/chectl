@@ -26,9 +26,9 @@ jobs:
       with:
         minikube-version: v1.29.0
     - name: Install NodeJS
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
-        node-version: 18.18.0
+        node-version: 18
     - name: Pack chectl binary (single arch target)
       run: yarn && yarn prepack && yarn pack-binaries --targets=linux-x64
     - name: Unpack chectl tarball to $HOME/chectl

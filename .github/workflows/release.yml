@@ -41,9 +41,9 @@ jobs:
           sudo apt-get -y -q install curl bash git hub
           hub --version
       - name: Install NodeJS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.18.0
+          node-version: 18
       - name: Check existing tags
         run: |
           set +e
