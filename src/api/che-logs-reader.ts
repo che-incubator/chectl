@@ -124,7 +124,7 @@ export class CheLogsReader {
       return []
     }
 
-    return pod.status.containerStatuses.map(containerStatus => containerStatus.name)
+    return pod.status.containerStatuses.filter(s => s.ready).map(s => s.name)
   }
 
   /**

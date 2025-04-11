@@ -112,7 +112,12 @@ export class KubeClient {
           rejectUnauthorized: false,
           requestCert: true,
         }),
-        headers: token && {Authorization: 'bearer ' + token},
+      }
+
+      if (token) {
+        config.headers = {
+          Authorization: `Bearer ${token}`,
+        }
       }
 
       const response = await axios.get(`${endpoint}`, config)
@@ -1189,17 +1194,31 @@ export class KubeClient {
 
   async listClusterCustomObject(resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any[]> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-    try {
-      const {body} = await customObjectsApi.listClusterCustomObject(resourceAPIGroup, resourceAPIVersion, resourcePlural)
-      return (body as any).items ? (body as any).items : []
-    } catch (e: any) {
-      if (e.response && e.response.statusCode === 404) {
-        // There is no CRD
-        return []
-      }
 
-      throw this.wrapK8sClientError(e)
+    for (let attempt = 1; attempt <= 10; attempt++) {
+      try {
+        const { body } = await customObjectsApi.listClusterCustomObject(
+          resourceAPIGroup,
+          resourceAPIVersion,
+          resourcePlural
+        )
+        return (body as any).items ? (body as any).items : []
+      } catch (e: any) {
+        if (e.response?.statusCode === 404) {
+          return []
+        }
+
+        const wrappedError = this.wrapK8sClientError(e)
+        if (this.isStorageIsReInitializingError(wrappedError)) {
+          await ux.wait(1000)
+          continue
+        }
+
+        throw wrappedError
+      }
     }
+
+    throw new Error('Exceeded maximum retry attempts to list cluster custom object: storage is (re)initializing')
   }
 
   async isCatalogSourceExists(name: string, namespace: string): Promise<boolean> {
@@ -1212,16 +1231,6 @@ export class KubeClient {
         return false
       }
 
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async listCatalogSource(namespace: string, labelSelector: string): Promise<CatalogSource[]> {
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-    try {
-      const {body} = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', undefined, undefined, undefined, labelSelector)
-      return (body as any).items as CatalogSource[]
-    } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
   }
@@ -1913,6 +1922,11 @@ export class KubeClient {
       msg.includes(`no endpoints available for service "${EclipseChe.CHE_FLAVOR}-operator-service"`) ||
       msg.includes('failed calling webhook') ||
       msg.includes('conversion webhook')
+  }
+
+  private isStorageIsReInitializingError(error: any): boolean {
+    const msg = error.message as string
+    return msg.includes('storage is (re)initializing') || msg.includes('TooManyRequests')
   }
 }
 
