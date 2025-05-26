@@ -56,7 +56,7 @@ import {
 } from '../utils/utls'
 import {CheCtlContext, KubeHelperContext} from '../context'
 import {V1Certificate} from './types/cert-manager'
-import {CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, Subscription} from './types/olm'
+import {CatalogSource, ClusterServiceVersion, InstallPlan, Subscription} from './types/olm'
 import {EclipseChe} from '../tasks/installers/eclipse-che/eclipse-che'
 import {CheCluster} from './types/che-cluster'
 
@@ -580,8 +580,6 @@ export class KubeClient {
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
-
-    return []
   }
 
   async getConfigMapValue(name: string, namespace: string, key: string): Promise<string | undefined> {
@@ -1192,15 +1190,44 @@ export class KubeClient {
     }
   }
 
+  async listNamespacedCustomObject(resourceAPIGroup: string, resourceAPIVersion: string, namespace: string, resourcePlural: string): Promise<any[]> {
+    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
+
+    for (let attempt = 1; attempt <= 10; attempt++) {
+      try {
+        const {body} = await customObjectsApi.listNamespacedCustomObject(
+          resourceAPIGroup,
+          resourceAPIVersion,
+          namespace,
+          resourcePlural)
+        return (body as any).items ? (body as any).items : []
+      } catch (e: any) {
+        if (e.response?.statusCode === 404) {
+          return []
+        }
+
+        const wrappedError = this.wrapK8sClientError(e)
+        if (this.isStorageIsReInitializingError(wrappedError) || this.isTooManyRequestsError(wrappedError)) {
+          await ux.wait(1000)
+          continue
+        }
+
+        throw wrappedError
+      }
+    }
+
+    throw new Error('Exceeded maximum retry attempts to list cluster custom object: storage is (re)initializing')
+  }
+
   async listClusterCustomObject(resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any[]> {
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     for (let attempt = 1; attempt <= 10; attempt++) {
       try {
-        const { body } = await customObjectsApi.listClusterCustomObject(
+        const {body} = await customObjectsApi.listClusterCustomObject(
           resourceAPIGroup,
           resourceAPIVersion,
-          resourcePlural
+          resourcePlural,
         )
         return (body as any).items ? (body as any).items : []
       } catch (e: any) {
@@ -1209,7 +1236,7 @@ export class KubeClient {
         }
 
         const wrappedError = this.wrapK8sClientError(e)
-        if (this.isStorageIsReInitializingError(wrappedError)) {
+        if (this.isStorageIsReInitializingError(wrappedError) || this.isTooManyRequestsError(wrappedError)) {
           await ux.wait(1000)
           continue
         }
@@ -1259,32 +1286,18 @@ export class KubeClient {
     }
   }
 
-  async waitCatalogSource(name: string, namespace: string, timeout = 60): Promise<CatalogSource> {
-    let timeoutHandler: NodeJS.Timeout
-
-    return new Promise<CatalogSource>(async (resolve, reject) => {
-      const watcher = new Watch(this.kubeConfig)
-      const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/catalogsources`,
-        {fieldSelector: `metadata.name=${name}`},
-        (_phase: string, obj: any) => {
-          request.response.destroy()
-          resolve(obj as CatalogSource)
-        },
-        error => {
-          if (timeoutHandler) {
-            clearTimeout(timeoutHandler)
-          }
-
-          if (error) {
-            reject(error)
-          }
-        })
-
-      timeoutHandler = setTimeout(() => {
-        request.abort()
-        reject(`Timeout reached while waiting for "${name}" catalog source is created.`)
-      }, timeout * 1000)
-    })
+  async waitCatalogSource(name: string, namespace: string): Promise<CatalogSource> {
+    return this.waitRetry(
+      `/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/catalogsources`,
+      `metadata.name=${name}`,
+      (obj: any | undefined) => {
+        if (obj) {
+          return obj
+        }
+      },
+      `Timeout reached while waiting for "${name}" catalog source is created.`,
+      60
+    )
   }
 
   async deleteCatalogSource(name: string, namespace: string): Promise<void> {
@@ -1310,14 +1323,9 @@ export class KubeClient {
     }
   }
 
-  async getOperatorSubscriptionByPackage(packageName: string, namespace: string): Promise<Subscription | undefined> {
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-    try {
-      const {body} = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions')
-      return ((body as any).items as Subscription[]).find(sub => sub.spec.name === packageName)
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
-    }
+  async getOperatorSubscriptionByPackageInNamespace(packageName: string, namespace: string): Promise<Subscription | undefined> {
+    const subs = await this.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions')
+    return (subs as Subscription[]).find(sub => sub.spec.name === packageName)
   }
 
   async getOperatorSubscription(name: string, namespace: string): Promise<Subscription | undefined> {
@@ -1332,66 +1340,33 @@ export class KubeClient {
     }
   }
 
-  async waitInstalledCSVInSubscription(name: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<string> {
-    let timeoutHandler: NodeJS.Timeout
-
-    return new Promise<string>(async (resolve, reject) => {
-      const watcher = new Watch(this.kubeConfig)
-      const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
-        {fieldSelector: `metadata.name=${name}`},
-        (_phase: string, obj: unknown) => {
+  async waitInstalledCSVInSubscription(name: string, namespace: string): Promise<string> {
+    return this.waitRetry(
+      `/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
+      `metadata.name=${name}`,
+      (obj: any | undefined) => {
+        if (obj) {
           const subscription = obj as Subscription
-          if (subscription.status?.installedCSV) {
-            request.response.destroy()
-            resolve(subscription.status.installedCSV)
-          }
-        },
-        error => {
-          if (timeoutHandler) {
-            clearTimeout(timeoutHandler)
-          }
-
-          if (error) {
-            reject(error)
-          }
-        })
-
-      timeoutHandler = setTimeout(() => {
-        request.abort()
-        reject(`Timeout reached while waiting for installed CSV of '${name}' subscription.`)
-      }, timeout * 1000)
-    })
+          return subscription.status?.installedCSV
+        }
+      },
+      `Timeout reached while waiting for installed CSV of '${name}' subscription.`,
+      1000
+    )
   }
 
-  async waitCSVStatusPhase(name: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<string> {
-    let timeoutHandler: NodeJS.Timeout
-
-    return new Promise<string>(async (resolve, reject) => {
-      const watcher = new Watch(this.kubeConfig)
-      const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/clusterserviceversions`,
-        {fieldSelector: `metadata.name=${name}`},
-        (_phase: string, obj: any) => {
+  async waitCSVStatusPhase(name: string, namespace: string): Promise<string> {
+    return this.waitRetry(
+      `/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/clusterserviceversions`,
+      `metadata.name=${name}`,
+      (obj: any | undefined) => {
+        if (obj) {
           const csv = obj as ClusterServiceVersion
-          if (csv.status?.phase) {
-            request.response.destroy()
-            resolve(csv.status.phase)
-          }
-        },
-        error => {
-          if (timeoutHandler) {
-            clearTimeout(timeoutHandler)
-          }
-
-          if (error) {
-            reject(error)
-          }
-        })
-
-      timeoutHandler = setTimeout(() => {
-        request.abort()
-        reject(`Timeout reached while waiting CSV '${name}' status.`)
-      }, timeout * 1000)
-    })
+          return csv.status?.phase
+        }
+      },
+      `Timeout reached while waiting CSV '${name}' status.`,
+      1000)
   }
 
   async deleteOperatorSubscription(name: string, namespace: string): Promise<void> {
@@ -1407,35 +1382,21 @@ export class KubeClient {
     }
   }
 
-  async waitOperatorSubscriptionReadyForApproval(name: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<InstallPlan> {
-    let timeoutHandler: NodeJS.Timeout
-
-    return new Promise<InstallPlan>(async (resolve, reject) => {
-      const watcher = new Watch(this.kubeConfig)
-      const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
-        {fieldSelector: `metadata.name=${name}`},
-        (_phase: string, obj: unknown) => {
+  async waitOperatorSubscriptionReadyForApproval(name: string, namespace: string): Promise<InstallPlan> {
+    return this.waitRetry(
+      `/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
+      `metadata.name=${name}`,
+      (obj: any | undefined) => {
+        if (obj) {
           const subscription = obj as Subscription
-          if (subscription.status?.installplan) {
-            request.response.destroy()
-            resolve(subscription.status.installplan)
+          if (subscription?.status?.installplan) {
+            return subscription.status.installplan
           }
-        },
-        error => {
-          if (timeoutHandler) {
-            clearTimeout(timeoutHandler)
-          }
-
-          if (error) {
-            reject(error)
-          }
-        })
-
-      timeoutHandler = setTimeout(() => {
-        request.abort()
-        reject(`Timeout reached while waiting for "${name}" subscription is ready.`)
-      }, timeout * 1000)
-    })
+        }
+      },
+      `Timeout reached while waiting for "${name}" subscription is ready.`,
+      600,
+    )
   }
 
   async approveOperatorInstallationPlan(name: string, namespace: string): Promise<void> {
@@ -1452,14 +1413,12 @@ export class KubeClient {
     }
   }
 
-  async waitOperatorInstallPlan(name: string, namespace: string, timeout = 240) {
-    let timeoutHandler: NodeJS.Timeout
-
-    return new Promise<InstallPlan>(async (resolve, reject) => {
-      const watcher = new Watch(this.kubeConfig)
-      const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`,
-        {fieldSelector: `metadata.name=${name}`},
-        (_phase: string, obj: any) => {
+  async waitOperatorInstallPlan(name: string, namespace: string) {
+    return this.waitRetry(
+      `/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`,
+      `metadata.name=${name}`,
+      (obj: any | undefined) => {
+        if (obj) {
           const installPlan = obj as InstallPlan
           if (installPlan.status?.phase === 'Failed') {
             const errorMessage = []
@@ -1469,34 +1428,21 @@ export class KubeClient {
               }
             }
 
-            request.response.destroy()
-            reject(errorMessage.join(' '))
+            throw new Error(errorMessage.join(' '))
           }
 
           if (installPlan.status?.conditions) {
             for (const condition of installPlan.status.conditions) {
               if (condition.type === 'Installed' && condition.status === 'True') {
-                request.response.destroy()
-                resolve(installPlan)
+                return installPlan
               }
             }
           }
-        },
-        error => {
-          if (timeoutHandler) {
-            clearTimeout(timeoutHandler)
-          }
-
-          if (error) {
-            reject(error)
-          }
-        })
-
-      timeoutHandler = setTimeout(() => {
-        request.abort()
-        reject(`Timeout reached while waiting for "${name}" has go status 'Installed'.`)
-      }, timeout * 1000)
-    })
+        }
+      },
+      `Timeout reached while waiting for "${name}" has go status 'Installed'.`,
+      240,
+    )
   }
 
   async getCSV(name: string, namespace: string): Promise<ClusterServiceVersion | undefined> {
@@ -1512,22 +1458,8 @@ export class KubeClient {
   }
 
   async getCSVWithPrefix(namePrefix: string, namespace: string): Promise<ClusterServiceVersion[]> {
-    try {
-      const csvs = await this.listCSV(namespace)
-      return csvs.items.filter(csv => csv.metadata.name!.startsWith(namePrefix))
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
-    }
-  }
-
-  async listCSV(namespace: string): Promise<ClusterServiceVersionList> {
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-    try {
-      const {body} = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions')
-      return body as ClusterServiceVersionList
-    } catch (e: any) {
-      throw this.wrapK8sClientError(e)
-    }
+    const csvs = await this.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions')
+    return (csvs as ClusterServiceVersion[]).filter(csv => csv.metadata.name!.startsWith(namePrefix))
   }
 
   async patchClusterServiceVersion(name: string, namespace: string, jsonPatch: any[]): Promise<ClusterServiceVersion> {
@@ -1769,36 +1701,6 @@ export class KubeClient {
     }
   }
 
-  async waitConfigMap(name: string, namespace: string, timeout = AWAIT_TIMEOUT_S): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      // Set up watcher
-      const watcher = new Watch(this.kubeConfig)
-      const request = await watcher
-      .watch(`/api/v1/namespaces/${namespace}/configmaps/`, {fieldSelector: `metadata.name=${name}`}, (_phase: string, _obj: any) => {
-        request.abort()
-        resolve()
-      }, error => {
-        if (error) {
-          reject(error)
-        }
-      })
-
-      // Automatically stop watching after timeout
-      const timeoutHandler = setTimeout(() => {
-        request.abort()
-        reject(`Timeout reached while waiting for "${name}" ConfigMap.`)
-      }, timeout * 1000)
-
-      // Request configMap, for case if it is already exist
-      const configMap = await this.getConfigMap(name, namespace)
-      if (configMap) {
-        request.abort()
-        clearTimeout(timeoutHandler)
-        resolve()
-      }
-    })
-  }
-
   /**
    * Awaits secret to be present and contain non-empty data fields specified in dataKeys parameter.
    */
@@ -1904,6 +1806,65 @@ export class KubeClient {
     }
   }
 
+  async wait(
+    path: string,
+    fieldSelector: string,
+    processObj: (obj: any) => any | undefined,
+    errMsg: string,
+    timeout: number): Promise<any> {
+    let timeoutHandler: NodeJS.Timeout
+
+    return new Promise<InstallPlan>(async (resolve, reject) => {
+      const watcher = new Watch(this.kubeConfig)
+      const request = await watcher.watch(
+        path,
+        {fieldSelector},
+        (_phase: string, obj: unknown) => {
+          const result = processObj(obj)
+          if (result) {
+            request.response.destroy()
+            resolve(result)
+          }
+        },
+        error => {
+          if (timeoutHandler) {
+            clearTimeout(timeoutHandler)
+          }
+
+          if (error) {
+            reject(error)
+          }
+        })
+
+      timeoutHandler = setTimeout(() => {
+        request.abort()
+        reject(errMsg)
+      }, timeout * 1000)
+    })
+  }
+
+  async waitRetry(path: string,
+    fieldSelector: string,
+    processObj: (obj: any) => any | undefined,
+    errMsg: string,
+    timeout: number): Promise<any> {
+    for (let attempt = 1; attempt <= 10; attempt++) {
+      try {
+        return await this.wait(path, fieldSelector, processObj, errMsg, timeout)
+      } catch (e: any) {
+        const wrappedError = this.wrapK8sClientError(e)
+        if (this.isTooManyRequestsError(wrappedError)) {
+          await ux.wait(2000)
+          continue
+        }
+
+        throw wrappedError
+      }
+    }
+
+    throw new Error('Exceeded maximum retry attempts: TooManyRequests')
+  }
+
   private wrapK8sClientError(e: any): Error {
     if (e.response && e.response.body) {
       if (e.response.body.message) {
@@ -1926,7 +1887,12 @@ export class KubeClient {
 
   private isStorageIsReInitializingError(error: any): boolean {
     const msg = error.message as string
-    return msg.includes('storage is (re)initializing') || msg.includes('TooManyRequests')
+    return msg.includes('storage is (re)initializing')
+  }
+
+  private isTooManyRequestsError(error: any): boolean {
+    const msg = error.message as string
+    return msg.includes('TooManyRequests')
   }
 }
 
