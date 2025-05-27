@@ -60,8 +60,6 @@ import {CatalogSource, ClusterServiceVersion, InstallPlan, Subscription} from '.
 import {EclipseChe} from '../tasks/installers/eclipse-che/eclipse-che'
 import {CheCluster} from './types/che-cluster'
 
-const AWAIT_TIMEOUT_S = 30
-
 export class KubeClient {
   private readonly kubeConfig
 
@@ -1190,52 +1188,51 @@ export class KubeClient {
     }
   }
 
-  async listNamespacedCustomObject(resourceAPIGroup: string, resourceAPIVersion: string, namespace: string, resourcePlural: string): Promise<any[]> {
-    const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
-
-    for (let attempt = 1; attempt <= 10; attempt++) {
-      try {
-        const {body} = await customObjectsApi.listNamespacedCustomObject(
-          resourceAPIGroup,
-          resourceAPIVersion,
-          namespace,
-          resourcePlural)
-        return (body as any).items ? (body as any).items : []
-      } catch (e: any) {
-        if (e.response?.statusCode === 404) {
-          return []
-        }
-
-        const wrappedError = this.wrapK8sClientError(e)
-        if (this.isStorageIsReInitializingError(wrappedError) || this.isTooManyRequestsError(wrappedError)) {
-          await ux.wait(1000)
-          continue
-        }
-
-        throw wrappedError
-      }
-    }
-
-    throw new Error('Exceeded maximum retry attempts to list cluster custom object: storage is (re)initializing')
+  async listNamespacedCustomObject(
+    resourceAPIGroup: string,
+    resourceAPIVersion: string,
+    namespace: string,
+    resourcePlural: string): Promise<any[]> {
+    return this.list(resourceAPIGroup, resourceAPIVersion, namespace, resourcePlural)
   }
 
   async listClusterCustomObject(resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any[]> {
+    return this.list(resourceAPIGroup, resourceAPIVersion, undefined, resourcePlural)
+  }
+
+  async list(
+    resourceAPIGroup: string,
+    resourceAPIVersion: string,
+    namespace: string | undefined,
+    resourcePlural: string): Promise<any[]> {
+    let errMsg = ''
     const customObjectsApi = this.kubeConfig.makeApiClient(CustomObjectsApi)
 
     for (let attempt = 1; attempt <= 10; attempt++) {
       try {
-        const {body} = await customObjectsApi.listClusterCustomObject(
-          resourceAPIGroup,
-          resourceAPIVersion,
-          resourcePlural,
-        )
-        return (body as any).items ? (body as any).items : []
+        if (namespace === undefined) {
+          // If namespace is not specified, list cluster custom objects
+          const {body} = await customObjectsApi.listClusterCustomObject(
+            resourceAPIGroup,
+            resourceAPIVersion,
+            resourcePlural)
+          return (body as any).items ? (body as any).items : []
+        } else {
+          // If namespace is specified, list namespaced custom objects
+          const {body} = await customObjectsApi.listNamespacedCustomObject(
+            resourceAPIGroup,
+            resourceAPIVersion,
+            namespace,
+            resourcePlural)
+          return (body as any).items ? (body as any).items : []
+        }
       } catch (e: any) {
         if (e.response?.statusCode === 404) {
           return []
         }
 
         const wrappedError = this.wrapK8sClientError(e)
+        errMsg = wrappedError.message as string
         if (this.isStorageIsReInitializingError(wrappedError) || this.isTooManyRequestsError(wrappedError)) {
           await ux.wait(1000)
           continue
@@ -1245,7 +1242,7 @@ export class KubeClient {
       }
     }
 
-    throw new Error('Exceeded maximum retry attempts to list cluster custom object: storage is (re)initializing')
+    throw new Error(`Exceeded maximum retry attempts to list cluster custom object: ${errMsg}`)
   }
 
   async isCatalogSourceExists(name: string, namespace: string): Promise<boolean> {
@@ -1287,7 +1284,7 @@ export class KubeClient {
   }
 
   async waitCatalogSource(name: string, namespace: string): Promise<CatalogSource> {
-    return this.waitRetry(
+    return this.waitAndRetryOnError(
       `/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/catalogsources`,
       `metadata.name=${name}`,
       (obj: any | undefined) => {
@@ -1341,7 +1338,7 @@ export class KubeClient {
   }
 
   async waitInstalledCSVInSubscription(name: string, namespace: string): Promise<string> {
-    return this.waitRetry(
+    return this.waitAndRetryOnError(
       `/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
       `metadata.name=${name}`,
       (obj: any | undefined) => {
@@ -1351,12 +1348,12 @@ export class KubeClient {
         }
       },
       `Timeout reached while waiting for installed CSV of '${name}' subscription.`,
-      1000
+      30
     )
   }
 
   async waitCSVStatusPhase(name: string, namespace: string): Promise<string> {
-    return this.waitRetry(
+    return this.waitAndRetryOnError(
       `/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/clusterserviceversions`,
       `metadata.name=${name}`,
       (obj: any | undefined) => {
@@ -1366,7 +1363,7 @@ export class KubeClient {
         }
       },
       `Timeout reached while waiting CSV '${name}' status.`,
-      1000)
+      30)
   }
 
   async deleteOperatorSubscription(name: string, namespace: string): Promise<void> {
@@ -1383,7 +1380,7 @@ export class KubeClient {
   }
 
   async waitOperatorSubscriptionReadyForApproval(name: string, namespace: string): Promise<InstallPlan> {
-    return this.waitRetry(
+    return this.waitAndRetryOnError(
       `/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
       `metadata.name=${name}`,
       (obj: any | undefined) => {
@@ -1395,7 +1392,7 @@ export class KubeClient {
         }
       },
       `Timeout reached while waiting for "${name}" subscription is ready.`,
-      600,
+      120,
     )
   }
 
@@ -1414,7 +1411,7 @@ export class KubeClient {
   }
 
   async waitOperatorInstallPlan(name: string, namespace: string) {
-    return this.waitRetry(
+    return this.waitAndRetryOnError(
       `/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`,
       `metadata.name=${name}`,
       (obj: any | undefined) => {
@@ -1441,7 +1438,7 @@ export class KubeClient {
         }
       },
       `Timeout reached while waiting for "${name}" has go status 'Installed'.`,
-      240,
+      60,
     )
   }
 
@@ -1704,7 +1701,7 @@ export class KubeClient {
   /**
    * Awaits secret to be present and contain non-empty data fields specified in dataKeys parameter.
    */
-  async waitSecret(name: string, namespace: string, dataKeys: string[] = [], timeout = AWAIT_TIMEOUT_S): Promise<void> {
+  async waitSecret(name: string, namespace: string, dataKeys: string[] = []): Promise<void> {
     return new Promise(async (resolve, reject) => {
       // Set up watcher
       const watcher = new Watch(this.kubeConfig)
@@ -1739,7 +1736,7 @@ export class KubeClient {
       const timeoutHandler = setTimeout(() => {
         request.abort()
         reject(`Timeout reached while waiting for "${name}" secret.`)
-      }, timeout * 1000)
+      }, 30 * 1000)
 
       // Request secret, for case if it is already exist
       const secret = await this.getSecret(name, namespace)
@@ -1843,12 +1840,12 @@ export class KubeClient {
     })
   }
 
-  async waitRetry(path: string,
+  async waitAndRetryOnError(path: string,
     fieldSelector: string,
     processObj: (obj: any) => any | undefined,
     errMsg: string,
     timeout: number): Promise<any> {
-    for (let attempt = 1; attempt <= 10; attempt++) {
+    for (let attempt = 1; attempt <= 5; attempt++) {
       try {
         return await this.wait(path, fieldSelector, processObj, errMsg, timeout)
       } catch (e: any) {
@@ -1862,7 +1859,7 @@ export class KubeClient {
       }
     }
 
-    throw new Error('Exceeded maximum retry attempts: TooManyRequests')
+    throw new Error('Exceeded maximum retry attempts: TooManyRequests Error')
   }
 
   private wrapK8sClientError(e: any): Error {
