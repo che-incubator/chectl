@@ -21,11 +21,10 @@ jobs:
       with:
         fetch-depth: 0
         persist-credentials: false
-    - name: Start latest minikube cluster
-      run: |
-        curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
-        install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
-        minikube start --vm-driver=docker --addons=ingress --cpus 2 --memory 6500
+    - name: Start minikube cluster
+      uses: che-incubator/setup-minikube-action@next
+      with:
+        minikube-version: v1.29.0
     - name: Install chectl from the stable channel
       run: bash <(curl -sL  https://che-incubator.github.io/chectl/install.sh) --channel=stable
     - name: Install NodeJS
