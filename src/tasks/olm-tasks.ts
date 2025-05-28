@@ -31,7 +31,7 @@ export namespace OlmTasks {
     const deleteResources = []
 
     // Subscription
-    const subscription = await kubeHelper.getOperatorSubscriptionByPackage(packageName, namespace)
+    const subscription = await kubeHelper.getOperatorSubscriptionByPackageInNamespace(packageName, namespace)
     if (subscription) {
       title = `${title} ${subscription.metadata.name}`
       deleteResources.push(() => kubeHelper.deleteOperatorSubscription(subscription.metadata.name!, namespace))
@@ -107,7 +107,7 @@ export namespace OlmTasks {
         }
 
         // wait for Subscription
-        const installPlan = await kubeHelper.waitOperatorSubscriptionReadyForApproval(name, namespace, 600)
+        const installPlan = await kubeHelper.waitOperatorSubscriptionReadyForApproval(name, namespace)
 
         // approve InstallPlan
         await kubeHelper.approveOperatorInstallationPlan(installPlan.name!, namespace)
@@ -234,7 +234,7 @@ export namespace OlmTasks {
             }
 
             await kubeHelper.approveOperatorInstallationPlan(subscription.status.installplan.name, ctx[EclipseCheContext.OPERATOR_NAMESPACE])
-            await kubeHelper.waitOperatorInstallPlan(subscription.status.installplan.name, ctx[EclipseCheContext.OPERATOR_NAMESPACE], 60)
+            await kubeHelper.waitOperatorInstallPlan(subscription.status.installplan.name, ctx[EclipseCheContext.OPERATOR_NAMESPACE])
             if (installedCSV) {
               ctx[CliContext.CLI_COMMAND_POST_OUTPUT_MESSAGES].push(`${subscription.spec.name} is upgraded from '${getVersionFromCSV(installedCSV)}' to '${getVersionFromCSV(currentCSV)}' version`)
             } else {
