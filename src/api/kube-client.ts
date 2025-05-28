@@ -1284,7 +1284,7 @@ export class KubeClient {
   }
 
   async waitCatalogSource(name: string, namespace: string): Promise<CatalogSource> {
-    return this.waitAndRetryOnError(
+    return this.watchAndRetryOnError(
       `/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/catalogsources`,
       `metadata.name=${name}`,
       (obj: any | undefined) => {
@@ -1338,7 +1338,7 @@ export class KubeClient {
   }
 
   async waitInstalledCSVInSubscription(name: string, namespace: string): Promise<string> {
-    return this.waitAndRetryOnError(
+    return this.watchAndRetryOnError(
       `/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
       `metadata.name=${name}`,
       (obj: any | undefined) => {
@@ -1353,7 +1353,7 @@ export class KubeClient {
   }
 
   async waitCSVStatusPhase(name: string, namespace: string): Promise<string> {
-    return this.waitAndRetryOnError(
+    return this.watchAndRetryOnError(
       `/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/clusterserviceversions`,
       `metadata.name=${name}`,
       (obj: any | undefined) => {
@@ -1380,7 +1380,7 @@ export class KubeClient {
   }
 
   async waitOperatorSubscriptionReadyForApproval(name: string, namespace: string): Promise<InstallPlan> {
-    return this.waitAndRetryOnError(
+    return this.watchAndRetryOnError(
       `/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/subscriptions`,
       `metadata.name=${name}`,
       (obj: any | undefined) => {
@@ -1411,7 +1411,7 @@ export class KubeClient {
   }
 
   async waitOperatorInstallPlan(name: string, namespace: string) {
-    return this.waitAndRetryOnError(
+    return this.watchAndRetryOnError(
       `/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`,
       `metadata.name=${name}`,
       (obj: any | undefined) => {
@@ -1803,7 +1803,7 @@ export class KubeClient {
     }
   }
 
-  async wait(
+  async watch(
     path: string,
     fieldSelector: string,
     processObj: (obj: any) => any | undefined,
@@ -1840,14 +1840,14 @@ export class KubeClient {
     })
   }
 
-  async waitAndRetryOnError(path: string,
+  async watchAndRetryOnError(path: string,
     fieldSelector: string,
     processObj: (obj: any) => any | undefined,
     errMsg: string,
     timeout: number): Promise<any> {
     for (let attempt = 1; attempt <= 5; attempt++) {
       try {
-        return await this.wait(path, fieldSelector, processObj, errMsg, timeout)
+        return await this.watch(path, fieldSelector, processObj, errMsg, timeout)
       } catch (e: any) {
         const wrappedError = this.wrapK8sClientError(e)
         if (this.isTooManyRequestsError(wrappedError)) {
@@ -1884,12 +1884,12 @@ export class KubeClient {
 
   private isStorageIsReInitializingError(error: any): boolean {
     const msg = error.message as string
-    return msg.includes('storage is (re)initializing')
+    return msg !== undefined && msg.includes('storage is (re)initializing')
   }
 
   private isTooManyRequestsError(error: any): boolean {
     const msg = error.message as string
-    return msg.includes('TooManyRequests')
+    return msg !== undefined && (msg.includes('TooManyRequests') || (msg.includes('Too Many Requests')))
   }
 }
 
