@@ -1884,12 +1884,12 @@ export class KubeClient {
 
   private isStorageIsReInitializingError(error: any): boolean {
     const msg = error.message as string
-    return msg.includes('storage is (re)initializing')
+    return msg?.includes('storage is (re)initializing')
   }
 
   private isTooManyRequestsError(error: any): boolean {
     const msg = error.message as string
-    return msg.includes('TooManyRequests')
+    return msg?.includes('TooManyRequests')
   }
 }
 
