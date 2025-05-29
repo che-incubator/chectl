@@ -1437,8 +1437,8 @@ export class KubeClient {
           }
         }
       },
-      `Timeout reached while waiting for "${name}" has go status 'Installed'.`,
-      60,
+      `Timeout reached while waiting for "${name}" has status 'Installed'.`,
+      180,
     )
   }
 
@@ -1835,7 +1835,7 @@ export class KubeClient {
 
       timeoutHandler = setTimeout(() => {
         request.abort()
-        reject(errMsg)
+        reject(new Error(errMsg))
       }, timeout * 1000)
     })
   }
