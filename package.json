@@ -1,7 +1,7 @@
 {
   "name": "chectl",
   "description": "Eclipse Che CLI",
-  "version": "0.0.2",
+  "version": "7.105.0",
   "author": "Mario Loriedo @l0rd",
   "bin": {
     "chectl": "./bin/run"
@@ -23,8 +23,8 @@
     "cli-ux": "^6.0.9",
     "command-exists": "^1.2.9",
     "countries-and-timezones": "^3.6.0",
-    "devworkspace-operator": "https://github.com/devfile/devworkspace-operator#main",
-    "eclipse-che-operator": "https://github.com/eclipse-che/che-operator#main",
+    "devworkspace-operator": "https://github.com/devfile/devworkspace-operator#v0.35.0",
+    "eclipse-che-operator": "https://github.com/eclipse-che/che-operator#7.105.0",
     "execa": "^5.1.1",
     "fancy-test": "^2.0.25",
     "fs-extra": "^11.1.1",
