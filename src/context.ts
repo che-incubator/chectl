@@ -135,7 +135,7 @@ export namespace OperatorImageUpgradeContext {
  */
 export namespace CheCtlContext {
   const ctx: any = {}
-  const CHE_OPERATOR_TEMPLATE_DIR = `${EclipseChe.CHE_FLAVOR}-operator`
+  const CHE_OPERATOR_TEMPLATE_DIR = 'che-operator'
   const DEV_WORKSPACE_OPERATOR_TEMPLATE_DIR = 'devworkspace-operator'
 
   export async function init(flags: any, command: Command): Promise<void> {
