@@ -1,0 +1,70 @@
+name: Generate SBOM
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version"
+        default: "main"
+        required: true
+
+env:
+  PRODUCT_PATH: "./"
+  CDXGEN_VERSION: "11.4.4"
+
+permissions:
+  contents: read
+
+jobs:
+  generate-sbom:
+    name: Generate SBOM
+    runs-on: ubuntu-22.04
+    outputs:
+      project-version: ${{ steps.version.outputs.PROJECT_VERSION }}
+    
+    permissions:
+      packages: read
+
+    steps:
+      - name: Extract version
+        id: version
+        run: |
+          VERSION="${{ github.event_name == 'release' && github.event.release.tag_name || github.event.inputs.version }}"
+          echo "PROJECT_VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Product version: $VERSION"
+
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          ref: ${{ steps.version.outputs.PROJECT_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          yarn
+
+      - name: Install cdxgen
+        run: |
+          npm install -g @cyclonedx/cdxgen@${{ env.CDXGEN_VERSION }}
+
+      - name: Generate SBOM
+        run: |
+          cdxgen -r -o ${{ env.PRODUCT_PATH }}/bom.json --deep
+
+      - name: Upload SBOM as artifact
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: sbom
+          path: ${{ env.PRODUCT_PATH }}/bom.json
+
+  store-sbom-data: # stores sbom and metadata in a predefined format for otterdog to pick up
+    needs: ["generate-sbom"]
+    uses: eclipse-csi/workflows/.github/workflows/store-sbom-data.yml@main
+    with:
+      projectName: "chectl"
+      projectVersion: ${{ needs.generate-sbom.outputs.project-version }}
+      bomArtifact: "sbom"
+      bomFilename: "bom.json"
+      parentProject: "4fc60f67-4995-4c20-974c-d7359618966a"

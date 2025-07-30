@@ -709,6 +709,9 @@ See also:
 * [operator_3.x](https://main-jenkins-csb-crwqe.apps.ocp-c1.prod.psi.redhat.com/job/DS_CI/job/operator_3.x/)
 * [operator-bundle_3.x](https://main-jenkins-csb-crwqe.apps.ocp-c1.prod.psi.redhat.com/job/DS_CI/job/operator-bundle_3.x/)
 
+# SBOM
+
+To enhance supply chain security and offer users clear insight into project  components, Eclipse Che now generates a Software Bill of Materials (SBOM) for every release. These are published to the Eclipse Foundation SBOM registry, with access instructions and usage details available in this [documentation](https://eclipse-csi.github.io/security-handbook/sbom/registry.html).
 
 # License
 
