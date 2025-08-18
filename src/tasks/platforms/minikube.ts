@@ -84,7 +84,12 @@ export namespace MinikubeTasks {
           const args: string[] = []
           args.push('ssh', 'sudo mkdir -p /etc/ca-certificates')
 
-          await execa('minikube', args, { timeout: 60_000 })
+          const { stderr, exitCode } = await execa('minikube', args, { timeout: 60_000, reject: false })
+
+          // Check the driver, and if it is `none`, ignore the exception
+          if (exitCode !== 14 && stderr.includes('\'none\' driver')) {
+            throw new Error(`Failed to create /etc/ca-certificates directory: ${stderr}`)
+          }
 
           task.title = `${task.title}...[Created]`
         },
