@@ -89,7 +89,7 @@ export namespace MinikubeTasks {
           // Check the error code and driver and if it is 14(MK_USAGE) and `none`, ignore the exception
           // if not MK_USAGE(errorCode: 14) when throw Error.
           // if MK_USAGE and not include `'none' driver` when throw Error.
-          const EXIT_CODE_MK_USAGE: number = 14;
+          const EXIT_CODE_MK_USAGE: number = 14
           if (exitCode !== EXIT_CODE_MK_USAGE || !stderr.includes('\'none\' driver')) {
             throw new Error(`Failed to create /etc/ca-certificates directory: ${stderr}`)
           }
