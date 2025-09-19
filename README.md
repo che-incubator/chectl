@@ -27,6 +27,7 @@ Issues are tracked on the main Eclipse Che® Repository: https://github.com/ecli
 * [Commands](#commands)
 * [Contributing](#contributing)
 * [Builds](#builds)
+* [SBOM](#sbom)
 * [License](#license)
 * [Trademark](#trademark)
 <!-- tocstop -->
