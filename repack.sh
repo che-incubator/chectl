@@ -108,8 +108,11 @@ for tarball in "${TARBALLS[@]}"; do
     # Get absolute path for output file
     OUTPUT_FILE_ABS="$(cd "$(dirname "${OUTPUT_FILE}")" && pwd)/$(basename "${OUTPUT_FILE}")"
 
-    # Change to work directory to avoid including parent paths
-    (cd "${WORK_DIR}" && tar -czf "${OUTPUT_FILE_ABS}" .)
+    # Get the list of extracted directories/files (should be just one root directory)
+    EXTRACTED_CONTENTS=($(ls -A "${WORK_DIR}"))
+
+    # Change to work directory and tar using the actual directory names
+    (cd "${WORK_DIR}" && tar -czf "${OUTPUT_FILE_ABS}" "${EXTRACTED_CONTENTS[@]}")
 
     # Calculate SHA256 hash of the repacked tarball
     SHA256=$(sha256sum "${OUTPUT_FILE_ABS}" | awk '{print $1}')
