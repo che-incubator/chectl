@@ -226,11 +226,6 @@ chectl_install() {
   rm -f /usr/local/bin/chectl
   log "ln -s /usr/local/lib/chectl/bin/chectl /usr/local/bin/chectl"
   ln -s /usr/local/lib/chectl/bin/chectl /usr/local/bin/chectl
-
-  # on alpine (and maybe others) the basic node binary does not work
-  # remove our node binary and fall back to whatever node is on the PATH
-  log "/usr/local/lib/chectl/bin/node -v > /dev/null 2>&1 || rm /usr/local/lib/chectl/bin/node"
-  /usr/local/lib/chectl/bin/node -v > /dev/null 2>&1 || rm /usr/local/lib/chectl/bin/node
 }
 
 while [ $# -gt 0 ]; do
