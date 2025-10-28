@@ -15,6 +15,7 @@
 set -e
 
 # Configuration
+BINARY_NAME="${BINARY_NAME:-chectl}"
 DIST_DIR="${DIST_DIR:-dist}"
 TEMP_DIR=$(mktemp -d)
 REPACKED_DIR="${DIST_DIR}/repacked"
@@ -25,9 +26,10 @@ usage() {
     echo "Repack chectl binaries to remove the bundled Node.js binary"
     echo ""
     echo "Options:"
-    echo "  -d, --dist-dir DIR    Directory containing the tarballs (default: dist)"
-    echo "  -o, --output-dir DIR  Directory for repacked tarballs (default: dist/repacked)"
-    echo "  -h, --help            Show this help message"
+    echo "  -b, --binary-name NAME Binary name prefix (default: chectl)"
+    echo "  -d, --dist-dir DIR     Directory containing the tarballs (default: dist)"
+    echo "  -o, --output-dir DIR   Directory for repacked tarballs (default: dist/repacked)"
+    echo "  -h, --help             Show this help message"
     echo ""
     exit 0
 }
@@ -40,6 +42,7 @@ cleanup() {
 # Parse command line arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
+        -b|--binary-name) BINARY_NAME="$2"; shift 1;;
         -d|--dist-dir) DIST_DIR="$2"; shift 1;;
         -o|--output-dir) REPACKED_DIR="$2"; shift 1;;
         -h|--help) usage;;
@@ -66,10 +69,10 @@ echo "[INFO] Output directory: ${REPACKED_DIR}"
 echo "[INFO] Temporary directory: ${TEMP_DIR}"
 
 # Find all tar.gz files in dist directory
-TARBALLS=($(find "${DIST_DIR}" -maxdepth 1 -name "chectl-*.tar.gz" -type f))
+TARBALLS=($(find "${DIST_DIR}" -maxdepth 1 -name "${BINARY_NAME}-*.tar.gz" -type f))
 
 if [[ ${#TARBALLS[@]} -eq 0 ]]; then
-    echo "[WARN] No chectl tarballs found in ${DIST_DIR}"
+    echo "[WARN] No ${BINARY_NAME} tarballs found in ${DIST_DIR}"
     exit 0
 fi
 
