@@ -62,7 +62,7 @@ jobs:
           yarn prepack && yarn pack-binaries --targets=$TARGETS && ./repack.sh
 
           # Rename binaries to remove the sha1 from their names
-          for file in ./dist/repack/*; do
+          for file in ./dist/repacked/*; do
             mv "$file" "${file/-v${{ steps.TAG_SHA.outputs.chectl_version }}-${{ steps.TAG_SHA.outputs.short_sha1 }}/}"
           done
       - name: Create Release and push artifacts
@@ -70,7 +70,7 @@ jobs:
         with:
           name: ${{ steps.TAG_SHA.outputs.gh_release_name }}
           tag_name: ${{ steps.TAG_SHA.outputs.gh_tag }}
-          files: "./dist/repack/chectl-*.gz"
+          files: "./dist/repacked/chectl-*.gz"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Update github pages
