@@ -29,7 +29,7 @@ jobs:
     - name: Install NodeJS
       uses: actions/setup-node@v4
       with:
-        node-version: 18
+        node-version: 22
     - name: Pack chectl binary (single arch target)
       run: yarn && yarn prepack && yarn pack-binaries --targets=linux-x64
     - name: Unpack chectl tarball to $HOME/chectl

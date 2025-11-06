@@ -11,7 +11,7 @@
 #
 
 # Dockerfile to bootstrap build and test in openshift-ci
-FROM registry.access.redhat.com/ubi9/nodejs-18:1
+FROM registry.access.redhat.com/ubi9/nodejs-22
 # hadolint ignore=DL3002
 USER 0
 

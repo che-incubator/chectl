@@ -23,7 +23,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
       - name: Build chectl
         run: yarn
       - name: Install codecov
