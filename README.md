@@ -101,7 +101,7 @@ USAGE
 * [`chectl cacert:export`](#chectl-cacertexport)
 * [`chectl commands`](#chectl-commands)
 * [`chectl dashboard:open`](#chectl-dashboardopen)
-* [`chectl help [COMMANDS]`](#chectl-help-commands)
+* [`chectl help [COMMAND]`](#chectl-help-command)
 * [`chectl server:debug`](#chectl-serverdebug)
 * [`chectl server:delete`](#chectl-serverdelete)
 * [`chectl server:deploy`](#chectl-serverdeploy)
@@ -115,7 +115,7 @@ USAGE
 
 ## `chectl autocomplete [SHELL]`
 
-display autocomplete installation instructions
+Display autocomplete installation instructions.
 
 ```
 USAGE
@@ -128,7 +128,7 @@ FLAGS
   -r, --refresh-cache  Refresh cache (ignores displaying instructions)
 
 DESCRIPTION
-  display autocomplete installation instructions
+  Display autocomplete installation instructions.
 
 EXAMPLES
   $ chectl autocomplete
@@ -142,7 +142,7 @@ EXAMPLES
   $ chectl autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v2.3.9/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.39/src/commands/autocomplete/index.ts)_
 
 ## `chectl cacert:export`
 
@@ -182,14 +182,15 @@ list all the commands
 
 ```
 USAGE
-  $ chectl commands [--json] [-h] [--hidden] [--tree] [--columns <value> | -x] [--filter <value>] [--no-header
-    | [--csv | --no-truncate]] [--output csv|json|yaml |  | ] [--sort <value>]
+  $ chectl commands [--json] [--deprecated] [-h] [--hidden] [--tree] [--columns <value> | -x] [--filter
+    <value>] [--no-header | [--csv | --no-truncate]] [--output csv|json|yaml |  | ] [--sort <value>]
 
 FLAGS
   -h, --help         Show CLI help.
   -x, --extended     show extra columns
   --columns=<value>  only show provided columns (comma-separated)
   --csv              output is csv format [alias: --output=csv]
+  --deprecated       show deprecated commands
   --filter=<value>   filter property by partial string matching, ex: name=foo
   --hidden           show hidden commands
   --no-header        hide table header from output
@@ -206,7 +207,7 @@ DESCRIPTION
   list all the commands
 ```
 
-_See code: [@oclif/plugin-commands](https://github.com/oclif/plugin-commands/blob/v3.0.7/src/commands/commands.ts)_
+_See code: [@oclif/plugin-commands](https://github.com/oclif/plugin-commands/blob/v3.3.4/src/commands/commands.ts)_
 
 ## `chectl dashboard:open`
 
@@ -228,16 +229,16 @@ DESCRIPTION
 
 _See code: [src/commands/dashboard/open.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/dashboard/open.ts)_
 
-## `chectl help [COMMANDS]`
+## `chectl help [COMMAND]`
 
 Display help for chectl.
 
 ```
 USAGE
-  $ chectl help [COMMANDS] [-n]
+  $ chectl help [COMMAND] [-n]
 
 ARGUMENTS
-  COMMANDS  Command to show help for.
+  COMMAND  Command to show help for.
 
 FLAGS
   -n, --nested-commands  Include all nested commands in the output.
@@ -246,7 +247,7 @@ DESCRIPTION
   Display help for chectl.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.7/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.2.35/src/commands/help.ts)_
 
 ## `chectl server:debug`
 
@@ -687,7 +688,7 @@ FLAG DESCRIPTIONS
     Additionally shows the architecture, node version, operating system, and versions of plugins that the CLI is using.
 ```
 
-_See code: [@oclif/plugin-version](https://github.com/oclif/plugin-version/blob/v2.0.1/src/commands/version.ts)_
+_See code: [@oclif/plugin-version](https://github.com/oclif/plugin-version/blob/v2.2.36/src/commands/version.ts)_
 <!-- commandsstop -->
 
 
