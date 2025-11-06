@@ -4676,10 +4676,10 @@ globby@^11.0.1, globby@^11.0.3, globby@^11.1.0:
     merge2 "^1.4.1"
     slash "^3.0.0"
 
-gnirts@^1.1.7:
-  version "1.1.7"
-  resolved "https://registry.yarnpkg.com/gnirts/-/gnirts-1.1.7.tgz#2ac1a00c891f658374f032a5c93916a9df310f03"
-  integrity sha512-Yu4IflQT9BnLvSC3ZbxUsMdniHgy5S97+X++REsNJSSLVm+5U0W/9ViukhyLE9DZiNy/qr1ZBTEcNd3UhAr40w==
+gnirts@^1.1.8:
+  version "1.1.8"
+  resolved "https://registry.yarnpkg.com/gnirts/-/gnirts-1.1.8.tgz#13690c53a3be47406cb67cb0dc1af811bb2e7f19"
+  integrity sha512-ZRdV2yfu6SBzFF9Fpql8cvbhj+u1Wj2bKQUvQAC4A596M3tZknSm695cc683UFmRAD0U+BWHY6QAa9vqfdwSLw==
 
 gopd@^1.0.1:
   version "1.0.1"
