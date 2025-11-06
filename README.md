@@ -115,7 +115,7 @@ USAGE
 
 ## `chectl autocomplete [SHELL]`
 
-Display autocomplete installation instructions.
+display autocomplete installation instructions
 
 ```
 USAGE
@@ -128,7 +128,7 @@ FLAGS
   -r, --refresh-cache  Refresh cache (ignores displaying instructions)
 
 DESCRIPTION
-  Display autocomplete installation instructions.
+  display autocomplete installation instructions
 
 EXAMPLES
   $ chectl autocomplete
@@ -142,7 +142,7 @@ EXAMPLES
   $ chectl autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.39/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v2.3.10/src/commands/autocomplete/index.ts)_
 
 ## `chectl cacert:export`
 
