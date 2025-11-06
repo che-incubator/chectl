@@ -14,7 +14,7 @@
     "@oclif/plugin-autocomplete": "^2.3.10",
     "@oclif/plugin-commands": "^3.0.8",
     "@oclif/plugin-help": "6.2.35",
-    "@oclif/plugin-update": "^1.5.0",
+    "@oclif/plugin-update": "^4.7.14",
     "@oclif/plugin-version": "2.2.36",
     "@octokit/rest": "^19.0.5",
     "analytics-node": "^6.2.0",
