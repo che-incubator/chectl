@@ -1423,15 +1423,14 @@
     chalk "^4.1.0"
     tslib "^2.6.2"
 
-"@oclif/plugin-autocomplete@3.2.39":
-  version "3.2.39"
-  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-3.2.39.tgz#1830ab1388dc48211b925e8f78563135d118c495"
-  integrity sha512-OwAZNnSpuDjKyhAwoOJkFWxGswPFKBB4hpNIMsj6PUtbKwGBPmD+2wGGPgTsDioVwLmUELSb2bZ+1dxHfvXmvg==
+"@oclif/plugin-autocomplete@^2.3.10":
+  version "2.3.10"
+  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-2.3.10.tgz#787f6208cdfe10ffc68ad89e9e7f1a7ad0e8987f"
+  integrity sha512-Ow1AR8WtjzlyCtiWWPgzMyT8SbcDJFr47009riLioHa+MHX2BCDtVn2DVnN/E6b9JlPV5ptQpjefoRSNWBesmg==
   dependencies:
-    "@oclif/core" "^4"
-    ansis "^3.16.0"
-    debug "^4.4.1"
-    ejs "^3.1.10"
+    "@oclif/core" "^2.15.0"
+    chalk "^4.1.0"
+    debug "^4.3.4"
 
 "@oclif/plugin-commands@^3.0.8":
   version "3.3.4"
@@ -2518,7 +2517,7 @@ ansicolors@~0.3.2:
   resolved "https://registry.yarnpkg.com/ansicolors/-/ansicolors-0.3.2.tgz#665597de86a9ffe3aa9bfbe6cae5c6ea426b4979"
   integrity sha1-ZlWX3oap/+Oqm/vmyuXG6kJrSXk=
 
-ansis@^3.16.0, ansis@^3.17.0:
+ansis@^3.17.0:
   version "3.17.0"
   resolved "https://registry.yarnpkg.com/ansis/-/ansis-3.17.0.tgz#fa8d9c2a93fe7d1177e0c17f9eeb562a58a832d7"
   integrity sha512-0qWUglt9JEqLFr3w1I1pbrChn1grhaiAR2ocX1PP/flRmxgtwTzPFFFnfIlD6aMOLQZgSuCRlidD70lvx8yhzg==
@@ -3591,7 +3590,7 @@ debug@4, debug@^4.0.1, debug@^4.1.0, debug@^4.1.1, debug@^4.3.1, debug@^4.3.2, d
   dependencies:
     ms "2.1.2"
 
-debug@^4.3.5, debug@^4.4.1, debug@^4.4.3:
+debug@^4.3.5, debug@^4.4.3:
   version "4.4.3"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.4.3.tgz#c6ae432d9bd9662582fce08709b038c58e9e3d6a"
   integrity sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==
