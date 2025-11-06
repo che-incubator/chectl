@@ -40,7 +40,7 @@
     "rimraf": "^5.0.5",
     "semver": "7.7.3",
     "unzipper": "0.12.3",
-    "uuid": "^9.0.0"
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@oclif/test": "^2.5.6",
