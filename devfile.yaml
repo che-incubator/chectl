@@ -15,7 +15,7 @@ metadata:
 components:
   - name: tooling-container
     container:
-      image: 'quay.io/devfile/universal-developer-image:ubi8-latest'
+      image: 'quay.io/devfile/universal-developer-image:ubi9-latest'
       cpuLimit: 500m
       cpuRequest: 500m
       memoryLimit: 5G
