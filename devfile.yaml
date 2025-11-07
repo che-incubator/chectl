@@ -13,7 +13,7 @@ schemaVersion: 2.3.0
 metadata:
   name: chectl-dev
 components:
-  - name: tooling-container
+  - name: tools
     container:
       image: 'quay.io/devfile/universal-developer-image:ubi9-latest'
       cpuLimit: 500m
