@@ -29,7 +29,7 @@
     "fancy-test": "^2.0.25",
     "fs-extra": "^11.1.1",
     "getos": "^3.2.1",
-    "gnirts": "^1.1.7",
+    "gnirts": "^1.1.8",
     "js-yaml": "^4.0.2",
     "listr": "^0.14.3",
     "listr-verbose-renderer": "^0.6.0",
