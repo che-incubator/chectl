@@ -13,13 +13,16 @@ schemaVersion: 2.3.0
 metadata:
   name: chectl-dev
 components:
-  - name: tooling-container
+  - name: tools
     container:
-      image: 'quay.io/devfile/universal-developer-image:ubi8-latest'
+      image: 'quay.io/devfile/universal-developer-image:ubi9-latest'
       cpuLimit: 500m
       cpuRequest: 500m
       memoryLimit: 5G
       memoryRequest: 1G
+      env:
+        - name:  "NODEJS_VERSION"
+          value: "22.11.0"
 commands:
   - id: 0-build-env
     exec:
@@ -29,7 +32,7 @@ commands:
         kind: build
       workingDir: ${PROJECT_SOURCE}
       commandLine: >-
-        NODEJS_VERSION=22.11.0; nvm install $NODEJS_VERSION && nvm use v$NODEJS_VERSION && npm i yarn@1 npm@10 -g
+        nvm install $NODEJS_VERSION && nvm use v$NODEJS_VERSION && npm i yarn@1 npm@10 -g
   - id: 1-build-chectl
     exec:
       label: "Build chectl"
@@ -38,6 +41,6 @@ commands:
         kind: build
       workingDir: ${PROJECT_SOURCE}
       commandLine: >-
-        yarn && yarn pack-binaries --targets=linux-x64
+        nvm use v$NODEJS_VERSION && yarn && yarn pack-binaries --targets=linux-x64
 # optional other targets to build:
 # --targets=linux-arm,linux-x64,linux-s390x,linux-ppc64le,darwin-x64,darwin-arm64,win32-x64,win32-x86
