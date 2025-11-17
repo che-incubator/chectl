@@ -43,7 +43,7 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@oclif/test": "^2.5.6",
+    "@oclif/test": "^4.1.15",
     "@types/chai": "5.2.3",
     "@types/command-exists": "1.2.3",
     "@types/countries-and-timezones": "3.2.6",
