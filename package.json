@@ -60,7 +60,7 @@
     "@types/unzipper": "0.10.11",
     "@types/uuid": "^9.0.2",
     "@typescript-eslint/eslint-plugin": "^6.7.5",
-    "@typescript-eslint/parser": "^6.7.5",
+    "@typescript-eslint/parser": "^8.47.0",
     "chai": "^4.3.10",
     "eslint": "^7.32.0",
     "eslint-config-oclif": "^3.1.0",
