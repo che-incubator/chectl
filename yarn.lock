@@ -3742,8 +3742,8 @@ ecc-jsbn@~0.1.1:
 
 "eclipse-che-operator@https://github.com/eclipse-che/che-operator#main":
   version "0.0.0"
-  uid "2605c6a126c21f66de86c8cede8f692c1d7e53cc"
-  resolved "https://github.com/eclipse-che/che-operator#2605c6a126c21f66de86c8cede8f692c1d7e53cc"
+  uid "0c84a27630582760583dfb78d80cf92ca15450f9"
+  resolved "https://github.com/eclipse-che/che-operator#0c84a27630582760583dfb78d80cf92ca15450f9"
 
 editorconfig@^0.15.0:
   version "0.15.3"
