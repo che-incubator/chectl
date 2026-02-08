@@ -1,0 +1,6 @@
+# Only commit the releases directory (Yarn binary)
+# Ignore local state and cache
+/install-state.gz
+/cache/
+/unplugged/
+/build-state.yml

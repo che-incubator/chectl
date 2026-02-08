@@ -68,7 +68,7 @@ checkoutToReleaseBranch() {
     echo "[INFO] Branch $BRANCH exists"
     resetChanges $BRANCH
   else
-    if [[ $createBranch == "true" ]]; then 
+    if [[ $createBranch == "true" ]]; then
       echo "[INFO] Branch $BRANCH does not exist"
       resetChanges main
       git push origin main:$BRANCH
@@ -88,22 +88,31 @@ release() {
   # Create VERSION file
   echo "$VERSION" > VERSION
 
-  # now replace package.json dependencies
-  apply_sed "s;github.com/eclipse-che/che-operator#\(.*\)\",;github.com/eclipse-che/che-operator#${VERSION}\",;g" package.json
-  apply_sed "s;https://github.com/devfile/devworkspace-operator#\(.*\)\",;https://github.com/devfile/devworkspace-operator#${DWO_VERSION}\",;g" package.json
-  # and update the app version in package.json
-  jq '.version |= "'$VERSION'"' package.json > package.json_; mv -f package.json_ package.json
+  # now replace package.json operatorRepositories refs
+  jq --arg version "$VERSION" \
+     --arg dwo_version "$DWO_VERSION" \
+     '
+     (.operatorRepositories[] | select(.name == "eclipse-che-operator").ref) = $version |
+     (.operatorRepositories[] | select(.name == "devworkspace-operator").ref) = $dwo_version |
+     .version = $version
+     ' package.json > package.json_
+  mv -f package.json_ package.json
 
-  if ! grep -q "github.com/eclipse-che/che-operator#${VERSION}" package.json; then
-    echo "[ERROR] Unable to find Che Operator version ${VERSION} in the package.json"; exit 1
+  # Validate changes
+  CHE_REF=$(jq -r '.operatorRepositories[] | select(.name == "eclipse-che-operator").ref' package.json)
+  DWO_REF=$(jq -r '.operatorRepositories[] | select(.name == "devworkspace-operator").ref' package.json)
+
+  if [[ "$CHE_REF" != "$VERSION" ]]; then
+    echo "[ERROR] Unable to update Che Operator ref to ${VERSION} in package.json (found: $CHE_REF)"; exit 1
   fi
 
-  if ! grep -q "https://github.com/devfile/devworkspace-operator#${DWO_VERSION}" package.json; then
-    echo "[ERROR] Unable to find Dev Workspace Operator version ${DWO_VERSION} in the package.json"; exit 1
+  if [[ "$DWO_REF" != "$DWO_VERSION" ]]; then
+    echo "[ERROR] Unable to update Dev Workspace Operator ref to ${DWO_VERSION} in package.json (found: $DWO_REF)"; exit 1
   fi
 
   # build
-  yarn
+  corepack enable
+  yarn --immutable
   yarn pack
   yarn test
 }

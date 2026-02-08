@@ -30,8 +30,10 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 22
+    - name: Enable Corepack
+      run: corepack enable
     - name: Build chectl
-      run: yarn
+      run: yarn --immutable
     - name: Run e2e tests
       run: |
         export PLATFORM=minikube

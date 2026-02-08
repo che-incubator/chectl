@@ -62,7 +62,6 @@ export class CheGithubClient {
       data: TagInfo
     }
 
-    // eslint-disable-next-line unicorn/no-array-reduce
     const semanticTags: SemanticTagData[] = tags.reduce<SemanticTagData[]>((acceptedTags, tagInfo, _index: number, _all: TagInfo[]) => {
       // Remove 'v' prefix if any
       if (tagInfo.name.startsWith('v')) {
