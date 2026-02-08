@@ -11,8 +11,8 @@
  */
 
 import { expect, fancy } from 'fancy-test'
-import {K8sVersion} from '../../src/utils/k8s-version'
-import {CheCtlVersion} from '../../src/utils/chectl-version'
+import { K8sVersion } from '../../src/utils/k8s-version'
+import { CheCtlVersion } from '../../src/utils/chectl-version'
 
 describe('Version Helper', () => {
   describe('OpenShift API helper', () => {
@@ -46,13 +46,25 @@ describe('Version Helper', () => {
   describe('chectl version comparator', () => {
     function getCommitDateFakeResponse(commitDate: string) {
       return {
-        commit : {
+        commit: {
           committer: {
             date: commitDate
           }
         }
       }
     }
+
+    // Node 18+ provides globalThis.fetch (Undici). @octokit/request uses it when present,
+    // so nock (which only intercepts Node's https) never sees the request. Temporarily
+    // remove globalThis.fetch so @octokit/request falls back to node-fetch and nock works.
+    let originalFetch: typeof globalThis.fetch
+    beforeEach(() => {
+      originalFetch = globalThis.fetch
+      delete (globalThis as { fetch?: typeof globalThis.fetch }).fetch
+    })
+    afterEach(() => {
+      (globalThis as { fetch?: typeof globalThis.fetch }).fetch = originalFetch
+    })
 
     fancy
       .it('should update stable version', async () => {

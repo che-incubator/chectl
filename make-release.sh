@@ -103,6 +103,7 @@ release() {
   fi
 
   # build
+  corepack enable
   yarn
   yarn pack
   yarn test

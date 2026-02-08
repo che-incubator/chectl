@@ -30,8 +30,10 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 22
+    - name: Enable Corepack
+      run: corepack enable
     - name: Pack chectl binary (single arch target)
-      run: yarn && yarn prepack && yarn pack-binaries --targets=linux-x64
+      run: yarn --immutable && yarn prepack && yarn pack-binaries --targets=linux-x64
     - name: Unpack chectl tarball to $HOME/chectl
       run: |
         tar -xvf $(find dist/ -name "chectl*linux-x64.tar.gz" | head -1) -C $HOME

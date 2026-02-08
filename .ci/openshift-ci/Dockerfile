@@ -22,7 +22,9 @@ RUN dnf install -y -q --allowerasing --nobest nodejs-devel nodejs-libs python3-p
   pip3 install --upgrade pip && \
   pip3 install yq && \
   dnf update -y && dnf clean all && \
-  npm install -g yarn@1.22 npm@9 && \
+  npm install -g corepack && \
+  corepack enable && \
+  corepack prepare yarn@stable --activate && \
   echo -n "node version: "; node -v; \
   echo -n "npm  version: "; npm -v; \
   echo -n "yarn version: "; yarn -v

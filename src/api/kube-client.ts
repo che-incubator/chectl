@@ -45,7 +45,7 @@ import {
 import {Cluster} from '@kubernetes/client-node/dist/config_types'
 import axios, {AxiosRequestConfig} from 'axios'
 import {ux} from '@oclif/core'
-import * as execa from 'execa'
+import execa = require('execa')
 import * as fs from 'node:fs'
 import * as https from 'node:https'
 import * as net from 'node:net'
