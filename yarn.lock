@@ -3671,8 +3671,8 @@ detect-newline@^3.0.0:
 
 "devworkspace-operator@https://github.com/devfile/devworkspace-operator#main":
   version "0.0.0"
-  uid "2b5bbff5bc2b30d738102560f16043a76571a311"
-  resolved "https://github.com/devfile/devworkspace-operator#2b5bbff5bc2b30d738102560f16043a76571a311"
+  uid "2676a546ed04cdbd181c1281803954fbc0fde625"
+  resolved "https://github.com/devfile/devworkspace-operator#2676a546ed04cdbd181c1281803954fbc0fde625"
 
 dezalgo@^1.0.0:
   version "1.0.4"
