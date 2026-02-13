@@ -40,7 +40,6 @@ export namespace Che {
     const cheCluster = ctx[EclipseCheContext.CUSTOM_CR] || ctx[EclipseCheContext.DEFAULT_CR]
 
     for (const cr of [cheClusterPatch, cheCluster]) {
-      // eslint-disable-next-line unicorn/no-array-reduce
       const fieldValue = fieldPath.split('.').reduce((acc, prop) => {
         return acc?.[prop]
       }, cr)

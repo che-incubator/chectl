@@ -19,8 +19,19 @@ source ${CHECTL_REPO}/.ci/oc-common.sh
 trap "catchFinish" EXIT SIGINT
 
 runTests() {
-  yarn --cwd ${CHECTL_REPO}
-  yarn test --coverage=false --forceExit --testRegex=${CHECTL_REPO}/test/e2e/e2e.test.ts
+  # Yarn install is not able to write in ${CHECTL_REPO}. Work in writable location
+  cp -R "${CHECTL_REPO}" /tmp/work
+  cd /tmp/work || exit 1
+
+  # Install deps
+  yarn install --immutable
+
+  # Run tests using relative path
+  yarn test \
+    --coverage=false \
+    --forceExit \
+    --testRegex=test/e2e/e2e.test.ts
 }
+
 
 runTests

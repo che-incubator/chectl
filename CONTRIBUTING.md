@@ -33,7 +33,17 @@ Your workspace will be initialized with a list of commands described in the [tas
 - Package Binaries
 - Format Sources
 
-You can run commands through the **Terminal** menu by clicking **Terminal => Run Task... ** and selecting the desired task. 
+You can run commands through the **Terminal** menu by clicking **Terminal => Run Task... ** and selecting the desired task.
+
+### Prerequisites (local development)
+
+If you develop outside of the Che workspace (e.g. on your machine), you need:
+
+- **Node.js** 18+ (the project uses `>=22.0.0`; see `engines` in `package.json`).
+- **Corepack** enabled so the correct Yarn version is used: run `corepack enable` once. The project uses **Yarn 4** (pinned in `packageManager`); Corepack will use it when you run `yarn`.
+- **Git** (required for `yarn install` postinstall, which fetches operator templates).
+
+In a Che workspace, the devfile and dev container already provide Node and Corepack.
 
 ## Build
 
@@ -41,7 +51,7 @@ You can run commands through the **Terminal** menu by clicking **Terminal => Run
 yarn
 ```
 
-Running the  `[Chectl] Build` command will run `yarn` in the `/projects/chectl` directory inside `dev` container. The command will install all necessary dependencies and compile the project. Upon successful assembly, a new `bin` directory will appear in the project directory and will have two files: `run` and `run.cmd`.
+Running the `[Chectl] Build` command will run `yarn` in the `/projects/chectl` directory inside the dev container. The command installs dependencies and runs the postinstall (including operator template preparation). Upon success, a `bin` directory appears with `run` and `run.cmd`.
 
 
 ## Run tests
@@ -71,7 +81,7 @@ To start packaging, just run the `[Chectl] Package Binaries` command. It will ru
 yarn oclif pack tarballs --no-xz --parallel
 ```
 
-> Note: you need to build your `chectl` before by `yarn` command, or install all node packages by running `npm install` in `/projects/chectl` directory.
+> Note: build `chectl` first with `yarn install` (or `yarn`) in the `/projects/chectl` directory so all dependencies and templates are ready.
 
 ## Push changes, provide Pull Request
 
@@ -92,7 +102,7 @@ There is a required pull request check named **Semantic Pull Request** that ensu
   $ git commit -s -m 'feat(hello): This is my first commit message'
   ```
 
-- Unit tests with Travis-CI will ensure that the `yarn test` command passes.
+- Unit tests (GitHub Actions) will ensure that the `yarn test` command passes.
 
 All these checks are mandatory in order to have the pull request merged.
 

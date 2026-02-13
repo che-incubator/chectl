@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import * as execa from 'execa'
+import execa = require('execa')
 import * as Listr from 'listr'
 import * as os from 'node:os'
 import { ux } from '@oclif/core'
@@ -92,7 +92,6 @@ export namespace DockerDesktopTasks {
     const networkInterfaces = os.networkInterfaces()
     const allIps: string[] = []
     for (const interfaceName of Object.keys(networkInterfaces)) {
-      // eslint-disable-next-line unicorn/no-array-for-each
       networkInterfaces[interfaceName]?.forEach(iface => {
         if (iface.family === 'IPv4' && !iface.internal) {
           allIps.push(iface.address)
