@@ -258,24 +258,6 @@ export namespace EclipseCheTasks {
     }
   }
 
-  export function getCheckWorkspaceEngineCompatibilityTask(): Listr.ListrTask<any> {
-    return {
-      title: 'Check workspace engine compatibility...',
-      task: async (_ctx: any, task: any) => {
-        const flags = CheCtlContext.getFlags()
-        const kubeHelper = KubeClient.getInstance()
-
-        const isDevWorkspaceEnabled = await kubeHelper.getConfigMapValue(EclipseChe.CONFIG_MAP, flags[CHE_NAMESPACE_FLAG], 'CHE_DEVWORKSPACES_ENABLED')
-        const isDevWorkspaceEngineDisabledBeforeUpdate = isDevWorkspaceEnabled !== 'true'
-        if (isDevWorkspaceEngineDisabledBeforeUpdate) {
-          ux.error(`Unsupported operation: it is not possible to update current ${EclipseChe.PRODUCT_NAME} installation to new a version with \'devWorkspace\' engine enabled.`, {exit: 1})
-        }
-
-        task.title = `${task.title}...[OK]`
-      },
-    }
-  }
-
   export function getDiscoverUpgradeImagePathTask(): Listr.ListrTask<any> {
     return {
       title: `Discover ${EclipseChe.PRODUCT_NAME} upgrade path`,

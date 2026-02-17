@@ -89,7 +89,6 @@ export class EclipseCheOperatorInstaller implements Installer {
         const tasks = newListr()
         tasks.add(PodTasks.getDeploymentExistanceTask(EclipseChe.OPERATOR_DEPLOYMENT_NAME, flags[CHE_NAMESPACE_FLAG]))
         tasks.add(EclipseCheTasks.getDiscoverUpgradeImagePathTask())
-        tasks.add(EclipseCheTasks.getCheckWorkspaceEngineCompatibilityTask())
         return tasks
       },
     }
