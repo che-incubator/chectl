@@ -24,16 +24,25 @@ components:
         - name:  "NODEJS_VERSION"
           value: "22.11.0"
 commands:
-  - id: 0-build-env
+  - id: 1-build-env
     exec:
-      label: "Install node and yarn"
+      label: "Install node and setup yarn"
       component: tools
       group:
         kind: build
       workingDir: ${PROJECT_SOURCE}
       commandLine: >-
-        nvm install $NODEJS_VERSION && nvm use v$NODEJS_VERSION && npm i yarn@1 npm@10 -g
-  - id: 1-build-chectl
+        nvm install $NODEJS_VERSION && nvm use v$NODEJS_VERSION && npm i npm@10 -g && corepack enable
+  - id: 2-install-dependencies
+    exec:
+      label: "Install dependencies"
+      component: tools
+      group:
+        kind: build
+      workingDir: ${PROJECT_SOURCE}
+      commandLine: >-
+        nvm use v$NODEJS_VERSION && yarn install
+  - id: 3-build-chectl
     exec:
       label: "Build chectl"
       component: tools
@@ -41,6 +50,42 @@ commands:
         kind: build
       workingDir: ${PROJECT_SOURCE}
       commandLine: >-
-        nvm use v$NODEJS_VERSION && yarn && yarn pack-binaries --targets=linux-x64
-# optional other targets to build:
-# --targets=linux-arm,linux-x64,linux-s390x,linux-ppc64le,darwin-x64,darwin-arm64,win32-x64,win32-x86
+        nvm use v$NODEJS_VERSION && yarn install && yarn pack-binaries --targets=linux-x64
+  # optional other targets to build:
+  # --targets=linux-arm,linux-x64,linux-s390x,linux-ppc64le,darwin-x64,darwin-arm64,win32-x64,win32-x86
+  - id: 4-test
+    exec:
+      label: "Test"
+      component: tools
+      group:
+        kind: test
+        isDefault: true
+      workingDir: ${PROJECT_SOURCE}
+      commandLine: nvm use v$NODEJS_VERSION && yarn install && yarn test
+  - id: 5-run
+    exec:
+      label: "Run"
+      component: tools
+      group:
+        kind: run
+        isDefault: true
+      workingDir: ${PROJECT_SOURCE}
+      commandLine: ./bin/run --help
+  - id: 6-pack-binaries
+    exec:
+      label: "Pack Binaries"
+      component: tools
+      workingDir: ${PROJECT_SOURCE}
+      commandLine: nvm use v$NODEJS_VERSION && yarn install && yarn pack-binaries
+  - id: 7-format-sources
+    exec:
+      label: "Format sources"
+      component: tools
+      workingDir: ${PROJECT_SOURCE}
+      commandLine: nvm use v$NODEJS_VERSION && yarn install && yarn lint:fix
+  - id: 8-update-readme
+    exec:
+      label: "Update README.md"
+      component: tools
+      workingDir: ${PROJECT_SOURCE}
+      commandLine: nvm use v$NODEJS_VERSION && yarn install && yarn oclif readme
