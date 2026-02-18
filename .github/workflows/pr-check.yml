@@ -25,8 +25,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Enable Corepack
+        run: corepack enable
       - name: Install yarn deps
-        run: yarn install
+        run: yarn --immutable
       - name: Run eslint
         run: yarn lint
       - name: Run unit tests
@@ -43,8 +45,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Enable Corepack
+        run: corepack enable
       - name: Build chectl and pack binaries
-        run: yarn && yarn pack-binaries --targets=linux-x64
+        run: |
+          yarn --immutable
+          export PATH="${PATH}:${PWD}/bin/shasum"
+          yarn pack-binaries --targets=linux-x64
       - name: Build README.md
         run: DEBUG=* npx oclif readme
       - name: Check README.md state
@@ -67,8 +74,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Enable Corepack
+        run: corepack enable
       - name: Build chectl
-        run: yarn
+        run: yarn --immutable
       - name: Set up Go 1.15
         uses: actions/setup-go@v3
         with:
@@ -81,6 +90,7 @@ jobs:
           FILES_TO_CHECK_LICENSE=$(find . \
           -not -path "./tmp/*" \
           -not -path "./node_modules/*" \
+          -not -path "./.operator-sources/*" \
           -not -path "./resources/*" \
           -not -path "./templates/*" \
           -not -path "./lib/*" \

@@ -47,8 +47,11 @@ import {
 import {DevWorkspace} from './tasks/installers/dev-workspace/dev-workspace'
 import {EclipseChe} from './tasks/installers/eclipse-che/eclipse-che'
 import * as fs from 'fs-extra'
-import * as execa from 'execa'
+import execaModule = require('execa')
 import {CheCluster} from './api/types/che-cluster'
+
+// Support both CJS (execa is the function) and ESM interop (execa.default)
+const execa = typeof execaModule === 'function' ? execaModule : (execaModule as { default: typeof execaModule }).default
 import {CatalogSource} from './api/types/olm'
 import {Command} from '@oclif/core'
 

@@ -30,6 +30,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Enable Corepack
+        run: corepack enable
       - name: Compute tags and SHAs
         id: TAG_SHA
         run: |
@@ -47,7 +49,7 @@ jobs:
             echo "gh_release_name=0.0.$CURRENT_DAY-next.$SHORT_SHA1" >> $GITHUB_OUTPUT
           fi
       - name: Build chectl
-        run: yarn
+        run: yarn --immutable
       - name: Run unit tests
         run: yarn test
       - name: Pack chectl

@@ -35,7 +35,10 @@ spec:
   image: quay.io/eclipse/eclipse-che-olm-catalog:stable
 EOF
 
-  yarn --cwd ${CHECTL_REPO}
+  cp -R "${CHECTL_REPO}" /tmp/work
+  cd /tmp/work || exit 1
+
+  yarn install --immutable
   bin/run server:deploy \
     --platform openshift \
     --olm-channel stable \

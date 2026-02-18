@@ -3,9 +3,7 @@
   "description": "Eclipse Che CLI",
   "version": "0.0.2",
   "author": "Mario Loriedo @l0rd",
-  "bin": {
-    "chectl": "./bin/run"
-  },
+  "bin": "./bin/run",
   "bugs": "https://github.com/che-incubator/chectl/issues",
   "dependencies": {
     "@kubernetes/client-node": "0.22.3",
@@ -23,8 +21,6 @@
     "cli-ux": "^6.0.9",
     "command-exists": "^1.2.9",
     "countries-and-timezones": "^3.8.0",
-    "devworkspace-operator": "https://github.com/devfile/devworkspace-operator#main",
-    "eclipse-che-operator": "https://github.com/eclipse-che/che-operator#main",
     "execa": "^5.1.1",
     "fancy-test": "^2.0.25",
     "fs-extra": "^11.3.3",
@@ -80,6 +76,7 @@
     "/bin",
     "/lib",
     "/resources",
+    "/scripts",
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json",
     "/prepare-templates.js"
@@ -98,7 +95,6 @@
       "-v"
     ],
     "topicSeparator": ":",
-    "default": "commands",
     "commands": "./lib/commands",
     "hooks": {
       "prerun": "./lib/hooks/prerun/new-version-warning",
@@ -139,10 +135,22 @@
     }
   },
   "repository": "che-incubator/chectl",
+  "operatorRepositories": [
+    {
+      "name": "eclipse-che-operator",
+      "url": "https://github.com/eclipse-che/che-operator.git",
+      "ref": "main"
+    },
+    {
+      "name": "devworkspace-operator",
+      "url": "https://github.com/devfile/devworkspace-operator.git",
+      "ref": "main"
+    }
+  ],
   "scripts": {
-    "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-operator && npm run -s postinstall-cleanup",
+    "postinstall": "npm run -s postinstall-fetch-operators && npm run -s postinstall-operator && npm run -s postinstall-cleanup",
+    "postinstall-fetch-operators": "node scripts/fetch-operators.js",
     "postinstall-operator": "node prepare-templates.js",
-    "postinstall-repositories": "yarn upgrade eclipse-che-operator devworkspace-operator",
     "postinstall-cleanup": "rimraf node_modules/eclipse-che-operator && rimraf node_modules/devworkspace-operator",
     "test": "jest --collect-coverage",
     "test-watch": "jest --watchAll",
@@ -150,7 +158,7 @@
     "e2e-openshift": "export PLATFORM=openshift && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
     "gnirts-ci": "node .ci/obfuscate/gnirts.js",
     "prepack": "yarn lint && rm -rf lib && rm -rf tsconfig.tsbuildinfo && tsc -b && oclif manifest && oclif readme && yarn gnirts-ci",
-    "pack-binaries": "export PATH=${PATH}:$(pwd)/bin/shasum; oclif pack tarballs --no-xz --parallel",
+    "pack-binaries": "oclif pack tarballs --no-xz --parallel",
     "postpack": "rm -f oclif.manifest.json",
     "format": "tsfmt -r --useTsfmt tsfmt.json",
     "lint": "eslint --cache=true --no-error-on-unmatched-pattern=true '{src,tests}/**/*.ts'",
@@ -172,7 +180,9 @@
       "^.+\\.tsx?$": "ts-jest"
     },
     "modulePathIgnorePatterns": [
-      "<rootDir>/dist"
+      "<rootDir>/dist",
+      "<rootDir>/.operator-sources",
+      "<rootDir>/tmp"
     ],
     "testRegex": "/test/(api|tasks|other)/.*.test.ts",
     "testEnvironment": "node",
@@ -183,5 +193,6 @@
       "jsx",
       "json"
     ]
-  }
+  },
+  "packageManager": "yarn@4.12.0"
 }

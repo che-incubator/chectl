@@ -13,4 +13,6 @@ tsconfig.tsbuildinfo
 oclif.manifest.json
 # templates are added at post-install step
 templates
+# operator repos cloned at postinstall (no package.json; Yarn 4 cannot use as git deps)
+.operator-sources
 .eslintcache

@@ -15,8 +15,11 @@ import * as os from 'node:os'
 import * as yaml from 'js-yaml'
 import * as path from 'node:path'
 import {CheCtlContext} from '../context'
-import * as Listr from 'listr'
+import ListrModule = require('listr')
 import {LISTR_RENDERER_FLAG} from '../flags'
+
+// Support both CJS (Listr is the constructor) and ESM interop (Listr.default)
+const Listr = typeof ListrModule === 'function' ? ListrModule : (ListrModule as { default: typeof ListrModule }).default
 import {EclipseChe} from '../tasks/installers/eclipse-che/eclipse-che'
 import {CHE} from '../constants'
 import * as commandExists from 'command-exists'
@@ -111,9 +114,9 @@ export function getImageNameAndTag(image: string): [string, string] {
   return [imageName, imageTag]
 }
 
-export function newListr(tasks?: ReadonlyArray<Listr.ListrTask<any>>, collapse = false): Listr {
+export function newListr(tasks?: ReadonlyArray<ListrModule.ListrTask<any>>, collapse = false): ListrModule {
   const flags = CheCtlContext.getFlags()
-  const options = { renderer: (flags[LISTR_RENDERER_FLAG] as any), collapse } as Listr.ListrOptions
+  const options = { renderer: (flags[LISTR_RENDERER_FLAG] as any), collapse } as ListrModule.ListrOptions
   return new Listr(tasks, options)
 }
 

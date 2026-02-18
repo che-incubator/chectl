@@ -11,12 +11,17 @@
  */
 
 import { ux } from '@oclif/core'
-import * as notifier from 'node-notifier'
+import notifierModule = require('node-notifier')
 import {getProjectName, newError} from './utls'
+
+// Support both CJS (notifier has .notify) and ESM interop (notifier.default)
+const notifier = typeof (notifierModule as { notify?: unknown }).notify === 'function' ?
+  notifierModule :
+  (notifierModule as unknown as { default: typeof notifierModule }).default
 import {CheCtlContext, CliContext} from '../context'
 import * as fs from 'node:fs'
 import {EclipseChe} from '../tasks/installers/eclipse-che/eclipse-che'
-import * as execa from 'execa'
+import execa = require('execa')
 import * as path from 'node:path'
 import {CheCtlVersion} from './chectl-version'
 

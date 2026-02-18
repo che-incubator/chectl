@@ -53,9 +53,16 @@ jobs:
           fetch-depth: 0
           ref: ${{ steps.version.outputs.PROJECT_VERSION }}
 
+      - name: Install NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Install dependencies
-        run: |
-          yarn
+        run: yarn --immutable
 
       - name: Install cdxgen
         run: |
