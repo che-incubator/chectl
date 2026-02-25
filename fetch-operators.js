@@ -16,7 +16,7 @@ const fs = require('fs-extra')
 const path = require('path')
 const { execSync } = require('child_process')
 
-const ROOT = path.join(__dirname, '..')
+const ROOT = __dirname
 const SOURCES = path.join(ROOT, '.operator-sources')
 const NODE_MODULES = path.join(ROOT, 'node_modules')
 
