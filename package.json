@@ -76,10 +76,10 @@
     "/bin",
     "/lib",
     "/resources",
-    "/scripts",
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json",
-    "/prepare-templates.js"
+    "/prepare-templates.js",
+    "/fetch-operators.js"
   ],
   "homepage": "https://github.com/che-incubator/chectl",
   "keywords": [
@@ -149,7 +149,7 @@
   ],
   "scripts": {
     "postinstall": "npm run -s postinstall-fetch-operators && npm run -s postinstall-operator && npm run -s postinstall-cleanup",
-    "postinstall-fetch-operators": "node scripts/fetch-operators.js",
+    "postinstall-fetch-operators": "node fetch-operators.js",
     "postinstall-operator": "node prepare-templates.js",
     "postinstall-cleanup": "rimraf node_modules/eclipse-che-operator && rimraf node_modules/devworkspace-operator",
     "test": "jest --collect-coverage",
