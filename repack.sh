@@ -91,6 +91,19 @@ for tarball in "${TARBALLS[@]}"; do
     echo "[INFO]   Extracting archive..."
     tar -xzf "${tarball}" -C "${WORK_DIR}"
 
+    # Remove .yarn and .operator-sources directories
+    YARN_DIR=$(find "${WORK_DIR}" -type d -name ".yarn")
+    if [[ -n "${YARN_DIR}" ]]; then
+        echo "[INFO]   Removing .yarn directory"
+        rm -rf "${YARN_DIR}"
+    fi
+
+    OPERATOR_SOURCES_DIR=$(find "${WORK_DIR}" -type d -name ".operator-sources")
+    if [[ -n "${OPERATOR_SOURCES_DIR}" ]]; then
+        echo "[INFO]   Removing .operator-sources directory"
+        rm -rf "${OPERATOR_SOURCES_DIR}"
+    fi
+
     # Find and remove node binary (node for Unix, node.exe for Windows)
     NODE_BINARIES=($(find "${WORK_DIR}" -type f \( -name "node" -o -name "node.exe" \) -path "*/bin/*"))
 
