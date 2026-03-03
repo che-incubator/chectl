@@ -16,3 +16,4 @@ templates
 # operator repos cloned at postinstall (no package.json; Yarn 4 cannot use as git deps)
 .operator-sources
 .eslintcache
+package.tgz
