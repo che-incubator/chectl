@@ -1,7 +1,7 @@
 {
   "name": "chectl",
   "description": "Eclipse Che CLI",
-  "version": "0.0.2",
+  "version": "7.115.0",
   "author": "Mario Loriedo @l0rd",
   "bin": "./bin/run",
   "bugs": "https://github.com/che-incubator/chectl/issues",
@@ -139,12 +139,12 @@
     {
       "name": "eclipse-che-operator",
       "url": "https://github.com/eclipse-che/che-operator.git",
-      "ref": "main"
+      "ref": "7.115.0"
     },
     {
       "name": "devworkspace-operator",
       "url": "https://github.com/devfile/devworkspace-operator.git",
-      "ref": "main"
+      "ref": "v0.40.0"
     }
   ],
   "scripts": {
