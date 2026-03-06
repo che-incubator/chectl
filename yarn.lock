@@ -1496,13 +1496,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/plugin-version@npm:2.2.36":
-  version: 2.2.36
-  resolution: "@oclif/plugin-version@npm:2.2.36"
+"@oclif/plugin-version@npm:2.2.37":
+  version: 2.2.37
+  resolution: "@oclif/plugin-version@npm:2.2.37"
   dependencies:
     "@oclif/core": "npm:^4"
     ansis: "npm:^3.17.0"
-  checksum: 10c0/01418b50b51c528891218a91e4054e4dd88b884453da8cbc1a85234af10b183f484dd3b5e54614a1f5bc3bdfb14f911dfecbd72e1ae0f8adf36975d71cdb4837
+  checksum: 10c0/99c38371753b9058f82145951dfba40edd4d1857eb595b1c8a61bff08631cf5880676cec52c2fc186001c86b597da9700530087a034672aa5c856dadce1cc224
   languageName: node
   linkType: hard
 
@@ -3686,7 +3686,7 @@ __metadata:
     "@oclif/plugin-commands": "npm:^3.0.8"
     "@oclif/plugin-help": "npm:6.2.35"
     "@oclif/plugin-update": "npm:^1.5.0"
-    "@oclif/plugin-version": "npm:2.2.36"
+    "@oclif/plugin-version": "npm:2.2.37"
     "@oclif/test": "npm:^2.5.6"
     "@octokit/rest": "npm:^19.0.5"
     "@types/chai": "npm:5.2.3"
