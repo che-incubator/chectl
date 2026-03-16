@@ -28,6 +28,11 @@ RUN dnf install -y -q --allowerasing --nobest python3-pip jq \
   echo -n "npm  version: "; npm -v; \
   echo -n "yarn version: "; yarn -v
 
+# Install kubectl
+RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && \
+    chmod +x ./kubectl && \
+    mv ./kubectl /usr/local/bin && \
+
 # to build chectl in this container, uncomment these lines
 # resulting tarball will be in /opt/app-root/src/chectl*.tgz
 # COPY . /opt/app-root/src
