@@ -59,11 +59,15 @@ export class CheLogsReader {
 
     const cli = (await isCommandExists('kubectl') && 'kubectl') || (await isCommandExists('oc') && 'oc')
     if (cli) {
-      const command = 'get events'
-      const namespaceParam = `-n ${namespace}`
-      const watchParam = follow && '--watch' || ''
+      const args = ['get', 'events', '-n', namespace]
+      if (follow) {
+        args.push('--watch')
+      }
 
-      cp.exec(`${cli} ${command} ${namespaceParam} ${watchParam} >> ${fileName}`)
+      const outStream = fs.createWriteStream(fileName, { flags: 'a' })
+      const proc = cp.spawn(cli, args)
+      proc.stdout.pipe(outStream)
+      proc.stderr.pipe(outStream)
     } else {
       throw new Error('No events are collected. \'kubectl\' or \'oc\' is required to perform the task.')
     }
