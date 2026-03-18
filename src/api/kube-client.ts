@@ -1780,7 +1780,7 @@ export class KubeClient {
     }
   }
 
-  async watchNamespacedEvents(namespace: string, callback: (event: CoreV1Event) => void, onError?: (err: unknown) => void): Promise<void> {
+  async watchNamespacedEvents(namespace: string, callback: (event: CoreV1Event) => void, onError?: (err: any) => void): Promise<void> {
     const watcher = new Watch(this.kubeConfig)
     await watcher.watch(`/api/v1/namespaces/${namespace}/events`, {}, (_phase: string, obj: CoreV1Event) => {
       callback(obj)

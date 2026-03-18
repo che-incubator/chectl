@@ -10,10 +10,11 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { V1Pod, Watch } from '@kubernetes/client-node'
+import {V1Pod, Watch} from '@kubernetes/client-node'
 import * as fs from 'fs-extra'
 import * as path from 'node:path'
-import { KubeClient } from './kube-client'
+import {KubeClient} from './kube-client'
+import {ux} from '@oclif/core'
 
 export class CheLogsReader {
   private kubeHelper: KubeClient
@@ -55,16 +56,24 @@ export class CheLogsReader {
     const fileName = path.resolve(directory, namespace, 'events.txt')
     fs.ensureFileSync(fileName)
 
-    const outStream = fs.createWriteStream(fileName, { flags: 'a' })
+    const outStream = fs.createWriteStream(fileName, {flags: 'a'})
 
     const eventList = await this.kubeHelper.listNamespacedEvent(namespace)
     for (const event of eventList.items) {
-      outStream.write(this.formatEvent(event))
+      outStream.write(this.formatEvent(event), error => {
+        if (error) {
+          ux.warn(error)
+        }
+      })
     }
 
     if (follow) {
       await this.kubeHelper.watchNamespacedEvents(namespace, event => {
         outStream.write(this.formatEvent(event))
+      }, error => {
+        if (error) {
+          ux.warn(error)
+        }
       })
     }
   }
@@ -99,14 +108,15 @@ export class CheLogsReader {
         for (const containerName of this.getContainers(pod)) {
           // not to read logs from the same containers twice
           if (!processedContainers.get(podName)!.has(containerName)) {
-              processedContainers.get(podName)!.add(containerName)
+            processedContainers.get(podName)!.add(containerName)
 
-              const fileName = this.doCreateLogFile(namespace, podName, containerName, directory)
-              await this.doReadNamespacedPodLog(namespace, pod.metadata!.name!, containerName, fileName, true)
+            const fileName = this.doCreateLogFile(namespace, podName, containerName, directory)
+            await this.doReadNamespacedPodLog(namespace, pod.metadata!.name!, containerName, fileName, true)
           }
         }
       }
-    }, () => {})
+    }, () => {
+    })
   }
 
   /**
