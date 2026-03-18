@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2022 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -10,16 +10,16 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {DevWorkspaceContext, EclipseCheContext, InfrastructureContext} from '../../../context'
+import { DevWorkspaceContext, EclipseCheContext, InfrastructureContext } from '../../../context'
 import Listr = require('listr')
-import {Installer} from '../installer'
-import {DevWorkspacesTasks} from './dev-workspace-tasks'
-import {DevWorkspace} from './dev-workspace'
-import {OlmTasks} from '../../olm-tasks'
-import {CommonTasks} from '../../common-tasks'
-import {isCheFlavor, newListr} from '../../../utils/utls'
+import { Installer } from '../installer'
+import { DevWorkspacesTasks } from './dev-workspace-tasks'
+import { DevWorkspace } from './dev-workspace'
+import { OlmTasks } from '../../olm-tasks'
+import { CommonTasks } from '../../common-tasks'
+import { isCheFlavor, newListr } from '../../../utils/utls'
 
-export class DevWorkspaceOlmInstaller implements Installer  {
+export class DevWorkspaceOlmInstaller implements Installer {
   getDeployTasks(): Listr.ListrTask<any> {
     return {
       title: `Install ${DevWorkspace.PRODUCT_NAME} operator`,

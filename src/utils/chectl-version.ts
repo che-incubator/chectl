@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2021 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -18,7 +18,7 @@ import * as path from 'node:path'
 import * as semver from 'semver'
 import { CHECTL_REPO, CheGithubClient, ECLIPSE_CHE_INCUBATOR_ORG } from '../api/github-client'
 import { getProjectVersion } from './utls'
-import {CheCtlContext, CliContext} from '../context'
+import { CheCtlContext, CliContext } from '../context'
 
 export const CHECTL_DEVELOPMENT_VERSION = '0.0.2'
 

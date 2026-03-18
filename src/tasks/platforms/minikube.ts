@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2021 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -12,11 +12,11 @@
 
 import execa = require('execa')
 import * as Listr from 'listr'
-import {CheCtlContext, OIDCContext} from '../../context'
+import { CheCtlContext, OIDCContext } from '../../context'
 import { KubeClient } from '../../api/kube-client'
-import {isCommandExists, sleep} from '../../utils/utls'
-import {DOMAIN_FLAG} from '../../flags'
-import {CommonTasks} from '../common-tasks'
+import { isCommandExists, sleep } from '../../utils/utls'
+import { DOMAIN_FLAG } from '../../flags'
+import { CommonTasks } from '../common-tasks'
 
 export namespace MinikubeTasks {
   /**
@@ -141,7 +141,7 @@ export namespace MinikubeTasks {
   }
 
   async function isMinikubeRunning(): Promise<boolean> {
-    const {exitCode} = await execa('minikube', ['status'], {timeout: 10_000, reject: false})
+    const { exitCode } = await execa('minikube', ['status'], { timeout: 10_000, reject: false })
     return exitCode === 0
   }
 

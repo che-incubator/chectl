@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2022 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -10,17 +10,17 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {CheCtlContext, CliContext, InfrastructureContext} from '../context'
+import { CheCtlContext, CliContext, InfrastructureContext } from '../context'
 import * as Listr from 'listr'
 import { KubeClient } from '../api/kube-client'
 
 import { ux } from '@oclif/core'
-import {CreateResource, DeleteResource, IsResourceExists, ReplaceResource} from './installers/installer'
-import {CHE_NAMESPACE_FLAG, PLATFORM_FLAG, SKIP_KUBE_HEALTHZ_CHECK_FLAG, SKIP_VERSION_CHECK_FLAG} from '../flags'
-import {EclipseChe} from './installers/eclipse-che/eclipse-che'
-import {addTrailingSlash, newError, newListr} from '../utils/utls'
-import {K8sVersion} from '../utils/k8s-version'
-import {Che} from '../utils/che'
+import { CreateResource, DeleteResource, IsResourceExists, ReplaceResource } from './installers/installer'
+import { CHE_NAMESPACE_FLAG, PLATFORM_FLAG, SKIP_KUBE_HEALTHZ_CHECK_FLAG, SKIP_VERSION_CHECK_FLAG } from '../flags'
+import { EclipseChe } from './installers/eclipse-che/eclipse-che'
+import { addTrailingSlash, newError, newListr } from '../utils/utls'
+import { K8sVersion } from '../utils/k8s-version'
+import { Che } from '../utils/che'
 
 export namespace CommonTasks {
   const OUTPUT_SEPARATOR = '-------------------------------------------------------------------------------'
@@ -234,7 +234,6 @@ export namespace CommonTasks {
           }
         }
 
-        // eslint-disable-next-line unicorn/prefer-spread
         ctx[CliContext.CLI_COMMAND_POST_OUTPUT_MESSAGES] = messages.concat(ctx[CliContext.CLI_COMMAND_POST_OUTPUT_MESSAGES])
         task.title = `${task.title}...[OK]`
       },
@@ -266,7 +265,7 @@ export namespace CommonTasks {
         if (await isVerifiedResource()) {
           task.title = `${task.title}...[OK]`
         } else {
-          ux.error(errorMsg, {exit: 1})
+          ux.error(errorMsg, { exit: 1 })
         }
       },
     }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2024 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -10,12 +10,12 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {ux} from '@oclif/core'
+import { ux } from '@oclif/core'
 import * as Listr from 'listr'
-import {KubeClient} from '../api/kube-client'
-import {KubeHelperContext} from '../context'
-import {EclipseChe} from './installers/eclipse-che/eclipse-che'
-import {newListr} from '../utils/utls'
+import { KubeClient } from '../api/kube-client'
+import { KubeHelperContext } from '../context'
+import { EclipseChe } from './installers/eclipse-che/eclipse-che'
+import { newListr } from '../utils/utls'
 
 export namespace PodTasks {
   interface FailState {
@@ -33,7 +33,7 @@ export namespace PodTasks {
 
         const exists = await kubeClient.isDeploymentExist(deploymentName, namespace)
         if (!exists) {
-          ux.error(`Deployment ${deploymentName} not found.`, {exit: 1})
+          ux.error(`Deployment ${deploymentName} not found.`, { exit: 1 })
         }
 
         task.title = `${task.title}...[Found]`

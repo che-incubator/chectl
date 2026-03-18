@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2022 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -14,14 +14,14 @@ import * as fs from 'fs-extra'
 import * as os from 'node:os'
 import * as yaml from 'js-yaml'
 import * as path from 'node:path'
-import {CheCtlContext} from '../context'
+import { CheCtlContext } from '../context'
 import ListrModule = require('listr')
-import {LISTR_RENDERER_FLAG} from '../flags'
+import { LISTR_RENDERER_FLAG } from '../flags'
 
 // Support both CJS (Listr is the constructor) and ESM interop (Listr.default)
 const Listr = typeof ListrModule === 'function' ? ListrModule : (ListrModule as { default: typeof ListrModule }).default
-import {EclipseChe} from '../tasks/installers/eclipse-che/eclipse-che'
-import {CHE} from '../constants'
+import { EclipseChe } from '../tasks/installers/eclipse-che/eclipse-che'
+import { CHE } from '../constants'
 import * as commandExists from 'command-exists'
 import execa = require('execa')
 

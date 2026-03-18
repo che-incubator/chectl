@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2024 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -10,14 +10,14 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {CheCtlContext, EclipseCheContext, InfrastructureContext} from '../context'
-import {EclipseChe} from '../tasks/installers/eclipse-che/eclipse-che'
-import {KubeClient} from '../api/kube-client'
-import {CHE_NAMESPACE_FLAG} from '../flags'
-import {OpenShift} from './openshift'
+import { CheCtlContext, EclipseCheContext, InfrastructureContext } from '../context'
+import { EclipseChe } from '../tasks/installers/eclipse-che/eclipse-che'
+import { KubeClient } from '../api/kube-client'
+import { CHE_NAMESPACE_FLAG } from '../flags'
+import { OpenShift } from './openshift'
 import * as nodeforge from 'node-forge'
-import {base64Decode} from './utls'
-import {CheLogsReader} from '../api/che-logs-reader'
+import { base64Decode } from './utls'
+import { CheLogsReader } from '../api/che-logs-reader'
 
 export namespace Che {
   export function isRedHatCatalogSources(catalogSourceName?: string): boolean {

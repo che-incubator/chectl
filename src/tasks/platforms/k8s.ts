@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2021 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -11,10 +11,10 @@
  */
 
 import * as Listr from 'listr'
-import {CheCtlContext} from '../../context'
-import {DOMAIN_FLAG} from '../../flags'
-import {CommonTasks} from '../common-tasks'
-import {isCommandExists} from '../../utils/utls'
+import { CheCtlContext } from '../../context'
+import { DOMAIN_FLAG } from '../../flags'
+import { CommonTasks } from '../common-tasks'
+import { isCommandExists } from '../../utils/utls'
 
 export namespace K8sTasks {
   export function getPeflightCheckTasks(): Listr.ListrTask<any>[] {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2021 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -27,6 +27,8 @@ import {
   V1ContainerStateTerminated,
   V1ContainerStateWaiting,
   V1Deployment,
+  CoreV1Event,
+  CoreV1EventList,
   V1Ingress,
   V1Namespace,
   V1ObjectMeta,
@@ -40,7 +42,9 @@ import {
   V1ServiceAccount,
   V1ServiceList,
   Watch,
-  V1CustomResourceDefinition, V1ValidatingWebhookConfiguration, V1MutatingWebhookConfiguration,
+  V1CustomResourceDefinition,
+  V1ValidatingWebhookConfiguration,
+  V1MutatingWebhookConfiguration,
 } from '@kubernetes/client-node'
 import {Cluster} from '@kubernetes/client-node/dist/config_types'
 import axios, {AxiosRequestConfig} from 'axios'
@@ -629,7 +633,8 @@ export class KubeClient {
     try {
       const {body} = await k8sApi.readNamespace(namespace)
       return body
-    } catch {}
+    } catch {
+    }
   }
 
   async patchNamespacedCustomObject(name: string, namespace: string, patch: any, resourceAPIGroup: string, resourceAPIVersion: string, resourcePlural: string): Promise<any | undefined> {
@@ -1293,7 +1298,7 @@ export class KubeClient {
         }
       },
       `Timeout reached while waiting for "${name}" catalog source is created.`,
-      60
+      60,
     )
   }
 
@@ -1348,7 +1353,7 @@ export class KubeClient {
         }
       },
       `Timeout reached while waiting for installed CSV of '${name}' subscription.`,
-      30
+      30,
     )
   }
 
@@ -1761,6 +1766,29 @@ export class KubeClient {
     } catch (e: any) {
       throw this.wrapK8sClientError(e)
     }
+  }
+
+  async listNamespacedEvent(namespace: string): Promise<CoreV1EventList> {
+    const k8sApi = this.kubeConfig.makeApiClient(CoreV1Api)
+    try {
+      const res = await k8sApi.listNamespacedEvent(namespace)
+      return res && res.body ? res.body : {
+        items: [],
+      }
+    } catch (e: any) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async watchNamespacedEvents(namespace: string, callback: (event: CoreV1Event) => void, onError?: (err: any) => void): Promise<void> {
+    const watcher = new Watch(this.kubeConfig)
+    await watcher.watch(`/api/v1/namespaces/${namespace}/events`, {}, (_phase: string, obj: CoreV1Event) => {
+      callback(obj)
+    }, err => {
+      if (onError) {
+        onError(err)
+      }
+    })
   }
 
   /**

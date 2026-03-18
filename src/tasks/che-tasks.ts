@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2021 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -12,15 +12,15 @@
 
 import * as Listr from 'listr'
 import { KubeClient } from '../api/kube-client'
-import {PodTasks} from './pod-tasks'
-import {CheCtlContext, CliContext, EclipseCheContext} from '../context'
-import {CHE_NAMESPACE_FLAG, DEBUG_FLAG, DEBUG_PORT_FLAG} from '../flags'
-import {EclipseChe} from './installers/eclipse-che/eclipse-che'
+import { PodTasks } from './pod-tasks'
+import { CheCtlContext, CliContext, EclipseCheContext } from '../context'
+import { CHE_NAMESPACE_FLAG, DEBUG_FLAG, DEBUG_PORT_FLAG } from '../flags'
+import { EclipseChe } from './installers/eclipse-che/eclipse-che'
 import * as path from 'node:path'
 import * as os from 'node:os'
 import * as fs from 'fs-extra'
-import {Che} from '../utils/che'
-import {newListr, sleep} from '../utils/utls'
+import { Che } from '../utils/che'
+import { newListr, sleep } from '../utils/utls'
 import { ux } from '@oclif/core'
 
 export namespace CheTasks {
@@ -199,7 +199,7 @@ export namespace CheTasks {
           }
         }
 
-        ux.error(`${EclipseChe.PRODUCT_NAME} is not Active.`, {exit: 1})
+        ux.error(`${EclipseChe.PRODUCT_NAME} is not Active.`, { exit: 1 })
       },
     }
   }

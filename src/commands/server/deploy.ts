@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2021 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -13,7 +13,7 @@
 import { Command, Flags } from '@oclif/core'
 import { ux } from '@oclif/core'
 import { CertManagerInstaller } from '../../tasks/installers/cert-manager-installer'
-import {CheCtlContext, InfrastructureContext} from '../../context'
+import { CheCtlContext, InfrastructureContext } from '../../context'
 import { KubeClient } from '../../api/kube-client'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { DexInstaller } from '../../tasks/installers/dex-installer'
@@ -85,17 +85,17 @@ import {
   WORKSPACE_PVS_STORAGE_CLASS_NAME_FLAG,
   checkFlagsCompatability,
 } from '../../flags'
-import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
+import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
 import {
   askForChectlUpdateIfNeeded,
   getCommandSuccessMessage,
   notifyCommandCompletedSuccessfully,
   wrapCommandError,
 } from '../../utils/command-utils'
-import {CommonTasks} from '../../tasks/common-tasks'
-import {CheTasks} from '../../tasks/che-tasks'
-import {newListr} from '../../utils/utls'
-import {Che} from '../../utils/che'
+import { CommonTasks } from '../../tasks/common-tasks'
+import { CheTasks } from '../../tasks/che-tasks'
+import { newListr } from '../../utils/utls'
+import { Che } from '../../utils/che'
 
 export default class Deploy extends Command {
   static description = `Deploy ${EclipseChe.PRODUCT_NAME} server`
@@ -139,10 +139,10 @@ export default class Deploy extends Command {
   }
 
   async run() {
-    const {flags} = await this.parse(Deploy)
+    const { flags } = await this.parse(Deploy)
     const ctx = await CheCtlContext.initAndGet(flags, this)
 
-    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, {command: Deploy.id, flags})
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Deploy.id, flags })
 
     if (!flags.batch && ctx.isChectl) {
       await askForChectlUpdateIfNeeded()

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2021 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -13,7 +13,7 @@
 import { Command, Flags } from '@oclif/core'
 import { ux } from '@oclif/core'
 
-import {CheCtlContext} from '../../context'
+import { CheCtlContext } from '../../context'
 import {
   K8S_POD_READY_TIMEOUT_FLAG,
   LOG_DIRECTORY_FLAG,
@@ -35,12 +35,12 @@ import {
   K8S_POD_DOWNLOAD_IMAGE_TIMEOUT,
   K8S_POD_ERROR_RECHECK_TIMEOUT_FLAG, K8S_POD_ERROR_RECHECK_TIMEOUT,
 } from '../../flags'
-import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
-import {DEFAULT_ANALYTIC_HOOK_NAME} from '../../constants'
-import {CommonTasks} from '../../tasks/common-tasks'
-import {CheTasks} from '../../tasks/che-tasks'
-import {getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError} from '../../utils/command-utils'
-import {newListr} from '../../utils/utls'
+import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { CommonTasks } from '../../tasks/common-tasks'
+import { CheTasks } from '../../tasks/che-tasks'
+import { getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../utils/command-utils'
+import { newListr } from '../../utils/utls'
 
 export default class Start extends Command {
   static description = `Start ${EclipseChe.PRODUCT_NAME} server`
@@ -60,10 +60,10 @@ export default class Start extends Command {
   }
 
   async run() {
-    const {flags} = await this.parse(Start)
+    const { flags } = await this.parse(Start)
     const ctx = await CheCtlContext.initAndGet(flags, this)
 
-    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, {command: Start.id, flags})
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Start.id, flags })
 
     const tasks = newListr()
     tasks.add(CommonTasks.getTestKubernetesApiTasks())

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2022 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -15,12 +15,12 @@ import {
   CheCtlContext,
   DevWorkspaceContext,
 } from '../../../context'
-import {CommonTasks} from '../../common-tasks'
-import {Installer} from '../installer'
-import {DevWorkspacesTasks} from './dev-workspace-tasks'
-import {SKIP_DEV_WORKSPACE_FLAG} from '../../../flags'
-import {DevWorkspace} from './dev-workspace'
-import {newListr} from '../../../utils/utls'
+import { CommonTasks } from '../../common-tasks'
+import { Installer } from '../installer'
+import { DevWorkspacesTasks } from './dev-workspace-tasks'
+import { SKIP_DEV_WORKSPACE_FLAG } from '../../../flags'
+import { DevWorkspace } from './dev-workspace'
+import { newListr } from '../../../utils/utls'
 
 /**
  * Handle setup of the dev workspace operator controller.
@@ -48,7 +48,7 @@ export class DevWorkspaceOperatorInstaller implements Installer {
   }
 
   getUpdateTasks(): Listr.ListrTask<any> {
-    return  {
+    return {
       title: `Update ${DevWorkspace.PRODUCT_NAME} operator`,
       skip: () => this.skip,
       task: async (_ctx: any, _task: any) => {
@@ -61,7 +61,7 @@ export class DevWorkspaceOperatorInstaller implements Installer {
   }
 
   getDeleteTasks(): Listr.ListrTask<any> {
-    return  {
+    return {
       title: `Uninstall ${DevWorkspace.PRODUCT_NAME} operator`,
       skip: () => this.skip,
       task: async (_ctx: any, _task: any) => {

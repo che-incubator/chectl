@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2021 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -12,11 +12,11 @@
 
 import * as Listr from 'listr'
 import { KubeClient } from '../../api/kube-client'
-import {Installer} from './installer'
-import {CheCtlContext} from '../../context'
-import {SKIP_CERT_MANAGER_FLAG} from '../../flags'
-import {CommonTasks} from '../common-tasks'
-import {newListr} from '../../utils/utls'
+import { Installer } from './installer'
+import { CheCtlContext } from '../../context'
+import { SKIP_CERT_MANAGER_FLAG } from '../../flags'
+import { CommonTasks } from '../common-tasks'
+import { newListr } from '../../utils/utls'
 
 export namespace CertManager {
   export const NAMESPACE = 'cert-manager'

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2021 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -12,7 +12,7 @@
 
 import { Command, Flags } from '@oclif/core'
 import { ux } from '@oclif/core'
-import {CheCtlContext} from '../../context'
+import { CheCtlContext } from '../../context'
 import {
   CHE_NAMESPACE_FLAG,
   CHE_NAMESPACE,
@@ -31,12 +31,12 @@ import {
   DEFAULT_ANALYTIC_HOOK_NAME,
 } from '../../constants'
 import { CheTasks } from '../../tasks/che-tasks'
-import {EclipseCheInstallerFactory} from '../../tasks/installers/eclipse-che/eclipse-che-installer-factory'
-import {CommonTasks} from '../../tasks/common-tasks'
-import {KubeConfig} from '@kubernetes/client-node'
-import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
-import {getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError} from '../../utils/command-utils'
-import {newListr} from '../../utils/utls'
+import { EclipseCheInstallerFactory } from '../../tasks/installers/eclipse-che/eclipse-che-installer-factory'
+import { CommonTasks } from '../../tasks/common-tasks'
+import { KubeConfig } from '@kubernetes/client-node'
+import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
+import { getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../utils/command-utils'
+import { newListr } from '../../utils/utls'
 
 export default class Delete extends Command {
   static description = `delete any ${EclipseChe.PRODUCT_NAME} related resource`

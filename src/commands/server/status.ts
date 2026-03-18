@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2021 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -23,8 +23,8 @@ import {
   TELEMETRY,
 } from '../../flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
-import {Che} from '../../utils/che'
+import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
+import { Che } from '../../utils/che'
 
 export default class Status extends Command {
   static description = `Status ${EclipseChe.PRODUCT_NAME} server`

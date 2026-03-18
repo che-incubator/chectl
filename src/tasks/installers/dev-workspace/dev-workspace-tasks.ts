@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2022 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -11,15 +11,15 @@
  */
 
 import * as Listr from 'listr'
-import {KubeClient} from '../../../api/kube-client'
-import {CommonTasks} from '../../common-tasks'
+import { KubeClient } from '../../../api/kube-client'
+import { CommonTasks } from '../../common-tasks'
 import {
   CheCtlContext,
   CliContext,
   DevWorkspaceContext,
   InfrastructureContext,
 } from '../../../context'
-import {DevWorkspace} from './dev-workspace'
+import { DevWorkspace } from './dev-workspace'
 import * as path from 'node:path'
 
 export namespace DevWorkspacesTasks {

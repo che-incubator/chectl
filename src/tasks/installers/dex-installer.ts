@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2021 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {V1ConfigMap, V1Ingress, V1Namespace, V1ObjectMeta} from '@kubernetes/client-node'
+import { V1ConfigMap, V1Ingress, V1Namespace, V1ObjectMeta } from '@kubernetes/client-node'
 import { ux } from '@oclif/core'
 import * as crypto from 'node:crypto'
 import * as fs from 'fs-extra'
@@ -19,14 +19,14 @@ import * as Listr from 'listr'
 import { merge } from 'lodash'
 import * as os from 'node:os'
 import * as path from 'node:path'
-import {CheCtlContext, DexContext, EclipseCheContext, OIDCContext} from '../../context'
+import { CheCtlContext, DexContext, EclipseCheContext, OIDCContext } from '../../context'
 import { KubeClient } from '../../api/kube-client'
-import {base64Decode, getEmbeddedTemplatesDirectory, newListr, safeLoadFromYamlFile} from '../../utils/utls'
+import { base64Decode, getEmbeddedTemplatesDirectory, newListr, safeLoadFromYamlFile } from '../../utils/utls'
 import { V1Certificate } from '../../api/types/cert-manager'
-import {Installer} from './installer'
-import {CHE_NAMESPACE_FLAG, DOMAIN_FLAG} from '../../flags'
-import {PlatformTasks} from '../platforms/platform-tasks'
-import {CommonTasks} from '../common-tasks'
+import { Installer } from './installer'
+import { CHE_NAMESPACE_FLAG, DOMAIN_FLAG } from '../../flags'
+import { PlatformTasks } from '../platforms/platform-tasks'
+import { CommonTasks } from '../common-tasks'
 
 namespace TemplatePlaceholders {
   export const DOMAIN = '{{DOMAIN}}'
@@ -254,7 +254,7 @@ export class DexInstaller implements Installer {
               const config = yaml.load(configYamlData) as any
               const eclipseCheClient = (config.staticClients as Array<any>).find(client => client.id === DexInstaller.CLIENT_ID)
               if (!eclipseCheClient) {
-                ux.error(`'${DexInstaller.CLIENT_ID}' client not found in the configmap '${DexInstaller.DEX_NAME}' in the namespace '${DexInstaller.NAMESPACE_NAME}'.`, {exit: 1})
+                ux.error(`'${DexInstaller.CLIENT_ID}' client not found in the configmap '${DexInstaller.DEX_NAME}' in the namespace '${DexInstaller.NAMESPACE_NAME}'.`, { exit: 1 })
               }
 
               // set in a CR

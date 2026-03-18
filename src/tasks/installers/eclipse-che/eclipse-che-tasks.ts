@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2021 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -17,11 +17,11 @@ import {
   V1MutatingWebhookConfiguration, V1Role, V1RoleBinding, V1Service, V1ServiceAccount,
   V1ValidatingWebhookConfiguration,
 } from '@kubernetes/client-node'
-import {CommonTasks} from '../../common-tasks'
-import {EclipseChe} from './eclipse-che'
+import { CommonTasks } from '../../common-tasks'
+import { EclipseChe } from './eclipse-che'
 import * as yaml from 'js-yaml'
 import * as fs from 'node:fs'
-import {V1Certificate} from '../../../api/types/cert-manager'
+import { V1Certificate } from '../../../api/types/cert-manager'
 import {
   CheCtlContext,
   CliContext, EclipseCheContext,
@@ -29,16 +29,16 @@ import {
   OperatorImageUpgradeContext,
 } from '../../../context'
 import * as path from 'node:path'
-import {KubeClient} from '../../../api/kube-client'
+import { KubeClient } from '../../../api/kube-client'
 import {
   CHE_NAMESPACE_FLAG,
   CHE_OPERATOR_IMAGE_FLAG,
 } from '../../../flags'
-import {getImageNameAndTag, isPartOfEclipseChe, newListr, safeLoadFromYamlFile} from '../../../utils/utls'
+import { getImageNameAndTag, isPartOfEclipseChe, newListr, safeLoadFromYamlFile } from '../../../utils/utls'
 import { ux } from '@oclif/core'
 
 /**
- * Copyright (c) 2019-2022 Red Hat, Inc.
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -471,7 +471,7 @@ export namespace EclipseCheTasks {
       deleteResources.push(() => kubeClient.deleteRole('che-operator', flags[CHE_NAMESPACE_FLAG]), () => kubeClient.deleteRole('che-operator-leader-election', flags[CHE_NAMESPACE_FLAG]), () => kubeClient.deleteRoleBinding('che-operator', flags[CHE_NAMESPACE_FLAG]), () => kubeClient.deleteRoleBinding('che-operator-leader-election', flags[CHE_NAMESPACE_FLAG]), () => kubeClient.deleteClusterRole(`${flags[CHE_NAMESPACE_FLAG]}-che-operator`), () => kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG]}-che-operator`), () => kubeClient.deleteServiceAccount(EclipseChe.OPERATOR_SERVICE_ACCOUNT, flags[CHE_NAMESPACE_FLAG]))
     }
 
-    deleteResources.push(() => kubeClient.deleteClusterRole(`${flags[CHE_NAMESPACE_FLAG]}-che-gateway`), () => kubeClient.deleteClusterRole(`${flags[CHE_NAMESPACE_FLAG]}-che-dashboard`), () => kubeClient.deleteClusterRole(`${flags[CHE_NAMESPACE_FLAG]}-cheworkspaces-namespaces-clusterrole`), () => kubeClient.deleteClusterRole(`${flags[CHE_NAMESPACE_FLAG]}-cheworkspaces-clusterrole`), () => kubeClient.deleteClusterRole(`${flags[CHE_NAMESPACE_FLAG]}-cheworkspaces-devworkspace-clusterrole`), () => kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG]}-che-gateway`), () => kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG]}-che-dashboard`), () => kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG]}-cheworkspaces-namespaces-clusterrole`), () => kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG]}-cheworkspaces-clusterrole`), () =>  kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG]}-cheworkspaces-devworkspace-clusterrole`))
+    deleteResources.push(() => kubeClient.deleteClusterRole(`${flags[CHE_NAMESPACE_FLAG]}-che-gateway`), () => kubeClient.deleteClusterRole(`${flags[CHE_NAMESPACE_FLAG]}-che-dashboard`), () => kubeClient.deleteClusterRole(`${flags[CHE_NAMESPACE_FLAG]}-cheworkspaces-namespaces-clusterrole`), () => kubeClient.deleteClusterRole(`${flags[CHE_NAMESPACE_FLAG]}-cheworkspaces-clusterrole`), () => kubeClient.deleteClusterRole(`${flags[CHE_NAMESPACE_FLAG]}-cheworkspaces-devworkspace-clusterrole`), () => kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG]}-che-gateway`), () => kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG]}-che-dashboard`), () => kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG]}-cheworkspaces-namespaces-clusterrole`), () => kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG]}-cheworkspaces-clusterrole`), () => kubeClient.deleteClusterRoleBinding(`${flags[CHE_NAMESPACE_FLAG]}-cheworkspaces-devworkspace-clusterrole`))
 
     return CommonTasks.getDeleteResourcesTask('Delete RBAC', deleteResources)
   }
