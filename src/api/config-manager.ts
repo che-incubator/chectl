@@ -14,7 +14,7 @@ import * as fs from 'fs-extra'
 import { merge } from 'lodash'
 import * as path from 'node:path'
 
-import {CheCtlContext, CliContext} from '../context'
+import { CheCtlContext, CliContext } from '../context'
 
 /**
  * ChectlConfig contains necessary methods to interact with cache configDir of chectl.

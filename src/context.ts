@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {ApisApi, CustomObjectsApi, KubeConfig} from '@kubernetes/client-node'
+import { ApisApi, CustomObjectsApi, KubeConfig } from '@kubernetes/client-node'
 import * as os from 'node:os'
 import * as path from 'node:path'
 
@@ -44,16 +44,16 @@ import {
   safeLoadFromYamlFile,
 } from './utils/utls'
 
-import {DevWorkspace} from './tasks/installers/dev-workspace/dev-workspace'
-import {EclipseChe} from './tasks/installers/eclipse-che/eclipse-che'
+import { DevWorkspace } from './tasks/installers/dev-workspace/dev-workspace'
+import { EclipseChe } from './tasks/installers/eclipse-che/eclipse-che'
 import * as fs from 'fs-extra'
 import execaModule = require('execa')
-import {CheCluster} from './api/types/che-cluster'
+import { CheCluster } from './api/types/che-cluster'
 
 // Support both CJS (execa is the function) and ESM interop (execa.default)
 const execa = typeof execaModule === 'function' ? execaModule : (execaModule as { default: typeof execaModule }).default
-import {CatalogSource} from './api/types/olm'
-import {Command} from '@oclif/core'
+import { CatalogSource } from './api/types/olm'
+import { Command } from '@oclif/core'
 
 export namespace InfrastructureContext {
   export const IS_OPENSHIFT = 'infrastructure-is-openshift'
@@ -262,7 +262,7 @@ export namespace CheCtlContext {
     // KubeHelperContext
     ctx[KubeHelperContext.POD_WAIT_TIMEOUT] = Number.parseInt(flags[K8S_POD_WAIT_TIMEOUT_FLAG] || DEFAULT_POD_WAIT_TIMEOUT, 10)
     ctx[KubeHelperContext.POD_READY_TIMEOUT] = Number.parseInt(flags[K8S_POD_READY_TIMEOUT_FLAG] || DEFAULT_K8S_POD_READY_TIMEOUT, 10)
-    ctx[KubeHelperContext.POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY] = Math.max(ctx[KubeHelperContext.POD_READY_TIMEOUT],  Number.parseInt(DEFAULT_K8S_POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY, 10))
+    ctx[KubeHelperContext.POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY] = Math.max(ctx[KubeHelperContext.POD_READY_TIMEOUT], Number.parseInt(DEFAULT_K8S_POD_READY_TIMEOUT_EMBEDDED_PLUGIN_REGISTRY, 10))
     ctx[KubeHelperContext.POD_DOWNLOAD_IMAGE_TIMEOUT] = Number.parseInt(flags[K8S_POD_DOWNLOAD_IMAGE_TIMEOUT_FLAG] || DEFAULT_K8S_POD_DOWNLOAD_IMAGE_TIMEOUT, 10)
     ctx[KubeHelperContext.POD_ERROR_RECHECK_TIMEOUT] = Number.parseInt(flags[K8S_POD_ERROR_RECHECK_TIMEOUT_FLAG] || DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, 10)
   }
@@ -350,9 +350,9 @@ export namespace CheCtlContext {
 
     try {
       const customObjectsApi = kubeConfig.makeApiClient(CustomObjectsApi)
-      const {body} = await customObjectsApi.listClusterCustomObject(EclipseChe.CHE_CLUSTER_API_GROUP, EclipseChe.CHE_CLUSTER_API_VERSION_V2, EclipseChe.CHE_CLUSTER_KIND_PLURAL)
+      const { body } = await customObjectsApi.listClusterCustomObject(EclipseChe.CHE_CLUSTER_API_GROUP, EclipseChe.CHE_CLUSTER_API_VERSION_V2, EclipseChe.CHE_CLUSTER_KIND_PLURAL)
       return ((body as any).items as CheCluster[])[0]?.metadata.namespace
-    } catch {}
+    } catch { }
   }
 
   function readFile(flags: any, key: string): any {

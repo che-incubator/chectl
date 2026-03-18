@@ -15,17 +15,17 @@ import { Installer } from '../installer'
 import {
   CheCtlContext, EclipseCheContext,
 } from '../../../context'
-import {EclipseCheTasks} from './eclipse-che-tasks'
-import {EclipseChe} from './eclipse-che'
-import {CheClusterTasks} from '../../che-cluster-tasks'
-import {OlmTasks} from '../../olm-tasks'
-import {DELETE_ALL_FLAG, SKIP_DEV_WORKSPACE_FLAG, STARTING_CSV_FLAG} from '../../../flags'
-import {isCheFlavor, newListr} from '../../../utils/utls'
-import {DevWorkspaceInstallerFactory} from '../dev-workspace/dev-workspace-installer-factory'
-import {CommonTasks} from '../../common-tasks'
-import {DevWorkspace} from '../dev-workspace/dev-workspace'
-import {Che} from '../../../utils/che'
-import {PodTasks} from '../../pod-tasks'
+import { EclipseCheTasks } from './eclipse-che-tasks'
+import { EclipseChe } from './eclipse-che'
+import { CheClusterTasks } from '../../che-cluster-tasks'
+import { OlmTasks } from '../../olm-tasks'
+import { DELETE_ALL_FLAG, SKIP_DEV_WORKSPACE_FLAG, STARTING_CSV_FLAG } from '../../../flags'
+import { isCheFlavor, newListr } from '../../../utils/utls'
+import { DevWorkspaceInstallerFactory } from '../dev-workspace/dev-workspace-installer-factory'
+import { CommonTasks } from '../../common-tasks'
+import { DevWorkspace } from '../dev-workspace/dev-workspace'
+import { Che } from '../../../utils/che'
+import { PodTasks } from '../../pod-tasks'
 
 export class EclipseCheOlmInstaller implements Installer {
   getDeployTasks(): Listr.ListrTask<any> {

@@ -12,7 +12,7 @@
 
 import { Command, Flags } from '@oclif/core'
 import { ux } from '@oclif/core'
-import {CheCtlContext} from '../../context'
+import { CheCtlContext } from '../../context'
 import {
   CHE_NAMESPACE_FLAG,
   CHE_NAMESPACE,
@@ -31,12 +31,12 @@ import {
   DEFAULT_ANALYTIC_HOOK_NAME,
 } from '../../constants'
 import { CheTasks } from '../../tasks/che-tasks'
-import {EclipseCheInstallerFactory} from '../../tasks/installers/eclipse-che/eclipse-che-installer-factory'
-import {CommonTasks} from '../../tasks/common-tasks'
-import {KubeConfig} from '@kubernetes/client-node'
-import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
-import {getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError} from '../../utils/command-utils'
-import {newListr} from '../../utils/utls'
+import { EclipseCheInstallerFactory } from '../../tasks/installers/eclipse-che/eclipse-che-installer-factory'
+import { CommonTasks } from '../../tasks/common-tasks'
+import { KubeConfig } from '@kubernetes/client-node'
+import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
+import { getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../utils/command-utils'
+import { newListr } from '../../utils/utls'
 
 export default class Delete extends Command {
   static description = `delete any ${EclipseChe.PRODUCT_NAME} related resource`

@@ -11,15 +11,15 @@
  */
 
 import * as Listr from 'listr'
-import {KubeClient} from '../../../api/kube-client'
-import {CommonTasks} from '../../common-tasks'
+import { KubeClient } from '../../../api/kube-client'
+import { CommonTasks } from '../../common-tasks'
 import {
   CheCtlContext,
   CliContext,
   DevWorkspaceContext,
   InfrastructureContext,
 } from '../../../context'
-import {DevWorkspace} from './dev-workspace'
+import { DevWorkspace } from './dev-workspace'
 import * as path from 'node:path'
 
 export namespace DevWorkspacesTasks {

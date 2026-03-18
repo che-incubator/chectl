@@ -13,7 +13,7 @@
 import { Command, Flags } from '@oclif/core'
 import { ux } from '@oclif/core'
 
-import {CheCtlContext} from '../../context'
+import { CheCtlContext } from '../../context'
 import {
   CHE_NAMESPACE_FLAG,
   CHE_NAMESPACE,
@@ -25,16 +25,16 @@ import {
   SKIP_KUBE_HEALTHZ_CHECK, BATCH_FLAG,
 } from '../../flags'
 import { CheTasks } from '../../tasks/che-tasks'
-import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
-import {CommonTasks} from '../../tasks/common-tasks'
-import {DEFAULT_ANALYTIC_HOOK_NAME} from '../../constants'
-import {getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError} from '../../utils/command-utils'
-import {newListr} from '../../utils/utls'
+import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
+import { CommonTasks } from '../../tasks/common-tasks'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../utils/command-utils'
+import { newListr } from '../../utils/utls'
 
 export default class Stop extends Command {
   static description = `stop ${EclipseChe.PRODUCT_NAME} server`
 
-  static flags= {
+  static flags = {
     help: Flags.help({ char: 'h' }),
     [CHE_NAMESPACE_FLAG]: CHE_NAMESPACE,
     [LISTR_RENDERER_FLAG]: LISTR_RENDERER,

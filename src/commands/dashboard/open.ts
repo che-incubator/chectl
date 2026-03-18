@@ -21,8 +21,8 @@ import {
   TELEMETRY_FLAG, TELEMETRY,
 } from '../../flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import {EclipseChe} from '../../tasks/installers/eclipse-che/eclipse-che'
-import {Che} from '../../utils/che'
+import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
+import { Che } from '../../utils/che'
 
 export default class Open extends Command {
   static description = `Open ${EclipseChe.PRODUCT_NAME} dashboard`

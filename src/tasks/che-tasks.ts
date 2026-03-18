@@ -12,15 +12,15 @@
 
 import * as Listr from 'listr'
 import { KubeClient } from '../api/kube-client'
-import {PodTasks} from './pod-tasks'
-import {CheCtlContext, CliContext, EclipseCheContext} from '../context'
-import {CHE_NAMESPACE_FLAG, DEBUG_FLAG, DEBUG_PORT_FLAG} from '../flags'
-import {EclipseChe} from './installers/eclipse-che/eclipse-che'
+import { PodTasks } from './pod-tasks'
+import { CheCtlContext, CliContext, EclipseCheContext } from '../context'
+import { CHE_NAMESPACE_FLAG, DEBUG_FLAG, DEBUG_PORT_FLAG } from '../flags'
+import { EclipseChe } from './installers/eclipse-che/eclipse-che'
 import * as path from 'node:path'
 import * as os from 'node:os'
 import * as fs from 'fs-extra'
-import {Che} from '../utils/che'
-import {newListr, sleep} from '../utils/utls'
+import { Che } from '../utils/che'
+import { newListr, sleep } from '../utils/utls'
 import { ux } from '@oclif/core'
 
 export namespace CheTasks {
@@ -199,7 +199,7 @@ export namespace CheTasks {
           }
         }
 
-        ux.error(`${EclipseChe.PRODUCT_NAME} is not Active.`, {exit: 1})
+        ux.error(`${EclipseChe.PRODUCT_NAME} is not Active.`, { exit: 1 })
       },
     }
   }

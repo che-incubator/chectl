@@ -10,18 +10,18 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {CheCtlContext, CliContext, EclipseCheContext} from '../context'
+import { CheCtlContext, CliContext, EclipseCheContext } from '../context'
 import * as Listr from 'listr'
 import { KubeClient } from '../api/kube-client'
-import {getEmbeddedTemplatesDirectory, newListr, safeLoadFromYamlFile} from '../utils/utls'
+import { getEmbeddedTemplatesDirectory, newListr, safeLoadFromYamlFile } from '../utils/utls'
 import * as path from 'node:path'
 import { V1Role, V1RoleBinding } from '@kubernetes/client-node'
 import * as yaml from 'js-yaml'
-import {CommonTasks} from './common-tasks'
-import {CHE_NAMESPACE_FLAG, CHE_OPERATOR_IMAGE_FLAG, CLUSTER_MONITORING_FLAG, DELETE_ALL_FLAG} from '../flags'
-import {EclipseChe} from './installers/eclipse-che/eclipse-che'
-import {DevWorkspace} from './installers/dev-workspace/dev-workspace'
-import {Che} from '../utils/che'
+import { CommonTasks } from './common-tasks'
+import { CHE_NAMESPACE_FLAG, CHE_OPERATOR_IMAGE_FLAG, CLUSTER_MONITORING_FLAG, DELETE_ALL_FLAG } from '../flags'
+import { EclipseChe } from './installers/eclipse-che/eclipse-che'
+import { DevWorkspace } from './installers/dev-workspace/dev-workspace'
+import { Che } from '../utils/che'
 
 export namespace OlmTasks {
   export async function getDeleteSubscriptionAndCatalogSourceTask(packageName: string, csvPrefix: string, namespace: string): Promise<Listr.ListrTask<any>> {
@@ -136,7 +136,7 @@ export namespace OlmTasks {
       task: async (ctx: any, task: any) => {
         const kubeHelper = KubeClient.getInstance()
         if (!await kubeHelper.isCatalogSourceExists(name, namespace)) {
-          const catalogSource =  {
+          const catalogSource = {
             apiVersion: 'operators.coreos.com/v1alpha1',
             kind: 'CatalogSource',
             metadata: {

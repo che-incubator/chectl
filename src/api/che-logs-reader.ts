@@ -11,11 +11,9 @@
  */
 
 import { V1Pod, Watch } from '@kubernetes/client-node'
-import * as cp from 'node:child_process'
 import * as fs from 'fs-extra'
 import * as path from 'node:path'
 import { KubeClient } from './kube-client'
-import {isCommandExists} from '../utils/utls'
 
 export class CheLogsReader {
   private kubeHelper: KubeClient
@@ -57,20 +55,28 @@ export class CheLogsReader {
     const fileName = path.resolve(directory, namespace, 'events.txt')
     fs.ensureFileSync(fileName)
 
-    const cli = (await isCommandExists('kubectl') && 'kubectl') || (await isCommandExists('oc') && 'oc')
-    if (cli) {
-      const args = ['get', 'events', '-n', namespace]
-      if (follow) {
-        args.push('--watch')
-      }
+    const outStream = fs.createWriteStream(fileName, { flags: 'a' })
 
-      const outStream = fs.createWriteStream(fileName, { flags: 'a' })
-      const proc = cp.spawn(cli, args)
-      proc.stdout.pipe(outStream)
-      proc.stderr.pipe(outStream)
-    } else {
-      throw new Error('No events are collected. \'kubectl\' or \'oc\' is required to perform the task.')
+    const eventList = await this.kubeHelper.listNamespacedEvent(namespace)
+    for (const event of eventList.items) {
+      outStream.write(this.formatEvent(event))
     }
+
+    if (follow) {
+      await this.kubeHelper.watchNamespacedEvents(namespace, event => {
+        outStream.write(this.formatEvent(event))
+      })
+    }
+  }
+
+  private formatEvent(event: any): string {
+    const lastTimestamp = event.lastTimestamp ? new Date(event.lastTimestamp).toISOString() : '<unknown>'
+    const type = event.type || ''
+    const reason = event.reason || ''
+    const objectKind = event.involvedObject?.kind || ''
+    const objectName = event.involvedObject?.name || ''
+    const message = event.message || ''
+    return `${lastTimestamp}\t${type}\t${reason}\t${objectKind}/${objectName}\t${message}\n`
   }
 
   private async watchNamespacedPods(namespace: string, podLabelSelector: string | undefined, directory: string): Promise<void> {

@@ -10,17 +10,17 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {CheCtlContext, CliContext, InfrastructureContext} from '../context'
+import { CheCtlContext, CliContext, InfrastructureContext } from '../context'
 import * as Listr from 'listr'
 import { KubeClient } from '../api/kube-client'
 
 import { ux } from '@oclif/core'
-import {CreateResource, DeleteResource, IsResourceExists, ReplaceResource} from './installers/installer'
-import {CHE_NAMESPACE_FLAG, PLATFORM_FLAG, SKIP_KUBE_HEALTHZ_CHECK_FLAG, SKIP_VERSION_CHECK_FLAG} from '../flags'
-import {EclipseChe} from './installers/eclipse-che/eclipse-che'
-import {addTrailingSlash, newError, newListr} from '../utils/utls'
-import {K8sVersion} from '../utils/k8s-version'
-import {Che} from '../utils/che'
+import { CreateResource, DeleteResource, IsResourceExists, ReplaceResource } from './installers/installer'
+import { CHE_NAMESPACE_FLAG, PLATFORM_FLAG, SKIP_KUBE_HEALTHZ_CHECK_FLAG, SKIP_VERSION_CHECK_FLAG } from '../flags'
+import { EclipseChe } from './installers/eclipse-che/eclipse-che'
+import { addTrailingSlash, newError, newListr } from '../utils/utls'
+import { K8sVersion } from '../utils/k8s-version'
+import { Che } from '../utils/che'
 
 export namespace CommonTasks {
   const OUTPUT_SEPARATOR = '-------------------------------------------------------------------------------'
@@ -139,7 +139,7 @@ export namespace CommonTasks {
     return {
       title: '',
       enabled: () => false,
-      task: async () => {},
+      task: async () => { },
     }
   }
 
@@ -250,7 +250,7 @@ export namespace CommonTasks {
         for (const message of ctx[CliContext.CLI_COMMAND_POST_OUTPUT_MESSAGES]) {
           tasks.add({
             title: message,
-            task: () => {},
+            task: () => { },
           })
         }
 
@@ -266,7 +266,7 @@ export namespace CommonTasks {
         if (await isVerifiedResource()) {
           task.title = `${task.title}...[OK]`
         } else {
-          ux.error(errorMsg, {exit: 1})
+          ux.error(errorMsg, { exit: 1 })
         }
       },
     }

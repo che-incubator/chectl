@@ -13,10 +13,10 @@
 import execa = require('execa')
 import * as Listr from 'listr'
 
-import {CheCtlContext} from '../../context'
-import {DOMAIN_FLAG} from '../../flags'
-import {CommonTasks} from '../common-tasks'
-import {isCommandExists} from '../../utils/utls'
+import { CheCtlContext } from '../../context'
+import { DOMAIN_FLAG } from '../../flags'
+import { CommonTasks } from '../common-tasks'
+import { isCommandExists } from '../../utils/utls'
 
 export namespace MicroK8sTasks {
   /**
