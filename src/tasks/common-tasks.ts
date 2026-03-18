@@ -234,7 +234,6 @@ export namespace CommonTasks {
           }
         }
 
-        // eslint-disable-next-line unicorn/prefer-spread
         ctx[CliContext.CLI_COMMAND_POST_OUTPUT_MESSAGES] = messages.concat(ctx[CliContext.CLI_COMMAND_POST_OUTPUT_MESSAGES])
         task.title = `${task.title}...[OK]`
       },
