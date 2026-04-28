@@ -54,7 +54,7 @@
     "@types/rimraf": "^4.0.5",
     "@types/semver": "7.7.1",
     "@types/unzipper": "0.10.11",
-    "@types/uuid": "^9.0.2",
+    "@types/uuid": "^11.0.0",
     "@typescript-eslint/eslint-plugin": "^8.57.1",
     "@typescript-eslint/parser": "^8.57.1",
     "chai": "^4.5.0",

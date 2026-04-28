@@ -2484,10 +2484,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/uuid@npm:^9.0.2":
-  version: 9.0.8
-  resolution: "@types/uuid@npm:9.0.8"
-  checksum: 10c0/b411b93054cb1d4361919579ef3508a1f12bf15b5fdd97337d3d351bece6c921b52b6daeef89b62340fd73fd60da407878432a1af777f40648cbe53a01723489
+"@types/uuid@npm:^11.0.0":
+  version: 11.0.0
+  resolution: "@types/uuid@npm:11.0.0"
+  dependencies:
+    uuid: "npm:*"
+  checksum: 10c0/6ebf1448d8fdc78d348a8a84389b74083f2f58bed75a5a6cf3be8419d33dcf757735c8b2de746b066ff8ef07f4384d02549774dc84195ffa46b24745471e9d8e
   languageName: node
   linkType: hard
 
@@ -4028,7 +4030,7 @@ __metadata:
     "@types/rimraf": "npm:^4.0.5"
     "@types/semver": "npm:7.7.1"
     "@types/unzipper": "npm:0.10.11"
-    "@types/uuid": "npm:^9.0.2"
+    "@types/uuid": "npm:^11.0.0"
     "@typescript-eslint/eslint-plugin": "npm:^8.57.1"
     "@typescript-eslint/parser": "npm:^8.57.1"
     analytics-node: "npm:^6.2.0"
@@ -11891,21 +11893,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"uuid@npm:*, uuid@npm:^14.0.0":
+  version: 14.0.0
+  resolution: "uuid@npm:14.0.0"
+  bin:
+    uuid: dist-node/bin/uuid
+  checksum: 10c0/a57ae7794c45005c1a9208989196c5baf79a7679c30f43c1bee9033a2c4d113a2cea216fa6fcc9663b08b0d55635df1a7c6eb7e7f3d21c3e50688c698fa39a50
+  languageName: node
+  linkType: hard
+
 "uuid@npm:8.0.0":
   version: 8.0.0
   resolution: "uuid@npm:8.0.0"
   bin:
     uuid: dist/bin/uuid
   checksum: 10c0/e62301a1c6102da5ce9a147b492a4b5cfa14d2e8fdf4a6ebfda7929cb72d186f84173815ec18fa4160a03bf9724b16ece3737b3ac6701815bc965f8fa4279298
-  languageName: node
-  linkType: hard
-
-"uuid@npm:^14.0.0":
-  version: 14.0.0
-  resolution: "uuid@npm:14.0.0"
-  bin:
-    uuid: dist-node/bin/uuid
-  checksum: 10c0/a57ae7794c45005c1a9208989196c5baf79a7679c30f43c1bee9033a2c4d113a2cea216fa6fcc9663b08b0d55635df1a7c6eb7e7f3d21c3e50688c698fa39a50
   languageName: node
   linkType: hard
 
