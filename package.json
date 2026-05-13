@@ -23,7 +23,7 @@
     "countries-and-timezones": "^3.9.0",
     "execa": "^5.1.1",
     "fancy-test": "^2.0.25",
-    "fs-extra": "^11.3.4",
+    "fs-extra": "^11.3.5",
     "getos": "^3.2.1",
     "gnirts": "^1.1.8",
     "js-yaml": "^4.1.1",
