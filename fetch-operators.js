@@ -19,7 +19,6 @@ const { execSync } = require('child_process')
 const ROOT = __dirname
 const SOURCES = path.join(ROOT, '.operator-sources')
 const NODE_MODULES = path.join(ROOT, 'node_modules')
-
 // Clone operator repos (no package.json; Yarn 4 cannot install them as git deps).
 // Copies into node_modules so prepare-templates.js can run unchanged.
 function main () {

@@ -27,7 +27,7 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
       - name: Build chectl
-        run: yarn --immutable
+        run: yarn --immutable && yarn rebuild
       - name: Install codecov
         run: npm install codecov -g
       - name: Run unit tests

@@ -113,6 +113,7 @@ release() {
   # build
   corepack enable
   yarn --immutable
+  yarn rebuild
   yarn pack
   yarn test
 }
