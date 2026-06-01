@@ -28,7 +28,7 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
       - name: Install yarn deps
-        run: yarn --immutable
+        run: yarn --immutable && yarn rebuild
       - name: Run eslint
         run: yarn lint
       - name: Run unit tests
@@ -49,7 +49,7 @@ jobs:
         run: corepack enable
       - name: Build chectl and pack binaries
         run: |
-          yarn --immutable
+          yarn --immutable && yarn rebuild
           export PATH="${PATH}:${PWD}/bin/shasum"
           yarn pack-binaries --targets=linux-x64
       - name: Build README.md
@@ -77,7 +77,7 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
       - name: Build chectl
-        run: yarn --immutable
+        run: yarn --immutable && yarn rebuild
       - name: Set up Go 1.15
         uses: actions/setup-go@v3
         with:

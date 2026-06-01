@@ -33,7 +33,7 @@ jobs:
     - name: Enable Corepack
       run: corepack enable
     - name: Build chectl
-      run: yarn --immutable
+      run: yarn --immutable && yarn rebuild
     - name: Run e2e tests
       run: |
         export PLATFORM=minikube
