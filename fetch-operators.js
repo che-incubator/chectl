@@ -19,6 +19,7 @@ const { execSync } = require('child_process')
 const ROOT = __dirname
 const SOURCES = path.join(ROOT, '.operator-sources')
 const NODE_MODULES = path.join(ROOT, 'node_modules')
+const REVISIONS_FILE = path.join(ROOT, 'REVISIONS')
 
 // Clone operator repos (no package.json; Yarn 4 cannot install them as git deps).
 // Copies into node_modules so prepare-templates.js can run unchanged.
@@ -32,6 +33,7 @@ function main () {
   }
 
   fs.ensureDirSync(SOURCES)
+  const revisions = []
   for (const repo of repos) {
     const dest = path.join(SOURCES, repo.name)
     if (!fs.existsSync(path.join(dest, '.git'))) {
@@ -46,10 +48,14 @@ function main () {
         cwd: dest
       })
     }
+    const sha = execSync('git rev-parse HEAD', { cwd: dest, encoding: 'utf8' }).trim()
+    revisions.push(`${repo.name}\t${repo.url}\t${repo.ref}\t${sha}`)
     const nodeModulesDest = path.join(NODE_MODULES, repo.name)
     fs.ensureDirSync(path.dirname(nodeModulesDest))
     fs.copySync(dest, nodeModulesDest, { overwrite: true })
   }
+  fs.writeFileSync(REVISIONS_FILE, revisions.join('\n') + '\n')
+  console.log(`Wrote ${REVISIONS_FILE}`)
 }
 
 main()
