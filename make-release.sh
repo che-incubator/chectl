@@ -114,9 +114,6 @@ release() {
   corepack enable
   yarn --immutable
   yarn rebuild
-
-  bash "$(dirname "$0")/record-revisions.sh"
-
   yarn pack
   yarn test
 }
