@@ -22,7 +22,7 @@
     "command-exists": "^1.2.9",
     "countries-and-timezones": "^3.9.0",
     "execa": "^5.1.1",
-    "fancy-test": "^2.0.25",
+    "fancy-test": "^3.0.16",
     "fs-extra": "^11.3.6",
     "getos": "^3.2.1",
     "gnirts": "^1.1.8",
