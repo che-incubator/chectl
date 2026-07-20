@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import execa = require('execa')
+import { execa } from 'execa'
 import * as Listr from 'listr'
 import * as os from 'node:os'
 import { ux } from '@oclif/core'

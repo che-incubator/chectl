@@ -23,7 +23,7 @@ const Listr = typeof ListrModule === 'function' ? ListrModule : (ListrModule as 
 import { EclipseChe } from '../tasks/installers/eclipse-che/eclipse-che'
 import { CHE } from '../constants'
 import * as commandExists from 'command-exists'
-import execa = require('execa')
+import { execa } from 'execa'
 
 const pkjson = require('../../package.json')
 
