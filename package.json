@@ -192,7 +192,13 @@
       "js",
       "jsx",
       "json"
-    ]
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!execa)"
+    ],
+    "moduleNameMapper": {
+      "^execa$": "<rootDir>/test/mocks/execa.ts"
+    }
   },
   "packageManager": "yarn@4.12.0"
 }

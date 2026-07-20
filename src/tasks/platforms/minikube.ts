@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import execa = require('execa')
+import { execa } from 'execa'
 import * as Listr from 'listr'
 import { CheCtlContext, OIDCContext } from '../../context'
 import { KubeClient } from '../../api/kube-client'
