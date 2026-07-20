@@ -11,7 +11,7 @@
  */
 
 import { Octokit } from '@octokit/rest'
-import * as execa from 'execa'
+import { execa } from 'execa'
 import * as fs from 'fs-extra'
 import {KubeClient} from '../../src/api/kube-client'
 import {CheGithubClient, TagInfo} from '../../src/api/github-client'

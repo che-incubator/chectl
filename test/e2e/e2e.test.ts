@@ -13,7 +13,7 @@
 // tslint:disable: no-console
 
 import { expect } from '@oclif/test'
-import * as execa from 'execa'
+import { execa } from 'execa'
 import {EclipseChe} from '../../src/tasks/installers/eclipse-che/eclipse-che'
 import {E2eHelper} from './util'
 
