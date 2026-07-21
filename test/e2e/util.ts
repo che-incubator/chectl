@@ -108,6 +108,8 @@ export class E2eHelper {
       await this.sleep(delayMs)
       totalTimeMs += delayMs
     }
+
+    await this.runCliCommand('chectl', ['server:logs', '-d /tmp/logs', '--telemetry=off'])
     throw new Error(`Che server image tag ${tag} has not appeared in ${timeoutMs / 1000}s `)
   }
 
