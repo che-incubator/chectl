@@ -86,6 +86,8 @@ export class E2eHelper {
       await this.sleep(delayMs)
       totalTimeMs += delayMs
     }
+
+    await this.runCliCommand('chectl', ['server:logs', '-d /tmp/logs', '--telemetry=off'])
     throw new Error(`Che CR version ${version} has not appeared in ${timeoutMs / 1000}s`)
   }
 
