@@ -127,8 +127,9 @@ export const LOG_DIRECTORY = Flags.string({
 
 export const TELEMETRY_FLAG = 'telemetry'
 export const TELEMETRY = Flags.string({
-  description: 'Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry',
+  description: 'Deprecated. Has no effect.',
   options: ['on', 'off'],
+  hidden: true,
 })
 
 export const SKIP_VERSION_CHECK_FLAG = 'skip-version-check'

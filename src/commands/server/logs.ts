@@ -22,7 +22,6 @@ import {
   TELEMETRY,
   SKIP_KUBE_HEALTHZ_CHECK_FLAG, SKIP_KUBE_HEALTHZ_CHECK, LOG_DIRECTORY_FLAG, LOG_DIRECTORY,
 } from '../../flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che-tasks'
 import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
 import { CommonTasks } from '../../tasks/common-tasks'
@@ -44,8 +43,6 @@ export default class Logs extends Command {
   async run() {
     const { flags } = await this.parse(Logs)
     const ctx = await CheCtlContext.initAndGet(flags, this)
-
-    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logs.id, flags })
 
     const tasks = newListr()
     tasks.add(CommonTasks.getTestKubernetesApiTasks())

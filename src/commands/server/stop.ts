@@ -27,7 +27,6 @@ import {
 import { CheTasks } from '../../tasks/che-tasks'
 import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
 import { CommonTasks } from '../../tasks/common-tasks'
-import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../utils/command-utils'
 import { newListr } from '../../utils/utls'
 
@@ -45,8 +44,6 @@ export default class Stop extends Command {
   async run() {
     const { flags } = await this.parse(Stop)
     const ctx = await CheCtlContext.initAndGet(flags, this)
-
-    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Stop.id, flags })
 
     const tasks = newListr()
     tasks.add(CommonTasks.getTestKubernetesApiTasks())

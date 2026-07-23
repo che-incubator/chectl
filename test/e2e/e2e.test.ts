@@ -24,7 +24,7 @@ const binChectl = E2eHelper.getChectlBinaries()
 const PLATFORM = process.env.PLATFORM || ''
 
 function getDeployCommand(): string {
-  let command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --chenamespace=${EclipseChe.NAMESPACE} --telemetry=off --k8spodwaittimeout=600000 --k8spodreadytimeout=600000`
+  let command = `${binChectl} server:deploy --batch --platform=${PLATFORM} --chenamespace=${EclipseChe.NAMESPACE} --k8spodwaittimeout=600000 --k8spodreadytimeout=600000`
   if (PLATFORM === 'minikube') {
     command += ' --che-operator-cr-patch-yaml=test/e2e/resources/minikube-checluster-patch.yaml'
   }
@@ -52,7 +52,7 @@ describe(`server:deploy`, () => {
 
 describe('Export CA certificate', () => {
   it('cacert:export command', async () => {
-    const command = `${binChectl} cacert:export -n ${EclipseChe.NAMESPACE} --telemetry=off`
+    const command = `${binChectl} cacert:export -n ${EclipseChe.NAMESPACE}`
 
     const { exitCode, stdout, stderr } = await execa(command, { shell: true })
 

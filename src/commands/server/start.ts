@@ -36,7 +36,6 @@ import {
   K8S_POD_ERROR_RECHECK_TIMEOUT_FLAG, K8S_POD_ERROR_RECHECK_TIMEOUT,
 } from '../../flags'
 import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
-import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CommonTasks } from '../../tasks/common-tasks'
 import { CheTasks } from '../../tasks/che-tasks'
 import { getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../utils/command-utils'
@@ -62,8 +61,6 @@ export default class Start extends Command {
   async run() {
     const { flags } = await this.parse(Start)
     const ctx = await CheCtlContext.initAndGet(flags, this)
-
-    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Start.id, flags })
 
     const tasks = newListr()
     tasks.add(CommonTasks.getTestKubernetesApiTasks())
