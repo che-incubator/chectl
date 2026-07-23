@@ -21,7 +21,7 @@
     "command-exists": "^1.2.9",
     "execa": "^5.1.1",
     "fancy-test": "^3.0.16",
-    "fs-extra": "^11.3.6",
+    "fs-extra": "^11.4.0",
     "js-yaml": "^5.2.1",
     "listr": "^0.14.3",
     "listr-verbose-renderer": "^0.6.0",
