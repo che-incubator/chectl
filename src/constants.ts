@@ -10,8 +10,5 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-// HOOKS
-export const DEFAULT_ANALYTIC_HOOK_NAME = 'analytics'
-
 export const CHE = 'che'
 export const PART_OF_ECLIPSE_CHE_SELECTOR = 'app.kubernetes.io/part-of=che.eclipse.org'
