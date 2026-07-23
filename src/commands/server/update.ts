@@ -64,7 +64,6 @@ import {
   CATALOG_SOURCE_IMAGE, checkFlagsCompatability,
 } from '../../flags'
 import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
-import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import {
   askForChectlUpdateIfNeeded,
   getCommandSuccessMessage,
@@ -124,7 +123,6 @@ export default class Update extends Command {
     const { flags } = await this.parse(Update)
     const ctx = await CheCtlContext.initAndGet(flags, this)
 
-    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Update.id, flags })
 
     if (!flags[BATCH_FLAG] && ctx[CliContext.CLI_IS_CHECTL]) {
       await askForChectlUpdateIfNeeded()

@@ -22,7 +22,6 @@ import {
   TELEMETRY_FLAG,
   TELEMETRY,
 } from '../../flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
 import { Che } from '../../utils/che'
 
@@ -40,7 +39,6 @@ export default class Status extends Command {
     const { flags } = await this.parse(Status)
     await CheCtlContext.init(flags, this)
 
-    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Status.id, flags })
 
     ux.log(`${EclipseChe.PRODUCT_NAME} Version    : ${await Che.getCheVersion()}`)
     ux.log(`${EclipseChe.PRODUCT_NAME} Url        : ${Che.buildDashboardURL(await Che.getCheURL(flags[CHE_NAMESPACE_FLAG]!))}`)

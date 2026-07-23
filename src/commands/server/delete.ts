@@ -27,9 +27,6 @@ import {
   DELETE_NAMESPACE_FLAG,
   DELETE_NAMESPACE, BATCH_FLAG, BATCH, ASSUME_YES_FLAG, ASSUME_YES,
 } from '../../flags'
-import {
-  DEFAULT_ANALYTIC_HOOK_NAME,
-} from '../../constants'
 import { CheTasks } from '../../tasks/che-tasks'
 import { EclipseCheInstallerFactory } from '../../tasks/installers/eclipse-che/eclipse-che-installer-factory'
 import { CommonTasks } from '../../tasks/common-tasks'
@@ -57,7 +54,6 @@ export default class Delete extends Command {
     const { flags } = await this.parse(Delete)
     const ctx = await CheCtlContext.initAndGet(flags, this)
 
-    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Delete.id, flags })
 
     const tasks = newListr()
     tasks.add(CommonTasks.getTestKubernetesApiTasks())
