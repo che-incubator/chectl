@@ -128,7 +128,6 @@ export const LOG_DIRECTORY = Flags.string({
 export const TELEMETRY_FLAG = 'telemetry'
 export const TELEMETRY = Flags.string({
   description: 'Deprecated. Has no effect.',
-  options: ['on', 'off'],
   hidden: true,
 })
 

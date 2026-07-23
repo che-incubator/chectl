@@ -150,7 +150,7 @@ Retrieves Eclipse Che self-signed certificate
 
 ```
 USAGE
-  $ chectl cacert:export [-h] [-n <value>] [--telemetry on|off] [-d <value>]
+  $ chectl cacert:export [-h] [-n <value>] [-d <value>]
 
 FLAGS
   -d, --destination=<value>
@@ -165,10 +165,6 @@ FLAGS
 
   -n, --chenamespace=<value>
       Eclipse Che Kubernetes namespace.
-
-  --telemetry=<option>
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-      <options: on|off>
 
 DESCRIPTION
   Retrieves Eclipse Che self-signed certificate
@@ -215,13 +211,11 @@ Open Eclipse Che dashboard
 
 ```
 USAGE
-  $ chectl dashboard:open [-h] [-n <value>] [--telemetry on|off]
+  $ chectl dashboard:open [-h] [-n <value>]
 
 FLAGS
   -h, --help                  Show CLI help.
   -n, --chenamespace=<value>  Eclipse Che Kubernetes namespace.
-  --telemetry=<option>        Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-                              <options: on|off>
 
 DESCRIPTION
   Open Eclipse Che dashboard
@@ -255,16 +249,13 @@ Enable local debug of Eclipse Che server
 
 ```
 USAGE
-  $ chectl server:debug [-h] [--debug-port <value>] [-n <value>] [--telemetry on|off]
-    [--skip-kubernetes-health-check]
+  $ chectl server:debug [-h] [--debug-port <value>] [-n <value>] [--skip-kubernetes-health-check]
 
 FLAGS
   -h, --help                      Show CLI help.
   -n, --chenamespace=<value>      Eclipse Che Kubernetes namespace.
   --debug-port=<value>            [default: 8000] Eclipse Che server debug port
   --skip-kubernetes-health-check  Skip Kubernetes health check
-  --telemetry=<option>            Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-                                  <options: on|off>
 
 DESCRIPTION
   Enable local debug of Eclipse Che server
@@ -278,8 +269,8 @@ delete any Eclipse Che related resource
 
 ```
 USAGE
-  $ chectl server:delete [-h] [-n <value>] [--delete-all] [--delete-namespace] [--telemetry on|off]
-    [--skip-kubernetes-health-check] [-y | --batch]
+  $ chectl server:delete [-h] [-n <value>] [--delete-all] [--delete-namespace] [--skip-kubernetes-health-check] [-y
+    | --batch]
 
 FLAGS
   -h, --help                      Show CLI help.
@@ -290,8 +281,6 @@ FLAGS
   --delete-all                    Indicates to delete Eclipse Che and Dev Workspace related resources
   --delete-namespace              Indicates that a Eclipse Che namespace will be deleted as well
   --skip-kubernetes-health-check  Skip Kubernetes health check
-  --telemetry=<option>            Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-                                  <options: on|off>
 
 DESCRIPTION
   delete any Eclipse Che related resource
@@ -312,8 +301,8 @@ USAGE
     [--che-operator-cr-yaml <value>] [--che-operator-cr-patch-yaml <value>] [--workspace-pvc-storage-class-name <value>]
     [--skip-version-check] [--skip-cert-manager] [--skip-devworkspace-operator] [--auto-update] [--starting-csv <value>]
     [--package-manifest-name <value>] [--catalog-source-yaml <value> --olm-channel <value>] [--catalog-source-name
-    <value> --catalog-source-namespace <value> ] [--catalog-source-image <value> ] [--cluster-monitoring] [--telemetry
-    on|off] [--skip-kubernetes-health-check]
+    <value> --catalog-source-namespace <value> ] [--catalog-source-image <value> ] [--cluster-monitoring]
+    [--skip-kubernetes-health-check]
 
 FLAGS
   -b, --domain=<value>
@@ -429,10 +418,6 @@ FLAGS
       Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known
       version.
 
-  --telemetry=<option>
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-      <options: on|off>
-
   --workspace-pvc-storage-class-name=<value>
       persistent volume(s) storage class name to use to store Eclipse Che workspaces data
 
@@ -448,15 +433,13 @@ Collect Eclipse Che logs
 
 ```
 USAGE
-  $ chectl server:logs [-h] [-d <value>] [-n <value>] [--telemetry on|off] [--skip-kubernetes-health-check]
+  $ chectl server:logs [-h] [-d <value>] [-n <value>] [--skip-kubernetes-health-check]
 
 FLAGS
   -d, --directory=<value>         Directory to store logs into
   -h, --help                      Show CLI help.
   -n, --chenamespace=<value>      Eclipse Che Kubernetes namespace.
   --skip-kubernetes-health-check  Skip Kubernetes health check
-  --telemetry=<option>            Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-                                  <options: on|off>
 
 DESCRIPTION
   Collect Eclipse Che logs
@@ -470,9 +453,9 @@ Start Eclipse Che server
 
 ```
 USAGE
-  $ chectl server:start [-h] [-n <value>] [--telemetry on|off] [--skip-kubernetes-health-check] [--batch]
-    [--k8spodwaittimeout <value>] [--k8spodreadytimeout <value>] [--k8spoddownloadimagetimeout <value>]
-    [--k8spoderrorrechecktimeout <value>] [-d <value>]
+  $ chectl server:start [-h] [-n <value>] [--skip-kubernetes-health-check] [--batch] [--k8spodwaittimeout <value>]
+    [--k8spodreadytimeout <value>] [--k8spoddownloadimagetimeout <value>] [--k8spoderrorrechecktimeout <value>] [-d
+    <value>]
 
 FLAGS
   -d, --directory=<value>               Directory to store logs into
@@ -484,9 +467,6 @@ FLAGS
   --k8spodreadytimeout=<value>          [default: 120000] Waiting time for Pod Ready condition (in milliseconds)
   --k8spodwaittimeout=<value>           [default: 120000] Waiting time for Pod scheduled condition (in milliseconds)
   --skip-kubernetes-health-check        Skip Kubernetes health check
-  --telemetry=<option>                  Enable or disable telemetry. This flag skips a prompt and enable/disable
-                                        telemetry
-                                        <options: on|off>
 
 DESCRIPTION
   Start Eclipse Che server
@@ -500,13 +480,11 @@ Status Eclipse Che server
 
 ```
 USAGE
-  $ chectl server:status [-h] [-n <value>] [--telemetry on|off]
+  $ chectl server:status [-h] [-n <value>]
 
 FLAGS
   -h, --help                  Show CLI help.
   -n, --chenamespace=<value>  Eclipse Che Kubernetes namespace.
-  --telemetry=<option>        Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-                              <options: on|off>
 
 DESCRIPTION
   Status Eclipse Che server
@@ -520,14 +498,12 @@ stop Eclipse Che server
 
 ```
 USAGE
-  $ chectl server:stop [-h] [-n <value>] [--telemetry on|off] [--skip-kubernetes-health-check]
+  $ chectl server:stop [-h] [-n <value>] [--skip-kubernetes-health-check]
 
 FLAGS
   -h, --help                      Show CLI help.
   -n, --chenamespace=<value>      Eclipse Che Kubernetes namespace.
   --skip-kubernetes-health-check  Skip Kubernetes health check
-  --telemetry=<option>            Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-                                  <options: on|off>
 
 DESCRIPTION
   stop Eclipse Che server
@@ -543,9 +519,9 @@ Update Eclipse Che server.
 USAGE
   $ chectl server:update [-h] [-n <value>] [-y | --batch] [-t <value>] [--che-operator-image <value>]
     [--che-operator-cr-patch-yaml <value>] [--skip-devworkspace-operator] [--skip-kubernetes-health-check]
-    [--skip-version-check] [--telemetry on|off] [--package-manifest-name <value>] [--catalog-source-namespace <value>
-    --catalog-source-name <value> --olm-channel <value>] [--catalog-source-yaml <value> ] [--catalog-source-image
-    <value> ] [--auto-update] [--starting-csv <value>]
+    [--skip-version-check] [--package-manifest-name <value>] [--catalog-source-namespace <value> --catalog-source-name
+    <value> --olm-channel <value>] [--catalog-source-yaml <value> ] [--catalog-source-image <value> ] [--auto-update]
+    [--starting-csv <value>]
 
 FLAGS
   -h, --help
@@ -612,10 +588,6 @@ FLAGS
       Then OLM will install Eclipse Che with version 7.10.0.
       Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known
       version.
-
-  --telemetry=<option>
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-      <options: on|off>
 
 DESCRIPTION
   Update Eclipse Che server.
