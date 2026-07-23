@@ -17,7 +17,7 @@ const path = require('path')
 const rootDir = process.cwd()
 
 const obfuscateJSFiles = () => {
-  const jsFilesToObfuscate = [ 'lib/hooks/analytics/analytics.js' ]
+  const jsFilesToObfuscate = []
  
   jsFilesToObfuscate.forEach((jsFilePath)=> {
     const fileToObfuscate = path.join(rootDir, jsFilePath)

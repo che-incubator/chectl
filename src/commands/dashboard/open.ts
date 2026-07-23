@@ -20,7 +20,6 @@ import {
   CHE_NAMESPACE,
   TELEMETRY_FLAG, TELEMETRY,
 } from '../../flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
 import { Che } from '../../utils/che'
 
@@ -36,8 +35,6 @@ export default class Open extends Command {
   async run() {
     const { flags } = await this.parse(Open)
     await CheCtlContext.init(flags, this)
-
-    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Open.id, flags })
 
     try {
       const dashboardUrl = Che.buildDashboardURL(await Che.getCheURL(flags[CHE_NAMESPACE_FLAG]!))

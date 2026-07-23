@@ -24,7 +24,6 @@ import {
   TELEMETRY,
   DESTINATION_FLAG, DESTINATION,
 } from '../../flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
 import { wrapCommandError } from '../../utils/command-utils'
 import { Che } from '../../utils/che'
@@ -43,8 +42,6 @@ export default class Export extends Command {
   async run() {
     const { flags } = await this.parse(Export)
     await CheCtlContext.init(flags, this)
-
-    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Export.id, flags })
 
     try {
       const cheCaCert = await Che.readCheCaCert(flags[CHE_NAMESPACE_FLAG]!)
