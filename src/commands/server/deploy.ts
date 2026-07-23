@@ -15,7 +15,6 @@ import { ux } from '@oclif/core'
 import { CertManagerInstaller } from '../../tasks/installers/cert-manager-installer'
 import { CheCtlContext, InfrastructureContext } from '../../context'
 import { KubeClient } from '../../api/kube-client'
-import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { DexInstaller } from '../../tasks/installers/dex-installer'
 import { PlatformTasks } from '../../tasks/platforms/platform-tasks'
 import { EclipseCheInstallerFactory } from '../../tasks/installers/eclipse-che/eclipse-che-installer-factory'
@@ -141,8 +140,6 @@ export default class Deploy extends Command {
   async run() {
     const { flags } = await this.parse(Deploy)
     const ctx = await CheCtlContext.initAndGet(flags, this)
-
-    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Deploy.id, flags })
 
     if (!flags.batch && ctx.isChectl) {
       await askForChectlUpdateIfNeeded()

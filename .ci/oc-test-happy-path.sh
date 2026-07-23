@@ -44,7 +44,6 @@ EOF
     --olm-channel stable \
     --package-manifest-name eclipse-che \
     --catalog-source-yaml /tmp/eclipse-che-catalog-source.yaml \
-    --telemetry off \
     --batch
 
   alias chectl=$(pwd)/bin/run

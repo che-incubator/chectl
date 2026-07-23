@@ -31,5 +31,5 @@ catchFinish() {
 
 collectEclipseCheLogs() {
   mkdir -p ${ARTIFACTS_DIR}/che-logs
-  ${CHECTL_REPO}/bin/run server:logs --directory ${ARTIFACTS_DIR}/che-logs --telemetry off
+  ${CHECTL_REPO}/bin/run server:logs --directory ${ARTIFACTS_DIR}/che-logs
 }

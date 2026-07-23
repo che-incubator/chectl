@@ -31,7 +31,6 @@ describe('Upgrade channel test', () => {
         `--platform=${PLATFORM}`,
         `--chenamespace=${EclipseChe.NAMESPACE}`,
         '--che-operator-cr-patch-yaml=test/e2e/resources/minikube-checluster-patch.yaml',
-        '--telemetry=off',
         '--k8spodwaittimeout=600000',
         '--k8spodreadytimeout=600000',
       ])
@@ -39,7 +38,7 @@ describe('Upgrade channel test', () => {
       await helper.waitForCheServerImageTag(helper.getNewVersion(), TIMEOUT_MS)
       // uses installed chectl (from a stable channel)
       // see github workflow
-      let deployCommand = `chectl server:deploy --batch --platform=${PLATFORM} --chenamespace=${NAMESPACE} --telemetry=off`
+      let deployCommand = `chectl server:deploy --batch --platform=${PLATFORM} --chenamespace=${NAMESPACE}`
       if (PLATFORM === 'minikube') {
         deployCommand += ' --che-operator-cr-patch-yaml=test/e2e/resources/minikube-checluster-patch.yaml'
       }
@@ -55,7 +54,6 @@ describe('Upgrade channel test', () => {
         'server:update',
         '--batch',
         '--olm-channel=next',
-        '--telemetry=off'
       ])
     })
 
