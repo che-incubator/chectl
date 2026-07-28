@@ -68,6 +68,8 @@ export namespace EclipseChe {
   export const GATEWAY = 'Gateway'
   export const PLUGIN_REGISTRY = 'Plugin Registry'
   export const CHE_OPERATOR = `${PRODUCT_NAME} Operator`
+  export const OPENVSX_SERVER = 'Open VSX Server'
+  export const OPENVSX_DATABASE = 'Open VSX Database'
 
   // Deployments
   export const OPERATOR_DEPLOYMENT_NAME = `${CHE_FLAVOR}-operator`
@@ -75,6 +77,8 @@ export namespace EclipseChe {
   export const DASHBOARD_DEPLOYMENT_NAME = `${CHE_FLAVOR}-dashboard`
   export const GATEWAY_DEPLOYMENT_NAME = 'che-gateway'
   export const PLUGIN_REGISTRY_DEPLOYMENT_NAME = 'plugin-registry'
+  export const OPENVSX_SERVER_DEPLOYMENT_NAME = 'openvsx-server'
+  export const OPENVSX_DATABASE_DEPLOYMENT_NAME = 'openvsx-database'
 
   // Selectors
   // It must be `app=`, see: https://issues.redhat.com/browse/CRW-4848
@@ -84,4 +88,7 @@ export namespace EclipseChe {
   export const DASHBOARD_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=${CHE_FLAVOR}-dashboard`
   export const PLUGIN_REGISTRY_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=plugin-registry`
   export const GATEWAY_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=che-gateway`
+  export const OPENVSX_SERVER_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=openvsx-server`
+  export const OPENVSX_DATABASE_SELECTOR = `app.kubernetes.io/name=${CHE_FLAVOR},app.kubernetes.io/component=openvsx-database`
+
 }
