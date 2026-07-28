@@ -220,20 +220,29 @@ export namespace CommonTasks {
 
         messages.push(OUTPUT_SEPARATOR)
 
-        const dashboardURL = Che.buildDashboardURL(await Che.getCheURL(flags[CHE_NAMESPACE_FLAG]))
-        messages.push(`Users Dashboard           : ${dashboardURL}`, OUTPUT_SEPARATOR)
+        const cheURL = await Che.getCheURL(flags[CHE_NAMESPACE_FLAG])
+        const dashboardURL = Che.buildDashboardURL(cheURL)
+        messages.push(`Users Dashboard           : ${dashboardURL}`)
+
+        const cheCluster = await kubeHelper.getCheCluster(flags[CHE_NAMESPACE_FLAG])
+        if (cheCluster?.spec?.components?.openVSXRegistry?.enable) {
+          const openVSXURL = cheURL.endsWith('/') ? `${cheURL}openvsx/` : `${cheURL}/openvsx/`
+          messages.push(`Open VSX Registry         : ${openVSXURL}`)
+        }
 
         const cheConfigMap = await kubeHelper.getConfigMap(EclipseChe.CONFIG_MAP, flags[CHE_NAMESPACE_FLAG])
         if (cheConfigMap && cheConfigMap.data) {
           if (cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL) {
-            messages.push(`Plug-in Registry          : ${addTrailingSlash(cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL)}`, OUTPUT_SEPARATOR)
+            messages.push(`Plug-in Registry          : ${addTrailingSlash(cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL)}`)
           }
 
           if (flags[PLATFORM_FLAG] === 'minikube') {
-            messages.push('Dex user credentials      : che@eclipse.org:admin', 'Dex user credentials      : user1@che:password', 'Dex user credentials      : user2@che:password', 'Dex user credentials      : user3@che:password', 'Dex user credentials      : user4@che:password', 'Dex user credentials      : user5@che:password', OUTPUT_SEPARATOR)
+            messages.push(OUTPUT_SEPARATOR)
+            messages.push('Dex user credentials      : che@eclipse.org:admin', 'Dex user credentials      : user1@che:password', 'Dex user credentials      : user2@che:password', 'Dex user credentials      : user3@che:password', 'Dex user credentials      : user4@che:password', 'Dex user credentials      : user5@che:password')
           }
         }
 
+        messages.push(OUTPUT_SEPARATOR)
         ctx[CliContext.CLI_COMMAND_POST_OUTPUT_MESSAGES] = messages.concat(ctx[CliContext.CLI_COMMAND_POST_OUTPUT_MESSAGES])
         task.title = `${task.title}...[OK]`
       },

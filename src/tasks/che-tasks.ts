@@ -39,6 +39,11 @@ export namespace CheTasks {
             tasks.add(PodTasks.getPodStartTasks(EclipseChe.PLUGIN_REGISTRY, EclipseChe.PLUGIN_REGISTRY_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
           }
 
+          if (cheCluster.spec?.components?.openVSXRegistry?.enable) {
+            tasks.add(PodTasks.getPodStartTasks(EclipseChe.OPENVSX_DATABASE, EclipseChe.OPENVSX_DATABASE_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
+            tasks.add(PodTasks.getPodStartTasks(EclipseChe.OPENVSX_SERVER, EclipseChe.OPENVSX_SERVER_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
+          }
+
           tasks.add(PodTasks.getPodStartTasks(EclipseChe.DASHBOARD, EclipseChe.DASHBOARD_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
           tasks.add(PodTasks.getPodStartTasks(EclipseChe.GATEWAY, EclipseChe.GATEWAY_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
           tasks.add(PodTasks.getPodStartTasks(EclipseChe.CHE_SERVER, EclipseChe.CHE_SERVER_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
@@ -67,6 +72,16 @@ export namespace CheTasks {
           tasks.add(PodTasks.getPodDeletedTask(EclipseChe.PLUGIN_REGISTRY, EclipseChe.PLUGIN_REGISTRY_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
         }
 
+        const openvsxDatabasePods = await kubeHelper.getPodListByLabel(flags[CHE_NAMESPACE_FLAG], EclipseChe.OPENVSX_DATABASE_SELECTOR)
+        if (openvsxDatabasePods.length > 0) {
+          tasks.add(PodTasks.getPodDeletedTask(EclipseChe.OPENVSX_DATABASE, EclipseChe.OPENVSX_DATABASE_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
+        }
+
+        const openvsxServerPods = await kubeHelper.getPodListByLabel(flags[CHE_NAMESPACE_FLAG], EclipseChe.OPENVSX_SERVER_SELECTOR)
+        if (openvsxServerPods.length > 0) {
+          tasks.add(PodTasks.getPodDeletedTask(EclipseChe.OPENVSX_SERVER, EclipseChe.OPENVSX_SERVER_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
+        }
+
         return tasks
       },
     }
@@ -88,6 +103,11 @@ export namespace CheTasks {
           tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.PLUGIN_REGISTRY, EclipseChe.PLUGIN_REGISTRY_DEPLOYMENT_NAME, 0, flags[CHE_NAMESPACE_FLAG]))
         }
 
+        if (cheCluster?.spec?.components?.openVSXRegistry?.enable) {
+          tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.OPENVSX_DATABASE, EclipseChe.OPENVSX_DATABASE_DEPLOYMENT_NAME, 0, flags[CHE_NAMESPACE_FLAG]))
+          tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.OPENVSX_SERVER, EclipseChe.OPENVSX_SERVER_DEPLOYMENT_NAME, 0, flags[CHE_NAMESPACE_FLAG]))
+        }
+
         return tasks
       },
     }
@@ -106,6 +126,14 @@ export namespace CheTasks {
           if (!cheCluster.spec?.components?.pluginRegistry?.disableInternalRegistry) {
             tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.PLUGIN_REGISTRY, EclipseChe.PLUGIN_REGISTRY_DEPLOYMENT_NAME, 1, flags[CHE_NAMESPACE_FLAG]))
             tasks.add(PodTasks.getPodStartTasks(EclipseChe.PLUGIN_REGISTRY, EclipseChe.PLUGIN_REGISTRY_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
+          }
+
+          if (cheCluster.spec?.components?.openVSXRegistry?.enable) {
+            tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.OPENVSX_DATABASE, EclipseChe.OPENVSX_DATABASE_DEPLOYMENT_NAME, 1, flags[CHE_NAMESPACE_FLAG]))
+            tasks.add(PodTasks.getPodStartTasks(EclipseChe.OPENVSX_DATABASE, EclipseChe.OPENVSX_DATABASE_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
+
+            tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.OPENVSX_SERVER, EclipseChe.OPENVSX_SERVER_DEPLOYMENT_NAME, 1, flags[CHE_NAMESPACE_FLAG]))
+            tasks.add(PodTasks.getPodStartTasks(EclipseChe.OPENVSX_SERVER, EclipseChe.OPENVSX_SERVER_SELECTOR, flags[CHE_NAMESPACE_FLAG]))
           }
 
           tasks.add(PodTasks.getScaleDeploymentTask(EclipseChe.DASHBOARD, EclipseChe.DASHBOARD_DEPLOYMENT_NAME, 1, flags[CHE_NAMESPACE_FLAG]))
@@ -157,6 +185,8 @@ export namespace CheTasks {
         await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.PLUGIN_REGISTRY_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
         await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.DASHBOARD_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
         await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.GATEWAY_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
+        await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.OPENVSX_DATABASE_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
+        await Che.readPodLog(flags[CHE_NAMESPACE_FLAG], EclipseChe.OPENVSX_SERVER_SELECTOR, ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
         await Che.readNamespaceEvents(flags[CHE_NAMESPACE_FLAG], ctx[CliContext.CLI_COMMAND_LOGS_DIR], follow)
         task.title = `${task.title}...[OK]`
       },

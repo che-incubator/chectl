@@ -55,6 +55,11 @@ interface CheClusterPluginRegistryComponent {
   openVSXURL?: string
 }
 
+interface CheClusterOpenVSXRegistryComponent {
+  enable?: boolean
+}
+
 export interface CheClusterComponents {
   pluginRegistry?: CheClusterPluginRegistryComponent
+  openVSXRegistry?: CheClusterOpenVSXRegistryComponent
 }
