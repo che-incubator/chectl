@@ -1802,13 +1802,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/test@npm:^2.5.6":
-  version: 2.5.6
-  resolution: "@oclif/test@npm:2.5.6"
+"@oclif/test@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "@oclif/test@npm:5.0.0"
   dependencies:
-    "@oclif/core": "npm:^2.15.0"
-    fancy-test: "npm:^2.0.42"
-  checksum: 10c0/7149d162dc46ee619ceda6db72c6e0581ac07c22e4041dd8debd9b84b3907112c2ce94659313aa9785d8f55573236f313a20e4d429d695e216f822d90675bb17
+    ansis: "npm:^3.17.0"
+    debug: "npm:^4.4.3"
+  peerDependencies:
+    "@oclif/core": ^5.0.0
+  checksum: 10c0/66ed8c1b9af351cd3cb2fa37acb3ea34108f9df150b5073ac3f6dde461be04671b67f64c056273690b68c3ec10d3602924d0a17013761388951849ef76e47605
   languageName: node
   linkType: hard
 
@@ -4089,7 +4091,7 @@ __metadata:
     "@oclif/plugin-help": "npm:6.2.35"
     "@oclif/plugin-update": "npm:^1.5.0"
     "@oclif/plugin-version": "npm:2.2.36"
-    "@oclif/test": "npm:^2.5.6"
+    "@oclif/test": "npm:^5.0.0"
     "@octokit/rest": "npm:^19.0.5"
     "@types/chai": "npm:5.2.3"
     "@types/command-exists": "npm:1.2.3"
@@ -5655,22 +5657,6 @@ __metadata:
   version: 1.4.1
   resolution: "extsprintf@npm:1.4.1"
   checksum: 10c0/e10e2769985d0e9b6c7199b053a9957589d02e84de42832c295798cb422a025e6d4a92e0259c1fb4d07090f5bfde6b55fd9f880ac5855bd61d775f8ab75a7ab0
-  languageName: node
-  linkType: hard
-
-"fancy-test@npm:^2.0.42":
-  version: 2.0.42
-  resolution: "fancy-test@npm:2.0.42"
-  dependencies:
-    "@types/chai": "npm:*"
-    "@types/lodash": "npm:*"
-    "@types/node": "npm:*"
-    "@types/sinon": "npm:*"
-    lodash: "npm:^4.17.13"
-    mock-stdin: "npm:^1.0.0"
-    nock: "npm:^13.3.3"
-    stdout-stderr: "npm:^0.1.9"
-  checksum: 10c0/f4faacf7b4be4cf1a60b5dfdddbfa382e5c9aaaf0326d9fab9f2c00255164157343de272f16e6f32e917d75a024601179b669a8e6d50739aac926b817de22e3c
   languageName: node
   linkType: hard
 
@@ -8951,7 +8937,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nock@npm:^13.3.3, nock@npm:^13.5.4":
+"nock@npm:^13.5.4":
   version: 13.5.6
   resolution: "nock@npm:13.5.6"
   dependencies:
