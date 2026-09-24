@@ -1527,12 +1527,12 @@ export class KubeClient {
       if (installPlan.status?.phase === 'Failed') {
         const errorMessage = []
         for (const condition of installPlan.status.conditions) {
-          if (!condition.reason) {
-            errorMessage.push(`Reason: ${condition.reason}`, !condition.message ? `Message: ${condition.message}` : '')
+          if (condition.reason) {
+            errorMessage.push(`Reason: ${condition.reason}`, condition.message ? `Message: ${condition.message}` : '')
           }
         }
 
-        throw new Error(errorMessage.join(' '))
+        return new Error(errorMessage.join(' '))
       }
 
       return
