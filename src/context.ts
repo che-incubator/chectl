@@ -47,11 +47,8 @@ import {
 import { DevWorkspace } from './tasks/installers/dev-workspace/dev-workspace'
 import { EclipseChe } from './tasks/installers/eclipse-che/eclipse-che'
 import * as fs from 'fs-extra'
-import execaModule = require('execa')
+import { execa } from 'execa'
 import { CheCluster } from './api/types/che-cluster'
-
-// Support both CJS (execa is the function) and ESM interop (execa.default)
-const execa = typeof execaModule === 'function' ? execaModule : (execaModule as { default: typeof execaModule }).default
 import { CatalogSource } from './api/types/olm'
 import { Command } from '@oclif/core'
 
@@ -315,16 +312,16 @@ export namespace CheCtlContext {
 
     const k8sCoreApi = kubeConfig.makeApiClient(ApisApi)
     const res = await k8sCoreApi.getAPIVersions()
-    if (!res || !res.body || !res.body.groups) {
+    if (!res || !res.groups) {
       return false
     }
 
-    const group = res.body.groups.find(g => g.name === name)
+    const group = res.groups.find((g: any) => g.name === name)
     if (!group) {
       return false
     }
 
-    return version ? Boolean(group.versions.some(v => v.version === version)) : Boolean(group)
+    return version ? Boolean(group.versions.some((v: any) => v.version === version)) : Boolean(group)
   }
 
   async function getCatalogSource(name: string, namespace: string): Promise<CatalogSource | undefined> {
@@ -333,10 +330,16 @@ export namespace CheCtlContext {
 
     const customObjectsApi = kubeConfig.makeApiClient(CustomObjectsApi)
     try {
-      const response = await customObjectsApi.getNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', name)
-      return response.body as CatalogSource
+      const response = await customObjectsApi.getNamespacedCustomObject({
+        group: 'operators.coreos.com',
+        version: 'v1alpha1',
+        namespace,
+        plural: 'catalogsources',
+        name
+      })
+      return response as CatalogSource
     } catch (e: any) {
-      if (e.response && e.response.statusCode === 404) {
+      if (e.code === 404) {
         return
       }
 
@@ -350,8 +353,12 @@ export namespace CheCtlContext {
 
     try {
       const customObjectsApi = kubeConfig.makeApiClient(CustomObjectsApi)
-      const { body } = await customObjectsApi.listClusterCustomObject(EclipseChe.CHE_CLUSTER_API_GROUP, EclipseChe.CHE_CLUSTER_API_VERSION_V2, EclipseChe.CHE_CLUSTER_KIND_PLURAL)
-      return ((body as any).items as CheCluster[])[0]?.metadata.namespace
+      const response = await customObjectsApi.listClusterCustomObject({
+        group: EclipseChe.CHE_CLUSTER_API_GROUP,
+        version: EclipseChe.CHE_CLUSTER_API_VERSION_V2,
+        plural: EclipseChe.CHE_CLUSTER_KIND_PLURAL
+      })
+      return ((response as any).items as CheCluster[])[0]?.metadata.namespace
     } catch { }
   }
 

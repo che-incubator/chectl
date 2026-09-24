@@ -10,11 +10,11 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import {V1Pod, Watch} from '@kubernetes/client-node'
+import { V1Pod, Watch } from '@kubernetes/client-node'
 import * as fs from 'fs-extra'
 import * as path from 'node:path'
-import {KubeClient} from './kube-client'
-import {ux} from '@oclif/core'
+import { KubeClient } from './kube-client'
+import { ux } from '@oclif/core'
 
 export class CheLogsReader {
   private kubeHelper: KubeClient
@@ -56,7 +56,7 @@ export class CheLogsReader {
     const fileName = path.resolve(directory, namespace, 'events.txt')
     fs.ensureFileSync(fileName)
 
-    const outStream = fs.createWriteStream(fileName, {flags: 'a'})
+    const outStream = fs.createWriteStream(fileName, { flags: 'a' })
 
     const eventList = await this.kubeHelper.listNamespacedEvent(namespace)
     for (const event of eventList.items) {
@@ -92,7 +92,7 @@ export class CheLogsReader {
     const processedContainers = new Map<string, Set<string>>()
 
     const watcher = new Watch(this.kubeHelper.getKubeConfig())
-    return watcher.watch(`/api/v1/namespaces/${namespace}/pods`, {}, async (_phase: string, obj: any) => {
+    await watcher.watch(`/api/v1/namespaces/${namespace}/pods`, {}, async (_phase: string, obj: any) => {
       const pod = obj as V1Pod
       if (!pod || !pod.metadata || !pod.metadata.name) {
         return

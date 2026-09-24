@@ -21,12 +21,19 @@ const compat = new FlatCompat({
 })
 
 // Patch eslint-plugin-header to include a schema (required by ESLint 9)
+// and to restore context.getSourceCode() (removed in ESLint 10)
 const patchedHeaderPlugin = {
   ...headerPlugin,
   rules: {
     ...headerPlugin.rules,
     header: {
       ...headerPlugin.rules.header,
+      create(context) {
+        const legacyContext = Object.create(context, {
+          getSourceCode: { value: () => context.sourceCode },
+        })
+        return headerPlugin.rules.header.create(legacyContext)
+      },
       meta: {
         ...headerPlugin.rules.header.meta,
         schema: [

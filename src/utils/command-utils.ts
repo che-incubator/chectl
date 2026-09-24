@@ -21,7 +21,7 @@ const notifier = typeof (notifierModule as { notify?: unknown }).notify === 'fun
 import { CheCtlContext, CliContext } from '../context'
 import * as fs from 'node:fs'
 import { EclipseChe } from '../tasks/installers/eclipse-che/eclipse-che'
-import execa = require('execa')
+import { execa } from 'execa'
 import * as path from 'node:path'
 import { CheCtlVersion } from './chectl-version'
 

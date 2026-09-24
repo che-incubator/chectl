@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import execa = require('execa')
+import { execa } from 'execa'
 
 export namespace OpenShift {
   export async function isOpenShiftRunning(): Promise<boolean> {

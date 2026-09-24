@@ -15,8 +15,7 @@ import * as Listr from 'listr'
 import { KubeClient } from '../api/kube-client'
 import { getEmbeddedTemplatesDirectory, newListr, safeLoadFromYamlFile } from '../utils/utls'
 import * as path from 'node:path'
-import { V1Role, V1RoleBinding } from '@kubernetes/client-node'
-import * as yaml from 'js-yaml'
+import { loadYaml, V1Role, V1RoleBinding } from '@kubernetes/client-node'
 import { CommonTasks } from './common-tasks'
 import { CHE_NAMESPACE_FLAG, CHE_OPERATOR_IMAGE_FLAG, CLUSTER_MONITORING_FLAG, DELETE_ALL_FLAG } from '../flags'
 import { EclipseChe } from './installers/eclipse-che/eclipse-che'
@@ -290,7 +289,7 @@ export namespace OlmTasks {
 
         if (csv && csv.metadata.annotations) {
           const rawYaml = csv.metadata.annotations!['alm-examples']
-          ctx[EclipseCheContext.DEFAULT_CR] = (yaml.load(rawYaml) as Array<any>).find(cr => kubeHelper.isCheClusterAPIV2(cr))
+          ctx[EclipseCheContext.DEFAULT_CR] = (loadYaml(rawYaml) as Array<any>).find(cr => kubeHelper.isCheClusterAPIV2(cr))
         } else {
           throw new Error(`Unable to fetch CheCluster CR sample ${!csv ? '' : 'from CSV: ' + csv.spec.displayName}`)
         }

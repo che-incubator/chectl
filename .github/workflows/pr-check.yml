@@ -24,7 +24,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.12.0
       - name: Enable Corepack
         run: corepack enable
       - name: Install yarn deps
@@ -44,7 +44,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.12.0
       - name: Enable Corepack
         run: corepack enable
       - name: Build chectl and pack binaries
@@ -73,7 +73,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.12.0
       - name: Enable Corepack
         run: corepack enable
       - name: Build chectl

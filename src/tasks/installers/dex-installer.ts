@@ -10,11 +10,10 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { V1ConfigMap, V1Ingress, V1Namespace, V1ObjectMeta } from '@kubernetes/client-node'
+import { loadYaml, V1ConfigMap, V1Ingress, V1Namespace, V1ObjectMeta } from '@kubernetes/client-node'
 import { ux } from '@oclif/core'
 import * as crypto from 'node:crypto'
 import * as fs from 'fs-extra'
-import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
 import { merge } from 'lodash'
 import * as os from 'node:os'
@@ -105,11 +104,11 @@ export class DexInstaller implements Installer {
               await this.kubeClient.waitSecret('ca.crt', DexInstaller.NAMESPACE_NAME)
 
               yamlFilePath = this.getDexResourceFilePath('issuer.yaml')
-              const issuer = yaml.load(fs.readFileSync(yamlFilePath).toString())
+              const issuer = safeLoadFromYamlFile(yamlFilePath)
               await this.kubeClient.createIssuer(issuer, DexInstaller.NAMESPACE_NAME)
 
               yamlFilePath = this.getDexResourceFilePath('certificate.yaml')
-              const certificate = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Certificate
+              const certificate = safeLoadFromYamlFile(yamlFilePath) as V1Certificate
               const flags = CheCtlContext.getFlags()
               const dexDomain = 'dex.' + flags[DOMAIN_FLAG]
               const wildCardDexDomain = '*.' + dexDomain
@@ -214,7 +213,7 @@ export class DexInstaller implements Installer {
               let yamlContent = fs.readFileSync(yamlFilePath).toString()
               yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DOMAIN, 'g'), flags[DOMAIN_FLAG])
 
-              const ingress = yaml.load(yamlContent) as V1Ingress
+              const ingress = loadYaml(yamlContent) as V1Ingress
               await this.kubeClient.createIngress(ingress, DexInstaller.NAMESPACE_NAME)
 
               task.title = `${task.title}...[Created]`
@@ -251,7 +250,7 @@ export class DexInstaller implements Installer {
                 throw new Error(`'config.yaml' not defined in the configmap '${DexInstaller.DEX_NAME}' in the namespace '${DexInstaller.NAMESPACE_NAME}'`)
               }
 
-              const config = yaml.load(configYamlData) as any
+              const config = loadYaml(configYamlData) as any
               const eclipseCheClient = (config.staticClients as Array<any>).find(client => client.id === DexInstaller.CLIENT_ID)
               if (!eclipseCheClient) {
                 ux.error(`'${DexInstaller.CLIENT_ID}' client not found in the configmap '${DexInstaller.DEX_NAME}' in the namespace '${DexInstaller.NAMESPACE_NAME}'.`, { exit: 1 })
@@ -269,13 +268,14 @@ export class DexInstaller implements Installer {
               yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DOMAIN, 'g'), flags[DOMAIN_FLAG])
               yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.CLIENT_ID, 'g'), DexInstaller.CLIENT_ID)
               // generate client secret
+              // eslint-disable-next-line no-useless-assignment
               let clientSecret = crypto.randomBytes(32).toString('base64')
               clientSecret = 'EclipseChe'
               yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.CLIENT_SECRET, 'g'), clientSecret)
 
               yamlContent = yamlContent.replace(new RegExp(TemplatePlaceholders.DEX_PASSWORD_HASH, 'g'), ctx[DexContext.DEX_PASSWORD_HASH])
 
-              const configMap = yaml.load(yamlContent) as V1ConfigMap
+              const configMap = loadYaml(yamlContent) as V1ConfigMap
               await this.kubeClient.createConfigMap(configMap, DexInstaller.NAMESPACE_NAME)
 
               // set in a CR

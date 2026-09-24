@@ -12,14 +12,12 @@
 import * as Listr from 'listr'
 import {
   V1ClusterRole, V1ClusterRoleBinding,
-  V1CustomResourceDefinition,
   V1Deployment,
   V1MutatingWebhookConfiguration, V1Role, V1RoleBinding, V1Service, V1ServiceAccount,
   V1ValidatingWebhookConfiguration,
 } from '@kubernetes/client-node'
 import { CommonTasks } from '../../common-tasks'
 import { EclipseChe } from './eclipse-che'
-import * as yaml from 'js-yaml'
 import * as fs from 'node:fs'
 import { V1Certificate } from '../../../api/types/cert-manager'
 import {
@@ -76,7 +74,7 @@ export namespace EclipseCheTasks {
     const kubeHelper = KubeClient.getInstance()
 
     const yamlFilePath = getCRDResourcePath()
-    const crd = safeLoadFromYamlFile(yamlFilePath) as V1CustomResourceDefinition
+    const crd = safeLoadFromYamlFile(yamlFilePath)
     crd.spec.conversion!.webhook!.clientConfig!.service!.namespace = flags[CHE_NAMESPACE_FLAG]
     crd.metadata!.annotations!['cert-manager.io/inject-ca-from'] = `${flags[CHE_NAMESPACE_FLAG]}/${EclipseChe.K8S_CERTIFICATE}`
 
@@ -130,7 +128,7 @@ export namespace EclipseCheTasks {
     const kubeHelper = KubeClient.getInstance()
 
     const yamlFilePath = getResourcePath('selfsigned-issuer.yaml')
-    const issuer = yaml.load(fs.readFileSync(yamlFilePath).toString()) as any
+    const issuer = safeLoadFromYamlFile(yamlFilePath) as any
 
     return CommonTasks.getCreateOrUpdateResourceTask(
       isCreateOnly,
@@ -146,7 +144,7 @@ export namespace EclipseCheTasks {
     const kubeHelper = KubeClient.getInstance()
 
     const yamlFilePath = getResourcePath('serving-cert.yaml')
-    const certificate = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Certificate
+    const certificate = safeLoadFromYamlFile(yamlFilePath) as V1Certificate
     certificate.spec.dnsNames = [`${EclipseChe.OPERATOR_SERVICE}.${flags[CHE_NAMESPACE_FLAG]}.svc`, `${EclipseChe.OPERATOR_SERVICE}.${flags[CHE_NAMESPACE_FLAG]}.svc.cluster.local`]
 
     return CommonTasks.getCreateOrUpdateResourceTask(
@@ -163,7 +161,7 @@ export namespace EclipseCheTasks {
     const kubeHelper = KubeClient.getInstance()
 
     const yamlFilePath = getResourcePath('service_account.yaml')
-    const serviceAccount = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1ServiceAccount
+    const serviceAccount = safeLoadFromYamlFile(yamlFilePath) as V1ServiceAccount
 
     return CommonTasks.getCreateOrUpdateResourceTask(
       isCreateOnly,
@@ -179,7 +177,7 @@ export namespace EclipseCheTasks {
     const kubeHelper = KubeClient.getInstance()
 
     const yamlFilePath = getResourcePath('webhook-service.yaml')
-    const service = yaml.load(fs.readFileSync(yamlFilePath).toString()) as V1Service
+    const service = safeLoadFromYamlFile(yamlFilePath) as V1Service
 
     return CommonTasks.getCreateOrUpdateResourceTask(
       isCreateOnly,
@@ -335,19 +333,19 @@ export namespace EclipseCheTasks {
         }
 
         switch (yamlContent.kind) {
-        case 'Role':
-          resources.roles.push(yamlContent)
-          break
-        case 'RoleBinding':
-          resources.roleBindings.push(yamlContent)
-          break
-        case 'ClusterRole':
-          resources.clusterRoles.push(yamlContent)
-          break
-        case 'ClusterRoleBinding':
-          resources.clusterRoleBindings.push(yamlContent)
-          break
-        default:
+          case 'Role':
+            resources.roles.push(yamlContent)
+            break
+          case 'RoleBinding':
+            resources.roleBindings.push(yamlContent)
+            break
+          case 'ClusterRole':
+            resources.clusterRoles.push(yamlContent)
+            break
+          case 'ClusterRoleBinding':
+            resources.clusterRoleBindings.push(yamlContent)
+            break
+          default:
           // Ignore this object kind
         }
       }
