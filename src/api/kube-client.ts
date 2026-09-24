@@ -130,25 +130,25 @@ export class KubeClient {
       }
     } catch (error: any) {
       if (error.response && error.response.status === 403) {
-        throw new Error(`E_K8S_API_FORBIDDEN - Message: ${error.response.data.message}`, { cause: error })
+        throw new Error(`E_K8S_API_FORBIDDEN - Message: ${error.response.data.message}`, {cause: error})
       }
 
       if (error.response && error.response.status === 401) {
-        throw new Error(`E_K8S_API_UNAUTHORIZED - Message: ${error.response.data.message}`, { cause: error })
+        throw new Error(`E_K8S_API_UNAUTHORIZED - Message: ${error.response.data.message}`, {cause: error})
       }
 
       if (error.response) {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
-        throw new Error(`E_K8S_API_UNKNOWN_ERROR - Status: ${error.response.status}`, { cause: error })
+        throw new Error(`E_K8S_API_UNKNOWN_ERROR - Status: ${error.response.status}`, {cause: error})
       } else if (error.request) {
         // The request was made but no response was received
         // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
         // http.ClientRequest in node.js
-        throw new Error(`E_K8S_API_NO_RESPONSE - Endpoint: ${endpoint} - Error message: ${error.message}`, { cause: error })
+        throw new Error(`E_K8S_API_NO_RESPONSE - Endpoint: ${endpoint} - Error message: ${error.message}`, {cause: error})
       } else {
         // Something happened in setting up the request that triggered an Error
-        throw new Error(`E_CHECTL_UNKNOWN_ERROR - Message: ${error.message}`, { cause: error })
+        throw new Error(`E_CHECTL_UNKNOWN_ERROR - Message: ${error.message}`, {cause: error})
       }
     }
   }
@@ -1526,7 +1526,7 @@ export class KubeClient {
 
       if (installPlan.status?.phase === 'Failed') {
         const errorMessage = []
-        for (const condition of installPlan.status.conditions) {
+        for (const condition of installPlan.status.conditions || []) {
           if (condition.reason) {
             errorMessage.push(`Reason: ${condition.reason}`, condition.message ? `Message: ${condition.message}` : '')
           }
@@ -1938,13 +1938,13 @@ export class KubeClient {
               return
             }
 
-            if (!shouldStopFunc(apiObj)) {
+            const err = shouldErrorFunc(apiObj)
+            if (err) {
+              settle(() => reject(err));
               return
             }
 
-            const err = shouldErrorFunc(apiObj)
-            if (err) {
-              settle(() => reject(err))
+            if (!shouldStopFunc(apiObj)) {
               return
             }
 
