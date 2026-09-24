@@ -13,7 +13,7 @@
 name: PR Checks
 on: [pull_request]
 jobs:
-  unit-tests-22:
+  unit-tests:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -33,7 +33,7 @@ jobs:
         run: yarn lint
       - name: Run unit tests
         run: yarn test
-  readme-md-validation-22:
+  readme-md-validation:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout

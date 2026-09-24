@@ -13,7 +13,7 @@
 name: Commands tests
 on: pull_request
 jobs:
-  chectl-update-test-22:
+  chectl-update-test:
     runs-on: ubuntu-22.04
     steps:
     - name: Checkout

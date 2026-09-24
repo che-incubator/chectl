@@ -13,7 +13,7 @@
 name: Test release binaries
 on: pull_request
 jobs:
-  release-test-22:
+  release-test:
     runs-on: ubuntu-22.04
     steps:
     - name: Checkout
