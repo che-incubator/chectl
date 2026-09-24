@@ -78,9 +78,8 @@ export async function findWorkspacePodAndContainer(
 ): Promise<PodInfo> {
   const coreApi = kubeConfig.makeApiClient(k8s.CoreV1Api)
 
-  const { body: podList } = await coreApi.listNamespacedPod(
-    namespace, undefined, undefined, undefined, undefined,
-    `${LABEL_DEVWORKSPACE_ID}=${devworkspaceId}`
+  const podList = await coreApi.listNamespacedPod(
+    { namespace, labelSelector: `${LABEL_DEVWORKSPACE_ID}=${devworkspaceId}` }
   )
 
   const pods = podList.items
@@ -98,8 +97,8 @@ export async function findWorkspacePodAndContainer(
   if (workspaceName) {
     try {
       const customApi = kubeConfig.makeApiClient(k8s.CustomObjectsApi)
-      const { body } = await customApi.getNamespacedCustomObject(
-        DW_API_GROUP, DW_API_VERSION, namespace, DW_PLURAL, workspaceName
+      const body = await customApi.getNamespacedCustomObject(
+        { group: DW_API_GROUP, version: DW_API_VERSION, namespace, plural: DW_PLURAL, name: workspaceName }
       )
       const dw = body as DevWorkspaceResource
 
