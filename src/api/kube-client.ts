@@ -209,6 +209,7 @@ export class KubeClient {
       `metadata.name=${name}`,
       (apiObj: any) => (apiObj as V1Namespace)?.status?.phase === 'Active',
       () => undefined,
+      () => undefined,
       timeoutMs
     )
   }
@@ -1338,6 +1339,7 @@ export class KubeClient {
       `metadata.name=${name}`,
       shouldStopFunc,
       returnFunc,
+      () => undefined,
       timeoutMs,
     )
   }
@@ -1416,6 +1418,7 @@ export class KubeClient {
       `metadata.name=${name}`,
       shouldStopFunc,
       returnFunc,
+      () => undefined,
       timeoutMs,
     )
   }
@@ -1436,6 +1439,7 @@ export class KubeClient {
       `metadata.name=${name}`,
       shouldStopFunc,
       returnFunc,
+      () => undefined,
       timeoutMs,
     )
   }
@@ -1475,6 +1479,7 @@ export class KubeClient {
       `metadata.name=${name}`,
       shouldStopFunc,
       returnFunc,
+      () => undefined,
       timeoutMs,
     )
   }
@@ -1516,6 +1521,23 @@ export class KubeClient {
       return false
     }
 
+    const shouldErrorFunc = (apiObj: any): Error | undefined => {
+      const installPlan = apiObj as InstallPlan
+
+      if (installPlan.status?.phase === 'Failed') {
+        const errorMessage = []
+        for (const condition of installPlan.status.conditions) {
+          if (!condition.reason) {
+            errorMessage.push(`Reason: ${condition.reason}`, !condition.message ? `Message: ${condition.message}` : '')
+          }
+        }
+
+        throw new Error(errorMessage.join(' '))
+      }
+
+      return
+    }
+
     const returnFunc = (apiObj: any): any => {
       const installPlan = apiObj as InstallPlan
       if (installPlan.status?.conditions) {
@@ -1532,6 +1554,7 @@ export class KubeClient {
       `metadata.name=${name}`,
       shouldStopFunc,
       returnFunc,
+      shouldErrorFunc,
       timeoutMs,
     )
   }
@@ -1885,8 +1908,27 @@ export class KubeClient {
     fieldSelector: string,
     shouldStopFunc: (obj: any) => boolean,
     returnFunc: (obj: any) => any | undefined,
+    shouldErrorFunc: (obj: any) => Error | undefined,
     timeoutMs: number): Promise<any> {
-    let timeoutHandler: NodeJS.Timeout
+    let timeoutHandler: NodeJS.Timeout | undefined
+    let abortRequest: (() => void) | undefined
+    let settled = false
+
+    // Guards against the watch callback, the error callback and the timeout racing
+    // to settle, and against aborting a request that is not assigned yet.
+    const settle = (action: () => void) => {
+      if (settled) {
+        return
+      }
+
+      settled = true
+      if (timeoutHandler) {
+        clearTimeout(timeoutHandler)
+      }
+
+      abortRequest?.()
+      action()
+    }
 
     return new Promise(async (resolve, reject) => {
       try {
@@ -1900,41 +1942,39 @@ export class KubeClient {
               return
             }
 
-            if (timeoutHandler) {
-              clearTimeout(timeoutHandler)
+            const err = shouldStopFunc(apiObj)
+            if (err) {
+              reject(err)
             }
 
-            try {
-              request.abort()
-            } catch {
-              // Ignore abort errors
-            }
-
-            resolve(returnFunc(apiObj))
+            settle(() => resolve(returnFunc(apiObj)))
           },
           error => {
-            if (timeoutHandler) {
-              clearTimeout(timeoutHandler)
-            }
-
-            if (error instanceof Error && error.name !== 'AbortError') {
-              reject(error)
-            }
+            // Called with a null error when the stream closes normally, which happens
+            // before the condition is met, so it must reject rather than leave the caller hanging.
+            settle(() => reject(error ?? new Error(`Watch on '${path}' with '${fieldSelector}' closed before the condition was met.`)))
           })
 
-        timeoutHandler = setTimeout(() => {
+        abortRequest = () => {
           try {
             request.abort()
           } catch {
             // Ignore abort errors
           }
+        }
 
-          reject(new Error("Timeout reached"))
+        if (settled) {
+          abortRequest()
+          return
+        }
+
+        timeoutHandler = setTimeout(() => {
+          settle(() => reject(new Error(`Timeout reached while watching '${path}' with '${fieldSelector}'.`)))
         }, timeoutMs)
       } catch (error) {
         // An async executor's throw is swallowed by the Promise constructor,
         // which would otherwise leave the caller hanging forever.
-        reject(error)
+        settle(() => reject(error))
       }
     })
   }
@@ -1952,6 +1992,7 @@ export class KubeClient {
       `metadata.name=${name}`,
       shouldStopFunc,
       returnFunc,
+      () => undefined,
       timeoutMs,
     )
   }

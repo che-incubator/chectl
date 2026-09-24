@@ -166,7 +166,8 @@
         {
           "tsconfig": {
             "allowJs": true,
-            "module": "commonjs"
+            "module": "commonjs",
+            "esModuleInterop": true
           }
         }
       ]
