@@ -12,7 +12,7 @@
 
 import * as fs from 'fs-extra'
 import * as os from 'node:os'
-import * as yaml from 'js-yaml'
+import { loadYaml } from '@kubernetes/client-node'
 import * as path from 'node:path'
 import { CheCtlContext } from '../context'
 import ListrModule = require('listr')
@@ -53,7 +53,7 @@ export function getProjectVersion(): string {
 }
 
 export function safeLoadFromYamlFile(filePath: string): any {
-  return yaml.load(fs.readFileSync(filePath).toString())
+  return loadYaml(fs.readFileSync(filePath).toString())
 }
 
 export function getEmbeddedTemplatesDirectory(): string {
@@ -141,7 +141,7 @@ export async function isCommandExists(commandName: string): Promise<boolean> {
   try {
     await execa(whereCommand, [commandName])
     return true
-  } catch {}
+  } catch { }
 
   return false
 }

@@ -139,7 +139,7 @@ export namespace CommonTasks {
     return {
       title: '',
       enabled: () => false,
-      task: async () => {},
+      task: async () => { },
     }
   }
 
@@ -258,7 +258,7 @@ export namespace CommonTasks {
         for (const message of ctx[CliContext.CLI_COMMAND_POST_OUTPUT_MESSAGES]) {
           tasks.add({
             title: message,
-            task: () => {},
+            task: () => { },
           })
         }
 
