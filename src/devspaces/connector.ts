@@ -176,7 +176,7 @@ async function connectDevworkspaceName(workspaceName: string, wm: WorkspaceManag
     const podInfo = await findWorkspacePodAndContainer(kubeConfig, workspace.namespace, workspace.devworkspaceId)
     mainContainerName = podInfo.containerName
 
-    const { body: pod } = await coreApi.readNamespacedPod(podInfo.podName, workspace.namespace)
+    const pod = await coreApi.readNamespacedPod({ name: podInfo.podName, namespace: workspace.namespace })
     const containers = pod.spec?.containers ?? []
     isCheCodeSSHD = containers.some(c => c.name === 'che-code-sshd-page')
     if (isCheCodeSSHD) {

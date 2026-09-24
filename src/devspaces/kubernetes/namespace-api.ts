@@ -58,7 +58,7 @@ export class NamespaceApi {
   private async tryConventionalName(username: string): Promise<string | undefined> {
     const name = `${username}-devspaces`
     try {
-      await this.coreApi.readNamespace(name)
+      await this.coreApi.readNamespace({ name })
       console.log(`[Strategy 1] Found: ${name}`)
       return name
     } catch {
@@ -78,7 +78,7 @@ export class NamespaceApi {
 
     const name = `${lower}-devspaces`
     try {
-      await this.coreApi.readNamespace(name)
+      await this.coreApi.readNamespace({ name })
       console.log(`[Strategy 2] Found: ${name}`)
       return name
     } catch {
@@ -150,8 +150,8 @@ export class NamespaceApi {
 
     try {
       console.log('[Strategy 4] Listing OpenShift projects...')
-      const { body } = await this.customApi.listClusterCustomObject(
-        'project.openshift.io', 'v1', 'projects'
+      const body = await this.customApi.listClusterCustomObject(
+        { group: 'project.openshift.io', version: 'v1', plural: 'projects' }
       )
       const response = body as ProjectList
 
@@ -193,7 +193,7 @@ export class NamespaceApi {
   private async tryListNamespaces(username: string): Promise<string | undefined> {
     try {
       console.log('[Strategy 5] Listing all namespaces...')
-      const { body } = await this.coreApi.listNamespace()
+      const body = await this.coreApi.listNamespace()
       const namespaces = body.items
       console.log(`[Strategy 5] Found ${namespaces.length} namespaces`)
 

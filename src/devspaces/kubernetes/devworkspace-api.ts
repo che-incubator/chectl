@@ -13,11 +13,9 @@
 // https://github.com/redhat-developer/devspaces-remote-connector/blob/main/src/kubernetes/DevWorkspaceApi.ts
 
 import * as k8s from '@kubernetes/client-node'
+import { PatchStrategy, setHeaderOptions } from '@kubernetes/client-node'
 import { DW_API_GROUP, DW_API_VERSION, DW_PLURAL, LABEL_METADATA_NAME, WorkspacePhase } from '../constants'
 import { WorkspaceModel } from '../workspace/workspace-model'
-
-/** Content-type required for RFC 6902 JSON Patch requests. */
-const JSON_PATCH_HEADERS = { headers: { 'content-type': 'application/json-patch+json' } }
 
 /**
  * Wraps the Kubernetes CustomObjectsApi for DevWorkspace CRD operations.
@@ -46,8 +44,8 @@ export class DevWorkspaceApi {
   async list(namespace: string): Promise<WorkspaceModel[]> {
     this.validateNamespace(namespace)
     console.log(`Listing DevWorkspaces in ${namespace}`)
-    const { body } = await this.customApi.listNamespacedCustomObject(
-      DW_API_GROUP, DW_API_VERSION, namespace, DW_PLURAL
+    const body = await this.customApi.listNamespacedCustomObject(
+      { group: DW_API_GROUP, version: DW_API_VERSION, namespace, plural: DW_PLURAL }
     )
     const response = body as { items: DevWorkspaceResource[] }
     return response.items.map(item => this.toModel(item, namespace))
@@ -56,8 +54,8 @@ export class DevWorkspaceApi {
   async get(namespace: string, name: string): Promise<WorkspaceModel> {
     this.validateNamespace(namespace)
     this.validateName(name)
-    const { body } = await this.customApi.getNamespacedCustomObject(
-      DW_API_GROUP, DW_API_VERSION, namespace, DW_PLURAL, name
+    const body = await this.customApi.getNamespacedCustomObject(
+      { group: DW_API_GROUP, version: DW_API_VERSION, namespace, plural: DW_PLURAL, name }
     )
     return this.toModel(body as DevWorkspaceResource, namespace)
   }
@@ -67,9 +65,11 @@ export class DevWorkspaceApi {
     this.validateName(name)
     console.log(`Starting workspace ${name} in ${namespace}`)
     await this.customApi.patchNamespacedCustomObject(
-      DW_API_GROUP, DW_API_VERSION, namespace, DW_PLURAL, name,
-      [{ op: 'replace', path: '/spec/started', value: true }],
-      undefined, undefined, undefined, JSON_PATCH_HEADERS
+      {
+        group: DW_API_GROUP, version: DW_API_VERSION, namespace, plural: DW_PLURAL, name,
+        body: [{ op: 'replace', path: '/spec/started', value: true }],
+      },
+      setHeaderOptions('Content-Type', PatchStrategy.JsonPatch)
     )
   }
 
@@ -78,9 +78,11 @@ export class DevWorkspaceApi {
     this.validateName(name)
     console.log(`Stopping workspace ${name} in ${namespace}`)
     await this.customApi.patchNamespacedCustomObject(
-      DW_API_GROUP, DW_API_VERSION, namespace, DW_PLURAL, name,
-      [{ op: 'replace', path: '/spec/started', value: false }],
-      undefined, undefined, undefined, JSON_PATCH_HEADERS
+      {
+        group: DW_API_GROUP, version: DW_API_VERSION, namespace, plural: DW_PLURAL, name,
+        body: [{ op: 'replace', path: '/spec/started', value: false }],
+      },
+      setHeaderOptions('Content-Type', PatchStrategy.JsonPatch)
     )
   }
 
@@ -89,7 +91,7 @@ export class DevWorkspaceApi {
     this.validateName(name)
     console.log(`Deleting workspace ${name} in ${namespace}`)
     await this.customApi.deleteNamespacedCustomObject(
-      DW_API_GROUP, DW_API_VERSION, namespace, DW_PLURAL, name
+      { group: DW_API_GROUP, version: DW_API_VERSION, namespace, plural: DW_PLURAL, name }
     )
   }
 
