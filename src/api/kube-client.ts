@@ -1942,9 +1942,10 @@ export class KubeClient {
               return
             }
 
-            const err = shouldStopFunc(apiObj)
+            const err = shouldErrorFunc(apiObj)
             if (err) {
-              reject(err)
+              settle(() => reject(err))
+              return
             }
 
             settle(() => resolve(returnFunc(apiObj)))
