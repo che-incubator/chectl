@@ -54,6 +54,10 @@
     "typescript": "5.9.3",
     "typescript-formatter": "7.2.2"
   },
+  "resolutions": {
+    "nock": "^14.0.10",
+    "whatwg-url": "^14.2.0"
+  },
   "engines": {
     "node": ">=22.13.0"
   },
@@ -189,9 +193,5 @@
       "json",
       "mjs"
     ]
-  },
-  "packageManager": "yarn@4.12.0",
-  "resolutions": {
-    "whatwg-url": "^14.2.0"
   }
 }
