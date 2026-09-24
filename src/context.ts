@@ -47,7 +47,7 @@ import {
 import { DevWorkspace } from './tasks/installers/dev-workspace/dev-workspace'
 import { EclipseChe } from './tasks/installers/eclipse-che/eclipse-che'
 import * as fs from 'fs-extra'
-import { execa } from 'execa'
+import execa = require('execa')
 import { CheCluster } from './api/types/che-cluster'
 import { CatalogSource } from './api/types/olm'
 import { Command } from '@oclif/core'

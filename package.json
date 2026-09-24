@@ -13,11 +13,11 @@
     "@oclif/plugin-help": "6.2.35",
     "@oclif/plugin-update": "^1.5.0",
     "@oclif/plugin-version": "2.2.36",
-    "@octokit/rest": "^22.0.1",
+    "@octokit/rest": "^20.1.2",
     "axios": "^1.20.0",
     "cli-ux": "^6.0.9",
     "command-exists": "^1.2.9",
-    "execa": "^10.0.1",
+    "execa": "^5.1.1",
     "fancy-test": "^3.0.16",
     "fs-extra": "^11.4.1",
     "listr": "^0.14.3",
@@ -42,7 +42,7 @@
     "@types/semver": "7.8.0",
     "@typescript-eslint/eslint-plugin": "^8.70.1",
     "@typescript-eslint/parser": "^8.70.1",
-    "chai": "^6.2.2",
+    "chai": "^4.5.0",
     "eslint": "10.11.0",
     "eslint-config-oclif": "^3.1.0",
     "eslint-config-oclif-typescript": "^1.0.3",
@@ -137,10 +137,10 @@
     "postinstall-fetch-operators": "node fetch-operators.js",
     "postinstall-operator": "node prepare-templates.js",
     "postinstall-cleanup": "rimraf node_modules/eclipse-che-operator && rimraf node_modules/devworkspace-operator",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --collect-coverage",
-    "test-watch": "NODE_OPTIONS=--experimental-vm-modules jest --watchAll",
-    "e2e-minikube": "export PLATFORM=minikube && NODE_OPTIONS=--experimental-vm-modules yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
-    "e2e-openshift": "export PLATFORM=openshift && NODE_OPTIONS=--experimental-vm-modules yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
+    "test": "jest --collect-coverage",
+    "test-watch": "jest --watchAll",
+    "e2e-minikube": "export PLATFORM=minikube && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
+    "e2e-openshift": "export PLATFORM=openshift && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
     "prepack": "yarn lint && rm -rf lib && rm -rf tsconfig.tsbuildinfo && tsc -b && oclif manifest && oclif readme",
     "pack-binaries": "oclif pack tarballs --no-xz --parallel",
     "postpack": "rm -f oclif.manifest.json",
@@ -164,7 +164,10 @@
       "^.+\\.(ts|tsx|js|jsx|mjs)$": [
         "ts-jest",
         {
-          "useESM": true
+          "tsconfig": {
+            "allowJs": true,
+            "module": "commonjs"
+          }
         }
       ]
     },
