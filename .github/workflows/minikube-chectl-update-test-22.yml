@@ -1,0 +1,47 @@
+#
+# Copyright (c) 2019-2023 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+name: Commands tests
+on: pull_request
+jobs:
+  chectl-update-test-22:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - name: Start latest minikube cluster
+      run: |
+        curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+        install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+        minikube start --vm-driver=docker --addons=ingress --cpus 2 --memory 6500
+    - name: Install chectl from the stable channel
+      run: bash <(curl -sL  https://che-incubator.github.io/chectl/install.sh) --channel=stable
+    - name: Install NodeJS
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+    - name: Enable Corepack
+      run: corepack enable
+    - name: Build chectl
+      run: yarn --immutable && yarn rebuild
+    - name: Run tests
+      run: |
+        export PLATFORM=minikube
+        yarn test --coverage=false --forceExit --testRegex=test/e2e/e2e-upgrade-version.test.ts
+    - uses: actions/upload-artifact@v4
+      if: ${{ always() }}
+      with:
+        name: test-artifacts
+        path: /tmp/logs/*

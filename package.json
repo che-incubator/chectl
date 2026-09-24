@@ -49,14 +49,13 @@
     "eslint-plugin-header": "^3.1.1",
     "eslint-plugin-no-null": "^1.0.2",
     "jest": "^30.5.2",
-    "nock": "^14",
     "oclif": "^3",
     "ts-jest": "29.4.13",
     "typescript": "5.9.3",
     "typescript-formatter": "7.2.2"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.13.0"
   },
   "files": [
     "/bin",
@@ -193,6 +192,6 @@
   },
   "packageManager": "yarn@4.12.0",
   "resolutions": {
-    "nock": "^14.0.17"
+    "whatwg-url": "^14.2.0"
   }
 }

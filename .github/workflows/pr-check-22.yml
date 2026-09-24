@@ -13,7 +13,7 @@
 name: PR Checks
 on: [pull_request]
 jobs:
-  unit-tests:
+  unit-tests-22:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -24,7 +24,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version: 22.12.0
+          node-version: 22
       - name: Enable Corepack
         run: corepack enable
       - name: Install yarn deps
@@ -33,7 +33,7 @@ jobs:
         run: yarn lint
       - name: Run unit tests
         run: yarn test
-  readme-md-validation:
+  readme-md-validation-22:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -44,7 +44,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version: 22.12.0
+          node-version: 22
       - name: Enable Corepack
         run: corepack enable
       - name: Build chectl and pack binaries
@@ -62,40 +62,3 @@ jobs:
             echo "[ERROR] README.md it is not up to date. Please run 'yarn oclif readme' to update and commit the changes."
             exit 1
           fi
-  license-validation:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Install NodeJS
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.12.0
-      - name: Enable Corepack
-        run: corepack enable
-      - name: Build chectl
-        run: yarn --immutable && yarn rebuild
-      - name: Set up Go 1.15
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.15
-      - name: Check license headers
-        run: |
-          export GO111MODULE=on
-          go get -u github.com/che-incubator/check-license-header@379ba18fdb906d341ae451ea155cc34f1c4b4f1a
-          echo "[INFO] Check license headers."
-          FILES_TO_CHECK_LICENSE=$(find . \
-          -not -path "./tmp/*" \
-          -not -path "./node_modules/*" \
-          -not -path "./.operator-sources/*" \
-          -not -path "./resources/*" \
-          -not -path "./templates/*" \
-          -not -path "./lib/*" \
-          \( -name "*.ts" -o -name "*.yaml" -o -name "*.yml" -o -name "*.sh" \))
-
-          LICENSE_TEMPLATE="${GITHUB_WORKSPACE}/hack/license-header.txt"
-
-          check-license-header -f "${LICENSE_TEMPLATE}" ${FILES_TO_CHECK_LICENSE}

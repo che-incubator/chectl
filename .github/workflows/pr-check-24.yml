@@ -1,0 +1,64 @@
+#
+# Copyright (c) 2019-2023 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+name: PR Checks
+on: [pull_request]
+jobs:
+  unit-tests-24:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install yarn deps
+        run: yarn --immutable && yarn rebuild
+      - name: Run eslint
+        run: yarn lint
+      - name: Run unit tests
+        run: yarn test
+  readme-md-validation-24:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Build chectl and pack binaries
+        run: |
+          yarn --immutable && yarn rebuild
+          export PATH="${PATH}:${PWD}/bin/shasum"
+          yarn pack-binaries --targets=linux-x64
+      - name: Build README.md
+        run: DEBUG=* npx oclif readme
+      - name: Check README.md state
+        run: |
+          IFS=$'\n' read -d '' -r -a FILES_CHANGED_ARRAY < <( git ls-files -m ) || true
+          # check if readme it is up to date
+          if [[ " ${FILES_CHANGED_ARRAY[@]} " =~ "README.md" ]]; then
+            echo "[ERROR] README.md it is not up to date. Please run 'yarn oclif readme' to update and commit the changes."
+            exit 1
+          fi
