@@ -113,10 +113,10 @@ export class ClusterDiscovery {
   async discover(inputUrl: string): Promise<ClusterEndpoints> {
     console.log(`Discovering cluster endpoints from: ${inputUrl}`)
 
+    const baseUrl = this.normalizeInputUrl(inputUrl)
     let appsDomain = this.extractAppsDomain(inputUrl)
 
     // If we couldn't extract from the hostname, try following /oauth/start
-    const baseUrl = this.normalizeInputUrl(inputUrl)
     if (!appsDomain) {
       console.log(`Could not extract apps domain from hostname, trying /oauth/start redirect from ${baseUrl}`)
       appsDomain = await this.discoverAppsDomainViaRedirect(baseUrl)
@@ -146,25 +146,31 @@ export class ClusterDiscovery {
 
   async buildKubeAPIServerURL(appsDomain: string): Promise<string> {
     const consoleURL = `https://console-openshift-console.${appsDomain}`
-    const response = await request({ url: consoleURL, method: 'GET' })
-    const html = response.data
+    const clusterBase = appsDomain.replace(/^apps\./, '')
+    const defaultApiUrl = `https://api.${clusterBase}:6443`
+    try {
+      const response = await request({ url: consoleURL, method: 'GET' })
+      const html = response.data
 
-    // Find the line with window.SERVER_FLAGS = {...};
-    // https://github.com/openshift/console/blob/release-4.21/frontend/public/index.html#L62
-    // https://github.com/openshift/console/blob/release-4.21/pkg/server/server.go#L805-L811
-    // https://github.com/openshift/console/blob/release-4.21/pkg/server/server.go#L124
-    const match = html.match(/window\.SERVER_FLAGS\s*=\s*({[\s\S]*?});/)
+      // Find the line with window.SERVER_FLAGS = {...};
+      // https://github.com/openshift/console/blob/release-4.21/frontend/public/index.html#L62
+      // https://github.com/openshift/console/blob/release-4.21/pkg/server/server.go#L805-L811
+      // https://github.com/openshift/console/blob/release-4.21/pkg/server/server.go#L124
+      const match = html.match(/window\.SERVER_FLAGS\s*=\s*({[\s\S]*?});/)
 
-    if (!match || !match[1]) {
-      const clusterBase = appsDomain.replace(/^apps\./, '')
-      const defaultApiUrl = `https://api.${clusterBase}:6443`
-      console.log(`Could not find SERVER_FLAGS in ${consoleURL} HTML response`)
+      if (!match || !match[1]) {
+        console.log(`Could not find SERVER_FLAGS in ${consoleURL} HTML response`)
+        console.log(`Falling back to ${defaultApiUrl}`)
+        return defaultApiUrl
+      }
+
+      const serverFlags = JSON.parse(match[1])
+      return serverFlags.kubeAPIServerURL
+    } catch (err) {
+      console.log(`Failed to derive the Kubernetes API Server URL : ${err}`)
       console.log(`Falling back to ${defaultApiUrl}`)
-      return defaultApiUrl
+      return defaultApiUrl;
     }
-
-    const serverFlags = JSON.parse(match[1])
-    return serverFlags.kubeAPIServerURL
   }
 
   /**

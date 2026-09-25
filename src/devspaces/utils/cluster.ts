@@ -15,8 +15,6 @@
 import { getSavedPorts, rememberPorts } from './io'
 import { extStoragePath } from '../constants'
 import { platform } from 'os'
-import * as http from 'http'
-import * as https from 'https'
 import { unlinkSync } from 'fs'
 import * as path from 'path'
 import * as net from 'net'
@@ -47,6 +45,10 @@ export async function establishPortForward(namespace: string, podName: string, r
         }
       })
       forward.portForward(namespace, podName, [remotePort], socket, null, socket)
+      .catch((err: Error) => {
+          console.info(`Port forward to ${namespace}/${podName}:${remotePort} failed: ${err.message}`)
+          socket.destroy()
+      })
     })
 
     const localPort = await new Promise<number>((resolve, reject) => {
@@ -63,76 +65,6 @@ export async function establishPortForward(namespace: string, podName: string, r
     console.info(`Port-forward: localhost:${localPort} → ${podName}:${remotePort}`)
     return localPort
   }
-
-/**
- * Resolves the OpenShift API URL from a DevSpaces workspace URL.
- *
- * Hits the /oauth/start endpoint on the DevSpaces host (unauthenticated) which
- * redirects to oauth-openshift.apps.<cluster-domain>. The cluster domain is
- * extracted and the API URL is derived as https://api.<cluster-domain>:6443.
- * If this approach fails, falls back to extracting host directly from the
- * original URL.
- *
- * Works for both standard (.apps.) and custom domain URLs.
- * Uses Node.js https module instead of curl for cross-platform compatibility.
- */
-export async function getOpenShiftApiURL(inputURL: string): Promise<string | undefined> {
-    try {
-        const host = new URL(inputURL)
-        const oauthStartURL = `${host.protocol}//${host.host}/oauth/start`
-
-        console.log(`Discovering cluster API URL via ${oauthStartURL}`)
-
-        // Follow the /oauth/start redirect to discover the real cluster hostname
-        const redirectURL = await new Promise<string | undefined>(resolve => {
-            const mod = host.protocol === 'https:' ? https : http
-            const req = mod.get(oauthStartURL, { rejectUnauthorized: false }, (res: http.IncomingMessage) => {
-                if (res.statusCode === 302 && res.headers.location) {
-                    resolve(res.headers.location)
-                } else {
-                    resolve(undefined)
-                }
-            })
-            req.on('error', () => resolve(undefined))
-            req.setTimeout(10000, () => {
- req.destroy(); resolve(undefined)
-})
-        })
-
-        if (redirectURL) {
-            // Redirect URL is: https://oauth-openshift.apps.<cluster-domain>/oauth/authorize?...
-            // Strip "oauth-openshift.apps." prefix to get the cluster domain
-            const oauthHost = new URL(redirectURL).hostname
-            const prefix = 'oauth-openshift.apps.'
-            if (oauthHost.startsWith(prefix)) {
-                const clusterDomain = oauthHost.substring(prefix.length)
-                const apiURL = `https://api.${clusterDomain}:6443`
-                console.log(`Resolved API URL: ${apiURL}`)
-                return apiURL
-            } else {
-                console.log(`Unexpected OAuth hostname: ${oauthHost}`)
-            }
-        } else {
-            console.log('No redirect received from /oauth/start')
-        }
-
-        // Fall back to basic approach
-        let key = ''
-        if (host.host.indexOf('.apps-') > 0) {
-            key = '.apps-'
-        } else if (host.host.indexOf('.apps.') > 0) {
-            key = '.apps.'
-        } else {
-            return undefined
-        }
-
-        const hostTLD = `${host.host.substring(host.host.indexOf(key) + key.length)}`
-        return `${host.protocol}//api.${hostTLD}:6443`
-    } catch (err) {
-        console.log(String(err))
-        return undefined
-    }
-}
 
 export function generateHostEntry(podName: string, devworkspaceId: string, port: number, userName: string, identityPath: string | undefined): string {
     return [
