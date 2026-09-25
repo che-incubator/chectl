@@ -12,8 +12,8 @@
 
 import { Args, Command, Flags } from '@oclif/core'
 
-import { initCluster } from '../../devspaces/cluster/cluster-session-manager'
-import { configureLogging } from '../../devspaces/utils/logging'
+import { initCluster } from '../../workspace/cluster/cluster-session-manager'
+import { configureLogging } from '../../workspace/utils/logging'
 
 export default class Delete extends Command {
   static description = 'Delete the given developer workspace (DevWorkspace)'

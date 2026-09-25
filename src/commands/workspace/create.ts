@@ -13,8 +13,8 @@
 import { Args, Command, Flags } from '@oclif/core'
 import cli from 'cli-ux'
 
-import { initCluster } from '../../devspaces/cluster/cluster-session-manager'
-import { configureLogging } from '../../devspaces/utils/logging'
+import { initCluster } from '../../workspace/cluster/cluster-session-manager'
+import { configureLogging } from '../../workspace/utils/logging'
 
 export default class Create extends Command {
   static description = 'Create a developer workspace (DevWorkspace) for the given devfile URL'

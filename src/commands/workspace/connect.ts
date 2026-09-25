@@ -12,9 +12,9 @@
 
 import { Args, Command, Flags } from '@oclif/core'
 
-import { initCluster } from '../../devspaces/cluster/cluster-session-manager'
-import { connect } from '../../devspaces/connector'
-import { configureLogging } from '../../devspaces/utils/logging'
+import { initCluster } from '../../workspace/cluster/cluster-session-manager'
+import { connect } from '../../workspace/connector'
+import { configureLogging } from '../../workspace/utils/logging'
 
 export default class Connect extends Command {
   static description = 'Connect to a developer workspace (DevWorkspace) over SSH. Accepts either a devspaces:// URI or the name of the workspace.'
