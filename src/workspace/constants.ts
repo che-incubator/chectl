@@ -14,16 +14,17 @@
 
 import { homedir } from 'os'
 import * as path from 'path'
+import { EclipseChe } from '../tasks/installers/eclipse-che/eclipse-che'
 
 /**
  * Shared constants for the Dev Spaces workspace commands.
  */
 
 /** Local storage path for connection data (keys, kube context, port state). */
-export const extStoragePath = path.join(homedir(), '.devspaces-cli-connector')
+export const extStoragePath = path.join(homedir(), `.${EclipseChe.PRODUCT_ID}`)
 
-/** URL scheme handled by the connector (devspaces://...). */
-export const DEVSPACES_SCHEME = 'devspaces'
+/** URL scheme handled by the connector (che://...). */
+export const CHE_SCHEME = EclipseChe.CHE_FLAVOR
 
 /** DevWorkspace API group and version */
 export const DW_API_GROUP = 'workspace.devfile.io'

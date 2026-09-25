@@ -28,24 +28,24 @@ export class KubeClientFactory {
     kc.loadFromOptions({
       clusters: [
         {
-          name: 'devspaces-cluster',
+          name: 'workspace-cluster',
           server: apiUrl,
         },
       ],
       users: [
         {
-          name: 'devspaces-user',
+          name: 'workspace-user',
           token,
         },
       ],
       contexts: [
         {
-          name: 'devspaces-context',
-          cluster: 'devspaces-cluster',
-          user: 'devspaces-user',
+          name: 'workspace-context',
+          cluster: 'workspace-cluster',
+          user: 'workspace-user',
         },
       ],
-      currentContext: 'devspaces-context',
+      currentContext: 'workspace-context',
     })
 
     console.log(`KubeConfig created for ${apiUrl}`)

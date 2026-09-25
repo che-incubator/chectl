@@ -12,11 +12,12 @@
 
 // https://github.com/redhat-developer/devspaces-remote-connector/blob/main/src/auth/ClusterDiscovery.ts
 
+import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che';
 import { request, HttpError } from '../utils/http-client'
 
 export interface ClusterEndpoints {
-  /** The DevSpaces dashboard base URL, e.g. https://devspaces.apps.devspc02-1d.zs5b.p1.openshiftapps.com */
-  devSpacesUrl: string;
+  /** The Che dashboard base URL, e.g. https://devspaces.apps.devspc02-1d.zs5b.p1.openshiftapps.com */
+  cheUrl: string;
   /** The OpenShift API server URL, e.g. https://api.devspc02-1d.zs5b.p1.openshiftapps.com:6443 */
   apiUrl: string;
   /** The OAuth authorization endpoint */
@@ -78,7 +79,7 @@ export class ClusterDiscovery {
   }
 
   /**
-   * Normalize any user-provided URL into a clean DevSpaces base URL.
+   * Normalize any user-provided URL into a clean Che base URL.
    * Strips paths, fragments, query params.
    */
   normalizeInputUrl(inputUrl: string): string {
@@ -99,9 +100,9 @@ export class ClusterDiscovery {
   }
 
   /**
-   * Build the DevSpaces dashboard URL from the apps domain.
+   * Build the Che dashboard URL from the apps domain.
    */
-  buildDevSpacesUrl(baseUrl: string): string {
+  buildCheUrl(baseUrl: string): string {
     // This used to be `https://devspaces.${appsDomain}`
     // But this is incorrect, so just reuse cluster URL
     return baseUrl
@@ -123,24 +124,24 @@ export class ClusterDiscovery {
     }
 
     const apiUrl = await this.buildKubeAPIServerURL(appsDomain)
-    const devSpacesUrl = this.buildDevSpacesUrl(baseUrl)
+    const cheUrl = this.buildCheUrl(baseUrl)
 
     console.log(`Apps domain: ${appsDomain}`)
     console.log(`API URL: ${apiUrl}`)
-    console.log(`DevSpaces URL: ${devSpacesUrl}`)
+    console.log(`${EclipseChe.CHE_FLAVOR} URL: ${cheUrl}`)
 
     // Fetch OAuth metadata from the API server
     const oauthMeta = await this.fetchOAuthMetadata(baseUrl, apiUrl)
 
     const endpoints: ClusterEndpoints = {
-      devSpacesUrl,
+      cheUrl,
       apiUrl,
       oauthAuthorizeUrl: oauthMeta.authorization_endpoint,
       oauthTokenUrl: oauthMeta.token_endpoint,
       appsDomain,
     }
 
-    console.log(`Cluster discovery complete: API=${apiUrl}, DevSpaces=${devSpacesUrl}`)
+    console.log(`Cluster discovery complete: API=${apiUrl}, ${EclipseChe.CHE_FLAVOR}=${cheUrl}`)
     return endpoints
   }
 
@@ -174,7 +175,7 @@ export class ClusterDiscovery {
   }
 
   /**
-   * Discover the apps domain by following the DevSpaces /oauth/start redirect.
+   * Discover the apps domain by following the Che /oauth/start redirect.
    * Used as a fallback when the URL is a CNAME (e.g. devspaces.example.com).
    */
   private async discoverAppsDomainViaRedirect(baseUrl: string): Promise<string> {
