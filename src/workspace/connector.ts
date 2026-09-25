@@ -16,25 +16,26 @@ import { homedir } from 'os'
 import cli from 'cli-ux'
 import * as k8s from '@kubernetes/client-node'
 import { establishPortForward, generateHostEntry, isPortAvailable } from './utils/cluster'
-import { ensureDevspacesConfigIncluded, ensureExists, writeKeyFile } from './utils/io'
+import { ensureWorkspaceConfigIncluded, ensureExists, writeKeyFile } from './utils/io'
 import { ClusterDiscovery } from './auth/cluster-discovery'
 import { KubeClientFactory } from './kubernetes/kube-client-factory'
 import { OAuthFlow } from './auth/oauth-flow'
 import { WorkspaceManager } from './workspace/workspace-manager'
 import { execOnPod, findWorkspacePodAndContainer } from './kubernetes/exec-helper'
+import { EclipseChe } from '../tasks/installers/eclipse-che/eclipse-che'
 
 /**
- * Connect to a DevWorkspace given either a devspaces://... URI or a workspace name.
+ * Connect to a DevWorkspace given either a che://... URI or a workspace name.
  */
-export async function connect(connectArg: string | undefined, wm: WorkspaceManager, kubeConfig: k8s.KubeConfig, devspacesUrl: string): Promise<void> {
+export async function connect(connectArg: string | undefined, wm: WorkspaceManager, kubeConfig: k8s.KubeConfig, cheUrl: string): Promise<void> {
     if (connectArg && URL.parse(connectArg)) {
-        // A parseable URL means we were handed a devspaces://... connection URI.
-        await connectDevspacesURI(connectArg)
+        // A parseable URL means we were handed a che://... connection URI.
+        await connectCheURI(connectArg)
     } else if (connectArg) {
         // Otherwise treat the argument as a workspace name.
-        await connectDevworkspaceName(connectArg, wm, kubeConfig, devspacesUrl)
+        await connectDevworkspaceName(connectArg, wm, kubeConfig, cheUrl)
     } else {
-        await connectDevspacesURI(connectArg)
+        await connectCheURI(connectArg)
     }
 }
 
@@ -77,7 +78,7 @@ export async function handleVSCodeURI(uri: URL) {
 
     const sshConfigDir = path.join(homedir(), '.ssh')
     const sshConfigFile = path.join(sshConfigDir, 'config')
-    const devspacesConfigFile = path.join(sshConfigDir, 'devspaces.conf')
+    const workspaceConfigFile = path.join(sshConfigDir, 'cluster.conf')
     ensureExists(sshConfigDir)
 
     let privateKeyFile
@@ -85,10 +86,10 @@ export async function handleVSCodeURI(uri: URL) {
         privateKeyFile = writeKeyFile(`${podName}.key`, keyContent)
     }
     const localPort = await establishPortForward(namespace, podName, 2022, kubeConfig)
-    const devspaceHostEntry = generateHostEntry(podName, dwName, localPort, userName, privateKeyFile)
+    const workspaceHostEntry = generateHostEntry(podName, dwName, localPort, userName, privateKeyFile)
 
-    writeFileSync(devspacesConfigFile, devspaceHostEntry)
-    ensureDevspacesConfigIncluded(sshConfigFile, devspacesConfigFile)
+    writeFileSync(workspaceConfigFile, workspaceHostEntry)
+    ensureWorkspaceConfigIncluded(sshConfigFile, workspaceConfigFile)
 
     console.log(`Verifying port ${localPort} is set up.`)
 
@@ -135,28 +136,28 @@ function hasValidParameters(namespace: string, podName: string, dwName: string, 
     return true
 }
 
-async function connectDevspacesURI(devspacesURI: string | undefined) {
-    if (!devspacesURI) {
+async function connectCheURI(cheUri: string | undefined) {
+    if (!cheUri) {
         try {
-            devspacesURI = await cli.prompt('Please enter the Developer Workspace URI') as string
+            cheUri = await cli.prompt('Please enter the Developer Workspace URI') as string
         } catch (error) {
             console.error(error)
         }
     }
 
-    console.log(`DevSpaces Workspace URI : ${devspacesURI}`)
+    console.log(`${EclipseChe.PRODUCT_NAME} Workspace URI : ${cheUri}`)
 
-    if (!devspacesURI) {
+    if (!cheUri) {
         return
     }
-    const url = URL.parse(devspacesURI)
+    const url = URL.parse(cheUri)
     if (!url) {
         return
     }
     await handleVSCodeURI(url)
 }
 
-async function connectDevworkspaceName(workspaceName: string, wm: WorkspaceManager, kubeConfig: k8s.KubeConfig, devspacesUrl: string) {
+async function connectDevworkspaceName(workspaceName: string, wm: WorkspaceManager, kubeConfig: k8s.KubeConfig, cheUrl: string) {
     let isCheCodeSSHD = false
 
     const workspace = await wm.startWorkspace(workspaceName)
@@ -192,12 +193,12 @@ async function connectDevworkspaceName(workspaceName: string, wm: WorkspaceManag
             // continue
         }
 
-        const encodedUrl = encodeURIComponent(devspacesUrl)
-        let devspacesUri = `devspaces://redhat.devspaces-remote-ssh?namespace=${workspace.namespace}&podName=${podInfo.podName}&userName=${sshUsername}&dwName=${workspaceName}&url=${encodedUrl}`
+        const encodedUrl = encodeURIComponent(cheUrl)
+        let cheUri = `che://redhat.devspaces-remote-ssh?namespace=${workspace.namespace}&podName=${podInfo.podName}&userName=${sshUsername}&dwName=${workspaceName}&url=${encodedUrl}`
         if (encodedPrivateKey) {
-            devspacesUri += `&key=${encodedPrivateKey}`
+            cheUri += `&key=${encodedPrivateKey}`
         }
 
-        await connectDevspacesURI(devspacesUri)
+        await connectCheURI(cheUri)
     }
 }

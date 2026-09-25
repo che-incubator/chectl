@@ -43,11 +43,11 @@ export default class Create extends Command {
     configureLogging(flags.verbose)
 
     try {
-      const { devspacesUrl } = flags.auth ? await initCluster(flags.auth) : await initCluster()
+      const { cheUrl } = flags.auth ? await initCluster(flags.auth) : await initCluster()
       const devfileUrl = args.devfileUrl && args.devfileUrl.length > 0 ?
         args.devfileUrl :
-        `${devspacesUrl}/dashboard/devfile-registry/devfiles/empty.yaml`
-      const workspaceUrl = `${devspacesUrl}/dashboard/#/load-factory?url=${encodeURIComponent(devfileUrl)}&policies.create=perclick`
+        `${cheUrl}/dashboard/devfile-registry/devfiles/empty.yaml`
+      const workspaceUrl = `${cheUrl}/dashboard/#/load-factory?url=${encodeURIComponent(devfileUrl)}&policies.create=perclick`
       this.log(`Opening ... ${workspaceUrl}`)
       await cli.open(workspaceUrl)
     } catch (error: any) {

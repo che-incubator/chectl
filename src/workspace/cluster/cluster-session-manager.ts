@@ -24,8 +24,8 @@ import { NamespaceApi } from '../kubernetes/namespace-api'
 import { getJson } from '../utils/http-client'
 import * as k8s from '@kubernetes/client-node'
 
-export async function initCluster(dashboardURL?: string): Promise<{devspacesUrl: string, wm: WorkspaceManager, kubeConfig: k8s.KubeConfig}> {
-    let devspacesUrl
+export async function initCluster(dashboardURL?: string): Promise<{cheUrl: string, wm: WorkspaceManager, kubeConfig: k8s.KubeConfig}> {
+    let cheUrl
     let apiUrl
     let username
     let token
@@ -42,14 +42,14 @@ export async function initCluster(dashboardURL?: string): Promise<{devspacesUrl:
             endpoints.oauthTokenUrl
         )
         // TODO: What to do with clusterUrl ?
-        devspacesUrl = endpoints.devSpacesUrl
+        cheUrl = endpoints.cheUrl
         apiUrl = endpoints.apiUrl
         token = accessToken
         username = await discoverUsername(token, apiUrl)
 
         writeContextFile('context',
         JSON.stringify({
-            devspacesUrl: devspacesUrl,
+            cheUrl: cheUrl,
             apiUrl: apiUrl,
             username: username,
             token: token,
@@ -61,23 +61,23 @@ export async function initCluster(dashboardURL?: string): Promise<{devspacesUrl:
       if (!context) {
         throw new Error('No saved Dev Spaces session. Re-run the command with --auth <cluster URL>.')
       }
-      ({ devspacesUrl, apiUrl, username, token } = JSON.parse(context))
+      ({ cheUrl, apiUrl, username, token } = JSON.parse(context))
     }
 
     const kubeClientFactory = new KubeClientFactory()
     const kubeConfig = kubeClientFactory.createConfig(apiUrl, token)
-    const clusterId = urlToId(devspacesUrl)
-    const wm = createWorkspaceManager(kubeConfig, clusterId, devspacesUrl, token)
+    const clusterId = urlToId(cheUrl)
+    const wm = createWorkspaceManager(kubeConfig, clusterId, cheUrl, token)
     await wm.initialize(username)
 
-    return { devspacesUrl, wm, kubeConfig }
+    return { cheUrl, wm, kubeConfig }
 }
 
-function createWorkspaceManager(kubeConfig: k8s.KubeConfig, clusterId: string, devSpacesUrl: string, accessToken: string): WorkspaceManager {
+function createWorkspaceManager(kubeConfig: k8s.KubeConfig, clusterId: string, cheUrl: string, accessToken: string): WorkspaceManager {
     const coreApi = kubeConfig.makeApiClient(k8s.CoreV1Api)
     const customApi = kubeConfig.makeApiClient(k8s.CustomObjectsApi)
     const devWorkspaceApi = new DevWorkspaceApi(customApi, clusterId)
-    const namespaceApi = new NamespaceApi(coreApi, customApi, devSpacesUrl, accessToken)
+    const namespaceApi = new NamespaceApi(coreApi, customApi, cheUrl, accessToken)
     const wm = new WorkspaceManager(devWorkspaceApi, namespaceApi)
     return wm
 }

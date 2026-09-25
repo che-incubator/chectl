@@ -17,11 +17,11 @@ import { connect } from '../../workspace/connector'
 import { configureLogging } from '../../workspace/utils/logging'
 
 export default class Connect extends Command {
-  static description = 'Connect to a developer workspace (DevWorkspace) over SSH. Accepts either a devspaces:// URI or the name of the workspace.'
+  static description = 'Connect to a developer workspace (DevWorkspace) over SSH. Accepts either a che:// URI or the name of the workspace.'
 
   static args = {
     target: Args.string({
-      description: 'A devspaces:// connection URI or the name of the workspace. If omitted, you will be prompted for a URI.',
+      description: 'A che:// connection URI or the name of the workspace. If omitted, you will be prompted for a URI.',
       required: false,
     }),
   }
@@ -43,8 +43,8 @@ export default class Connect extends Command {
     configureLogging(flags.verbose)
 
     try {
-      const { wm, kubeConfig, devspacesUrl } = flags.auth ? await initCluster(flags.auth) : await initCluster()
-      await connect(args.target, wm, kubeConfig, devspacesUrl)
+      const { wm, kubeConfig, cheUrl } = flags.auth ? await initCluster(flags.auth) : await initCluster()
+      await connect(args.target, wm, kubeConfig, cheUrl)
 
       // Don't exit - the port forward server needs to keep running.
       // Set up signal handlers for clean shutdown.

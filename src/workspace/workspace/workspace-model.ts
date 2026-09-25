@@ -15,7 +15,7 @@
 import { WorkspacePhase } from '../constants'
 
 /**
- * Data model representing a DevSpaces workspace.
+ * Data model representing a Che workspace.
  */
 export interface WorkspaceModel {
   /** Workspace name (DevWorkspace metadata.name) */

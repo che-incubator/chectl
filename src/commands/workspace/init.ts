@@ -12,11 +12,11 @@
 
 import { Command, Flags } from '@oclif/core'
 
-import { registerDevspacesHandler } from '../../workspace/handler'
+import { registerUrlHandler } from '../../workspace/handler'
 import { configureLogging } from '../../workspace/utils/logging'
 
 export default class Init extends Command {
-  static description = 'Register a devspaces:// URL handler so that connection links open directly with chectl. This eliminates the need to copy connection data by hand.'
+  static description = 'Register a che:// URL handler so that connection links open directly with chectl. This eliminates the need to copy connection data by hand.'
 
   static aliases = ['workspace:install']
 
@@ -39,9 +39,9 @@ export default class Init extends Command {
 
     try {
       // process.execPath is the node binary; process.argv[1] is the chectl entrypoint.
-      // $_URL_ is substituted with the actual devspaces:// URL by protocol-registry.
+      // $_URL_ is substituted with the actual che:// URL by protocol-registry.
       const command = `"${process.execPath}" "${process.argv[1]}" workspace:connect "$_URL_"`
-      await registerDevspacesHandler(command, flags.force)
+      await registerUrlHandler(command, flags.force)
     } catch (error: any) {
       this.error(error)
     }

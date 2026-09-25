@@ -56,7 +56,7 @@ export interface DevWorkspaceComponent {
 }
 
 /**
- * ConsoleLink custom resource (used for DevSpaces URL discovery).
+ * ConsoleLink custom resource (used for Che URL discovery).
  */
 export interface ConsoleLinkList {
   items?: Array<{

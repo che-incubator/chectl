@@ -15,14 +15,15 @@
 import * as k8s from '@kubernetes/client-node'
 import { request } from '../utils/http-client'
 import { ProjectList } from './devworkspace-types'
+import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
 
 /**
- * Discovers the user's DevSpaces namespace.
+ * Discovers the user's Che namespace.
  *
  * Strategies (tried in order):
- * 1. Conventional name: GET {username}-devspaces (direct, no special perms)
- * 2. Lowercase variant: GET {username.toLowerCase()}-devspaces
- * 3. DevSpaces Server API: GET /api/kubernetes/namespace (works for all users)
+ * 1. Conventional name: GET {username}-che (direct, no special perms)
+ * 2. Lowercase variant: GET {username.toLowerCase()}-che
+ * 3. Che Server API: GET /api/kubernetes/namespace (works for all users)
  * 4. OpenShift Projects API: list user-scoped projects (no cluster-admin)
  * 5. Cluster-scope namespace list (requires cluster-admin)
  */
@@ -30,7 +31,7 @@ export class NamespaceApi {
   constructor(
     private coreApi: k8s.CoreV1Api,
     private customApi?: k8s.CustomObjectsApi,
-    private devSpacesUrl?: string,
+    private cheUrl?: string,
     private accessToken?: string
   ) {}
 
@@ -39,7 +40,7 @@ export class NamespaceApi {
 
     const result = await this.tryConventionalName(username) ??
       await this.tryLowercaseConventionalName(username) ??
-      await this.tryDevSpacesApi(username) ??
+      await this.tryCheApi(username) ??
       await this.tryProjectsApi(username) ??
       await this.tryListNamespaces(username)
 
@@ -53,10 +54,10 @@ export class NamespaceApi {
   }
 
   /**
-   * Strategy 1: Direct GET on {username}-devspaces.
+   * Strategy 1: Direct GET on {username}-che.
    */
   private async tryConventionalName(username: string): Promise<string | undefined> {
-    const name = `${username}-devspaces`
+    const name = `${username}-${EclipseChe.CHE_FLAVOR}`
     try {
       await this.coreApi.readNamespace({ name })
       console.log(`[Strategy 1] Found: ${name}`)
@@ -68,7 +69,7 @@ export class NamespaceApi {
   }
 
   /**
-   * Strategy 2: Direct GET on {username.toLowerCase()}-devspaces.
+   * Strategy 2: Direct GET on {username.toLowerCase()}-che.
    */
   private async tryLowercaseConventionalName(username: string): Promise<string | undefined> {
     const lower = username.toLowerCase()
@@ -76,7 +77,7 @@ export class NamespaceApi {
  return undefined
 }
 
-    const name = `${lower}-devspaces`
+    const name = `${lower}-${EclipseChe.CHE_FLAVOR}`
     try {
       await this.coreApi.readNamespace({ name })
       console.log(`[Strategy 2] Found: ${name}`)
@@ -88,27 +89,27 @@ export class NamespaceApi {
   }
 
   /**
-   * Strategy 3: DevSpaces Server API.
-   * GET {devSpacesUrl}/api/kubernetes/namespace
+   * Strategy 3: Che Server API.
+   * GET {cheUrl}/api/kubernetes/namespace
    * Returns the user's namespace(s). Works regardless of RBAC.
    */
-  private async tryDevSpacesApi(username: string): Promise<string | undefined> {
-    if (!this.devSpacesUrl || !this.accessToken) {
-      console.log('[Strategy 3] No DevSpaces URL or token, skipping')
+  private async tryCheApi(username: string): Promise<string | undefined> {
+    if (!this.cheUrl || !this.accessToken) {
+      console.log('[Strategy 3] No workspace URL or token, skipping')
       return undefined
     }
 
     try {
-      const apiUrl = `${this.devSpacesUrl}/api/kubernetes/namespace`
+      const apiUrl = `${this.cheUrl}/api/kubernetes/namespace`
       console.log(`[Strategy 3] Querying: ${apiUrl}`)
 
       const response = await this.httpGet(apiUrl, this.accessToken)
       const namespaces = JSON.parse(response)
 
-      // Response: [{ name: "d9209267-devspaces-heh46u", attributes: {...} }]
+      // Response: [{ name: "d9209267-che-heh46u", attributes: {...} }]
       const items = Array.isArray(namespaces) ? namespaces : []
       const lowerUsername = username.toLowerCase()
-      const prefix = `${lowerUsername}-devspaces`
+      const prefix = `${lowerUsername}-${EclipseChe.CHE_FLAVOR}`
 
       for (const ns of items) {
         const name = ns.name ?? ns.metadata?.name
@@ -117,7 +118,7 @@ export class NamespaceApi {
 }
 
         if (name.startsWith(prefix)) {
-          console.log(`[Strategy 3] Found via DevSpaces API: ${name}`)
+          console.log(`[Strategy 3] Found via ${EclipseChe.CHE_FLAVOR} API: ${name}`)
           return name
         }
       }
@@ -126,14 +127,14 @@ export class NamespaceApi {
       if (items.length === 1) {
         const name = items[0].name ?? items[0].metadata?.name
         if (name) {
-          console.log(`[Strategy 3] Single namespace from DevSpaces API: ${name}`)
+          console.log(`[Strategy 3] Single namespace from ${EclipseChe.CHE_FLAVOR} API: ${name}`)
           return name
         }
       }
 
       console.log(`[Strategy 3] No match in ${items.length} namespaces`)
     } catch (err: any) {
-      console.log(`[Strategy 3] DevSpaces API failed: ${err?.message ?? err}`)
+      console.log(`[Strategy 3] ${EclipseChe.CHE_FLAVOR} API failed: ${err?.message ?? err}`)
     }
 
     return undefined
@@ -159,13 +160,13 @@ export class NamespaceApi {
       console.log(`[Strategy 4] Found ${projects.length} projects`)
 
       const lowerUsername = username.toLowerCase()
-      const prefix = `${lowerUsername}-devspaces`
+      const prefix = `${lowerUsername}-${EclipseChe.CHE_FLAVOR}`
 
       for (const project of projects) {
         const name = project.metadata?.name as string | undefined
         if (!name) {
- continue
-}
+          continue
+        }
 
         const cheUsername = project.metadata?.annotations?.['che.eclipse.org/username']
         if (cheUsername && cheUsername.toLowerCase() === lowerUsername) {

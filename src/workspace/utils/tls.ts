@@ -93,7 +93,7 @@ export function loadSystemCAs(): void {
 
     if (certs && certs.length > 100) {
       extraCAs = certs
-      const caFile = path.join(os.tmpdir(), `devspaces-cas-${crypto.randomBytes(8).toString('hex')}.pem`)
+      const caFile = path.join(os.tmpdir(), `che-cas-${crypto.randomBytes(8).toString('hex')}.pem`)
       fs.writeFileSync(caFile, certs, { mode: 0o600 })
       process.env.NODE_EXTRA_CA_CERTS = caFile
       const certCount = (certs.match(/-----BEGIN CERTIFICATE-----/g) || []).length

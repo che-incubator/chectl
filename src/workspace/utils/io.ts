@@ -91,7 +91,7 @@ export function ensureExists(dir: string) {
     mkdirSync(dir)
 }
 
-export function ensureDevspacesConfigIncluded(sshConfigFile: string, devspacesConfigFile: string) {
+export function ensureWorkspaceConfigIncluded(sshConfigFile: string, clusterConfigFile: string) {
     const sshData = readFile(sshConfigFile)
     const sshConfig = SSHConfig.parse(sshData)
 
@@ -100,13 +100,13 @@ export function ensureDevspacesConfigIncluded(sshConfigFile: string, devspacesCo
         if (line.type === LineType.DIRECTIVE &&
             line.param === 'Include' &&
             typeof line.value === 'string' &&
-            line.value === 'devspaces.conf') {
+            line.value === 'cluster.conf') {
             count++
         }
         if (line.type === LineType.DIRECTIVE &&
             line.param === 'Include' &&
             typeof line.value === 'string' &&
-            line.value.includes('devspaces.conf') &&
+            line.value.includes('cluster.conf') &&
             path.isAbsolute(line.value)) {
             count++
         }
@@ -115,11 +115,11 @@ export function ensureDevspacesConfigIncluded(sshConfigFile: string, devspacesCo
     // Workaround for https://github.com/PowerShell/Win32-OpenSSH/issues/1511
     if (count < 2) {
         sshConfig.prepend({
-            Include: 'devspaces.conf',
+            Include: 'cluster.conf',
         })
         if (count === 0) {
             sshConfig.prepend({
-                Include: `${devspacesConfigFile}`,
+                Include: `${clusterConfigFile}`,
             })
         }
     }
