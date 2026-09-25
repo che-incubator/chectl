@@ -48,7 +48,7 @@ export default class Connect extends Command {
 
       // Don't exit - the port forward server needs to keep running.
       // Set up signal handlers for clean shutdown.
-      console.log('\nPort forward is active. Press Ctrl+C to disconnect.')
+      console.info('\nPort forward is active. Press Ctrl+C to disconnect.')
 
       process.on('SIGINT', () => {
         console.log('\nDisconnecting...')

@@ -56,16 +56,19 @@ export async function initCluster(dashboardURL?: string): Promise<{devspacesUrl:
         })
     )
     } else {
-        const contextFile = path.join(extStoragePath, '.k8s', 'context')
-        const context = JSON.parse(readFile(contextFile));
-({ devspacesUrl, apiUrl, username, token } = context)
+      const contextFile = path.join(extStoragePath, '.k8s', 'context')
+      const context = readFile(contextFile)
+      if (!context) {
+        throw new Error('No saved Dev Spaces session. Re-run the command with --auth <cluster URL>.')
+      }
+      ({ devspacesUrl, apiUrl, username, token } = JSON.parse(context))
     }
 
     const kubeClientFactory = new KubeClientFactory()
     const kubeConfig = kubeClientFactory.createConfig(apiUrl, token)
     const clusterId = urlToId(devspacesUrl)
     const wm = createWorkspaceManager(kubeConfig, clusterId, devspacesUrl, token)
-    await initializeWorkspaces(wm, apiUrl, token)
+    await wm.initialize(username)
 
     return { devspacesUrl, wm, kubeConfig }
 }
@@ -77,13 +80,6 @@ function createWorkspaceManager(kubeConfig: k8s.KubeConfig, clusterId: string, d
     const namespaceApi = new NamespaceApi(coreApi, customApi, devSpacesUrl, accessToken)
     const wm = new WorkspaceManager(devWorkspaceApi, namespaceApi)
     return wm
-}
-
-async function initializeWorkspaces(wm: WorkspaceManager, apiUrl: string, accessToken: string): Promise<void> {
-    const username = await discoverUsername(accessToken, apiUrl)
-    if (username) {
-        await wm.initialize(username)
-    }
 }
 
 /**

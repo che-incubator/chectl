@@ -15,7 +15,7 @@ import * as path from 'path'
 import { homedir } from 'os'
 import cli from 'cli-ux'
 import * as k8s from '@kubernetes/client-node'
-import { establishPortForward, generateHostEntry, getOpenShiftApiURL, isPortAvailable } from './utils/cluster'
+import { establishPortForward, generateHostEntry, isPortAvailable } from './utils/cluster'
 import { ensureDevspacesConfigIncluded, ensureExists, writeKeyFile } from './utils/io'
 import { ClusterDiscovery } from './auth/cluster-discovery'
 import { KubeClientFactory } from './kubernetes/kube-client-factory'
@@ -61,12 +61,6 @@ export async function handleVSCodeURI(uri: URL) {
     }
     dashboardURL = decodeURIComponent(dashboardURL)
 
-    const apiURL = await getOpenShiftApiURL(dashboardURL)
-    if (apiURL === undefined) {
-        console.log(`The API URL does not appear to be valid, and a connection could not be established.`)
-        return
-    }
-
     // Discover cluster endpoints
     const clusterDiscovery = new ClusterDiscovery()
     const endpoints = await clusterDiscovery.discover(dashboardURL)
@@ -97,11 +91,9 @@ export async function handleVSCodeURI(uri: URL) {
     ensureDevspacesConfigIncluded(sshConfigFile, devspacesConfigFile)
 
     console.log(`Verifying port ${localPort} is set up.`)
-    try {
-        await isPortAvailable(localPort, 1000)
-    } catch (err) {
-        console.log(`Failed to verify connection : ${err}`)
-        return
+
+    if (!await isPortAvailable(localPort, 1000)) {
+        console.log(`Failed to verify connection on ${localPort}`)
     }
 
     console.info(`Connection setup completed! Please connect to SSH Host alias: ${dwName}`)
@@ -206,6 +198,6 @@ async function connectDevworkspaceName(workspaceName: string, wm: WorkspaceManag
             devspacesUri += `&key=${encodedPrivateKey}`
         }
 
-        await cli.open(devspacesUri)
+        await connectDevspacesURI(devspacesUri)
     }
 }
