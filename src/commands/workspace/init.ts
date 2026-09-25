@@ -12,8 +12,8 @@
 
 import { Command, Flags } from '@oclif/core'
 
-import { registerDevspacesHandler } from '../../devspaces/handler'
-import { configureLogging } from '../../devspaces/utils/logging'
+import { registerDevspacesHandler } from '../../workspace/handler'
+import { configureLogging } from '../../workspace/utils/logging'
 
 export default class Init extends Command {
   static description = 'Register a devspaces:// URL handler so that connection links open directly with chectl. This eliminates the need to copy connection data by hand.'

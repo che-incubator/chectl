@@ -12,8 +12,8 @@
 
 import { Args, Command, Flags } from '@oclif/core'
 
-import { initCluster } from '../../devspaces/cluster/cluster-session-manager'
-import { configureLogging } from '../../devspaces/utils/logging'
+import { initCluster } from '../../workspace/cluster/cluster-session-manager'
+import { configureLogging } from '../../workspace/utils/logging'
 
 export default class Start extends Command {
   static description = 'Start the given developer workspace (DevWorkspace)'
