@@ -10,8 +10,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-// https://github.com/redhat-developer/devspaces-remote-connector/blob/main/src/kubernetes/NamespaceApi.ts
-
 import * as k8s from '@kubernetes/client-node'
 import { request } from '../utils/http-client'
 import { ProjectList } from './devworkspace-types'

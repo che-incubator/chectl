@@ -10,13 +10,13 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-// https://github.com/redhat-developer/devspaces-remote-connector/blob/main/src/auth/OAuthFlow.ts
-
 import * as http from 'http'
 import * as crypto from 'crypto'
 import cli from 'cli-ux'
 import { postForm, HttpError } from '../utils/http-client'
 import { OAUTH_CALLBACK_TIMEOUT } from '../constants'
+import { readFile } from '../utils/io'
+import path from 'path'
 
 export interface OAuthResult {
   code: string;
@@ -243,30 +243,12 @@ export class OAuthFlow {
   }
 
   private successPage(): string {
-    return `<!DOCTYPE html>
-<html>
-<head><title>Dev Spaces - Authenticated</title></head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #1e1e1e; color: #cccccc;">
-  <div style="text-align: center;">
-    <h1 style="color: #4ec9b0;">&#10003; Authentication Successful</h1>
-    <p>You can close this tab and return to your IDE.</p>
-  </div>
-</body>
-</html>`
+    return readFile(path.join('resources', 'oauth-success.html'));
   }
 
   private errorPage(message: string): string {
+    const errorTemplate = readFile(path.join('resources', 'oauth-error.html'));
     const escaped = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-    return `<!DOCTYPE html>
-<html>
-<head><title>Dev Spaces - Authentication Failed</title></head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #1e1e1e; color: #cccccc;">
-  <div style="text-align: center;">
-    <h1 style="color: #f44747;">&#10007; Authentication Failed</h1>
-    <p>${escaped}</p>
-    <p>Please close this tab and try again from the IDE.</p>
-  </div>
-</body>
-</html>`
+    return errorTemplate.replace('MESSAGE', escaped);
   }
 }

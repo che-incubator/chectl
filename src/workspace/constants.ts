@@ -10,14 +10,12 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-// https://github.com/redhat-developer/devspaces-remote-connector/blob/main/src/constants.ts
-
 import { homedir } from 'os'
 import * as path from 'path'
 import { EclipseChe } from '../tasks/installers/eclipse-che/eclipse-che'
 
 /**
- * Shared constants for the Dev Spaces workspace commands.
+ * Shared constants for the Che workspace commands.
  */
 
 /** Local storage path for connection data (keys, kube context, port state). */

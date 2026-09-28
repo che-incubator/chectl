@@ -10,8 +10,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-// https://github.com/redhat-developer/devspaces-remote-connector/blob/main/src/util/httpClient.ts
-
 import * as https from 'https'
 import { getHttpsAgent } from './tls'
 

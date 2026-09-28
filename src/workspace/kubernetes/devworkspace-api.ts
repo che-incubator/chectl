@@ -10,8 +10,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-// https://github.com/redhat-developer/devspaces-remote-connector/blob/main/src/kubernetes/DevWorkspaceApi.ts
-
 import * as k8s from '@kubernetes/client-node'
 import { PatchStrategy, setHeaderOptions } from '@kubernetes/client-node'
 import { DW_API_GROUP, DW_API_VERSION, DW_PLURAL, LABEL_METADATA_NAME, WorkspacePhase } from '../constants'
@@ -21,7 +19,7 @@ import { WorkspaceModel } from '../workspace/workspace-model'
  * Wraps the Kubernetes CustomObjectsApi for DevWorkspace CRD operations.
  * Handles listing, getting, starting, stopping, and deleting workspaces.
  *
- * Workspace *creation* is handled by the DevSpaces dashboard (browser flow),
+ * Workspace *creation* is handled by the Che dashboard (browser flow),
  * not by this class.
  */
 export class DevWorkspaceApi {

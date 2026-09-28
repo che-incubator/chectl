@@ -106,7 +106,7 @@
         "description": "Control Eclipse Che server"
       },
       "workspace": {
-        "description": "Manage Red Hat OpenShift Dev Spaces developer workspaces (DevWorkspace)"
+        "description": "Manage Eclipse Che developer workspaces (DevWorkspace)"
       }
     },
     "update": {

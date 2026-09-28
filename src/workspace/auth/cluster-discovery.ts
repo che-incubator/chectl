@@ -10,15 +10,13 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-// https://github.com/redhat-developer/devspaces-remote-connector/blob/main/src/auth/ClusterDiscovery.ts
-
 import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che';
 import { request, HttpError } from '../utils/http-client'
 
 export interface ClusterEndpoints {
-  /** The Che dashboard base URL, e.g. https://devspaces.apps.devspc02-1d.zs5b.p1.openshiftapps.com */
+  /** The Che dashboard base URL, e.g. https://che.apps.devspc02-1d.zs5b.p1.openshiftapps.com */
   cheUrl: string;
-  /** The OpenShift API server URL, e.g. https://api.devspc02-1d.zs5b.p1.openshiftapps.com:6443 */
+  /** The OpenShift API server URL, e.g. https://api.chedev02-1d.zs5b.p1.openshiftapps.com:6443 */
   apiUrl: string;
   /** The OAuth authorization endpoint */
   oauthAuthorizeUrl: string;
@@ -32,23 +30,23 @@ export interface ClusterEndpoints {
  * Discovers OpenShift cluster endpoints from any URL the user provides.
  *
  * Handles all these URL patterns:
- * - https://devspaces.apps.devspc02-1d.zs5b.p1.openshiftapps.com/
- * - https://devspaces.apps.devspc02-1d.zs5b.p1.openshiftapps.com/dashboard/#/workspaces
- * - https://devspaces.apps.devspc02-1d.zs5b.p1.openshiftapps.com/284992/flights-mgmt/3100/
+ * - https://che.apps.devspc02-1d.zs5b.p1.openshiftapps.com/
+ * - https://che.apps.devspc02-1d.zs5b.p1.openshiftapps.com/dashboard/#/workspaces
+ * - https://che.apps.devspc02-1d.zs5b.p1.openshiftapps.com/284992/flights-mgmt/3100/
  * - https://console-openshift-console.apps.devspc02-1d.zs5b.p1.openshiftapps.com/
- * - https://devspaces.example.com (CNAME alias)
- * - https://api.devspc02-1d.zs5b.p1.openshiftapps.com:6443
+ * - https://che.example.com (CNAME alias)
+ * - https://api.chedev02-1d.zs5b.p1.openshiftapps.com:6443
  */
 export class ClusterDiscovery {
   /**
    * Extract the apps domain from any URL the user pastes.
    *
    * The apps domain is the part after the first subdomain:
-   *   devspaces.apps.devspc02-1d.xxx → apps.devspc02-1d.xxx
+   *   che.apps.devspc02-1d.xxx → apps.devspc02-1d.xxx
    *   console-openshift-console.apps.devspc02-1d.xxx → apps.devspc02-1d.xxx
    *
    * For API URLs: api.devspc02-1d.xxx → apps.devspc02-1d.xxx
-   * For CNAMEs (e.g. devspaces.example.com): we need to follow the /oauth/start redirect.
+   * For CNAMEs (e.g. che.example.com): we need to follow the /oauth/start redirect.
    */
   extractAppsDomain(inputUrl: string): string | undefined {
     try {
@@ -103,7 +101,7 @@ export class ClusterDiscovery {
    * Build the Che dashboard URL from the apps domain.
    */
   buildCheUrl(baseUrl: string): string {
-    // This used to be `https://devspaces.${appsDomain}`
+    // This used to be `https://che.${appsDomain}`
     // But this is incorrect, so just reuse cluster URL
     return baseUrl
   }
@@ -176,7 +174,7 @@ export class ClusterDiscovery {
 
   /**
    * Discover the apps domain by following the Che /oauth/start redirect.
-   * Used as a fallback when the URL is a CNAME (e.g. devspaces.example.com).
+   * Used as a fallback when the URL is a CNAME.
    */
   private async discoverAppsDomainViaRedirect(baseUrl: string): Promise<string> {
     const url = `${baseUrl}/oauth/start`
@@ -188,7 +186,7 @@ export class ClusterDiscovery {
       throw new Error(
         `Could not discover cluster from ${baseUrl}. ` +
         `Expected redirect from /oauth/start. ` +
-        `Try pasting a URL that contains the cluster domain (e.g. devspaces.example.com).`
+        `Try pasting a URL that contains the cluster domain (e.g. che.example.com).`
       )
     } catch (err) {
       if (err instanceof HttpError && err.statusCode >= 300 && err.statusCode < 400) {
@@ -207,7 +205,7 @@ export class ClusterDiscovery {
         throw new Error(
           `Could not discover cluster from ${baseUrl}. ` +
           `No valid redirect from /oauth/start (status: ${err.statusCode}). ` +
-          `Try pasting a URL that contains the cluster domain (e.g. devspaces.example.com).`
+          `Try pasting a URL that contains the cluster domain (e.g. che.example.com).`
         )
       }
       throw err
