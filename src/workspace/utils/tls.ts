@@ -10,8 +10,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-// https://github.com/redhat-developer/devspaces-remote-connector/blob/main/src/util/tls.ts
-
 import { execFileSync } from 'child_process'
 import * as crypto from 'crypto'
 import * as fs from 'fs'

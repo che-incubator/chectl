@@ -10,8 +10,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-// https://github.com/redhat-developer/devspaces-remote-connector/blob/main/src/kubernetes/execHelper.ts
-
 import * as stream from 'stream'
 import * as k8s from '@kubernetes/client-node'
 import { DevWorkspaceResource } from './devworkspace-types'

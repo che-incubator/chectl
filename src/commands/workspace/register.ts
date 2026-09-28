@@ -14,11 +14,12 @@ import { Command, Flags } from '@oclif/core'
 
 import { registerUrlHandler } from '../../workspace/handler'
 import { configureLogging } from '../../workspace/utils/logging'
+import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
 
-export default class Init extends Command {
-  static description = 'Register a che:// URL handler so that connection links open directly with chectl. This eliminates the need to copy connection data by hand.'
+export default class Register extends Command {
+  static description = `Register a ${EclipseChe.CHE_FLAVOR}:// URL handler so that connection links open directly with chectl. This eliminates the need to copy connection data by hand.`
 
-  static aliases = ['workspace:install']
+  static aliases = ['workspace:register']
 
   static flags = {
     help: Flags.help({ char: 'h' }),
@@ -34,7 +35,7 @@ export default class Init extends Command {
   }
 
   async run() {
-    const { flags } = await this.parse(Init)
+    const { flags } = await this.parse(Register)
     configureLogging(flags.verbose)
 
     try {

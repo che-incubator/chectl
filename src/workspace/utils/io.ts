@@ -10,8 +10,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-// https://github.com/redhat-developer/devspaces-remote-ssh/blob/main/src/utils/io.ts
-
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmdirSync, unlinkSync, writeFileSync } from 'fs'
 import * as path from 'path'
 import { PortForwardInfo } from './cluster'

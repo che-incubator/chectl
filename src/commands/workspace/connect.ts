@@ -15,13 +15,14 @@ import { Args, Command, Flags } from '@oclif/core'
 import { initCluster } from '../../workspace/cluster/cluster-session-manager'
 import { connect } from '../../workspace/connector'
 import { configureLogging } from '../../workspace/utils/logging'
+import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
 
 export default class Connect extends Command {
-  static description = 'Connect to a developer workspace (DevWorkspace) over SSH. Accepts either a che:// URI or the name of the workspace.'
+  static description = `Connect to a developer workspace (DevWorkspace) over SSH. Accepts either a ${EclipseChe.CHE_FLAVOR}:// URI or the name of the workspace.`
 
   static args = {
     target: Args.string({
-      description: 'A che:// connection URI or the name of the workspace. If omitted, you will be prompted for a URI.',
+      description: `A ${EclipseChe.CHE_FLAVOR}:// connection URI or the name of the workspace. If omitted, you will be prompted for a URI.`,
       required: false,
     }),
   }

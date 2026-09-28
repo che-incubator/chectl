@@ -10,8 +10,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-// https://github.com/redhat-developer/devspaces-remote-connector/blob/main/src/kubernetes/DevWorkspaceTypes.ts
-
 /**
  * Typed response shape for DevWorkspace custom resource API calls.
  *

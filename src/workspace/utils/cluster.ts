@@ -10,8 +10,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-// https://github.com/redhat-developer/devspaces-remote-ssh/blob/main/src/utils/cluster.ts
-
 import { getSavedPorts, rememberPorts } from './io'
 import { extStoragePath } from '../constants'
 import { platform } from 'os'

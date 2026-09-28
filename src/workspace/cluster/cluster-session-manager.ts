@@ -10,8 +10,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-// https://github.com/redhat-developer/devspaces-remote-connector/blob/main/src/cluster/ClusterSessionManager.ts
-
 import * as path from 'path'
 import { ClusterDiscovery } from '../auth/cluster-discovery'
 import { OAuthFlow } from '../auth/oauth-flow'
@@ -23,6 +21,7 @@ import { DevWorkspaceApi } from '../kubernetes/devworkspace-api'
 import { NamespaceApi } from '../kubernetes/namespace-api'
 import { getJson } from '../utils/http-client'
 import * as k8s from '@kubernetes/client-node'
+import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
 
 export async function initCluster(dashboardURL?: string): Promise<{cheUrl: string, wm: WorkspaceManager, kubeConfig: k8s.KubeConfig}> {
     let cheUrl
@@ -59,7 +58,7 @@ export async function initCluster(dashboardURL?: string): Promise<{cheUrl: strin
       const contextFile = path.join(extStoragePath, '.k8s', 'context')
       const context = readFile(contextFile)
       if (!context) {
-        throw new Error('No saved Dev Spaces session. Re-run the command with --auth <cluster URL>.')
+        throw new Error(`No saved ${EclipseChe.CHE_FLAVOR} session. Re-run the command with --auth <cluster URL>.`)
       }
       ({ cheUrl, apiUrl, username, token } = JSON.parse(context))
     }
@@ -104,7 +103,7 @@ async function discoverUsername(
 * Generate a stable ID from a URL.
 * Extracts the cluster short prefix from OpenShift apps domains.
 * e.g. apps.devspc-1d.ctyz.p1.openshiftapps.com → devspc-1d
-* For CNAMEs like devspaces.example.com → devspaces.example.com (keep as-is)
+* For CNAMEs like che.example.com → che.example.com (keep as-is)
 */
 function urlToId(url: string): string {
     try {
