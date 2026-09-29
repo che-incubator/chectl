@@ -243,11 +243,11 @@ export class OAuthFlow {
   }
 
   private successPage(): string {
-    return readFile(path.join('resources', 'oauth-success.html'));
+    return readFile(path.join(__dirname, 'resources', 'oauth-success.html'));
   }
 
   private errorPage(message: string): string {
-    const errorTemplate = readFile(path.join('resources', 'oauth-error.html'));
+    const errorTemplate = readFile(path.join(__dirname, 'resources', 'oauth-error.html'));
     const escaped = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
     return errorTemplate.replace('MESSAGE', escaped);
   }

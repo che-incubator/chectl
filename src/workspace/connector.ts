@@ -53,7 +53,7 @@ export async function handleVSCodeURI(uri: URL) {
         return
     }
 
-    if (!hasValidParameters(namespace, podName, dwName, userName)) {
+    if (!hasValidParameters({ namespace, podName, dwName, userName })) {
         return
     }
 
@@ -104,7 +104,7 @@ export async function handleVSCodeURI(uri: URL) {
     await cli.open(`codex://settings/connections/ssh/add?name=${dwName}&enabled=true`)
 }
 
-function hasValidParameters(namespace: string, podName: string, dwName: string, userName: string): boolean {
+function hasValidParameters({ namespace, podName, dwName, userName }: {namespace?: string, podName?: string, dwName?: string, userName?: string}): boolean {
     // https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names
     const KB_NAME_PATTERN = '^(([a-z0-9][-a-z0-9]*)?[a-z0-9])?$'
     // https://github.com/eclipse-che/che-dashboard/blob/main/packages/dashboard-frontend/src/pages/WorkspaceDetails/OverviewTab/WorkspaceName/index.tsx
@@ -112,19 +112,19 @@ function hasValidParameters(namespace: string, podName: string, dwName: string, 
     const USERNAME_PATTERN = '^[a-zA-Z0-9_.-]+$'
 
     let message = ''
-    if (!namespace.match(KB_NAME_PATTERN)) {
+    if (namespace && !namespace.match(KB_NAME_PATTERN)) {
         message += `, ${namespace}`
     }
 
-    if (!podName.match(KB_NAME_PATTERN)) {
+    if (podName && !podName.match(KB_NAME_PATTERN)) {
         message += `, ${podName}`
     }
 
-    if (!dwName.match(DW_NAME_PATTERN)) {
+    if (dwName && !dwName.match(DW_NAME_PATTERN)) {
         message += `, ${dwName}`
     }
 
-    if (!userName.match(USERNAME_PATTERN)) {
+    if (userName && !userName.match(USERNAME_PATTERN)) {
         message += `, ${userName}`
     }
 
@@ -158,20 +158,21 @@ async function connectCheURI(cheUri: string | undefined) {
 }
 
 async function connectDevworkspaceName(workspaceName: string, wm: WorkspaceManager, kubeConfig: k8s.KubeConfig, cheUrl: string) {
-    let isCheCodeSSHD = false
+    if (!hasValidParameters({ dwName: workspaceName })) {
+      return
+    }
 
     const workspace = await wm.startWorkspace(workspaceName)
 
-    // Discover main container name
-    let mainContainerName = 'tools' // default fallback
     const coreApi = kubeConfig.makeApiClient(k8s.CoreV1Api)
 
     const podInfo = await findWorkspacePodAndContainer(kubeConfig, workspace.namespace, workspace.devworkspaceId)
-    mainContainerName = podInfo.containerName
+    // Discover main container name
+    const mainContainerName = podInfo.containerName
 
     const pod = await coreApi.readNamespacedPod({ name: podInfo.podName, namespace: workspace.namespace })
     const containers = pod.spec?.containers ?? []
-    isCheCodeSSHD = containers.some(c => c.name === 'che-code-sshd-page')
+    const isCheCodeSSHD = containers.some(c => c.name === 'che-code-sshd-page')
     if (isCheCodeSSHD) {
         // Read SSH username from main container
         const sshUsername = await execOnPod(kubeConfig,

@@ -19,7 +19,7 @@ import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
 export default class Register extends Command {
   static description = `Register a ${EclipseChe.CHE_FLAVOR}:// URL handler so that connection links open directly with chectl. This eliminates the need to copy connection data by hand.`
 
-  static aliases = ['workspace:register']
+  static aliases = ['workspace:register-url-handler']
 
   static flags = {
     help: Flags.help({ char: 'h' }),
