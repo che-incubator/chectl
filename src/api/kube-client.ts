@@ -55,7 +55,7 @@ import execa = require('execa')
 import * as fs from 'node:fs'
 import * as https from 'node:https'
 import * as net from 'node:net'
-import {Writable} from 'node:stream'
+import * as stream from 'node:stream'
 import {
   newError,
   sleep,
@@ -2039,20 +2039,20 @@ export class KubeClient {
   async readNamespacedPodLog(pod: string, namespace: string, container: string, filename: string, follow: boolean): Promise<void> {
     return new Promise(async (resolve, reject) => {
       const logHelper = new Log(this.kubeConfig)
-      const stream = new Writable()
-      stream._write = function (chunk, encoding, done) {
-        fs.appendFileSync(filename, chunk, {encoding})
-        done()
-      }
+      const logStream = new stream.PassThrough();
 
-      await logHelper.log(namespace, pod, container, stream, error => {
-        stream.end()
-        if (error) {
-          reject(error)
-        } else {
-          resolve()
-        }
-      }, {follow})
+      logStream.on('data', (chunk: any) => {
+        fs.appendFileSync(filename, chunk)
+      });
+
+      try {
+        await logHelper.log(namespace, pod, container, logStream, {
+          follow,
+        });
+        resolve()
+      } catch (err) {
+        reject(err)
+      }
     })
   }
 
