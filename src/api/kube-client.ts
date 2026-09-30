@@ -2036,28 +2036,57 @@ export class KubeClient {
   /**
    * Reads log by chunk and writes into a file.
    */
-  async readNamespacedPodLog(pod: string, namespace: string, container: string, filename: string, follow: boolean): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      const logHelper = new Log(this.kubeConfig)
-      const logStream = new stream.PassThrough();
-
-      logStream.on('data', (chunk: any) => {
+  async readNamespacedPodLog(
+    pod: string,
+    namespace: string,
+    container: string,
+    filename: string,
+    follow: boolean,
+  ): Promise<void> {
+    const logHelper = new Log(this.kubeConfig)
+    const logStream = new stream.Writable({
+      write(chunk, _encoding, callback) {
         try {
           fs.appendFileSync(filename, chunk)
-        } catch (err) {
-          reject(err)
+          callback()
+        } catch (error) {
+          callback(error as Error)
         }
-      });
-
-      try {
-        await logHelper.log(namespace, pod, container, logStream, {
-          follow,
-        });
-        resolve()
-      } catch (err) {
-        reject(err)
-      }
+      },
     })
+
+    // Log.log() uses pipe(), which does not forward source errors.
+    logStream.on('pipe', (source: NodeJS.ReadableStream) => {
+      source.once('error', (error: Error) => logStream.destroy(error))
+    })
+
+    const completed = new Promise<void>((resolve, reject) => {
+      stream.finished(logStream, error => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve()
+        }
+      })
+    })
+
+    let request: AbortController | undefined
+    try {
+      await Promise.all([
+        completed,
+        logHelper.log(namespace, pod, container, logStream, {follow})
+          .then(controller => {
+            request = controller
+            if (logStream.destroyed) {
+              controller.abort()
+            }
+          }),
+      ])
+    } catch (error) {
+      request?.abort()
+      logStream.destroy()
+      throw error
+    }
   }
 
   /**
