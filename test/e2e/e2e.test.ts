@@ -51,8 +51,8 @@ describe(`server:deploy`, () => {
 })
 
 describe(`server:logs`, () => {
-  it('cacert:logs command', async () => {
-    const command = `${binChectl} cacert:logs -n ${EclipseChe.NAMESPACE}`
+  it('server:logs command', async () => {
+    const command = `${binChectl} server:logs -n ${EclipseChe.NAMESPACE}`
 
     const { exitCode, stdout, stderr } = await execa(command, { shell: true })
 
