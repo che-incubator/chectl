@@ -2042,7 +2042,11 @@ export class KubeClient {
       const logStream = new stream.PassThrough();
 
       logStream.on('data', (chunk: any) => {
-        fs.appendFileSync(filename, chunk)
+        try {
+          fs.appendFileSync(filename, chunk)
+        } catch (err) {
+          reject(err)
+        }
       });
 
       try {
