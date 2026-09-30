@@ -50,6 +50,21 @@ describe(`server:deploy`, () => {
   })
 })
 
+describe(`server:logs`, () => {
+  it('cacert:logs command', async () => {
+    const command = `${binChectl} cacert:logs -n ${EclipseChe.NAMESPACE}`
+
+    const { exitCode, stdout, stderr } = await execa(command, { shell: true })
+
+    expect(exitCode).equal(0)
+    console.log(stdout)
+
+    if (exitCode !== 0) {
+      console.log(stderr)
+    }
+  })
+})
+
 describe('Export CA certificate', () => {
   it('cacert:export command', async () => {
     const command = `${binChectl} cacert:export -n ${EclipseChe.NAMESPACE}`
