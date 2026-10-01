@@ -55,7 +55,7 @@ import execa = require('execa')
 import * as fs from 'node:fs'
 import * as https from 'node:https'
 import * as net from 'node:net'
-import {Writable} from 'node:stream'
+import * as stream from 'node:stream'
 import {
   newError,
   sleep,
@@ -2036,24 +2036,57 @@ export class KubeClient {
   /**
    * Reads log by chunk and writes into a file.
    */
-  async readNamespacedPodLog(pod: string, namespace: string, container: string, filename: string, follow: boolean): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      const logHelper = new Log(this.kubeConfig)
-      const stream = new Writable()
-      stream._write = function (chunk, encoding, done) {
-        fs.appendFileSync(filename, chunk, {encoding})
-        done()
-      }
+  async readNamespacedPodLog(
+    pod: string,
+    namespace: string,
+    container: string,
+    filename: string,
+    follow: boolean,
+  ): Promise<void> {
+    const logHelper = new Log(this.kubeConfig)
+    const logStream = new stream.Writable({
+      write(chunk, _encoding, callback) {
+        try {
+          fs.appendFileSync(filename, chunk)
+          callback()
+        } catch (error) {
+          callback(error as Error)
+        }
+      },
+    })
 
-      await logHelper.log(namespace, pod, container, stream, error => {
-        stream.end()
+    // Log.log() uses pipe(), which does not forward source errors.
+    logStream.on('pipe', (source: NodeJS.ReadableStream) => {
+      source.once('error', (error: Error) => logStream.destroy(error))
+    })
+
+    const completed = new Promise<void>((resolve, reject) => {
+      stream.finished(logStream, error => {
         if (error) {
           reject(error)
         } else {
           resolve()
         }
-      }, {follow})
+      })
     })
+
+    let request: AbortController | undefined
+    try {
+      await Promise.all([
+        completed,
+        logHelper.log(namespace, pod, container, logStream, {follow})
+          .then(controller => {
+            request = controller
+            if (logStream.destroyed) {
+              controller.abort()
+            }
+          }),
+      ])
+    } catch (error) {
+      request?.abort()
+      logStream.destroy()
+      throw error
+    }
   }
 
   /**
