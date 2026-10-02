@@ -112,13 +112,13 @@ USAGE
 * [`chectl server:update`](#chectl-serverupdate)
 * [`chectl update [CHANNEL]`](#chectl-update-channel)
 * [`chectl version`](#chectl-version)
-* [`chectl workspace:create`](#chectl-create)
-* [`chectl workspace:connect`](#chectl-connect)
-* [`chectl workspace:delete`](#chectl-delete)
-* [`chectl workspace:list`](#chectl-list)
-* [`chectl workspace:register-url-handler`](#chectl-register-url-handler)
-* [`chectl workspace:start`](#chectl-start)
-* [`chectl workspace:stop`](#chectl-stop)
+* [`chectl workspace:create`](#chectl-workspacecreate)
+* [`chectl workspace:connect`](#chectl-workspaceconnect)
+* [`chectl workspace:delete`](#chectl-workspacedelete)
+* [`chectl workspace:list`](#chectl-workspacelist)
+* [`chectl workspace:register-url-handler`](#chectl-workspaceregister-url-handler)
+* [`chectl workspace:start`](#chectl-workspacestart)
+* [`chectl workspace:stop`](#chectl-workspacestop)
 
 ## `chectl autocomplete [SHELL]`
 

@@ -105,8 +105,8 @@ export async function register(protocol: string, command: string, options: Regis
     // The URL arrives as $1 so the command can keep its own quoting.
     writeFileSync(launcherPath, `#!/usr/bin/env bash\n_URL_=$1\n${command}\n`, { mode: 0o755 });
 
-    // Closes the AppleScript string literal so the URL is concatenated in.
-    const launchCommand = `'${launcherPath}' '" & this_URL & "'`;
+    // Use 'quoted form of' to safely shell-escape the URL (CWE-78 mitigation).
+    const launchCommand = `'${launcherPath}' " & quoted form of this_URL & "`;
 
     // `on open location` can't drive Terminal itself, so stash the URL in
     // defaults and let a second app read it back.
@@ -121,7 +121,7 @@ export async function register(protocol: string, command: string, options: Regis
 
     await compileApp(urlAppPath, [
         `on open location this_URL`,
-        `    do shell script "defaults write ${defaultsDomain(protocol)} current_url '" & this_URL & "'"`,
+        `    do shell script "defaults write ${defaultsDomain(protocol)} current_url " & quoted form of this_URL`,
         `    tell application "${terminalAppPath}" to activate`,
         `end open location`,
     ].join('\n'));
