@@ -112,6 +112,13 @@ USAGE
 * [`chectl server:update`](#chectl-serverupdate)
 * [`chectl update [CHANNEL]`](#chectl-update-channel)
 * [`chectl version`](#chectl-version)
+* [`chectl workspace:create`](#chectl-create)
+* [`chectl workspace:connect`](#chectl-connect)
+* [`chectl workspace:delete`](#chectl-delete)
+* [`chectl workspace:list`](#chectl-list)
+* [`chectl workspace:register-url-handler`](#chectl-register-url-handler)
+* [`chectl workspace:start`](#chectl-start)
+* [`chectl workspace:stop`](#chectl-stop)
 
 ## `chectl autocomplete [SHELL]`
 
@@ -661,6 +668,162 @@ FLAG DESCRIPTIONS
 ```
 
 _See code: [@oclif/plugin-version](https://github.com/oclif/plugin-version/blob/v2.2.36/src/commands/version.ts)_
+
+## `chectl workspace:create`
+
+```
+Create a developer workspace (DevWorkspace) for the given devfile URL
+
+USAGE
+  $ chectl workspace:create [DEVFILEURL] [-h] [--auth <value>] [--verbose]
+
+ARGUMENTS
+  DEVFILEURL  Devfile URL to create the workspace from. Defaults to an empty
+              workspace.
+
+FLAGS
+  -h, --help          Show CLI help.
+      --auth=<value>  Authenticate with the given cluster URL. Once
+                      authenticated, the command is performed against the
+                      given cluster.
+      --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  Create a developer workspace (DevWorkspace) for the given devfile URL
+```
+
+## `chectl workspace:connect`
+
+```
+Connect to a developer workspace (DevWorkspace) over SSH. Accepts either a che:// URI or the name of the workspace.
+
+USAGE
+  $ chectl workspace:connect [TARGET] [-h] [--auth <value>] [--verbose]
+
+ARGUMENTS
+  TARGET  A che:// connection URI or the name of the workspace. If omitted,
+          you will be prompted for a URI.
+
+FLAGS
+  -h, --help          Show CLI help.
+      --auth=<value>  Authenticate with the given cluster URL. Once
+                      authenticated, the command is performed against the
+                      given cluster.
+      --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  Connect to a developer workspace (DevWorkspace) over SSH. Accepts either a
+  che:// URI or the name of the workspace.
+```
+
+## `chectl workspace:delete`
+
+```
+Delete the given developer workspace (DevWorkspace)
+
+USAGE
+  $ chectl workspace:delete NAME [-h] [--auth <value>] [--verbose]
+
+ARGUMENTS
+  NAME  Name of the DevWorkspace to delete
+
+FLAGS
+  -h, --help          Show CLI help.
+      --auth=<value>  Authenticate with the given cluster URL. Once
+                      authenticated, the command is performed against the
+                      given cluster.
+      --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  Delete the given developer workspace (DevWorkspace)
+```
+
+## `chectl workspace:list`
+
+```
+List developer workspaces (DevWorkspace) for the authenticated account
+
+USAGE
+  $ chectl workspace:list [-h] [--auth <value>] [--verbose]
+
+FLAGS
+  -h, --help          Show CLI help.
+      --auth=<value>  Authenticate with the given cluster URL. Once
+                      authenticated, the command is performed against the
+                      given cluster.
+      --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  List developer workspaces (DevWorkspace) for the authenticated account
+```
+
+## `chectl workspace:register-url-handler`
+
+```
+Register a che:// URL handler so that connection links open directly with chectl. This eliminates the need to copy connection data by hand.
+
+USAGE
+  $ chectl workspace:register-url-handler [-h] [--force] [--verbose]
+
+FLAGS
+  -h, --help     Show CLI help.
+      --force    Re-register the URL handler even if one already exists (for
+                 example to re-point an existing registration at chectl).
+      --verbose  Print more verbose information about state.
+
+DESCRIPTION
+  Register a che:// URL handler so that connection links open directly with
+  chectl. This eliminates the need to copy connection data by hand.
+
+ALIASES
+  $ chectl workspace:register-url-handler
+```
+
+## `chectl workspace:start`
+
+```
+Start the given developer workspace (DevWorkspace)
+
+USAGE
+  $ chectl workspace:start NAME [-h] [--auth <value>] [--verbose]
+
+ARGUMENTS
+  NAME  Name of the DevWorkspace to start
+
+FLAGS
+  -h, --help          Show CLI help.
+      --auth=<value>  Authenticate with the given cluster URL. Once
+                      authenticated, the command is performed against the
+                      given cluster.
+      --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  Start the given developer workspace (DevWorkspace)
+```
+
+## `chectl workspace:stop`
+
+```
+Stop the given developer workspace (DevWorkspace)
+
+USAGE
+  $ chectl workspace:stop NAME [-h] [--auth <value>] [--verbose]
+
+ARGUMENTS
+  NAME  Name of the DevWorkspace to stop
+
+FLAGS
+  -h, --help          Show CLI help.
+      --auth=<value>  Authenticate with the given cluster URL. Once
+                      authenticated, the command is performed against the
+                      given cluster.
+      --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  Stop the given developer workspace (DevWorkspace)
+```
+
+
 <!-- commandsstop -->
 
 
