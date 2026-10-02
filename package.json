@@ -188,7 +188,7 @@
       "<rootDir>/.operator-sources",
       "<rootDir>/tmp"
     ],
-    "testRegex": "/test/(api|tasks|other)/.*.test.ts",
+    "testRegex": "/test/(api|tasks|other|workspace)/.*.test.ts",
     "testEnvironment": "node",
     "moduleFileExtensions": [
       "ts",

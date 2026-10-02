@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { CHE_SCHEME } from './constants'
+import { CHE_AUTHORITY } from './constants'
 import { EclipseChe } from '../tasks/installers/eclipse-che/eclipse-che'
 import macosProtocol from './utils/macosProtocol'
 
@@ -38,19 +38,19 @@ export async function registerUrlHandler(command: string, force = false): Promis
 
     const appName = `${EclipseChe.PRODUCT_NAME} URL Handler`
 
-    if (!force && await protoreg.checkIfExists(CHE_SCHEME)) {
-        const appPath = await protoreg.getDefaultApp(CHE_SCHEME)
+    if (!force && await protoreg.checkIfExists(CHE_AUTHORITY)) {
+        const appPath = await protoreg.getDefaultApp(CHE_AUTHORITY)
         console.log(`The ${EclipseChe.PRODUCT_NAME} URL handler is already registered at ${appPath}`)
         console.log('Re-run with --force to re-register it against chectl.')
         return
     }
 
     console.log(`Registering ${EclipseChe.PRODUCT_NAME} URL handler..`)
-    await protoreg.register(CHE_SCHEME, command, {
+    await protoreg.register(CHE_AUTHORITY, command, {
         appName,
         terminal: true,
         override: true,
     })
-    const appPath = await protoreg.getDefaultApp(CHE_SCHEME)
+    const appPath = await protoreg.getDefaultApp(CHE_AUTHORITY)
     console.log(`The ${EclipseChe.PRODUCT_NAME} URL handler has been registered at ${appPath}`)
 }

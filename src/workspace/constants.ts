@@ -22,7 +22,7 @@ import { EclipseChe } from '../tasks/installers/eclipse-che/eclipse-che'
 export const extStoragePath = path.join(homedir(), `.${EclipseChe.PRODUCT_ID}`)
 
 /** URL scheme handled by the connector (che://...). */
-export const CHE_SCHEME = EclipseChe.CHE_FLAVOR
+export const CHE_AUTHORITY = EclipseChe.CHE_FLAVOR
 
 /** DevWorkspace API group and version */
 export const DW_API_GROUP = 'workspace.devfile.io'

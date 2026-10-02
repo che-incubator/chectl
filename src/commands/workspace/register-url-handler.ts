@@ -16,7 +16,7 @@ import { registerUrlHandler } from '../../workspace/handler'
 import { configureLogging } from '../../workspace/utils/logging'
 import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
 
-export default class Register extends Command {
+export default class RegisterUrlHandler extends Command {
   static description = `Register a ${EclipseChe.CHE_FLAVOR}:// URL handler so that connection links open directly with chectl. This eliminates the need to copy connection data by hand.`
 
   static aliases = ['workspace:register-url-handler']
@@ -35,7 +35,7 @@ export default class Register extends Command {
   }
 
   async run() {
-    const { flags } = await this.parse(Register)
+    const { flags } = await this.parse(RegisterUrlHandler)
     configureLogging(flags.verbose)
 
     try {
