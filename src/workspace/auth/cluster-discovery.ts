@@ -10,6 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
+import { ux } from '@oclif/core';
 import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che';
 import { request, HttpError } from '../utils/http-client'
 
@@ -110,23 +111,23 @@ export class ClusterDiscovery {
    * Discover cluster endpoints from any URL the user provides.
    */
   async discover(inputUrl: string): Promise<ClusterEndpoints> {
-    console.log(`Discovering cluster endpoints from: ${inputUrl}`)
+    ux.log(`Discovering cluster endpoints from: ${inputUrl}`)
 
     const baseUrl = this.normalizeInputUrl(inputUrl)
     let appsDomain = this.extractAppsDomain(inputUrl)
 
     // If we couldn't extract from the hostname, try following /oauth/start
     if (!appsDomain) {
-      console.log(`Could not extract apps domain from hostname, trying /oauth/start redirect from ${baseUrl}`)
+      ux.log(`Could not extract apps domain from hostname, trying /oauth/start redirect from ${baseUrl}`)
       appsDomain = await this.discoverAppsDomainViaRedirect(baseUrl)
     }
 
     const apiUrl = await this.buildKubeAPIServerURL(appsDomain)
     const cheUrl = this.buildCheUrl(baseUrl)
 
-    console.log(`Apps domain: ${appsDomain}`)
-    console.log(`API URL: ${apiUrl}`)
-    console.log(`${EclipseChe.CHE_FLAVOR} URL: ${cheUrl}`)
+    ux.log(`Apps domain: ${appsDomain}`)
+    ux.log(`API URL: ${apiUrl}`)
+    ux.log(`${EclipseChe.CHE_FLAVOR} URL: ${cheUrl}`)
 
     // Fetch OAuth metadata from the API server
     const oauthMeta = await this.fetchOAuthMetadata(baseUrl, apiUrl)
@@ -139,7 +140,7 @@ export class ClusterDiscovery {
       appsDomain,
     }
 
-    console.log(`Cluster discovery complete: API=${apiUrl}, ${EclipseChe.CHE_FLAVOR}=${cheUrl}`)
+    ux.log(`Cluster discovery complete: API=${apiUrl}, ${EclipseChe.CHE_FLAVOR}=${cheUrl}`)
     return endpoints
   }
 
@@ -158,16 +159,16 @@ export class ClusterDiscovery {
       const match = html.match(/window\.SERVER_FLAGS\s*=\s*({[\s\S]*?});/)
 
       if (!match || !match[1]) {
-        console.log(`Could not find SERVER_FLAGS in ${consoleURL} HTML response`)
-        console.log(`Falling back to ${defaultApiUrl}`)
+        ux.log(`Could not find SERVER_FLAGS in ${consoleURL} HTML response`)
+        ux.log(`Falling back to ${defaultApiUrl}`)
         return defaultApiUrl
       }
 
       const serverFlags = JSON.parse(match[1])
       return serverFlags.kubeAPIServerURL
     } catch (err) {
-      console.log(`Failed to derive the Kubernetes API Server URL : ${err}`)
-      console.log(`Falling back to ${defaultApiUrl}`)
+      ux.log(`Failed to derive the Kubernetes API Server URL : ${err}`)
+      ux.log(`Falling back to ${defaultApiUrl}`)
       return defaultApiUrl;
     }
   }
@@ -178,7 +179,7 @@ export class ClusterDiscovery {
    */
   private async discoverAppsDomainViaRedirect(baseUrl: string): Promise<string> {
     const url = `${baseUrl}/oauth/start`
-    console.log(`Following redirect from ${url}`)
+    ux.log(`Following redirect from ${url}`)
 
     try {
       await request({ url, method: 'GET', headers: { Accept: 'text/html' } })
@@ -222,20 +223,20 @@ export class ClusterDiscovery {
     // Try API server first
     try {
       const url = `${apiUrl}/.well-known/oauth-authorization-server`
-      console.log(`Fetching OAuth metadata from ${url}`)
+      ux.log(`Fetching OAuth metadata from ${url}`)
       const res = await request({ url, method: 'GET' })
       const meta = JSON.parse(res.data)
       if (meta.authorization_endpoint && meta.token_endpoint) {
         return meta
       }
     } catch (apiErr) {
-      console.log(`Failed to fetch OAuth metadata from ${apiUrl}: ${apiErr}`)
+      ux.log(`Failed to fetch OAuth metadata from ${apiUrl}: ${apiErr}`)
     }
 
     // Fallback: follow /oauth/start redirect to find OAuth server
     try {
       const url = `${baseUrl}/oauth/start`
-      console.log(`Following redirect from ${url} to discover OAuth endpoints`)
+      ux.log(`Following redirect from ${url} to discover OAuth endpoints`)
       await request({ url, method: 'GET', headers: { Accept: 'text/html' } })
       // If we got a 2xx, there's no redirect
       throw new Error(`Could not discover OAuth endpoints from ${baseUrl}: no redirect from /oauth/start`)
@@ -246,7 +247,7 @@ export class ClusterDiscovery {
           const locationStr = Array.isArray(location) ? location[0] : location
           try {
             const oauthServerUrl = new URL(locationStr).origin
-            console.log(`Discovered OAuth server from redirect: ${oauthServerUrl}`)
+            ux.log(`Discovered OAuth server from redirect: ${oauthServerUrl}`)
             return {
               authorization_endpoint: `${oauthServerUrl}/oauth/authorize`,
               token_endpoint: `${oauthServerUrl}/oauth/token`,

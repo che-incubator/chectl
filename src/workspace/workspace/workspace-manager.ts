@@ -10,6 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
+import { ux } from '@oclif/core'
 import { WorkspacePhase } from '../constants'
 import { DevWorkspaceApi } from '../kubernetes/devworkspace-api'
 import { NamespaceApi } from '../kubernetes/namespace-api'
@@ -31,7 +32,7 @@ export class WorkspaceManager {
   async initialize(username: string): Promise<void> {
     this.userNamespace = await this.namespaceApi.findUserNamespace(username)
     if (!this.userNamespace) {
-      console.log(`No namespace found for user ${username}`)
+      ux.log(`No namespace found for user ${username}`)
       return
     }
     await this.refresh()
@@ -43,9 +44,9 @@ export class WorkspaceManager {
     }
     try {
       this.workspaces = await this.devWorkspaceApi.list(this.userNamespace)
-      console.log(`Loaded ${this.workspaces.length} workspaces`)
+      ux.log(`Loaded ${this.workspaces.length} workspaces`)
     } catch (err) {
-      console.log(`Failed to refresh workspaces: ${err}`)
+      ux.log(`Failed to refresh workspaces: ${err}`)
       throw err
     }
   }
@@ -64,7 +65,7 @@ export class WorkspaceManager {
     if (!this.userNamespace) {
       throw new Error('User namespace not initialized')
     }
-    console.log('Starting workspace...')
+    ux.log('Starting workspace...')
     await this.devWorkspaceApi.start(this.userNamespace, name)
     return this.waitForPhase(name, WorkspacePhase.Running)
   }
@@ -96,7 +97,7 @@ export class WorkspaceManager {
     while (Date.now() < deadline) {
       const ws = await this.devWorkspaceApi.get(this.userNamespace!, name)
 
-      console.log(`Workspace is ${ws.phase.toLowerCase()}...`)
+      ux.log(`Workspace is ${ws.phase.toLowerCase()}...`)
 
       if (ws.phase === targetPhase) {
         await this.refresh()

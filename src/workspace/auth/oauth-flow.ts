@@ -17,6 +17,7 @@ import { postForm, HttpError } from '../utils/http-client'
 import { OAUTH_CALLBACK_TIMEOUT } from '../constants'
 import { readFile } from '../utils/io'
 import path from 'path'
+import { ux } from '@oclif/core'
 
 export interface OAuthResult {
   code: string;
@@ -78,14 +79,14 @@ export class OAuthFlow {
       authUrl.searchParams.set('code_challenge_method', 'S256')
       authUrl.searchParams.set('state', state)
 
-      console.log('Opening browser for OAuth authentication...')
-      console.log(`Auth URL: ${authUrl.toString()}`)
+      ux.log('Opening browser for OAuth authentication...')
+      ux.log(`Auth URL: ${authUrl.toString()}`)
 
       await cli.open(authUrl.toString())
 
       // Wait for callback with the authorization code
       const result = await resultPromise
-      console.log('Authorization code received, exchanging for token...')
+      ux.log('Authorization code received, exchanging for token...')
 
       // Exchange code for token — same as `oc` does
       const tokenResult = await this.exchangeCodeForToken(
@@ -95,7 +96,7 @@ export class OAuthFlow {
         codeVerifier
       )
 
-      console.log('Token obtained successfully')
+      ux.log('Token obtained successfully')
       return tokenResult
     } finally {
       server.close()
@@ -222,7 +223,7 @@ export class OAuthFlow {
           return
         }
 
-        console.log(`OAuth callback server listening on port ${addr.port}`)
+        ux.log(`OAuth callback server listening on port ${addr.port}`)
 
         // Set a timeout for the entire flow
         const timeout = setTimeout(() => {

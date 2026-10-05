@@ -14,6 +14,7 @@ import * as stream from 'stream'
 import * as k8s from '@kubernetes/client-node'
 import { DevWorkspaceResource } from './devworkspace-types'
 import { DW_API_GROUP, DW_API_VERSION, DW_PLURAL, LABEL_DEVWORKSPACE_ID, SIDECAR_PREFIXES } from '../constants'
+import { ux } from '@oclif/core';
 
 export interface PodInfo {
   podName: string;
@@ -107,9 +108,9 @@ export async function findWorkspacePodAndContainer(
           break
         }
       }
-      console.log(`DevWorkspace ${workspaceName}: main container = ${mainContainerName}`)
+      ux.log(`DevWorkspace ${workspaceName}: main container = ${mainContainerName}`)
     } catch (err) {
-      console.log(`Could not read DevWorkspace CR: ${err}`)
+      ux.log(`Could not read DevWorkspace CR: ${err}`)
     }
   }
 

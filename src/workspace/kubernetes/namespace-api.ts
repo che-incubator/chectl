@@ -14,6 +14,7 @@ import * as k8s from '@kubernetes/client-node'
 import { request } from '../utils/http-client'
 import { ProjectList } from './devworkspace-types'
 import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
+import { ux } from '@oclif/core'
 
 /**
  * Discovers the user's Che namespace.
@@ -34,7 +35,7 @@ export class NamespaceApi {
   ) {}
 
   async findUserNamespace(username: string): Promise<string | undefined> {
-    console.log(`Looking for namespace for user: ${username}`)
+    ux.log(`Looking for namespace for user: ${username}`)
 
     const result = await this.tryConventionalName(username) ??
       await this.tryLowercaseConventionalName(username) ??
@@ -43,9 +44,9 @@ export class NamespaceApi {
       await this.tryListNamespaces(username)
 
     if (result) {
-      console.log(`Namespace resolved: ${result}`)
+      ux.log(`Namespace resolved: ${result}`)
     } else {
-      console.log(`No namespace found for user ${username}`)
+      ux.log(`No namespace found for user ${username}`)
     }
 
     return result
@@ -58,10 +59,10 @@ export class NamespaceApi {
     const name = `${username}-${EclipseChe.CHE_FLAVOR}`
     try {
       await this.coreApi.readNamespace({ name })
-      console.log(`[Strategy 1] Found: ${name}`)
+      ux.log(`[Strategy 1] Found: ${name}`)
       return name
     } catch {
-      console.log(`[Strategy 1] ${name} not found`)
+      ux.log(`[Strategy 1] ${name} not found`)
       return undefined
     }
   }
@@ -78,10 +79,10 @@ export class NamespaceApi {
     const name = `${lower}-${EclipseChe.CHE_FLAVOR}`
     try {
       await this.coreApi.readNamespace({ name })
-      console.log(`[Strategy 2] Found: ${name}`)
+      ux.log(`[Strategy 2] Found: ${name}`)
       return name
     } catch {
-      console.log(`[Strategy 2] ${name} not found`)
+      ux.log(`[Strategy 2] ${name} not found`)
       return undefined
     }
   }
@@ -93,13 +94,13 @@ export class NamespaceApi {
    */
   private async tryCheApi(username: string): Promise<string | undefined> {
     if (!this.cheUrl || !this.accessToken) {
-      console.log('[Strategy 3] No workspace URL or token, skipping')
+      ux.log('[Strategy 3] No workspace URL or token, skipping')
       return undefined
     }
 
     try {
       const apiUrl = `${this.cheUrl}/api/kubernetes/namespace`
-      console.log(`[Strategy 3] Querying: ${apiUrl}`)
+      ux.log(`[Strategy 3] Querying: ${apiUrl}`)
 
       const response = await this.httpGet(apiUrl, this.accessToken)
       const namespaces = JSON.parse(response)
@@ -116,7 +117,7 @@ export class NamespaceApi {
 }
 
         if (name.startsWith(prefix)) {
-          console.log(`[Strategy 3] Found via ${EclipseChe.CHE_FLAVOR} API: ${name}`)
+          ux.log(`[Strategy 3] Found via ${EclipseChe.CHE_FLAVOR} API: ${name}`)
           return name
         }
       }
@@ -125,14 +126,14 @@ export class NamespaceApi {
       if (items.length === 1) {
         const name = items[0].name ?? items[0].metadata?.name
         if (name) {
-          console.log(`[Strategy 3] Single namespace from ${EclipseChe.CHE_FLAVOR} API: ${name}`)
+          ux.log(`[Strategy 3] Single namespace from ${EclipseChe.CHE_FLAVOR} API: ${name}`)
           return name
         }
       }
 
-      console.log(`[Strategy 3] No match in ${items.length} namespaces`)
+      ux.log(`[Strategy 3] No match in ${items.length} namespaces`)
     } catch (err: any) {
-      console.log(`[Strategy 3] ${EclipseChe.CHE_FLAVOR} API failed: ${err?.message ?? err}`)
+      ux.log(`[Strategy 3] ${EclipseChe.CHE_FLAVOR} API failed: ${err?.message ?? err}`)
     }
 
     return undefined
@@ -143,19 +144,19 @@ export class NamespaceApi {
    */
   private async tryProjectsApi(username: string): Promise<string | undefined> {
     if (!this.customApi) {
-      console.log('[Strategy 4] No CustomObjectsApi, skipping')
+      ux.log('[Strategy 4] No CustomObjectsApi, skipping')
       return undefined
     }
 
     try {
-      console.log('[Strategy 4] Listing OpenShift projects...')
+      ux.log('[Strategy 4] Listing OpenShift projects...')
       const body = await this.customApi.listClusterCustomObject(
         { group: 'project.openshift.io', version: 'v1', plural: 'projects' }
       )
       const response = body as ProjectList
 
       const projects = response?.items ?? []
-      console.log(`[Strategy 4] Found ${projects.length} projects`)
+      ux.log(`[Strategy 4] Found ${projects.length} projects`)
 
       const lowerUsername = username.toLowerCase()
       const prefix = `${lowerUsername}-${EclipseChe.CHE_FLAVOR}`
@@ -168,19 +169,19 @@ export class NamespaceApi {
 
         const cheUsername = project.metadata?.annotations?.['che.eclipse.org/username']
         if (cheUsername && cheUsername.toLowerCase() === lowerUsername) {
-          console.log(`[Strategy 4] Found by annotation: ${name}`)
+          ux.log(`[Strategy 4] Found by annotation: ${name}`)
           return name
         }
 
         if (name.startsWith(prefix)) {
-          console.log(`[Strategy 4] Found by prefix: ${name}`)
+          ux.log(`[Strategy 4] Found by prefix: ${name}`)
           return name
         }
       }
 
-      console.log(`[Strategy 4] No match for ${username}`)
+      ux.log(`[Strategy 4] No match for ${username}`)
     } catch (err: any) {
-      console.log(`[Strategy 4] Projects API failed: ${err?.body?.message ?? err?.message ?? err}`)
+      ux.log(`[Strategy 4] Projects API failed: ${err?.body?.message ?? err?.message ?? err}`)
     }
 
     return undefined
@@ -191,10 +192,10 @@ export class NamespaceApi {
    */
   private async tryListNamespaces(username: string): Promise<string | undefined> {
     try {
-      console.log('[Strategy 5] Listing all namespaces...')
+      ux.log('[Strategy 5] Listing all namespaces...')
       const body = await this.coreApi.listNamespace()
       const namespaces = body.items
-      console.log(`[Strategy 5] Found ${namespaces.length} namespaces`)
+      ux.log(`[Strategy 5] Found ${namespaces.length} namespaces`)
 
       const lowerUsername = username.toLowerCase()
 
@@ -203,14 +204,14 @@ export class NamespaceApi {
         const cheUsername = ns.metadata?.annotations?.['che.eclipse.org/username']
 
         if (cheUsername && cheUsername.toLowerCase() === lowerUsername) {
-          console.log(`[Strategy 5] Found by annotation: ${nsName}`)
+          ux.log(`[Strategy 5] Found by annotation: ${nsName}`)
           return nsName
         }
       }
 
-      console.log(`[Strategy 5] No match for ${username}`)
+      ux.log(`[Strategy 5] No match for ${username}`)
     } catch (err: any) {
-      console.log(`[Strategy 5] Failed: ${err?.body?.message ?? err?.message ?? err}`)
+      ux.log(`[Strategy 5] Failed: ${err?.body?.message ?? err?.message ?? err}`)
     }
 
     return undefined

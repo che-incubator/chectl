@@ -17,6 +17,7 @@ import * as https from 'https'
 import * as path from 'path'
 import * as os from 'os'
 import * as tls from 'tls'
+import { ux } from '@oclif/core'
 
 /** Cached extra CA certificates (PEM format) */
 let extraCAs: string | undefined
@@ -34,7 +35,7 @@ export function loadSystemCAs(): void {
   if (process.env.NODE_EXTRA_CA_CERTS) {
     try {
       extraCAs = fs.readFileSync(process.env.NODE_EXTRA_CA_CERTS, 'utf-8')
-      console.log(`[TLS] Loaded CAs from NODE_EXTRA_CA_CERTS: ${process.env.NODE_EXTRA_CA_CERTS}`)
+      ux.log(`[TLS] Loaded CAs from NODE_EXTRA_CA_CERTS: ${process.env.NODE_EXTRA_CA_CERTS}`)
     } catch { /* ignore */ }
     return
   }
@@ -57,7 +58,7 @@ export function loadSystemCAs(): void {
 '-p',
         ...keychains,
       ], { encoding: 'utf-8', timeout: 15_000 })
-      console.log('[TLS] Exported system CAs from macOS keychains.')
+      ux.log('[TLS] Exported system CAs from macOS keychains.')
     } else if (process.platform === 'win32') {
       certs = execFileSync('powershell', [
         '-NoProfile',
@@ -70,7 +71,7 @@ export function loadSystemCAs(): void {
           }
         }`,
       ], { encoding: 'utf-8', timeout: 15_000 })
-      console.log('[TLS] Exported system CAs from Windows certificate store.')
+      ux.log('[TLS] Exported system CAs from Windows certificate store.')
     } else {
       const linuxPaths = [
         '/etc/ssl/certs/ca-certificates.crt',
@@ -82,11 +83,11 @@ export function loadSystemCAs(): void {
         if (fs.existsSync(p)) {
           process.env.NODE_EXTRA_CA_CERTS = p
           extraCAs = fs.readFileSync(p, 'utf-8')
-          console.log(`[TLS] Using Linux CA bundle: ${p}`)
+          ux.log(`[TLS] Using Linux CA bundle: ${p}`)
           return
         }
       }
-      console.log('[TLS] No Linux CA bundle found at standard paths.')
+      ux.log('[TLS] No Linux CA bundle found at standard paths.')
     }
 
     if (certs && certs.length > 100) {
@@ -95,10 +96,10 @@ export function loadSystemCAs(): void {
       fs.writeFileSync(caFile, certs, { mode: 0o600 })
       process.env.NODE_EXTRA_CA_CERTS = caFile
       const certCount = (certs.match(/-----BEGIN CERTIFICATE-----/g) || []).length
-      console.log(`[TLS] Wrote ${certCount} system CAs to ${caFile}`)
+      ux.log(`[TLS] Wrote ${certCount} system CAs to ${caFile}`)
     }
   } catch (err) {
-    console.log(`[TLS] System CA export failed: ${err instanceof Error ? err.message : err}`)
+    ux.log(`[TLS] System CA export failed: ${err instanceof Error ? err.message : err}`)
   }
 }
 
@@ -111,7 +112,7 @@ export function loadSystemCAs(): void {
  */
 export function getHttpsAgent(): https.Agent {
   const ca = buildCAList()
-  console.log(`[TLS] HTTPS agent created with ${ca.length} total CA certs (${tls.rootCertificates.length} Node built-in + ${ca.length - tls.rootCertificates.length} extra).`)
+  ux.log(`[TLS] HTTPS agent created with ${ca.length} total CA certs (${tls.rootCertificates.length} Node built-in + ${ca.length - tls.rootCertificates.length} extra).`)
   return new https.Agent({ ca })
 }
 

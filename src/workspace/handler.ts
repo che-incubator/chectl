@@ -13,6 +13,7 @@
 import { CHE_AUTHORITY } from './constants'
 import { EclipseChe } from '../tasks/installers/eclipse-che/eclipse-che'
 import macosProtocol from './utils/macosProtocol'
+import { ux } from '@oclif/core'
 
 /**
  * Register an OS-level URL handler for the `che://` scheme.
@@ -40,17 +41,17 @@ export async function registerUrlHandler(command: string, force = false): Promis
 
     if (!force && await protoreg.checkIfExists(CHE_AUTHORITY)) {
         const appPath = await protoreg.getDefaultApp(CHE_AUTHORITY)
-        console.log(`The ${EclipseChe.PRODUCT_NAME} URL handler is already registered at ${appPath}`)
-        console.log('Re-run with --force to re-register it against chectl.')
+        ux.log(`The ${EclipseChe.PRODUCT_NAME} URL handler is already registered at ${appPath}`)
+        ux.log('Re-run with --force to re-register it against chectl.')
         return
     }
 
-    console.log(`Registering ${EclipseChe.PRODUCT_NAME} URL handler..`)
+    ux.log(`Registering ${EclipseChe.PRODUCT_NAME} URL handler..`)
     await protoreg.register(CHE_AUTHORITY, command, {
         appName,
         terminal: true,
         override: true,
     })
     const appPath = await protoreg.getDefaultApp(CHE_AUTHORITY)
-    console.log(`The ${EclipseChe.PRODUCT_NAME} URL handler has been registered at ${appPath}`)
+    ux.log(`The ${EclipseChe.PRODUCT_NAME} URL handler has been registered at ${appPath}`)
 }

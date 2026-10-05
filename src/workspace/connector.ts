@@ -23,6 +23,7 @@ import { OAuthFlow } from './auth/oauth-flow'
 import { WorkspaceManager } from './workspace/workspace-manager'
 import { execOnPod, findWorkspacePodAndContainer } from './kubernetes/exec-helper'
 import { EclipseChe } from '../tasks/installers/eclipse-che/eclipse-che'
+import { ux } from '@oclif/core'
 
 /**
  * Connect to a DevWorkspace given either a che://... URI or a workspace name.
@@ -47,7 +48,7 @@ export async function handleVSCodeURI(uri: URL) {
     const userName = qParams.get('userName')
     let keyContent = qParams.get('key')
     let dashboardURL = qParams.get('url')
-    console.log(`Connecting to dwName: ${dwName}, namespace: ${namespace}, podName: ${podName}, userName: ${userName}, dashboardURL: ${dashboardURL}`)
+    ux.log(`Connecting to dwName: ${dwName}, namespace: ${namespace}, podName: ${podName}, userName: ${userName}, dashboardURL: ${dashboardURL}`)
 
     if (!namespace || !podName || !dwName || !userName || !dashboardURL) {
         return
@@ -91,16 +92,16 @@ export async function handleVSCodeURI(uri: URL) {
     writeFileSync(workspaceConfigFile, workspaceHostEntry)
     ensureWorkspaceConfigIncluded(sshConfigFile, workspaceConfigFile)
 
-    console.log(`Verifying port ${localPort} is set up.`)
+    ux.log(`Verifying port ${localPort} is set up.`)
 
     if (!await isPortAvailable(localPort, 1000)) {
-        console.log(`Failed to verify connection on ${localPort}`)
+        ux.log(`Failed to verify connection on ${localPort}`)
     }
 
-    console.info(`Connection setup completed! Please connect to SSH Host alias: ${dwName}`)
+    ux.info(`Connection setup completed! Please connect to SSH Host alias: ${dwName}`)
 
     // TODO : Make this generic
-    console.info(`For Codex App: codex://settings/connections/ssh/add?name=${dwName}&enabled=true`)
+    ux.info(`For Codex App: codex://settings/connections/ssh/add?name=${dwName}&enabled=true`)
     await cli.open(`codex://settings/connections/ssh/add?name=${dwName}&enabled=true`)
 }
 
@@ -129,7 +130,7 @@ function hasValidParameters({ namespace, podName, dwName, userName }: {namespace
     }
 
     if (message.length > 0) {
-        console.log(`The following parameters are not valid : ${message.substring(1)}`)
+        ux.log(`The following parameters are not valid : ${message.substring(1)}`)
         return false
     }
 
@@ -141,11 +142,11 @@ async function connectCheURI(cheUri: string | undefined) {
         try {
             cheUri = await cli.prompt('Please enter the Developer Workspace URI') as string
         } catch (error) {
-            console.error(error)
+            ux.error(error)
         }
     }
 
-    console.log(`${EclipseChe.PRODUCT_NAME} Workspace URI : ${cheUri}`)
+    ux.log(`${EclipseChe.PRODUCT_NAME} Workspace URI : ${cheUri}`)
 
     if (!cheUri) {
         return

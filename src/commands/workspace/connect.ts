@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { Args, Command, Flags } from '@oclif/core'
+import { Args, Command, Flags, ux } from '@oclif/core'
 
 import { initCluster } from '../../workspace/cluster/cluster-session-manager'
 import { connect } from '../../workspace/connector'
@@ -49,15 +49,15 @@ export default class Connect extends Command {
 
       // Don't exit - the port forward server needs to keep running.
       // Set up signal handlers for clean shutdown.
-      console.info('\nPort forward is active. Press Ctrl+C to disconnect.')
+      ux.info('\nPort forward is active. Press Ctrl+C to disconnect.')
 
       process.on('SIGINT', () => {
-        console.log('\nDisconnecting...')
+        ux.log('\nDisconnecting...')
         process.exit(0)
       })
 
       process.on('SIGTERM', () => {
-        console.log('\nDisconnecting...')
+        ux.log('\nDisconnecting...')
         process.exit(0)
       })
     } catch (error: any) {

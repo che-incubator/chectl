@@ -11,6 +11,7 @@
  */
 
 import * as k8s from '@kubernetes/client-node'
+import { ux } from '@oclif/core'
 
 /**
  * Stateless factory for creating authenticated Kubernetes API clients.
@@ -46,7 +47,7 @@ export class KubeClientFactory {
       currentContext: 'workspace-context',
     })
 
-    console.log(`KubeConfig created for ${apiUrl}`)
+    ux.log(`KubeConfig created for ${apiUrl}`)
     return kc
   }
 }

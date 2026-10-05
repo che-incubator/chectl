@@ -12,6 +12,7 @@
 
 import * as https from 'https'
 import { getHttpsAgent } from './tls'
+import { ux } from '@oclif/core';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -160,7 +161,7 @@ async function doRequest(opts: HttpRequestOptions, redirectCount: number): Promi
           resolve(response)
         } else {
           const truncated = data.slice(0, 200)
-          console.log(`HTTP ${statusCode} from ${opts.method ?? 'GET'} ${parsed.hostname}${parsed.pathname}: ${truncated}`)
+          ux.log(`HTTP ${statusCode} from ${opts.method ?? 'GET'} ${parsed.hostname}${parsed.pathname}: ${truncated}`)
           reject(new HttpError(
             `HTTP ${statusCode}: ${truncated}`,
             statusCode,

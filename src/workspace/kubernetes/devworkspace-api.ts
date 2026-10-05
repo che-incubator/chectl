@@ -14,6 +14,7 @@ import * as k8s from '@kubernetes/client-node'
 import { PatchStrategy, setHeaderOptions } from '@kubernetes/client-node'
 import { DW_API_GROUP, DW_API_VERSION, DW_PLURAL, LABEL_METADATA_NAME, WorkspacePhase } from '../constants'
 import { WorkspaceModel } from '../workspace/workspace-model'
+import { ux } from '@oclif/core'
 
 /**
  * Wraps the Kubernetes CustomObjectsApi for DevWorkspace CRD operations.
@@ -41,7 +42,7 @@ export class DevWorkspaceApi {
 
   async list(namespace: string): Promise<WorkspaceModel[]> {
     this.validateNamespace(namespace)
-    console.log(`Listing DevWorkspaces in ${namespace}`)
+    ux.log(`Listing DevWorkspaces in ${namespace}`)
     const body = await this.customApi.listNamespacedCustomObject(
       { group: DW_API_GROUP, version: DW_API_VERSION, namespace, plural: DW_PLURAL }
     )
@@ -61,7 +62,7 @@ export class DevWorkspaceApi {
   async start(namespace: string, name: string): Promise<void> {
     this.validateNamespace(namespace)
     this.validateName(name)
-    console.log(`Starting workspace ${name} in ${namespace}`)
+    ux.log(`Starting workspace ${name} in ${namespace}`)
     await this.customApi.patchNamespacedCustomObject(
       {
         group: DW_API_GROUP, version: DW_API_VERSION, namespace, plural: DW_PLURAL, name,
@@ -74,7 +75,7 @@ export class DevWorkspaceApi {
   async stop(namespace: string, name: string): Promise<void> {
     this.validateNamespace(namespace)
     this.validateName(name)
-    console.log(`Stopping workspace ${name} in ${namespace}`)
+    ux.log(`Stopping workspace ${name} in ${namespace}`)
     await this.customApi.patchNamespacedCustomObject(
       {
         group: DW_API_GROUP, version: DW_API_VERSION, namespace, plural: DW_PLURAL, name,
@@ -87,7 +88,7 @@ export class DevWorkspaceApi {
   async delete(namespace: string, name: string): Promise<void> {
     this.validateNamespace(namespace)
     this.validateName(name)
-    console.log(`Deleting workspace ${name} in ${namespace}`)
+    ux.log(`Deleting workspace ${name} in ${namespace}`)
     await this.customApi.deleteNamespacedCustomObject(
       { group: DW_API_GROUP, version: DW_API_VERSION, namespace, plural: DW_PLURAL, name }
     )

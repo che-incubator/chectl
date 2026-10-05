@@ -10,6 +10,8 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
+import { ux } from "@oclif/core";
+
 /**
  * Suppress the connector's verbose debug logging unless the user asked for it.
  *
@@ -19,6 +21,6 @@
  */
 export function configureLogging(verbose: boolean): void {
   if (!verbose) {
-    console.log = () => { /* silenced unless --verbose */ }
+    ux.log = () => { /* silenced unless --verbose */ }
   }
 }

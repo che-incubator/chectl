@@ -17,6 +17,7 @@ import { unlinkSync } from 'fs'
 import * as path from 'path'
 import * as net from 'net'
 import * as k8s from '@kubernetes/client-node'
+import { ux } from '@oclif/core'
 
 export class PodInfo {
     project: string | undefined // project
@@ -39,12 +40,12 @@ export async function establishPortForward(namespace: string, podName: string, r
         // ECONNRESET is common when clients disconnect abruptly (test connections, SSH client closes)
         // Only log unexpected errors to avoid spam during normal operation
         if (err.code !== 'ECONNRESET' && err.code !== 'EPIPE') {
-          console.log(`Port forward socket error for ${namespace}/${podName}:${remotePort} - ${err.code}: ${err.message}`)
+          ux.log(`Port forward socket error for ${namespace}/${podName}:${remotePort} - ${err.code}: ${err.message}`)
         }
       })
       forward.portForward(namespace, podName, [remotePort], socket, null, socket)
       .catch((err: Error) => {
-          console.info(`Port forward to ${namespace}/${podName}:${remotePort} failed: ${err.message}`)
+          ux.info(`Port forward to ${namespace}/${podName}:${remotePort} failed: ${err.message}`)
           socket.destroy()
       })
     })
@@ -57,10 +58,10 @@ export async function establishPortForward(namespace: string, podName: string, r
     // Keep server error handler active after startup to catch runtime failures
     server.removeAllListeners('error')
     server.on('error', (err: Error & { code?: string }) => {
-      console.log(`Port forward server error for ${namespace}/${podName}:${remotePort} - ${err.code}: ${err.message}`)
+      ux.log(`Port forward server error for ${namespace}/${podName}:${remotePort} - ${err.code}: ${err.message}`)
     })
 
-    console.info(`Port-forward: localhost:${localPort} → ${podName}:${remotePort}`)
+    ux.info(`Port-forward: localhost:${localPort} → ${podName}:${remotePort}`)
     return localPort
   }
 
@@ -120,7 +121,7 @@ export async function updatePortForwarding(sshdPods?: PodInfo[], availablePortFo
         const entryExists = result.some(e => e.name === pf.name && e.namespace === pf.namespace && e.port === pf.port)
         const podRunning: boolean = sshdPods ? sshdPods.some(p => p.name === pf.name && p.project === pf.namespace) : false
         const portAvailable = await isPortAvailable(pf.port, 1000)
-        console.log(`pid: ${pf.pid} name: ${pf.name} ${podRunning ? '(running)' : '(stopped)'} ns: ${pf.namespace} port: ${pf.port} ${portAvailable ? '(available)' : '(stopped)'}`)
+        ux.log(`pid: ${pf.pid} name: ${pf.name} ${podRunning ? '(running)' : '(stopped)'} ns: ${pf.namespace} port: ${pf.port} ${portAvailable ? '(available)' : '(stopped)'}`)
         if (portAvailable && podRunning && !entryExists) {
             result.push(pf)
         } else if (!podRunning) {
