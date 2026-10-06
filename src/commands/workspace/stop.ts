@@ -27,8 +27,8 @@ export default class Stop extends Command {
 
   static flags = {
     help: Flags.help({ char: 'h' }),
-    auth: Flags.string({
-      description: 'Authenticate with the given cluster URL. Once authenticated, the command is performed against the given cluster.',
+    unauthorized: Flags.boolean({
+      description: 'Whether to bypass the rejection of cluster SSL/TLS certificates that are invalid, expired or self-signed.'
     }),
     verbose: Flags.boolean({
       description: 'Print more verbose information about state.',
@@ -42,7 +42,7 @@ export default class Stop extends Command {
     configureLogging(flags.verbose)
 
     try {
-      const { wm } = flags.auth ? await initCluster(flags.auth) : await initCluster()
+      const { wm } = await initCluster(flags.unauthorized)
       await wm.stopWorkspace(args.name)
       this.log(`Workspace '${args.name}' has been stopped.`)
     } catch (error: any) {

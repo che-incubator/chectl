@@ -22,12 +22,18 @@ import { NamespaceApi } from '../kubernetes/namespace-api'
 import { getJson } from '../utils/http-client'
 import * as k8s from '@kubernetes/client-node'
 import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che'
+import { loadSystemCAs } from '../utils/tls'
 
-export async function initCluster(dashboardURL?: string): Promise<{cheUrl: string, wm: WorkspaceManager, kubeConfig: k8s.KubeConfig}> {
+export async function initCluster(unauthorized: boolean, dashboardURL?: string): Promise<{cheUrl: string, wm: WorkspaceManager, kubeConfig: k8s.KubeConfig}> {
     let cheUrl
     let apiUrl
     let username
     let token
+
+    if (unauthorized) {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+    }
+    loadSystemCAs()
 
     if (dashboardURL) {
         // Discover cluster endpoints
@@ -58,7 +64,7 @@ export async function initCluster(dashboardURL?: string): Promise<{cheUrl: strin
       const contextFile = path.join(extStoragePath, '.k8s', 'context')
       const context = readFile(contextFile)
       if (!context) {
-        throw new Error(`No saved ${EclipseChe.CHE_FLAVOR} session. Re-run the command with --auth <cluster URL>.`)
+        throw new Error(`No saved ${EclipseChe.CHE_FLAVOR} session. Run the auth command with <cluster URL>.`)
       }
       ({ cheUrl, apiUrl, username, token } = JSON.parse(context))
     }
@@ -88,15 +94,11 @@ async function discoverUsername(
     accessToken: string,
     apiUrl: string
 ): Promise<string | undefined> {
-    try {
-        const user = await getJson<{ metadata?: { name?: string } }>(
-            `${apiUrl}/apis/user.openshift.io/v1/users/~`,
-            { Authorization: `Bearer ${accessToken}` }
-        )
-        return user.metadata?.name
-    } catch {
-        return undefined
-    }
+    const user = await getJson<{ metadata?: { name?: string } }>(
+        `${apiUrl}/apis/user.openshift.io/v1/users/~`,
+        { Authorization: `Bearer ${accessToken}` }
+    )
+    return user.metadata?.name
 }
 
 /**

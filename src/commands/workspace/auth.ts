@@ -10,21 +10,20 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { Args, Command, Flags } from '@oclif/core'
+import { Args, Command, Flags, ux } from '@oclif/core'
 
 import { initCluster } from '../../workspace/cluster/cluster-session-manager'
 import { configureLogging } from '../../workspace/utils/logging'
 
-export default class Delete extends Command {
-  static description = 'Delete the given developer workspace (DevWorkspace)'
+export default class Auth extends Command {
+  static description = 'Authenticate against a given cluster URL.'
 
   static args = {
-    name: Args.string({
-      description: 'Name of the DevWorkspace to delete',
+    target: Args.string({
+      description: 'Authenticate with the given cluster URL.',
       required: true,
     }),
   }
-
   static flags = {
     help: Flags.help({ char: 'h' }),
     unauthorized: Flags.boolean({
@@ -38,13 +37,12 @@ export default class Delete extends Command {
   }
 
   async run() {
-    const { args, flags } = await this.parse(Delete)
+    const { args, flags } = await this.parse(Auth)
     configureLogging(flags.verbose)
 
     try {
-      const { wm } = await initCluster(flags.unauthorized)
-      await wm.deleteWorkspace(args.name)
-      this.log(`Workspace '${args.name}' has been deleted.`)
+      const { cheUrl } = await initCluster(flags.unauthorized, args.target)
+      ux.info(`Successfully authenticated against ${cheUrl}`);
     } catch (error: any) {
       this.error(error)
     }

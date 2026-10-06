@@ -142,7 +142,7 @@ async function connectCheURI(cheUri: string | undefined) {
         try {
             cheUri = await cli.prompt('Please enter the Developer Workspace URI') as string
         } catch (error) {
-            ux.error(error)
+            ux.error(error instanceof Error ? error : String(error))
         }
     }
 

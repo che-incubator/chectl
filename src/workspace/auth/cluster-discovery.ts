@@ -60,7 +60,10 @@ export class ClusterDiscovery {
       }
 
       // Pattern 2: <something>.apps.<cluster-domain> → apps.<cluster-domain>
-      const appsIdx = host.indexOf('.apps.')
+      let appsIdx = host.indexOf('.apps.')
+      if (appsIdx === -1) {
+        appsIdx = host.indexOf('.apps-')
+      }
       if (appsIdx !== -1) {
         return host.slice(appsIdx + 1) // strip the leading subdomain
       }
@@ -114,7 +117,7 @@ export class ClusterDiscovery {
     ux.log(`Discovering cluster endpoints from: ${inputUrl}`)
 
     const baseUrl = this.normalizeInputUrl(inputUrl)
-    let appsDomain = this.extractAppsDomain(inputUrl)
+    let appsDomain = this.extractAppsDomain(baseUrl)
 
     // If we couldn't extract from the hostname, try following /oauth/start
     if (!appsDomain) {
@@ -198,7 +201,7 @@ export class ClusterDiscovery {
             const host = new URL(locationStr).hostname
             // oauth-openshift.apps.<cluster-domain> → apps.<cluster-domain>
             const appsDomain = host.replace(/^oauth-openshift\./, '')
-            if (appsDomain.startsWith('apps.')) {
+            if (appsDomain.startsWith('apps.') || appsDomain.startsWith('apps-')) {
               return appsDomain
             }
           } catch { /* fall through */ }
