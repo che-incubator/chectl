@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { Args, Command, Flags, ux } from '@oclif/core'
+import { Args, Command, Flags } from '@oclif/core'
 import cli from 'cli-ux'
 
 import { initCluster } from '../../workspace/cluster/cluster-session-manager'

@@ -15,6 +15,7 @@ import { promisify } from 'node:util';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import path from 'path';
+import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che';
 
 /*
  * macOS URL scheme registration.
@@ -63,21 +64,21 @@ export interface RegisterOptions {
 }
 
 function handlerDir(): string {
-    return path.join(homedir(), '.devspaces-cli-connector', 'url-handler');
+    return path.join(homedir(), '.workspace-cli-connector', 'url-handler');
 }
 
 function bundleIdentifier(protocol: string): string {
-    return `com.redhat.devspaces.urlhandler.${protocol}`;
+    return `com.redhat.che.urlhandler.${protocol}`;
 }
 
 /** Domain used to pass the URL to the terminal launcher. */
 function defaultsDomain(protocol: string): string {
-    return `com.redhat.devspaces.${protocol}`;
+    return `com.redhat.che.${protocol}`;
 }
 
 /** Path of the app registered for the scheme, or undefined if unclaimed. */
 export async function getDefaultApp(protocol: string): Promise<string | undefined> {
-    const scriptDir = mkdtempSync(path.join(tmpdir(), `devspaces-${protocol}-`));
+    const scriptDir = mkdtempSync(path.join(tmpdir(), `workspace-${protocol}-`));
     const scriptPath = path.join(scriptDir, 'defaultAppExist.applescript');
     try {
         writeFileSync(scriptPath, DEFAULT_APP_SCRIPT, { mode: 0o700 });
@@ -99,7 +100,7 @@ export async function register(protocol: string, command: string, options: Regis
     mkdirSync(appDir, { recursive: true });
 
     const launcherPath = path.join(appDir, `${protocol}-launch.sh`);
-    const terminalAppPath = path.join(appDir, `DevSpaces Terminal Launcher.app`);
+    const terminalAppPath = path.join(appDir, `${EclipseChe.CHE_FLAVOR} Terminal Launcher.app`);
     const urlAppPath = path.join(appDir, `${options.appName}.app`);
 
     // The URL arrives as $1 so the command can keep its own quoting.
@@ -147,7 +148,7 @@ export async function deRegister(protocol: string, defaultApp: string): Promise<
 }
 
 async function compileApp(appPath: string, source: string): Promise<void> {
-    const sourceDir = mkdtempSync(path.join(tmpdir(), 'devspaces-osacompile-'));
+    const sourceDir = mkdtempSync(path.join(tmpdir(), `workspace-osacompile-`));
     const sourcePath = path.join(sourceDir, 'app.applescript');
     try {
         writeFileSync(sourcePath, source);

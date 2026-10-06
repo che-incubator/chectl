@@ -196,7 +196,7 @@ async function connectDevworkspaceName(workspaceName: string, wm: WorkspaceManag
         }
 
         const encodedUrl = encodeURIComponent(cheUrl)
-        let cheUri = `${EclipseChe.CHE_FLAVOR}://redhat.devspaces-remote-ssh?namespace=${workspace.namespace}&podName=${podInfo.podName}&userName=${sshUsername}&dwName=${workspaceName}&url=${encodedUrl}`
+        let cheUri = `${EclipseChe.CHE_FLAVOR}://redhat.workspace-remote-ssh?namespace=${workspace.namespace}&podName=${podInfo.podName}&userName=${sshUsername}&dwName=${workspaceName}&url=${encodedUrl}`
         if (encodedPrivateKey) {
             cheUri += `&key=${encodedPrivateKey}`
         }
