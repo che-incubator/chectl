@@ -112,6 +112,14 @@ USAGE
 * [`chectl server:update`](#chectl-serverupdate)
 * [`chectl update [CHANNEL]`](#chectl-update-channel)
 * [`chectl version`](#chectl-version)
+* [`chectl workspace:auth`](#chectl-workspaceauth)
+* [`chectl workspace:create`](#chectl-workspacecreate)
+* [`chectl workspace:connect`](#chectl-workspaceconnect)
+* [`chectl workspace:delete`](#chectl-workspacedelete)
+* [`chectl workspace:list`](#chectl-workspacelist)
+* [`chectl workspace:register-url-handler`](#chectl-workspaceregister-url-handler)
+* [`chectl workspace:start`](#chectl-workspacestart)
+* [`chectl workspace:stop`](#chectl-workspacestop)
 
 ## `chectl autocomplete [SHELL]`
 
@@ -661,6 +669,166 @@ FLAG DESCRIPTIONS
 ```
 
 _See code: [@oclif/plugin-version](https://github.com/oclif/plugin-version/blob/v2.2.36/src/commands/version.ts)_
+
+## `chectl workspace:auth`
+
+```
+Authenticate against a given cluster URL.
+
+USAGE
+  $ chectl workspace:auth TARGET [-h] [--unauthorized] [--verbose]
+
+ARGUMENTS
+  TARGET  Authenticate with the given cluster URL.
+
+FLAGS
+  -h, --help          Show CLI help.
+      --unauthorized  Whether to bypass the rejection of cluster SSL/TLS
+                      certificates that are invalid, expired or self-signed.
+      --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  Authenticate against a given cluster URL.
+
+```
+
+## `chectl workspace:create`
+
+```
+Create a developer workspace (DevWorkspace) for the given devfile URL
+
+USAGE
+  $ chectl workspace:create [DEVFILEURL] [-h] [--verbose]
+
+ARGUMENTS
+  DEVFILEURL  Devfile URL to create the workspace from. Defaults to an empty
+              workspace.
+
+FLAGS
+  -h, --help          Show CLI help.
+      --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  Create a developer workspace (DevWorkspace) for the given devfile URL
+```
+
+## `chectl workspace:connect`
+
+```
+Connect to a developer workspace (DevWorkspace) over SSH. Accepts either a che:// URI or the name of the workspace.
+
+USAGE
+  $ chectl workspace:connect [TARGET] [-h] [--verbose]
+
+ARGUMENTS
+  TARGET  A che:// connection URI or the name of the workspace. If omitted,
+          you will be prompted for a URI.
+
+FLAGS
+  -h, --help          Show CLI help.
+      --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  Connect to a developer workspace (DevWorkspace) over SSH. Accepts either a
+  che:// URI or the name of the workspace.
+```
+
+## `chectl workspace:delete`
+
+```
+Delete the given developer workspace (DevWorkspace)
+
+USAGE
+  $ chectl workspace:delete NAME [-h] [--verbose]
+
+ARGUMENTS
+  NAME  Name of the DevWorkspace to delete
+
+FLAGS
+  -h, --help          Show CLI help.
+      --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  Delete the given developer workspace (DevWorkspace)
+```
+
+## `chectl workspace:list`
+
+```
+List developer workspaces (DevWorkspace) for the authenticated account
+
+USAGE
+  $ chectl workspace:list [-h] [--verbose]
+
+FLAGS
+  -h, --help          Show CLI help.
+      --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  List developer workspaces (DevWorkspace) for the authenticated account
+```
+
+## `chectl workspace:register-url-handler`
+
+```
+Register a che:// URL handler so that connection links open directly with chectl. This eliminates the need to copy connection data by hand.
+
+USAGE
+  $ chectl workspace:register-url-handler [-h] [--force] [--verbose]
+
+FLAGS
+  -h, --help     Show CLI help.
+      --force    Re-register the URL handler even if one already exists (for
+                 example to re-point an existing registration at chectl).
+      --verbose  Print more verbose information about state.
+
+DESCRIPTION
+  Register a che:// URL handler so that connection links open directly with
+  chectl. This eliminates the need to copy connection data by hand.
+
+ALIASES
+  $ chectl workspace:register-url-handler
+```
+
+## `chectl workspace:start`
+
+```
+Start the given developer workspace (DevWorkspace)
+
+USAGE
+  $ chectl workspace:start NAME [-h] [--verbose]
+
+ARGUMENTS
+  NAME  Name of the DevWorkspace to start
+
+FLAGS
+  -h, --help          Show CLI help.
+      --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  Start the given developer workspace (DevWorkspace)
+```
+
+## `chectl workspace:stop`
+
+```
+Stop the given developer workspace (DevWorkspace)
+
+USAGE
+  $ chectl workspace:stop NAME [-h] [--verbose]
+
+ARGUMENTS
+  NAME  Name of the DevWorkspace to stop
+
+FLAGS
+  -h, --help          Show CLI help.
+      --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  Stop the given developer workspace (DevWorkspace)
+```
+
+
 <!-- commandsstop -->
 
 
