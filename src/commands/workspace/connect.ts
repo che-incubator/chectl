@@ -53,12 +53,12 @@ export default class Connect extends Command {
 
       process.on('SIGINT', () => {
         ux.log('\nDisconnecting...')
-        process.exit(0)
+        this.exit(0)
       })
 
       process.on('SIGTERM', () => {
         ux.log('\nDisconnecting...')
-        process.exit(0)
+        this.exit(0)
       })
     } catch (error: any) {
       this.error(error)

@@ -46,7 +46,6 @@ export async function initCluster(unauthorized: boolean, dashboardURL?: string):
             endpoints.oauthAuthorizeUrl,
             endpoints.oauthTokenUrl
         )
-        // TODO: What to do with clusterUrl ?
         cheUrl = endpoints.cheUrl
         apiUrl = endpoints.apiUrl
         token = accessToken

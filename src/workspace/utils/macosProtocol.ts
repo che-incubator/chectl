@@ -136,7 +136,8 @@ export async function register(protocol: string, command: string, options: Regis
 /** Removes the handler app, if we created it. */
 export async function deRegister(protocol: string, defaultApp: string): Promise<void> {
     const { stdout } = await execFileAsync(PLIST_BUDDY, [
-        '-c', 'Print :CFBundleIdentifier',
+        '-c',
+        'Print :CFBundleIdentifier',
         path.join(defaultApp, 'Contents', 'Info.plist'),
     ]);
 
@@ -165,12 +166,18 @@ async function declareUrlScheme(appPath: string, protocol: string): Promise<void
     // osacompile emits no CFBundleIdentifier, and the app is rebuilt each
     // time, so Add works throughout and Set doesn't.
     await execFileAsync(PLIST_BUDDY, [
-        '-c', `Add :CFBundleIdentifier string ${bundleIdentifier(protocol)}`,
-        '-c', 'Add :CFBundleURLTypes array',
-        '-c', 'Add :CFBundleURLTypes:0 dict',
-        '-c', `Add :CFBundleURLTypes:0:CFBundleURLName string URL : ${protocol}`,
-        '-c', 'Add :CFBundleURLTypes:0:CFBundleURLSchemes array',
-        '-c', `Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string ${protocol}`,
+        '-c',
+        `Add :CFBundleIdentifier string ${bundleIdentifier(protocol)}`,
+        '-c',
+        'Add :CFBundleURLTypes array',
+        '-c',
+        'Add :CFBundleURLTypes:0 dict',
+        '-c',
+        `Add :CFBundleURLTypes:0:CFBundleURLName string URL : ${protocol}`,
+        '-c',
+        'Add :CFBundleURLTypes:0:CFBundleURLSchemes array',
+        '-c',
+        `Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string ${protocol}`,
         plistFile,
     ]);
 }

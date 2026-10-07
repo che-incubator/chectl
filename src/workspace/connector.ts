@@ -100,7 +100,6 @@ export async function handleVSCodeURI(uri: URL) {
 
     ux.info(`Connection setup completed! Please connect to SSH Host alias: ${dwName}`)
 
-    // TODO : Make this generic
     ux.info(`For Codex App: codex://settings/connections/ssh/add?name=${dwName}&enabled=true`)
     await cli.open(`codex://settings/connections/ssh/add?name=${dwName}&enabled=true`)
 }

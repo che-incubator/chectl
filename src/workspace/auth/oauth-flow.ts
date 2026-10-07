@@ -148,10 +148,10 @@ export class OAuthFlow {
         try {
           const json = JSON.parse(err.responseBody)
           if (json.error) {
-            throw new Error(`Token exchange failed: ${json.error} - ${json.error_description ?? ''}`)
+            throw new Error(`Token exchange failed: ${json.error} - ${json.error_description ?? ''}`, { cause: err })
           }
         } catch { /* fall through to rethrow */ }
-        throw new Error(`Token exchange failed: HTTP ${err.statusCode}`)
+        throw new Error(`Token exchange failed: HTTP ${err.statusCode}`, { cause: err })
       }
       throw err
     }

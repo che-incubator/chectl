@@ -188,28 +188,37 @@ export class ClusterDiscovery {
       await request({ url, method: 'GET', headers: { Accept: 'text/html' } })
       // If we got a 2xx, there's no redirect — can't discover the domain
       throw new Error(
-        `Could not discover cluster from ${baseUrl}. ` +
-        `Expected redirect from /oauth/start. ` +
+        `Could not discover cluster from ${baseUrl}.` +
+        `Expected redirect from /oauth/start.` +
         `Try pasting a URL that contains the cluster domain (e.g. che.example.com).`
       )
     } catch (err) {
       if (err instanceof HttpError && err.statusCode >= 300 && err.statusCode < 400) {
         const location = err.responseHeaders.location
-        if (location) {
-          const locationStr = Array.isArray(location) ? location[0] ?? '' : location
-          try {
-            const host = new URL(locationStr).hostname
-            // oauth-openshift.apps.<cluster-domain> → apps.<cluster-domain>
-            const appsDomain = host.replace(/^oauth-openshift\./, '')
-            if (appsDomain.startsWith('apps.') || appsDomain.startsWith('apps-')) {
-              return appsDomain
-            }
-          } catch { /* fall through */ }
+        if (!location) {
+          throw new Error(
+            `Could not discover cluster from ${baseUrl}. ` +
+            `Location header redirect from /ouath/start was empty (status: ${err.statusCode})` +
+            `Try pasting a URL that contains the cluster domain (e.g. che.example.com).`,
+            { cause: err }
+          )
         }
+
+        const locationStr = Array.isArray(location) ? location[0] ?? '' : location
+        try {
+          const host = new URL(locationStr).hostname
+          // oauth-openshift.apps.<cluster-domain> → apps.<cluster-domain>
+          const appsDomain = host.replace(/^oauth-openshift\./, '')
+          if (appsDomain.startsWith('apps.') || appsDomain.startsWith('apps-')) {
+            return appsDomain
+          }
+        } catch { /* fall through */ }
+
         throw new Error(
-          `Could not discover cluster from ${baseUrl}. ` +
-          `No valid redirect from /oauth/start (status: ${err.statusCode}). ` +
-          `Try pasting a URL that contains the cluster domain (e.g. che.example.com).`
+          `Could not discover cluster from ${baseUrl}.` +
+          `Location header redirect from /oauth/start was invalid (status: ${err.statusCode}).` +
+          `Try pasting a URL that contains the cluster domain (e.g. che.example.com).`,
+          { cause: err }
         )
       }
       throw err

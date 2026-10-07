@@ -10,7 +10,12 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { loadSystemCAs, getHttpsAgent } from '../../src/workspace/utils/tls';
+// Mock @oclif/core before any imports that use it
+jest.mock('@oclif/core', () => ({
+  ux: {
+    log: jest.fn(),
+  },
+}));
 
 // Mock child_process to avoid actually running security commands
 jest.mock('child_process', () => ({
@@ -24,6 +29,8 @@ jest.mock('fs', () => ({
   writeFileSync: jest.fn(),
   promises: { readFile: jest.fn() },
 }));
+
+import { loadSystemCAs, getHttpsAgent } from '../../src/workspace/utils/tls';
 
 describe('tls', () => {
   const originalEnv = process.env;
