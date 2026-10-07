@@ -48,7 +48,7 @@ describe('NamespaceApi', () => {
           items: [
             {
               metadata: {
-                name: 'd9209267-devspaces-heh46u',
+                name: 'd9209267-che-heh46u',
                 annotations: { 'che.eclipse.org/username': 'D9209267' },
               },
             },
@@ -57,7 +57,7 @@ describe('NamespaceApi', () => {
 
         const result = await namespaceApi.findUserNamespace('D9209267');
 
-        expect(result).toBe('d9209267-devspaces-heh46u');
+        expect(result).toBe('d9209267-che-heh46u');
       });
 
       it('should match annotation case-insensitively', async () => {
@@ -65,7 +65,7 @@ describe('NamespaceApi', () => {
           items: [
             {
               metadata: {
-                name: 'a9284992-devspaces-05pavn',
+                name: 'a9284992-che-05pavn',
                 annotations: { 'che.eclipse.org/username': 'A9284992' },
               },
             },
@@ -74,7 +74,7 @@ describe('NamespaceApi', () => {
 
         const result = await namespaceApi.findUserNamespace('a9284992');
 
-        expect(result).toBe('a9284992-devspaces-05pavn');
+        expect(result).toBe('a9284992-che-05pavn');
       });
 
       it('should handle uppercase username with lowercase annotation', async () => {
@@ -82,7 +82,7 @@ describe('NamespaceApi', () => {
           items: [
             {
               metadata: {
-                name: 'user123-devspaces-abc',
+                name: 'user123-che-abc',
                 annotations: { 'che.eclipse.org/username': 'user123' },
               },
             },
@@ -91,7 +91,7 @@ describe('NamespaceApi', () => {
 
         const result = await namespaceApi.findUserNamespace('USER123');
 
-        expect(result).toBe('user123-devspaces-abc');
+        expect(result).toBe('user123-che-abc');
       });
 
       it('should not use label selector (avoids label drift issues)', async () => {
@@ -110,10 +110,10 @@ describe('NamespaceApi', () => {
             { metadata: { name: 'default', annotations: undefined } },
             {
               metadata: {
-                name: 'd9209267-devspaces-heh46u',
+                name: 'd9209267-che-heh46u',
                 annotations: {
                   'che.eclipse.org/username': 'D9209267',
-                  'openshift.io/requester': 'system:serviceaccount:devspaces-components:che',
+                  'openshift.io/requester': 'system:serviceaccount:che-components:che',
                 },
                 labels: {
                   'blockCode': 'DEFAULT',
@@ -123,7 +123,7 @@ describe('NamespaceApi', () => {
             },
             {
               metadata: {
-                name: 'other-user-devspaces-xyz',
+                name: 'other-user-che-xyz',
                 annotations: { 'che.eclipse.org/username': 'otheruser' },
               },
             },
@@ -132,7 +132,7 @@ describe('NamespaceApi', () => {
 
         const result = await namespaceApi.findUserNamespace('D9209267');
 
-        expect(result).toBe('d9209267-devspaces-heh46u');
+        expect(result).toBe('d9209267-che-heh46u');
       });
 
       it('should return undefined when no namespace matches', async () => {
@@ -140,7 +140,7 @@ describe('NamespaceApi', () => {
           items: [
             {
               metadata: {
-                name: 'other-devspaces-abc',
+                name: 'other-che-abc',
                 annotations: { 'che.eclipse.org/username': 'otheruser' },
               },
             },
@@ -167,7 +167,7 @@ describe('NamespaceApi', () => {
             { metadata: { name: 'null-annotations', annotations: null } },
             {
               metadata: {
-                name: 'target-devspaces-xyz',
+                name: 'target-che-xyz',
                 annotations: { 'che.eclipse.org/username': 'targetuser' },
               },
             },
@@ -176,7 +176,7 @@ describe('NamespaceApi', () => {
 
         const result = await namespaceApi.findUserNamespace('targetuser');
 
-        expect(result).toBe('target-devspaces-xyz');
+        expect(result).toBe('target-che-xyz');
       });
 
       it('should handle namespace with random suffix (real-world format)', async () => {
@@ -185,7 +185,7 @@ describe('NamespaceApi', () => {
           items: [
             {
               metadata: {
-                name: 'd9209267-devspaces-heh46u',
+                name: 'd9209267-che-heh46u',
                 annotations: { 'che.eclipse.org/username': 'D9209267' },
               },
             },
@@ -195,7 +195,7 @@ describe('NamespaceApi', () => {
         // Username from oc whoami is uppercase
         const result = await namespaceApi.findUserNamespace('D9209267');
 
-        expect(result).toBe('d9209267-devspaces-heh46u');
+        expect(result).toBe('d9209267-che-heh46u');
       });
     });
 
@@ -226,7 +226,7 @@ describe('NamespaceApi', () => {
           items: [
             {
               metadata: {
-                name: 'user-devspaces-random',
+                name: 'user-che-random',
                 annotations: { 'che.eclipse.org/username': 'user' },
               },
             },
@@ -235,7 +235,7 @@ describe('NamespaceApi', () => {
 
         const result = await namespaceApi.findUserNamespace('user');
 
-        expect(result).toBe('user-devspaces-random');
+        expect(result).toBe('user-che-random');
       });
     });
   });

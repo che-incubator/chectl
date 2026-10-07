@@ -20,8 +20,8 @@ describe('ClusterDiscovery', () => {
   });
 
   describe('extractAppsDomain', () => {
-    it('extracts apps domain from devspaces URL', () => {
-      expect(discovery.extractAppsDomain('https://devspaces.apps.mycluster-01.abc1.p1.openshiftapps.com'))
+    it('extracts apps domain from che URL', () => {
+      expect(discovery.extractAppsDomain('https://che.apps.mycluster-01.abc1.p1.openshiftapps.com'))
         .toBe('apps.mycluster-01.abc1.p1.openshiftapps.com');
     });
 
@@ -36,7 +36,7 @@ describe('ClusterDiscovery', () => {
     });
 
     it('handles URL with path and fragment', () => {
-      expect(discovery.extractAppsDomain('https://devspaces.apps.cluster.example.com/dashboard/#/workspaces'))
+      expect(discovery.extractAppsDomain('https://che.apps.cluster.example.com/dashboard/#/workspaces'))
         .toBe('apps.cluster.example.com');
     });
 
@@ -46,7 +46,7 @@ describe('ClusterDiscovery', () => {
     });
 
     it('returns undefined for CNAME alias without apps pattern', () => {
-      expect(discovery.extractAppsDomain('https://devspaces.mycompany.com'))
+      expect(discovery.extractAppsDomain('https://che.mycompany.com'))
         .toBeUndefined();
     });
 
@@ -56,30 +56,30 @@ describe('ClusterDiscovery', () => {
     });
 
     it('handles URL with port in apps pattern', () => {
-      expect(discovery.extractAppsDomain('https://devspaces.apps.cluster.example.com:8443'))
+      expect(discovery.extractAppsDomain('https://che.apps.cluster.example.com:8443'))
         .toBe('apps.cluster.example.com');
     });
   });
 
   describe('normalizeInputUrl', () => {
     it('adds https:// if missing', () => {
-      expect(discovery.normalizeInputUrl('devspaces.apps.cluster.example.com'))
-        .toBe('https://devspaces.apps.cluster.example.com');
+      expect(discovery.normalizeInputUrl('che.apps.cluster.example.com'))
+        .toBe('https://che.apps.cluster.example.com');
     });
 
     it('preserves existing https://', () => {
-      expect(discovery.normalizeInputUrl('https://devspaces.apps.cluster.example.com'))
-        .toBe('https://devspaces.apps.cluster.example.com');
+      expect(discovery.normalizeInputUrl('https://che.apps.cluster.example.com'))
+        .toBe('https://che.apps.cluster.example.com');
     });
 
     it('strips trailing slashes and paths', () => {
-      expect(discovery.normalizeInputUrl('https://devspaces.apps.cluster.example.com/dashboard/'))
-        .toBe('https://devspaces.apps.cluster.example.com');
+      expect(discovery.normalizeInputUrl('https://che.apps.cluster.example.com/dashboard/'))
+        .toBe('https://che.apps.cluster.example.com');
     });
 
     it('trims whitespace', () => {
-      expect(discovery.normalizeInputUrl('  https://devspaces.apps.cluster.example.com  '))
-        .toBe('https://devspaces.apps.cluster.example.com');
+      expect(discovery.normalizeInputUrl('  https://che.apps.cluster.example.com  '))
+        .toBe('https://che.apps.cluster.example.com');
     });
 
     it('preserves port', () => {
@@ -89,9 +89,9 @@ describe('ClusterDiscovery', () => {
   });
 
   describe('buildCheUrl', () => {
-    it('builds devspaces URL from apps domain', () => {
-      expect(discovery.buildCheUrl('https://devspaces.apps.mycluster-01.abc1.p1.openshiftapps.com'))
-        .toBe('https://devspaces.apps.mycluster-01.abc1.p1.openshiftapps.com');
+    it('builds che URL from apps domain', () => {
+      expect(discovery.buildCheUrl('https://che.apps.mycluster-01.abc1.p1.openshiftapps.com'))
+        .toBe('https://che.apps.mycluster-01.abc1.p1.openshiftapps.com');
     });
   });
 });
