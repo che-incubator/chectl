@@ -4,6 +4,6 @@
     "vscode.typescript",
     "vscode.typescript-language-features",
     "github.vscode-pull-request-github",
-    "RooVeterinaryInc.roo-cline"
+    "openai.chatgpt"
   ]
 }
