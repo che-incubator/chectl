@@ -14,7 +14,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
-import path from 'path';
+import * as path from 'path';
 import { EclipseChe } from '../../tasks/installers/eclipse-che/eclipse-che';
 
 /*

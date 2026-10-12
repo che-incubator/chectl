@@ -63,7 +63,7 @@ export async function initCluster(unauthorized: boolean, dashboardURL?: string):
       const contextFile = path.join(extStoragePath, '.k8s', 'context')
       const context = readFile(contextFile)
       if (!context) {
-        throw new Error(`No saved ${EclipseChe.CHE_FLAVOR} session. Run the auth command with <cluster URL>.`)
+        throw new Error(`No saved ${EclipseChe.CHE_FLAVOR} session. Run the auth command with <dashboard URL>.`)
       }
       ({ cheUrl, apiUrl, username, token } = JSON.parse(context))
     }

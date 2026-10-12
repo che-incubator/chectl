@@ -16,11 +16,11 @@ import { initCluster } from '../../workspace/cluster/cluster-session-manager'
 import { configureLogging } from '../../workspace/utils/logging'
 
 export default class Auth extends Command {
-  static description = 'Authenticate against a given cluster URL.'
+  static description = 'Authenticate against a given dashboard URL.'
 
   static args = {
     target: Args.string({
-      description: 'Authenticate with the given cluster URL.',
+      description: 'Authenticate with the given dashboard URL.',
       required: true,
     }),
   }

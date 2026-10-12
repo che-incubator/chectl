@@ -23,6 +23,9 @@ export default class List extends Command {
     unauthorized: Flags.boolean({
       description: 'Whether to bypass the rejection of cluster SSL/TLS certificates that are invalid, expired or self-signed.'
     }),
+    json: Flags.boolean({
+      description: 'Format output as JSON.'
+    }),
     verbose: Flags.boolean({
       description: 'Print more verbose information about state.',
       aliases: ['debug'],
@@ -35,9 +38,26 @@ export default class List extends Command {
     configureLogging(flags.verbose)
 
     try {
+      // Use native import() to load ESM module from CommonJS
+      // eslint-disable-next-line no-new-func
+      const importDynamic = new Function('specifier', 'return import(specifier)')
+      const { printTable } = await importDynamic('@oclif/table')
       const { wm } = await initCluster(flags.unauthorized)
-      const workspaces = wm.getWorkspaces()
-      this.log(JSON.stringify(workspaces))
+      const workspaces = wm.getWorkspaces();
+      if (flags.json) {
+        this.log(JSON.stringify(workspaces))
+      } else {
+        printTable({
+          title: 'Workspaces',
+          data: workspaces,
+          columns: [
+            { key: 'name' },
+            { key: 'namespace' },
+            { key: 'phase' },
+            { key: 'started' }
+          ],
+        })
+      }
     } catch (error: any) {
       this.error(error)
     }

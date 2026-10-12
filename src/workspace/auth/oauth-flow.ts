@@ -16,7 +16,7 @@ import cli from 'cli-ux'
 import { postForm, HttpError } from '../utils/http-client'
 import { OAUTH_CALLBACK_TIMEOUT } from '../constants'
 import { readFile } from '../utils/io'
-import path from 'path'
+import * as path from 'path'
 import { ux } from '@oclif/core'
 
 export interface OAuthResult {

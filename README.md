@@ -673,13 +673,13 @@ _See code: [@oclif/plugin-version](https://github.com/oclif/plugin-version/blob/
 ## `chectl workspace:auth`
 
 ```
-Authenticate against a given cluster URL.
+Authenticate against a given dashboard URL.
 
 USAGE
   $ chectl workspace:auth TARGET [-h] [--unauthorized] [--verbose]
 
 ARGUMENTS
-  TARGET  Authenticate with the given cluster URL.
+  TARGET  Authenticate with the given dashboard URL.
 
 FLAGS
   -h, --help          Show CLI help.
@@ -688,7 +688,7 @@ FLAGS
       --verbose       Print more verbose information about state.
 
 DESCRIPTION
-  Authenticate against a given cluster URL.
+  Authenticate against a given dashboard URL.
 
 ```
 
@@ -706,6 +706,8 @@ ARGUMENTS
 
 FLAGS
   -h, --help          Show CLI help.
+      --unauthorized  Whether to bypass the rejection of cluster SSL/TLS
+                      certificates that are invalid, expired or self-signed.
       --verbose       Print more verbose information about state.
 
 DESCRIPTION
@@ -726,6 +728,8 @@ ARGUMENTS
 
 FLAGS
   -h, --help          Show CLI help.
+      --unauthorized  Whether to bypass the rejection of cluster SSL/TLS
+                      certificates that are invalid, expired or self-signed.
       --verbose       Print more verbose information about state.
 
 DESCRIPTION
@@ -746,6 +750,8 @@ ARGUMENTS
 
 FLAGS
   -h, --help          Show CLI help.
+      --unauthorized  Whether to bypass the rejection of cluster SSL/TLS
+                      certificates that are invalid, expired or self-signed.
       --verbose       Print more verbose information about state.
 
 DESCRIPTION
@@ -758,10 +764,13 @@ DESCRIPTION
 List developer workspaces (DevWorkspace) for the authenticated account
 
 USAGE
-  $ chectl workspace:list [-h] [--verbose]
+  $ chectl workspace:list [-h] [--unauthorized] [--json] [--verbose]
 
 FLAGS
   -h, --help          Show CLI help.
+      --json          Format output as JSON.
+      --unauthorized  Whether to bypass the rejection of cluster SSL/TLS
+                      certificates that are invalid, expired or self-signed.
       --verbose       Print more verbose information about state.
 
 DESCRIPTION
@@ -803,6 +812,8 @@ ARGUMENTS
 
 FLAGS
   -h, --help          Show CLI help.
+      --unauthorized  Whether to bypass the rejection of cluster SSL/TLS
+                      certificates that are invalid, expired or self-signed.
       --verbose       Print more verbose information about state.
 
 DESCRIPTION
@@ -822,6 +833,8 @@ ARGUMENTS
 
 FLAGS
   -h, --help          Show CLI help.
+      --unauthorized  Whether to bypass the rejection of cluster SSL/TLS
+                      certificates that are invalid, expired or self-signed.
       --verbose       Print more verbose information about state.
 
 DESCRIPTION
