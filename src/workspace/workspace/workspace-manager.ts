@@ -60,14 +60,18 @@ export class WorkspaceManager {
   }
 
   async startWorkspace(
-    name: string,
-  ): Promise<WorkspaceModel> {
+    name: string, noWait?: boolean
+  ): Promise<WorkspaceModel|undefined> {
     if (!this.userNamespace) {
       throw new Error('User namespace not initialized')
     }
     ux.log('Starting workspace...')
     await this.devWorkspaceApi.start(this.userNamespace, name)
-    return this.waitForPhase(name, WorkspacePhase.Running)
+    if (noWait) {
+      return undefined
+    } else {
+      return this.waitForPhase(name, WorkspacePhase.Running)
+    }
   }
 
   async stopWorkspace(name: string): Promise<void> {

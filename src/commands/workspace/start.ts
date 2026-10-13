@@ -43,8 +43,7 @@ export default class Start extends Command {
 
     try {
       const { wm } = await initCluster(flags.unauthorized)
-      await wm.startWorkspace(args.name)
-      this.log(`Workspace '${args.name}' is running.`)
+      await wm.startWorkspace(args.name, true)
     } catch (error: any) {
       this.error(error)
     }

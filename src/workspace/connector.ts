@@ -163,6 +163,9 @@ async function connectDevworkspaceName(workspaceName: string, wm: WorkspaceManag
     }
 
     const workspace = await wm.startWorkspace(workspaceName)
+    if (!workspace) {
+      return
+    }
 
     const coreApi = kubeConfig.makeApiClient(k8s.CoreV1Api)
 
