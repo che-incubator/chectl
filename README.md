@@ -112,6 +112,14 @@ USAGE
 * [`chectl server:update`](#chectl-serverupdate)
 * [`chectl update [CHANNEL]`](#chectl-update-channel)
 * [`chectl version`](#chectl-version)
+* [`chectl workspace:auth TARGET`](#chectl-workspaceauth-target)
+* [`chectl workspace:connect [TARGET]`](#chectl-workspaceconnect-target)
+* [`chectl workspace:create [DEVFILEURL]`](#chectl-workspacecreate-devfileurl)
+* [`chectl workspace:delete NAME`](#chectl-workspacedelete-name)
+* [`chectl workspace:list`](#chectl-workspacelist)
+* [`chectl workspace:register-url-handler`](#chectl-workspaceregister-url-handler)
+* [`chectl workspace:start NAME`](#chectl-workspacestart-name)
+* [`chectl workspace:stop NAME`](#chectl-workspacestop-name)
 
 ## `chectl autocomplete [SHELL]`
 
@@ -661,6 +669,189 @@ FLAG DESCRIPTIONS
 ```
 
 _See code: [@oclif/plugin-version](https://github.com/oclif/plugin-version/blob/v2.2.36/src/commands/version.ts)_
+
+## `chectl workspace:auth TARGET`
+
+Authenticate against a given dashboard URL.
+
+```
+USAGE
+  $ chectl workspace:auth TARGET [-h] [--unauthorized] [--verbose]
+
+ARGUMENTS
+  TARGET  Authenticate with the given dashboard URL.
+
+FLAGS
+  -h, --help      Show CLI help.
+  --unauthorized  Whether to bypass the rejection of cluster SSL/TLS certificates that are invalid, expired or
+                  self-signed.
+  --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  Authenticate against a given dashboard URL.
+```
+
+_See code: [src/commands/workspace/auth.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/auth.ts)_
+
+## `chectl workspace:connect [TARGET]`
+
+Connect to a developer workspace (DevWorkspace) over SSH. Accepts either a che:// URI or the name of the workspace.
+
+```
+USAGE
+  $ chectl workspace:connect [TARGET] [-h] [--unauthorized] [--verbose]
+
+ARGUMENTS
+  TARGET  A che:// connection URI or the name of the workspace. If omitted, you will be prompted for a URI.
+
+FLAGS
+  -h, --help      Show CLI help.
+  --unauthorized  Whether to bypass the rejection of cluster SSL/TLS certificates that are invalid, expired or
+                  self-signed.
+  --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  Connect to a developer workspace (DevWorkspace) over SSH. Accepts either a che:// URI or the name of the workspace.
+```
+
+_See code: [src/commands/workspace/connect.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/connect.ts)_
+
+## `chectl workspace:create [DEVFILEURL]`
+
+Create a developer workspace (DevWorkspace) for the given devfile URL
+
+```
+USAGE
+  $ chectl workspace:create [DEVFILEURL] [-h] [--unauthorized] [--verbose]
+
+ARGUMENTS
+  DEVFILEURL  Devfile URL to create the workspace from. Defaults to an empty workspace.
+
+FLAGS
+  -h, --help      Show CLI help.
+  --unauthorized  Whether to bypass the rejection of cluster SSL/TLS certificates that are invalid, expired or
+                  self-signed.
+  --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  Create a developer workspace (DevWorkspace) for the given devfile URL
+```
+
+_See code: [src/commands/workspace/create.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/create.ts)_
+
+## `chectl workspace:delete NAME`
+
+Delete the given developer workspace (DevWorkspace)
+
+```
+USAGE
+  $ chectl workspace:delete NAME [-h] [--unauthorized] [--verbose]
+
+ARGUMENTS
+  NAME  Name of the DevWorkspace to delete
+
+FLAGS
+  -h, --help      Show CLI help.
+  --unauthorized  Whether to bypass the rejection of cluster SSL/TLS certificates that are invalid, expired or
+                  self-signed.
+  --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  Delete the given developer workspace (DevWorkspace)
+```
+
+_See code: [src/commands/workspace/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/delete.ts)_
+
+## `chectl workspace:list`
+
+List developer workspaces (DevWorkspace) for the authenticated account
+
+```
+USAGE
+  $ chectl workspace:list [-h] [--unauthorized] [--json] [--verbose]
+
+FLAGS
+  -h, --help      Show CLI help.
+  --json          Format output as JSON.
+  --unauthorized  Whether to bypass the rejection of cluster SSL/TLS certificates that are invalid, expired or
+                  self-signed.
+  --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  List developer workspaces (DevWorkspace) for the authenticated account
+```
+
+_See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/list.ts)_
+
+## `chectl workspace:register-url-handler`
+
+Register a che:// URL handler so that connection links open directly with chectl. This eliminates the need to copy connection data by hand.
+
+```
+USAGE
+  $ chectl workspace:register-url-handler [-h] [--force] [--verbose]
+
+FLAGS
+  -h, --help  Show CLI help.
+  --force     Re-register the URL handler even if one already exists (for example to re-point an existing registration
+              at chectl).
+  --verbose   Print more verbose information about state.
+
+DESCRIPTION
+  Register a che:// URL handler so that connection links open directly with chectl. This eliminates the need to copy
+  connection data by hand.
+
+ALIASES
+  $ chectl workspace:register-url-handler
+```
+
+_See code: [src/commands/workspace/register-url-handler.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/register-url-handler.ts)_
+
+## `chectl workspace:start NAME`
+
+Start the given developer workspace (DevWorkspace)
+
+```
+USAGE
+  $ chectl workspace:start NAME [-h] [--unauthorized] [--verbose]
+
+ARGUMENTS
+  NAME  Name of the DevWorkspace to start
+
+FLAGS
+  -h, --help      Show CLI help.
+  --unauthorized  Whether to bypass the rejection of cluster SSL/TLS certificates that are invalid, expired or
+                  self-signed.
+  --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  Start the given developer workspace (DevWorkspace)
+```
+
+_See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
+
+## `chectl workspace:stop NAME`
+
+Stop the given developer workspace (DevWorkspace)
+
+```
+USAGE
+  $ chectl workspace:stop NAME [-h] [--unauthorized] [--verbose]
+
+ARGUMENTS
+  NAME  Name of the DevWorkspace to stop
+
+FLAGS
+  -h, --help      Show CLI help.
+  --unauthorized  Whether to bypass the rejection of cluster SSL/TLS certificates that are invalid, expired or
+                  self-signed.
+  --verbose       Print more verbose information about state.
+
+DESCRIPTION
+  Stop the given developer workspace (DevWorkspace)
+```
+
+_See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_
 <!-- commandsstop -->
 
 
