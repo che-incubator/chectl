@@ -4467,7 +4467,7 @@ __metadata:
     listr: "npm:^0.14.3"
     lodash: "npm:^4.18.1"
     node-forge: "npm:^1.4.0"
-    node-notifier: "npm:^10.0.1"
+    node-notifier: "npm:^11.0.0"
     oclif: "npm:^3"
     protocol-registry: "npm:^2.0.0"
     rimraf: "npm:^6.1.3"
@@ -7140,6 +7140,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"is-docker@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "is-docker@npm:3.0.0"
+  bin:
+    is-docker: cli.js
+  checksum: 10c0/d2c4f8e6d3e34df75a5defd44991b6068afad4835bb783b902fa12d13ebdb8f41b2a199dcb0b5ed2cb78bfee9e4c0bbdb69c2d9646f4106464674d3e697a5856
+  languageName: node
+  linkType: hard
+
 "is-extglob@npm:^2.1.1":
   version: 2.1.1
   resolution: "is-extglob@npm:2.1.1"
@@ -7221,6 +7230,17 @@ __metadata:
   bin:
     is-in-ci: cli.js
   checksum: 10c0/1e1d1056939a681e8206035de5ad84e0404556eaa7622bb55f0f1868b9788bff3df427bc0b1ed5a172623154a90fcb1e759a230817cd73d09435543ae3c71feb
+  languageName: node
+  linkType: hard
+
+"is-inside-container@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "is-inside-container@npm:1.0.0"
+  dependencies:
+    is-docker: "npm:^3.0.0"
+  bin:
+    is-inside-container: cli.js
+  checksum: 10c0/a8efb0e84f6197e6ff5c64c52890fa9acb49b7b74fed4da7c95383965da6f0fa592b4dbd5e38a79f87fc108196937acdbcd758fcefc9b140e479b39ce1fcd1cd
   languageName: node
   linkType: hard
 
@@ -7353,6 +7373,15 @@ __metadata:
   dependencies:
     is-docker: "npm:^2.0.0"
   checksum: 10c0/a6fa2d370d21be487c0165c7a440d567274fbba1a817f2f0bfa41cc5e3af25041d84267baa22df66696956038a43973e72fca117918c91431920bdef490fa25e
+  languageName: node
+  linkType: hard
+
+"is-wsl@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "is-wsl@npm:3.1.1"
+  dependencies:
+    is-inside-container: "npm:^1.0.0"
+  checksum: 10c0/7e5023522bfb8f27de4de960b0d82c4a8146c0bddb186529a3616d78b5bbbfc19ef0c5fc60d0b3a3cc0bf95a415fbdedc18454310ea3049587c879b07ace5107
   languageName: node
   linkType: hard
 
@@ -9227,17 +9256,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-notifier@npm:^10.0.1":
-  version: 10.0.1
-  resolution: "node-notifier@npm:10.0.1"
+"node-notifier@npm:^11.0.0":
+  version: 11.0.0
+  resolution: "node-notifier@npm:11.0.0"
   dependencies:
     growly: "npm:^1.3.0"
-    is-wsl: "npm:^2.2.0"
-    semver: "npm:^7.3.5"
-    shellwords: "npm:^0.1.1"
-    uuid: "npm:^8.3.2"
-    which: "npm:^2.0.2"
-  checksum: 10c0/8888f6c4c277c588e6be991019e32ebbf4abdd598151683de59b9f70c31e6bbbddf0e443ea373da44338ab82a958695dcf73035c96e336a398940228d59399eb
+    is-wsl: "npm:^3.1.1"
+  checksum: 10c0/f34bc310364c6b01f93c4e8bbb74cdf34335f9d4d0187d4ab2ff1142a9ab0e0841983dad9ca70b99bfa65c78d6557aff10a7f0dfb573c607c05fc2a6b7f45bb7
   languageName: node
   linkType: hard
 
@@ -10802,13 +10827,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"shellwords@npm:^0.1.1":
-  version: 0.1.1
-  resolution: "shellwords@npm:0.1.1"
-  checksum: 10c0/7d66b28927e0b524b71b2e185651fcd88a70473a077dd230fbf86188380e948ffb36cea00832d78fc13c93cd15f6f52286fb05f2746b7580623ca1ec619eb004
-  languageName: node
-  linkType: hard
-
 "sigmund@npm:^1.0.1":
   version: 1.0.1
   resolution: "sigmund@npm:1.0.1"
@@ -12056,15 +12074,6 @@ __metadata:
   bin:
     uuid: dist/bin/uuid
   checksum: 10c0/e62301a1c6102da5ce9a147b492a4b5cfa14d2e8fdf4a6ebfda7929cb72d186f84173815ec18fa4160a03bf9724b16ece3737b3ac6701815bc965f8fa4279298
-  languageName: node
-  linkType: hard
-
-"uuid@npm:^8.3.2":
-  version: 8.3.2
-  resolution: "uuid@npm:8.3.2"
-  bin:
-    uuid: dist/bin/uuid
-  checksum: 10c0/bcbb807a917d374a49f475fae2e87fdca7da5e5530820ef53f65ba1d12131bd81a92ecf259cc7ce317cbe0f289e7d79fdfebcef9bfa3087c8c8a2fa304c9be54
   languageName: node
   linkType: hard
 
