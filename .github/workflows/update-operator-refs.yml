@@ -15,7 +15,7 @@
 name: Update operator dependencies
 on:
   schedule:
-    - cron: '17 4 * * *'
+    - cron: '0 0 * * *'
   workflow_dispatch:
 jobs:
   update:
@@ -26,7 +26,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Update operator refs
-        run: ./hack/update-operator-refs.sh /tmp/operator-refs-summary.md
+        run: ./hack/update-operator-refs.sh
       - name: Prepare pull request body
         run: |
           {
@@ -34,13 +34,9 @@ jobs:
             echo
             echo "Updates operator dependencies in \`package.json\` (\`operatorRepositories\`) to the latest commits:"
             echo
-            cat /tmp/operator-refs-summary.md
-            echo
             echo "This PR was created automatically by the [${{ github.workflow }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) workflow."
           } > /tmp/pr-body.md
       - name: Create pull request
-        # since we're using Bazko' token below to generate PRs, should also make commits by same owner
-        # see https://github.com/che-incubator/chectl/settings/secrets/actions for the token used
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.CHE_INCUBATOR_BOT_GITHUB_TOKEN }}
