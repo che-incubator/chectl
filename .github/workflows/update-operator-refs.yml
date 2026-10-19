@@ -1,0 +1,55 @@
+#
+# Copyright (c) 2019-2026 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+# This Workflow opens a pull request to update che-operator and devworkspace-operator
+# refs in package.json (operatorRepositories) to the latest commit of their tracked branches
+name: Update operator dependencies
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+jobs:
+  update:
+    name: Update operator dependencies
+    if: github.repository == 'che-incubator/chectl'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Update operator refs
+        run: ./hack/update-operator-refs.sh /tmp/operator-refs-summary.md
+      - name: Prepare pull request body
+        run: |
+          {
+            echo "### What does this PR do?"
+            echo
+            echo "Updates operator dependencies in \`package.json\` (\`operatorRepositories\`) to the latest commits:"
+            echo
+            cat /tmp/operator-refs-summary.md
+            echo
+            echo "This PR was created automatically by the [${{ github.workflow }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) workflow."
+          } > /tmp/pr-body.md
+      - name: Create pull request
+        # since we're using Bazko' token below to generate PRs, should also make commits by same owner
+        # see https://github.com/che-incubator/chectl/settings/secrets/actions for the token used
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ secrets.CHE_INCUBATOR_BOT_GITHUB_TOKEN }}
+          author: Anatolii Bazko <abazko@redhat.com>
+          committer: Anatolii Bazko <abazko@redhat.com>
+          signoff: true
+          branch: update-operator-refs
+          delete-branch: true
+          add-paths: package.json
+          commit-message: 'chore(deps): Update che-operator and devworkspace-operator refs'
+          title: 'chore(deps): Update che-operator and devworkspace-operator refs'
+          body-path: /tmp/pr-body.md
