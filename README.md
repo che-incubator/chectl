@@ -178,7 +178,7 @@ DESCRIPTION
   Retrieves Eclipse Che self-signed certificate
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/cacert/export.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/cacert/export.ts)_
 
 ## `chectl commands`
 
@@ -229,7 +229,7 @@ DESCRIPTION
   Open Eclipse Che dashboard
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/dashboard/open.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/dashboard/open.ts)_
 
 ## `chectl help [COMMAND]`
 
@@ -269,7 +269,7 @@ DESCRIPTION
   Enable local debug of Eclipse Che server
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/server/debug.ts)_
 
 ## `chectl server:delete`
 
@@ -294,7 +294,7 @@ DESCRIPTION
   delete any Eclipse Che related resource
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/server/delete.ts)_
 
 ## `chectl server:deploy`
 
@@ -433,7 +433,7 @@ DESCRIPTION
   Deploy Eclipse Che server
 ```
 
-_See code: [src/commands/server/deploy.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/deploy.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/server/deploy.ts)_
 
 ## `chectl server:logs`
 
@@ -453,7 +453,7 @@ DESCRIPTION
   Collect Eclipse Che logs
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/server/logs.ts)_
 
 ## `chectl server:start`
 
@@ -480,7 +480,7 @@ DESCRIPTION
   Start Eclipse Che server
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/server/start.ts)_
 
 ## `chectl server:status`
 
@@ -498,7 +498,7 @@ DESCRIPTION
   Status Eclipse Che server
 ```
 
-_See code: [src/commands/server/status.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/status.ts)_
+_See code: [src/commands/server/status.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/server/status.ts)_
 
 ## `chectl server:stop`
 
@@ -517,7 +517,7 @@ DESCRIPTION
   stop Eclipse Che server
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/server/stop.ts)_
 
 ## `chectl server:update`
 
@@ -631,7 +631,7 @@ EXAMPLES
     $ chectl server:update --olm-channel stable --catalog-source-yaml PATH_TO_CATALOG_SOURCE_YAML
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/server/update.ts)_
 
 ## `chectl update [CHANNEL]`
 
@@ -691,7 +691,7 @@ DESCRIPTION
   Authenticate against a given dashboard URL.
 ```
 
-_See code: [src/commands/workspace/auth.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/auth.ts)_
+_See code: [src/commands/workspace/auth.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/workspace/auth.ts)_
 
 ## `chectl workspace:connect [TARGET]`
 
@@ -714,7 +714,7 @@ DESCRIPTION
   Connect to a developer workspace (DevWorkspace) over SSH. Accepts either a che:// URI or the name of the workspace.
 ```
 
-_See code: [src/commands/workspace/connect.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/connect.ts)_
+_See code: [src/commands/workspace/connect.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/workspace/connect.ts)_
 
 ## `chectl workspace:create [DEVFILEURL]`
 
@@ -737,7 +737,7 @@ DESCRIPTION
   Create a developer workspace (DevWorkspace) for the given devfile URL
 ```
 
-_See code: [src/commands/workspace/create.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/create.ts)_
+_See code: [src/commands/workspace/create.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/workspace/create.ts)_
 
 ## `chectl workspace:delete NAME`
 
@@ -760,7 +760,7 @@ DESCRIPTION
   Delete the given developer workspace (DevWorkspace)
 ```
 
-_See code: [src/commands/workspace/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/delete.ts)_
+_See code: [src/commands/workspace/delete.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/workspace/delete.ts)_
 
 ## `chectl workspace:list`
 
@@ -781,7 +781,7 @@ DESCRIPTION
   List developer workspaces (DevWorkspace) for the authenticated account
 ```
 
-_See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/list.ts)_
+_See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/workspace/list.ts)_
 
 ## `chectl workspace:register-url-handler`
 
@@ -805,7 +805,7 @@ ALIASES
   $ chectl workspace:register-url-handler
 ```
 
-_See code: [src/commands/workspace/register-url-handler.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/register-url-handler.ts)_
+_See code: [src/commands/workspace/register-url-handler.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/workspace/register-url-handler.ts)_
 
 ## `chectl workspace:start NAME`
 
@@ -828,7 +828,7 @@ DESCRIPTION
   Start the given developer workspace (DevWorkspace)
 ```
 
-_See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
+_See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/workspace/start.ts)_
 
 ## `chectl workspace:stop NAME`
 
@@ -851,7 +851,7 @@ DESCRIPTION
   Stop the given developer workspace (DevWorkspace)
 ```
 
-_See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_
+_See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/chectl/blob/v7.124.0/src/commands/workspace/stop.ts)_
 <!-- commandsstop -->
 
 
