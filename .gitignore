@@ -13,6 +13,5 @@ tsconfig.tsbuildinfo
 oclif.manifest.json
 # templates are added at post-install step
 templates
-templates.bak
 .eslintcache
 package.tgz
