@@ -25,11 +25,23 @@ const TEMPLATES = path.join(ROOT, 'templates')
 function fetchRepository(repo, dest) {
   console.log(`Fetching ${repo.name} at ${repo.ref}...`)
   fs.ensureDirSync(dest)
-  const options = { stdio: 'inherit', cwd: dest }
-  execFileSync('git', ['init', '-q', '-b', 'main'], options)
-  execFileSync('git', ['remote', 'add', 'origin', repo.url], options)
-  execFileSync('git', ['fetch', '-q', '--depth', '1', 'origin', repo.ref], options)
-  execFileSync('git', ['checkout', '-q', 'FETCH_HEAD'], options)
+  // GIT_TERMINAL_PROMPT=0 makes an unreachable or renamed remote fail fast
+  // instead of blocking on a credentials prompt in an interactive terminal.
+  const options = { stdio: 'inherit', cwd: dest, env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } }
+  const git = (...args) => {
+    try {
+      execFileSync('git', args, options)
+    } catch (error) {
+      throw new Error(
+        `Unable to fetch ${repo.name} (${repo.url}) at ${repo.ref}: 'git ${args.join(' ')}' exited with code ${error.status ?? error.code}, see the git output above`,
+        { cause: error }
+      )
+    }
+  }
+  git('init', '-q', '-b', 'main')
+  git('remote', 'add', 'origin', repo.url)
+  git('fetch', '-q', '--depth', '1', 'origin', repo.ref)
+  git('checkout', '-q', 'FETCH_HEAD')
 }
 
 function prepareCheOperatorTemplates(repoDir, templatesDir) {
@@ -121,4 +133,9 @@ function main() {
   }
 }
 
-main()
+try {
+  main()
+} catch (error) {
+  console.error(`[ERROR] ${error.message}`)
+  process.exit(1)
+}

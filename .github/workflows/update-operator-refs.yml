@@ -20,22 +20,32 @@ on:
 jobs:
   update:
     name: Update operator dependencies
-    if: github.ref == 'refs/heads/main'
+    if: github.repository == 'che-incubator/chectl' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Update operator refs
+        env:
+          CHANGES_FILE: ${{ runner.temp }}/operator-changes.tsv
         run: ./hack/update-operator-refs.sh
       - name: Prepare pull request body
+        env:
+          CHANGES_FILE: ${{ runner.temp }}/operator-changes.tsv
         run: |
           {
             echo "### What does this PR do?"
             echo
             echo "Updates operator dependencies in \`package.json\` (\`operatorRepositories\`) to the latest commits:"
             echo
-            echo "This PR was created automatically by the [${{ github.workflow }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) workflow."
-          } > /tmp/pr-body.md
+            if [[ -s "${CHANGES_FILE}" ]]; then
+              while IFS=$'\t' read -r name url old new; do
+                echo "- \`${name}\`: \`${old:0:8}\` -> \`${new:0:8}\`"
+              done < "${CHANGES_FILE}"
+            fi
+            echo
+            echo "Created automatically by the [${{ github.workflow }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) workflow."
+          } > ${{ runner.temp }}/pr-body.md
       - name: Create pull request
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
@@ -46,6 +56,9 @@ jobs:
           branch: update-operator-refs
           delete-branch: true
           add-paths: package.json
-          commit-message: 'chore(deps): Update che-operator and devworkspace-operator refs'
-          title: 'chore(deps): Update che-operator and devworkspace-operator refs'
-          body-path: /tmp/pr-body.md
+          commit-message: |
+            chore(deps): Update operator dependencies to the latest commits
+
+            Updates operator dependencies in `package.json` (`operatorRepositories`) to the latest commits.
+          title: 'chore(deps): Update operator dependencies to the latest commits'
+          body-path: ${{ runner.temp }}/pr-body.md

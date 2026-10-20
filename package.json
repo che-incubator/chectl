@@ -131,12 +131,14 @@
     {
       "name": "eclipse-che-operator",
       "url": "https://github.com/eclipse-che/che-operator.git",
-      "ref": "4425a8b340ded9446051118bc3f3e3226fa03cca"
+      "ref": "4425a8b340ded9446051118bc3f3e3226fa03cca",
+      "branch": "main"
     },
     {
       "name": "devworkspace-operator",
       "url": "https://github.com/devfile/devworkspace-operator.git",
-      "ref": "cd25c621588c827f522c79e906de80c3a80e0016"
+      "ref": "cd25c621588c827f522c79e906de80c3a80e0016",
+      "branch": "main"
     }
   ],
   "scripts": {
@@ -153,7 +155,7 @@
     "lint:fix": "eslint --fix --cache=true --no-error-on-unmatched-pattern=true \"{src,tests}/**/*.{ts,tsx}\"",
     "version": "oclif readme && git add README.md",
     "watch": "tsc --watch",
-    "rebuild": "rm -rf node_modules lib tsconfig.tsbuildinfo templates && yarn install"
+    "rebuild-workspace": "rm -rf node_modules lib tsconfig.tsbuildinfo templates && yarn install"
   },
   "types": "lib/index.d.ts",
   "jest": {

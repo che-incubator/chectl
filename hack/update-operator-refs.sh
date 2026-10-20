@@ -11,36 +11,44 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-set -e
+set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 PACKAGE_JSON="${ROOT}/package.json"
 
-for NAME in $(jq -r '.operatorRepositories[].name' "${PACKAGE_JSON}"); do
-  URL=$(jq -r --arg name "${NAME}" '.operatorRepositories[] | select(.name == $name).url' "${PACKAGE_JSON}")
-  CURRENT_REF=$(jq -r --arg name "${NAME}" '.operatorRepositories[] | select(.name == $name).ref' "${PACKAGE_JSON}")
+# Optional: TSV file (name, url, oldRef, newRef) used by the workflow to render the pull request body.
+CHANGES_FILE=${CHANGES_FILE:-/dev/null}
 
-  # On main, refs are commit SHAs. Release branches pin refs to tags
-  # (set by make-release.sh); those must be left untouched.
-  if [[ ! ${CURRENT_REF} =~ ^[0-9a-f]{40}$ ]]; then
-    echo "[INFO] ${NAME} ref '${CURRENT_REF}' is not a commit SHA; skipping"
+UPDATED=0
+
+# @tsv + `read` keeps values containing spaces intact, unlike `for NAME in $(jq ...)`.
+while IFS=$'\t' read -r NAME URL REF BRANCH; do
+  # Only repositories with an explicitly tracked branch are updated. Repositories pinned to a
+  # release tag (see make-release.sh) have no 'branch', so their ref is left untouched.
+  if [[ -z ${BRANCH} ]]; then
+    echo "[INFO] ${NAME}: ref '${REF}' is not tracked (no 'branch' in package.json); skipping"
     continue
   fi
 
-  LATEST_REF=$(git ls-remote --exit-code "${URL}" "refs/heads/main" | cut -f1)
+  # `|| true` keeps the check below reachable under `set -euo pipefail`.
+  LATEST_REF=$(git ls-remote --exit-code "${URL}" "refs/heads/${BRANCH}" | cut -f1 || true)
   if [[ -z ${LATEST_REF} ]]; then
-    echo "[ERROR] Unable to resolve 'main' branch of ${URL}"
+    echo "[ERROR] Unable to resolve branch '${BRANCH}' of ${URL}"
     exit 1
   fi
 
-  if [[ ${CURRENT_REF} == "${LATEST_REF}" ]]; then
-    echo "[INFO] ${NAME} is up to date (${CURRENT_REF})"
+  if [[ ${REF} == "${LATEST_REF}" ]]; then
+    echo "[INFO] ${NAME} is up to date (${REF})"
     continue
   fi
 
-  echo "[INFO] Updating ${NAME}: ${CURRENT_REF} -> ${LATEST_REF}"
+  echo "[INFO] Updating ${NAME}: ${REF} -> ${LATEST_REF}"
+  printf '%s\t%s\t%s\t%s\n' "${NAME}" "${URL}" "${REF}" "${LATEST_REF}" >> "${CHANGES_FILE}"
   jq --arg name "${NAME}" --arg ref "${LATEST_REF}" \
     '(.operatorRepositories[] | select(.name == $name).ref) = $ref' \
     "${PACKAGE_JSON}" > "${PACKAGE_JSON}_"
   mv -f "${PACKAGE_JSON}_" "${PACKAGE_JSON}"
-done
+  UPDATED=$((UPDATED + 1))
+done < <(jq -r '.operatorRepositories[] | [.name, .url, .ref, (.branch // "")] | @tsv' "${PACKAGE_JSON}")
+
+echo "[INFO] Updated ${UPDATED} ref(s)"
