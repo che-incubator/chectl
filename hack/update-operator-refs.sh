@@ -20,6 +20,13 @@ for NAME in $(jq -r '.operatorRepositories[].name' "${PACKAGE_JSON}"); do
   URL=$(jq -r --arg name "${NAME}" '.operatorRepositories[] | select(.name == $name).url' "${PACKAGE_JSON}")
   CURRENT_REF=$(jq -r --arg name "${NAME}" '.operatorRepositories[] | select(.name == $name).ref' "${PACKAGE_JSON}")
 
+  # On main, refs are commit SHAs. Release branches pin refs to tags
+  # (set by make-release.sh); those must be left untouched.
+  if [[ ! ${CURRENT_REF} =~ ^[0-9a-f]{40}$ ]]; then
+    echo "[INFO] ${NAME} ref '${CURRENT_REF}' is not a commit SHA; skipping"
+    continue
+  fi
+
   LATEST_REF=$(git ls-remote --exit-code "${URL}" "refs/heads/main" | cut -f1)
   if [[ -z ${LATEST_REF} ]]; then
     echo "[ERROR] Unable to resolve 'main' branch of ${URL}"

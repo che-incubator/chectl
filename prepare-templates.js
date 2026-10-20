@@ -15,7 +15,7 @@
 const fs = require('fs-extra')
 const os = require('os')
 const path = require('path')
-const { execSync } = require('child_process')
+const { execFileSync } = require('child_process')
 
 const ROOT = __dirname
 const TEMPLATES = path.join(ROOT, 'templates')
@@ -25,15 +25,16 @@ const TEMPLATES = path.join(ROOT, 'templates')
 function fetchRepository(repo, dest) {
   console.log(`Fetching ${repo.name} at ${repo.ref}...`)
   fs.ensureDirSync(dest)
-  execSync(`git init -q -b main && git remote add origin ${repo.url} && git fetch -q --depth 1 origin ${repo.ref} && git checkout -q FETCH_HEAD`, {
-    stdio: 'inherit',
-    cwd: dest
-  })
+  const options = { stdio: 'inherit', cwd: dest }
+  execFileSync('git', ['init', '-q', '-b', 'main'], options)
+  execFileSync('git', ['remote', 'add', 'origin', repo.url], options)
+  execFileSync('git', ['fetch', '-q', '--depth', '1', 'origin', repo.ref], options)
+  execFileSync('git', ['checkout', '-q', 'FETCH_HEAD'], options)
 }
 
-function prepareCheOperatorTemplates(repoDir) {
+function prepareCheOperatorTemplates(repoDir, templatesDir) {
   const src = path.join(repoDir, 'deploy', 'deployment', 'kubernetes', 'objects')
-  const templates = path.join(TEMPLATES, 'che-operator', 'kubernetes')
+  const templates = path.join(templatesDir, 'che-operator', 'kubernetes')
 
   fs.copySync(
     path.join(src, '..', 'org_v2_checluster.yaml'),
@@ -76,9 +77,9 @@ function prepareCheOperatorTemplates(repoDir) {
     path.join(templates, 'org.eclipse.che.MutatingWebhookConfiguration.yaml'))
 }
 
-function prepareDevWorkspaceOperatorTemplates(repoDir) {
+function prepareDevWorkspaceOperatorTemplates(repoDir, templatesDir) {
   const src = path.join(repoDir, 'deploy', 'deployment', 'kubernetes')
-  const templates = path.join(TEMPLATES, 'devworkspace-operator', 'kubernetes')
+  const templates = path.join(templatesDir, 'devworkspace-operator', 'kubernetes')
 
   fs.copySync(
     path.join(src, 'combined.yaml'),
@@ -107,10 +108,14 @@ function main() {
       fetchRepository(repo, path.join(tmpDir, repo.name))
     }
 
-    fs.removeSync(TEMPLATES)
+    // Build templates in a staging directory and swap it into place only after
+    // every copy succeeded, so a failure never leaves a partial templates/ dir.
+    const stagedTemplates = path.join(tmpDir, 'templates')
     for (const repo of repos) {
-      PREPARE_TEMPLATES[repo.name](path.join(tmpDir, repo.name))
+      PREPARE_TEMPLATES[repo.name](path.join(tmpDir, repo.name), stagedTemplates)
     }
+    fs.removeSync(TEMPLATES)
+    fs.moveSync(stagedTemplates, TEMPLATES)
   } finally {
     fs.removeSync(tmpDir)
   }
