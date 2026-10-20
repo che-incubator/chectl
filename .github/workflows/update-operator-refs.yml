@@ -1,0 +1,66 @@
+#
+# Copyright (c) 2019-2026 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+# This Workflow opens a pull request to update che-operator and devworkspace-operator
+# refs in package.json (operatorRepositories) to the latest commit of their main branches
+name: Update operator dependencies
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  update:
+    name: Update operator dependencies
+    if: github.repository == 'che-incubator/chectl' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Update operator refs
+        env:
+          CHANGES_FILE: ${{ runner.temp }}/operator-changes.tsv
+        run: ./hack/update-operator-refs.sh
+      - name: Prepare pull request body
+        env:
+          CHANGES_FILE: ${{ runner.temp }}/operator-changes.tsv
+        run: |
+          {
+            echo "### What does this PR do?"
+            echo
+            echo "Updates operator dependencies in \`package.json\` (\`operatorRepositories\`) to the latest commits:"
+            echo
+            if [[ -s "${CHANGES_FILE}" ]]; then
+              while IFS=$'\t' read -r name url old new; do
+                echo "- \`${name}\`: \`${old:0:8}\` -> \`${new:0:8}\`"
+              done < "${CHANGES_FILE}"
+            fi
+            echo
+            echo "Created automatically by the [${{ github.workflow }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) workflow."
+          } > ${{ runner.temp }}/pr-body.md
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ secrets.CHE_INCUBATOR_BOT_GITHUB_TOKEN }}
+          author: Anatolii Bazko <abazko@redhat.com>
+          committer: Anatolii Bazko <abazko@redhat.com>
+          signoff: true
+          branch: update-operator-refs
+          delete-branch: true
+          add-paths: package.json
+          commit-message: |
+            chore(deps): Update operator dependencies to the latest commits
+
+            Updates operator dependencies in `package.json` (`operatorRepositories`) to the latest commits.
+          title: 'chore(deps): Update operator dependencies to the latest commits'
+          body-path: ${{ runner.temp }}/pr-body.md

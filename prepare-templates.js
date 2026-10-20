@@ -1,21 +1,52 @@
-/*********************************************************************
- * Copyright (c) 2019-2021 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2026 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 'use strict'
 
 const fs = require('fs-extra')
+const os = require('os')
 const path = require('path')
+const { execFileSync } = require('child_process')
 
-function prepareCheOperatorTemplates() {
-  const src = path.join(__dirname, 'node_modules', 'eclipse-che-operator', 'deploy', 'deployment', 'kubernetes', 'objects')
-  const templates = path.join(__dirname, 'templates', 'che-operator', 'kubernetes')
+const ROOT = __dirname
+const TEMPLATES = path.join(ROOT, 'templates')
+
+// Fetches operator repository at the given `ref` (a branch, a tag or a commit SHA) into `dest`.
+// Operator repos have no package.json, so Yarn 4 cannot install them as git deps.
+function fetchRepository(repo, dest) {
+  console.log(`Fetching ${repo.name} at ${repo.ref}...`)
+  fs.ensureDirSync(dest)
+  // GIT_TERMINAL_PROMPT=0 makes an unreachable or renamed remote fail fast
+  // instead of blocking on a credentials prompt in an interactive terminal.
+  const options = { stdio: 'inherit', cwd: dest, env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } }
+  const git = (...args) => {
+    try {
+      execFileSync('git', args, options)
+    } catch (error) {
+      throw new Error(
+        `Unable to fetch ${repo.name} (${repo.url}) at ${repo.ref}: 'git ${args.join(' ')}' exited with code ${error.status ?? error.code}, see the git output above`,
+        { cause: error }
+      )
+    }
+  }
+  git('init', '-q', '-b', 'main')
+  git('remote', 'add', 'origin', repo.url)
+  git('fetch', '-q', '--depth', '1', 'origin', repo.ref)
+  git('checkout', '-q', 'FETCH_HEAD')
+}
+
+function prepareCheOperatorTemplates(repoDir, templatesDir) {
+  const src = path.join(repoDir, 'deploy', 'deployment', 'kubernetes', 'objects')
+  const templates = path.join(templatesDir, 'che-operator', 'kubernetes')
 
   fs.copySync(
     path.join(src, '..', 'org_v2_checluster.yaml'),
@@ -58,15 +89,49 @@ function prepareCheOperatorTemplates() {
     path.join(templates, 'org.eclipse.che.MutatingWebhookConfiguration.yaml'))
 }
 
-function prepareDevWorkspaceOperatorTemplates() {
-  const src = path.join(__dirname, 'node_modules', 'devworkspace-operator', 'deploy', 'deployment', 'kubernetes')
-  const templates = path.join(__dirname, 'templates', 'devworkspace-operator', 'kubernetes')
+function prepareDevWorkspaceOperatorTemplates(repoDir, templatesDir) {
+  const src = path.join(repoDir, 'deploy', 'deployment', 'kubernetes')
+  const templates = path.join(templatesDir, 'devworkspace-operator', 'kubernetes')
 
   fs.copySync(
     path.join(src, 'combined.yaml'),
     path.join(templates, 'combined.yaml'))
 }
 
-fs.removeSync(path.join(__dirname, 'templates'))
-prepareCheOperatorTemplates()
-prepareDevWorkspaceOperatorTemplates()
+const PREPARE_TEMPLATES = {
+  'eclipse-che-operator': prepareCheOperatorTemplates,
+  'devworkspace-operator': prepareDevWorkspaceOperatorTemplates,
+}
+
+function main() {
+  const packageJson = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'))
+  const repos = packageJson.operatorRepositories
+
+  if (!repos || !Array.isArray(repos)) {
+    throw new Error('operatorRepositories not found or invalid in package.json')
+  }
+
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chectl-operators-'))
+  try {
+    for (const repo of repos) {
+      if (!PREPARE_TEMPLATES[repo.name]) {
+        throw new Error(`Unknown operator repository: ${repo.name}`)
+      }
+      fetchRepository(repo, path.join(tmpDir, repo.name))
+    }
+
+    fs.removeSync(TEMPLATES)
+    for (const repo of repos) {
+      PREPARE_TEMPLATES[repo.name](path.join(tmpDir, repo.name), TEMPLATES)
+    }
+  } finally {
+    fs.removeSync(tmpDir)
+  }
+}
+
+try {
+  main()
+} catch (error) {
+  console.error(`[ERROR] ${error.message}`)
+  process.exit(1)
+}
