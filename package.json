@@ -152,7 +152,8 @@
     "lint": "eslint --cache=true --no-error-on-unmatched-pattern=true '{src,tests}/**/*.ts'",
     "lint:fix": "eslint --fix --cache=true --no-error-on-unmatched-pattern=true \"{src,tests}/**/*.{ts,tsx}\"",
     "version": "oclif readme && git add README.md",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "rebuild-workspace": "rm -rf node_modules lib tsconfig.tsbuildinfo templates && yarn install"
   },
   "types": "lib/index.d.ts",
   "jest": {
