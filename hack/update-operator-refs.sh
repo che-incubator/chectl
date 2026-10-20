@@ -15,16 +15,23 @@ set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 PACKAGE_JSON="${ROOT}/package.json"
+TRACKED_BRANCH="main"
 
 # Optional: TSV file (name, url, oldRef, newRef) used by the workflow to render the pull request body.
 CHANGES_FILE=${CHANGES_FILE:-/dev/null}
 
 # @tsv + `read` keeps values containing spaces intact, unlike `for NAME in $(jq ...)`.
-while IFS=$'\t' read -r NAME URL REF BRANCH; do
+while IFS=$'\t' read -r NAME URL REF; do
+  # Only commit SHAs are bumped; a tag or branch ref is a deliberate pin and is left as is.
+  if [[ ! ${REF} =~ ^[0-9a-f]{40}$ ]]; then
+    echo "[INFO] ${NAME} ref '${REF}' is not a commit SHA, skipping"
+    continue
+  fi
+
   # `|| true` keeps the check below reachable under `set -euo pipefail`.
-  LATEST_REF=$(git ls-remote --exit-code "${URL}" "refs/heads/${BRANCH}" | cut -f1 || true)
+  LATEST_REF=$(git ls-remote --exit-code --heads "${URL}" "refs/heads/${TRACKED_BRANCH}" | cut -f1 || true)
   if [[ -z ${LATEST_REF} ]]; then
-    echo "[ERROR] Unable to resolve branch '${BRANCH}' of ${URL}"
+    echo "[ERROR] Unable to resolve branch '${TRACKED_BRANCH}' of ${URL}"
     exit 1
   fi
 
@@ -41,4 +48,4 @@ while IFS=$'\t' read -r NAME URL REF BRANCH; do
     "${PACKAGE_JSON}" > "${PACKAGE_JSON}_"
 
   mv -f "${PACKAGE_JSON}_" "${PACKAGE_JSON}"
-done < <(jq -r '.operatorRepositories[] | [.name, .url, .ref, (.branch // "")] | @tsv' "${PACKAGE_JSON}")
+done < <(jq -r '.operatorRepositories[] | [.name, .url, .ref] | @tsv' "${PACKAGE_JSON}")

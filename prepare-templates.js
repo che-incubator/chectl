@@ -103,6 +103,26 @@ const PREPARE_TEMPLATES = {
   'devworkspace-operator': prepareDevWorkspaceOperatorTemplates,
 }
 
+// The staged dir lives on another filesystem, so moving it is a non-atomic copy.
+// Keep the previous templates/ aside (same-filesystem rename) and restore it on failure.
+function replaceTemplates(stagedTemplates) {
+  const backup = `${TEMPLATES}.bak`
+  fs.removeSync(backup)
+  if (fs.existsSync(TEMPLATES)) {
+    fs.renameSync(TEMPLATES, backup)
+  }
+  try {
+    fs.moveSync(stagedTemplates, TEMPLATES)
+  } catch (error) {
+    fs.removeSync(TEMPLATES)
+    if (fs.existsSync(backup)) {
+      fs.renameSync(backup, TEMPLATES)
+    }
+    throw error
+  }
+  fs.removeSync(backup)
+}
+
 function main() {
   const packageJson = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'))
   const repos = packageJson.operatorRepositories
@@ -126,8 +146,7 @@ function main() {
     for (const repo of repos) {
       PREPARE_TEMPLATES[repo.name](path.join(tmpDir, repo.name), stagedTemplates)
     }
-    fs.removeSync(TEMPLATES)
-    fs.moveSync(stagedTemplates, TEMPLATES)
+    replaceTemplates(stagedTemplates)
   } finally {
     fs.removeSync(tmpDir)
   }
