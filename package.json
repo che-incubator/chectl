@@ -136,7 +136,7 @@
     {
       "name": "devworkspace-operator",
       "url": "https://github.com/devfile/devworkspace-operator.git",
-      "ref": "cd25c621588c827f522c79e906de80c3a80e0016"
+      "ref": "49eaaab3de23d0224b5439b97646e2994fd38fcb"
     }
   ],
   "scripts": {
