@@ -1894,9 +1894,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/table@npm:^1.0.2":
-  version: 1.0.5
-  resolution: "@oclif/table@npm:1.0.5"
+"@oclif/table@npm:^1.0.6":
+  version: 1.0.6
+  resolution: "@oclif/table@npm:1.0.6"
   dependencies:
     "@types/react": "npm:^19.3.0"
     change-case: "npm:^5.4.4"
@@ -1905,10 +1905,10 @@ __metadata:
     natural-orderby: "npm:^3.0.2"
     object-hash: "npm:^3.0.0"
     react: "npm:^19.3.0"
-    string-width: "npm:^8.2.1"
+    string-width: "npm:^8.3.0"
     strip-ansi: "npm:^7.2.0"
     wrap-ansi: "npm:^9.0.2"
-  checksum: 10c0/29d2efbdf54cbd89934b56da78ba17cb33be0618e8bd04b23ba1eab9c1c71c6f71ad12b87c6c134e4d5199f34104af04100c0f9d11fe7091e01d0170e9ce4b34
+  checksum: 10c0/9894cbbfb9fcd3cd86e8cdcb5f78c60aaaf1fca93dca9a1982c4665b48640873eb2bc9c27a03bf44ac30a8815a7cec3e1cc01185f488497a56f1818592e0a99e
   languageName: node
   linkType: hard
 
@@ -4437,7 +4437,7 @@ __metadata:
     "@oclif/plugin-help": "npm:6.2.35"
     "@oclif/plugin-update": "npm:^1.5.0"
     "@oclif/plugin-version": "npm:2.2.36"
-    "@oclif/table": "npm:^1.0.2"
+    "@oclif/table": "npm:^1.0.6"
     "@oclif/test": "npm:^2.5.6"
     "@octokit/rest": "npm:^20.1.2"
     "@types/chai": "npm:5.2.3"
@@ -11163,7 +11163,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"string-width@npm:^8.1.0, string-width@npm:^8.2.0, string-width@npm:^8.2.1":
+"string-width@npm:^8.1.0, string-width@npm:^8.2.0, string-width@npm:^8.3.0":
   version: 8.3.0
   resolution: "string-width@npm:8.3.0"
   dependencies:
