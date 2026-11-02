@@ -23,7 +23,7 @@
     "fs-extra": "^11.4.1",
     "listr": "^0.14.3",
     "lodash": "^4.18.1",
-    "node-forge": "^1.4.0",
+    "node-forge": "^1.4.2",
     "node-notifier": "^11.0.0",
     "protocol-registry": "^2.0.0",
     "semver": "7.8.5",
