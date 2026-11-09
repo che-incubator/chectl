@@ -4467,7 +4467,7 @@ __metadata:
     listr: "npm:^0.14.3"
     lodash: "npm:^4.18.1"
     node-forge: "npm:^1.4.2"
-    node-notifier: "npm:^11.0.0"
+    node-notifier: "npm:^12.1.0"
     oclif: "npm:^3"
     protocol-registry: "npm:^2.0.0"
     semver: "npm:7.8.6"
@@ -9235,13 +9235,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-notifier@npm:^11.0.0":
-  version: 11.0.0
-  resolution: "node-notifier@npm:11.0.0"
+"node-notifier@npm:^12.1.0":
+  version: 12.1.0
+  resolution: "node-notifier@npm:12.1.0"
   dependencies:
     growly: "npm:^1.3.0"
     is-wsl: "npm:^3.1.1"
-  checksum: 10c0/f34bc310364c6b01f93c4e8bbb74cdf34335f9d4d0187d4ab2ff1142a9ab0e0841983dad9ca70b99bfa65c78d6557aff10a7f0dfb573c607c05fc2a6b7f45bb7
+  checksum: 10c0/b0bd77a882fcdd39628689fc199c7a68acb00126f0db68ae9c5f4b0c22f6ef552fba2d734b7011b7fadcd967e20c47116e7c5a4a7a1f685195c4d5d7fc054c84
   languageName: node
   linkType: hard
 
