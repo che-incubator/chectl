@@ -131,7 +131,7 @@
     {
       "name": "eclipse-che-operator",
       "url": "https://github.com/eclipse-che/che-operator.git",
-      "ref": "a52f21c6b997c363cbf60714c7950fccda2ac871"
+      "ref": "fe1a6e220901b5399cb99e2739b8412abb6dbc87"
     },
     {
       "name": "devworkspace-operator",
