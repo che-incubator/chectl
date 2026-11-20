@@ -175,7 +175,7 @@ async function connectDevworkspaceName(workspaceName: string, wm: WorkspaceManag
 
     const pod = await coreApi.readNamespacedPod({ name: podInfo.podName, namespace: workspace.namespace })
     const containers = pod.spec?.containers ?? []
-    const isCheCodeSSHD = containers.some(c => c.name === 'che-code-sshd-page')
+    const isCheCodeSSHD = containers.some(c => c.name.startsWith('che-code-sshd') && c.name.endsWith('-page'))
     if (isCheCodeSSHD) {
         // Read SSH username from main container
         const sshUsername = await execOnPod(kubeConfig,
