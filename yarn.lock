@@ -4471,7 +4471,7 @@ __metadata:
     oclif: "npm:^3"
     protocol-registry: "npm:^2.0.0"
     semver: "npm:7.8.6"
-    ssh-config: "npm:^5.2.1"
+    ssh-config: "npm:^5.3.1"
     ts-jest: "npm:29.4.15"
     typescript: "npm:5.9.3"
     typescript-formatter: "npm:7.2.2"
@@ -11021,10 +11021,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ssh-config@npm:^5.2.1":
-  version: 5.3.0
-  resolution: "ssh-config@npm:5.3.0"
-  checksum: 10c0/b401639cd5ce137961adc88c5becba2da7ff5a7ed17b14b9e051a321fab632ba8476107896a88e7c887eabc1dfcd8efdc3f8c5b709d944867e9d4ebe1d6095e3
+"ssh-config@npm:^5.3.1":
+  version: 5.3.1
+  resolution: "ssh-config@npm:5.3.1"
+  checksum: 10c0/eb6e129dce415849349b4d30a1ad61a972c0c1e00bf64c37422d949523aa3bc35b9ac8fd924738450393c0930b8059b62c1d27167d72804abc355961a3ed71ef
   languageName: node
   linkType: hard
 
